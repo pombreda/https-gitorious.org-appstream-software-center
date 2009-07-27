@@ -7,7 +7,7 @@ import xapian
 from ConfigParser import RawConfigParser, NoOptionError
 from glob import glob
 
-XAPIAN_DATA_ICON = 0
+XAPIAN_DATA_ICON = 172
 
 class DesktopConfigParser(RawConfigParser):
     " thin wrapper that is tailored for xdg Desktop files "
@@ -39,17 +39,25 @@ def update(db, datadir="/usr/share/app-install/"):
         term_generator.set_document(doc)
         try:
             parser.read(desktopf)
-            # special terms
+            # app name is the data
             name = parser.get_desktop("Name")
             doc.set_data(name)
             doc.add_term("AA"+name)
+            # package name
             pkgname = parser.get_desktop("X-AppInstall-Package")
             doc.add_term("AP"+pkgname)
+            # we always need a icon
+            icon = "gtk-missing-image"
             if parser.has_option_desktop("Icon"):
                 icon = parser.get_desktop("Icon")
-                doc.add_value(XAPIAN_DATA_ICON, icon)
+            doc.add_value(XAPIAN_DATA_ICON, icon)
+            # write out categories
             for cat in parser.get_desktop_categories():
                 doc.add_term("AC"+cat.lower())
+            # get type (to distinguish between apps and packages
+            if parser.has_option_desktop("Type"):
+                type = parser.get_desktop("Type")
+                doc.add_term("AT"+type.lower())
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):

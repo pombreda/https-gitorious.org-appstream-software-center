@@ -8,7 +8,7 @@ import os
 import xapian
 import time
 
-XAPIAN_DATA_ICON = 0
+XAPIAN_DATA_ICON = 172
 
 class ExecutionTime(object):
     """
@@ -38,24 +38,40 @@ class AppStore(gtk.GenericTreeModel):
         self.icons = icons
         self.appnames = []
         if not search_term:
-            for m in db.postlist(""):
+            for m in db.postlist("ATapplication"):
                 doc = db.get_document(m.docid)
                 self.appnames.append(doc.get_data())
             self.appnames.sort()
         else:
+            apps = set()
             parser = xapian.QueryParser()
+            enquire = xapian.Enquire(db)
+            enquire.set_weighting_scheme(xapian.BoolWeight())
             user_query = parser.parse_query(search_term)
             #cat_query = xapian.Query("ACgame")
             #query = xapian.Query(xapian.Query.OP_AND, cat_query, user_query)
-            enquire = xapian.Enquire(db)
-            enquire.set_weighting_scheme(xapian.BoolWeight())
             enquire.set_query(user_query)
-            matches = enquire.get_mset(0, 400)
+            matches = enquire.get_mset(0, 200)
             logging.debug("found ~%i matches" % matches.get_matches_estimated())
             for m in matches:
                 doc = m[xapian.MSET_DOCUMENT]
-                name = doc.get_data()
-                self.appnames.append(name)
+                # if it does not have a icon value, its not a app
+                # and comes from a-x-i
+                if not doc.get_value(XAPIAN_DATA_ICON):
+                    # lookup if we have a matching package in our
+                    # database (we prefix package names with AP)
+                    pkgname = doc.get_data()
+                    for i in db.postlist("AP"+pkgname):
+                        appname = db.get_document(i.docid).get_data()
+                        if not appname in apps:
+                            apps.add(appname)
+                            self.appnames.append(appname)
+                else:
+                    # its a app, add it (if we don't have it already
+                    appname = doc.get_data()
+                    if not appname in apps:
+                        apps.add(appname)
+                        self.appnames.append(appname)
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
                 gtk.TREE_MODEL_ITERS_PERSIST)
@@ -136,6 +152,10 @@ if __name__ == "__main__":
     xapian_base_path = "/var/cache/app-install"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = xapian.Database(pathname)
+
+    # add the apt-xapian-database for here
+    axi = xapian.Database("/var/lib/apt-xapian-index/index")
+    db.add_database(axi)
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()
