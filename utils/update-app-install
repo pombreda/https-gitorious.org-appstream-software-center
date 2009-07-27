@@ -1,0 +1,75 @@
+#!/usr/bin/python
+
+import logging
+import os
+import xapian
+
+from ConfigParser import RawConfigParser, NoOptionError
+from glob import glob
+
+XAPIAN_DATA_ICON = 0
+
+class DesktopConfigParser(RawConfigParser):
+    " thin wrapper that is tailored for xdg Desktop files "
+    def get_desktop(self, key):
+        " get generic option under 'Desktop Entry'"
+        return self.get("Desktop Entry", key)
+    def has_option_desktop(self, key):
+        " test if there is the option under 'Desktop Entry'"
+        return self.has_option("Desktop Entry", key)
+    def get_desktop_categories(self):
+        " get the list of categories for the desktop file "
+        categories = []
+        try:
+            categories_str = self.get_desktop("Categories")
+            for item in categories_str.split(";"):
+                if item:
+                    categories.append(item)
+        except NoOptionError:
+            pass
+        return categories
+
+def update(db, datadir="/usr/share/app-install/"):
+    " index the desktop files in $datadir/desktop/*.desktop "
+    term_generator = xapian.TermGenerator()
+    for desktopf in glob(datadir+"/desktop/*.desktop"):
+        logging.debug("processing %s" % desktopf)
+        parser = DesktopConfigParser()
+        doc = xapian.Document()
+        term_generator.set_document(doc)
+        try:
+            parser.read(desktopf)
+            # special terms
+            name = parser.get_desktop("Name")
+            doc.set_data(name)
+            doc.add_term("XA"+name)
+            pkgname = parser.get_desktop("X-AppInstall-Package")
+            doc.add_term("XP"+pkgname)
+            if parser.has_option_desktop("Icon"):
+                icon = parser.get_desktop("Icon")
+                doc.add_value(XAPIAN_DATA_ICON, icon)
+            for cat in parser.get_desktop_categories():
+                doc.add_term("XC"+cat.lower())
+            # now add search data from the desktop file
+            for key in ["Name","Generic Name","Comment"]:
+                if not parser.has_option_desktop(key):
+                    continue
+                s = parser.get_desktop(key)
+                term_generator.index_text_without_positions(s)
+            # FIXME: now do the same for the localizations in the
+            #        desktop file
+        except Exception, e:
+            logging.warn("error processing: %s %s" % (desktopf, e))
+            continue
+        # now add it
+        db.add_document(doc)
+    return True
+
+if __name__ == "__main__":
+    #logging.basicConfig(level=logging.DEBUG)
+    desktop_base_path = "/usr/share/app-install"
+    xapian_base_path = "/var/cache/app-install"
+    
+    pathname = os.path.join(xapian_base_path, "xapian")
+    db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
+    update(db, desktop_base_path)
