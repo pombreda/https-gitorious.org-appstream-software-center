@@ -42,14 +42,14 @@ def update(db, datadir="/usr/share/app-install/"):
             # special terms
             name = parser.get_desktop("Name")
             doc.set_data(name)
-            doc.add_term("XA"+name)
+            doc.add_term("AA"+name)
             pkgname = parser.get_desktop("X-AppInstall-Package")
-            doc.add_term("XP"+pkgname)
+            doc.add_term("AP"+pkgname)
             if parser.has_option_desktop("Icon"):
                 icon = parser.get_desktop("Icon")
                 doc.add_value(XAPIAN_DATA_ICON, icon)
             for cat in parser.get_desktop_categories():
-                doc.add_term("XC"+cat.lower())
+                doc.add_term("AC"+cat.lower())
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):

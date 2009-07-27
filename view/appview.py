@@ -45,7 +45,7 @@ class AppStore(gtk.GenericTreeModel):
         else:
             parser = xapian.QueryParser()
             user_query = parser.parse_query(search_term)
-            #cat_query = xapian.Query("XCgame")
+            #cat_query = xapian.Query("ACgame")
             #query = xapian.Query(xapian.Query.OP_AND, cat_query, user_query)
             enquire = xapian.Enquire(db)
             enquire.set_weighting_scheme(xapian.BoolWeight())
@@ -72,15 +72,13 @@ class AppStore(gtk.GenericTreeModel):
         return rowref
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
-        if (not self.appnames or rowref > len(self.appnames)):
-            return None
         appname = self.appnames[rowref]
         if column == self.COL_NAME:
             return appname
         elif column == self.COL_ICON:
             try:
                 icon_name = ""
-                for post in self.xapiandb.postlist("XA"+appname):
+                for post in self.xapiandb.postlist("AA"+appname):
                     doc = db.get_document(post.docid)
                     icon_name = doc.get_value(XAPIAN_DATA_ICON)
                     icon_name = os.path.splitext(icon_name)[0]
@@ -105,7 +103,7 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_has_child(self, rowref):
         return False
     def on_iter_n_children(self, rowref):
-        logging.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.cache)))
+        logging.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.appnames)))
         if rowref:
             return 0
         return len(self.appnames)
@@ -136,10 +134,6 @@ if __name__ == "__main__":
     xapian_base_path = "/var/cache/app-install"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = xapian.Database(pathname)
-
-    # xapian is really cool!
-    #docs = db.get_postlist("XPapt")
-    #section = db.get_postlist("XSdevel")
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()
