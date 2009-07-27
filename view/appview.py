@@ -65,6 +65,8 @@ class AppStore(gtk.GenericTreeModel):
         return self.column_type[index]
     def on_get_iter(self, path):
         logging.debug("on_get_iter: %s" % path)
+        if len(self.appnames) == 0:
+            return None
         index = path[0]
         return index
     def on_get_path(self, rowref):
