@@ -1,0 +1,12 @@
+
+The following special prefixes are used:
+
+AA - application name (Abiword)
+AP - package name (abiword)
+AS - archive section (main)
+AC - category (AudioVideo)
+AT - type (Application)
+
+The following values are used:
+XAPIAN_VALUE_ICON - icon name
+XAPIAN_VALUE_GETTEXT_DOMAIN - gettext domain
