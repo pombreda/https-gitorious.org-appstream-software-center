@@ -47,7 +47,6 @@ class AppStore(gtk.GenericTreeModel):
             apps = set()
             parser = xapian.QueryParser()
             enquire = xapian.Enquire(db)
-            enquire.set_weighting_scheme(xapian.BoolWeight())
             user_query = parser.parse_query(search_term)
             # ensure that we only search for applicatins here, even
             # when a-x-i is loaded
@@ -62,6 +61,11 @@ class AppStore(gtk.GenericTreeModel):
             logging.debug("found ~%i matches" % matches.get_matches_estimated())
             for m in matches:
                 doc = m[xapian.MSET_DOCUMENT]
+                if "APPVIEW_DEBUG_TERMS" in os.environ:
+                    print doc.get_data()
+                    for t in doc.termlist():
+                        print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
+                    print "\n"
                 appname = doc.get_data()
                 self.appnames.append(appname)
     def on_get_flags(self):

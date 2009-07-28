@@ -9,8 +9,18 @@ import xapian
 from ConfigParser import RawConfigParser, NoOptionError
 from glob import glob
 
+# values used in the database
 XAPIAN_VALUE_ICON = 172
 XAPIAN_VALUE_GETTEXT_DOMAIN = 173
+
+# weights for the different fields
+WEIGHT_DESKTOP_NAME = 10
+WEIGHT_DESKTOP_KEYWORD = 5
+WEIGHT_DESKTOP_GENERICNAME = 3
+WEIGHT_DESKTOP_COMMENT = 1
+
+WEIGHT_APT_SUMMARY = 5
+WEIGHT_APT_DESCRIPTION = 1
 
 class DesktopConfigParser(RawConfigParser):
     " thin wrapper that is tailored for xdg Desktop files "
@@ -70,17 +80,23 @@ def update(db, cache, datadir="/usr/share/app-install/"):
                 if not parser.has_option_desktop(key):
                     continue
                 s = parser.get_desktop(key)
+                w = globals()["WEIGHT_DESKTOP_"+key.replace(" ","").upper()]
                 term_generator.index_text_without_positions(s)
             # add data from the apt cache
             if cache.has_key(pkgname) and cache[pkgname].candidate:
                 s = cache[pkgname].summary
-                term_generator.index_text_without_positions(s)
+                term_generator.index_text_without_positions(s, WEIGHT_APT_SUMMARY)
                 s = cache[pkgname].description
-                term_generator.index_text_without_positions(s)
+                term_generator.index_text_without_positions(s, WEIGHT_APT_DESCRIPTION)
+            # add our keywords (with high priority)
+            if parser.has_option_desktop("X-AppInstall-Keywords"):
+                keywords = parser.get_desktop("X-AppInstall-Keywords")
+                for s in keywords.split(";"):
+                    if s:
+                        term_generator.index_text_without_positions(s, WEIGHT_DESKTOP_KEYWORD)
                 
             # FIXME: now do the same for the localizations in the
             #        desktop file
-            # FIXME2: add X-AppInstall-Keywords (with high prio)
             # FIXME3: add X-AppInstall-Section
         except Exception, e:
             logging.warn("error processing: %s %s" % (desktopf, e))
