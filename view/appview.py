@@ -39,6 +39,7 @@ class AppStore(gtk.GenericTreeModel):
         self.icons = icons
         self.appnames = []
         if not search_term:
+            # limit to applications
             for m in db.postlist("ATapplication"):
                 doc = db.get_document(m.docid)
                 self.appnames.append(doc.get_data())
