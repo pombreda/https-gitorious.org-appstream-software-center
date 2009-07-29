@@ -33,31 +33,20 @@ class AppStore(gtk.GenericTreeModel):
     column_type = (str, 
                    gtk.gdk.Pixbuf)
 
-    def __init__(self, db, icons, search_term="", categories=[]):
+    def __init__(self, db, icons, search_query=None):
         gtk.GenericTreeModel.__init__(self)
         self.xapiandb = db
         self.icons = icons
         self.appnames = []
-        if not search_term:
+        if not search_query:
             # limit to applications
             for m in db.postlist("ATapplication"):
                 doc = db.get_document(m.docid)
                 self.appnames.append(doc.get_data())
             self.appnames.sort()
         else:
-            apps = set()
-            parser = xapian.QueryParser()
             enquire = xapian.Enquire(db)
-            user_query = parser.parse_query(search_term)
-            # ensure that we only search for applicatins here, even
-            # when a-x-i is loaded
-            app_query =  xapian.Query("ATapplication")
-            query = xapian.Query(xapian.Query.OP_AND, app_query, user_query)
-            # limit search to specific categories (if needed)
-            for cat in categories:
-                cat_query = xapian.Query("AC"+cat.lower())
-                query = xapian.Query(xapian.Query.OP_AND, cat_query, query)
-            enquire.set_query(query)
+            enquire.set_query(search_query)
             matches = enquire.get_mset(0, 200)
             logging.debug("found ~%i matches" % matches.get_matches_estimated())
             for m in matches:
@@ -133,13 +122,24 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_parent(self, child):
         return None
 
+def get_query_from_search_entry(search_term):
+    # now build a query
+    parser = xapian.QueryParser()
+    user_query = parser.parse_query(search_term)
+    # ensure that we only search for applicatins here, even
+    # when a-x-i is loaded
+    app_query =  xapian.Query("ATapplication")
+    query = xapian.Query(xapian.Query.OP_AND, app_query, user_query)
+    return query
+
 def on_entry_changed(widget, data):
     new_text = widget.get_text()
     print "on_entry_changed: ", new_text
     #if len(new_text) < 3:
     #    return
     (db, view) = data
-    view.set_model(AppStore(db, icons, new_text))
+    query = get_query_from_search_entry(new_text)
+    view.set_model(AppStore(db, icons, query))
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
