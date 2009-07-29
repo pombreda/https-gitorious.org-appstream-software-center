@@ -7,14 +7,15 @@ import xapian
 from appview import *
 from catview import *
 
-def category_activated(iconview, path, app_view):
+def category_activated(iconview, path, app_view, label):
     (name, pixbuf, query) = iconview.get_model()[path]
     new_model = AppStore(iconview.xapiandb, 
                          iconview.icons, 
                          query, 
-                         limit=2000,
+                         limit=0,
                          sort=True)
     app_view.set_model(new_model)
+    label.set_text("%s items" % len(new_model))
 
 if __name__ == "__main__":
 
@@ -41,13 +42,19 @@ if __name__ == "__main__":
     scroll_app = gtk.ScrolledWindow()
     scroll_app.add(app_view)
 
-    # setup signals
-    cat_view.connect("item-activated", category_activated, app_view)
+    # status label
+    label = gtk.Label()
+
+    # and a status label
     
     # pack and show
     box = gtk.VBox()
     box.pack_start(scroll_cat)
     box.pack_start(scroll_app)
+    box.pack_start(label, expand=False)
+
+    # setup signals
+    cat_view.connect("item-activated", category_activated, app_view, label)
 
     win = gtk.Window()
     win.add(box)
