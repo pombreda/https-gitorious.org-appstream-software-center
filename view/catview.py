@@ -24,6 +24,7 @@ class CategoriesModel(gtk.ListStore):
         " parse a application menu and build xapian querries from it "
         tree = ET.parse(datadir+"/desktop/applications.menu")
         categories = {}
+        only_unallocated = set()
         root = tree.getroot()
         for child in root.getchildren():
             if child.tag == "Menu":
@@ -54,9 +55,22 @@ class CategoriesModel(gtk.ListStore):
                                         query = xapian.Query(xapian.Query.OP_AND, query, q)
                                     else: 
                                         print "UNHANDLED: ", and_elem.tag, and_elem.text
+                    elif element.tag == "OnlyUnallocated":
+                        only_unallocated.add(name)
                     if name and query:
-                        print name, query.get_description()
                         categories[name] = (icon, query)
+        # post processing for <OnlyUnallocated>
+        for unalloc in only_unallocated:
+            (icon, query) = categories[unalloc]
+            for key in categories:
+                if key != unalloc:
+                    (ic, q) = categories[key]
+                    query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
+            categories[unalloc] = (icon, query)
+        # debug print
+        for cat in categories:
+            (icon, query) = categories[cat]
+            print cat, query.get_description()
         return categories
 
 class CategoriesView(gtk.IconView):

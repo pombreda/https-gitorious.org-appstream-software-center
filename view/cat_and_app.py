@@ -44,6 +44,7 @@ if __name__ == "__main__":
 
     # status label
     label = gtk.Label()
+    label.set_text("%s items" % len(app_store))
 
     # and a status label
     
