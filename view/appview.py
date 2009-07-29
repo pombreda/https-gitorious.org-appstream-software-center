@@ -33,7 +33,7 @@ class AppStore(gtk.GenericTreeModel):
     column_type = (str, 
                    gtk.gdk.Pixbuf)
 
-    def __init__(self, db, icons, search_query=None):
+    def __init__(self, db, icons, search_query=None, limit=200, sort=False):
         gtk.GenericTreeModel.__init__(self)
         self.xapiandb = db
         self.icons = icons
@@ -47,7 +47,7 @@ class AppStore(gtk.GenericTreeModel):
         else:
             enquire = xapian.Enquire(db)
             enquire.set_query(search_query)
-            matches = enquire.get_mset(0, 200)
+            matches = enquire.get_mset(0, limit)
             logging.debug("found ~%i matches" % matches.get_matches_estimated())
             for m in matches:
                 doc = m[xapian.MSET_DOCUMENT]
@@ -58,6 +58,8 @@ class AppStore(gtk.GenericTreeModel):
                     print "\n"
                 appname = doc.get_data()
                 self.appnames.append(appname)
+            if sort:
+                self.appnames.sort()
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
                 gtk.TREE_MODEL_ITERS_PERSIST)
@@ -83,7 +85,7 @@ class AppStore(gtk.GenericTreeModel):
             try:
                 icon_name = ""
                 for post in self.xapiandb.postlist("AA"+appname):
-                    doc = db.get_document(post.docid)
+                    doc = self.xapiandb.get_document(post.docid)
                     icon_name = doc.get_value(XAPIAN_VALUE_ICON)
                     icon_name = os.path.splitext(icon_name)[0]
                     break
@@ -121,6 +123,23 @@ class AppStore(gtk.GenericTreeModel):
             return None
     def on_iter_parent(self, child):
         return None
+
+class AppView(gtk.TreeView):
+    def __init__(self, store):
+        gtk.TreeView.__init__(self)
+        self.set_fixed_height_mode(True)
+        tp = gtk.CellRendererPixbuf()
+        column = gtk.TreeViewColumn("Icon", tp, pixbuf=store.COL_ICON)
+        column.set_fixed_width(32)
+        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        self.append_column(column)
+        tr = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Name", tr, markup=store.COL_NAME)
+        column.set_fixed_width(200)
+        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        self.append_column(column)
+        self.set_model(store)
+
 
 def get_query_from_search_entry(search_term):
     # now build a query
@@ -163,22 +182,7 @@ if __name__ == "__main__":
 
     # gui
     scroll = gtk.ScrolledWindow()
-
-    view = gtk.TreeView()
-    view.set_model(store)
-    view.set_fixed_height_mode(True)
-
-    tp = gtk.CellRendererPixbuf()
-    column = gtk.TreeViewColumn("Icon", tp, pixbuf=store.COL_ICON)
-    column.set_fixed_width(32)
-    column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-    view.append_column(column)
-
-    tr = gtk.CellRendererText()
-    column = gtk.TreeViewColumn("Name", tr, markup=store.COL_NAME)
-    column.set_fixed_width(200)
-    column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-    view.append_column(column)
+    view = AppView(store)
 
     entry = gtk.Entry()
     entry.connect("changed", on_entry_changed, (db, view))

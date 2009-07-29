@@ -61,24 +61,28 @@ class CategoriesModel(gtk.ListStore):
 
 class CategoriesView(gtk.IconView):
     def __init__(self, datadir, xapiandb, icons):
-        gtk.IconView.__init__(self, CategoriesModel(datadir, xapiandb, icons))
+        self.xapiandb = xapiandb
+        self.icons = icons
+        model = CategoriesModel(datadir, xapiandb, icons)
+        gtk.IconView.__init__(self, model)
         self.set_markup_column(COL_CAT_NAME)
         self.set_pixbuf_column(COL_CAT_PIXBUF)
-        self.connect("item-activated", self.category_activated)
         self.xapiandb = xapiandb
-    def category_activated(self, iconview, path):
-        (name, pixbuf, query) = iconview.get_model()[path]
-        enquire = xapian.Enquire(self.xapiandb)
-        enquire.set_query(query)
-        matches = enquire.get_mset(0, 2000)
-        for m in matches:
-            doc = m[xapian.MSET_DOCUMENT]
-            appname = doc.get_data()
-            print "appname: ", appname,
+
+
+def category_activated(iconview, path, xapiandb):
+    (name, pixbuf, query) = iconview.get_model()[path]
+    enquire = xapian.Enquire(xapiandb)
+    enquire.set_query(query)
+    matches = enquire.get_mset(0, 2000)
+    for m in matches:
+        doc = m[xapian.MSET_DOCUMENT]
+        appname = doc.get_data()
+        print "appname: ", appname,
             #for t in doc.termlist():
             #    print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
             #print "\n"
-        print len(matches)
+    print len(matches)
 
 if __name__ == "__main__":
 
@@ -96,7 +100,8 @@ if __name__ == "__main__":
 
     # now the store
     view = CategoriesView(datadir, db, icons)
-    
+    view.connect("item-activated", category_activated, db)
+
     # gui
     scroll = gtk.ScrolledWindow()
     scroll.add(view)
