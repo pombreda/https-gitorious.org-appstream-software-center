@@ -47,7 +47,10 @@ class AppStore(gtk.GenericTreeModel):
         else:
             enquire = xapian.Enquire(db)
             enquire.set_query(search_query)
-            matches = enquire.get_mset(0, limit)
+            if limit == 0:
+                matches = enquire.get_mset(0, db.get_doccount())
+            else:
+                matches = enquire.get_mset(0, limit)
             logging.debug("found ~%i matches" % matches.get_matches_estimated())
             for m in matches:
                 doc = m[xapian.MSET_DOCUMENT]
