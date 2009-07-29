@@ -1,4 +1,4 @@
-
+import gobject
 import gtk
 import logging
 import os
@@ -18,7 +18,7 @@ class CategoriesModel(gtk.ListStore):
         for key in sorted(cat.keys()):
             (iconname, query) = cat[key]
             icon = icons.load_icon(iconname, 24, 0)
-            self.append([key, icon, query])
+            self.append([gobject.markup_escape_text(key), icon, query])
 
     def parse_applications_menu(self, datadir):
         " parse a application menu and build xapian querries from it "
@@ -38,6 +38,7 @@ class CategoriesModel(gtk.ListStore):
                         cp = ConfigParser()
                         cp.read("/usr/share/desktop-directories/%s" % element.text)
                         icon = cp.get("Desktop Entry","Icon")
+                        name = cp.get("Desktop Entry","Name")
                     elif element.tag == "Include":
                         query = xapian.Query("")
                         for include in element.getchildren():

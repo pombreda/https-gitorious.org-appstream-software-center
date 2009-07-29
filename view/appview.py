@@ -62,7 +62,7 @@ class AppStore(gtk.GenericTreeModel):
                 appname = doc.get_data()
                 self.appnames.append(appname)
             if sort:
-                self.appnames.sort()
+                self.appnames.sort(key=str.lower)
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
                 gtk.TREE_MODEL_ITERS_PERSIST)
@@ -83,7 +83,7 @@ class AppStore(gtk.GenericTreeModel):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
         appname = self.appnames[rowref]
         if column == self.COL_NAME:
-            return appname
+            return gobject.markup_escape_text(appname)
         elif column == self.COL_ICON:
             try:
                 icon_name = ""
