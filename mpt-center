@@ -1,9 +1,13 @@
 #!/usr/bin/python
 
+import logging
+
 from AppCenter.AppCenter import AppCenter
 
 
 if __name__ == "__main__":
+   logging.basicConfig(level=logging.DEBUG)
+
    datadir = "./data"
    ac = AppCenter(datadir)
    ac.run()

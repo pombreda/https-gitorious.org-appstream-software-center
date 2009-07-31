@@ -64,14 +64,9 @@ class AppStore(gtk.GenericTreeModel):
             # limit to applications
             for m in db.postlist("ATapplication"):
                 doc = db.get_document(m.docid)
-                # check if we have a generic filter function and run
-                # it
-                if filter:
-                    pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-                    if filter(pkgname):
-                        self.appnames.append(doc.get_data())
-                else:
-                    self.appnames.append(doc.get_data())
+                if filter and self.is_filtered_out(filter, doc):
+                    continue
+                self.appnames.append(doc.get_data())
             self.appnames.sort()
         else:
             enquire = xapian.Enquire(db)
@@ -89,9 +84,16 @@ class AppStore(gtk.GenericTreeModel):
                         print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
                     print "\n"
                 appname = doc.get_data()
+                if filter and self.is_filtered_out(filter, doc):
+                    continue
                 self.appnames.append(appname)
             if sort:
                 self.appnames.sort(key=str.lower)
+    def is_filtered_out(self, filter, doc):
+        """ apply filter and return True if the package is filtered out """
+        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        return not filter(pkgname)
+    # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
                 gtk.TREE_MODEL_ITERS_PERSIST)
@@ -161,17 +163,28 @@ class AppView(gtk.TreeView):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
         tp = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("Icon", tp, pixbuf=store.COL_ICON)
+        column = gtk.TreeViewColumn("Icon", tp, pixbuf=AppStore.COL_ICON)
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         tr = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Name", tr, markup=store.COL_NAME)
+        column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_NAME)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         self.set_model(store)
 
+class AppViewInstalledFilter(object):
+    """ 
+    Filter that can be hooked into AppStore that shows only installed packages
+    """
+    def __init__(self, cache):
+        self.cache = cache
+    def filter(self, pkgname):
+        logging.debug(pkgname)
+        if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
+            return True
+        return False
 
 def get_query_from_search_entry(search_term):
     # now build a query

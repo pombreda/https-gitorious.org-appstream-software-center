@@ -82,6 +82,7 @@
               <object class="GtkNotebook" id="notebook_view">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="show_tabs">False</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow_categories">
                     <property name="visible">True</property>

@@ -14,7 +14,7 @@ from gettext import gettext as _
 class ViewSwitcher(gtk.TreeView):
     def __init__(self, store=None):
         if not store:
-            store = ViewList()
+            store = ViewSwitcherList()
             self.set_model(store)
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
@@ -35,7 +35,7 @@ class ViewSwitcher(gtk.TreeView):
         #self.set_enable_tree_lines(False)
         #self.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_NONE)
 
-class ViewList(gtk.ListStore):
+class ViewSwitcherList(gtk.ListStore):
     
     # columns
     (COL_ICON,
@@ -43,15 +43,15 @@ class ViewList(gtk.ListStore):
      COL_ACTION) = range(3)
 
     # items in the treeview
-    (ITEM_AVAILABLE,
-     ITEM_INSTALLED,
-     ITEM_PENDING) = range(3)
+    (ACTION_ITEM_AVAILABLE,
+     ACTION_ITEM_INSTALLED,
+     ACTION_ITEM_PENDING) = range(3)
 
     def __init__(self):
         gtk.ListStore.__init__(self, gtk.gdk.Pixbuf, str, int)
         # setup the normal stuff
-        self.append([None, _("Get new software"), self.ITEM_AVAILABLE])
-        self.append([None, _("Installed software"), self.ITEM_INSTALLED])
+        self.append([None, _("Get new software"), self.ACTION_ITEM_AVAILABLE])
+        self.append([None, _("Installed software"), self.ACTION_ITEM_INSTALLED])
         # setup dbus
         self.system_bus = dbus.SystemBus()
         obj = self.system_bus.get_object("org.debian.apt",
@@ -71,14 +71,14 @@ class ViewList(gtk.ListStore):
         # and if not, delete any items we added already
         if pending > 0:
             for row in self:
-                if row[self.COL_ACTION] == self.ITEM_PENDING:
+                if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     break
             else:
                 self.append([None, _("Pending (%i)") % pending, 
-                             self.ITEM_PENDING])
+                             self.ACTION_ITEM_PENDING])
         else:
             for (i, row) in enumerate(self):
-                if row[self.COL_ACTION] == self.ITEM_PENDING:
+                if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
         return True
 
