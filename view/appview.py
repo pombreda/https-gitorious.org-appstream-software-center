@@ -8,6 +8,7 @@ import os
 import xapian
 import time
 
+XAPIAN_VALUE_PKGNAME = 171
 XAPIAN_VALUE_ICON = 172
 XAPIAN_VALUE_GETTEXT_DOMAIN = 173
 
@@ -26,6 +27,12 @@ class ExecutionTime(object):
         print "%s: %s" % (self.info, time.time() - self.now)
 
 class AppStore(gtk.GenericTreeModel):
+    """ 
+    A subclass GenericTreeModel that reads its data from a xapian
+    database. It can combined with any xapian querry and with
+    a generic filter function (that can filter on data not
+    available in xapian)
+    """
 
     (COL_NAME, 
      COL_ICON,
@@ -33,16 +40,38 @@ class AppStore(gtk.GenericTreeModel):
     column_type = (str, 
                    gtk.gdk.Pixbuf)
 
-    def __init__(self, db, icons, search_query=None, limit=200, sort=False):
+    def __init__(self, db, icons, search_query=None, limit=200, 
+                 sort=False, filter=None):
+        """
+        Initalize a AppStore. 
+
+        :Parameters: 
+        - `db`: a xapian.Database that contians the applications
+        - `icons`: a gtk.IconTheme that contains the icons
+        - `search_query`: a search as a xapian.Query 
+        - `limit`: how many items the search should return (0 == unlimited)
+        - `sort`: sort alphabetically after a search
+                   (default is to use relevance sort)
+        - `filter`: filter functions that can be used to filter the 
+                    data further. A python function that gets a pkgname
+        """
         gtk.GenericTreeModel.__init__(self)
         self.xapiandb = db
         self.icons = icons
         self.appnames = []
+        self.filter = filter
         if not search_query:
             # limit to applications
             for m in db.postlist("ATapplication"):
                 doc = db.get_document(m.docid)
-                self.appnames.append(doc.get_data())
+                # check if we have a generic filter function and run
+                # it
+                if filter:
+                    pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                    if filter(pkgname):
+                        self.appnames.append(doc.get_data())
+                else:
+                    self.appnames.append(doc.get_data())
             self.appnames.sort()
         else:
             enquire = xapian.Enquire(db)

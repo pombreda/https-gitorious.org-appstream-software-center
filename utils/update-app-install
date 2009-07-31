@@ -10,6 +10,7 @@ from ConfigParser import RawConfigParser, NoOptionError
 from glob import glob
 
 # values used in the database
+XAPIAN_VALUE_PKGNAME = 171
 XAPIAN_VALUE_ICON = 172
 XAPIAN_VALUE_GETTEXT_DOMAIN = 173
 
@@ -59,6 +60,7 @@ def update(db, cache, datadir="/usr/share/app-install/"):
             # package name
             pkgname = parser.get_desktop("X-AppInstall-Package")
             doc.add_term("AP"+pkgname)
+            doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
             archive_section = parser.get_desktop("X-AppInstall-Section")
             doc.add_term("AS"+archive_section)
             if parser.has_option_desktop("Icon"):
