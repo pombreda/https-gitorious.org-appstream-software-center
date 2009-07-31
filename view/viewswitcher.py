@@ -55,19 +55,29 @@ class ViewList(gtk.ListStore):
                                          "/org/debian/apt")
         self.aptd = dbus.Interface(obj, 'org.debian.apt')
         # check for pending aptdaemon actions
+        self.check_pending()
         gobject.timeout_add_seconds(1, self.check_pending)
 
     def check_pending(self):
-        print "check_pending"
-        (foo, transactions) = self.aptd.GetActiveTransactions()
-        if len(transactions) > 0:
-            self.append([None, _("Pending (%i)") % len(transactions),
-                         self.ITEM_PENDING])
+        #print "check_pending"
+        pending = 0
+        (current, queue) = self.aptd.GetActiveTransactions()
+        if current or len(queue) > 0:
+            pending = 1 + len(queue)
+        # if we have a pending item, show it in the action view
+        # and if not, delete any items we added already
+        if pending > 0:
+            for row in self:
+                if row[self.COL_ACTION] == self.ITEM_PENDING:
+                    break
+            else:
+                self.append([None, _("Pending (%i)") % pending, 
+                             self.ITEM_PENDING])
         else:
-            # remove
-            for itm in self:
-                if itm[self.COL_ACTION] == self.ITEM_PENDING:
-                    self.remove(itm)
+            for (i, row) in enumerate(self):
+                if row[self.COL_ACTION] == self.ITEM_PENDING:
+                    del self[(i,)]
+        return True
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
