@@ -62,11 +62,14 @@ class AppCenter(SimpleGtkbuilderApp):
         self.installed_filter = AppViewInstalledFilter(self.cache)
 
         # state
-        self.current_query = None
-        self.current_filter = None
+        self.apps_category_query = None
+        self.apps_filter = None
+        self.apps_search_query = None
+        self.apps_sorted = True
+        self.apps_limit = 0
 
     def get_query_from_search_entry(self, search_term):
-        # now build a query
+        """ get xapian.Query from a search term string """
         parser = xapian.QueryParser()
         query = parser.parse_query(search_term)
         return query
@@ -78,33 +81,39 @@ class AppCenter(SimpleGtkbuilderApp):
     def on_entry_search_changed(self, widget):
         new_text = widget.get_text()
         logging.debug("on_entry_changed: %s" % new_text)
-        search_query = self.get_query_from_search_entry(new_text)
-        if self.current_query:
-            query = xapian.Query(xapian.Query.OP_AND, search_query, self.current_query)
+        if not new_text:
+            self.apps_limit = 0
+            self.apps_sorted = True
+            self.apps_search_query = None
         else:
-            query = search_query
-        # get new model
-        new_model = AppStore(self.xapiandb, 
-                             self.icons, 
-                             query)
-        self.app_view.set_model(new_model)
-        id = self.statusbar_main.get_context_id("items")
-        self.statusbar_main.push(id, _("%s items available") % len(new_model))
+            self.apps_search_query = self.get_query_from_search_entry(new_text)
+            self.apps_sorted = False
+            self.apps_limit = 200
+        self.refresh_apps()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
 
-    def refresh_apps(self, query=None, filter=None, sorted=True):
-        # check if we have a new query
-        if not query:
-            query = self.current_query
+    def on_button_search_entry_clear_clicked(self, widget):
+        self.entry_search.set_text("")
+
+    def refresh_apps(self):
+        # build query
+        if self.apps_category_query and self.apps_search_query:
+            query = xapian.Query(xapian.Query.OP_AND, 
+                                 self.apps_category_query,
+                                 self.apps_search_query)
+        elif self.apps_category_query:
+            query = self.apps_category_query
+        elif self.apps_search_query:
+            query = self.apps_search_query
         else:
-            self.current_query = query
-        # get new TreeModel
+            query = None
+        # create new model and attach it
         new_model = AppStore(self.xapiandb, 
                              self.icons, 
                              query, 
-                             limit=0,
-                             sort=sorted,
-                             filter=filter)
+                             limit=self.apps_limit,
+                             sort=self.apps_sorted,
+                             filter=self.apps_filter)
         self.app_view.set_model(new_model)
         id = self.statusbar_main.get_context_id("items")
         self.statusbar_main.push(id, _("%s items available") % len(new_model))
@@ -115,10 +124,12 @@ class AppCenter(SimpleGtkbuilderApp):
         action = model[row][ViewSwitcherList.COL_ACTION]
         if action == ViewSwitcherList.ACTION_ITEM_AVAILABLE:
             logging.debug("show available")
-            self.refresh_apps (filter=None)
+            self.apps_filter = None
+            self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_INSTALLED:
             logging.debug("show installed")
-            self.refresh_apps(filter=self.installed_filter.filter)
+            self.apps_filter = self.installed_filter.filter
+            self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_PENDING:
             logging.debug("show pending")
         else:
@@ -126,7 +137,8 @@ class AppCenter(SimpleGtkbuilderApp):
 
     def category_activated(self, cat_view, path):
         (name, pixbuf, query) = cat_view.get_model()[path]
-        self.refresh_apps(query=query)
+        self.apps_category_query = query
+        self.refresh_apps()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
 
     def run(self):

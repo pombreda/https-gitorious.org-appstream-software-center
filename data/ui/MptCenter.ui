@@ -117,6 +117,7 @@
                             <property name="receives_default">True</property>
                             <property name="xalign">0</property>
                             <property name="yalign">0</property>
+                            <signal name="clicked" handler="on_button_search_entry_clear_clicked"/>
                             <child>
                               <object class="GtkImage" id="image1">
                                 <property name="visible">True</property>
