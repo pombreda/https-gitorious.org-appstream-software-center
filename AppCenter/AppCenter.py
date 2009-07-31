@@ -10,6 +10,7 @@ from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from view.appview import AppView, AppStore, AppViewInstalledFilter
 from view.catview import CategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
+from view.appdetailsview import AppDetailsView
 
 from gettext import gettext as _
 
@@ -21,7 +22,8 @@ class AppCenter(SimpleGtkbuilderApp):
     
     (NOTEBOOK_PAGE_CATEGORIES,
      NOTEBOOK_PAGE_APPLIST,
-     NOTEBOOK_PAGE_PENDING) = range(3)
+     NOTEBOOK_PAGE_APP_DETAILS,
+     NOTEBOOK_PAGE_PENDING) = range(4)
 
     def __init__(self, datadir):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/MptCenter.ui")
@@ -34,6 +36,11 @@ class AppCenter(SimpleGtkbuilderApp):
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path(ICON_PATH)
+
+        # data 
+        # FIXME: progress or thread
+        self.cache = apt.Cache()
+        self.installed_filter = AppViewInstalledFilter(self.cache)
 
         # view switcher
         self.view_switcher = ViewSwitcher()
@@ -51,17 +58,18 @@ class AppCenter(SimpleGtkbuilderApp):
         # apps
         empty_store = gtk.ListStore(gtk.gdk.Pixbuf, str)
         self.app_view = AppView(empty_store)
+        self.app_view.connect("row-activated", self.on_app_activated)
         self.scrolledwindow_applist.add(self.app_view)
         self.app_view.show()
+
+        # details
+        self.app_details_view = AppDetailsView(self.xapiandb, self.icons, self.cache)
+        self.scrolledwindow_app_details.add(self.app_details_view)
+        self.app_details_view.show()
 
         # search
         self.entry_search.connect("changed", self.on_entry_search_changed)
         
-        # data 
-        # FIXME: progress or thread
-        self.cache = apt.Cache()
-        self.installed_filter = AppViewInstalledFilter(self.cache)
-
         # state
         self.apps_category_query = None
         self.apps_filter = None
@@ -92,6 +100,7 @@ class AppCenter(SimpleGtkbuilderApp):
     def on_button_home_clicked(self, widget):
         logging.debug("on_button_home_clicked")
         self.apps_category_query = None
+        self.remove_navigation_buttons()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
 
     def on_entry_search_changed(self, widget):
@@ -134,6 +143,14 @@ class AppCenter(SimpleGtkbuilderApp):
     def on_navigation_button_app_details(self, widget):
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)
 
+    def on_app_activated(self, app_view, path, column):
+        (name, icon) = app_view.get_model()[path]
+        # show new app
+        self.app_details_view.show_app(name)
+        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)
+        # add navigation button
+        self.add_navigation_button(name, self.on_navigation_button_app_details)
+
     def on_category_activated(self, cat_view, path):
         (name, pixbuf, query) = cat_view.get_model()[path]
         self.apps_category_query = query
@@ -141,7 +158,6 @@ class AppCenter(SimpleGtkbuilderApp):
         self.refresh_apps()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
         # update navigation bar
-        self.remove_navigation_buttons()
         self.add_navigation_button(name, self.on_navigation_button_category)
 
     # gui helper
