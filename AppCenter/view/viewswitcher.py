@@ -12,7 +12,10 @@ import dbus
 from gettext import gettext as _
 
 class ViewSwitcher(gtk.TreeView):
-    def __init__(self, store):
+    def __init__(self, store=None):
+        if not store:
+            store = ViewList()
+            self.set_model(store)
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
         tp = gtk.CellRendererPixbuf()
@@ -26,11 +29,11 @@ class ViewSwitcher(gtk.TreeView):
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         self.set_model(store)
+        self.set_headers_visible(False)
         #self.set_headers_visible(False)
         #self.set_grid_lines(False)
         #self.set_enable_tree_lines(False)
         #self.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_NONE)
-
 
 class ViewList(gtk.ListStore):
     

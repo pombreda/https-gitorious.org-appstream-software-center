@@ -12,9 +12,9 @@ from ConfigParser import ConfigParser
  COL_CAT_QUERY) = range(3)
 
 class CategoriesModel(gtk.ListStore):
-    def __init__(self, datadir, xapiandb, icons):
+    def __init__(self, desktopdir, xapiandb, icons):
         gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, object)
-        cat = self.parse_applications_menu(datadir)
+        cat = self.parse_applications_menu(desktopdir)
         for key in sorted(cat.keys()):
             (iconname, query) = cat[key]
             icon = icons.load_icon(iconname, 24, 0)
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
-    view = CategoriesView(datadir, db, icons)
+    view = CategoriesView(desktopdir, db, icons)
     view.connect("item-activated", category_activated, db)
 
     # gui

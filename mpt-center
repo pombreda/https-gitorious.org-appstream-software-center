@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+from AppCenter.AppCenter import AppCenter
+
+
+if __name__ == "__main__":
+   datadir = "./data"
+   ac = AppCenter(datadir)
+   ac.run()
+
