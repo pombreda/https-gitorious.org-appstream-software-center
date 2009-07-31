@@ -53,12 +53,44 @@ class AppCenter(SimpleGtkbuilderApp):
         self.scrolledwindow_applist.add(self.app_view)
         self.app_view.show()
 
-        # data
+        # search
+        self.entry_search.connect("changed", self.on_entry_search_changed)
+        
+        # data 
+        # FIXME: progress or thread
         self.cache = apt.Cache()
         self.installed_filter = AppViewInstalledFilter(self.cache)
 
         # state
         self.current_query = None
+        self.current_filter = None
+
+    def get_query_from_search_entry(self, search_term):
+        # now build a query
+        parser = xapian.QueryParser()
+        query = parser.parse_query(search_term)
+        return query
+
+    def on_button_home_clicked(self, widget):
+        logging.debug("on_button_home_clicked")
+        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+
+    def on_entry_search_changed(self, widget):
+        new_text = widget.get_text()
+        logging.debug("on_entry_changed: %s" % new_text)
+        search_query = self.get_query_from_search_entry(new_text)
+        if self.current_query:
+            query = xapian.Query(xapian.Query.OP_AND, search_query, self.current_query)
+        else:
+            query = search_query
+        # get new model
+        new_model = AppStore(self.xapiandb, 
+                             self.icons, 
+                             query)
+        self.app_view.set_model(new_model)
+        id = self.statusbar_main.get_context_id("items")
+        self.statusbar_main.push(id, _("%s items available") % len(new_model))
+        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
 
     def refresh_apps(self, query=None, filter=None, sorted=True):
         # check if we have a new query
