@@ -52,14 +52,18 @@ class ViewSwitcherList(gtk.ListStore):
         # setup the normal stuff
         self.append([None, _("Get new software"), self.ACTION_ITEM_AVAILABLE])
         self.append([None, _("Installed software"), self.ACTION_ITEM_INSTALLED])
-        # setup dbus
-        self.system_bus = dbus.SystemBus()
-        obj = self.system_bus.get_object("org.debian.apt",
-                                         "/org/debian/apt")
-        self.aptd = dbus.Interface(obj, 'org.debian.apt')
-        # check for pending aptdaemon actions
-        self.check_pending()
-        gobject.timeout_add_seconds(1, self.check_pending)
+        # setup dbus, its ok if aptdaemon is not available, we just
+	# do not show the pending changes tab then
+        try:
+            self.system_bus = dbus.SystemBus()
+            obj = self.system_bus.get_object("org.debian.apt",
+                                             "/org/debian/apt")
+            self.aptd = dbus.Interface(obj, 'org.debian.apt')
+            # check for pending aptdaemon actions
+            self.check_pending()
+            gobject.timeout_add_seconds(1, self.check_pending)
+        except dbus.exceptions.DBusException, e:
+            logging.exception("aptdaemon dbus error")
 
     def check_pending(self):
         #print "check_pending"
