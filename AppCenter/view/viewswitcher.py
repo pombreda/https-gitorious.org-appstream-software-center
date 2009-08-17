@@ -76,6 +76,7 @@ class ViewSwitcherList(gtk.ListStore):
         if pending > 0:
             for row in self:
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
+                    row[self.COL_NAME] = _("Pending (%i)") % pending
                     break
             else:
                 self.append([None, _("Pending (%i)") % pending, 
