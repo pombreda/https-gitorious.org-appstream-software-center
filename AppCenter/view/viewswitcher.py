@@ -54,6 +54,9 @@ class ViewSwitcherList(gtk.ListStore):
         self.append([None, _("Installed software"), self.ACTION_ITEM_INSTALLED])
         # setup dbus, its ok if aptdaemon is not available, we just
 	# do not show the pending changes tab then
+
+        # FIXME: use ActiveTransactionChanged callback from the daemon
+        #        here instead of polling
         try:
             self.system_bus = dbus.SystemBus()
             obj = self.system_bus.get_object("org.debian.apt",
