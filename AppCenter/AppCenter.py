@@ -85,16 +85,23 @@ class AppCenter(SimpleGtkbuilderApp):
         return query
 
     # navigation buttons
-    def add_navigation_button(self, name, callback):
+    def add_navigation_button(self, name, callback, type):
+        self.remove_navigation_button(type)
         button = gtk.Button()
         button.set_label(name)
         button.show()
         button.connect("clicked", callback)
+        button.set_data("navigation-type", type)
         self.hbox_navigation_buttons.pack_start(button, expand=False)
 
     def remove_navigation_buttons(self):
         for w in self.hbox_navigation_buttons:
             self.hbox_navigation_buttons.remove(w)
+
+    def remove_navigation_button(self, type):
+        for w in self.hbox_navigation_buttons:
+            if w.get_data("navigation-type") == type:
+                self.hbox_navigation_buttons.remove(w)
 
     # callbacks
     def on_button_home_clicked(self, widget):
@@ -149,7 +156,7 @@ class AppCenter(SimpleGtkbuilderApp):
         self.app_details_view.show_app(name)
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)
         # add navigation button
-        self.add_navigation_button(name, self.on_navigation_button_app_details)
+        self.add_navigation_button(name, self.on_navigation_button_app_details, "app")
 
     def on_category_activated(self, cat_view, path):
         (name, pixbuf, query) = cat_view.get_model()[path]
@@ -158,7 +165,7 @@ class AppCenter(SimpleGtkbuilderApp):
         self.refresh_apps()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
         # update navigation bar
-        self.add_navigation_button(name, self.on_navigation_button_category)
+        self.add_navigation_button(name, self.on_navigation_button_category, "category")
 
     # gui helper
     def refresh_apps(self):
