@@ -40,13 +40,14 @@ class AppDetailsView(gtk.TextView):
         tag = buffer.create_tag("heading")
         tag.set_property("weight", pango.WEIGHT_HEAVY)
         tag.set_property("scale", pango.SCALE_LARGE)
+        #tag = buffer.create_tag("align-right")
+        #tag.set_property("justification", gtk.JUSTIFY_RIGHT)
 
     def show_app(self, appname):
         logging.debug("AppDetailsView.show_app %s" % appname)
         # get xapian document
         doc = None
         for m in self.xapiandb.postlist("AA"+appname):
-            print m
             doc = self.xapiandb.get_document(m.docid)
             break
         if not doc:
@@ -55,19 +56,36 @@ class AppDetailsView(gtk.TextView):
         iconname = doc.get_value(XAPIAN_VALUE_ICON)
         # get apt cache data
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        pkg = None
         if self.cache.has_key(pkgname):
-            details = self.cache[pkgname].description
-        else:
-            details = _("Not available in apt cache")
-        # clear buffer
+            pkg = self.cache[pkgname]
+
+        # fill the buffer
+        self.clean()
+        self.add_main_icon(iconname)
+        self.add_main_description(appname, pkg)
+        self.add_empty_lines(2)
+        self.add_enable_channel_button(doc)
+        self.add_pkg_action_button(pkg)
+        self.add_homepage_button(pkg)
+        self.add_maintainance_end_dates(pkg)
+
+    # helper to fill the buffer with the pkg information
+    def clean(self):
+        """clean the buffer"""
         buffer = self.get_buffer()
         buffer.delete(buffer.get_start_iter(),
                       buffer.get_end_iter())
-        # text
-        heading = "%s" % appname
-        text = "\n\n%s" % details
-        iter = buffer.get_start_iter()
-        # icon
+
+    def add_empty_lines(self, count=1):
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
+        for i in range(count):
+            buffer.insert(iter, "\n")
+
+    def add_main_icon(self, iconname):
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
         if iconname:
             try:
                 pixbuf = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
@@ -75,21 +93,67 @@ class AppDetailsView(gtk.TextView):
                 pixbuf = self._empty_pixbuf()
         else:
             pixbuf = self._empty_pixbuf()
-        # insert it
+        # insert description 
         buffer.insert_pixbuf(iter, pixbuf)
+
+    def add_main_description(self, appname, pkg):
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
+        if pkg:
+            details = pkg.candidate.description
+        else:
+            details = _("Not available in the current data")
+
+        heading = "%s" % appname
+        text = "\n\n%s" % details
         buffer.insert_with_tags_by_name(iter, heading, "heading")
         buffer.insert_with_tags_by_name(iter, text, "align-to-icon")
+        
 
-        # button homepage
-        if (self.cache.has_key(pkgname) and 
-            self.cache[pkgname].candidate):
-            url = self.cache[pkgname].candidate.homepage
-            if url:
-                buffer.insert(iter, "\n\n")
-                button = self._insert_button(iter, ["align-to-icon"])
-                button.set_tooltip_text(url)
-                button.connect("clicked", self.on_button_homepage_clicked, url)
+    def add_enable_channel_button(self, doc):
+        """add enable-channel button (if needed)"""
+        # FIXME: add code
+        return
+
+    def add_maintainance_end_dates(self, pkg):
+        """add the end of the maintainance time"""
+        # FIXME: add code
+        return
     
+    def add_pkg_action_button(self, pkg):
+        """add pkg action button (install/remove/upgrade)"""
+        if not pkg:
+            return 
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
+        button = self._insert_button(iter, ["align-to-icon"])
+        if pkg.installed and pkg.isUpgradable:
+            button.set_label(_("Upgrade"))
+            button.connect("clicked", self.on_button_upgrade_clicked, pkg.name)
+        elif pkg.installed:
+            button.set_label(_("Remove"))
+            button.connect("clicked", self.on_button_remove_clicked, pkg.name)
+        else:
+            button.set_label(_("Install"))
+            button.connect("clicked", self.on_button_install_clicked, pkg.name)
+    
+    def add_homepage_button(self, pkg):
+        """add homepage button to the current buffer"""
+        if not pkg:
+            return
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
+        url = pkg.candidate.homepage
+        if not url:
+            return
+        # FIXME: right-align
+        buffer.insert(iter, 4*" ")
+        #button = self._insert_button(iter, ["align-right"])
+        button = self._insert_button(iter)
+        button.set_label(_("Homepage"))
+        button.set_tooltip_text(url)
+        button.connect("clicked", self.on_button_homepage_clicked, url)
+
     def _insert_button(self, iter, tag_names=None):
         """
         insert a gtk.Button into at iter with a (optinal) list of tag names
@@ -103,16 +167,27 @@ class AppDetailsView(gtk.TextView):
         if tag_names:
             for tag in tag_names:
                 buffer.apply_tag_by_name(tag, start, iter)
-        button = gtk.Button(_("Homepage"))
+        button = gtk.Button("")
         button.show()
         self.add_child_at_anchor(button, anchor)
         return button
+
+    # callbacks
+    def on_button_upgrade_clicked(self, button, pkgname):
+        print "on_button_upgrade_clicked", pkgname
+
+    def on_button_remove_clicked(self, button, pkgname):
+        print "on_button_remove_clicked", pkgname
+
+    def on_button_install_clicked(self, button, pkgname):
+        print "on_button_install_clicked", pkgname
 
     def on_button_homepage_clicked(self, button, url):
         logging.debug("on_button_homepage_clicked: '%s'" % url)
         cmd = self._url_launch_app()
         subprocess.call([cmd, url])
 
+    # internal helpers
     def _url_launch_app(self):
         """return the most suitable program for opening a url"""
         if "GNOME_DESKTOP_SESSION_ID" in os.environ:
