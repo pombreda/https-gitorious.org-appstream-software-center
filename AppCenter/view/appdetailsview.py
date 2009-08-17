@@ -11,6 +11,10 @@ import time
 import pango
 import subprocess
 
+from aptdaemon import policykit1
+from aptdaemon import client
+from aptdaemon import enums
+ 
 from gettext import gettext as _
 
 XAPIAN_VALUE_PKGNAME = 171
@@ -32,6 +36,11 @@ class AppDetailsView(gtk.TextView):
         self.set_cursor_visible(False)
         self.set_wrap_mode(gtk.WRAP_WORD)
         self._create_tag_table()
+        # aptdaemon
+        self.aptd_client = client.AptClient()
+        self.window_main_xid = None
+        # data
+        self.appname = None
 
     def _create_tag_table(self):
         buffer = self.get_buffer()
@@ -45,6 +54,7 @@ class AppDetailsView(gtk.TextView):
 
     def show_app(self, appname):
         logging.debug("AppDetailsView.show_app %s" % appname)
+        self.appname = appname
         # get xapian document
         doc = None
         for m in self.xapiandb.postlist("AA"+appname):
@@ -173,19 +183,45 @@ class AppDetailsView(gtk.TextView):
         return button
 
     # callbacks
-    def on_button_upgrade_clicked(self, button, pkgname):
-        print "on_button_upgrade_clicked", pkgname
-
-    def on_button_remove_clicked(self, button, pkgname):
-        print "on_button_remove_clicked", pkgname
-
-    def on_button_install_clicked(self, button, pkgname):
-        print "on_button_install_clicked", pkgname
-
     def on_button_homepage_clicked(self, button, url):
         logging.debug("on_button_homepage_clicked: '%s'" % url)
         cmd = self._url_launch_app()
         subprocess.call([cmd, url])
+
+    def on_button_upgrade_clicked(self, button, pkgname):
+        print "on_button_upgrade_clicked", pkgname
+        trans = self.aptd_client.commit_packages([], [], [], [], [pkgname], 
+                                          exit_handler=self._on_trans_finished)
+        trans.run()
+
+    def on_button_remove_clicked(self, button, pkgname):
+        print "on_button_remove_clicked", pkgname
+        trans = self.aptd_client.commit_packages([], [], [pkgname], [], [],
+                                         exit_handler=self._on_trans_finished)
+        trans.run()
+
+    def on_button_install_clicked(self, button, pkgname):
+        print "on_button_install_clicked", pkgname
+        trans = self.aptd_client.commit_packages([pkgname], [], [], [], [],
+                                          exit_handler=self._on_trans_finished)
+        trans.run()
+
+    def _on_trans_finished(self, trans, enum):
+        """callback when a aptdaemon transaction finished"""
+        print "finish: ", trans, enum
+        # FIXME: do something useful here
+        if enum == enums.EXIT_FAILED:
+            excep = trans.get_error()
+            msg = "%s: %s\n%s\n\n%s" % (
+                   _("ERROR"),
+                   enums.get_error_string_from_enum(excep.code),
+                   enums.get_error_description_from_enum(excep.code),
+                   excep.details)
+            print msg
+        # re-open cache and refresh app display
+        # FIXME: threaded to keep the UI alive
+        self.cache.open(apt.progress.OpProgress())
+        self.show_app(self.appname)
 
     # internal helpers
     def _url_launch_app(self):
@@ -213,8 +249,8 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache)
-    view.show_app("AMOR")
-    #view.show_app("3D Chess")
+    #view.show_app("AMOR")
+    view.show_app("3D Chess")
 
     win = gtk.Window()
     scroll.add(view)
