@@ -111,6 +111,7 @@ class AppCenter(SimpleGtkbuilderApp):
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
 
     def on_entry_search_changed(self, widget):
+        self.remove_navigation_button("search")
         new_text = widget.get_text()
         logging.debug("on_entry_changed: %s" % new_text)
         if not new_text:
@@ -121,6 +122,9 @@ class AppCenter(SimpleGtkbuilderApp):
             self.apps_search_query = self.get_query_from_search_entry(new_text)
             self.apps_sorted = False
             self.apps_limit = 200
+            self.add_navigation_button(_("Search"), 
+                                       self.on_navigation_button_category, 
+                                       "search")
         self.refresh_apps()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
 
