@@ -9,6 +9,7 @@ import os
 import xapian
 import time
 import pango
+import subprocess
 
 from gettext import gettext as _
 
@@ -78,6 +79,45 @@ class AppDetailsView(gtk.TextView):
         buffer.insert_pixbuf(iter, pixbuf)
         buffer.insert_with_tags_by_name(iter, heading, "heading")
         buffer.insert_with_tags_by_name(iter, text, "align-to-icon")
+
+        # button homepage
+        if (self.cache.has_key(pkgname) and 
+            self.cache[pkgname].candidate):
+            url = self.cache[pkgname].candidate.homepage
+            if url:
+                buffer.insert(iter, "\n\n")
+                button = self._insert_button(iter, ["align-to-icon"])
+                button.set_tooltip_text(url)
+                button.connect("clicked", self.on_button_homepage_clicked, url)
+    
+    def _insert_button(self, iter, tag_names=None):
+        """
+        insert a gtk.Button into at iter with a (optinal) list of tag names
+        """
+        buffer = self.get_buffer()
+        anchor = buffer.create_child_anchor(iter)
+        # align-to-icon needs (start,end) and we can not just copy
+        # the iter before create_child_anchor (it invalidates it)
+        start = iter.copy()
+        start.backward_char()
+        if tag_names:
+            for tag in tag_names:
+                buffer.apply_tag_by_name(tag, start, iter)
+        button = gtk.Button(_("Homepage"))
+        button.show()
+        self.add_child_at_anchor(button, anchor)
+        return button
+
+    def on_button_homepage_clicked(self, button, url):
+        logging.debug("on_button_homepage_clicked: '%s'" % url)
+        cmd = self._url_launch_app()
+        subprocess.call([cmd, url])
+
+    def _url_launch_app(self):
+        """return the most suitable program for opening a url"""
+        if "GNOME_DESKTOP_SESSION_ID" in os.environ:
+            return "gnome-open"
+        return "xdg-open"
 
     def _empty_pixbuf(self):
         return gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
