@@ -1,4 +1,12 @@
 
+== aptdaemon ==
+ * the dbus limits for the system bus are rather low, this means that
+   adding  <limit name="max_match_rules_per_connection">512</limit> 
+   and using something bigger than 512 is a good idea
+
+
+== XAPIAN ==
+
 The following special prefixes are used:
 
 AA - application name (Abiword)
@@ -8,5 +16,7 @@ AC - category (AudioVideo)
 AT - type (Application)
 
 The following values are used:
+
+XAPIAN_VALUE_PKGNAME - pkgname
 XAPIAN_VALUE_ICON - icon name
 XAPIAN_VALUE_GETTEXT_DOMAIN - gettext domain
