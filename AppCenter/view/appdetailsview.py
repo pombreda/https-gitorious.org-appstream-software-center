@@ -231,8 +231,10 @@ class AppDetailsView(gtk.TextView):
         return "xdg-open"
 
     def _empty_pixbuf(self):
-        return gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
-                              self.APP_ICON_SIZE, self.APP_ICON_SIZE)
+        pix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
+                             self.APP_ICON_SIZE, self.APP_ICON_SIZE)
+        pix.fill(0)
+        return pix
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
