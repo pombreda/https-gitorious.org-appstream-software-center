@@ -11,6 +11,7 @@ from view.appview import AppView, AppStore, AppViewInstalledFilter
 from view.catview import CategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.appdetailsview import AppDetailsView
+from view.pendingview import PendingView
 
 from gettext import gettext as _
 
@@ -61,6 +62,10 @@ class AppCenter(SimpleGtkbuilderApp):
         self.app_view.connect("row-activated", self.on_app_activated)
         self.scrolledwindow_applist.add(self.app_view)
         self.app_view.show()
+
+        # pending
+        self.pending_view = PendingView()
+        self.scrolledwindow_transactions.add(self.pending_view)
 
         # details
         self.app_details_view = AppDetailsView(self.xapiandb, self.icons, self.cache)

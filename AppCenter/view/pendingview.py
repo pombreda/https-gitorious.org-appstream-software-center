@@ -74,6 +74,7 @@ class PendingStore(gtk.ListStore):
 class PendingView(gtk.TreeView):
     def __init__(self):
         gtk.TreeView.__init__(self)
+        self.set_headers_visible(False)
         # icon
         tp = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=PendingStore.COL_ICON)
