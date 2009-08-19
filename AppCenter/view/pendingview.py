@@ -20,7 +20,7 @@ class PendingStore(gtk.ListStore):
      COL_STATUS, 
      COL_PROGRESS) = range(5)
 
-    def __init__(self):
+    def __init__(self, icons):
         # icon, status, progress
         gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, str, str, float)
         # the apt-daemon stuff
@@ -29,6 +29,7 @@ class PendingStore(gtk.ListStore):
         self.apt_daemon.connect_to_signal("ActiveTransactionsChanged",
                                           self.on_transactions_changed)
         self._signals = []
+        self.icons = icons
 
     def clear(self):
         super(PendingStore, self).clear()
@@ -37,7 +38,7 @@ class PendingStore(gtk.ListStore):
         self._signals = []
 
     def on_transactions_changed(self, current_tid, pending_tids):
-        print "on_transaction_changed", current_tid, len(pending_tids)
+        #print "on_transaction_changed", current_tid, len(pending_tids)
         self.clear()
         for tid in [current_tid]+pending_tids:
             if not tid:
@@ -50,7 +51,14 @@ class PendingStore(gtk.ListStore):
             #FIXME: role is always "Applying changes"
             #self._signals.append(
             #    trans.connect("role", self._on_role_changed))
-            self.append([tid, None, "", "", 0.0])
+            appname = trans.get_data("appname")
+            iconname = trans.get_data("iconname")
+            if iconname:
+                icon = self.icons.load_icon(iconname, 24, 0)
+            else:
+                icon = None
+            self.append([tid, icon, appname, "", 0.0])
+            del trans
 
     def _on_role_changed(self, trans, role):
         #print "_on_progress_changed: ", trans, progress
@@ -72,10 +80,11 @@ class PendingStore(gtk.ListStore):
 
 
 class PendingView(gtk.TreeView):
-    def __init__(self):
+    def __init__(self, icons):
         gtk.TreeView.__init__(self)
         self.set_headers_visible(False)
         # icon
+        self.icons = icons
         tp = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=PendingStore.COL_ICON)
         column.set_fixed_width(32)
@@ -94,13 +103,14 @@ class PendingView(gtk.TreeView):
                                     text=PendingStore.COL_STATUS)
         self.append_column(column)
         # add it
-        store = PendingStore()
+        store = PendingStore(icons)
         self.set_model(store)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    view = PendingView()
+    icons = gtk.icon_theme_get_default()
+    view = PendingView(icons)
 
     # gui
     scroll = gtk.ScrolledWindow()

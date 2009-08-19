@@ -76,7 +76,7 @@ class AppDetailsView(gtk.TextView):
         self.add_main_description(appname, pkg)
         self.add_empty_lines(2)
         self.add_enable_channel_button(doc)
-        self.add_pkg_action_button(pkg)
+        self.add_pkg_action_button(appname, pkg, iconname)
         self.add_homepage_button(pkg)
         self.add_maintainance_end_dates(pkg)
 
@@ -130,7 +130,7 @@ class AppDetailsView(gtk.TextView):
         # FIXME: add code
         return
     
-    def add_pkg_action_button(self, pkg):
+    def add_pkg_action_button(self, appname, pkg, iconname):
         """add pkg action button (install/remove/upgrade)"""
         if not pkg:
             return 
@@ -139,13 +139,13 @@ class AppDetailsView(gtk.TextView):
         button = self._insert_button(iter, ["align-to-icon"])
         if pkg.installed and pkg.isUpgradable:
             button.set_label(_("Upgrade"))
-            button.connect("clicked", self.on_button_upgrade_clicked, pkg.name)
+            button.connect("clicked", self.on_button_upgrade_clicked, appname, pkg.name, iconname)
         elif pkg.installed:
             button.set_label(_("Remove"))
-            button.connect("clicked", self.on_button_remove_clicked, pkg.name)
+            button.connect("clicked", self.on_button_remove_clicked, appname, pkg.name, iconname)
         else:
             button.set_label(_("Install"))
-            button.connect("clicked", self.on_button_install_clicked, pkg.name)
+            button.connect("clicked", self.on_button_install_clicked, appname, pkg.name, iconname)
     
     def add_homepage_button(self, pkg):
         """add homepage button to the current buffer"""
@@ -188,27 +188,36 @@ class AppDetailsView(gtk.TextView):
         cmd = self._url_launch_app()
         subprocess.call([cmd, url])
 
-    def on_button_upgrade_clicked(self, button, pkgname):
-        print "on_button_upgrade_clicked", pkgname
+    def on_button_upgrade_clicked(self, button, appname, pkgname, iconname):
+        #print "on_button_upgrade_clicked", pkgname
         trans = self.aptd_client.commit_packages([], [], [], [], [pkgname], 
                                           exit_handler=self._on_trans_finished)
+        trans.set_data("appname", appname)
+        trans.set_data("iconname", iconname)
+        trans.set_data("pkgname", pkgname)
         trans.run()
 
-    def on_button_remove_clicked(self, button, pkgname):
-        print "on_button_remove_clicked", pkgname
+    def on_button_remove_clicked(self, button, appname, pkgname, iconname):
+        #print "on_button_remove_clicked", pkgname
         trans = self.aptd_client.commit_packages([], [], [pkgname], [], [],
                                          exit_handler=self._on_trans_finished)
+        trans.set_data("pkgname", pkgname)
+        trans.set_data("appname", appname)
+        trans.set_data("iconname", iconname)
         trans.run()
 
-    def on_button_install_clicked(self, button, pkgname):
-        print "on_button_install_clicked", pkgname
+    def on_button_install_clicked(self, button, appname, pkgname, iconname):
+        #print "on_button_install_clicked", pkgname
         trans = self.aptd_client.commit_packages([pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
+        trans.set_data("pkgname", pkgname)
+        trans.set_data("appname", appname)
+        trans.set_data("iconname", iconname)
         trans.run()
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
-        print "finish: ", trans, enum
+        #print "finish: ", trans, enum
         # FIXME: do something useful here
         if enum == enums.EXIT_FAILED:
             excep = trans.get_error()

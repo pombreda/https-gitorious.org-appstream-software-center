@@ -64,7 +64,7 @@ class AppCenter(SimpleGtkbuilderApp):
         self.app_view.show()
 
         # pending
-        self.pending_view = PendingView()
+        self.pending_view = PendingView(self.icons)
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # details
