@@ -27,7 +27,7 @@ class AppCenter(SimpleGtkbuilderApp):
      NOTEBOOK_PAGE_PENDING) = range(4)
 
     def __init__(self, datadir):
-        SimpleGtkbuilderApp.__init__(self, datadir+"/ui/MptCenter.ui")
+        SimpleGtkbuilderApp.__init__(self, datadir+"/ui/AppCenter.ui")
 
         # xapian
         xapian_base_path = XAPIAN_BASE_PATH

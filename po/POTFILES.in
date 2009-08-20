@@ -1,0 +1,11 @@
+mpt-center
+AppCenter/AppCenter.py
+AppCenter/__init__.py
+AppCenter/SimpleGtkbuilderApp.py
+AppCenter/view/__init__.py
+AppCenter/view/appdetailsview.py
+AppCenter/view/appview.py
+AppCenter/view/catview.py
+AppCenter/view/installed_view.py
+AppCenter/view/pendingview.py
+AppCenter/view/viewswitcher.py
