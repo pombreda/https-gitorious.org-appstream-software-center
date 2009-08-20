@@ -33,6 +33,10 @@ class AppCenter(SimpleGtkbuilderApp):
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
         self.xapiandb = xapian.Database(pathname)
+        self.xapian_parser = xapian.QueryParser()
+        self.xapian_parser.set_database(self.xapiandb)
+        self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        #self.xapian_parser.add_boolean_prefix("section", "AS")
 
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
@@ -74,7 +78,7 @@ class AppCenter(SimpleGtkbuilderApp):
 
         # search
         self.entry_search.connect("changed", self.on_entry_search_changed)
-        
+
         # state
         self.apps_category_query = None
         self.apps_filter = None
@@ -82,11 +86,15 @@ class AppCenter(SimpleGtkbuilderApp):
         self.apps_sorted = True
         self.apps_limit = 0
 
+        # default focus
+        self.entry_search.grab_focus()
+
     # xapian query
     def get_query_from_search_entry(self, search_term):
         """ get xapian.Query from a search term string """
-        parser = xapian.QueryParser()
-        query = parser.parse_query(search_term)
+        query = self.xapian_parser.parse_query(search_term, 
+                                               xapian.QueryParser.FLAG_PARTIAL)
+        # FIXME: expand to add "AA" and "AP" before each search term?
         return query
 
     # navigation buttons

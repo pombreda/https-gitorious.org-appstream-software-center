@@ -12,8 +12,9 @@ if __name__ == "__main__":
     db = xapian.Database(pathname)
 
     parser = xapian.QueryParser()
-    parser.set_stemmer(xapian.Stem("english"))
-    parser.set_stemming_strategy(xapian.QueryParser.STEM_ALL)
+    #parser.set_stemmer(xapian.Stem("english"))
+    #parser.set_stemming_strategy(xapian.QueryParser.STEM_ALL)
+    parser.set_database(db)
     #parser.add_prefix("pkg", "AP")
     query = parser.parse_query(search_term, 
                                xapian.QueryParser.FLAG_PARTIAL|
@@ -28,7 +29,7 @@ if __name__ == "__main__":
         print doc.get_data()
         #for t in doc.termlist():
         #    print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
-        print "\n"
+        #print "\n"
         appname = doc.get_data()
     
     # calculate a eset
