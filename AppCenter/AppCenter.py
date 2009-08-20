@@ -79,7 +79,7 @@ class AppCenter(SimpleGtkbuilderApp):
         self.entry_search.connect("changed", self.on_entry_search_changed)
 
         # state
-        self.apps_apt_filter = AppViewAptFilter(self.cache)
+        self.apps_filter = AppViewFilter(self.cache)
         self.apps_category_query = None
         self.apps_search_query = None
         self.apps_sorted = True
@@ -118,12 +118,12 @@ class AppCenter(SimpleGtkbuilderApp):
     # callbacks
     def on_menuitem_view_all_activate(self, widget):
         print "on_menuitem_view_all_activate", widget
-        self.apps_apt_filter.set_supported_only(False)
+        self.apps_filter.set_supported_only(False)
         self.refresh_apps()
 
     def on_menuitem_view_canonical_activate(self, widget):
         print "on_menuitem_view_canonical_activate", widget
-        self.apps_apt_filter.set_supported_only(True)
+        self.apps_filter.set_supported_only(True)
         self.refresh_apps()
 
     def on_button_home_clicked(self, widget):
@@ -160,12 +160,12 @@ class AppCenter(SimpleGtkbuilderApp):
         if action == ViewSwitcherList.ACTION_ITEM_AVAILABLE:
             logging.debug("show available")
             self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
-            self.apps_apt_filter.set_installed_only(False)
+            self.apps_filter.set_installed_only(False)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_INSTALLED:
             logging.debug("show installed")
             self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
-            self.apps_apt_filter.set_installed_only(True)
+            self.apps_filter.set_installed_only(True)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_PENDING:
             logging.debug("show pending")
@@ -216,7 +216,7 @@ class AppCenter(SimpleGtkbuilderApp):
                              query, 
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
-                             filter=self.apps_apt_filter)
+                             filter=self.apps_filter)
         self.app_view.set_model(new_model)
         id = self.statusbar_main.get_context_id("items")
         self.statusbar_main.push(id, _("%s items available") % len(new_model))

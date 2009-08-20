@@ -20,3 +20,4 @@ The following values are used:
 XAPIAN_VALUE_PKGNAME - pkgname
 XAPIAN_VALUE_ICON - icon name
 XAPIAN_VALUE_GETTEXT_DOMAIN - gettext domain
+XAPIAN_VALUE_ARCHIVE_SECTION - archive section (main, restricted, universe, multiverse)

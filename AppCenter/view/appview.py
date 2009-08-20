@@ -11,6 +11,7 @@ import time
 XAPIAN_VALUE_PKGNAME = 171
 XAPIAN_VALUE_ICON = 172
 XAPIAN_VALUE_GETTEXT_DOMAIN = 173
+XAPIAN_VALUE_ARCHIVE_SECTION = 174
 
 class ExecutionTime(object):
     """
@@ -92,7 +93,7 @@ class AppStore(gtk.GenericTreeModel):
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-        return not filter.filter(pkgname)
+        return not filter.filter(doc, pkgname)
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -174,9 +175,11 @@ class AppView(gtk.TreeView):
         self.append_column(column)
         self.set_model(store)
 
-class AppViewAptFilter(object):
+class AppViewFilter(object):
     """ 
-    Filter that can be hooked into AppStore that shows only installed packages
+    Filter that can be hooked into AppStore to filter for criteria that
+    are based around the package details that are not listed in xapian
+    (like installed_only) or archive section
     """
     def __init__(self, cache):
         self.cache = cache
@@ -186,20 +189,20 @@ class AppViewAptFilter(object):
         self.supported_only = v
     def set_installed_only(self, v):
         self.installed_only = v
-    def filter(self, pkgname):
+    def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
         logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
             if (self.cache.has_key(pkgname) and 
                 not self.cache[pkgname].isInstalled):
                 return False
-        # FIXME: this is not enough - we need a better method that uses
-        #        the origin or something
+        # FIXME: add special property to the desktop file instead?
+        #        what about in the future when we support pkgs without
+        #        desktop files?
         if self.supported_only:
-            if (self.cache.has_key(pkgname) and
-                (self.cache[pkgname].section.startswith("universe") or
-                 self.cache[pkgname].section.startswith("multiverse"))):
-                    return False
+            section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+            if section != "main" or section != "restricted":
+                return False
         return True
 
 def get_query_from_search_entry(search_term):
@@ -239,7 +242,11 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
-    store = AppStore(db, icons)
+    import apt
+    cache = apt.Cache(apt.progress.OpTextProgress())
+    filter = AppViewFilter(cache)
+    filter.set_supported_only(True)
+    store = AppStore(db, icons, filter=filter)
 
     # gui
     scroll = gtk.ScrolledWindow()
