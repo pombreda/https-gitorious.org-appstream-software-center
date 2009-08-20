@@ -4,6 +4,8 @@ import logging
 import os
 import xapian
 
+
+from gettext import gettext as _
 from xml.etree import ElementTree as ET
 from ConfigParser import ConfigParser
 
@@ -74,6 +76,36 @@ class CategoriesModel(gtk.ListStore):
             print cat, query.get_description()
         return categories
 
+class LabeledCategoriesView(gtk.Viewport):
+    def __init__(self, datadir, xapiandb, icons):
+        gtk.Viewport.__init__(self)
+        # a vbox in the outside and a hbox in the inside
+        vbox = gtk.VBox()
+        align = gtk.Alignment()
+        top = bottom = 2
+        left = right = 8
+        align.set_padding(top, bottom, left, right)
+        # we need a eventbox around the label to set the background
+        label = gtk.Label("")
+        label.set_markup("<b>%s</b>" % _("Categories"))
+        label.set_alignment(0.0, 0.5)
+        align.add(label)
+        align.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("yellow"))
+        eb = gtk.EventBox()
+        eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("yellow"))
+        eb.add(align)
+        # needed to make the background not spawn all over
+        hbox_inside = gtk.HBox()
+        hbox_inside.pack_start(eb, expand=False, fill=False)
+        # FIXME: how to make sure the background color is right
+        #hbox_inside.pack_start(gtk.IconView())
+        vbox.pack_start(hbox_inside, expand=False, fill=False)
+        # and now the categoryies
+        self.catview = CategoriesView(datadir, xapiandb, icons)
+        vbox.pack_start(self.catview)
+        self.add(vbox)
+        # FIXME: add the row-activated signal
+
 class CategoriesView(gtk.IconView):
     def __init__(self, datadir, xapiandb, icons):
         # model
@@ -133,6 +165,7 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
+    #view = LabeledCategoriesView(datadir, db, icons)
     view = CategoriesView(datadir, db, icons)
     view.connect("item-activated", category_activated, db)
 
