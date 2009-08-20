@@ -34,6 +34,26 @@ class ViewSwitcher(gtk.TreeView):
         #self.set_grid_lines(False)
         #self.set_enable_tree_lines(False)
         #self.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_NONE)
+        # single click
+        self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
+        self.connect("motion-notify-event", self.on_motion_notify_event)
+        self.connect("button-press-event", self.on_button_press_event)
+    def on_motion_notify_event(self, widget, event):
+        #print "on_motion_notify_event: ", event
+        path = self.get_path_at_pos(event.x, event.y)
+        if path is None:
+            self.window.set_cursor(None)
+        else:
+            self.window.set_cursor(self.cursor_hand)
+    def on_button_press_event(self, widget, event):
+        #print "on_button_press_event: ", event
+        res = self.get_path_at_pos(event.x, event.y)
+        if not res:
+            return
+        (path, column, wx, wy) = res
+        if event.button != 1 or path is None:
+            return
+        self.emit("row-activated", path, column)
 
 class ViewSwitcherList(gtk.ListStore):
     
@@ -94,7 +114,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     # now the store
-    store = ViewList()
+    store = ViewSwitcherList()
 
     # gui
     scroll = gtk.ScrolledWindow()
