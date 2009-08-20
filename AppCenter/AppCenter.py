@@ -7,7 +7,7 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-from view.appview import AppView, AppStore, AppViewAptFilter
+from view.appview import AppView, AppStore, AppViewFilter
 from view.catview import CategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.appdetailsview import AppDetailsView
