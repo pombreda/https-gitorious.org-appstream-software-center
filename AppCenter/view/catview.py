@@ -99,7 +99,7 @@ class CategoriesView(gtk.IconView):
     def on_button_press_event(self, widget, event):
         #print "on_button_press_event: ", event
         path = self.get_path_at_pos(event.x, event.y)
-        if path is None:
+        if event.button != 1 or path is None:
             return
         self.emit("item-activated", path)
 
