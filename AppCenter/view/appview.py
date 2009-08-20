@@ -201,7 +201,7 @@ class AppViewFilter(object):
         #        desktop files?
         if self.supported_only:
             section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-            if section != "main" or section != "restricted":
+            if section != "main" and section != "restricted":
                 return False
         return True
 
