@@ -8,7 +8,11 @@ from AppCenter.AppCenter import AppCenter
 if __name__ == "__main__":
    logging.basicConfig(level=logging.DEBUG)
 
-   datadir = "./data"
+   if os.path.exists("./data"):
+      datadir = "./data"
+   else:
+      datadir = "/usr/share/app-center/"
+
    ac = AppCenter(datadir)
    ac.run()
 
