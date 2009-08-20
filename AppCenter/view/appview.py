@@ -174,6 +174,23 @@ class AppView(gtk.TreeView):
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         self.set_model(store)
+        # single click
+        self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
+        self.connect("motion-notify-event", self.on_motion_notify_event)
+        self.connect("button-press-event", self.on_button_press_event)
+    def on_motion_notify_event(self, widget, event):
+        #print "on_motion_notify_event: ", event
+        path = self.get_path_at_pos(event.x, event.y)
+        if path is None:
+            self.window.set_cursor(None)
+        else:
+            self.window.set_cursor(self.cursor_hand)
+    def on_button_press_event(self, widget, event):
+        #print "on_button_press_event: ", event
+        path = self.get_path_at_pos(event.x, event.y)
+        if event.button != 1 or path is None:
+            return
+        self.emit("item-activated", path)
 
 class AppViewFilter(object):
     """ 
