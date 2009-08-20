@@ -76,15 +76,34 @@ class CategoriesModel(gtk.ListStore):
 
 class CategoriesView(gtk.IconView):
     def __init__(self, datadir, xapiandb, icons):
-        self.xapiandb = xapiandb
-        self.icons = icons
+        # model
         model = CategoriesModel(datadir, xapiandb, icons)
         gtk.IconView.__init__(self, model)
+        # data
+        self.xapiandb = xapiandb
+        self.icons = icons
+        self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
+        # customization
         self.set_markup_column(COL_CAT_NAME)
         self.set_pixbuf_column(COL_CAT_PIXBUF)
-        self.xapiandb = xapiandb
+        # signals
+        self.connect("motion-notify-event", self.on_motion_notify_event)
+        self.connect("button-press-event", self.on_button_press_event)
+    def on_motion_notify_event(self, widget, event):
+        #print "on_motion_notify_event: ", event
+        path = self.get_path_at_pos(event.x, event.y)
+        if path is None:
+            self.window.set_cursor(None)
+        else:
+            self.window.set_cursor(self.cursor_hand)
+    def on_button_press_event(self, widget, event):
+        #print "on_button_press_event: ", event
+        path = self.get_path_at_pos(event.x, event.y)
+        if path is None:
+            return
+        self.emit("item-activated", path)
 
-
+# test code
 def category_activated(iconview, path, xapiandb):
     (name, pixbuf, query) = iconview.get_model()[path]
     enquire = xapian.Enquire(xapiandb)
@@ -114,7 +133,7 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
-    view = CategoriesView(desktopdir, db, icons)
+    view = CategoriesView(datadir, db, icons)
     view.connect("item-activated", category_activated, db)
 
     # gui
