@@ -7,7 +7,7 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-from view.appview import AppView, AppStore, AppViewInstalledFilter
+from view.appview import AppView, AppStore, AppViewAptFilter
 from view.catview import CategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.appdetailsview import AppDetailsView
@@ -45,7 +45,6 @@ class AppCenter(SimpleGtkbuilderApp):
         # data 
         # FIXME: progress or thread
         self.cache = apt.Cache()
-        self.installed_filter = AppViewInstalledFilter(self.cache)
 
         # view switcher
         self.view_switcher = ViewSwitcher()
@@ -80,8 +79,8 @@ class AppCenter(SimpleGtkbuilderApp):
         self.entry_search.connect("changed", self.on_entry_search_changed)
 
         # state
+        self.apps_apt_filter = AppViewAptFilter(self.cache)
         self.apps_category_query = None
-        self.apps_filter = None
         self.apps_search_query = None
         self.apps_sorted = True
         self.apps_limit = 0
@@ -117,6 +116,16 @@ class AppCenter(SimpleGtkbuilderApp):
                 self.hbox_navigation_buttons.remove(w)
 
     # callbacks
+    def on_menuitem_view_all_activate(self, widget):
+        print "on_menuitem_view_all_activate", widget
+        self.apps_apt_filter.set_supported_only(False)
+        self.refresh_apps()
+
+    def on_menuitem_view_canonical_activate(self, widget):
+        print "on_menuitem_view_canonical_activate", widget
+        self.apps_apt_filter.set_supported_only(True)
+        self.refresh_apps()
+
     def on_button_home_clicked(self, widget):
         logging.debug("on_button_home_clicked")
         self.apps_category_query = None
@@ -151,12 +160,12 @@ class AppCenter(SimpleGtkbuilderApp):
         if action == ViewSwitcherList.ACTION_ITEM_AVAILABLE:
             logging.debug("show available")
             self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
-            self.apps_filter = None
+            self.apps_apt_filter.set_installed_only(False)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_INSTALLED:
             logging.debug("show installed")
             self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
-            self.apps_filter = self.installed_filter.filter
+            self.apps_apt_filter.set_installed_only(True)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_PENDING:
             logging.debug("show pending")
@@ -200,13 +209,14 @@ class AppCenter(SimpleGtkbuilderApp):
             query = self.apps_search_query
         else:
             query = None
+
         # create new model and attach it
         new_model = AppStore(self.xapiandb, 
                              self.icons, 
                              query, 
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
-                             filter=self.apps_filter)
+                             filter=self.apps_apt_filter)
         self.app_view.set_model(new_model)
         id = self.statusbar_main.get_context_id("items")
         self.statusbar_main.push(id, _("%s items available") % len(new_model))

@@ -114,17 +114,23 @@
                   <object class="GtkMenu" id="menu4">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem_view_all">
+                      <object class="GtkRadioMenuItem" id="menuitem_view_all">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">All Applications</property>
                         <property name="use_underline">True</property>
+                        <property name="active">True</property>
+                        <property name="draw_as_radio">True</property>
+                        <property name="group">menuitem_view_canonical</property>
+                        <signal name="activate" handler="on_menuitem_view_all_activate"/>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem_view_canonical">
+                      <object class="GtkRadioMenuItem" id="menuitem_view_canonical">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Canonical Maintained Applications</property>
                         <property name="use_underline">True</property>
+                        <property name="draw_as_radio">True</property>
+                        <property name="group">menuitem_view_all</property>
                         <signal name="activate" handler="on_menuitem_view_canonical_activate"/>
                       </object>
                     </child>

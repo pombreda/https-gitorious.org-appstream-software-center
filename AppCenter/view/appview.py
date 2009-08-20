@@ -92,7 +92,7 @@ class AppStore(gtk.GenericTreeModel):
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-        return not filter(pkgname)
+        return not filter.filter(pkgname)
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -174,17 +174,33 @@ class AppView(gtk.TreeView):
         self.append_column(column)
         self.set_model(store)
 
-class AppViewInstalledFilter(object):
+class AppViewAptFilter(object):
     """ 
     Filter that can be hooked into AppStore that shows only installed packages
     """
     def __init__(self, cache):
         self.cache = cache
+        self.supported_only = False
+        self.installed_only = False
+    def set_supported_only(self, v):
+        self.supported_only = v
+    def set_installed_only(self, v):
+        self.installed_only = v
     def filter(self, pkgname):
-        logging.debug(pkgname)
-        if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
-            return True
-        return False
+        """return True if the package should be displayed"""
+        logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (self.supported_only, self.installed_only, pkgname))
+        if self.installed_only:
+            if (self.cache.has_key(pkgname) and 
+                not self.cache[pkgname].isInstalled):
+                return False
+        # FIXME: this is not enough - we need a better method that uses
+        #        the origin or something
+        if self.supported_only:
+            if (self.cache.has_key(pkgname) and
+                (self.cache[pkgname].section.startswith("universe") or
+                 self.cache[pkgname].section.startswith("multiverse"))):
+                    return False
+        return True
 
 def get_query_from_search_entry(search_term):
     # now build a query
