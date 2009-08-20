@@ -14,10 +14,9 @@ setup(name=NAME, version='0.1',
       packages = ['AppCenter'
                  ],
       data_files=[
-                  ('share/%s/' % NAME,
-                   ["share/%s/ui" % NAME,
-                    "data/ui/AppCenter.ui",
-                    ]),
+                  ('share/app-center/ui/',
+                   ["data/ui/AppCenter.ui",
+                   ]),
                   ],
       cmdclass = { "build" : build_extra.build_extra,
                    "build_i18n" :  build_i18n.build_i18n }
