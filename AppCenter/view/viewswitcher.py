@@ -35,8 +35,8 @@ class ViewSwitcher(gtk.TreeView):
         #self.set_enable_tree_lines(False)
         #self.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_NONE)
         # single click
-        self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
-        self.connect("motion-notify-event", self.on_motion_notify_event)
+        #self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
+        #self.connect("motion-notify-event", self.on_motion_notify_event)
         self.connect("button-press-event", self.on_button_press_event)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event

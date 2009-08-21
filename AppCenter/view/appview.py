@@ -160,6 +160,7 @@ class AppStore(gtk.GenericTreeModel):
         return None
 
 class AppView(gtk.TreeView):
+    """Treeview based view component that takes a AppStore and displays it"""
     def __init__(self, store):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
@@ -211,7 +212,8 @@ class AppViewFilter(object):
         self.installed_only = v
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
-        logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (self.supported_only, self.installed_only, pkgname))
+        #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
+        #              self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
             if (self.cache.has_key(pkgname) and 
                 not self.cache[pkgname].isInstalled):

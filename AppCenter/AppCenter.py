@@ -159,12 +159,14 @@ class AppCenter(SimpleGtkbuilderApp):
         action = model[row][ViewSwitcherList.COL_ACTION]
         if action == ViewSwitcherList.ACTION_ITEM_AVAILABLE:
             logging.debug("show available")
-            self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+            if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
+                self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
             self.apps_filter.set_installed_only(False)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_INSTALLED:
             logging.debug("show installed")
-            self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+            if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
+                self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
             self.apps_filter.set_installed_only(True)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_PENDING:
