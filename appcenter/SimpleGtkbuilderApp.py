@@ -1,7 +1,8 @@
 """
  SimpleGladeApp.py
- Module that provides an object oriented abstraction to pygtk and libglade.
- Copyright (C) 2004 Sandino Flores Moreno
+ Module that provides an object oriented abstraction to pygtk and gtkbuilder
+ Copyright (C) 2009 Michael Vogt
+ based on ideas from SimpleGladeBuilder by Sandino Flores Moreno
 """
 
 # This library is free software; you can redistribute it and/or
