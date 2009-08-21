@@ -76,6 +76,7 @@ class AppStore(gtk.GenericTreeModel):
         else:
             enquire = xapian.Enquire(db)
             enquire.set_query(search_query)
+            enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
             if limit == 0:
                 matches = enquire.get_mset(0, db.get_doccount())
             else:

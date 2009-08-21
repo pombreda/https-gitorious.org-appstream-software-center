@@ -87,9 +87,10 @@ def update(db, cache, datadir="/usr/share/app-install/"):
                 arches = parser.get_desktop("X-Ubuntu-Architectures")
                 doc.add_value(XAPIAN_VALUE_GETTEXT_ARCH, arches)
             # popcon
-            if parser.has_option_desktop("X-Ubuntu-Popcon"):
-                popcon = parser.get_desktop("X-Ubuntu-Popcon")
-                doc.add_value(XAPIAN_VALUE_GETTEXT_POPCON, popcon)
+            if parser.has_option_desktop("X-AppInstall-Popcon"):
+                popcon = parser.get_desktop("X-AppInstall-Popcon")
+                # sort_by_value uses string compare, so we need to pad here
+                doc.add_value(XAPIAN_VALUE_POPCON, "%12.0i" % int(popcon))
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):
