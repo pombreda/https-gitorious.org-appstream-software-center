@@ -12,6 +12,8 @@ import sys
 import time
 import xapian
 
+from urltextview import UrlTextView
+
 from aptdaemon import policykit1
 from aptdaemon import client
 from aptdaemon import enums
@@ -26,14 +28,14 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
-class AppDetailsView(gtk.TextView):
+class AppDetailsView(UrlTextView):
 
     # the size of the icon on the left side
     APP_ICON_SIZE = 32
     APP_ICON_PADDING = 8
 
     def __init__(self, xapiandb, icons, cache):
-        gtk.TextView.__init__(self)
+        super(AppDetailsView, self).__init__()
         self.xapiandb = xapiandb
         self.icons = icons
         self.cache = cache
@@ -54,13 +56,19 @@ class AppDetailsView(gtk.TextView):
 
     def _create_tag_table(self):
         buffer = self.get_buffer()
-        tag = buffer.create_tag("align-to-icon")
-        tag.set_property("left-margin", self.APP_ICON_SIZE)
-        tag = buffer.create_tag("heading")
-        tag.set_property("weight", pango.WEIGHT_HEAVY)
-        tag.set_property("scale", pango.SCALE_LARGE)
-        #tag = buffer.create_tag("align-right")
-        #tag.set_property("justification", gtk.JUSTIFY_RIGHT)
+        buffer.create_tag("align-to-icon", 
+                          left_margin=self.APP_ICON_SIZE)
+        buffer.create_tag("heading", 
+                          weight=pango.WEIGHT_HEAVY,
+                          scale=pango.SCALE_LARGE)
+        #buffer.create_tag("align-right", 
+        #                  justification=gtk.JUSTIFY_RIGHT))
+        buffer.create_tag("small", 
+                          scale=pango.SCALE_SMALL)
+        buffer.create_tag("maint-status", 
+                          scale_set=True,
+                          scale=pango.SCALE_SMALL,
+                          foreground="#888")
 
     def show_app(self, appname):
         logging.debug("AppDetailsView.show_app %s" % appname)
@@ -85,10 +93,13 @@ class AppDetailsView(gtk.TextView):
         self.add_main_icon(iconname)
         self.add_main_description(appname, pkg)
         self.add_empty_lines(2)
+        self.add_price(appname, pkg)
         self.add_enable_channel_button(doc)
         self.add_pkg_action_button(appname, pkg, iconname)
         self.add_homepage_button(pkg)
+        self.add_pkg_information(pkg)
         self.add_maintainance_end_dates(pkg)
+        self.add_empty_lines(2)
 
     # helper to fill the buffer with the pkg information
     def clean(self):
@@ -115,6 +126,22 @@ class AppDetailsView(gtk.TextView):
             pixbuf = self._empty_pixbuf()
         # insert description 
         buffer.insert_pixbuf(iter, pixbuf)
+
+    def add_price(self, appname, pkg):
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
+        s = _("Price: %s") % _("Free")
+        s += "\n\n"
+        buffer.insert_with_tags_by_name(iter, s, "align-to-icon", "small")
+
+    def add_pkg_information(self, pkg):
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
+        version = pkg.candidate.version
+        if version:
+            buffer.insert(iter, "\n\n")
+            s = _("Version: %s (%s)") % (version, pkg.name)
+            buffer.insert_with_tags_by_name(iter, s, "align-to-icon", "small")
 
     def add_main_description(self, appname, pkg):
         buffer = self.get_buffer()
