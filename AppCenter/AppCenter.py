@@ -26,6 +26,8 @@ class AppCenter(SimpleGtkbuilderApp):
      NOTEBOOK_PAGE_APP_DETAILS,
      NOTEBOOK_PAGE_PENDING) = range(4)
 
+    DEFAULT_SEARCH_APPS_LIMIT = 200
+
     def __init__(self, datadir):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/AppCenter.ui")
 
@@ -143,7 +145,7 @@ class AppCenter(SimpleGtkbuilderApp):
         else:
             self.apps_search_query = self.get_query_from_search_entry(new_text)
             self.apps_sorted = False
-            self.apps_limit = 200
+            self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
             self.add_navigation_button(_("Search"), 
                                        self.on_navigation_button_category, 
                                        "search")
