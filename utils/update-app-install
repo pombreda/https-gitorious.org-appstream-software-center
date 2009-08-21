@@ -85,7 +85,7 @@ def update(db, cache, datadir="/usr/share/app-install/"):
             # architecture
             if parser.has_option_desktop("X-Ubuntu-Architectures"):
                 arches = parser.get_desktop("X-Ubuntu-Architectures")
-                doc.add_value(XAPIAN_VALUE_GETTEXT_ARCH, arches)
+                doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
             # popcon
             if parser.has_option_desktop("X-AppInstall-Popcon"):
                 popcon = parser.get_desktop("X-AppInstall-Popcon")
