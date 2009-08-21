@@ -1,1 +1,18 @@
+
+
+
+Missing functionality compared to g-a-i:
+- maintainance calculation
+- enable of channels (like the third party repository)
+- enable of components (like universe)
+
+
+
+Missing but not so important:
+- searching for codecs (now done by gnome-codec-install)
+- searching for mime-types (?)
+
+
+
+Misc:
 * use trigger for /usr/share/app-install ?
