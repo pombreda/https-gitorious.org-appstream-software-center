@@ -21,7 +21,7 @@ from aptdaemon import enums
 from gettext import gettext as _
 
 try:
-    from AppCenter.enums import *
+    from appcenter.enums import *
 except ImportError:
     # support running from the dir too
     d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))

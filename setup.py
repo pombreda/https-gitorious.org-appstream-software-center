@@ -10,6 +10,7 @@ NAME='mpt-center'
     
 setup(name=NAME, version='0.1',
       scripts=[NAME,
+               "utils/update-app-center"
                ],
       packages = ['AppCenter'
                  ],

@@ -3,7 +3,7 @@
 import logging
 import os
 
-from AppCenter.AppCenter import AppCenter
+from appcenter.app import AppCenter
 
 
 if __name__ == "__main__":

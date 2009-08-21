@@ -15,7 +15,7 @@ from view.pendingview import PendingView
 
 from gettext import gettext as _
 
-XAPIAN_BASE_PATH = "/var/cache/app-install"
+XAPIAN_BASE_PATH = "/var/cache/app-center"
 APP_INSTALL_PATH = "/usr/share/app-install"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
 
