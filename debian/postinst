@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = "configure" ]; then
+    # cache the application data
+    update-app-center || true
+fi
+
+

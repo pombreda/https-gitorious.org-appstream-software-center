@@ -1,0 +1,29 @@
+Source: app-center
+Section: gnome
+Priority: optional
+Maintainer: Michael Vogt <mvo@ubuntu.com>
+Build-Depends: debhelper (>= 7.0.50),
+               gettext,
+               intltool,
+               python,
+               python-central,
+               python-distutils-extra,
+	       python-setuptools
+Standards-Version: 3.8.3
+XS-Python-Version: current
+Vcs-Bzr: http://code.launchpad.net/~mvo/+junk/app-center
+
+Package: app-center
+Architecture: all
+Depends: ${python:Depends},
+         ${misc:Depends},
+         app-install-data (>= 0.4.0),
+         gnome-icon-theme,
+         python-apt,
+         python-dbus,
+         python-gtk2,
+	 aptdaemon
+Recommends: lsb-release
+XB-Python-Version: ${python:Versions}
+Description: Application Installer
+ A pretty application installer.
