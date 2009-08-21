@@ -1,17 +1,21 @@
 #!/usr/bin/python
 
+import apt
 import logging
 import gtk
 import gobject
-import apt
 import os
-import xapian
+import sys
 import time
+import xapian
 
-XAPIAN_VALUE_PKGNAME = 171
-XAPIAN_VALUE_ICON = 172
-XAPIAN_VALUE_GETTEXT_DOMAIN = 173
-XAPIAN_VALUE_ARCHIVE_SECTION = 174
+try:
+    from AppCenter.enums import *
+except ImportError:
+    # support running from the dir too
+    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
+    sys.path.insert(0, os.path.split(d)[0])
+    from enums import *
 
 class ExecutionTime(object):
     """

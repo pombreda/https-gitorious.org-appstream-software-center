@@ -4,16 +4,19 @@ import apt
 import locale
 import logging
 import os
+import sys
 import xapian
 
 from ConfigParser import RawConfigParser, NoOptionError
 from glob import glob
 
-# values used in the database
-XAPIAN_VALUE_PKGNAME = 171
-XAPIAN_VALUE_ICON = 172
-XAPIAN_VALUE_GETTEXT_DOMAIN = 173
-XAPIAN_VALUE_ARCHIVE_SECTION = 174
+try:
+    from AppCenter.enums import *
+except ImportError:
+    # support running from the dir too
+    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
+    sys.path.insert(0, os.path.split(d)[0])
+    from AppCenter.enums import *
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -79,6 +82,10 @@ def update(db, cache, datadir="/usr/share/app-install/"):
             if parser.has_option_desktop("X-Ubuntu-Gettext-Domain"):
                 domain = parser.get_desktop("X-Ubuntu-Gettext-Domain")
                 doc.add_value(XAPIAN_VALUE_GETTEXT_DOMAIN, domain)
+            # architecture
+            if parser.has_option_desktop("X-Ubuntu-Architectures"):
+                arches = parser.get_desktop("X-Ubuntu-Architectures")
+                doc.add_value(XAPIAN_VALUE_GETTEXT_ARCH, arches)
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):

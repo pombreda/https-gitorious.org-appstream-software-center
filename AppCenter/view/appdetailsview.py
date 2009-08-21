@@ -6,10 +6,11 @@ import gtk
 import gobject
 import apt
 import os
-import xapian
-import time
 import pango
 import subprocess
+import sys
+import time
+import xapian
 
 from aptdaemon import policykit1
 from aptdaemon import client
@@ -17,9 +18,13 @@ from aptdaemon import enums
  
 from gettext import gettext as _
 
-XAPIAN_VALUE_PKGNAME = 171
-XAPIAN_VALUE_ICON = 172
-XAPIAN_VALUE_GETTEXT_DOMAIN = 173
+try:
+    from AppCenter.enums import *
+except ImportError:
+    # support running from the dir too
+    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
+    sys.path.insert(0, os.path.split(d)[0])
+    from enums import *
 
 class AppDetailsView(gtk.TextView):
 
@@ -32,9 +37,14 @@ class AppDetailsView(gtk.TextView):
         self.xapiandb = xapiandb
         self.icons = icons
         self.cache = cache
+        # customization
         self.set_editable(False)
         self.set_cursor_visible(False)
         self.set_wrap_mode(gtk.WRAP_WORD)
+        # atk
+        atk_desc = self.get_accessible()
+        atk_desc.set_name(_("Description"))
+        # tags
         self._create_tag_table()
         # aptdaemon
         self.aptd_client = client.AptClient()
@@ -260,8 +270,8 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache)
-    #view.show_app("AMOR")
-    view.show_app("3D Chess")
+    view.show_app("AMOR")
+    #view.show_app("3D Chess")
 
     win = gtk.Window()
     scroll.add(view)
