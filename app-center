@@ -7,7 +7,7 @@ from appcenter.app import AppCenter
 
 
 if __name__ == "__main__":
-   logging.basicConfig(level=logging.DEBUG)
+   #logging.basicConfig(level=logging.DEBUG)
 
    if os.path.exists("./data"):
       datadir = "./data"

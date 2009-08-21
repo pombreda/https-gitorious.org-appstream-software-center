@@ -5,14 +5,12 @@ from DistUtilsExtra.command import *
 import glob
 import os
 
-NAME='mpt-center'
-
-    
-setup(name=NAME, version='0.1',
-      scripts=[NAME,
+setup(name="app-center", version='0.1',
+      scripts=["app-center",
                "utils/update-app-center"
                ],
-      packages = ['AppCenter'
+      packages = ['appcenter',
+                  'appcenter.view',
                  ],
       data_files=[
                   ('share/app-center/ui/',
