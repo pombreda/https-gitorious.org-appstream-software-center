@@ -118,6 +118,13 @@ class AppCenter(SimpleGtkbuilderApp):
                 self.hbox_navigation_buttons.remove(w)
 
     # callbacks
+    def on_menuitem_close_activate(self, widget):
+        gtk.main_quit()
+
+    def on_menuitem_about_activate(self, widget):
+        print "about"
+        # FIXME: add once we have a name
+
     def on_menuitem_view_all_activate(self, widget):
         print "on_menuitem_view_all_activate", widget
         self.apps_filter.set_supported_only(False)

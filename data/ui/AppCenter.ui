@@ -49,6 +49,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <signal name="activate" handler="on_menuitem_close_activate"/>
                       </object>
                     </child>
                   </object>
@@ -152,6 +153,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <signal name="activate" handler="on_menuitem_about_activate"/>
                       </object>
                     </child>
                   </object>
