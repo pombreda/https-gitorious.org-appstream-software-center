@@ -86,6 +86,10 @@ def update(db, cache, datadir="/usr/share/app-install/"):
             if parser.has_option_desktop("X-Ubuntu-Architectures"):
                 arches = parser.get_desktop("X-Ubuntu-Architectures")
                 doc.add_value(XAPIAN_VALUE_GETTEXT_ARCH, arches)
+            # popcon
+            if parser.has_option_desktop("X-Ubuntu-Popcon"):
+                popcon = parser.get_desktop("X-Ubuntu-Popcon")
+                doc.add_value(XAPIAN_VALUE_GETTEXT_POPCON, popcon)
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):

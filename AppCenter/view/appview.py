@@ -200,6 +200,7 @@ class AppView(gtk.TreeView):
             return
         self.emit("row-activated", path, column)
 
+# XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):
     """ 
     Filter that can be hooked into AppStore to filter for criteria that
