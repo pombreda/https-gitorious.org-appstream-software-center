@@ -36,7 +36,8 @@ if __name__ == "__main__":
     print "Matches:"
     for m in matches:
         doc = m[xapian.MSET_DOCUMENT]
-        print doc.get_data(), "popcon:", doc.get_value(XAPIAN_VALUE_POPCON)
+        popcon = doc.get_value(XAPIAN_VALUE_POPCON)
+        print doc.get_data(), "popcon:", xapian.sortable_unserialise(popcon)
         #for t in doc.termlist():
         #    print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
         #print "\n"

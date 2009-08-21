@@ -90,7 +90,8 @@ def update(db, cache, datadir="/usr/share/app-install/"):
             if parser.has_option_desktop("X-AppInstall-Popcon"):
                 popcon = parser.get_desktop("X-AppInstall-Popcon")
                 # sort_by_value uses string compare, so we need to pad here
-                doc.add_value(XAPIAN_VALUE_POPCON, "%12.0i" % int(popcon))
+                doc.add_value(XAPIAN_VALUE_POPCON, 
+                              xapian.sortable_serialise(float(popcon)))
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):
