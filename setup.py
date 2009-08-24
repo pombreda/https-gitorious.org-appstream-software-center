@@ -9,8 +9,8 @@ setup(name="software-store", version='0.1',
       scripts=["software-store",
                "utils/update-software-store"
                ],
-      packages = ['appcenter',
-                  'appcenter.view',
+      packages = ['softwarestore',
+                  'softwarestore.view',
                  ],
       data_files=[
                   ('share/software-store/ui/',

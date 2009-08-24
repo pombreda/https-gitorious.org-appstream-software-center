@@ -37,7 +37,7 @@ XAPIAN_BASE_PATH = "/var/cache/software-store"
 APP_INSTALL_PATH = "/usr/share/app-install"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
 
-class AppCenter(SimpleGtkbuilderApp):
+class SoftwareStoreApp(SimpleGtkbuilderApp):
     
     (NOTEBOOK_PAGE_CATEGORIES,
      NOTEBOOK_PAGE_APPLIST,

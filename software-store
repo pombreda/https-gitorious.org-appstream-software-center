@@ -22,7 +22,7 @@
 import logging
 import os
 
-from appcenter.app import AppCenter
+from softwarestore.app import SoftwareStoreApp
 
 
 if __name__ == "__main__":
@@ -34,6 +34,6 @@ if __name__ == "__main__":
     else:
         datadir = "/usr/share/software-store/"
 
-    ac = AppCenter(datadir)
-    ac.run()
+    app = SoftwareStoreApp(datadir)
+    app.run()
 
