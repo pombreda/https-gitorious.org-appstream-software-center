@@ -33,7 +33,7 @@ from view.pendingview import PendingView
 
 from gettext import gettext as _
 
-XAPIAN_BASE_PATH = "/var/cache/app-center"
+XAPIAN_BASE_PATH = "/var/cache/software-store"
 APP_INSTALL_PATH = "/usr/share/app-install"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
 
@@ -47,7 +47,7 @@ class AppCenter(SimpleGtkbuilderApp):
     DEFAULT_SEARCH_APPS_LIMIT = 200
 
     def __init__(self, datadir):
-        SimpleGtkbuilderApp.__init__(self, datadir+"/ui/AppCenter.ui")
+        SimpleGtkbuilderApp.__init__(self, datadir+"/ui/SoftwareStore.ui")
 
         # xapian
         xapian_base_path = XAPIAN_BASE_PATH
