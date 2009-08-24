@@ -7,7 +7,7 @@ import os
 
 setup(name="software-store", version='0.1',
       scripts=["software-store",
-               "utils/update-software-store"
+               "utils/update-software-store",
                ],
       packages = ['softwarestore',
                   'softwarestore.view',

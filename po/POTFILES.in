@@ -1,5 +1,5 @@
-software-store
-utils/update-software-store
+[type: python] software-store
+[type. python] utils/update-software-store
 softwarestore/app.py
 softwarestore/__init__.py
 softwarestore/SimpleGtkbuilderApp.py
@@ -10,3 +10,4 @@ softwarestore/view/catview.py
 softwarestore/view/installed_view.py
 softwarestore/view/pendingview.py
 softwarestore/view/viewswitcher.py
+data/ubuntu-software-store.desktop.in
