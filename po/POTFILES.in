@@ -1,4 +1,5 @@
-app-center
+software-store
+utils/update-software-store
 appcenter/app.py
 appcenter/__init__.py
 appcenter/SimpleGtkbuilderApp.py

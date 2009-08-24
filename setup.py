@@ -5,16 +5,16 @@ from DistUtilsExtra.command import *
 import glob
 import os
 
-setup(name="app-center", version='0.1',
-      scripts=["app-center",
-               "utils/update-app-center"
+setup(name="software-store", version='0.1',
+      scripts=["software-store",
+               "utils/update-software-store"
                ],
       packages = ['appcenter',
                   'appcenter.view',
                  ],
       data_files=[
-                  ('share/app-center/ui/',
-                   ["data/ui/AppCenter.ui",
+                  ('share/software-store/ui/',
+                   ["data/ui/SoftwareStore.ui",
                    ]),
                   ],
       cmdclass = { "build" : build_extra.build_extra,

@@ -32,7 +32,7 @@ if __name__ == "__main__":
     if os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/app-center/"
+        datadir = "/usr/share/software-store/"
 
     ac = AppCenter(datadir)
     ac.run()
