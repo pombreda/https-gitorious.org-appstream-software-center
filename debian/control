@@ -19,11 +19,12 @@ Depends: ${python:Depends},
          ${misc:Depends},
          app-install-data (>= 0.4.0),
          gnome-icon-theme,
-         python-apt,
+         python-apt (>= 0.7.13),
          python-dbus,
          python-gtk2,
 	 aptdaemon
 Recommends: lsb-release
 XB-Python-Version: ${python:Versions}
 Description: Software Installer
- A pretty software installer.
+ A pretty software installer that provides a modern and easy to 
+ use interface with fast searching.
