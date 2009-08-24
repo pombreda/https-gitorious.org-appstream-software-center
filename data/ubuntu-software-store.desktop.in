@@ -1,0 +1,12 @@
+[Desktop Entry]
+_Name=Ubuntu Software Store
+_GenericName=Software Store
+_Comment=Install and remove software
+Exec=/usr/bin/software-store
+Icon=software-store
+Terminal=false
+Type=Application
+Categories=PackageManager;GTK;System;Settings
+StartupNotify=true
+OnlyShowIn=GNOME;
+X-Ubuntu-Gettext-Domain=software-store

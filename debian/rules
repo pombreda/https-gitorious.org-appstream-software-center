@@ -1,17 +1,17 @@
 #!/usr/bin/make -f
-share:=usr/share/app-center
+share:=usr/share/software-store
 %:
 	DH_PYCENTAL=include-links dh --with=python-central $@
 
 # Install the modules in a private directory, as our applications are the
 # only ones using them.
 override_dh_auto_install:
-	dh_auto_install -- --install-lib /usr/share/app-center
-	rm -r debian/app-center/usr/share/app-center/*.egg-info
+	dh_auto_install -- --install-lib /usr/share/software-store
+	rm -r debian/software-store/usr/share/software-store/*.egg-info
 	# Move the scripts to $(SHARE) and relink them again later.
-	mv debian/app-center/usr/*bin/* debian/app-center/$(share)
-	rmdir debian/app-center/usr/*bin
-	dh_link $(share)/app-center usr/bin/app-center \
-	        $(share)/update-app-center usr/sbin/update-app-center
+	mv debian/software-store/usr/*bin/* debian/software-store/$(share)
+	rmdir debian/software-store/usr/*bin
+	dh_link $(share)/software-store usr/bin/software-store \
+	        $(share)/update-software-store usr/sbin/update-software-store
 	# Remove empty directories.
-	find debian/app-center/usr -type d -empty -delete
+	find debian/software-store/usr -type d -empty -delete

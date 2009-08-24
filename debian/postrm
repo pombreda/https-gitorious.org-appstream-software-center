@@ -4,7 +4,7 @@ set -e
 
 if [ "$1" = "purge" ]; then
     # remove the cached application data
-    rm -f /var/cache/app-center/*
+    rm -f /var/cache/software-store/*
 fi
 
 

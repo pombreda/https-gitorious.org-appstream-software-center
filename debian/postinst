@@ -6,7 +6,7 @@ set -e
 
 if [ "$1" = "configure" ]; then
     # cache the application data
-    update-app-center || true
+    update-software-store || true
 fi
 
 

@@ -1,4 +1,4 @@
-Source: app-center
+Source: software-store
 Section: gnome
 Priority: optional
 Maintainer: Michael Vogt <mvo@ubuntu.com>
@@ -11,9 +11,9 @@ Build-Depends: debhelper (>= 7.0.50),
 	       python-setuptools
 Standards-Version: 3.8.3
 XS-Python-Version: current
-Vcs-Bzr: http://code.launchpad.net/~mvo/+junk/app-center
+Vcs-Bzr: http://code.launchpad.net/~software-store-developers/software-store/trunk
 
-Package: app-center
+Package: software-store
 Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
@@ -25,5 +25,5 @@ Depends: ${python:Depends},
 	 aptdaemon
 Recommends: lsb-release
 XB-Python-Version: ${python:Versions}
-Description: Application Installer
- A pretty application installer.
+Description: Software Installer
+ A pretty software installer.
