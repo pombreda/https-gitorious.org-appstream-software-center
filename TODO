@@ -1,5 +1,8 @@
 
 
+Missing:
+- apt cache open in via a thead
+
 
 Missing functionality compared to g-a-i:
 - maintainance calculation
