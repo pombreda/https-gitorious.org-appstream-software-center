@@ -39,6 +39,7 @@ class CategoriesModel(gtk.ListStore):
         for key in sorted(cat.keys()):
             (iconname, query) = cat[key]
             icon = icons.load_icon(iconname, 24, 0)
+            query.name = key
             self.append([gobject.markup_escape_text(key), icon, query])
 
     def parse_applications_menu(self, datadir):

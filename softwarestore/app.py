@@ -38,6 +38,7 @@ from view.catview import CategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.appdetailsview import AppDetailsView
 from view.pendingview import PendingView
+from view.navigationbar import NavigationBar
 
 from gettext import gettext as _
 
@@ -70,6 +71,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # data 
         # FIXME: progress or thread
         self.cache = apt.Cache()
+
+        # navigation bar
+        self.navigation_bar = NavigationBar()
+        self.hbox_navigation_buttons.pack_start(self.navigation_bar)
+        self.navigation_bar.show()
 
         # view switcher
         self.view_switcher = ViewSwitcher()
@@ -121,25 +127,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # FIXME: expand to add "AA" and "AP" before each search term?
         return query
 
-    # navigation buttons
-    def add_navigation_button(self, name, callback, type):
-        self.remove_navigation_button(type)
-        button = gtk.Button()
-        button.set_label(name)
-        button.show()
-        button.connect("clicked", callback)
-        button.set_data("navigation-type", type)
-        self.hbox_navigation_buttons.pack_start(button, expand=False)
-
-    def remove_navigation_buttons(self):
-        for w in self.hbox_navigation_buttons:
-            self.hbox_navigation_buttons.remove(w)
-
-    def remove_navigation_button(self, type):
-        for w in self.hbox_navigation_buttons:
-            if w.get_data("navigation-type") == type:
-                self.hbox_navigation_buttons.remove(w)
-
     # callbacks
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -161,11 +148,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def on_button_home_clicked(self, widget):
         logging.debug("on_button_home_clicked")
         self.apps_category_query = None
-        self.remove_navigation_buttons()
+        self.navigation_bar.remove_all()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
 
     def on_entry_search_changed(self, widget):
-        self.remove_navigation_button("search")
+        self.navigation_bar.remove_id("search")
         new_text = widget.get_text()
         logging.debug("on_entry_changed: %s" % new_text)
         if not new_text:
@@ -176,9 +163,13 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.apps_search_query = self.get_query_from_search_entry(new_text)
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
-            self.add_navigation_button(_("Search"), 
-                                       self.on_navigation_button_category, 
-                                       "search")
+            if self.apps_category_query:
+                cat =  self.apps_category_query.name
+            else:
+                cat = _("All")
+            self.navigation_bar.add_with_id(_("Search in %s") % cat, 
+                                            self.on_navigation_button_category, 
+                                            "category")
         self.refresh_apps()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
 
@@ -219,7 +210,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.app_details_view.show_app(name)
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)
         # add navigation button
-        self.add_navigation_button(name, self.on_navigation_button_app_details, "app")
+        self.navigation_bar.add_with_id(name, 
+                                        self.on_navigation_button_app_details, 
+                                        "app")
 
     def on_category_activated(self, cat_view, path):
         (name, pixbuf, query) = cat_view.get_model()[path]
@@ -228,7 +221,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.refresh_apps()
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
         # update navigation bar
-        self.add_navigation_button(name, self.on_navigation_button_category, "category")
+        self.navigation_bar.add_with_id(name, 
+                                        self.on_navigation_button_category, 
+                                        "category")
 
     # gui helper
     def refresh_apps(self):

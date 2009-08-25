@@ -1,0 +1,63 @@
+# Copyright (C) 2009 Canonical
+#
+# Authors:
+#  Michael Vogt
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import gtk
+
+class NavigationBar(gtk.HBox):
+    """A navigation bar using button (like nautilus)"""
+    def __init__(self):
+        super(NavigationBar, self).__init__()
+        self.id_to_widget = {}
+        self.id_to_callback = {}
+
+    def add_with_id(self, label, callback, id):
+        """
+        Add a new button with the given label/callback
+        
+        If there is the same id already, replace the existing one
+        with the new one
+        """
+        if id in self.id_to_widget:
+            button = self.id_to_widget[id]
+            button.disconnect(self.id_to_callback[id])
+        else:
+            button = gtk.Button()
+            self.pack_start(button, expand=False)
+            self.id_to_widget[id] = button
+            button.show()
+        button.set_label(label)
+        handler_id = button.connect("clicked", callback)
+        self.id_to_callback[id] = handler_id
+
+    def remove_id(self, id):
+        """
+        Remove the navigation button with the given id
+        """
+        if not id in self.id_to_widget:
+            return
+        self.remove(self.id_to_widget[id])
+        del self.id_to_widget[id]
+        del self.id_to_callback[id]
+
+    def remove_all(self):
+        """remove all elements"""
+        for w in self:
+            self.remove(w)
+        self.id_to_widget = {}
+        self.id_to_callback = {}
