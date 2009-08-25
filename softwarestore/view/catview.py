@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import gettext
 import gobject
 import gtk
 import logging
@@ -59,8 +60,14 @@ class CategoriesModel(gtk.ListStore):
                     elif element.tag == "Directory":
                         cp = ConfigParser()
                         cp.read("/usr/share/desktop-directories/%s" % element.text)
+                        try:
+                            gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
+                        except:
+                            gettext_domain = None
                         icon = cp.get("Desktop Entry","Icon")
                         name = cp.get("Desktop Entry","Name")
+                        if gettext_domain:
+                            name = gettext.dgettext(gettext_domain, name)
                     elif element.tag == "Include":
                         query = xapian.Query("")
                         for include in element.getchildren():
