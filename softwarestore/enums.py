@@ -17,7 +17,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
+# system pathes
+XAPIAN_BASE_PATH = "/var/cache/software-store"
+APP_INSTALL_PATH = "/usr/share/app-install"
+ICON_PATH = APP_INSTALL_PATH+"/icons/"
 
 # values used in the database
 XAPIAN_VALUE_PKGNAME = 171

@@ -25,6 +25,14 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
+try:
+    from softwarestore.enums import *
+except ImportError:
+    # support running from the dir too
+    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
+    sys.path.insert(0, os.path.split(d)[0])
+    from softwarestore.enums import *
+
 from view.appview import AppView, AppStore, AppViewFilter
 from view.catview import CategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
@@ -33,9 +41,6 @@ from view.pendingview import PendingView
 
 from gettext import gettext as _
 
-XAPIAN_BASE_PATH = "/var/cache/software-store"
-APP_INSTALL_PATH = "/usr/share/app-install"
-ICON_PATH = APP_INSTALL_PATH+"/icons/"
 
 class SoftwareStoreApp(SimpleGtkbuilderApp):
     
