@@ -149,6 +149,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         logging.debug("on_button_home_clicked")
         self.apps_category_query = None
         self.navigation_bar.remove_all()
+        self.on_button_search_entry_clear_clicked(None)
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
 
     def on_entry_search_changed(self, widget):
