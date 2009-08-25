@@ -80,6 +80,8 @@ class PendingStore(gtk.ListStore):
             #    trans.connect("role", self._on_role_changed))
             appname = trans.get_data("appname")
             iconname = trans.get_data("iconname")
+            print "app: ", appname
+            print "icon: ", iconname
             if iconname:
                 icon = self.icons.load_icon(iconname, 24, 0)
             else:
