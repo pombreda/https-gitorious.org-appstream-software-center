@@ -22,6 +22,7 @@ Depends: ${python:Depends},
          python-apt (>= 0.7.13),
          python-dbus,
          python-gtk2,
+	 python-webkit,
 	 aptdaemon
 Recommends: lsb-release
 XB-Python-Version: ${python:Versions}

@@ -24,12 +24,13 @@ import gobject
 import apt
 import os
 import pango
+import string
 import subprocess
 import sys
 import time
 import xapian
 
-from urltextview import UrlTextView
+import webkit
 
 from aptdaemon import policykit1
 from aptdaemon import client
@@ -45,47 +46,67 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
-class AppDetailsView(UrlTextView):
+class AppDetailsView(webkit.WebView):
 
     # the size of the icon on the left side
     APP_ICON_SIZE = 32
     APP_ICON_PADDING = 8
+
+    doc = """
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+       "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+ <title></title>
+</head>
+<body>
+ <script type="text/javascript">
+  function changeTitle(title) { document.title = title; }
+ </script>
+
+ <img src="file:$iconpath" alt="Application Icon" width=$width height=$height>
+ <h1>$appname</h1>
+ <p>$description</p>
+
+ <input type="button" name="button_$action_button_value" 
+        value="$action_button_label"
+      onclick='changeTitle("run:on_button_${action_button_value}_clicked")'
+ />
+
+ <input type="button" name="button_homepage" value="Homepage"
+      onclick='changeTitle("run:on_button_homepage_clicked")'
+ />
+
+</body>
+</html>
+"""
 
     def __init__(self, xapiandb, icons, cache):
         super(AppDetailsView, self).__init__()
         self.xapiandb = xapiandb
         self.icons = icons
         self.cache = cache
-        # customization
-        self.set_editable(False)
-        self.set_cursor_visible(False)
-        self.set_wrap_mode(gtk.WRAP_WORD)
+        # customize
+        #settings = self.get_settings()
+        #settings.set_property("auto-load-images", True)
+        # signals
+        self.connect('title-changed', self.on_title_changed)
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
-        # tags
-        self._create_tag_table()
         # aptdaemon
         self.aptd_client = client.AptClient()
         self.window_main_xid = None
         # data
         self.appname = None
-
-    def _create_tag_table(self):
-        buffer = self.get_buffer()
-        buffer.create_tag("align-to-icon", 
-                          left_margin=self.APP_ICON_SIZE)
-        buffer.create_tag("heading", 
-                          weight=pango.WEIGHT_HEAVY,
-                          scale=pango.SCALE_LARGE)
-        #buffer.create_tag("align-right", 
-        #                  justification=gtk.JUSTIFY_RIGHT))
-        buffer.create_tag("small", 
-                          scale=pango.SCALE_SMALL)
-        buffer.create_tag("maint-status", 
-                          scale_set=True,
-                          scale=pango.SCALE_SMALL,
-                          foreground="#888")
+    
+    def on_title_changed(self, view, frame, title):
+        print "title_changed", view, frame, title
+        if title.startswith("run:"):
+            funcname = title.split(":")[1]
+            f = getattr(self, funcname)
+            if f:
+                f()
 
     def show_app(self, appname):
         logging.debug("AppDetailsView.show_app %s" % appname)
@@ -98,12 +119,56 @@ class AppDetailsView(UrlTextView):
         if not doc:
             raise IndexError, "No app '%s' in database" % appname
         # icon
-        iconname = doc.get_value(XAPIAN_VALUE_ICON)
+        self.iconname = doc.get_value(XAPIAN_VALUE_ICON)
         # get apt cache data
-        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        self.pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         pkg = None
-        if self.cache.has_key(pkgname):
-            pkg = self.cache[pkgname]
+        if self.cache.has_key(self.pkgname):
+            pkg = self.cache[self.pkgname]
+
+        # description
+        if pkg:
+            details = pkg.candidate.description
+        else:
+            details = _("Not available in the current data")
+        description = details.replace("\n","<p>")
+
+        # icon
+        iconinfo = self.icons.lookup_icon(self.iconname, self.APP_ICON_SIZE, 0)
+        if iconinfo:
+            iconpath = iconinfo.get_filename()
+        else:
+            iconpath = ""
+
+        if pkg:
+            self.homepage_url = pkg.candidate.homepage
+
+        # button data
+        if pkg:
+            if pkg.installed and pkg.isUpgradable:
+                action_button_label = _("Upgrade")
+                action_button_value = "upgrade"
+            elif pkg.installed:
+                action_button_label = _("Remove")
+                action_button_value = "remove"
+            else:
+                action_button_label = _("Install")
+                action_button_value = "install"
+
+        subs = { 'appname' : self.appname,
+                 'pkgname' : self.pkgname,
+                 'iconname' : self.iconname,
+                 'description' : description,
+                 'iconpath' : iconpath,
+                 'width' : self.APP_ICON_SIZE,
+                 'height' : self.APP_ICON_SIZE,
+                 'action_button_label' : action_button_label,
+                 'action_button_value' : action_button_value,
+               }
+
+        html = string.Template(self.doc).safe_substitute(subs)
+        self.load_html_string(html, "file:/")
+        return
 
         # fill the buffer
         self.clean()
@@ -193,13 +258,13 @@ class AppDetailsView(UrlTextView):
         button = self._insert_button(iter, ["align-to-icon"])
         if pkg.installed and pkg.isUpgradable:
             button.set_label(_("Upgrade"))
-            button.connect("clicked", self.on_button_upgrade_clicked, appname, pkg.name, iconname)
+            button.connect("clicked", self.on_button_upgrade_clicked)
         elif pkg.installed:
             button.set_label(_("Remove"))
-            button.connect("clicked", self.on_button_remove_clicked, appname, pkg.name, iconname)
+            button.connect("clicked", self.on_button_remove_clicked)
         else:
             button.set_label(_("Install"))
-            button.connect("clicked", self.on_button_install_clicked, appname, pkg.name, iconname)
+            button.connect("clicked", self.on_button_install_clicked)
     
     def add_homepage_button(self, pkg):
         """add homepage button to the current buffer"""
@@ -237,36 +302,38 @@ class AppDetailsView(UrlTextView):
         return button
 
     # callbacks
-    def on_button_homepage_clicked(self, button, url):
-        logging.debug("on_button_homepage_clicked: '%s'" % url)
+    def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()
-        subprocess.call([cmd, url])
+        subprocess.call([cmd, self.homepage_url])
 
-    def on_button_upgrade_clicked(self, button, appname, pkgname, iconname):
+    def on_button_upgrade_clicked(self):
         #print "on_button_upgrade_clicked", pkgname
+        pkgname = self.pkgname
         trans = self.aptd_client.commit_packages([], [], [], [], [pkgname], 
                                           exit_handler=self._on_trans_finished)
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
-        trans.set_data("pkgname", pkgname)
+        trans.set_data("appname", self.appname)
+        trans.set_data("iconname", self.iconname)
+        trans.set_data("pkgname", self.pkgname)
         trans.run()
 
-    def on_button_remove_clicked(self, button, appname, pkgname, iconname):
+    def on_button_remove_clicked(self):
         #print "on_button_remove_clicked", pkgname
+        pkgname = self.pkgname
         trans = self.aptd_client.commit_packages([], [], [pkgname], [], [],
                                          exit_handler=self._on_trans_finished)
-        trans.set_data("pkgname", pkgname)
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
+        trans.set_data("pkgname", self.pkgname)
+        trans.set_data("appname", self.appname)
+        trans.set_data("iconname", self.iconname)
         trans.run()
 
-    def on_button_install_clicked(self, button, appname, pkgname, iconname):
+    def on_button_install_clicked(self):
         #print "on_button_install_clicked", pkgname
+        pkgname = self.pkgname
         trans = self.aptd_client.commit_packages([pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
-        trans.set_data("pkgname", pkgname)
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
+        trans.set_data("pkgname", self.pkgname)
+        trans.set_data("appname", self.appname)
+        trans.set_data("iconname", self.iconname)
         trans.run()
 
     def _on_trans_finished(self, trans, enum):
@@ -301,6 +368,8 @@ class AppDetailsView(UrlTextView):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
+
+    gtk.gdk.threads_init()
 
     xapian_base_path = "/var/cache/app-install"
     pathname = os.path.join(xapian_base_path, "xapian")
