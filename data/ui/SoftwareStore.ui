@@ -3,6 +3,7 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="window_main">
+    <property name="title" translatable="yes">Ubuntu Software Store</property>
     <property name="default_width">700</property>
     <property name="default_height">400</property>
     <child>
