@@ -87,7 +87,6 @@
                     <child>
                       <object class="GtkMenuItem" id="menuitem_search">
                         <property name="visible">True</property>
-                        <property name="accel_path">CTRL-F</property>
                         <property name="label" translatable="yes">Searc_h...</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menuitem_search_activate"/>
@@ -428,7 +427,6 @@
     <property name="website">http://launchpad.net/software-store</property>
     <property name="authors">Michael Vogt</property>
     <property name="logo_icon_name">software-store</property>
-    <signal name="close" handler="gtk_widget_hide"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
