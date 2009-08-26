@@ -128,6 +128,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         return query
 
     # callbacks
+    def on_menuitem_search_activate(self, widget):
+        #print "on_menuitem_search_activate"
+        self.entry_search.grab_focus()
+        self.entry_search.select_region(0, -1)
+
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
 

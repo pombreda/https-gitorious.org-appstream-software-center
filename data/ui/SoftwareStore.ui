@@ -87,8 +87,10 @@
                     <child>
                       <object class="GtkMenuItem" id="menuitem_search">
                         <property name="visible">True</property>
+                        <property name="accel_path">CTRL-F</property>
                         <property name="label" translatable="yes">Searc_h...</property>
                         <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menuitem_search_activate"/>
                       </object>
                     </child>
                     <child>
