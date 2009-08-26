@@ -1,7 +1,8 @@
 software-store (0.1.1) karmic; urgency=low
 
-  * fix icon installing
+  * fix icon loading/installing
   * add dependency to gnome-menus (LP: #419152)
+  * add dependency to python-xapian (LP: #418580)
   * add about dialog
     
 
