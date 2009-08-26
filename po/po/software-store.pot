@@ -1,0 +1,96 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-08-24 16:16+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2009-08-26 15:04+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../softwarestore/app.py:174
+msgid "Search"
+msgstr ""
+
+#: ../softwarestore/app.py:251
+#, python-format
+msgid "%s items available"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:65
+msgid "Description"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:150
+#, python-format
+msgid "Price: %s"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:150
+msgid "Free"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:160
+#, python-format
+msgid "Version: %s (%s)"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:169
+msgid "Not available in the current data"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:195
+msgid "Upgrade"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:198
+msgid "Remove"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:201
+msgid "Install"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:217
+msgid "Homepage"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:279
+msgid "ERROR"
+msgstr ""
+
+#: ../softwarestore/view/catview.py:109
+msgid "Categories"
+msgstr ""
+
+#. setup the normal stuff
+#: ../softwarestore/view/viewswitcher.py:90
+msgid "Get new software"
+msgstr ""
+
+#: ../softwarestore/view/viewswitcher.py:91
+msgid "Installed software"
+msgstr ""
+
+#: ../softwarestore/view/viewswitcher.py:119
+#: ../softwarestore/view/viewswitcher.py:122
+#, python-format
+msgid "Pending (%i)"
+msgstr ""
+
+#: ../data/ubuntu-software-store.desktop.in.h:1
+msgid "Install and remove software"
+msgstr ""
+
+#: ../data/ubuntu-software-store.desktop.in.h:2
+msgid "Software Store"
+msgstr ""
+
+#: ../data/ubuntu-software-store.desktop.in.h:3
+msgid "Ubuntu Software Store"
+msgstr ""

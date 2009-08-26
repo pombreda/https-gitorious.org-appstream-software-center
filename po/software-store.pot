@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-24 16:16+0200\n"
+"POT-Creation-Date: 2009-08-26 20:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,72 +16,80 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../softwarestore/app.py:174
-msgid "Search"
+#: ../softwarestore/app.py:181
+msgid "All"
 msgstr ""
 
-#: ../softwarestore/app.py:251
+#: ../softwarestore/app.py:182
+#, python-format
+msgid "Search in %s"
+msgstr ""
+
+#: ../softwarestore/app.py:263
 #, python-format
 msgid "%s items available"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:65
+#: ../softwarestore/view/appdetailsview.py:66
 msgid "Description"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:150
+#: ../softwarestore/view/appdetailsview.py:153
 #, python-format
 msgid "Price: %s"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:150
+#: ../softwarestore/view/appdetailsview.py:153
 msgid "Free"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:160
+#: ../softwarestore/view/appdetailsview.py:165
 #, python-format
 msgid "Version: %s (%s)"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:169
+#: ../softwarestore/view/appdetailsview.py:174
 msgid "Not available in the current data"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:195
+#: ../softwarestore/view/appdetailsview.py:200
 msgid "Upgrade"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:198
+#: ../softwarestore/view/appdetailsview.py:203
 msgid "Remove"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:201
+#: ../softwarestore/view/appdetailsview.py:206
 msgid "Install"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:217
+#: ../softwarestore/view/appdetailsview.py:224
 msgid "Homepage"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:279
+#: ../softwarestore/view/appdetailsview.py:289
 msgid "ERROR"
 msgstr ""
 
-#: ../softwarestore/view/catview.py:109
+#: ../softwarestore/view/catview.py:141
 msgid "Categories"
 msgstr ""
 
-#. setup the normal stuff
-#: ../softwarestore/view/viewswitcher.py:90
-msgid "Get new software"
+#: ../softwarestore/view/viewswitcher.py:89
+msgid "Get Free software"
 msgstr ""
 
 #: ../softwarestore/view/viewswitcher.py:91
 msgid "Installed software"
 msgstr ""
 
-#: ../softwarestore/view/viewswitcher.py:119
-#: ../softwarestore/view/viewswitcher.py:122
+#: ../softwarestore/view/viewswitcher.py:126
+#, python-format
+msgid "In Progress (%i)"
+msgstr ""
+
+#: ../softwarestore/view/viewswitcher.py:129
 #, python-format
 msgid "Pending (%i)"
 msgstr ""
