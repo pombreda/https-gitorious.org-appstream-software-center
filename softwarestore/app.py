@@ -73,7 +73,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.cache = apt.Cache()
 
         # navigation bar
-        self.navigation_bar = NavigationBar()
+        self.navigation_bar = NavigationBar(self.button_home)
         self.hbox_navigation_buttons.pack_start(self.navigation_bar)
         self.navigation_bar.show()
 
@@ -153,6 +153,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     def on_button_home_clicked(self, widget):
         logging.debug("on_button_home_clicked")
+        # we get the clicked signal when the radio-group toggles
+        # so we do not react unless we were not already pressed in
+        if not widget.get_active():
+            return
         self.apps_category_query = None
         self.navigation_bar.remove_all()
         self.on_button_search_entry_clear_clicked(None)

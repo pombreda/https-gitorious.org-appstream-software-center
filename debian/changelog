@@ -1,13 +1,14 @@
 software-store (0.1.1) karmic; urgency=low
 
   * fix icon loading/installing
-  * add dependency to gnome-menus (LP: #419152)
-  * add dependency to python-xapian (LP: #418580)
+  * add dependencies:
+    - gnome-menus (LP: #419152)
+    - python-xapian (LP: #418580)
+    - policykit-1-gnome | policykit-1-qt (LP: #419154)
   * add about dialog
   * use gtk-missing-image if no image is available (LP: #418805)
   * fix unneeded scrollbar (LP: #418817)
   * highlight present location in navigation bar (LP: #418791)
-    
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 25 Aug 2009 15:21:57 +0200
 

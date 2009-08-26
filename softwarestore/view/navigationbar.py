@@ -21,11 +21,14 @@ import gtk
 
 class NavigationBar(gtk.HBox):
     """A navigation bar using button (like nautilus)"""
-    def __init__(self):
+    def __init__(self, group=None):
         super(NavigationBar, self).__init__()
         self.id_to_widget = {}
         self.id_to_callback = {}
-        self.group = gtk.RadioButton()
+        if not group:
+            self.group = gtk.RadioButton()
+        else:
+            self.group = group
 
     def add_with_id(self, label, callback, id):
         """

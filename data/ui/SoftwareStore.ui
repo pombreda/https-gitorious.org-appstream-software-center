@@ -197,10 +197,12 @@
                   <object class="GtkHBox" id="hbox1">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkButton" id="button_home">
+                      <object class="GtkRadioButton" id="button_home">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="active">True</property>
+                        <property name="draw_indicator">False</property>
                         <signal name="clicked" handler="on_button_home_clicked"/>
                         <child>
                           <object class="GtkImage" id="image2">
