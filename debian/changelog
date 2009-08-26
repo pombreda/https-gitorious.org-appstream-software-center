@@ -5,6 +5,9 @@ software-store (0.1.2) karmic; urgency=low
   * softwarestore/view/catview.py:
     - fix markup escape issue (LP: #419263)
     - render the category text one pango shrink step smaller
+  * softwarestore/view/appdetailsview.py:
+    - ignore dbus errors resulting from canceling the authentication
+      dialog (LP: #412269)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 26 Aug 2009 18:12:56 +0200
 

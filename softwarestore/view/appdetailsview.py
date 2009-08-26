@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import dbus
 import logging
 import gtk
 import gobject
@@ -98,21 +99,21 @@ class AppDetailsView(UrlTextView):
         if not doc:
             raise IndexError, "No app '%s' in database" % appname
         # icon
-        iconname = doc.get_value(XAPIAN_VALUE_ICON)
+        self.iconname = doc.get_value(XAPIAN_VALUE_ICON)
         # get apt cache data
-        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        self.pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         pkg = None
-        if self.cache.has_key(pkgname):
-            pkg = self.cache[pkgname]
+        if self.cache.has_key(self.pkgname):
+            pkg = self.cache[self.pkgname]
 
         # fill the buffer
         self.clean()
-        self.add_main_icon(iconname)
+        self.add_main_icon(self.iconname)
         self.add_main_description(appname, pkg)
         self.add_empty_lines(2)
         self.add_price(appname, pkg)
         self.add_enable_channel_button(doc)
-        self.add_pkg_action_button(appname, pkg, iconname)
+        self.add_pkg_action_button(appname, pkg, self.iconname)
         self.add_homepage_button(pkg)
         self.add_pkg_information(pkg)
         self.add_maintainance_end_dates(pkg)
@@ -197,13 +198,13 @@ class AppDetailsView(UrlTextView):
         button = self._insert_button(iter, ["align-to-icon"])
         if pkg.installed and pkg.isUpgradable:
             button.set_label(_("Upgrade"))
-            button.connect("clicked", self.on_button_upgrade_clicked, appname, pkg.name, iconname)
+            button.connect("clicked", self.on_button_upgrade_clicked)
         elif pkg.installed:
             button.set_label(_("Remove"))
-            button.connect("clicked", self.on_button_remove_clicked, appname, pkg.name, iconname)
+            button.connect("clicked", self.on_button_remove_clicked)
         else:
             button.set_label(_("Install"))
-            button.connect("clicked", self.on_button_install_clicked, appname, pkg.name, iconname)
+            button.connect("clicked", self.on_button_install_clicked)
     
     def add_homepage_button(self, pkg):
         """add homepage button to the current buffer"""
@@ -248,32 +249,35 @@ class AppDetailsView(UrlTextView):
         cmd = self._url_launch_app()
         subprocess.call([cmd, url])
 
-    def on_button_upgrade_clicked(self, button, appname, pkgname, iconname):
+    def _run_transaction(self, trans):
+        trans.set_data("appname", self.appname)
+        trans.set_data("iconname", self.iconname)
+        trans.set_data("pkgname", self.pkgname)
+        try:
+            trans.run()
+        except dbus.exceptions.DBusException, e:
+            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                pass
+            else:
+                raise
+
+    def on_button_upgrade_clicked(self, button):
         #print "on_button_upgrade_clicked", pkgname
-        trans = self.aptd_client.commit_packages([], [], [], [], [pkgname], 
+        trans = self.aptd_client.commit_packages([], [], [], [], [self.pkgname], 
                                           exit_handler=self._on_trans_finished)
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
-        trans.set_data("pkgname", pkgname)
-        trans.run()
+        self._run_transaction(trans)
 
-    def on_button_remove_clicked(self, button, appname, pkgname, iconname):
+    def on_button_remove_clicked(self, button):
         #print "on_button_remove_clicked", pkgname
-        trans = self.aptd_client.commit_packages([], [], [pkgname], [], [],
+        trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],
                                          exit_handler=self._on_trans_finished)
-        trans.set_data("pkgname", pkgname)
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
-        trans.run()
+        self._run_transaction(trans)
 
-    def on_button_install_clicked(self, button, appname, pkgname, iconname):
+    def on_button_install_clicked(self, button):
         #print "on_button_install_clicked", pkgname
-        trans = self.aptd_client.commit_packages([pkgname], [], [], [], [],
+        trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
-        trans.set_data("pkgname", pkgname)
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
-        trans.run()
+        self._run_transaction(trans)
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
