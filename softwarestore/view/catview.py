@@ -33,18 +33,39 @@ from ConfigParser import ConfigParser
  COL_CAT_PIXBUF,
  COL_CAT_QUERY) = range(3)
 
+class Category(object):
+    """represents a menu category"""
+    def __init__(self, untranslated_name, name, iconname, query):
+        self.name = name
+        self.untranslated_name = untranslated_name
+        self.iconname = iconname
+        self.query = query
+
 class CategoriesModel(gtk.ListStore):
+
     def __init__(self, desktopdir, xapiandb, icons):
         gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, object)
-        cat = self.parse_applications_menu(desktopdir)
-        for key in sorted(cat.keys()):
-            (iconname, query) = cat[key]
-            icon = icons.load_icon(iconname, 24, 0)
-            query.name = key
-            self.append([gobject.markup_escape_text(key), icon, query])
+        categories = self.parse_applications_menu(desktopdir)
+        for cat in sorted(categories, cmp=self._cat_sort_cmp):
+            icon = icons.load_icon(cat.iconname, 24, 0)
+            cat.query.name = cat.name
+            self.append([gobject.markup_escape_text(cat.name), icon, cat.query])
+
+    def _cat_sort_cmp(self, a, b):
+        """sort helper for the categories sorting"""
+        #print "cmp: ", a.name, b.name
+        if a.untranslated_name == "Other":
+            return 1
+        elif b.untranslated_name == "Other":
+            return -1
+        elif a.untranslated_name == "Programming":
+            return 1
+        elif b.untranslated_name == "Programming":
+            return -1
+        return cmp(a.name, b.name)
 
     def parse_applications_menu(self, datadir):
-        " parse a application menu and build xapian querries from it "
+        " parse a application menu and return a list of Category objects"""
         tree = ET.parse(datadir+"/desktop/applications.menu")
         categories = {}
         only_unallocated = set()
@@ -52,6 +73,7 @@ class CategoriesModel(gtk.ListStore):
         for child in root.getchildren():
             if child.tag == "Menu":
                 name = None
+                untranslated_name = None
                 query = None
                 icon = None
                 for element in child.getchildren():
@@ -65,9 +87,9 @@ class CategoriesModel(gtk.ListStore):
                         except:
                             gettext_domain = None
                         icon = cp.get("Desktop Entry","Icon")
-                        name = cp.get("Desktop Entry","Name")
+                        untranslated_name = cp.get("Desktop Entry","Name")
                         if gettext_domain:
-                            name = gettext.dgettext(gettext_domain, name)
+                            name = gettext.dgettext(gettext_domain, untranslated_name)
                     elif element.tag == "Include":
                         query = xapian.Query("")
                         for include in element.getchildren():
@@ -80,7 +102,7 @@ class CategoriesModel(gtk.ListStore):
                                                 query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
                                                 
                                     elif and_elem.tag == "Category":
-                                        print "adding: ", and_elem.text
+                                        logging.debug("adding: %s" % and_elem.text)
                                         q = xapian.Query("AC"+and_elem.text.lower())
                                         query = xapian.Query(xapian.Query.OP_AND, query, q)
                                     else: 
@@ -88,20 +110,20 @@ class CategoriesModel(gtk.ListStore):
                     elif element.tag == "OnlyUnallocated":
                         only_unallocated.add(name)
                     if name and query:
-                        categories[name] = (icon, query)
+                        categories[untranslated_name] = Category(untranslated_name, name, icon, query)
         # post processing for <OnlyUnallocated>
         for unalloc in only_unallocated:
-            (icon, query) = categories[unalloc]
+            cat_unalloc = categories[unalloc]
             for key in categories:
                 if key != unalloc:
-                    (ic, q) = categories[key]
-                    query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
-            categories[unalloc] = (icon, query)
+                    cat = categories[key]
+                    cat.query = xapian.Query(xapian.Query.OP_AND_NOT, query, cat.query)
+            categories[unalloc] = cat_unalloc
         # debug print
-        for cat in categories:
-            (icon, query) = categories[cat]
-            print cat, query.get_description()
-        return categories
+        for catname in categories:
+            cat = categories[catname]
+            logging.debug(cat.name, cat.iconname, cat.query.get_description())
+        return categories.values()
 
 class LabeledCategoriesView(gtk.Viewport):
     def __init__(self, datadir, xapiandb, icons):
