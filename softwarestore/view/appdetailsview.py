@@ -156,6 +156,8 @@ class AppDetailsView(UrlTextView):
     def add_pkg_information(self, pkg):
         buffer = self.get_buffer()
         iter = buffer.get_end_iter()
+        if not pkg.candidate:
+            return
         version = pkg.candidate.version
         if version:
             buffer.insert(iter, "\n\n")
@@ -165,7 +167,7 @@ class AppDetailsView(UrlTextView):
     def add_main_description(self, appname, pkg):
         buffer = self.get_buffer()
         iter = buffer.get_end_iter()
-        if pkg:
+        if pkg and pkg.candidate:
             details = pkg.candidate.description
         else:
             details = _("Not available in the current data")
@@ -209,6 +211,8 @@ class AppDetailsView(UrlTextView):
             return
         buffer = self.get_buffer()
         iter = buffer.get_end_iter()
+        if not pkg.candidate:
+            return
         url = pkg.candidate.homepage
         if not url:
             return
