@@ -217,7 +217,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)
 
     def on_app_activated(self, app_view, path, column):
-        (name, icon) = app_view.get_model()[path]
+        (name, text, icon) = app_view.get_model()[path]
         # show new app
         self.app_details_view.show_app(name)
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)

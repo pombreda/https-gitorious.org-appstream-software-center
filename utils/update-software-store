@@ -110,6 +110,11 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 # sort_by_value uses string compare, so we need to pad here
                 doc.add_value(XAPIAN_VALUE_POPCON, 
                               xapian.sortable_serialise(float(popcon)))
+            # comment
+            if parser.has_option_desktop("Comment"):
+                s = parser.get_desktop("Comment")
+                doc.add_value(XAPIAN_VALUE_SUMMARY, s)
+
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):

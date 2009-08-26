@@ -10,8 +10,9 @@ software-store (0.1.1) karmic; urgency=low
   * fix unneeded scrollbar (LP: #418817)
   * highlight present location in navigation bar (LP: #418791)
   * change category sort order to conform with the spec (LP: #418580)
+  * show the summary in the software list
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 25 Aug 2009 15:21:57 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 26 Aug 2009 14:56:14 +0200
 
 software-store (0.1) karmic; urgency=low
 

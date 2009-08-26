@@ -57,11 +57,13 @@ class AppStore(gtk.GenericTreeModel):
     available in xapian)
     """
 
-    (COL_NAME, 
+    (COL_APP_NAME,
+     COL_TEXT, 
      COL_ICON,
-     ) = range(2)
+     ) = range(3)
 
     column_type = (str, 
+                   str,
                    gtk.gdk.Pixbuf)
 
     ICON_SIZE = 24
@@ -140,8 +142,15 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
         appname = self.appnames[rowref]
-        if column == self.COL_NAME:
-            return gobject.markup_escape_text(appname)
+        if column == self.COL_APP_NAME:
+            return appname
+        elif column == self.COL_TEXT:
+            for post in self.xapiandb.postlist("AA"+appname):
+                doc = self.xapiandb.get_document(post.docid)
+                summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
+            s = "<b>%s</b>\n%s" % (gobject.markup_escape_text(appname),
+                                   gobject.markup_escape_text(summary))
+            return s
         elif column == self.COL_ICON:
             try:
                 icon_name = ""
@@ -196,7 +205,7 @@ class AppView(gtk.TreeView):
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         tr = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_NAME)
+        column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -276,7 +285,7 @@ def on_entry_changed(widget, data):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    xapian_base_path = "/var/cache/app-install"
+    xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
     db = xapian.Database(pathname)
 
