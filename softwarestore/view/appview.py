@@ -148,7 +148,7 @@ class AppStore(gtk.GenericTreeModel):
             for post in self.xapiandb.postlist("AA"+appname):
                 doc = self.xapiandb.get_document(post.docid)
                 summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
-            s = "<b>%s</b>\n%s" % (gobject.markup_escape_text(appname),
+            s = "%s\n<small>%s</small>" % (gobject.markup_escape_text(appname),
                                    gobject.markup_escape_text(summary))
             return s
         elif column == self.COL_ICON:
@@ -165,7 +165,7 @@ class AppStore(gtk.GenericTreeModel):
             except Exception, e:
                 if not str(e).endswith("not present in theme"):
                     logging.exception("get_icon")
-        return self.icons.load_icon(gtk.STOCK_MISSING_IMAGE, self.ICON_SIZE, 0)
+        return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = rowref + 1

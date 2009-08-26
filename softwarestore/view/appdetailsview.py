@@ -138,10 +138,10 @@ class AppDetailsView(UrlTextView):
             try:
                 pixbuf = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
             except gobject.GError, e:
-                pixbuf = self.icons.load_icon(gtk.STOCK_MISSING_IMAGE, 
+                pixbuf = self.icons.load_icon(MISSING_APP_ICON, 
                                               self.APP_ICON_SIZE, 0)
         else:
-            pixbuf = self.icons.load_icon(gtk.STOCK_MISSING_IMAGE, 
+            pixbuf = self.icons.load_icon(MISSING_APP_ICON,
                                           self.APP_ICON_SIZE, 0)
         # insert description 
         buffer.insert_pixbuf(iter, pixbuf)

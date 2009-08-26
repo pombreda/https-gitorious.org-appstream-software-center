@@ -22,6 +22,11 @@ XAPIAN_BASE_PATH = "/var/cache/software-store"
 APP_INSTALL_PATH = "/usr/share/app-install"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
 
+
+# icon
+MISSING_APP_ICON = "applications-other"
+
+
 # values used in the database
 XAPIAN_VALUE_PKGNAME = 171
 XAPIAN_VALUE_ICON = 172
