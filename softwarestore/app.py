@@ -137,8 +137,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         gtk.main_quit()
 
     def on_menuitem_about_activate(self, widget):
-        print "about"
-        # FIXME: add once we have a name
+        #print "about"
+        self.aboutdialog.run()
+        self.aboutdialog.hide()
 
     def on_menuitem_view_all_activate(self, widget):
         print "on_menuitem_view_all_activate", widget
