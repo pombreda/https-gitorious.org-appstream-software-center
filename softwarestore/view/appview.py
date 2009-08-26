@@ -60,8 +60,11 @@ class AppStore(gtk.GenericTreeModel):
     (COL_NAME, 
      COL_ICON,
      ) = range(2)
+
     column_type = (str, 
                    gtk.gdk.Pixbuf)
+
+    ICON_SIZE = 24
 
     def __init__(self, db, icons, search_query=None, limit=200, 
                  sort=False, filter=None):
@@ -148,12 +151,12 @@ class AppStore(gtk.GenericTreeModel):
                     icon_name = os.path.splitext(icon_name)[0]
                     break
                 if icon_name:
-                    icon = self.icons.load_icon(icon_name, 24,0)
+                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE,0)
                     return icon
             except Exception, e:
                 if not str(e).endswith("not present in theme"):
                     logging.exception("get_icon")
-        return None
+        return self.icons.load_icon(gtk.STOCK_MISSING_IMAGE, self.ICON_SIZE, 0)
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = rowref + 1
