@@ -2,6 +2,9 @@ software-store (0.1.2) karmic; urgency=low
 
   * softwarestore/view/appdetailsview.py:
     - fix crash when no canidate is available (LP: #419258)
+  * softwarestore/view/catview.py:
+    - fix markup escape issue (LP: #419263)
+    - render the category text one pango shrink step smaller
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 26 Aug 2009 18:12:56 +0200
 

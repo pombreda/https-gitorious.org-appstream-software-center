@@ -227,7 +227,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                         "app")
 
     def on_category_activated(self, cat_view, path):
-        (name, pixbuf, query) = cat_view.get_model()[path]
+        (name, pixbuf, query, markup) = cat_view.get_model()[path]
         self.apps_category_query = query
         # show new category
         self.refresh_apps()

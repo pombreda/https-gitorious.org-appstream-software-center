@@ -31,7 +31,8 @@ from ConfigParser import ConfigParser
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
- COL_CAT_QUERY) = range(3)
+ COL_CAT_QUERY,
+ COL_CAT_MARKUP) = range(4)
 
 class Category(object):
     """represents a menu category"""
@@ -44,12 +45,13 @@ class Category(object):
 class CategoriesModel(gtk.ListStore):
 
     def __init__(self, desktopdir, xapiandb, icons):
-        gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, object)
+        gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, object, str)
         categories = self.parse_applications_menu(desktopdir)
         for cat in sorted(categories, cmp=self._cat_sort_cmp):
             icon = icons.load_icon(cat.iconname, 24, 0)
             cat.query.name = cat.name
-            self.append([gobject.markup_escape_text(cat.name), icon, cat.query])
+            markup = "<small>%s</small>" % gobject.markup_escape_text(cat.name)
+            self.append([cat.name, icon, cat.query, markup])
 
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
@@ -165,7 +167,7 @@ class CategoriesView(gtk.IconView):
         self.icons = icons
         self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
         # customization
-        self.set_markup_column(COL_CAT_NAME)
+        self.set_markup_column(COL_CAT_MARKUP)
         self.set_pixbuf_column(COL_CAT_PIXBUF)
         # signals
         self.connect("motion-notify-event", self.on_motion_notify_event)
