@@ -81,6 +81,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.view_switcher = ViewSwitcher(self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
+        self.view_switcher.set_cursor((0,))
         self.view_switcher.connect("row-activated", 
                                    self.on_view_switcher_activated)
 
@@ -117,7 +118,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.apps_limit = 0
 
         # default focus
-        self.entry_search.grab_focus()
+        self.cat_view.grab_focus()
 
     # xapian query
     def get_query_from_search_entry(self, search_term):
