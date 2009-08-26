@@ -143,12 +143,12 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.aboutdialog.hide()
 
     def on_menuitem_view_all_activate(self, widget):
-        print "on_menuitem_view_all_activate", widget
+        #print "on_menuitem_view_all_activate", widget
         self.apps_filter.set_supported_only(False)
         self.refresh_apps()
 
     def on_menuitem_view_canonical_activate(self, widget):
-        print "on_menuitem_view_canonical_activate", widget
+        #print "on_menuitem_view_canonical_activate", widget
         self.apps_filter.set_supported_only(True)
         self.refresh_apps()
 
