@@ -12,7 +12,7 @@ software-store (0.1.1) karmic; urgency=low
   * change category sort order to conform with the spec (LP: #418580)
   * show the summary in the software list
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 26 Aug 2009 14:56:14 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 26 Aug 2009 15:24:02 +0200
 
 software-store (0.1) karmic; urgency=low
 
