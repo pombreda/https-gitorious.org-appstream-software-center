@@ -36,26 +36,18 @@ class ViewSwitcher(gtk.TreeView):
             store = ViewSwitcherList(icons)
             self.set_model(store)
         gtk.TreeView.__init__(self)
-        self.set_fixed_height_mode(True)
         tp = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=store.COL_ICON)
-        column.set_fixed_width(32)
-        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        #column.set_fixed_width(32)
+        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         tr = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Name", tr, markup=store.COL_NAME)
-        column.set_fixed_width(200)
-        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        #column.set_fixed_width(200)
+        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         self.set_model(store)
         self.set_headers_visible(False)
-        #self.set_headers_visible(False)
-        #self.set_grid_lines(False)
-        #self.set_enable_tree_lines(False)
-        #self.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_NONE)
-        # single click
-        #self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
-        #self.connect("motion-notify-event", self.on_motion_notify_event)
         self.connect("button-press-event", self.on_button_press_event)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
@@ -86,13 +78,15 @@ class ViewSwitcherList(gtk.ListStore):
      ACTION_ITEM_INSTALLED,
      ACTION_ITEM_PENDING) = range(3)
 
+    ICON_SIZE = 32
+
     def __init__(self, icons):
         gtk.ListStore.__init__(self, gtk.gdk.Pixbuf, str, int)
         self.icons = icons
         # setup the normal stuff
-        icon = self.icons.load_icon("software-store", gtk.ICON_SIZE_MENU, 0)
+        icon = self.icons.load_icon("software-store", self.ICON_SIZE, 0)
         self.append([icon, _("Get Free software"), self.ACTION_ITEM_AVAILABLE])
-        icon = self.icons.load_icon("gtk-harddisk", gtk.ICON_SIZE_MENU, 0)
+        icon = self.icons.load_icon("gtk-harddisk", self.ICON_SIZE, 0)
         self.append([icon, _("Installed software"), self.ACTION_ITEM_INSTALLED])
         # setup dbus, its ok if aptdaemon is not available, we just
 	# do not show the pending changes tab then
