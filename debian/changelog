@@ -9,6 +9,7 @@ software-store (0.1.1) karmic; urgency=low
   * use gtk-missing-image if no image is available (LP: #418805)
   * fix unneeded scrollbar (LP: #418817)
   * highlight present location in navigation bar (LP: #418791)
+  * change category sort order to conform with the spec (LP: #418580)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 25 Aug 2009 15:21:57 +0200
 
