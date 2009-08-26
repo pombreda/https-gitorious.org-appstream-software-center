@@ -133,7 +133,6 @@
                         <property name="label" translatable="yes">Canonical Maintained Applications</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
-                        <property name="group">menuitem_view_all</property>
                         <signal name="activate" handler="on_menuitem_view_canonical_activate"/>
                       </object>
                     </child>
