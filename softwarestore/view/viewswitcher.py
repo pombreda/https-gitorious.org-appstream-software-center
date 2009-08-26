@@ -74,9 +74,10 @@ class ViewSwitcherList(gtk.ListStore):
      COL_ACTION) = range(3)
 
     # items in the treeview
-    (ACTION_ITEM_AVAILABLE,
+    (ACTION_ITEM_NONE,
+     ACTION_ITEM_AVAILABLE,
      ACTION_ITEM_INSTALLED,
-     ACTION_ITEM_PENDING) = range(3)
+     ACTION_ITEM_PENDING) = range(4)
 
     ICON_SIZE = 32
 
@@ -88,6 +89,13 @@ class ViewSwitcherList(gtk.ListStore):
         self.append([icon, _("Get Free software"), self.ACTION_ITEM_AVAILABLE])
         icon = self.icons.load_icon("gtk-harddisk", self.ICON_SIZE, 0)
         self.append([icon, _("Installed software"), self.ACTION_ITEM_INSTALLED])
+        # spacer - not working
+        #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
+        #                     self.ICON_SIZE/4.0, self.ICON_SIZE/4.0)
+        #icon.fill(0)
+        #self.append([icon, '<span size="xx-small"></span>', 
+        #             self.ACTION_ITEM_NONE])
+
         # setup dbus, its ok if aptdaemon is not available, we just
 	# do not show the pending changes tab then
 
