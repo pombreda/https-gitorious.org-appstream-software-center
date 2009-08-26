@@ -29,9 +29,11 @@ import dbus
 from gettext import gettext as _
 
 class ViewSwitcher(gtk.TreeView):
-    def __init__(self, store=None):
+    def __init__(self, icons, store=None):
+        super(ViewSwitcher, self).__init__()
+        self.icons = icons
         if not store:
-            store = ViewSwitcherList()
+            store = ViewSwitcherList(icons)
             self.set_model(store)
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
@@ -84,11 +86,14 @@ class ViewSwitcherList(gtk.ListStore):
      ACTION_ITEM_INSTALLED,
      ACTION_ITEM_PENDING) = range(3)
 
-    def __init__(self):
+    def __init__(self, icons):
         gtk.ListStore.__init__(self, gtk.gdk.Pixbuf, str, int)
+        self.icons = icons
         # setup the normal stuff
-        self.append([None, _("Get new software"), self.ACTION_ITEM_AVAILABLE])
-        self.append([None, _("Installed software"), self.ACTION_ITEM_INSTALLED])
+        icon = self.icons.load_icon("software-store", gtk.ICON_SIZE_MENU, 0)
+        self.append([icon, _("Get Free software"), self.ACTION_ITEM_AVAILABLE])
+        icon = self.icons.load_icon("gtk-harddisk", gtk.ICON_SIZE_MENU, 0)
+        self.append([icon, _("Installed software"), self.ACTION_ITEM_INSTALLED])
         # setup dbus, its ok if aptdaemon is not available, we just
 	# do not show the pending changes tab then
 
@@ -116,7 +121,7 @@ class ViewSwitcherList(gtk.ListStore):
         if pending > 0:
             for row in self:
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
-                    row[self.COL_NAME] = _("Pending (%i)") % pending
+                    row[self.COL_NAME] = _("In Progress (%i)") % pending
                     break
             else:
                 self.append([None, _("Pending (%i)") % pending, 
@@ -130,12 +135,9 @@ class ViewSwitcherList(gtk.ListStore):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    # now the store
-    store = ViewSwitcherList()
-
-    # gui
     scroll = gtk.ScrolledWindow()
-    view = ViewSwitcher(store)
+    icons = gtk.icon_theme_get_default()
+    view = ViewSwitcher(icons)
 
     box = gtk.VBox()
     box.pack_start(scroll)

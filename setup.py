@@ -18,7 +18,8 @@ setup(name="software-store", version='0.1',
                    ]),
                   ],
       cmdclass = { "build" : build_extra.build_extra,
-                   "build_i18n" :  build_i18n.build_i18n }
+                   "build_i18n" :  build_i18n.build_i18n,
+                   "build_icons" : build_icons.build_icons}
       )
 
 

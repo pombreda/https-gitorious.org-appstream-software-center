@@ -78,7 +78,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.navigation_bar.show()
 
         # view switcher
-        self.view_switcher = ViewSwitcher()
+        self.view_switcher = ViewSwitcher(self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("row-activated", 
