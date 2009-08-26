@@ -25,6 +25,7 @@ class NavigationBar(gtk.HBox):
         super(NavigationBar, self).__init__()
         self.id_to_widget = {}
         self.id_to_callback = {}
+        self.group = gtk.RadioButton()
 
     def add_with_id(self, label, callback, id):
         """
@@ -33,16 +34,20 @@ class NavigationBar(gtk.HBox):
         If there is the same id already, replace the existing one
         with the new one
         """
+        # check if we have the button of that id or need a new one
         if id in self.id_to_widget:
             button = self.id_to_widget[id]
             button.disconnect(self.id_to_callback[id])
         else:
-            button = gtk.Button()
+            button = gtk.RadioButton(self.group)
+            button.set_mode(False)
             self.pack_start(button, expand=False)
             self.id_to_widget[id] = button
             button.show()
-        button.set_label(label)
+        # common code
         handler_id = button.connect("clicked", callback)
+        button.set_label(label)
+        button.set_active(True)
         self.id_to_callback[id] = handler_id
 
     def remove_id(self, id):
