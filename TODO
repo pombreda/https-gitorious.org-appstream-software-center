@@ -1,4 +1,6 @@
 
+- add warning (or special remove button?) when a package is removed
+  that causes the removal of a meta-package like ubuntu-desktop
 
 Missing:
 - when the xapian db is rebuilding (e.g. because app-center is 

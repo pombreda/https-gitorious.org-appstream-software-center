@@ -161,6 +161,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.apps_filter.set_supported_only(True)
         self.refresh_apps()
 
+    def on_window_main_delete_event(self, widget, event):
+        gtk.main_quit()
+
     def on_button_home_clicked(self, widget):
         logging.debug("on_button_home_clicked")
         # we get the clicked signal when the radio-group toggles
