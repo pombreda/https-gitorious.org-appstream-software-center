@@ -6,6 +6,7 @@ Missing:
 - add sanity checks for the cache on removal (e.g. removal of
   ubuntu desktop?)
 
+- pimping of apps (via tweaking the popcon values?)
 
 Missing functionality compared to g-a-i:
 - maintainance calculation

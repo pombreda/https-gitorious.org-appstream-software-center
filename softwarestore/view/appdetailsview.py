@@ -89,7 +89,7 @@ class AppDetailsView(UrlTextView):
                           foreground="#888")
 
     def show_app(self, appname):
-        logging.debug("AppDetailsView.show_app %s" % appname)
+        logging.debug("AppDetailsView.show_app '%s'" % appname)
         self.appname = appname
         # get xapian document
         doc = None
@@ -112,7 +112,7 @@ class AppDetailsView(UrlTextView):
         self.add_main_description(appname, pkg)
         self.add_empty_lines(2)
         self.add_price(appname, pkg)
-        self.add_enable_channel_button(doc)
+        self.add_enable_channel_button(doc, pkg)
         self.add_pkg_action_button(appname, pkg, self.iconname)
         self.add_homepage_button(pkg)
         self.add_pkg_information(pkg)
@@ -157,7 +157,7 @@ class AppDetailsView(UrlTextView):
     def add_pkg_information(self, pkg):
         buffer = self.get_buffer()
         iter = buffer.get_end_iter()
-        if not pkg.candidate:
+        if not pkg or not pkg.candidate:
             return
         version = pkg.candidate.version
         if version:
@@ -179,16 +179,56 @@ class AppDetailsView(UrlTextView):
         buffer.insert_with_tags_by_name(iter, text, "align-to-icon")
         
 
-    def add_enable_channel_button(self, doc):
+    def add_enable_channel_button(self, doc, pkg):
         """add enable-channel button (if needed)"""
-        # FIXME: add code
-        return
+        # we have the pkg already
+        if pkg and pkg.candidate and pkg.candidate.downloadable:
+            return
+        channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+        if not channel:
+            return
+        path = APP_INSTALL_CHANNELS_PATH+channel+".list"
+        if not os.path.exists(path):
+            return
+        # FIXME: deal with the EULA stuff
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
+        button = self._insert_button(iter, ["align-to-icon"])
+        button.set_label(_("Enable channel"))
+        button.connect("clicked", self.on_enable_channel_clicked, path)
+
+    def on_enable_channel_clicked(self, widget, channelfile):
+        #print "on_enable_channel_clicked"
+        # FIXME: move this to utilities or something
+        import aptsources.sourceslist
+
+        # read channel file and add all relevant lines
+        for line in open(channelfile):
+            line = line.strip()
+            if not line:
+                continue
+            entry = aptsources.sourceslist.SourceEntry(line)
+            if entry.invalid:
+                continue
+            sourcepart = os.path.basename(channelfile)
+            try:
+                self.aptd_client.add_repository(
+                    entry.type, entry.uri, entry.dist, entry.comps, 
+                    "Added by software-store", sourcepart)
+            except dbus.exceptions.DBusException, e:
+                if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                    return
+        # now set the button to insensitive and wait
+        widget.set_sensitive(False)
+        trans = self.aptd_client.update_cache(
+            exit_handler=self._on_trans_finished)
+        self._run_transaction(trans)
 
     def add_maintainance_end_dates(self, pkg):
         """add the end of the maintainance time"""
         # FIXME: add code
         return
-    
+
     def add_pkg_action_button(self, appname, pkg, iconname):
         """add pkg action button (install/remove/upgrade)"""
         if not pkg:
