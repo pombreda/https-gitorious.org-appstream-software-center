@@ -128,7 +128,16 @@ class CategoriesModel(gtk.ListStore):
         return categories.values()
 
 class LabeledCategoriesView(gtk.Viewport):
-    def __init__(self, datadir, xapiandb, icons):
+    """Category view with a additional label"""
+
+    __gsignals__ = {
+        "category-selected" : (gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_NONE, 
+                               (str, gobject.TYPE_PYOBJECT),
+                              )
+        }
+
+    def __init__(self, datadir, xapiandb, icons, label=_("Categories")):
         gtk.Viewport.__init__(self)
         # a vbox in the outside and a hbox in the inside
         vbox = gtk.VBox()
@@ -137,10 +146,10 @@ class LabeledCategoriesView(gtk.Viewport):
         left = right = 8
         align.set_padding(top, bottom, left, right)
         # we need a eventbox around the label to set the background
-        label = gtk.Label("")
-        label.set_markup("<b>%s</b>" % _("Categories"))
-        label.set_alignment(0.0, 0.5)
-        align.add(label)
+        labelw = gtk.Label("")
+        labelw.set_markup("<b>%s</b>" % label)
+        labelw.set_alignment(0.0, 0.5)
+        align.add(labelw)
         align.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("yellow"))
         eb = gtk.EventBox()
         eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("yellow"))
@@ -149,19 +158,33 @@ class LabeledCategoriesView(gtk.Viewport):
         hbox_inside = gtk.HBox()
         hbox_inside.pack_start(eb, expand=False, fill=False)
         # FIXME: how to make sure the background color is right
-        #hbox_inside.pack_start(gtk.IconView())
+        hbox_inside.pack_start(gtk.IconView())
         vbox.pack_start(hbox_inside, expand=False, fill=False)
         # and now the categoryies
         self.catview = CategoriesView(datadir, xapiandb, icons)
         vbox.pack_start(self.catview)
         self.add(vbox)
-        # FIXME: add the row-activated signal
+        self.catview.connect("category-selected", self._category_selected)
+    def _category_selected(self, widget, name, query):
+        self.emit("category-selected", name, query)
 
 class CategoriesView(gtk.IconView):
+    """Base category view widget based on a gtk.IconView"""
+
+    __gsignals__ = {
+        "category-selected" : (gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_NONE, 
+                               (str, gobject.TYPE_PYOBJECT),
+                              )
+        }
+
+
+
     def __init__(self, datadir, xapiandb, icons):
         # model
         model = CategoriesModel(datadir, xapiandb, icons)
         gtk.IconView.__init__(self, model)
+
         # data
         self.xapiandb = xapiandb
         self.icons = icons
@@ -184,11 +207,15 @@ class CategoriesView(gtk.IconView):
         path = self.get_path_at_pos(event.x, event.y)
         if event.button != 1 or path is None:
             return
-        self.emit("item-activated", path)
+        #self.emit("item-activated", path)
+        model = self.get_model()
+        name = model[path][COL_CAT_NAME]
+        query = model[path][COL_CAT_QUERY]
+        self.emit("category-selected", name, query)
 
 # test code
-def category_activated(iconview, path, xapiandb):
-    (name, pixbuf, query) = iconview.get_model()[path]
+def category_activated(iconview, name, query, xapiandb):
+    #(name, pixbuf, query) = iconview.get_model()[path]
     enquire = xapian.Enquire(xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
@@ -216,9 +243,9 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
-    #view = LabeledCategoriesView(datadir, db, icons)
-    view = CategoriesView(datadir, db, icons)
-    view.connect("item-activated", category_activated, db)
+    view = LabeledCategoriesView(datadir, db, icons)
+    #view = CategoriesView(datadir, db, icons)
+    view.connect("category-selected", category_activated, db)
 
     # gui
     scroll = gtk.ScrolledWindow()

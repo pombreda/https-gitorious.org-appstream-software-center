@@ -34,7 +34,7 @@ except ImportError:
     from softwarestore.enums import *
 
 from view.appview import AppView, AppStore, AppViewFilter
-from view.catview import CategoriesView
+from view.catview import CategoriesView, LabeledCategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.appdetailsview import AppDetailsView
 from view.pendingview import PendingView
@@ -89,7 +89,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.cat_view = CategoriesView(APP_INSTALL_PATH, self.xapiandb, self.icons)
         self.scrolledwindow_categories.add(self.cat_view)
         self.cat_view.show()
-        self.cat_view.connect("item-activated", self.on_category_activated)
+        self.cat_view.connect("category-selected", self.on_category_activated)
         
         # apps
         empty_store = gtk.ListStore(gtk.gdk.Pixbuf, str)
@@ -226,8 +226,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                         self.on_navigation_button_app_details, 
                                         "app")
 
-    def on_category_activated(self, cat_view, path):
-        (name, pixbuf, query, markup) = cat_view.get_model()[path]
+    def on_category_activated(self, cat_view, name, query):
         self.apps_category_query = query
         # show new category
         self.refresh_apps()
