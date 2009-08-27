@@ -24,7 +24,6 @@ class AptCache(object):
         else:
             self._cache.open(GtkMainIterationProgress())
         self._ready = True
-        print "ready"
     def __getitem__(self, key):
         return self._cache[key]
     def has_key(self, key):

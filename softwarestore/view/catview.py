@@ -194,6 +194,13 @@ class CategoriesView(gtk.IconView):
         # signals
         self.connect("motion-notify-event", self.on_motion_notify_event)
         self.connect("button-press-event", self.on_button_press_event)
+        self.connect("item-activated", self.on_item_activated)
+    def on_item_activated(self, widget, path):
+        model = widget.get_model()
+        name = model[path][COL_CAT_NAME]
+        query = model[path][COL_CAT_QUERY]
+        #print "selected: ", name, query
+        self.emit("category-selected", name, query)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
         path = self.get_path_at_pos(int(event.x), int(event.y))

@@ -14,6 +14,8 @@ software-store (0.1.2) UNRELEASEDkarmic; urgency=low
   * improve the search entry (LP: #419740, LP: #419744) and do not
     loose focus when typing in it
   * fix background cache opening
+  * softwarestore/view/catview.py
+    - be more keybaod friedly
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 26 Aug 2009 18:12:56 +0200
 
