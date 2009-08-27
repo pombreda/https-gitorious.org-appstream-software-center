@@ -51,7 +51,7 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("button-press-event", self.on_button_press_event)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
-        path = self.get_path_at_pos(event.x, event.y)
+        path = self.get_path_at_pos(int(event.x), int(event.y))
         if path is None:
             self.window.set_cursor(None)
         else:
