@@ -111,7 +111,7 @@ class CategoriesModel(gtk.ListStore):
                                         print "UNHANDLED: ", and_elem.tag, and_elem.text
                     elif element.tag == "OnlyUnallocated":
                         only_unallocated.add(untranslated_name)
-                    if name and query:
+                    if untranslated_name and query:
                         categories[untranslated_name] = Category(untranslated_name, name, icon, query)
         # post processing for <OnlyUnallocated>
         for unalloc in only_unallocated:
@@ -119,7 +119,7 @@ class CategoriesModel(gtk.ListStore):
             for key in categories:
                 if key != unalloc:
                     cat = categories[key]
-                    cat.query = xapian.Query(xapian.Query.OP_AND_NOT, query, cat.query)
+                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             categories[unalloc] = cat_unalloc
         # debug print
         for catname in categories:
@@ -165,7 +165,6 @@ class LabeledCategoriesView(gtk.VBox):
         self.pack_start(self.catview)
         self.catview.connect("category-selected", self._category_selected)
     def _category_selected(self, widget, name, query):
-        print name, query
         self.emit("category-selected", name, query)
 
 class CategoriesView(gtk.IconView):
@@ -197,7 +196,7 @@ class CategoriesView(gtk.IconView):
         self.connect("button-press-event", self.on_button_press_event)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
-        path = self.get_path_at_pos(event.x, event.y)
+        path = self.get_path_at_pos(int(event.x), int(event.y))
         if path is None:
             self.window.set_cursor(None)
         else:
@@ -211,6 +210,7 @@ class CategoriesView(gtk.IconView):
         model = self.get_model()
         name = model[path][COL_CAT_NAME]
         query = model[path][COL_CAT_QUERY]
+        #print "selected: ", name, query
         self.emit("category-selected", name, query)
 
 # test code
