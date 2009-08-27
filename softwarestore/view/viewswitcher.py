@@ -25,6 +25,7 @@ import os
 import xapian
 import time
 import dbus
+from gtkImageCellRenderer import CellRendererImage
 
 from gettext import gettext as _
 
@@ -37,7 +38,11 @@ class ViewSwitcher(gtk.TreeView):
             self.set_model(store)
         gtk.TreeView.__init__(self)
         tp = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("Icon", tp, pixbuf=store.COL_ICON)
+        column = gtk.TreeViewColumn()
+        gobject.type_register(CellRendererImage)
+        cell = CellRendererImage()
+        column.pack_start(cell, False)
+        column.add_attribute(cell, 'image', 0)
         #column.set_fixed_width(32)
         #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -82,12 +87,12 @@ class ViewSwitcherList(gtk.ListStore):
     ICON_SIZE = 32
 
     def __init__(self, icons):
-        gtk.ListStore.__init__(self, gtk.gdk.Pixbuf, str, int)
+        gtk.ListStore.__init__(self, gtk.Image, str, int)
         self.icons = icons
         # setup the normal stuff
-        icon = self.icons.load_icon("software-store", self.ICON_SIZE, 0)
+        icon = gtk.image_new_from_pixbuf(self.icons.load_icon("software-store", self.ICON_SIZE, 0))
         self.append([icon, _("Get Free software"), self.ACTION_ITEM_AVAILABLE])
-        icon = self.icons.load_icon("gtk-harddisk", self.ICON_SIZE, 0)
+        icon = gtk.image_new_from_pixbuf(self.icons.load_icon("gtk-harddisk", self.ICON_SIZE, 0))
         self.append([icon, _("Installed software"), self.ACTION_ITEM_INSTALLED])
         # spacer - not working
         #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
@@ -126,7 +131,8 @@ class ViewSwitcherList(gtk.ListStore):
                     row[self.COL_NAME] = _("In Progress (%i)") % pending
                     break
             else:
-                self.append([None, _("Pending (%i)") % pending, 
+                icon = gtk.image_new_from_animation(gtk.gdk.PixbufAnimation('/mnt/softwarestore/view/throbber.gif'))
+                self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])
         else:
             for (i, row) in enumerate(self):
