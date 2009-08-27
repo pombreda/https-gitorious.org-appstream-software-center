@@ -202,18 +202,19 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         action = model[row][ViewSwitcherList.COL_ACTION]
         if action == ViewSwitcherList.ACTION_ITEM_AVAILABLE:
             logging.debug("show available")
-            if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
-                self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+            self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+            self.navigation_bar.remove_all()
             self.apps_filter.set_installed_only(False)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_INSTALLED:
             logging.debug("show installed")
-            if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
-                self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+            self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
             self.apps_filter.set_installed_only(True)
+            self.navigation_bar.remove_all()
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_PENDING:
             logging.debug("show pending")
+            self.navigation_bar.remove_all()
             self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_PENDING)
         else:
             assert False, "Not reached"
