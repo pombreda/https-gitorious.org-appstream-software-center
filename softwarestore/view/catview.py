@@ -127,7 +127,7 @@ class CategoriesModel(gtk.ListStore):
             logging.debug(cat.name, cat.iconname, cat.query.get_description())
         return categories.values()
 
-class LabeledCategoriesView(gtk.Viewport):
+class LabeledCategoriesView(gtk.VBox):
     """Category view with a additional label"""
 
     __gsignals__ = {
@@ -138,9 +138,9 @@ class LabeledCategoriesView(gtk.Viewport):
         }
 
     def __init__(self, datadir, xapiandb, icons, label=_("Categories")):
-        gtk.Viewport.__init__(self)
+        super(LabeledCategoriesView, self).__init__()
         # a vbox in the outside and a hbox in the inside
-        vbox = gtk.VBox()
+        #vbox = gtk.VBox()
         align = gtk.Alignment()
         top = bottom = 2
         left = right = 8
@@ -150,22 +150,22 @@ class LabeledCategoriesView(gtk.Viewport):
         labelw.set_markup("<b>%s</b>" % label)
         labelw.set_alignment(0.0, 0.5)
         align.add(labelw)
-        align.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("yellow"))
         eb = gtk.EventBox()
-        eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("yellow"))
+        color =  gtk.gdk.color_parse("lightblue")
+        eb.modify_bg(gtk.STATE_NORMAL, color)
         eb.add(align)
         # needed to make the background not spawn all over
         hbox_inside = gtk.HBox()
         hbox_inside.pack_start(eb, expand=False, fill=False)
         # FIXME: how to make sure the background color is right
         hbox_inside.pack_start(gtk.IconView())
-        vbox.pack_start(hbox_inside, expand=False, fill=False)
+        self.pack_start(hbox_inside, expand=False, fill=False)
         # and now the categoryies
         self.catview = CategoriesView(datadir, xapiandb, icons)
-        vbox.pack_start(self.catview)
-        self.add(vbox)
+        self.pack_start(self.catview)
         self.catview.connect("category-selected", self._category_selected)
     def _category_selected(self, widget, name, query):
+        print name, query
         self.emit("category-selected", name, query)
 
 class CategoriesView(gtk.IconView):

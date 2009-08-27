@@ -86,7 +86,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_activated)
 
         # categories
-        self.cat_view = CategoriesView(APP_INSTALL_PATH, self.xapiandb, self.icons)
+        self.cat_view = LabeledCategoriesView(APP_INSTALL_PATH, self.xapiandb,
+                                              self.icons)
         self.scrolledwindow_categories.add(self.cat_view)
         self.cat_view.show()
         self.cat_view.connect("category-selected", self.on_category_activated)
@@ -227,6 +228,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                         "app")
 
     def on_category_activated(self, cat_view, name, query):
+        #print cat_view, name, query
         self.apps_category_query = query
         # show new category
         self.refresh_apps()
