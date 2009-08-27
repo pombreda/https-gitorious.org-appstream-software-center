@@ -369,7 +369,7 @@ class AppDetailsView(webkit.WebView):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    gtk.gdk.threads_init()
+    gobject.threads_init()
 
     xapian_base_path = "/var/cache/app-install"
     pathname = os.path.join(xapian_base_path, "xapian")
