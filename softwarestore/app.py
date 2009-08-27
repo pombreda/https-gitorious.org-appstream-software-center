@@ -39,6 +39,7 @@ from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.appdetailsview import AppDetailsView
 from view.pendingview import PendingView
 from view.navigationbar import NavigationBar
+from view.searchentry import SearchEntry
 
 from gettext import gettext as _
 
@@ -109,7 +110,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.app_details_view.show()
 
         # search
-        self.entry_search.connect("changed", self.on_entry_search_changed)
+        self.entry_search = SearchEntry(self.icons)
+        self.hbox_search_entry.pack_start(self.entry_search)
+        self.entry_search.connect("terms-changed", self.on_entry_search_changed)
 
         # state
         self.apps_filter = AppViewFilter(self.cache)
@@ -164,9 +167,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.on_button_search_entry_clear_clicked(None)
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
 
-    def on_entry_search_changed(self, widget):
+    def on_entry_search_changed(self, widget, new_text):
         self.navigation_bar.remove_id("search")
-        new_text = widget.get_text()
         logging.debug("on_entry_changed: %s" % new_text)
         if not new_text:
             self.apps_limit = 0
