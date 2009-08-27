@@ -84,9 +84,10 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             doc.add_term("AP"+pkgname)
             doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
             # section (main, restricted, ...)
-            archive_section = parser.get_desktop("X-AppInstall-Section")
-            doc.add_term("AS"+archive_section)
-            doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, archive_section)
+            if parser.has_option_desktop("X-AppInstall-Section"):
+                archive_section = parser.get_desktop("X-AppInstall-Section")
+                doc.add_term("AS"+archive_section)
+                doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, archive_section)
             # channel (third party stuff)
             if parser.has_option_desktop("X-AppInstall-Channel"):
                 archive_channel = parser.get_desktop("X-AppInstall-Channel")
@@ -130,10 +131,10 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 w = globals()["WEIGHT_DESKTOP_"+key.replace(" ","").upper()]
                 term_generator.index_text_without_positions(s)
             # add data from the apt cache
-            if cache.has_key(pkgname):
-                s = cache[pkgname].summary
+            if pkgname in cache and cache[pkgname].candidate:
+                s = cache[pkgname].candidate.summary
                 term_generator.index_text_without_positions(s, WEIGHT_APT_SUMMARY)
-                s = cache[pkgname].description
+                s = cache[pkgname].candidate.description
                 term_generator.index_text_without_positions(s, WEIGHT_APT_DESCRIPTION)
             # add our keywords (with high priority)
             if parser.has_option_desktop("X-AppInstall-Keywords"):
@@ -163,5 +164,5 @@ if __name__ == "__main__":
     if not os.path.exists(pathname):
 	os.makedirs(pathname)
     db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
-    cache = apt.Cache()
+    cache = apt.Cache(memonly=True)
     update(db, cache)
