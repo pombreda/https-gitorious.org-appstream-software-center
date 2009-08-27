@@ -83,6 +83,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             pkgname = parser.get_desktop("X-AppInstall-Package")
             doc.add_term("AP"+pkgname)
             doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
+            doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, desktopf)
             # section (main, restricted, ...)
             if parser.has_option_desktop("X-AppInstall-Section"):
                 archive_section = parser.get_desktop("X-AppInstall-Section")
@@ -113,6 +114,8 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 arches = parser.get_desktop("X-Ubuntu-Architectures")
                 doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
             # popcon
+            # FIXME: popularity not only based on popcon but also
+            #        on archive section, third party app etc
             if parser.has_option_desktop("X-AppInstall-Popcon"):
                 popcon = parser.get_desktop("X-AppInstall-Popcon")
                 # sort_by_value uses string compare, so we need to pad here

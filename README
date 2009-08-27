@@ -14,6 +14,7 @@ AP - package name (abiword)
 AS - archive section (main)
 AC - category (AudioVideo)
 AT - type (Application)
+AH - channel 
 
 The following values are used:
 
@@ -24,3 +25,5 @@ XAPIAN_VALUE_ARCHIVE_SECTION - archive section (main, restricted, universe, mult
 XAPIAN_VALUE_ARCHIVE_ARCH - architectures (seperated with ",", e.g. i386,amd64) - may be empty
 XAPIAN_VALUE_POPCON - popcon data
 XAPIAN_VALUE_SUMMARY - summary text
+XAPIAN_VALUE_ARCHIVE_CHANNEL - channel (third party)
+XAPIAN_VALUE_DESKTOP_FILE - the desktop file that the information comes from
