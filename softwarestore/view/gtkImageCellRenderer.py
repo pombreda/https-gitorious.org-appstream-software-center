@@ -1,3 +1,5 @@
+# Author : Yann Le Boulanger
+
 import gtk
 import gobject
 
