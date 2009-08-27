@@ -110,7 +110,7 @@ class CategoriesModel(gtk.ListStore):
                                     else: 
                                         print "UNHANDLED: ", and_elem.tag, and_elem.text
                     elif element.tag == "OnlyUnallocated":
-                        only_unallocated.add(name)
+                        only_unallocated.add(untranslated_name)
                     if name and query:
                         categories[untranslated_name] = Category(untranslated_name, name, icon, query)
         # post processing for <OnlyUnallocated>
