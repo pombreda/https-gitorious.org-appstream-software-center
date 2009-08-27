@@ -1,7 +1,10 @@
 
 
 Missing:
-- apt cache open in via a thead
+- when the xapian db is rebuilding (e.g. because app-center is 
+  upgraded) wait for that (just like with the apt cache)
+- add sanity checks for the cache on removal (e.g. removal of
+  ubuntu desktop?)
 
 
 Missing functionality compared to g-a-i:
@@ -17,5 +20,3 @@ Missing but not so important:
 
 
 
-Misc:
-* use trigger for /usr/share/app-install ?
