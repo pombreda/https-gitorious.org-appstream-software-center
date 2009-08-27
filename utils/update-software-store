@@ -83,9 +83,16 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             pkgname = parser.get_desktop("X-AppInstall-Package")
             doc.add_term("AP"+pkgname)
             doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
+            # section (main, restricted, ...)
             archive_section = parser.get_desktop("X-AppInstall-Section")
             doc.add_term("AS"+archive_section)
             doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, archive_section)
+            # channel (third party stuff)
+            if parser.has_option_desktop("X-AppInstall-Channel"):
+                archive_channel = parser.get_desktop("X-AppInstall-Channel")
+                doc.add_term("AH"+archive_section)
+                doc.add_value(XAPIAN_VALUE_ARCHIVE_CHANNEL, archive_channel)
+            # icon
             if parser.has_option_desktop("Icon"):
                 icon = parser.get_desktop("Icon")
                 doc.add_value(XAPIAN_VALUE_ICON, icon)
