@@ -292,8 +292,7 @@ class AppDetailsView(UrlTextView):
                    excep.details)
             print msg
         # re-open cache and refresh app display
-        # FIXME: threaded to keep the UI alive
-        self.cache.open(apt.progress.OpProgress())
+        self.cache.open()
         self.show_app(self.appname)
 
     # internal helpers

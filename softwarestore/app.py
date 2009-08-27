@@ -19,6 +19,7 @@
 
 import apt
 import logging
+import glib
 import gtk
 import os
 import xapian
@@ -40,6 +41,8 @@ from view.appdetailsview import AppDetailsView
 from view.pendingview import PendingView
 from view.navigationbar import NavigationBar
 from view.searchentry import SearchEntry
+
+from apt.aptcache import AptCache
 
 from gettext import gettext as _
 
@@ -69,9 +72,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path(ICON_PATH)
 
-        # data 
-        # FIXME: progress or thread
-        self.cache = apt.Cache()
+        # cursor
+        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        
+        # a main iteration friendly apt cache
+        self.cache = AptCache()
 
         # navigation bar
         self.navigation_bar = NavigationBar(self.button_home)
@@ -87,8 +92,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_activated)
 
         # categories
-        self.cat_view = LabeledCategoriesView(APP_INSTALL_PATH, self.xapiandb,
-                                              self.icons)
+        self.cat_view = CategoriesView(APP_INSTALL_PATH, self.xapiandb,
+                                       self.icons)
         self.scrolledwindow_categories.add(self.cat_view)
         self.cat_view.show()
         self.cat_view.connect("category-selected", self.on_category_activated)
@@ -241,7 +246,15 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                         "category")
 
     # gui helper
+
     def refresh_apps(self):
+        # wait if the cache is not ready yet
+        if not self.cache.ready:
+            self.window_main.window.set_cursor(self.busy_cursor)
+            glib.timeout_add(100, lambda: self.refresh_apps())
+            return False
+        self.window_main.window.set_cursor(None)
+
         # build query
         if self.apps_category_query and self.apps_search_query:
             query = xapian.Query(xapian.Query.OP_AND, 
@@ -264,7 +277,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.app_view.set_model(new_model)
         id = self.statusbar_main.get_context_id("items")
         self.statusbar_main.push(id, _("%s items available") % len(new_model))
-
 
     def run(self):
         self.window_main.show_all()
