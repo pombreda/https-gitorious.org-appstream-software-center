@@ -63,7 +63,7 @@ class ViewSwitcher(gtk.TreeView):
             self.window.set_cursor(self.cursor_hand)
     def on_button_press_event(self, widget, event):
         #print "on_button_press_event: ", event
-        res = self.get_path_at_pos(event.x, event.y)
+        res = self.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
