@@ -4,7 +4,8 @@ set -e
 
 if [ "$1" = "purge" ]; then
     # remove the cached application data
-    rm -f /var/cache/software-store/*
+    rm -f /var/cache/software-store/xapian/*
+    rmdir /var/cache/software-store/xapian/
 fi
 
 
