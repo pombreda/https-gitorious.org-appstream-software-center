@@ -12,6 +12,10 @@ software-store (0.1.3) karmic; urgency=low
       inactivity) LP: #420124
   * softwarestore/view/appdetailsview.py:
     - show number of installed dependencies in the description
+    - warn on removal if the application is a dependency of 
+      ubuntu-desktop or if it has additional reverse dependencies
+  * softwarestore/view/pkgview.py:
+    - add new view that shows a bunch of packages with meta-information
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Aug 2009 17:40:09 +0200
 

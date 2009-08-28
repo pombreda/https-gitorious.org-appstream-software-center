@@ -39,6 +39,8 @@ from aptdaemon import enums
  
 from gettext import gettext as _
 
+import dialogs
+
 try:
     from appcenter.enums import *
 except ImportError:
@@ -111,6 +113,9 @@ class AppDetailsView(UrlTextView):
         if self.cache.has_key(self.pkgname):
             pkg = self.cache[self.pkgname]
 
+        # data
+        self.installed_rdeps = set()
+            
         # fill the buffer
         self.clean()
         self.add_main_icon(self.iconname)
@@ -246,19 +251,19 @@ class AppDetailsView(UrlTextView):
             # generic message
             s = _("%s is installed on this computer.") % appname
             # show how many packages on the system depend on this
-            installed_rdeps = set()
+            self.installed_rdeps = set()
             for rdep in pkg._pkg.RevDependsList:
                 if rdep.DepType in self.DEPENDENCY_TYPES:
                     rdep_name = rdep.ParentPkg.Name
                     if (self.cache.has_key(rdep_name) and
                         self.cache[rdep_name].isInstalled):
-                        installed_rdeps.add(rdep.ParentPkg.Name)
-            if len(installed_rdeps) > 0:
+                        self.installed_rdeps.add(rdep.ParentPkg.Name)
+            if len(self.installed_rdeps) > 0:
                 s += " "
                 s += gettext.ngettext(
                     "It is used by %s piece of installed software.",
                     "It is used by %s pieces of installed software.",
-                    len(installed_rdeps)) % len(installed_rdeps)
+                    len(self.installed_rdeps)) % len(self.installed_rdeps)
             buffer.insert_with_tags_by_name(iter,s, "align-to-icon")
             buffer.insert(iter, "\n\n")
 
@@ -341,7 +346,26 @@ class AppDetailsView(UrlTextView):
         self._run_transaction(trans)
 
     def on_button_remove_clicked(self, button):
-        #print "on_button_remove_clicked", pkgname
+        # generic removal text
+        primary=_("%s depends on other software on the system. ") % self.appname
+        secondary = _("Uninstalling it means that the following "
+                      "additional software needs to be removed.")
+        # alter it if a meta-package is affected
+        for m in self.IMPORTANT_METAPACKAGES:
+            if m in self.installed_rdeps:
+                primary=_("%s is a core component") % self.appname
+                secondary = _("%s is a core application in Ubuntu. "
+                              "Uninstalling it may cause future upgrades "
+                              "to be incomplete. Are you sure you want to "
+                              "continue?") % self.appname
+                break
+        # ask for confirmation if we have rdepends
+        if len(self.installed_rdeps):
+            if not dialogs.confirm_remove(None, primary, secondary, 
+                                          self.cache,
+                                          list(self.installed_rdeps)):
+                return
+        # do it (no rdepends or user confirmed)
         trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],
                                          exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
@@ -397,7 +421,8 @@ if __name__ == "__main__":
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache)
     #view.show_app("AMOR")
-    view.show_app("3D Chess")
+    #view.show_app("3D Chess")
+    view.show_app("Configuration Editor")
 
     win = gtk.Window()
     scroll.add(view)
