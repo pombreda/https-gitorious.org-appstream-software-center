@@ -155,8 +155,13 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     def on_app_details_selected(self, widget, appname, pkg):
         logging.debug("on_app_details_selected %s %s" % (appname, pkg))
-        self.menuitem_install.set_sensitive(not bool(pkg.installed))
-        self.menuitem_remove.set_sensitive(bool(pkg.installed))
+        installed = bool(pkg and pkg.installed)
+        # check if the package is in the cache at all
+        if pkg:
+            self.menuitem_install.set_sensitive(not installed)
+        else:
+            self.menuitem_install.set_sensitive(False)
+        self.menuitem_remove.set_sensitive(installed)
 
     def on_menuitem_search_activate(self, widget):
         #print "on_menuitem_search_activate"
