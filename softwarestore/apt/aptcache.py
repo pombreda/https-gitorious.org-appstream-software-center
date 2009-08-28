@@ -1,6 +1,7 @@
 
 import apt
 import glib
+import gobject
 import gtk
 import time
 
@@ -10,20 +11,32 @@ class GtkMainIterationProgress(apt.progress.OpProgress):
         while gtk.events_pending():
             gtk.main_iteration()
 
-class AptCache(object):
+class AptCache(gobject.GObject):
     """ 
     A apt cache that opens in the background and keeps the UI alive
     """
+
+    __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
+                                     gobject.TYPE_NONE,
+                                     ()),
+                    'cache-invalid':(gobject.SIGNAL_RUN_FIRST,
+                                     gobject.TYPE_NONE,
+                                     ()),
+                    }
+
     def __init__(self):
+        gobject.GObject.__init__(self)
         self._cache = None
         glib.timeout_add(100, self.open)
     def open(self):
         self._ready = False
+        self.emit("cache-invalid")
         if self._cache == None:
             self._cache = apt.Cache(GtkMainIterationProgress())
         else:
             self._cache.open(GtkMainIterationProgress())
         self._ready = True
+        self.emit("cache-ready")
     def __getitem__(self, key):
         return self._cache[key]
     def has_key(self, key):
@@ -31,3 +44,6 @@ class AptCache(object):
     @property
     def ready(self):
         return self._ready
+
+if __name__ == "__main__":
+    c = AptCache()
