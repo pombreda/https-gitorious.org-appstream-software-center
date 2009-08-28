@@ -87,11 +87,12 @@ class AppDetailsView(UrlTextView):
 
     def _create_tag_table(self):
         buffer = self.get_buffer()
+        left_padding = self.APP_ICON_SIZE + 2*self.APP_ICON_PADDING
         buffer.create_tag("align-to-icon", 
-                          left_margin=self.APP_ICON_SIZE)
+                          left_margin=left_padding)
         buffer.create_tag("heading", 
                           weight=pango.WEIGHT_HEAVY,
-                          scale=pango.SCALE_LARGE)
+                          scale=pango.SCALE_X_LARGE)
         #buffer.create_tag("align-right", 
         #                  justification=gtk.JUSTIFY_RIGHT))
         buffer.create_tag("small", 
@@ -164,7 +165,18 @@ class AppDetailsView(UrlTextView):
             pixbuf = self.icons.load_icon(MISSING_APP_ICON,
                                           self.APP_ICON_SIZE, 0)
         # insert description 
-        buffer.insert_pixbuf(iter, pixbuf)
+        if (pixbuf.get_width() == self.APP_ICON_SIZE and
+            pixbuf.get_height() == self.APP_ICON_SIZE):
+            frame = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
+                                   self.APP_ICON_SIZE+2*self.APP_ICON_PADDING, 
+                                   self.APP_ICON_SIZE+2*self.APP_ICON_PADDING)
+            frame.fill(0)
+            pixbuf.copy_area(0, 0, self.APP_ICON_SIZE, self.APP_ICON_SIZE,
+                             frame, self.APP_ICON_PADDING, 
+                             self.APP_ICON_PADDING)
+        else:
+            frame = pixbuf
+        buffer.insert_pixbuf(iter, frame)
 
     def add_price(self, appname, pkg):
         buffer = self.get_buffer()
