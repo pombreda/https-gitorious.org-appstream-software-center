@@ -1,27 +1,33 @@
 
+
+
+
+UI:
 - add warning if a package is removed that causes the removal
   of a unreleated meta-package (that is not ubuntu-desktop)
+- make the textview more visual attractive (GtkTextView has
+  probably too many limitations, switch to the webkit branch
+- connect the menu items from the "Edit" menu
+- make "installed" and "available" two fully seperate internal
+  tabs and change the "installed" main page to not show 
+  categories but use a different view (spec says treeview, lets
+  see if that can be done in time)
 
 Missing:
 - when the xapian db is rebuilding (e.g. because app-center is 
   upgraded) wait for that (just like with the apt cache)
-- add sanity checks for the cache on removal (e.g. removal of
-  ubuntu desktop?)
-
 - pimping of apps (via tweaking the popcon values?)
 
 Missing functionality compared to g-a-i:
 - maintainance calculation
-- enable of channels (like the third party repository)
 - displaying EULA
 - enable of components (like universe)
-
 
 Missing but not so important:
 - searching for codecs (now done by gnome-codec-install)
 - searching for mime-types (?)
 
-- Provide terminal in transactions???
+- Provide terminal in transactions (?)
 
 
 
