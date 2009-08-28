@@ -24,7 +24,7 @@ import apt
 import os
 import xapian
 import time
-import dbus
+import aptdaemon.client
 
 from gettext import gettext as _
 
@@ -96,26 +96,13 @@ class ViewSwitcherList(gtk.ListStore):
         #self.append([icon, '<span size="xx-small"></span>', 
         #             self.ACTION_ITEM_NONE])
 
-        # setup dbus, its ok if aptdaemon is not available, we just
-	# do not show the pending changes tab then
+        self.aptd = aptdaemon.client.get_aptdaemon()
+        self.aptd.connect_to_signal("ActiveTransactionsChanged",
+                                    self.check_pending)
 
-        # FIXME: use ActiveTransactionChanged callback from the daemon
-        #        here instead of polling
-        try:
-            self.system_bus = dbus.SystemBus()
-            obj = self.system_bus.get_object("org.debian.apt",
-                                             "/org/debian/apt")
-            self.aptd = dbus.Interface(obj, 'org.debian.apt')
-            # check for pending aptdaemon actions
-            self.check_pending()
-            gobject.timeout_add_seconds(1, self.check_pending)
-        except dbus.exceptions.DBusException, e:
-            logging.exception("aptdaemon dbus error")
-
-    def check_pending(self):
+    def check_pending(self, current, queue):
         #print "check_pending"
         pending = 0
-        (current, queue) = self.aptd.GetActiveTransactions()
         if current or len(queue) > 0:
             pending = 1 + len(queue)
         # if we have a pending item, show it in the action view

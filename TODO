@@ -17,10 +17,11 @@ Missing functionality compared to g-a-i:
 - enable of components (like universe)
 
 
-
 Missing but not so important:
 - searching for codecs (now done by gnome-codec-install)
 - searching for mime-types (?)
+
+- Provide terminal in transactions???
 
 
 
