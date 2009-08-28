@@ -17,14 +17,16 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import logging
+import apt
+import dbus
 import gtk
 import gobject
-import apt
+import logging
 import os
-import xapian
 import time
-import dbus
+import xapian
+
+import aptdaemon.client
 from gtkImageCellRenderer import CellRendererImage
 
 from gettext import gettext as _
@@ -107,27 +109,21 @@ class ViewSwitcherList(gtk.ListStore):
         #icon.fill(0)
         #self.append([icon, '<span size="xx-small"></span>', 
         #             self.ACTION_ITEM_NONE])
-
-        # setup dbus, its ok if aptdaemon is not available, we just
-	# do not show the pending changes tab then
-
-        # FIXME: use ActiveTransactionChanged callback from the daemon
-        #        here instead of polling
-        try:
-            self.system_bus = dbus.SystemBus()
-            obj = self.system_bus.get_object("org.debian.apt",
-                                             "/org/debian/apt")
-            self.aptd = dbus.Interface(obj, 'org.debian.apt')
-            # check for pending aptdaemon actions
-            self.check_pending()
-            gobject.timeout_add_seconds(1, self.check_pending)
-        except dbus.exceptions.DBusException, e:
-            logging.exception("aptdaemon dbus error")
-
-    def check_pending(self):
+        
+         
+        # watch the daemon exit and (re)register the signal
+        bus = dbus.SystemBus()
+        self._owner_watcher = bus.watch_name_owner(
+            "org.debian.apt", self._register_active_transactions_watch)
+ 
+    def _register_active_transactions_watch(self, connection):
+        #print "_register_active_transactions_watch", connection       
+        self.aptd = aptdaemon.client.get_aptdaemon()
+        self.aptd.connect_to_signal("ActiveTransactionsChanged", self.check_pending)
+        
+    def check_pending(self, current, queue):
         #print "check_pending"
         pending = 0
-        (current, queue) = self.aptd.GetActiveTransactions()
         if current or len(queue) > 0:
             pending = 1 + len(queue)
         # if we have a pending item, show it in the action view

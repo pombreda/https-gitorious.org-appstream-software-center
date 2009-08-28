@@ -140,6 +140,14 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.apps_search_query = None
         self.apps_sorted = True
         self.apps_limit = 0
+        
+        # launchpad integration help, its ok if that fails
+        try:
+            import LaunchpadIntegration
+            LaunchpadIntegration.set_sourcepackagename("software-store")
+            LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
+        except Exception, e:
+            logging.debug("launchpad integration error: '%s'" % e)
 
         # default focus
         self.cat_view.grab_focus()

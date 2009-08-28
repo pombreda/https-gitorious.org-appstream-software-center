@@ -1,3 +1,4 @@
+
 - add warning (or special remove button?) when a package is removed
   that causes the removal of a meta-package like ubuntu-desktop
 
@@ -16,10 +17,11 @@ Missing functionality compared to g-a-i:
 - enable of components (like universe)
 
 
-
 Missing but not so important:
 - searching for codecs (now done by gnome-codec-install)
 - searching for mime-types (?)
+
+- Provide terminal in transactions???
 
 
 

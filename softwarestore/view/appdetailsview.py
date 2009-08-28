@@ -20,6 +20,7 @@
 import apt
 import dbus
 import logging
+import gettext
 import gtk
 import gobject
 import apt
@@ -51,6 +52,10 @@ class AppDetailsView(UrlTextView):
     # the size of the icon on the left side
     APP_ICON_SIZE = 32
     APP_ICON_PADDING = 8
+
+ # dependency types we are about
+    DEPENDENCY_TYPES = ("PreDepends", "Depends", "Recommends")
+    IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
     def __init__(self, xapiandb, icons, cache):
         super(AppDetailsView, self).__init__()
@@ -113,6 +118,7 @@ class AppDetailsView(UrlTextView):
         self.add_empty_lines(2)
         self.add_price(appname, pkg)
         self.add_enable_channel_button(doc, pkg)
+        self.add_pkg_action_button_description(appname, pkg)
         self.add_pkg_action_button(appname, pkg, self.iconname)
         self.add_homepage_button(pkg)
         self.add_pkg_information(pkg)
@@ -228,6 +234,33 @@ class AppDetailsView(UrlTextView):
         """add the end of the maintainance time"""
         # FIXME: add code
         return
+
+    def add_pkg_action_button_description(self, appname, pkg):
+        """Add message specific to this package (e.g. how many dependenies"""
+        if not pkg:
+            return 
+        buffer = self.get_buffer()
+        iter = buffer.get_end_iter()
+        # its installed, tell about rdepends
+        if pkg.installed:
+            # generic message
+            s = _("%s is installed on this computer.") % appname
+            # show how many packages on the system depend on this
+            installed_rdeps = set()
+            for rdep in pkg._pkg.RevDependsList:
+                if rdep.DepType in self.DEPENDENCY_TYPES:
+                    rdep_name = rdep.ParentPkg.Name
+                    if (self.cache.has_key(rdep_name) and
+                        self.cache[rdep_name].isInstalled):
+                        installed_rdeps.add(rdep.ParentPkg.Name)
+            if len(installed_rdeps) > 0:
+                s += " "
+                s += gettext.ngettext(
+                    "It is used by %s piece of installed software.",
+                    "It is used by %s pieces of installed software.",
+                    len(installed_rdeps)) % len(installed_rdeps)
+            buffer.insert_with_tags_by_name(iter,s, "align-to-icon")
+            buffer.insert(iter, "\n\n")
 
     def add_pkg_action_button(self, appname, pkg, iconname):
         """add pkg action button (install/remove/upgrade)"""
@@ -363,8 +396,8 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache)
-    view.show_app("AMOR")
-    #view.show_app("3D Chess")
+    #view.show_app("AMOR")
+    view.show_app("3D Chess")
 
     win = gtk.Window()
     scroll.add(view)
