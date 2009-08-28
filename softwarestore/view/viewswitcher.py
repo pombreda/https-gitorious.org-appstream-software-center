@@ -29,6 +29,13 @@ from gtkImageCellRenderer import CellRendererImage
 
 from gettext import gettext as _
 
+if os.path.exists("./data"):
+    datadir = "./data"
+else:
+    datadir = "/usr/share/software-store/"
+
+progressN=0
+
 class ViewSwitcher(gtk.TreeView):
     def __init__(self, icons, store=None):
         super(ViewSwitcher, self).__init__()
@@ -131,13 +138,29 @@ class ViewSwitcherList(gtk.ListStore):
                     row[self.COL_NAME] = _("In Progress (%i)") % pending
                     break
             else:
-                icon = gtk.image_new_from_animation(gtk.gdk.PixbufAnimation('/mnt/softwarestore/view/throbber.gif'))
+                icon = gtk.Image()
+                icon.set_from_file(datadir+'/icons/32x32/status/softwarestore_progress_01.png')
+                source_id = gobject.timeout_add(50, self.progressIconTimeout, icon)
                 self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])
+                
         else:
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
+        return True
+    
+    def progressIconTimeout(self, image):
+        global progressN
+        if len(str(progressN)) == 1:
+            image.set_from_file(datadir+'/icons/32x32/status/softwarestore_progress_0%s.png' % progressN)
+            progressN+=1
+        elif len(str(progressN)) == 2:
+            image.set_from_file(datadir+'/icons/32x32/status/softwarestore_progress_%s.png' % progressN)
+            if progressN == 31:
+                progressN=1
+            else:
+                progressN+=1
         return True
 
 if __name__ == "__main__":
