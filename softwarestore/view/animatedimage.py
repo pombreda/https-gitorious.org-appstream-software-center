@@ -22,7 +22,6 @@ import gtk
 import os
 import glob
 
-
 class AnimatedImage(gtk.Image):
     
     FPS = 25.0
@@ -30,22 +29,28 @@ class AnimatedImage(gtk.Image):
     def __init__(self, globexp):
         super(AnimatedImage, self).__init__()
         self._progressN = 0
-        self.images = sorted(glob.glob(globexp))
-        if not self.images:
-            raise IOError, "no images for the animation found"
-        self.set_from_file(self.images[self._progressN])
+        self._imagefiles = sorted(glob.glob(globexp))
+        self.images = []
+        if not self._imagefiles:
+            raise IOError, "no images for the animation found in '%s'" % globexp
+        for f in self._imagefiles:
+            self.images.append(gtk.gdk.pixbuf_new_from_file(f))
+        self.set_from_pixbuf(self.images[self._progressN])
         source_id = gobject.timeout_add(1000/self.FPS, self.progressIconTimeout)
 
     def progressIconTimeout(self):
         self._progressN += 1
         if self._progressN == len(self.images):
             self._progressN = 0
-        self.set_from_file(self.images[self._progressN])
+        self.set_from_pixbuf(self.images[self._progressN])
         return True
 
 if __name__ == "__main__":
+    import sys
 
-    if os.path.exists("./data"):
+    if len(sys.argv) > 1:
+        datadir = sys.argv[1]
+    elif os.path.exists("./data"):
         datadir = "./data/"
     else:
         datadir = "/usr/share/software-store/"
