@@ -21,12 +21,18 @@ import gobject
 import gtk
 import os
 import glob
+import time
 
 class AnimatedImage(gtk.Image):
     
-    FPS = 25.0
+    FPS = 20.0
 
     def __init__(self, globexp):
+        """ Animate a gtk.Image
+        
+        Keywords:
+        globexp: pass a glob expression that is used for the animated images
+        """
         super(AnimatedImage, self).__init__()
         self._progressN = 0
         self._imagefiles = sorted(glob.glob(globexp))
@@ -36,14 +42,23 @@ class AnimatedImage(gtk.Image):
         for f in self._imagefiles:
             self.images.append(gtk.gdk.pixbuf_new_from_file(f))
         self.set_from_pixbuf(self.images[self._progressN])
-        source_id = gobject.timeout_add(1000/self.FPS, self.progressIconTimeout)
+        self.connect("show", self.start)
+        self.connect("hide", self.stop)
 
-    def progressIconTimeout(self):
+    def start(self, w):
+        source_id = gobject.timeout_add(int(1000/self.FPS), 
+                                              self._progress_timeout)
+        self._run = True
+
+    def stop(self, w):
+        self._run = False
+
+    def _progress_timeout(self):
         self._progressN += 1
         if self._progressN == len(self.images):
             self._progressN = 0
         self.set_from_pixbuf(self.images[self._progressN])
-        return True
+        return self._run
 
 if __name__ == "__main__":
     import sys
@@ -60,7 +75,9 @@ if __name__ == "__main__":
     win = gtk.Window()
     win.add(image)
     win.set_size_request(400,400)
-    win.show_all()
+    win.show()
+    gobject.timeout_add_seconds(1, image.show)
+    gobject.timeout_add_seconds(5, image.hide)
 
     gtk.main()
 
