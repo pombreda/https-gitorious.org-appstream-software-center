@@ -111,6 +111,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
         # details
         self.app_details_view = AppDetailsView(self.xapiandb, self.icons, self.cache)
+        self.app_details_view.connect("selected", self.on_app_details_selected)
         self.scrolledwindow_app_details.add(self.app_details_view)
         self.app_details_view.show()
 
@@ -146,6 +147,17 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         return query
 
     # callbacks
+    def on_menuitem_install_activate(self, menuitem):
+        self.app_details_view.install()
+
+    def on_menuitem_remove_activate(self, menuitem):
+        self.app_details_view.remove()
+
+    def on_app_details_selected(self, widget, appname, pkg):
+        logging.debug("on_app_details_selected %s %s" % (appname, pkg))
+        self.menuitem_install.set_sensitive(not bool(pkg.installed))
+        self.menuitem_remove.set_sensitive(bool(pkg.installed))
+
     def on_menuitem_search_activate(self, widget):
         #print "on_menuitem_search_activate"
         self.entry_search.grab_focus()

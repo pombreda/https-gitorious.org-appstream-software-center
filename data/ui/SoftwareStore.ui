@@ -26,18 +26,22 @@
                       <object class="GtkImageMenuItem" id="menuitem_install">
                         <property name="label">_Install</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image3</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="on_menuitem_install_activate"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_remove">
                         <property name="label">_Remove</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image4</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="on_menuitem_remove_activate"/>
                       </object>
                     </child>
                     <child>

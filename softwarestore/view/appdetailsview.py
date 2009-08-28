@@ -59,6 +59,12 @@ class AppDetailsView(UrlTextView):
     DEPENDENCY_TYPES = ("PreDepends", "Depends", "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
+    __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,
+                                 gobject.TYPE_PYOBJECT))
+                    }
+
     def __init__(self, xapiandb, icons, cache):
         super(AppDetailsView, self).__init__()
         self.xapiandb = xapiandb
@@ -129,6 +135,8 @@ class AppDetailsView(UrlTextView):
         self.add_pkg_information(pkg)
         self.add_maintainance_end_dates(pkg)
         self.add_empty_lines(2)
+        # emit select signal
+        self.emit("selected", appname, pkg)
 
     # helper to fill the buffer with the pkg information
     def clean(self):
@@ -345,7 +353,7 @@ class AppDetailsView(UrlTextView):
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
-    def on_button_remove_clicked(self, button):
+    def remove(self):
         # generic removal text
         primary=_("%s depends on other software on the system. ") % self.appname
         secondary = _("Uninstalling it means that the following "
@@ -370,11 +378,17 @@ class AppDetailsView(UrlTextView):
                                          exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
-    def on_button_install_clicked(self, button):
-        #print "on_button_install_clicked", pkgname
+    def on_button_remove_clicked(self, button):
+        self.remove()
+
+    def install(self):
         trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
+
+    def on_button_install_clicked(self, button):
+        #print "on_button_install_clicked", pkgname
+        self.install()
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
