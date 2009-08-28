@@ -140,7 +140,7 @@ class ViewSwitcherList(gtk.ListStore):
             else:
                 icon = gtk.Image()
                 icon.set_from_file(datadir+'/icons/32x32/status/softwarestore_progress_01.png')
-                source_id = gobject.timeout_add(50, self.progressIconTimeout, icon)
+                source_id = gobject.timeout_add(20, self.progressIconTimeout, icon)
                 self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])
                 
@@ -153,11 +153,11 @@ class ViewSwitcherList(gtk.ListStore):
     def progressIconTimeout(self, image):
         global progressN
         if len(str(progressN)) == 1:
-            image.set_from_file(datadir+'/icons/32x32/status/softwarestore_progress_0%s.png' % progressN)
+            image.set_from_file(datadir+'/icons/32x32/status/0%s.png' % progressN)
             progressN+=1
         elif len(str(progressN)) == 2:
-            image.set_from_file(datadir+'/icons/32x32/status/softwarestore_progress_%s.png' % progressN)
-            if progressN == 31:
+            image.set_from_file(datadir+'/icons/32x32/status/%s.png' % progressN)
+            if progressN == 36:
                 progressN=1
             else:
                 progressN+=1

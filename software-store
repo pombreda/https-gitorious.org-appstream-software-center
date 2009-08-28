@@ -20,19 +20,30 @@
 
 import logging
 import os
+import sys
+import getopt
 
 from softwarestore.app import SoftwareStoreApp
+from optparse import OptionParser
+
+# Commandline Arguments Handler
+parser = OptionParser("usage: %prog [options] package", version="%prog 0.1")
+parser.add_option("--debug", dest="debug", action="store_true", 
+                        help="enable debug mode", default=False)
+(options, args) = parser.parse_args()
 
 
 if __name__ == "__main__":
-    #logging.basicConfig(level=logging.DEBUG)
-    logging.basicConfig(level=logging.INFO)
+    if options.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
 
     if os.path.exists("./data"):
         datadir = "./data"
     else:
         datadir = "/usr/share/software-store/"
 
-    app = SoftwareStoreApp(datadir)
+    app = SoftwareStoreApp(datadir, args)
     app.run()
 

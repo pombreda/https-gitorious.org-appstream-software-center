@@ -23,6 +23,7 @@ import glib
 import gtk
 import os
 import xapian
+import sys
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
@@ -56,7 +57,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     DEFAULT_SEARCH_APPS_LIMIT = 200
 
-    def __init__(self, datadir):
+    def __init__(self, datadir, package=None):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/SoftwareStore.ui")
 
         # xapian
@@ -118,7 +119,21 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.entry_search = SearchEntry(self.icons)
         self.hbox_search_entry.pack_start(self.entry_search)
         self.entry_search.connect("terms-changed", self.on_entry_search_changed)
-
+        
+        # if package is supplied on commandline
+        if package:
+            package = package[0].replace('apt:', '')
+            
+            try:
+                self.app_details_view.show_app(package)
+                self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)
+                # add navigation button
+                self.navigation_bar.add_with_id(package, self.on_navigation_button_app_details, "app")
+            except IndexError:
+                self.messagedialog(title="Error", primary=_("Package Not Found"), 
+                    secondary=_("The package <b>%s</b> was not found." % package), dialogtype=gtk.MESSAGE_ERROR)
+                sys.exit()
+    
         # state
         self.apps_filter = AppViewFilter(self.cache)
         self.apps_category_query = None
@@ -281,6 +296,16 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.app_view.set_model(new_model)
         id = self.statusbar_main.get_context_id("items")
         self.statusbar_main.push(id, _("%s items available") % len(new_model))
+
+    def messagedialog(self, title, primary=None, secondary=None, dialogbuttons=gtk.BUTTONS_OK, dialogtype=gtk.MESSAGE_INFO):
+        dialog = gtk.MessageDialog(parent=None, flags=0, type=dialogtype, buttons=dialogbuttons, message_format=primary)
+        dialog.set_title(title)
+        if secondary:
+            dialog.format_secondary_markup(secondary)
+        result = dialog.run()
+        dialog.hide()
+        return result
+        
 
     def run(self):
         self.window_main.show_all()
