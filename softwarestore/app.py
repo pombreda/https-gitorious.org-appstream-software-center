@@ -191,7 +191,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         if not widget.get_active():
             return
         self.apps_category_query = None
-        self.navigation_bar.remove_all()
+        #self.navigation_bar.remove_all()
         self.on_button_search_entry_clear_clicked(None)
         self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
 
