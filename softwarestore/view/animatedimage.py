@@ -31,6 +31,8 @@ class AnimatedImage(gtk.Image):
         super(AnimatedImage, self).__init__()
         self._progressN = 0
         self.images = sorted(glob.glob(globexp))
+        if not self.images:
+            raise IOError, "no images for the animation found"
         self.set_from_file(self.images[self._progressN])
         source_id = gobject.timeout_add(1000/self.FPS, self.progressIconTimeout)
 
@@ -38,7 +40,7 @@ class AnimatedImage(gtk.Image):
         self._progressN += 1
         if self._progressN == len(self.images):
             self._progressN = 0
-        image.set_from_file(self.images[self._progressN])
+        self.set_from_file(self.images[self._progressN])
         return True
 
 if __name__ == "__main__":
