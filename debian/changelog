@@ -21,7 +21,7 @@ software-store (0.1.3) karmic; urgency=low
     - do not clean the navigation bar on "home" button click
       (thanks to rugby471)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 29 Aug 2009 00:22:31 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 29 Aug 2009 00:28:58 +0200
 
 software-store (0.1.2) karmic; urgency=low
 
