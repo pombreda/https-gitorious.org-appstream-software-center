@@ -39,6 +39,10 @@ class AptCache(gobject.GObject):
         self.emit("cache-ready")
     def __getitem__(self, key):
         return self._cache[key]
+    def __iter__(self):
+        return self._cache.__iter__()
+    def __contains__(self, k):
+        return self.cache.__contains__(k)
     def has_key(self, key):
         return self._cache.has_key(key)
     @property
