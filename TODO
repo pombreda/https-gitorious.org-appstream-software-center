@@ -12,6 +12,10 @@ UI:
   tabs and change the "installed" main page to not show 
   categories but use a different view (spec says treeview, lets
   see if that can be done in time)
+- implement the removal dialog in the way the spec calls for
+  it (different ui design)
+- implement warning when a package contains of multiple apps
+  and show the apps in this case
 
 Missing:
 - when the xapian db is rebuilding (e.g. because app-center is 
