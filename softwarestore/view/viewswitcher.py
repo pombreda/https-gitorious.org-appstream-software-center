@@ -17,13 +17,15 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import logging
+import apt
+import dbus
 import gtk
 import gobject
-import apt
+import logging
 import os
-import xapian
 import time
+import xapian
+
 import aptdaemon.client
 
 from gettext import gettext as _
@@ -58,7 +60,7 @@ class ViewSwitcher(gtk.TreeView):
             self.window.set_cursor(self.cursor_hand)
     def on_button_press_event(self, widget, event):
         #print "on_button_press_event: ", event
-        res = self.get_path_at_pos(event.x, event.y)
+        res = self.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
@@ -96,9 +98,15 @@ class ViewSwitcherList(gtk.ListStore):
         #self.append([icon, '<span size="xx-small"></span>', 
         #             self.ACTION_ITEM_NONE])
 
+        # watch the daemon exit and (re)register the signal
+        bus = dbus.SystemBus()
+        self._owner_watcher = bus.watch_name_owner(
+            "org.debian.apt", self._register_active_transactions_watch)
+
+    def _register_active_transactions_watch(self, connection):
+        #print "_register_active_transactions_watch", connection
         self.aptd = aptdaemon.client.get_aptdaemon()
-        self.aptd.connect_to_signal("ActiveTransactionsChanged",
-                                    self.check_pending)
+        self.aptd.connect_to_signal("ActiveTransactionsChanged", self.check_pending)
 
     def check_pending(self, current, queue):
         #print "check_pending"
