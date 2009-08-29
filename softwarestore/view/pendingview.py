@@ -84,7 +84,7 @@ class PendingStore(gtk.ListStore):
                 try:
                     icon = self.icons.load_icon(iconname, 24, 0)
                 except Exception, e:
-                    con = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
+                    icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
             else:
                 icon = None
             self.append([tid, icon, appname, "", 0.0, ""])

@@ -1,3 +1,10 @@
+software-store (0.1.4) UNRELEASED; urgency=low
+
+  * software-store:
+    - improve test if running from a local checkout (LP: #420784)
+
+ -- Michael Vogt <egon@top.ping.de>  Sat, 29 Aug 2009 09:27:17 +0200
+
 software-store (0.1.3) karmic; urgency=low
 
   * deal with apps that require adding repositories (like
