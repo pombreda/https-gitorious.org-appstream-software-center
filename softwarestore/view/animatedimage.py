@@ -92,7 +92,7 @@ class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
     def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
         image = self.get_property("image")
         if image.get_animation_len() > 1:
-            gobject.timeout_add(1000.0/self.FPS, self._animation_helper, widget, image)
+            gobject.timeout_add(int(1000.0/self.FPS), self._animation_helper, widget, image)
         self.set_property("pixbuf", image.get_current_pixbuf())
         return gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, cell_area, expose_area, flags)
     def do_get_size(self, widget, cell_area):
@@ -106,14 +106,14 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         datadir = sys.argv[1]
     elif os.path.exists("./data"):
-        datadir = "./data/"
+        datadir = "../../data"
     else:
-        datadir = "/usr/share/software-store/"
+        datadir = "/usr/share/software-store"
 
-    image = AnimatedImage(datadir+"/icons/32x32/status/*.png")
-    image1 = AnimatedImage(datadir+"/icons/32x32/status/*.png")
+    image = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-*.png")
+    image1 = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-*.png")
     image1.start()
-    image2 = AnimatedImage(datadir+"/icons/32x32/status/02.png")
+    image2 = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-*.png")
 
     model = gtk.ListStore(AnimatedImage)
     model.append([image1])
