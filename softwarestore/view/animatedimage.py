@@ -46,20 +46,59 @@ class AnimatedImage(gtk.Image):
         self.connect("show", self.start)
         self.connect("hide", self.stop)
 
-    def start(self, w):
+    def start(self, w=None):
         source_id = gobject.timeout_add(int(1000/self.FPS), 
                                               self._progress_timeout)
         self._run = True
 
-    def stop(self, w):
+    def stop(self, w=None):
         self._run = False
+
+    def get_current_pixbuf(self):
+        return self.images[self._progressN]
+
+    def get_animation_len(self):
+        return len(self.images)
 
     def _progress_timeout(self):
         self._progressN += 1
         if self._progressN == len(self.images):
             self._progressN = 0
-        self.set_from_pixbuf(self.images[self._progressN])
+        self.set_from_pixbuf(self.get_current_pixbuf())
         return self._run
+
+class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
+
+    __gproperties__  = { 
+        "image" : (gobject.TYPE_OBJECT, 
+                   "Image",
+                   "Image", 
+                   gobject.PARAM_READWRITE),
+    }
+    FPS = 20.0
+
+    def __init__(self):
+        gtk.CellRendererPixbuf.__init__(self)
+    def do_set_property(self, pspec, value):
+        setattr(self, pspec.name, value)
+    def do_get_property(self, pspec):
+        return getattr(self, pspec.name)
+    def _animation_helper(self, widget, image):
+        #print time.time()
+        for row in widget.get_model():
+            cell_area = widget.get_cell_area(row.path, widget.get_column(0))
+            widget.queue_draw_area(cell_area.x, cell_area.y, 
+                                   cell_area.width, cell_area.height)
+    def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
+        image = self.get_property("image")
+        if image.get_animation_len() > 1:
+            gobject.timeout_add(1000.0/self.FPS, self._animation_helper, widget, image)
+        self.set_property("pixbuf", image.get_current_pixbuf())
+        return gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, cell_area, expose_area, flags)
+    def do_get_size(self, widget, cell_area):
+        image = self.get_property("image")
+        self.set_property("pixbuf", image.get_current_pixbuf())
+        return gtk.CellRendererPixbuf.do_get_size(self, widget, cell_area)
 
 if __name__ == "__main__":
     import sys
@@ -71,12 +110,30 @@ if __name__ == "__main__":
     else:
         datadir = "/usr/share/software-store/"
 
-    image = AnimatedImage(datadir+"/icons/32x32/status/softwarestore_progress_*.png")
+    image = AnimatedImage(datadir+"/icons/32x32/status/*.png")
+    image1 = AnimatedImage(datadir+"/icons/32x32/status/*.png")
+    image1.start()
+    image2 = AnimatedImage(datadir+"/icons/32x32/status/02.png")
 
+    model = gtk.ListStore(AnimatedImage)
+    model.append([image1])
+    model.append([image2])
+    treeview = gtk.TreeView(model)
+    tp = CellRendererAnimatedImage()
+    column = gtk.TreeViewColumn("Icon", tp, image=0)
+    treeview.append_column(column)
+    treeview.show()
+
+    box = gtk.VBox()
+    box.pack_start(image)
+    box.pack_start(treeview)
+    box.show()
     win = gtk.Window()
-    win.add(image)
+    win.add(box)
     win.set_size_request(400,400)
     win.show()
+
+    print "running the image for 5s"
     gobject.timeout_add_seconds(1, image.show)
     gobject.timeout_add_seconds(5, image.hide)
 
