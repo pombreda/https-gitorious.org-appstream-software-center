@@ -41,7 +41,7 @@ if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
     logging.basicConfig(level=logging.INFO)
 
-    if os.path.exists("./data"):
+    if os.path.exists("./data/ui/SoftwareStore.ui"):
         datadir = "./data"
     else:
         datadir = "/usr/share/software-store/"
