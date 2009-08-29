@@ -25,9 +25,18 @@ import apt
 import os
 import xapian
 import time
+import sys
 
 import aptdaemon.client
 from aptdaemon.enums import *
+
+try:
+    from appcenter.enums import *
+except ImportError:
+    # support running from the dir too
+    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
+    sys.path.insert(0, os.path.split(d)[0])
+    from enums import *
 
 class PendingStore(gtk.ListStore):
 
