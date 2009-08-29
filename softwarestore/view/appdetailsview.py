@@ -39,6 +39,8 @@ from aptdaemon import enums
  
 from gettext import gettext as _
 
+import dialogs
+
 try:
     from appcenter.enums import *
 except ImportError:
@@ -53,9 +55,15 @@ class AppDetailsView(UrlTextView):
     APP_ICON_SIZE = 32
     APP_ICON_PADDING = 8
 
- # dependency types we are about
+    # dependency types we are about
     DEPENDENCY_TYPES = ("PreDepends", "Depends", "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
+
+    __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,
+                                 gobject.TYPE_PYOBJECT))
+                    }
 
     def __init__(self, xapiandb, icons, cache):
         super(AppDetailsView, self).__init__()
@@ -79,11 +87,12 @@ class AppDetailsView(UrlTextView):
 
     def _create_tag_table(self):
         buffer = self.get_buffer()
+        left_padding = self.APP_ICON_SIZE + 2*self.APP_ICON_PADDING
         buffer.create_tag("align-to-icon", 
-                          left_margin=self.APP_ICON_SIZE)
+                          left_margin=left_padding)
         buffer.create_tag("heading", 
                           weight=pango.WEIGHT_HEAVY,
-                          scale=pango.SCALE_LARGE)
+                          scale=pango.SCALE_X_LARGE)
         #buffer.create_tag("align-right", 
         #                  justification=gtk.JUSTIFY_RIGHT))
         buffer.create_tag("small", 
@@ -111,6 +120,9 @@ class AppDetailsView(UrlTextView):
         if self.cache.has_key(self.pkgname):
             pkg = self.cache[self.pkgname]
 
+        # data
+        self.installed_rdeps = set()
+            
         # fill the buffer
         self.clean()
         self.add_main_icon(self.iconname)
@@ -124,6 +136,8 @@ class AppDetailsView(UrlTextView):
         self.add_pkg_information(pkg)
         self.add_maintainance_end_dates(pkg)
         self.add_empty_lines(2)
+        # emit select signal
+        self.emit("selected", appname, pkg)
 
     # helper to fill the buffer with the pkg information
     def clean(self):
@@ -151,7 +165,18 @@ class AppDetailsView(UrlTextView):
             pixbuf = self.icons.load_icon(MISSING_APP_ICON,
                                           self.APP_ICON_SIZE, 0)
         # insert description 
-        buffer.insert_pixbuf(iter, pixbuf)
+        if (pixbuf.get_width() == self.APP_ICON_SIZE and
+            pixbuf.get_height() == self.APP_ICON_SIZE):
+            frame = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
+                                   self.APP_ICON_SIZE+2*self.APP_ICON_PADDING, 
+                                   self.APP_ICON_SIZE+2*self.APP_ICON_PADDING)
+            frame.fill(0)
+            pixbuf.copy_area(0, 0, self.APP_ICON_SIZE, self.APP_ICON_SIZE,
+                             frame, self.APP_ICON_PADDING, 
+                             self.APP_ICON_PADDING)
+        else:
+            frame = pixbuf
+        buffer.insert_pixbuf(iter, frame)
 
     def add_price(self, appname, pkg):
         buffer = self.get_buffer()
@@ -246,19 +271,19 @@ class AppDetailsView(UrlTextView):
             # generic message
             s = _("%s is installed on this computer.") % appname
             # show how many packages on the system depend on this
-            installed_rdeps = set()
+            self.installed_rdeps = set()
             for rdep in pkg._pkg.RevDependsList:
                 if rdep.DepType in self.DEPENDENCY_TYPES:
                     rdep_name = rdep.ParentPkg.Name
                     if (self.cache.has_key(rdep_name) and
                         self.cache[rdep_name].isInstalled):
-                        installed_rdeps.add(rdep.ParentPkg.Name)
-            if len(installed_rdeps) > 0:
+                        self.installed_rdeps.add(rdep.ParentPkg.Name)
+            if len(self.installed_rdeps) > 0:
                 s += " "
                 s += gettext.ngettext(
                     "It is used by %s piece of installed software.",
                     "It is used by %s pieces of installed software.",
-                    len(installed_rdeps)) % len(installed_rdeps)
+                    len(self.installed_rdeps)) % len(self.installed_rdeps)
             buffer.insert_with_tags_by_name(iter,s, "align-to-icon")
             buffer.insert(iter, "\n\n")
 
@@ -340,17 +365,42 @@ class AppDetailsView(UrlTextView):
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
-    def on_button_remove_clicked(self, button):
-        #print "on_button_remove_clicked", pkgname
+    def remove(self):
+        # generic removal text
+        primary=_("%s depends on other software on the system. ") % self.appname
+        secondary = _("Uninstalling it means that the following "
+                      "additional software needs to be removed.")
+        # alter it if a meta-package is affected
+        for m in self.IMPORTANT_METAPACKAGES:
+            if m in self.installed_rdeps:
+                primary=_("%s is a core component") % self.appname
+                secondary = _("%s is a core application in Ubuntu. "
+                              "Uninstalling it may cause future upgrades "
+                              "to be incomplete. Are you sure you want to "
+                              "continue?") % self.appname
+                break
+        # ask for confirmation if we have rdepends
+        if len(self.installed_rdeps):
+            if not dialogs.confirm_remove(None, primary, secondary, 
+                                          self.cache,
+                                          list(self.installed_rdeps)):
+                return
+        # do it (no rdepends or user confirmed)
         trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],
                                          exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
-    def on_button_install_clicked(self, button):
-        #print "on_button_install_clicked", pkgname
+    def on_button_remove_clicked(self, button):
+        self.remove()
+
+    def install(self):
         trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
+
+    def on_button_install_clicked(self, button):
+        #print "on_button_install_clicked", pkgname
+        self.install()
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
@@ -397,7 +447,8 @@ if __name__ == "__main__":
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache)
     #view.show_app("AMOR")
-    view.show_app("3D Chess")
+    #view.show_app("3D Chess")
+    view.show_app("Configuration Editor")
 
     win = gtk.Window()
     scroll.add(view)

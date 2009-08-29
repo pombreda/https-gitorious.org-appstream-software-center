@@ -15,7 +15,7 @@ class AptCache(gobject.GObject):
     """ 
     A apt cache that opens in the background and keeps the UI alive
     """
-    
+
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
                                      ()),
@@ -23,7 +23,7 @@ class AptCache(gobject.GObject):
                                      gobject.TYPE_NONE,
                                      ()),
                     }
-    
+
     def __init__(self):
         gobject.GObject.__init__(self)
         self._cache = None
