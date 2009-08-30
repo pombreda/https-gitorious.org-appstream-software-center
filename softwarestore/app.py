@@ -162,6 +162,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(installed)
+        print "Hi"
 
     def on_menuitem_search_activate(self, widget):
         #print "on_menuitem_search_activate"
@@ -283,17 +284,17 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     def on_notebook_view_change(self, page):
         if page == self.NOTEBOOK_PAGE_APPLIST:
-            self.hbox_search_entry.set_sensitive(True)
-            self.hbox_breadcrumbs.set_sensitive(True)
+            self.hbox_search_entry.show()
+            self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_APP_DETAILS:
-            self.hbox_search_entry.set_sensitive(False)
-            self.hbox_breadcrumbs.set_sensitive(True)
+            self.hbox_search_entry.hide()
+            self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_CATEGORIES:
-            self.hbox_search_entry.set_sensitive(True)
-            self.hbox_breadcrumbs.set_sensitive(True)
+            self.hbox_search_entry.show()
+            self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_PENDING:
-            self.hbox_search_entry.set_sensitive(False)
-            self.hbox_breadcrumbs.set_sensitive(False)
+            self.hbox_search_entry.hide()
+            self.hbox_breadcrumbs.hide()
         self.notebook_view.set_current_page(page)
 
     # gui helper
