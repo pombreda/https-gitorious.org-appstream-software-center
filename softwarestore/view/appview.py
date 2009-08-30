@@ -199,6 +199,7 @@ class AppView(gtk.TreeView):
     def __init__(self, store):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
+        self.set_headers_visible(False)
         tp = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=AppStore.COL_ICON)
         column.set_fixed_width(32)

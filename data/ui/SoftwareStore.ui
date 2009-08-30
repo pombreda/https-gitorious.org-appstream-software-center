@@ -38,6 +38,7 @@
                         <property name="label">gtk-remove</property>
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="on_menuitem_remove_activate"/>
                       </object>
@@ -133,7 +134,7 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_canonical">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Canonical Maintained Applications</property>
+                        <property name="label" translatable="yes">Canonical-Maintained Applications</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
                         <signal name="activate" handler="on_menuitem_view_canonical_activate"/>

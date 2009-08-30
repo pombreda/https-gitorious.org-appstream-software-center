@@ -57,7 +57,6 @@ class NavigationBar(gtk.HBox):
         """
         Remove the navigation button with the given id
         """
-        print self.id_to_widget
         if not id in self.id_to_widget:
             pass
         else:
@@ -78,4 +77,4 @@ class NavigationBar(gtk.HBox):
         """
         if not id in self.id_to_widget:
             return
-        print self.id_to_widget[id].get_label()
+        return self.id_to_widget[id].get_label()
