@@ -36,15 +36,20 @@ class AnimatedImage(gtk.Image):
         """
         super(AnimatedImage, self).__init__()
         self._progressN = 0
-        self._imagefiles = sorted(glob.glob(globexp))
-        self.images = []
-        if not self._imagefiles:
-            raise IOError, "no images for the animation found in '%s'" % globexp
-        for f in self._imagefiles:
-            self.images.append(gtk.gdk.pixbuf_new_from_file(f))
-        self.set_from_pixbuf(self.images[self._progressN])
-        self.connect("show", self.start)
-        self.connect("hide", self.stop)
+        if type(globexp).__name__!='str':
+            self.images = []
+            self.images.append(globexp)
+            self.set_from_pixbuf(globexp)
+        else:
+            self._imagefiles = sorted(glob.glob(globexp))
+            self.images = []
+            if not self._imagefiles:
+                raise IOError, "no images for the animation found in '%s'" % globexp
+            for f in self._imagefiles:
+                self.images.append(gtk.gdk.pixbuf_new_from_file(f))
+            self.set_from_pixbuf(self.images[self._progressN])
+            self.connect("show", self.start)
+            self.connect("hide", self.stop)
 
     def start(self, w=None):
         source_id = gobject.timeout_add(int(1000/self.FPS), 
