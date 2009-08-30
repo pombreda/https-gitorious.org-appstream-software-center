@@ -57,11 +57,13 @@ class NavigationBar(gtk.HBox):
         """
         Remove the navigation button with the given id
         """
+        print self.id_to_widget
         if not id in self.id_to_widget:
-            return
-        self.remove(self.id_to_widget[id])
-        del self.id_to_widget[id]
-        del self.id_to_callback[id]
+            pass
+        else:
+            self.remove(self.id_to_widget[id])
+            del self.id_to_widget[id]
+            del self.id_to_callback[id]
 
     def remove_all(self):
         """remove all elements"""

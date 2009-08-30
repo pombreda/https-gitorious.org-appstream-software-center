@@ -242,10 +242,13 @@ class AppViewFilter(object):
         self.cache = cache
         self.supported_only = False
         self.installed_only = False
+        self.not_installed_only = False
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
         self.installed_only = v
+    def set_not_installed_only(self, v):
+        self.not_installed_only = v
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
         #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
@@ -253,6 +256,10 @@ class AppViewFilter(object):
         if self.installed_only:
             if (self.cache.has_key(pkgname) and 
                 not self.cache[pkgname].isInstalled):
+                return False
+        if self.not_installed_only:
+            if (self.cache.has_key(pkgname) and 
+                self.cache[pkgname].isInstalled):
                 return False
         # FIXME: add special property to the desktop file instead?
         #        what about in the future when we support pkgs without

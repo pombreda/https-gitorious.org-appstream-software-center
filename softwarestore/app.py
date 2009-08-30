@@ -137,6 +137,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
         # default focus
         self.cat_view.grab_focus()
+        
+        # set filter to software not installed (get free software)
+        self.apps_filter.set_not_installed_only(True)
 
     # xapian query
     def get_query_from_search_entry(self, search_term):
@@ -162,7 +165,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(installed)
-        print "Hi"
 
     def on_menuitem_search_activate(self, widget):
         #print "on_menuitem_search_activate"
@@ -273,29 +275,25 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.navigation_bar.add_with_id(name, 
                                         self.on_navigation_button_category, 
                                         "category")
-        # If the current app in the breadcrumbs is not in the category,
-        # remove it's button - needs to be finished by mvo
-        # 
-        # appname = self.navigation_bar.get_label("app")
-        # categoryname = self.navigation_bar.get_label("category")
-        # query = enquire(appname, category) ------ psuedo code
-        #if not query:
-        #    self.navigation_bar.remove_id("app")
 
     def on_notebook_view_change(self, page):
+        self.notebook_view.set_current_page(page)
         if page == self.NOTEBOOK_PAGE_APPLIST:
+            #self.navigation_bar.remove_id("app") #  Doesn't currently work yet
             self.hbox_search_entry.show()
             self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_APP_DETAILS:
             self.hbox_search_entry.hide()
             self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_CATEGORIES:
+            self.navigation_bar.remove_id("app")
+            self.navigation_bar.remove_id("category")
             self.hbox_search_entry.show()
             self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_PENDING:
             self.hbox_search_entry.hide()
             self.hbox_breadcrumbs.hide()
-        self.notebook_view.set_current_page(page)
+        
 
     # gui helper
 
