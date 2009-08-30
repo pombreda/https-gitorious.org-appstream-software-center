@@ -30,9 +30,10 @@ class AnimatedImage(gtk.Image):
 
     def __init__(self, globexp):
         """ Animate a gtk.Image
-        
+    
         Keywords:
         globexp: pass a glob expression that is used for the animated images
+                 (it can also be a gtk.gdkpixbuf if you require a static image)
         """
         super(AnimatedImage, self).__init__()
         self._progressN = 0
