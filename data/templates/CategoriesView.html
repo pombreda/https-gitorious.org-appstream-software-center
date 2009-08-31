@@ -14,13 +14,9 @@
     newImg = document.createElement("img");
     newImg.id = name;
     newImg.src = img;
-    var s = 'changeTitle("' + name + '")';
+    var s = 'changeTitle("call:on_category_clicked:' + name + '")';
     newImg.setAttribute('onclick', s);
     oT.appendChild(newImg);
-  }
-  window.onload = function() {
-    addCategory("test", "/usr/share/icons/gnome/32x32/status/gnome-fs-trash-full.png");
-    addCategory("test2", "/usr/share/icons/gnome/32x32/status/gnome-fs-trash-full.png");
   }
  </script>
 
