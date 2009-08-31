@@ -59,20 +59,54 @@ class AppDetailsView(webkit.WebView):
     APP_ICON_PADDING = 8
 
     doc = """
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-       "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
- <title></title>
-</head>
-<body>
+ <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+ <title>Application Details View</title>
  <script type="text/javascript">
   function changeTitle(title) { document.title = title; }
+  function fadeIn(objId,opacity) {
+  if (document.getElementById) {
+    obj = document.getElementById(objId);
+    if (opacity <= 100) {
+      setOpacity(obj, opacity);
+      opacity += 10;
+      window.setTimeout("fadeIn('"+objId+"',"+opacity+")", 100);
+    }
+  }
+  }
+  function setOpacity(obj, opacity) {
+  opacity = (opacity == 100)?99.999:opacity;
+  obj.style.opacity = opacity/100;
+  }
+  function initImage() {
+  imageId = 'screenshot_thumbnail';
+  image = document.getElementById(imageId);
+  setOpacity(image, 0);
+  image.style.visibility = 'visible';
+  fadeIn(imageId,0);
+  }
+  window.onload = function() {initImage()}
  </script>
-
- <img src="file:$iconpath" alt="Application Icon" width=$width height=$height>
- <h1>$appname</h1>
- <p>$description</p>
+ <style type="text/css">
+ #appname {font-size:120%;}
+ #description {font-size:80%}
+ #icon {float:left; width:64px; height:64px; padding:10px}
+ #screenshot_thumbnail_loading {float:right; padding:10px; width:160px; height:120px; background:#fff url('$iconpath/img/loading.gif') 50% 50% no-repeat;}
+ #screenshot_thumbnail {visibility:hidden}
+ #text {float:right; width:80%}
+ </style>
+ </head>
+<body>
+ <img id="icon" src="file:$iconpath" alt="Application Icon" width="$width" height="$height"/>
+ <div id="text">
+ <p id="appname">$appname</p>
+ <div id='screenshot_thumbnail_loading'>
+ <img id="screenshot_thumbnail" src="http://screenshots.debian.net/thumbnail/$pkgname" alt="Application Screenshot"/>
+ </div>
+ <div id="description">$description</p>
 
  <input type="button" name="button_$action_button_value" 
         value="$action_button_label"
@@ -82,7 +116,7 @@ class AppDetailsView(webkit.WebView):
  <input type="button" name="button_homepage" value="Homepage"
       onclick='changeTitle("run:on_button_homepage_clicked")'
  />
-
+ </div>
 </body>
 </html>
 """
@@ -98,11 +132,12 @@ class AppDetailsView(webkit.WebView):
                     }
 
 
-    def __init__(self, xapiandb, icons, cache):
+    def __init__(self, xapiandb, icons, cache, datadir):
         super(AppDetailsView, self).__init__()
         self.xapiandb = xapiandb
         self.icons = icons
         self.cache = cache
+        self.datadir = datadir
         # customize
         #settings = self.get_settings()
         #settings.set_property("auto-load-images", True)
@@ -153,7 +188,9 @@ class AppDetailsView(webkit.WebView):
             details = pkg.candidate.description
         else:
             details = _("Not available in the current data")
-        description = details.replace("\n","<p>")
+        description = details.replace("*","</p><p>*")
+        description = description.replace("\n-","</p><p>-")
+        description = description.replace("\n\n","</p><p>")
 
         # icon
         iconinfo = self.icons.lookup_icon(self.iconname, self.APP_ICON_SIZE, 0)
@@ -186,8 +223,9 @@ class AppDetailsView(webkit.WebView):
                  'height' : self.APP_ICON_SIZE,
                  'action_button_label' : action_button_label,
                  'action_button_value' : action_button_value,
+                 'datadir' : self.datadir
                }
-
+        
         html = string.Template(self.doc).safe_substitute(subs)
         self.load_html_string(html, "file:/")
         self.emit("selected", appname, pkg)

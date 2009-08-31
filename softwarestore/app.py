@@ -110,7 +110,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # details
-        self.app_details_view = AppDetailsView(self.xapiandb, self.icons, self.cache)
+        self.app_details_view = AppDetailsView(self.xapiandb, self.icons, self.cache, datadir)
         self.app_details_view.connect("selected", self.on_app_details_selected)
         self.scrolledwindow_app_details.add(self.app_details_view)
         self.app_details_view.show()
