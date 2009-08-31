@@ -84,7 +84,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.navigation_bar.show()
 
         # view switcher
-        self.view_switcher = ViewSwitcher(self.icons)
+        self.view_switcher = ViewSwitcher(datadir, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.set_cursor((0,))
@@ -137,6 +137,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
         # default focus
         self.cat_view.grab_focus()
+        
+        # set filter to software not installed (get free software)
+        self.apps_filter.set_not_installed_only(True)
 
     # xapian query
     def get_query_from_search_entry(self, search_term):
@@ -198,7 +201,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.apps_category_query = None
         #self.navigation_bar.remove_all()
         self.on_button_search_entry_clear_clicked(None)
-        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+        self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
 
     def on_entry_search_changed(self, widget, new_text):
         self.navigation_bar.remove_id("search")
@@ -219,7 +222,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                             self.on_navigation_button_category, 
                                             "category")
         self.refresh_apps()
-        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
+        self.change_notebook_view(self.NOTEBOOK_PAGE_APPLIST)
 
     def on_button_search_entry_clear_clicked(self, widget):
         self.entry_search.set_text("")
@@ -231,49 +234,69 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         if action == ViewSwitcherList.ACTION_ITEM_AVAILABLE:
             logging.debug("show available")
             if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
-                self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+                self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
             self.apps_filter.set_installed_only(False)
+            self.apps_filter.set_not_installed_only(True)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_INSTALLED:
             logging.debug("show installed")
             if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
-                self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_CATEGORIES)
+                self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
             self.apps_filter.set_installed_only(True)
+            self.apps_filter.set_not_installed_only(False)
             self.refresh_apps()
         elif action == ViewSwitcherList.ACTION_ITEM_PENDING:
             logging.debug("show pending")
-            self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_PENDING)
+            self.change_notebook_view(self.NOTEBOOK_PAGE_PENDING)
         else:
             assert False, "Not reached"
 
     def on_navigation_button_category(self, widget):
-        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
+        self.change_notebook_view(self.NOTEBOOK_PAGE_APPLIST)
 
     def on_navigation_button_app_details(self, widget):
-        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)
+        self.change_notebook_view(self.NOTEBOOK_PAGE_APP_DETAILS)
 
     def on_app_activated(self, app_view, path, column):
         (name, text, icon) = app_view.get_model()[path]
         # show new app
         self.app_details_view.show_app(name)
-        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APP_DETAILS)
+        self.change_notebook_view(self.NOTEBOOK_PAGE_APP_DETAILS)
         # add navigation button
         self.navigation_bar.add_with_id(name, 
                                         self.on_navigation_button_app_details, 
                                         "app")
-
+        
     def on_category_activated(self, cat_view, name, query):
         #print cat_view, name, query
         self.apps_category_query = query
         # show new category
         self.refresh_apps()
-        self.notebook_view.set_current_page(self.NOTEBOOK_PAGE_APPLIST)
+        self.change_notebook_view(self.NOTEBOOK_PAGE_APPLIST)
         # update navigation bar
         self.navigation_bar.add_with_id(name, 
                                         self.on_navigation_button_category, 
                                         "category")
 
     # gui helper
+    def change_notebook_view(self, page):
+        self.notebook_view.set_current_page(page)
+        if page == self.NOTEBOOK_PAGE_APPLIST:
+            #self.navigation_bar.remove_id("app") #  Doesn't currently work yet
+            self.hbox_search_entry.show()
+            self.hbox_breadcrumbs.show()
+        if page == self.NOTEBOOK_PAGE_APP_DETAILS:
+            self.hbox_search_entry.hide()
+            self.hbox_breadcrumbs.show()
+        if page == self.NOTEBOOK_PAGE_CATEGORIES:
+            self.navigation_bar.remove_id("app")
+            self.navigation_bar.remove_id("category")
+            self.hbox_search_entry.show()
+            self.hbox_breadcrumbs.show()
+        if page == self.NOTEBOOK_PAGE_PENDING:
+            self.hbox_search_entry.hide()
+            self.hbox_breadcrumbs.hide()
+        
 
     def refresh_apps(self):
         # wait if the cache is not ready yet

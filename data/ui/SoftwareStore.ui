@@ -35,12 +35,11 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_remove">
-                        <property name="label">_Remove</property>
+                        <property name="label">gtk-remove</property>
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="use_underline">True</property>
-                        <property name="image">image4</property>
-                        <property name="use_stock">False</property>
+                        <property name="use_stock">True</property>
                         <signal name="activate" handler="on_menuitem_remove_activate"/>
                       </object>
                     </child>
@@ -135,7 +134,7 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_canonical">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Canonical Maintained Applications</property>
+                        <property name="label" translatable="yes">Canonical-Maintained Applications</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
                         <signal name="activate" handler="on_menuitem_view_canonical_activate"/>
@@ -197,7 +196,7 @@
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkHBox" id="hbox1">
+                  <object class="GtkHBox" id="hbox_breadcrumbs">
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkRadioButton" id="button_home">
@@ -387,11 +386,8 @@
   </object>
   <object class="GtkImage" id="image3">
     <property name="visible">True</property>
-    <property name="stock">gtk-missing-image</property>
-  </object>
-  <object class="GtkImage" id="image4">
-    <property name="visible">True</property>
-    <property name="stock">gtk-missing-image</property>
+    <property name="stock">gtk-add</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkAboutDialog" id="aboutdialog">
     <property name="border_width">5</property>

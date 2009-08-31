@@ -30,21 +30,28 @@ class AnimatedImage(gtk.Image):
 
     def __init__(self, globexp):
         """ Animate a gtk.Image
-        
+    
         Keywords:
         globexp: pass a glob expression that is used for the animated images
+                 (it can also be a gtk.gdk.Pixbuf if you require a static image)
         """
         super(AnimatedImage, self).__init__()
         self._progressN = 0
-        self._imagefiles = sorted(glob.glob(globexp))
-        self.images = []
-        if not self._imagefiles:
-            raise IOError, "no images for the animation found in '%s'" % globexp
-        for f in self._imagefiles:
-            self.images.append(gtk.gdk.pixbuf_new_from_file(f))
-        self.set_from_pixbuf(self.images[self._progressN])
-        self.connect("show", self.start)
-        self.connect("hide", self.stop)
+        if isinstance(globexp, gtk.gdk.Pixbuf):
+            self.images = [globexp]
+            self.set_from_pixbuf(globexp)
+        elif isinstance(globexp, str):
+            self._imagefiles = sorted(glob.glob(globexp))
+            self.images = []
+            if not self._imagefiles:
+                raise IOError, "no images for the animation found in '%s'" % globexp
+            for f in self._imagefiles:
+                self.images.append(gtk.gdk.pixbuf_new_from_file(f))
+            self.set_from_pixbuf(self.images[self._progressN])
+            self.connect("show", self.start)
+            self.connect("hide", self.stop)
+        else:
+            raise IOError, "need a glob expression or a pixbuf"
 
     def start(self, w=None):
         source_id = gobject.timeout_add(int(1000/self.FPS), 
@@ -92,7 +99,7 @@ class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
     def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
         image = self.get_property("image")
         if image.get_animation_len() > 1:
-            gobject.timeout_add(1000.0/self.FPS, self._animation_helper, widget, image)
+            gobject.timeout_add(int(1000.0/self.FPS), self._animation_helper, widget, image)
         self.set_property("pixbuf", image.get_current_pixbuf())
         return gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, cell_area, expose_area, flags)
     def do_get_size(self, widget, cell_area):
@@ -106,14 +113,17 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         datadir = sys.argv[1]
     elif os.path.exists("./data"):
-        datadir = "./data/"
+        datadir = "./data"
     else:
-        datadir = "/usr/share/software-store/"
+        datadir = "/usr/share/software-store"
 
-    image = AnimatedImage(datadir+"/icons/32x32/status/*.png")
-    image1 = AnimatedImage(datadir+"/icons/32x32/status/*.png")
+    image = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-*.png")
+    image1 = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-*.png")
     image1.start()
-    image2 = AnimatedImage(datadir+"/icons/32x32/status/02.png")
+    image2 = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-01.png")
+    pixbuf = gtk.gdk.pixbuf_new_from_file(datadir+"/icons/32x32/status/software-store-progress-07.png")
+    image3 = AnimatedImage(pixbuf)
+    image3.show()
 
     model = gtk.ListStore(AnimatedImage)
     model.append([image1])
@@ -126,6 +136,7 @@ if __name__ == "__main__":
 
     box = gtk.VBox()
     box.pack_start(image)
+    box.pack_start(image3)
     box.pack_start(treeview)
     box.show()
     win = gtk.Window()

@@ -2,6 +2,8 @@ software-store (0.1.4) UNRELEASED; urgency=low
 
   * software-store:
     - improve test if running from a local checkout (LP: #420784)
+  * add animation to the pending view
+  * merge from rugby471, lots of fix, many thanks!
 
  -- Michael Vogt <egon@top.ping.de>  Sat, 29 Aug 2009 09:27:17 +0200
 

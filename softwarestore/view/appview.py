@@ -199,6 +199,7 @@ class AppView(gtk.TreeView):
     def __init__(self, store):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
+        self.set_headers_visible(False)
         tp = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=AppStore.COL_ICON)
         column.set_fixed_width(32)
@@ -242,17 +243,24 @@ class AppViewFilter(object):
         self.cache = cache
         self.supported_only = False
         self.installed_only = False
+        self.not_installed_only = False
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
         self.installed_only = v
+    def set_not_installed_only(self, v):
+        self.not_installed_only = v
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
-        #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
-        #              self.supported_only, self.installed_only, pkgname))
+        logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
+                self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
             if (self.cache.has_key(pkgname) and 
                 not self.cache[pkgname].isInstalled):
+                return False
+        if self.not_installed_only:
+            if (self.cache.has_key(pkgname) and 
+                self.cache[pkgname].isInstalled):
                 return False
         # FIXME: add special property to the desktop file instead?
         #        what about in the future when we support pkgs without

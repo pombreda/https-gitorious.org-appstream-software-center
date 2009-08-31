@@ -30,16 +30,19 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
+from animatedimage import CellRendererAnimatedImage, AnimatedImage
+
 class ViewSwitcher(gtk.TreeView):
-    def __init__(self, icons, store=None):
+    def __init__(self, datadir, icons, store=None):
         super(ViewSwitcher, self).__init__()
+        self.datadir = datadir
         self.icons = icons
         if not store:
-            store = ViewSwitcherList(icons)
+            store = ViewSwitcherList(datadir, icons)
             self.set_model(store)
         gtk.TreeView.__init__(self)
-        tp = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("Icon", tp, pixbuf=store.COL_ICON)
+        tp = CellRendererAnimatedImage()
+        column = gtk.TreeViewColumn("Icon", tp, image=store.COL_ICON)
         #column.set_fixed_width(32)
         #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -83,13 +86,14 @@ class ViewSwitcherList(gtk.ListStore):
 
     ICON_SIZE = 32
 
-    def __init__(self, icons):
-        gtk.ListStore.__init__(self, gtk.gdk.Pixbuf, str, int)
+    def __init__(self, datadir, icons):
+        gtk.ListStore.__init__(self, AnimatedImage, str, int)
         self.icons = icons
+        self.datadir = datadir
         # setup the normal stuff
-        icon = self.icons.load_icon("software-store", self.ICON_SIZE, 0)
+        icon = AnimatedImage(self.icons.load_icon("software-store", self.ICON_SIZE, 0))
         self.append([icon, _("Get Free software"), self.ACTION_ITEM_AVAILABLE])
-        icon = self.icons.load_icon("gtk-harddisk", self.ICON_SIZE, 0)
+        icon = AnimatedImage(self.icons.load_icon("gtk-harddisk", self.ICON_SIZE, 0))
         self.append([icon, _("Installed software"), self.ACTION_ITEM_INSTALLED])
         # spacer - not working
         #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
@@ -121,7 +125,9 @@ class ViewSwitcherList(gtk.ListStore):
                     row[self.COL_NAME] = _("In Progress (%i)") % pending
                     break
             else:
-                self.append([None, _("Pending (%i)") % pending, 
+                icon = AnimatedImage(self.datadir+"/icons/32x32/status/software-store-progress-*.png")
+                icon.start()
+                self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])
         else:
             for (i, row) in enumerate(self):
@@ -131,10 +137,18 @@ class ViewSwitcherList(gtk.ListStore):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
+    import sys
+
+    if len(sys.argv) > 1:
+        datadir = sys.argv[1]
+    elif os.path.exists("./data"):
+        datadir = "./data"
+    else:
+        datadir = "/usr/share/software-store"
 
     scroll = gtk.ScrolledWindow()
     icons = gtk.icon_theme_get_default()
-    view = ViewSwitcher(icons)
+    view = ViewSwitcher(datadir, icons)
 
     box = gtk.VBox()
     box.pack_start(scroll)
