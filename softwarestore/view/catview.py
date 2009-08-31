@@ -62,7 +62,7 @@ class CategoriesView(WebkitWidget):
         self.connect("load-finished", self._on_load_finished)
 
     def on_category_clicked(self, name):
-        logging.debug("on_category_changed: " % name)
+        logging.debug("on_category_changed: %s" % name)
         for n in self.categories:
             if n.name == name:
                 self.emit("category-selected", name, n.query)
