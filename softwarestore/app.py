@@ -35,7 +35,7 @@ except ImportError:
     from softwarestore.enums import *
 
 from view.appview import AppView, AppStore, AppViewFilter
-from view.catview import CategoriesView, LabeledCategoriesView
+from view.catview import CategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.appdetailsview import AppDetailsView
 from view.pendingview import PendingView
@@ -92,7 +92,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_activated)
 
         # categories
-        self.cat_view = CategoriesView(APP_INSTALL_PATH, self.xapiandb,
+        self.cat_view = CategoriesView(datadir, APP_INSTALL_PATH, self.xapiandb,
                                        self.icons)
         self.scrolledwindow_categories.add(self.cat_view)
         self.cat_view.show()

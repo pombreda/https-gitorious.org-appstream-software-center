@@ -56,6 +56,7 @@ class WebkitWidget(webkit.WebView):
     def _load(self):
         class_name = self.__class__.__name__        
         self._html_path = self.datadir+"/templates/%s.html" % class_name
+        logging.debug("looking for '%s'" % self._html_path)
         if os.path.exists(self._html_path):
             self._template = open(self._html_path).read()
 
