@@ -39,26 +39,28 @@ class WebkitWidget(webkit.WebView):
     def __init__(self, datadir, substitute=None):
         webkit.WebView.__init__(self)
         self.datadir = datadir
+        self._template = ""
         self._html = ""
         self.connect('title-changed', self._on_title_changed)
         self._load()
-        if substitute:
-            self._substitute(substitute)
+        if not substitute:
+            substitute = {}
+        self._substitute(substitute)
         self._render()
 
     # internal helpers
     def _load(self):
         class_name = self.__class__.__name__        
-        self._html_path = datadir+"/templates/%s.html" % class_name
+        self._html_path = self.datadir+"/templates/%s.html" % class_name
         if os.path.exists(self._html_path):
-            self._html = open(self._html_path).read()
+            self._template = open(self._html_path).read()
 
     def _render(self):
         # FIXME: use self._html_path here as base_uri ?
         self.load_html_string(self._html, "file:/") 
 
     def _substitute(self, subs):
-        self._html = string.Template(self._html).safe_substitute(subs)
+        self._html = string.Template(self._template).safe_substitute(subs)
 
     # internal callbacks
     def _on_title_changed(self, view, frame, title):

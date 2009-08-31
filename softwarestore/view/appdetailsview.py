@@ -32,16 +32,13 @@ import sys
 import time
 import xapian
 
-gobject.threads_init()
-import webkit
-
-
 from aptdaemon import policykit1
 from aptdaemon import client
 from aptdaemon import enums
  
 from gettext import gettext as _
 
+from wkwidget import WebkitWidget
 import dialogs
 
 try:
@@ -52,74 +49,11 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
-class AppDetailsView(webkit.WebView):
+class AppDetailsView(WebkitWidget):
 
     # the size of the icon on the left side
     APP_ICON_SIZE = 32
     APP_ICON_PADDING = 8
-
-    doc = """
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
- <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
- <title>Application Details View</title>
- <script type="text/javascript">
-  function changeTitle(title) { document.title = title; }
-  function fadeIn(objId,opacity) {
-  if (document.getElementById) {
-    obj = document.getElementById(objId);
-    if (opacity <= 100) {
-      setOpacity(obj, opacity);
-      opacity += 10;
-      window.setTimeout("fadeIn('"+objId+"',"+opacity+")", 100);
-    }
-  }
-  }
-  function setOpacity(obj, opacity) {
-  opacity = (opacity == 100)?99.999:opacity;
-  obj.style.opacity = opacity/100;
-  }
-  function initImage() {
-  imageId = 'screenshot_thumbnail';
-  image = document.getElementById(imageId);
-  setOpacity(image, 0);
-  image.style.visibility = 'visible';
-  fadeIn(imageId,0);
-  }
-  window.onload = function() {initImage()}
- </script>
- <style type="text/css">
- #appname {font-size:120%;}
- #description {font-size:80%}
- #icon {float:left; width:64px; height:64px; padding:10px}
- #screenshot_thumbnail_loading {float:right; padding:10px; width:160px; height:120px; background:#fff url('$iconpath/img/loading.gif') 50% 50% no-repeat;}
- #screenshot_thumbnail {visibility:hidden}
- #text {float:right; width:80%}
- </style>
- </head>
-<body>
- <img id="icon" src="file:$iconpath" alt="Application Icon" width="$width" height="$height"/>
- <div id="text">
- <p id="appname">$appname</p>
- <div id='screenshot_thumbnail_loading'>
- <img id="screenshot_thumbnail" src="http://screenshots.debian.net/thumbnail/$pkgname" alt="Application Screenshot"/>
- </div>
- <div id="description">$description</p>
-
- <input type="button" name="button_$action_button_value" 
-        value="$action_button_label"
-      onclick='changeTitle("run:${action_button_value}")'
- />
-
- <input type="button" name="button_homepage" value="Homepage"
-      onclick='changeTitle("run:on_button_homepage_clicked")'
- />
- </div>
-</body>
-</html>
-"""
 
     # dependency types we are about
     DEPENDENCY_TYPES = ("PreDepends", "Depends", "Recommends")
@@ -133,7 +67,7 @@ class AppDetailsView(webkit.WebView):
 
 
     def __init__(self, xapiandb, icons, cache, datadir):
-        super(AppDetailsView, self).__init__()
+        super(AppDetailsView, self).__init__(datadir)
         self.xapiandb = xapiandb
         self.icons = icons
         self.cache = cache
@@ -226,8 +160,9 @@ class AppDetailsView(webkit.WebView):
                  'datadir' : self.datadir
                }
         
-        html = string.Template(self.doc).safe_substitute(subs)
-        self.load_html_string(html, "file:/")
+        self._load()
+        self._substitute(subs)
+        self._render()
         self.emit("selected", appname, pkg)
         return
 
@@ -543,6 +478,15 @@ class AppDetailsView(webkit.WebView):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
+    import sys
+
+    if len(sys.argv) > 1:
+        datadir = sys.argv[1]
+    elif os.path.exists("./data"):
+        datadir = "./data"
+    else:
+        datadir = "/usr/share/software-store"
+
     xapian_base_path = "/var/cache/app-install"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = xapian.Database(pathname)
@@ -554,7 +498,7 @@ if __name__ == "__main__":
 
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsView(db, icons, cache)
+    view = AppDetailsView(db, icons, cache, datadir)
     #view.show_app("AMOR")
     #view.show_app("3D Chess")
     view.show_app("Configuration Editor")
