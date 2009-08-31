@@ -52,7 +52,7 @@ except ImportError:
 class AppDetailsView(WebkitWidget):
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 32
+    APP_ICON_SIZE = 48
     APP_ICON_PADDING = 8
 
     # dependency types we are about
@@ -85,6 +85,11 @@ class AppDetailsView(WebkitWidget):
         self.window_main_xid = None
         # data
         self.appname = None
+        # setup missing icon
+        iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, 
+                                          self.APP_ICON_SIZE, 0)
+        self.MISSING_ICON_PATH = iconinfo.get_filename()
+        
     
     def on_title_changed(self, view, frame, title):
         print "title_changed", view, frame, title
@@ -131,7 +136,7 @@ class AppDetailsView(WebkitWidget):
         if iconinfo:
             iconpath = iconinfo.get_filename()
         else:
-            iconpath = ""
+            iconpath = self.MISSING_ICON_PATH
 
         if pkg:
             self.homepage_url = pkg.candidate.homepage
