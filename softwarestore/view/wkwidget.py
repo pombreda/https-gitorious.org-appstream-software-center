@@ -22,30 +22,74 @@ import gobject
 import gtk
 import logging
 import os
+import string
 
 gobject.threads_init()
 import webkit
 
 class WebkitWidget(webkit.WebView):
-    
-    def __init__(self, datadir):
+    """Widget that uses a webkit html form for its drawing
+
+    It support calls to functions via javascript title change
+    methods. The title should look like any of those:
+    - "call:func_name"
+    - "call:func_name:argument"
+    - "call:func_name:arg1,args2"
+    """
+    def __init__(self, datadir, substitute=None):
         webkit.WebView.__init__(self)
         self.datadir = datadir
         self._html = ""
+        self.connect('title-changed', self._on_title_changed)
         self._load()
+        if substitute:
+            self._substitute(substitute)
+        self._render()
+
+    # internal helpers
     def _load(self):
         class_name = self.__class__.__name__        
         self._html_path = datadir+"/templates/%s.html" % class_name
         if os.path.exists(self._html_path):
             self._html = open(self._html_path).read()
-            self._render()
+
     def _render(self):
         # FIXME: use self._html_path here as base_uri ?
-        self.load_html_string(self._html, "/") 
+        self.load_html_string(self._html, "file:/") 
+
+    def _substitute(self, subs):
+        self._html = string.Template(self._html).safe_substitute(subs)
+
+    # internal callbacks
+    def _on_title_changed(self, view, frame, title):
+        logging.debug("%s: title_changed %s %s %s" % (self.__class__.__name__,
+                                                      view, frame, title))
+        # call directive looks like:
+        #  "call:func:arg1,arg2"
+        #  "call:func"
+        if title.startswith("call:"):
+            args_str = ""
+            args_list = []
+            # try long form (with arguments) first
+            try:
+                (t,funcname,args_str) = title.split(":")
+            except ValueError:
+                # now try short (without arguments)
+                (t,funcname) = title.split(":")
+            if args_str:
+                args_list = args_str.split(",")
+            # see if we have it and if it can be called
+            f = getattr(self, funcname)
+            if f and callable(f):
+                f(*args_list)
 
 class WKTestWidget(WebkitWidget):
-    pass
 
+    def func1(self, arg1, arg2):
+        print "func1: ", arg1, arg2
+
+    def func2(self):
+        print "func2"
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -60,7 +104,10 @@ if __name__ == "__main__":
         datadir = "/usr/share/software-store"
 
 
-    w = WKTestWidget(datadir)
+    subs = {
+        'key' : 'subs value' 
+    }
+    w = WKTestWidget(datadir, subs)
 
     win = gtk.Window()
     scroll = gtk.ScrolledWindow()
