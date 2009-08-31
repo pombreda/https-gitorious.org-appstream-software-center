@@ -30,6 +30,10 @@ import webkit
 class WebkitWidget(webkit.WebView):
     """Widget that uses a webkit html form for its drawing
 
+    All i18n should be done *outside* the html, currently
+    no i18n supported. So all user visible strings should
+    be set via templates.
+
     It support calls to functions via javascript title change
     methods. The title should look like any of those:
     - "call:func_name"
