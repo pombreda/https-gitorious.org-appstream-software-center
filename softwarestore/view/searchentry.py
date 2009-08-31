@@ -47,6 +47,14 @@ class SearchEntry(sexy.IconEntry):
         # Does not work - known bug in libsexy
         # image = gtk.image_new_from_icon_name(gtk.STOCK_CLEAR,
         #                                      gtk.ICON_SIZE_MENU)
+        # primary
+        image_find = gtk.Image()
+        pixbuf = icon_theme.load_icon(gtk.STOCK_FIND,
+                                      gtk.ICON_SIZE_MENU,
+                                      0)
+        image_find.set_from_pixbuf(pixbuf)
+        self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
+
         image = gtk.Image()
         pixbuf = icon_theme.load_icon(gtk.STOCK_CLEAR,
                                       gtk.ICON_SIZE_MENU,
@@ -73,6 +81,13 @@ class SearchEntry(sexy.IconEntry):
             self._check_style()
             self.handler_unblock(self._handler_changed)
             self.emit("terms-changed", self.get_text())
+
+    def clear_with_no_signal(self):
+        """Clear and do not send a term-changed signal"""
+        self.handler_block(self._handler_changed)
+        self.set_text("")
+        self._check_style()
+        self.handler_unblock(self._handler_changed)
 
     def _on_changed(self, widget):
         """
