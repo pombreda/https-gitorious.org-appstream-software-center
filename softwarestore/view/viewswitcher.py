@@ -93,7 +93,7 @@ class ViewSwitcherList(gtk.ListStore):
         # setup the normal stuff
         icon = AnimatedImage(self.icons.load_icon("software-store", self.ICON_SIZE, 0))
         self.append([icon, _("Get Free software"), self.ACTION_ITEM_AVAILABLE])
-        icon = AnimatedImage(self.icons.load_icon("gtk-harddisk", self.ICON_SIZE, 0))
+        icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed software"), self.ACTION_ITEM_INSTALLED])
         # spacer - not working
         #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
