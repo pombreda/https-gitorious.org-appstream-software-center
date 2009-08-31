@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+ <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+ <title></title>
+
+ <script type="text/javascript">
+  function changeTitle(title) { 
+    document.title = title; 
+  }
+  function addCategory(name, img) {
+    oT = document.getElementsByTagName("body")[0];
+    newImg = document.createElement("img");
+    newImg.id = name;
+    newImg.src = img;
+    var s = 'changeTitle("' + name + '")';
+    newImg.setAttribute('onclick', s);
+    oT.appendChild(newImg);
+  }
+  window.onload = function() {
+    addCategory("test", "/usr/share/icons/gnome/32x32/status/gnome-fs-trash-full.png");
+    addCategory("test2", "/usr/share/icons/gnome/32x32/status/gnome-fs-trash-full.png");
+  }
+ </script>
+
+ <style type="text/css">
+ #appname {font-size:120%;}
+ #description {font-size:80%}
+ #icon {float:left; width:64px; height:64px; padding:10px}
+ #screenshot_thumbnail_loading {float:right; padding:10px; width:160px; height:120px; background:#fff url('$iconpath/img/loading.gif') 50% 50% no-repeat;}
+ #screenshot_thumbnail {visibility:hidden}
+ #text {float:right; width:80%}
+ </style>
+
+ </head>
+
+<body>
+  <h1>Categories</h1>
+
+</body>
+
+</html>
