@@ -21,10 +21,14 @@ import gtk
 
 class NavigationBar(gtk.HBox):
     """A navigation bar using button (like nautilus)"""
-    def __init__(self):
+    def __init__(self, group=None):
         super(NavigationBar, self).__init__()
         self.id_to_widget = {}
         self.id_to_callback = {}
+        if not group:
+            self.group = gtk.RadioButton()
+        else:
+            self.group = group
 
     def add_with_id(self, label, callback, id):
         """
@@ -33,16 +37,20 @@ class NavigationBar(gtk.HBox):
         If there is the same id already, replace the existing one
         with the new one
         """
+        # check if we have the button of that id or need a new one
         if id in self.id_to_widget:
             button = self.id_to_widget[id]
             button.disconnect(self.id_to_callback[id])
         else:
-            button = gtk.Button()
+            button = gtk.RadioButton(self.group)
+            button.set_mode(False)
             self.pack_start(button, expand=False)
             self.id_to_widget[id] = button
             button.show()
-        button.set_label(label)
+        # common code
         handler_id = button.connect("clicked", callback)
+        button.set_label(label)
+        button.set_active(True)
         self.id_to_callback[id] = handler_id
 
     def remove_id(self, id):
@@ -61,3 +69,11 @@ class NavigationBar(gtk.HBox):
             self.remove(w)
         self.id_to_widget = {}
         self.id_to_callback = {}
+        
+    def get_label(self, id):
+        """
+        Return the label of the navigation button with the given id
+        """
+        if not id in self.id_to_widget:
+            return
+        return self.id_to_widget[id].get_label()

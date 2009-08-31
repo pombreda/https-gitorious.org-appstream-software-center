@@ -57,11 +57,16 @@ class AppStore(gtk.GenericTreeModel):
     available in xapian)
     """
 
-    (COL_NAME, 
+    (COL_APP_NAME,
+     COL_TEXT, 
      COL_ICON,
-     ) = range(2)
+     ) = range(3)
+
     column_type = (str, 
+                   str,
                    gtk.gdk.Pixbuf)
+
+    ICON_SIZE = 24
 
     def __init__(self, db, icons, search_query=None, limit=200, 
                  sort=False, filter=None):
@@ -137,8 +142,15 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
         appname = self.appnames[rowref]
-        if column == self.COL_NAME:
-            return gobject.markup_escape_text(appname)
+        if column == self.COL_APP_NAME:
+            return appname
+        elif column == self.COL_TEXT:
+            for post in self.xapiandb.postlist("AA"+appname):
+                doc = self.xapiandb.get_document(post.docid)
+                summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
+            s = "%s\n<small>%s</small>" % (gobject.markup_escape_text(appname),
+                                   gobject.markup_escape_text(summary))
+            return s
         elif column == self.COL_ICON:
             try:
                 icon_name = ""
@@ -148,12 +160,12 @@ class AppStore(gtk.GenericTreeModel):
                     icon_name = os.path.splitext(icon_name)[0]
                     break
                 if icon_name:
-                    icon = self.icons.load_icon(icon_name, 24,0)
+                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE,0)
                     return icon
             except Exception, e:
                 if not str(e).endswith("not present in theme"):
                     logging.exception("get_icon")
-        return None
+        return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = rowref + 1
@@ -187,13 +199,14 @@ class AppView(gtk.TreeView):
     def __init__(self, store):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
+        self.set_headers_visible(False)
         tp = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=AppStore.COL_ICON)
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         tr = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_NAME)
+        column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -204,14 +217,14 @@ class AppView(gtk.TreeView):
         self.connect("button-press-event", self.on_button_press_event)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
-        path = self.get_path_at_pos(event.x, event.y)
+        path = self.get_path_at_pos(int(event.x), int(event.y))
         if path is None:
             self.window.set_cursor(None)
         else:
             self.window.set_cursor(self.cursor_hand)
     def on_button_press_event(self, widget, event):
         #print "on_button_press_event: ", event
-        res = self.get_path_at_pos(event.x, event.y)
+        res = self.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
@@ -230,17 +243,24 @@ class AppViewFilter(object):
         self.cache = cache
         self.supported_only = False
         self.installed_only = False
+        self.not_installed_only = False
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
         self.installed_only = v
+    def set_not_installed_only(self, v):
+        self.not_installed_only = v
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
-        #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
-        #              self.supported_only, self.installed_only, pkgname))
+        logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
+                self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
             if (self.cache.has_key(pkgname) and 
                 not self.cache[pkgname].isInstalled):
+                return False
+        if self.not_installed_only:
+            if (self.cache.has_key(pkgname) and 
+                self.cache[pkgname].isInstalled):
                 return False
         # FIXME: add special property to the desktop file instead?
         #        what about in the future when we support pkgs without
@@ -273,7 +293,7 @@ def on_entry_changed(widget, data):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    xapian_base_path = "/var/cache/app-install"
+    xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
     db = xapian.Database(pathname)
 

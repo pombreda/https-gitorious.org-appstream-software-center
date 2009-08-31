@@ -17,25 +17,23 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-# system pathes
-XAPIAN_BASE_PATH = "/var/cache/software-store"
-APP_INSTALL_PATH = "/usr/share/app-install"
-APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
-APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
-ICON_PATH = APP_INSTALL_PATH+"/icons/"
+
+import gtk
+
+from gettext import gettext as _
+
+class PkgNamesView(gtk.TreeView):
+    """ show a bunch of pkgnames with description """
+    def __init__(self, header, cache, pkgnames):
+        super(PkgNamesView, self).__init__()
+        model = gtk.ListStore(str)
+        self.set_model(model)
+        #self.set_headers_visible(False)
+        tr = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(header, tr, text=0)
+        self.append_column(column)
+        for pkg in sorted(pkgnames):
+            s = "%s - %s" % (pkg, cache[pkg].installed.summary)
+            model.append([s])
 
 
-# icon
-MISSING_APP_ICON = "applications-other"
-
-
-# values used in the database
-XAPIAN_VALUE_PKGNAME = 171
-XAPIAN_VALUE_ICON = 172
-XAPIAN_VALUE_GETTEXT_DOMAIN = 173
-XAPIAN_VALUE_ARCHIVE_SECTION = 174
-XAPIAN_VALUE_ARCHIVE_ARCH = 175
-XAPIAN_VALUE_POPCON = 176
-XAPIAN_VALUE_SUMMARY = 177
-XAPIAN_VALUE_ARCHIVE_CHANNEL = 178
-XAPIAN_VALUE_DESKTOP_FILE = 179

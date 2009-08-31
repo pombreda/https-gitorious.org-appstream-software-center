@@ -31,20 +31,43 @@ from ConfigParser import ConfigParser
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
- COL_CAT_QUERY) = range(3)
+ COL_CAT_QUERY,
+ COL_CAT_MARKUP) = range(4)
+
+class Category(object):
+    """represents a menu category"""
+    def __init__(self, untranslated_name, name, iconname, query):
+        self.name = name
+        self.untranslated_name = untranslated_name
+        self.iconname = iconname
+        self.query = query
 
 class CategoriesModel(gtk.ListStore):
+
     def __init__(self, desktopdir, xapiandb, icons):
-        gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, object)
-        cat = self.parse_applications_menu(desktopdir)
-        for key in sorted(cat.keys()):
-            (iconname, query) = cat[key]
-            icon = icons.load_icon(iconname, 24, 0)
-            query.name = key
-            self.append([gobject.markup_escape_text(key), icon, query])
+        gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, object, str)
+        categories = self.parse_applications_menu(desktopdir)
+        for cat in sorted(categories, cmp=self._cat_sort_cmp):
+            icon = icons.load_icon(cat.iconname, 24, 0)
+            cat.query.name = cat.name
+            markup = "<small>%s</small>" % gobject.markup_escape_text(cat.name)
+            self.append([cat.name, icon, cat.query, markup])
+
+    def _cat_sort_cmp(self, a, b):
+        """sort helper for the categories sorting"""
+        #print "cmp: ", a.name, b.name
+        if a.untranslated_name == "Other":
+            return 1
+        elif b.untranslated_name == "Other":
+            return -1
+        elif a.untranslated_name == "Programming":
+            return 1
+        elif b.untranslated_name == "Programming":
+            return -1
+        return cmp(a.name, b.name)
 
     def parse_applications_menu(self, datadir):
-        " parse a application menu and build xapian querries from it "
+        " parse a application menu and return a list of Category objects"""
         tree = ET.parse(datadir+"/desktop/applications.menu")
         categories = {}
         only_unallocated = set()
@@ -52,6 +75,7 @@ class CategoriesModel(gtk.ListStore):
         for child in root.getchildren():
             if child.tag == "Menu":
                 name = None
+                untranslated_name = None
                 query = None
                 icon = None
                 for element in child.getchildren():
@@ -65,9 +89,9 @@ class CategoriesModel(gtk.ListStore):
                         except:
                             gettext_domain = None
                         icon = cp.get("Desktop Entry","Icon")
-                        name = cp.get("Desktop Entry","Name")
+                        untranslated_name = cp.get("Desktop Entry","Name")
                         if gettext_domain:
-                            name = gettext.dgettext(gettext_domain, name)
+                            name = gettext.dgettext(gettext_domain, untranslated_name)
                     elif element.tag == "Include":
                         query = xapian.Query("")
                         for include in element.getchildren():
@@ -80,91 +104,125 @@ class CategoriesModel(gtk.ListStore):
                                                 query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
                                                 
                                     elif and_elem.tag == "Category":
-                                        print "adding: ", and_elem.text
+                                        logging.debug("adding: %s" % and_elem.text)
                                         q = xapian.Query("AC"+and_elem.text.lower())
                                         query = xapian.Query(xapian.Query.OP_AND, query, q)
                                     else: 
                                         print "UNHANDLED: ", and_elem.tag, and_elem.text
                     elif element.tag == "OnlyUnallocated":
-                        only_unallocated.add(name)
-                    if name and query:
-                        categories[name] = (icon, query)
+                        only_unallocated.add(untranslated_name)
+                    if untranslated_name and query:
+                        categories[untranslated_name] = Category(untranslated_name, name, icon, query)
         # post processing for <OnlyUnallocated>
         for unalloc in only_unallocated:
-            (icon, query) = categories[unalloc]
+            cat_unalloc = categories[unalloc]
             for key in categories:
                 if key != unalloc:
-                    (ic, q) = categories[key]
-                    query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
-            categories[unalloc] = (icon, query)
+                    cat = categories[key]
+                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
+            categories[unalloc] = cat_unalloc
         # debug print
-        for cat in categories:
-            (icon, query) = categories[cat]
-            print cat, query.get_description()
-        return categories
+        for catname in categories:
+            cat = categories[catname]
+            logging.debug(cat.name, cat.iconname, cat.query.get_description())
+        return categories.values()
 
-class LabeledCategoriesView(gtk.Viewport):
-    def __init__(self, datadir, xapiandb, icons):
-        gtk.Viewport.__init__(self)
+class LabeledCategoriesView(gtk.VBox):
+    """Category view with a additional label"""
+
+    __gsignals__ = {
+        "category-selected" : (gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_NONE, 
+                               (str, gobject.TYPE_PYOBJECT),
+                              )
+        }
+
+    def __init__(self, datadir, xapiandb, icons, label=_("Categories")):
+        super(LabeledCategoriesView, self).__init__()
         # a vbox in the outside and a hbox in the inside
-        vbox = gtk.VBox()
+        #vbox = gtk.VBox()
         align = gtk.Alignment()
         top = bottom = 2
         left = right = 8
         align.set_padding(top, bottom, left, right)
         # we need a eventbox around the label to set the background
-        label = gtk.Label("")
-        label.set_markup("<b>%s</b>" % _("Categories"))
-        label.set_alignment(0.0, 0.5)
-        align.add(label)
-        align.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("yellow"))
+        labelw = gtk.Label("")
+        labelw.set_markup("<b>%s</b>" % label)
+        labelw.set_alignment(0.0, 0.5)
+        align.add(labelw)
         eb = gtk.EventBox()
-        eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("yellow"))
+        color =  gtk.gdk.color_parse("lightblue")
+        eb.modify_bg(gtk.STATE_NORMAL, color)
         eb.add(align)
         # needed to make the background not spawn all over
         hbox_inside = gtk.HBox()
         hbox_inside.pack_start(eb, expand=False, fill=False)
         # FIXME: how to make sure the background color is right
-        #hbox_inside.pack_start(gtk.IconView())
-        vbox.pack_start(hbox_inside, expand=False, fill=False)
+        hbox_inside.pack_start(gtk.IconView())
+        self.pack_start(hbox_inside, expand=False, fill=False)
         # and now the categoryies
         self.catview = CategoriesView(datadir, xapiandb, icons)
-        vbox.pack_start(self.catview)
-        self.add(vbox)
-        # FIXME: add the row-activated signal
+        self.pack_start(self.catview)
+        self.catview.connect("category-selected", self._category_selected)
+    def _category_selected(self, widget, name, query):
+        self.emit("category-selected", name, query)
 
 class CategoriesView(gtk.IconView):
+    """Base category view widget based on a gtk.IconView"""
+
+    __gsignals__ = {
+        "category-selected" : (gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_NONE, 
+                               (str, gobject.TYPE_PYOBJECT),
+                              )
+        }
+
+
+
     def __init__(self, datadir, xapiandb, icons):
         # model
         model = CategoriesModel(datadir, xapiandb, icons)
         gtk.IconView.__init__(self, model)
+
         # data
         self.xapiandb = xapiandb
         self.icons = icons
         self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
         # customization
-        self.set_markup_column(COL_CAT_NAME)
+        self.set_markup_column(COL_CAT_MARKUP)
         self.set_pixbuf_column(COL_CAT_PIXBUF)
         # signals
         self.connect("motion-notify-event", self.on_motion_notify_event)
         self.connect("button-press-event", self.on_button_press_event)
+        self.connect("item-activated", self.on_item_activated)
+    def on_item_activated(self, widget, path):
+        model = widget.get_model()
+        name = model[path][COL_CAT_NAME]
+        query = model[path][COL_CAT_QUERY]
+        #print "selected: ", name, query
+        self.emit("category-selected", name, query)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
-        path = self.get_path_at_pos(event.x, event.y)
+        path = self.get_path_at_pos(int(event.x), int(event.y))
         if path is None:
             self.window.set_cursor(None)
         else:
             self.window.set_cursor(self.cursor_hand)
     def on_button_press_event(self, widget, event):
         #print "on_button_press_event: ", event
-        path = self.get_path_at_pos(event.x, event.y)
+        path = self.get_path_at_pos(int(event.x), int(event.y))
         if event.button != 1 or path is None:
             return
-        self.emit("item-activated", path)
+        #self.emit("item-activated", path)
+        model = self.get_model()
+        name = model[path][COL_CAT_NAME]
+        query = model[path][COL_CAT_QUERY]
+        #print "selected: ", name, query
+        self.emit("category-selected", name, query)
 
 # test code
-def category_activated(iconview, path, xapiandb):
-    (name, pixbuf, query) = iconview.get_model()[path]
+def category_activated(iconview, name, query, xapiandb):
+    #(name, pixbuf, query) = iconview.get_model()[path]
     enquire = xapian.Enquire(xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
@@ -192,9 +250,9 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
-    #view = LabeledCategoriesView(datadir, db, icons)
-    view = CategoriesView(datadir, db, icons)
-    view.connect("item-activated", category_activated, db)
+    view = LabeledCategoriesView(datadir, db, icons)
+    #view = CategoriesView(datadir, db, icons)
+    view.connect("category-selected", category_activated, db)
 
     # gui
     scroll = gtk.ScrolledWindow()

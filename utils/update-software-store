@@ -83,9 +83,18 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             pkgname = parser.get_desktop("X-AppInstall-Package")
             doc.add_term("AP"+pkgname)
             doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
-            archive_section = parser.get_desktop("X-AppInstall-Section")
-            doc.add_term("AS"+archive_section)
-            doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, archive_section)
+            doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, desktopf)
+            # section (main, restricted, ...)
+            if parser.has_option_desktop("X-AppInstall-Section"):
+                archive_section = parser.get_desktop("X-AppInstall-Section")
+                doc.add_term("AS"+archive_section)
+                doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, archive_section)
+            # channel (third party stuff)
+            if parser.has_option_desktop("X-AppInstall-Channel"):
+                archive_channel = parser.get_desktop("X-AppInstall-Channel")
+                doc.add_term("AH"+archive_section)
+                doc.add_value(XAPIAN_VALUE_ARCHIVE_CHANNEL, archive_channel)
+            # icon
             if parser.has_option_desktop("Icon"):
                 icon = parser.get_desktop("Icon")
                 doc.add_value(XAPIAN_VALUE_ICON, icon)
@@ -105,11 +114,18 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 arches = parser.get_desktop("X-Ubuntu-Architectures")
                 doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
             # popcon
+            # FIXME: popularity not only based on popcon but also
+            #        on archive section, third party app etc
             if parser.has_option_desktop("X-AppInstall-Popcon"):
                 popcon = parser.get_desktop("X-AppInstall-Popcon")
                 # sort_by_value uses string compare, so we need to pad here
                 doc.add_value(XAPIAN_VALUE_POPCON, 
                               xapian.sortable_serialise(float(popcon)))
+            # comment
+            if parser.has_option_desktop("Comment"):
+                s = parser.get_desktop("Comment")
+                doc.add_value(XAPIAN_VALUE_SUMMARY, s)
+
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):
@@ -118,10 +134,10 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 w = globals()["WEIGHT_DESKTOP_"+key.replace(" ","").upper()]
                 term_generator.index_text_without_positions(s)
             # add data from the apt cache
-            if cache.has_key(pkgname):
-                s = cache[pkgname].summary
+            if pkgname in cache and cache[pkgname].candidate:
+                s = cache[pkgname].candidate.summary
                 term_generator.index_text_without_positions(s, WEIGHT_APT_SUMMARY)
-                s = cache[pkgname].description
+                s = cache[pkgname].candidate.description
                 term_generator.index_text_without_positions(s, WEIGHT_APT_DESCRIPTION)
             # add our keywords (with high priority)
             if parser.has_option_desktop("X-AppInstall-Keywords"):
@@ -151,5 +167,5 @@ if __name__ == "__main__":
     if not os.path.exists(pathname):
 	os.makedirs(pathname)
     db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
-    cache = apt.Cache()
+    cache = apt.Cache(memonly=True)
     update(db, cache)

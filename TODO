@@ -1,21 +1,62 @@
 
 
-Missing:
-- apt cache open in via a thead
 
+
+UI:
+- add warning if a package is removed that causes the removal
+  of a unreleated meta-package (that is not ubuntu-desktop)
+- make the textview more visual attractive (GtkTextView has
+  probably too many limitations, switch to the webkit branch
+- connect the menu items from the "Edit" menu
+- make "installed" and "available" two fully seperate internal
+  tabs and change the "installed" main page to not show 
+  categories but use a different view (spec says treeview, lets
+  see if that can be done in time)
+- implement the removal dialog in the way the spec calls for
+  it (different ui design)
+- implement warning when a package contains of multiple apps
+  and show the apps in this case
+- implement the spinning icon for pending transactions. while
+  we have a animatedimage (that works fine) it won't work
+  inside a Treeview. so we need a custom cell renderer that
+  can render normal pixbufs and animated pixbufs
+
+Missing:
+- when the xapian db is rebuilding (e.g. because app-center is 
+  upgraded) wait for that (just like with the apt cache)
+- pimping of apps (via tweaking the popcon values?)
+
+Missing (hard):
+- keep track of all pending transactions in the apt cache and when
+  a transaction finishes. 
+- when a package is marked for install, block its (and the other 
+  pkgs that get installed) action button in the app details view.
+- think more about all the possible cases with manipulating 
+  pkgs that are also in a queue of pending transactions and the
+  UI implications that have:
+  e.g.:
+  - A depends on B
+  - A is in the queue for install (but not installed now)
+  - B is installed now
+  - the user clicks on removal of B 
+  -> what should the UI say? 
+     "removal of B will result in the removal of A that will get "
+     "installed at some point in the future?"
+  -> what implications does cancel of transactions have? 
+     we need re-calculate the cache when a cancel happens
+  -> what about transactions that come from outside of 
+     software-store
 
 Missing functionality compared to g-a-i:
 - maintainance calculation
-- enable of channels (like the third party repository)
+- displaying EULA
 - enable of components (like universe)
-
-
 
 Missing but not so important:
 - searching for codecs (now done by gnome-codec-install)
 - searching for mime-types (?)
 
+- Provide terminal in transactions (?)
 
 
-Misc:
-* use trigger for /usr/share/app-install ?
+

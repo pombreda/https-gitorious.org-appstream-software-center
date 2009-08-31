@@ -1,0 +1,100 @@
+# Spanish translation for software-store
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the software-store package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: software-store\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2009-08-24 16:16+0200\n"
+"PO-Revision-Date: 2009-08-25 03:33+0000\n"
+"Last-Translator: Julián Alarcón <alarconj@gmail.com>\n"
+"Language-Team: Spanish <es@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2009-08-26 15:04+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../softwarestore/app.py:174
+msgid "Search"
+msgstr "Buscar"
+
+#: ../softwarestore/app.py:251
+#, python-format
+msgid "%s items available"
+msgstr "%s elementos disponibles"
+
+#: ../softwarestore/view/appdetailsview.py:65
+msgid "Description"
+msgstr "Descripción"
+
+#: ../softwarestore/view/appdetailsview.py:150
+#, python-format
+msgid "Price: %s"
+msgstr "Precio: %s"
+
+#: ../softwarestore/view/appdetailsview.py:150
+msgid "Free"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:160
+#, python-format
+msgid "Version: %s (%s)"
+msgstr "Versión: %s (%s)"
+
+#: ../softwarestore/view/appdetailsview.py:169
+msgid "Not available in the current data"
+msgstr "No disponible en los datos actuales"
+
+#: ../softwarestore/view/appdetailsview.py:195
+msgid "Upgrade"
+msgstr "Actualizar"
+
+#: ../softwarestore/view/appdetailsview.py:198
+msgid "Remove"
+msgstr "Eliminar"
+
+#: ../softwarestore/view/appdetailsview.py:201
+msgid "Install"
+msgstr "Instalar"
+
+#: ../softwarestore/view/appdetailsview.py:217
+msgid "Homepage"
+msgstr "Sitio web"
+
+#: ../softwarestore/view/appdetailsview.py:279
+msgid "ERROR"
+msgstr "ERROR"
+
+#: ../softwarestore/view/catview.py:109
+msgid "Categories"
+msgstr "Categorías"
+
+#. setup the normal stuff
+#: ../softwarestore/view/viewswitcher.py:90
+msgid "Get new software"
+msgstr "Adquirir nuevo software"
+
+#: ../softwarestore/view/viewswitcher.py:91
+msgid "Installed software"
+msgstr "Software instalado"
+
+#: ../softwarestore/view/viewswitcher.py:119
+#: ../softwarestore/view/viewswitcher.py:122
+#, python-format
+msgid "Pending (%i)"
+msgstr "Pendiente (%i)"
+
+#: ../data/ubuntu-software-store.desktop.in.h:1
+msgid "Install and remove software"
+msgstr "Instalar y eliminar software"
+
+#: ../data/ubuntu-software-store.desktop.in.h:2
+msgid "Software Store"
+msgstr "Tienda de Software"
+
+#: ../data/ubuntu-software-store.desktop.in.h:3
+msgid "Ubuntu Software Store"
+msgstr "Tienda de Software de Ubuntu"

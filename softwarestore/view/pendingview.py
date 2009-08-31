@@ -25,9 +25,18 @@ import apt
 import os
 import xapian
 import time
+import sys
 
 import aptdaemon.client
 from aptdaemon.enums import *
+
+try:
+    from appcenter.enums import *
+except ImportError:
+    # support running from the dir too
+    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
+    sys.path.insert(0, os.path.split(d)[0])
+    from enums import *
 
 class PendingStore(gtk.ListStore):
 
@@ -80,10 +89,11 @@ class PendingStore(gtk.ListStore):
             #    trans.connect("role", self._on_role_changed))
             appname = trans.get_data("appname")
             iconname = trans.get_data("iconname")
-            print "app: ", appname
-            print "icon: ", iconname
             if iconname:
-                icon = self.icons.load_icon(iconname, 24, 0)
+                try:
+                    icon = self.icons.load_icon(iconname, 24, 0)
+                except Exception, e:
+                    icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
             else:
                 icon = None
             self.append([tid, icon, appname, "", 0.0, ""])

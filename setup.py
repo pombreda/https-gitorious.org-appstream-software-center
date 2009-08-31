@@ -10,6 +10,7 @@ setup(name="software-store", version='0.1',
                "utils/update-software-store",
                ],
       packages = ['softwarestore',
+                  'softwarestore.apt',
                   'softwarestore.view',
                  ],
       data_files=[
@@ -18,7 +19,8 @@ setup(name="software-store", version='0.1',
                    ]),
                   ],
       cmdclass = { "build" : build_extra.build_extra,
-                   "build_i18n" :  build_i18n.build_i18n }
+                   "build_i18n" :  build_i18n.build_i18n,
+                   "build_icons" : build_icons.build_icons}
       )
 
 

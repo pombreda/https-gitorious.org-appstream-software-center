@@ -6,6 +6,7 @@
     <property name="title" translatable="yes">Ubuntu Software Store</property>
     <property name="default_width">700</property>
     <property name="default_height">400</property>
+    <signal name="delete_event" handler="on_window_main_delete_event"/>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -25,18 +26,21 @@
                       <object class="GtkImageMenuItem" id="menuitem_install">
                         <property name="label">_Install</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image3</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="on_menuitem_install_activate"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_remove">
-                        <property name="label">_Remove</property>
+                        <property name="label">gtk-remove</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="use_underline">True</property>
-                        <property name="image">image4</property>
-                        <property name="use_stock">False</property>
+                        <property name="use_stock">True</property>
+                        <signal name="activate" handler="on_menuitem_remove_activate"/>
                       </object>
                     </child>
                     <child>
@@ -87,7 +91,6 @@
                     <child>
                       <object class="GtkMenuItem" id="menuitem_search">
                         <property name="visible">True</property>
-                        <property name="accel_path">CTRL-F</property>
                         <property name="label" translatable="yes">Searc_h...</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menuitem_search_activate"/>
@@ -131,10 +134,9 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_canonical">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Canonical Maintained Applications</property>
+                        <property name="label" translatable="yes">Canonical-Maintained Applications</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
-                        <property name="group">menuitem_view_all</property>
                         <signal name="activate" handler="on_menuitem_view_canonical_activate"/>
                       </object>
                     </child>
@@ -148,7 +150,7 @@
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu3">
+                  <object class="GtkMenu" id="menu_help">
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_about">
@@ -194,13 +196,15 @@
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkHBox" id="hbox1">
+                  <object class="GtkHBox" id="hbox_breadcrumbs">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkButton" id="button_home">
+                      <object class="GtkRadioButton" id="button_home">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="active">True</property>
+                        <property name="draw_indicator">False</property>
                         <signal name="clicked" handler="on_button_home_clicked"/>
                         <child>
                           <object class="GtkImage" id="image2">
@@ -230,41 +234,13 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkHBox" id="hbox2">
+                      <object class="GtkHBox" id="hbox_search_entry">
                         <property name="visible">True</property>
                         <child>
-                          <object class="GtkButton" id="button_search_entry_clear">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                            <signal name="clicked" handler="on_button_search_entry_clear_clicked"/>
-                            <child>
-                              <object class="GtkImage" id="image1">
-                                <property name="visible">True</property>
-                                <property name="stock">gtk-clear</property>
-                                <property name="icon-size">1</property>
-                              </object>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">0</property>
-                          </packing>
+                          <placeholder/>
                         </child>
                         <child>
-                          <object class="GtkEntry" id="entry_search">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="invisible_char">&#x2022;</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">1</property>
-                          </packing>
+                          <placeholder/>
                         </child>
                       </object>
                       <packing>
@@ -410,10 +386,39 @@
   </object>
   <object class="GtkImage" id="image3">
     <property name="visible">True</property>
-    <property name="stock">gtk-missing-image</property>
+    <property name="stock">gtk-add</property>
+    <property name="icon-size">1</property>
   </object>
-  <object class="GtkImage" id="image4">
-    <property name="visible">True</property>
-    <property name="stock">gtk-missing-image</property>
+  <object class="GtkAboutDialog" id="aboutdialog">
+    <property name="border_width">5</property>
+    <property name="type_hint">normal</property>
+    <property name="has_separator">False</property>
+    <property name="program_name">Ubuntu Software Store</property>
+    <property name="copyright" translatable="yes">(c) 2009 Canonical	</property>
+    <property name="comments" translatable="yes">A application to install and remove software</property>
+    <property name="website">http://launchpad.net/software-store</property>
+    <property name="authors">Michael Vogt</property>
+    <property name="logo_icon_name">software-store</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox1">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <placeholder/>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area1">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
   </object>
 </interface>
