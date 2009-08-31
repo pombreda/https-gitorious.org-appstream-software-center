@@ -57,17 +57,21 @@ class CategoriesView(WebkitWidget):
 
     def __init__(self, datadir, desktopdir, xapiandb, icons):
         super(CategoriesView, self).__init__(datadir)
+        self.icons = icons
         self.categories = self.parse_applications_menu(desktopdir)
         self.connect("load-finished", self._on_load_finished)
 
     def on_category_clicked(self, name):
-        print "on_category_changed: ", name
+        logging.debug("on_category_changed: " % name)
+        for n in self.categories:
+            if n.name == name:
+                self.emit("category-selected", name, n.query)
 
     def _on_load_finished(self, view, frame):
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
-            iconinfo = icons.lookup_icon(cat.iconname, 
-                                         self.CATEGORY_ICON_SIZE, 0)
+            iconinfo = self.icons.lookup_icon(cat.iconname, 
+                                              self.CATEGORY_ICON_SIZE, 0)
             if iconinfo:
                 iconpath = iconinfo.get_filename()
             s = 'addCategory("%s","%s")' % (cat.name, iconpath)
