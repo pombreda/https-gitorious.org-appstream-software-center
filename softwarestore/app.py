@@ -199,8 +199,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         if not widget.get_active():
             return
         self.apps_category_query = None
-        #self.navigation_bar.remove_all()
-        self.on_button_search_entry_clear_clicked(None)
+        # HACK: ensure that no signal term-changed is send, otherwise
+        #       self.on_search_entry_changed() is called and that
+        #       moves to a new notebook page 
+        # FIXME: deal with it in a cleaner way
+        self.entry_search.clear_with_no_signal()
         self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
 
     def on_entry_search_changed(self, widget, new_text):
