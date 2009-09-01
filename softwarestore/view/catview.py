@@ -56,24 +56,37 @@ class CategoriesView(WebkitWidget):
         }
 
     def __init__(self, datadir, desktopdir, xapiandb, icons):
+        """ init the widget, takes
+        
+        datadir - the base directory of the app-store data
+        desktopdir - the dir where the applications.menu file can be found
+        xapiandb - a xapian.Database object
+        icons - a gtk.IconTheme
+        """
         super(CategoriesView, self).__init__(datadir)
         self.icons = icons
         self.categories = self.parse_applications_menu(desktopdir)
         self.connect("load-finished", self._on_load_finished)
 
     def on_category_clicked(self, name):
+        """emit the category-selected signal when a category was clicked"""
         logging.debug("on_category_changed: %s" % name)
         for n in self.categories:
             if n.name == name:
                 self.emit("category-selected", name, n.query)
 
     def _on_load_finished(self, view, frame):
+        """
+        helper for the webkit widget that injects the categories into
+        the page when it has finished loading
+        """
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
             iconinfo = self.icons.lookup_icon(cat.iconname, 
                                               self.CATEGORY_ICON_SIZE, 0)
             if iconinfo:
                 iconpath = iconinfo.get_filename()
+                logging.debug("icon: %s %s" % (iconinfo, iconpath))
             s = 'addCategory("%s","%s")' % (cat.name, iconpath)
             self.execute_script(s)
 
@@ -154,64 +167,6 @@ class CategoriesView(WebkitWidget):
 
 
 
-
-
-
-
-
-
-class CategoriesViewX(gtk.IconView):
-    """Base category view widget based on a gtk.IconView"""
-
-    __gsignals__ = {
-        "category-selected" : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE, 
-                               (str, gobject.TYPE_PYOBJECT),
-                              )
-        }
-
-
-
-    def __init__(self, datadir, appdir, xapiandb, icons):
-        # model
-        model = CategoriesModel(appdir, xapiandb, icons)
-        gtk.IconView.__init__(self, model)
-
-        # data
-        self.xapiandb = xapiandb
-        self.icons = icons
-        self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
-        # customization
-        self.set_markup_column(COL_CAT_MARKUP)
-        self.set_pixbuf_column(COL_CAT_PIXBUF)
-        # signals
-        self.connect("motion-notify-event", self.on_motion_notify_event)
-        self.connect("button-press-event", self.on_button_press_event)
-        self.connect("item-activated", self.on_item_activated)
-    def on_item_activated(self, widget, path):
-        model = widget.get_model()
-        name = model[path][COL_CAT_NAME]
-        query = model[path][COL_CAT_QUERY]
-        #print "selected: ", name, query
-        self.emit("category-selected", name, query)
-    def on_motion_notify_event(self, widget, event):
-        #print "on_motion_notify_event: ", event
-        path = self.get_path_at_pos(int(event.x), int(event.y))
-        if path is None:
-            self.window.set_cursor(None)
-        else:
-            self.window.set_cursor(self.cursor_hand)
-    def on_button_press_event(self, widget, event):
-        #print "on_button_press_event: ", event
-        path = self.get_path_at_pos(int(event.x), int(event.y))
-        if event.button != 1 or path is None:
-            return
-        #self.emit("item-activated", path)
-        model = self.get_model()
-        name = model[path][COL_CAT_NAME]
-        query = model[path][COL_CAT_QUERY]
-        #print "selected: ", name, query
-        self.emit("category-selected", name, query)
 
 # test code
 def category_activated(iconview, name, query, xapiandb):
