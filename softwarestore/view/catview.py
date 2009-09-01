@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gettext
+import glib
 import gobject
 import gtk
 import logging
@@ -35,6 +36,9 @@ from ConfigParser import ConfigParser
  COL_CAT_QUERY,
  COL_CAT_MARKUP) = range(4)
 
+def encode_for_xml(unicode_data, encoding="ascii"):
+    return unicode_data.encode(encoding, 'xmlcharrefreplace')
+
 class Category(object):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query):
@@ -46,7 +50,9 @@ class Category(object):
 
 class CategoriesView(WebkitWidget):
 
-    CATEGORY_ICON_SIZE = 48
+    # 24px for now because the human icon theme has some of
+    # the icons *only* in 24px resolution
+    CATEGORY_ICON_SIZE = 24
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -87,7 +93,9 @@ class CategoriesView(WebkitWidget):
             if iconinfo:
                 iconpath = iconinfo.get_filename()
                 logging.debug("icon: %s %s" % (iconinfo, iconpath))
+            # FIXME: this looks funny with german locales
             s = 'addCategory("%s","%s")' % (cat.name, iconpath)
+            logging.debug("running script '%s'" % s)
             self.execute_script(s)
 
     def _cat_sort_cmp(self, a, b):
