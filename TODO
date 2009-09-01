@@ -2,7 +2,8 @@
 Webkit:
 - xpm images can not be loaded
 - the human icons for the categories are only 24x24
-- no keyboard nagvigation in the widgets
+- only simple keyboard nagvigation in the widgets (tab, no
+  cursor keys)
 
 
 

@@ -41,11 +41,18 @@ class WebkitWidget(webkit.WebView):
     - "call:func_name:arg1,args2"
     """
     def __init__(self, datadir, substitute=None):
+        # init webkit
         webkit.WebView.__init__(self)
+        # kill right click menu (the hard way) by stopping event
+        # propergation on right-click
+        self.connect("button-press-event", lambda w, e: e.button == 3)
+        # setup vard
         self.datadir = datadir
         self._template = ""
         self._html = ""
+        # callbacks
         self.connect('title-changed', self._on_title_changed)
+        # load page
         self._load()
         if not substitute:
             substitute = {}
