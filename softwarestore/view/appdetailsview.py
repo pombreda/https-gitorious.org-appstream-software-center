@@ -149,9 +149,11 @@ class AppDetailsView(WebkitWidget):
             elif pkg.installed:
                 action_button_label = _("Remove")
                 action_button_value = "remove"
+                self.installed = ""
             else:
                 action_button_label = _("Install")
                 action_button_value = "install"
+                self.installed = "visibility:hidden"
 
         subs = { 'appname' : self.appname,
                  'pkgname' : self.pkgname,
@@ -162,7 +164,8 @@ class AppDetailsView(WebkitWidget):
                  'height' : self.APP_ICON_SIZE,
                  'action_button_label' : action_button_label,
                  'action_button_value' : action_button_value,
-                 'datadir' : self.datadir
+                 'datadir' : self.datadir,
+                 'installed' : self.installed
                }
         
         self._load()
