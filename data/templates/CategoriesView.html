@@ -19,13 +19,16 @@
     oT = document.getElementsByTagName("table")[0];
     newTr = document.getElementsByTagName("tr")[0];
     newTd = document.createElement("td");
+    newTd.setAttribute("tabindex", 0)
     newTd.className = "category_td";
     newImg = document.createElement("img");
     newImg.src = img;
     newText = document.createElement("p");
     newText.align = "center";
-    cb_name = 'changeTitle("call:on_category_clicked:' + name + '");';
-    newTd.setAttribute('onclick', cb_name);
+    click_cb = 'changeTitle("call:on_category_clicked:' + name + '");';
+    newTd.setAttribute('onclick', click_cb);
+    key_cb = 'if (event.which == 13) { changeTitle("call:on_category_clicked:' + name + '"); };'
+    newTd.setAttribute('onkeydown', key_cb);
     newText.appendChild(document.createTextNode(wordToUpper(name)))
     newTd.appendChild(newImg);
     newTd.appendChild(newText);
