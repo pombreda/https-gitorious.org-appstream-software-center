@@ -4,36 +4,49 @@
 <head>
  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
  <title></title>
-
  <script type="text/javascript">
   function changeTitle(title) { 
     document.title = title; 
   }
+  function wordToUpper(strSentence) {
+    return strSentence.toLowerCase().replace(/\b[a-z]/g, convertToUpper);
+
+    function convertToUpper() {
+        return arguments[0].toUpperCase();
+    }
+  }
   function addCategory(name, img) {
-    oT = document.getElementsByTagName("body")[0];
+    oT = document.getElementsByTagName("table")[0];
+    newTr = document.getElementsByTagName("tr")[0];
+    newTd = document.createElement("td");
+    newTd.className = "category_td";
     newImg = document.createElement("img");
-    newImg.id = name;
     newImg.src = img;
-    var s = 'changeTitle("call:on_category_clicked:' + name + '")';
-    newImg.setAttribute('onclick', s);
-    oT.appendChild(newImg);
+    newText = document.createElement("p");
+    newText.align = "center";
+    var s = 'changeTitle("call:on_category_clicked:' + name + '");';
+    newTd.setAttribute('onclick', s);
+    newText.appendChild(document.createTextNode(wordToUpper(name)))
+    newTd.appendChild(newImg);
+    newTd.appendChild(newText);
+    newTr.appendChild(newTd);
+    oT.appendChild(newTr);
   }
  </script>
-
  <style type="text/css">
- #appname {font-size:120%;}
- #description {font-size:80%}
- #icon {float:left; width:64px; height:64px; padding:10px}
- #screenshot_thumbnail_loading {float:right; padding:10px; width:160px; height:120px; background:#fff url('$iconpath/img/loading.gif') 50% 50% no-repeat;}
- #screenshot_thumbnail {visibility:hidden}
- #text {float:right; width:80%}
+ body { background-color:#b6bdc4; font-size:100%; padding:2px 10px; color:#000 }
+ #header {font-size:100%; padding:10px; background-color:#7D91AA; border:2px solid #3F4B5A}
+ .category_td { float:left; padding:2px; width:90px; height:90px; margin:8px}
+ .category_td:hover { cursor: pointer; }
+ .category_td img { margin-left:21px }
+ .category_td p { font-size:70% }
  </style>
-
  </head>
 
 <body>
-  <h1>Categories</h1>
-
+  <p id="header">Departments</p>
+  <table>
+    <tr></tr>
+  </table>
 </body>
-
 </html>
