@@ -21,14 +21,12 @@
 import gobject
 import logging
 import os
-
-from softwarestore.app import SoftwareStoreApp
 from optparse import OptionParser
 
 
 if __name__ == "__main__":
 
-    parser = OptionParser("usage: %prog [options] package")
+    parser = OptionParser("usage: %prog [options] package", version="%prog 0.13")
     parser.add_option("--debug", dest="debug", action="store_true",
                       help="enable debug mode", default=False)
     (options, args) = parser.parse_args()
@@ -48,7 +46,9 @@ if __name__ == "__main__":
         datadir = "./data"
     else:
         datadir = "/usr/share/software-store/"
-
+    
+    from softwarestore.app import SoftwareStoreApp
+    
     app = SoftwareStoreApp(datadir)
     app.run()
 

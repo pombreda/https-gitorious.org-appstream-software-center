@@ -5,6 +5,7 @@ share:=usr/share/software-store
 
 # Install the modules in a private directory, as our applications are the
 # only ones using them.
+dh_installman
 override_dh_auto_install:
 	dh_auto_install -- --install-lib /usr/share/software-store
 	rm -r debian/software-store/usr/share/software-store/*.egg-info
