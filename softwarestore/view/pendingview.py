@@ -55,6 +55,8 @@ class PendingStore(gtk.ListStore):
     def __init__(self, icons):
         # icon, status, progress
         gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, str, str, float, str)
+        # data
+        self.icons = icons
         # the apt-daemon stuff
         self.apt_client = aptdaemon.client.AptClient()
         self.apt_daemon = aptdaemon.client.get_aptdaemon()
@@ -62,7 +64,10 @@ class PendingStore(gtk.ListStore):
                                           self.on_transactions_changed)
         # FIXME: reconnect if the daemon exists
         self._signals = []
-        self.icons = icons
+        # do a initial check
+        current, queued = self.apt_daemon.GetActiveTransactions()
+        self.on_transactions_changed(current, queued)
+
 
     def clear(self):
         super(PendingStore, self).clear()
@@ -95,7 +100,7 @@ class PendingStore(gtk.ListStore):
                 except Exception, e:
                     icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
             else:
-                icon = None
+                icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
             self.append([tid, icon, appname, "", 0.0, ""])
             del trans
 
@@ -124,7 +129,9 @@ class PendingStore(gtk.ListStore):
         #print "_on_progress_changed: ", trans, status
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                row[self.COL_STATUS] = get_status_string_from_enum(status)
+                # FIXME: the spaces around %s are poor mans padding because
+                #        setting xpad on the cell-renderer seems to not work
+                row[self.COL_STATUS] = "  %s  " % get_status_string_from_enum(status)
 
 
 class PendingView(gtk.TreeView):
@@ -140,8 +147,8 @@ class PendingView(gtk.TreeView):
         self.icons = icons
         tp = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=PendingStore.COL_ICON)
-        column.set_fixed_width(32)
-        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        #column.set_fixed_width(32)
+        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         # name
         tr = gtk.CellRendererText()
@@ -152,8 +159,6 @@ class PendingView(gtk.TreeView):
         column = gtk.TreeViewColumn("Progress", tp, 
                                     value=PendingStore.COL_PROGRESS,
                                     text=PendingStore.COL_STATUS)
-        column.set_fixed_width(200)
-        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         # cancel icon
         tp = gtk.CellRendererPixbuf()

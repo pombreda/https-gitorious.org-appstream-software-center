@@ -111,6 +111,8 @@ class ViewSwitcherList(gtk.ListStore):
         #print "_register_active_transactions_watch", connection
         self.aptd = aptdaemon.client.get_aptdaemon()
         self.aptd.connect_to_signal("ActiveTransactionsChanged", self.check_pending)
+        current, queued = self.aptd.GetActiveTransactions()
+        self.check_pending(current, queued)
 
     def check_pending(self, current, queue):
         #print "check_pending"
