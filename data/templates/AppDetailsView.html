@@ -38,16 +38,18 @@
  <style type="text/css">
  #appname {font-size:120%;}
  #description {font-size:80%}
- #icon {float:left; width:64px; height:64px; padding:10px}
+ #icon {width:64px; height:64px; padding:10px; z-index:4; background: url('file:$iconpath') no-repeat; position:absolute}
  #screenshot_thumbnail_loading {float:right; padding:10px; width:160px; height:120px; background:#fff url('$iconpath/img/loading.gif') 50% 50% no-repeat;}
  #screenshot_thumbnail {visibility:hidden}
  #text {float:right; width:80%}
+ #installed_overlay { z-index:999; width:24px; height:24px; background:url('file:${datadir}/icons/24x24/emblems/softwarestore_installed.png'); position:absolute; left:55px; top:55px; visibility:${installed} }
  </style>
 
  </head>
 
 <body>
- <img id="icon" src="file:$iconpath" alt="Application Icon" width="$width" height="$height"/>
+ <div id="icon" src=""></div>
+ <div id="installed_overlay"></div>
  <div id="text">
  <p id="appname">$appname</p>
  <div id='screenshot_thumbnail_loading'>
