@@ -71,6 +71,10 @@ class WebkitWidget(webkit.WebView):
     def _on_title_changed(self, view, frame, title):
         logging.debug("%s: title_changed %s %s %s" % (self.__class__.__name__,
                                                       view, frame, title))
+        # no op - needed to reset the title after a action so that
+        #         the action can be triggered again
+        if title.startswith("nop"):
+            return
         # call directive looks like:
         #  "call:func:arg1,arg2"
         #  "call:func"
@@ -89,6 +93,8 @@ class WebkitWidget(webkit.WebView):
             f = getattr(self, funcname)
             if f and callable(f):
                 f(*args_list)
+            # now we need to reset the title
+            self.execute_script('document.title = "nop"')
 
 class WKTestWidget(WebkitWidget):
 
