@@ -4,9 +4,8 @@ Webkit:
 - the human icons for the categories are only 24x24
 - only simple keyboard nagvigation in the widgets (tab, no
   cursor keys)
-- problems with adding e.g. german umlauts (running 
-  software-store with LANGUAGE=de)
-- alignment not corret in the category view (text not under icon)
+- equal size for all category items in html not trivial
+  apparently?
 
 
 UI:
