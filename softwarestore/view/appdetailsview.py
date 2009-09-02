@@ -149,6 +149,10 @@ class AppDetailsView(WebkitWidget):
         description = description.replace("\n-","</p><p>-")
         description = description.replace("\n\n","</p><p>")
         return description
+    def wksub_iconpath_loading(self):
+        # FIXME: looks ugly right now, gives a black rectangle on fade-in
+        #return self.datadir+"/status/loading.gif"
+        return ""
     def wksub_iconpath(self):
         iconinfo = self.icons.lookup_icon(self.iconname, self.APP_ICON_SIZE, 0)
         if iconinfo:
