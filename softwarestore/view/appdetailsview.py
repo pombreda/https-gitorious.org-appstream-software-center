@@ -72,11 +72,6 @@ class AppDetailsView(WebkitWidget):
         self.icons = icons
         self.cache = cache
         self.datadir = datadir
-        # customize
-        #settings = self.get_settings()
-        #settings.set_property("auto-load-images", True)
-        # signals
-        self.connect('title-changed', self.on_title_changed)
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
@@ -91,21 +86,15 @@ class AppDetailsView(WebkitWidget):
         self.MISSING_ICON_PATH = iconinfo.get_filename()
         
     
-    def on_title_changed(self, view, frame, title):
-        print "title_changed", view, frame, title
-        if title.startswith("run:"):
-            funcname = title.split(":")[1]
-            f = getattr(self, funcname)
-            if f:
-                f()
-
-
     def show_app(self, appname):
         logging.debug("AppDetailsView.show_app '%s'" % appname)
 
         # app specific data
         self.appname = appname
         self.installed_rdeps = set()
+        self.homepage_url = None
+        self.installed = "hidden"
+        self.channelfile = None
 
         # get xapian document
         doc = None
@@ -154,7 +143,17 @@ class AppDetailsView(WebkitWidget):
                 action_button_label = _("Install")
                 action_button_value = "install"
                 self.installed = "hidden"
+        else:
+            channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            if channel:
+                path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+                if os.path.exists(path):
+                    self.channelfile = path
+                    # FIXME: deal with the EULA stuff
+                    action_button_label = _("Enable channel")
+                    action_button_value = "enable_channel"
 
+        # subs dict
         subs = { 'appname' : self.appname,
                  'pkgname' : self.pkgname,
                  'iconname' : self.iconname,
@@ -164,166 +163,48 @@ class AppDetailsView(WebkitWidget):
                  'height' : self.APP_ICON_SIZE,
                  'action_button_label' : action_button_label,
                  'action_button_value' : action_button_value,
+                 'homepage_button_visibility' : self.get_homepage_button_visibility(),
                  'datadir' : os.path.abspath(self.datadir),
-                 'installed' : self.installed
+                 'installed' : self.installed,
+                 'price' : _("Price: %s") % _("Free"),
+                 'package_information' : self.get_pkg_information(pkg),
+                 'maintainance_time' : self.get_maintainance_time(pkg),
+                 'action_button_description' : self.get_action_button_description(pkg),
                }
         
         self._load()
         self._substitute(subs)
         self._render()
         self.emit("selected", appname, pkg)
-        return
 
-        # ------------------------------------------------- DEAD code
-        # data
-            
-        # fill the buffer
-        self.clean()
-        self.add_main_icon(self.iconname)
-        self.add_main_description(appname, pkg)
-        self.add_empty_lines(2)
-        self.add_price(appname, pkg)
-        self.add_enable_channel_button(doc, pkg)
-        self.add_pkg_action_button_description(appname, pkg)
-        self.add_pkg_action_button(appname, pkg, self.iconname)
-        self.add_homepage_button(pkg)
-        self.add_pkg_information(pkg)
-        self.add_maintainance_end_dates(pkg)
-        self.add_empty_lines(2)
-        # emit select signal
-        self.emit("selected", appname, pkg)
+    def get_homepage_button_visibility(self):
+        if self.homepage_url:
+            return "visible"
+        return "hidden"
 
-    # helper to fill the buffer with the pkg information
-    def clean(self):
-        """clean the buffer"""
-        buffer = self.get_buffer()
-        buffer.delete(buffer.get_start_iter(),
-                      buffer.get_end_iter())
-
-    def add_empty_lines(self, count=1):
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
-        for i in range(count):
-            buffer.insert(iter, "\n")
-
-    def add_main_icon(self, iconname):
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
-        if iconname:
-            try:
-                pixbuf = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
-            except gobject.GError, e:
-                pixbuf = self.icons.load_icon(MISSING_APP_ICON, 
-                                              self.APP_ICON_SIZE, 0)
-        else:
-            pixbuf = self.icons.load_icon(MISSING_APP_ICON,
-                                          self.APP_ICON_SIZE, 0)
-        # insert description 
-        if (pixbuf.get_width() == self.APP_ICON_SIZE and
-            pixbuf.get_height() == self.APP_ICON_SIZE):
-            frame = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
-                                   self.APP_ICON_SIZE+2*self.APP_ICON_PADDING, 
-                                   self.APP_ICON_SIZE+2*self.APP_ICON_PADDING)
-            frame.fill(0)
-            pixbuf.copy_area(0, 0, self.APP_ICON_SIZE, self.APP_ICON_SIZE,
-                             frame, self.APP_ICON_PADDING, 
-                             self.APP_ICON_PADDING)
-        else:
-            frame = pixbuf
-        buffer.insert_pixbuf(iter, frame)
-
-    def add_price(self, appname, pkg):
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
-        s = _("Price: %s") % _("Free")
-        s += "\n\n"
-        buffer.insert_with_tags_by_name(iter, s, "align-to-icon", "small")
-
-    def add_pkg_information(self, pkg):
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
+    def get_pkg_information(self, pkg):
         if not pkg or not pkg.candidate:
-            return
+            return ""
         version = pkg.candidate.version
         if version:
-            buffer.insert(iter, "\n\n")
             s = _("Version: %s (%s)") % (version, pkg.name)
-            buffer.insert_with_tags_by_name(iter, s, "align-to-icon", "small")
+            return s
+        return ""
 
-    def add_main_description(self, appname, pkg):
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
-        if pkg and pkg.candidate:
-            details = pkg.candidate.description
-        else:
-            details = _("Not available in the current data")
-
-        heading = "%s" % appname
-        text = "\n\n%s" % details
-        buffer.insert_with_tags_by_name(iter, heading, "heading")
-        buffer.insert_with_tags_by_name(iter, text, "align-to-icon")
-        
-
-    def add_enable_channel_button(self, doc, pkg):
-        """add enable-channel button (if needed)"""
-        # we have the pkg already
-        if pkg and pkg.candidate and pkg.candidate.downloadable:
-            return
-        channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-        if not channel:
-            return
-        path = APP_INSTALL_CHANNELS_PATH+channel+".list"
-        if not os.path.exists(path):
-            return
-        # FIXME: deal with the EULA stuff
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
-        button = self._insert_button(iter, ["align-to-icon"])
-        button.set_label(_("Enable channel"))
-        button.connect("clicked", self.on_enable_channel_clicked, path)
-
-    def on_enable_channel_clicked(self, widget, channelfile):
-        #print "on_enable_channel_clicked"
-        # FIXME: move this to utilities or something
-        import aptsources.sourceslist
-
-        # read channel file and add all relevant lines
-        for line in open(channelfile):
-            line = line.strip()
-            if not line:
-                continue
-            entry = aptsources.sourceslist.SourceEntry(line)
-            if entry.invalid:
-                continue
-            sourcepart = os.path.basename(channelfile)
-            try:
-                self.aptd_client.add_repository(
-                    entry.type, entry.uri, entry.dist, entry.comps, 
-                    "Added by software-store", sourcepart)
-            except dbus.exceptions.DBusException, e:
-                if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                    return
-        # now set the button to insensitive and wait
-        widget.set_sensitive(False)
-        trans = self.aptd_client.update_cache(
-            exit_handler=self._on_trans_finished)
-        self._run_transaction(trans)
-
-    def add_maintainance_end_dates(self, pkg):
+    def get_maintainance_time(self, pkg):
         """add the end of the maintainance time"""
         # FIXME: add code
-        return
+        return ""
 
-    def add_pkg_action_button_description(self, appname, pkg):
+    def get_action_button_description(self, pkg):
         """Add message specific to this package (e.g. how many dependenies"""
+        s = ""
         if not pkg:
-            return 
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
+            return s
         # its installed, tell about rdepends
         if pkg.installed:
             # generic message
-            s = _("%s is installed on this computer.") % appname
+            s = _("%s is installed on this computer.") % self.appname
             # show how many packages on the system depend on this
             self.installed_rdeps = set()
             for rdep in pkg._pkg.RevDependsList:
@@ -338,87 +219,46 @@ class AppDetailsView(WebkitWidget):
                     "It is used by %s piece of installed software.",
                     "It is used by %s pieces of installed software.",
                     len(self.installed_rdeps)) % len(self.installed_rdeps)
-            buffer.insert_with_tags_by_name(iter,s, "align-to-icon")
-            buffer.insert(iter, "\n\n")
-
-    def add_pkg_action_button(self, appname, pkg, iconname):
-        """add pkg action button (install/remove/upgrade)"""
-        if not pkg:
-            return 
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
-        button = self._insert_button(iter, ["align-to-icon"])
-        if pkg.installed and pkg.isUpgradable:
-            button.set_label(_("Upgrade"))
-            button.connect("clicked", self.on_button_upgrade_clicked)
-        elif pkg.installed:
-            button.set_label(_("Remove"))
-            button.connect("clicked", self.on_button_remove_clicked)
-        else:
-            button.set_label(_("Install"))
-            button.connect("clicked", self.on_button_install_clicked)
-    
-    def add_homepage_button(self, pkg):
-        """add homepage button to the current buffer"""
-        if not pkg:
-            return
-        buffer = self.get_buffer()
-        iter = buffer.get_end_iter()
-        if not pkg.candidate:
-            return
-        url = pkg.candidate.homepage
-        if not url:
-            return
-        # FIXME: right-align
-        buffer.insert(iter, 4*" ")
-        #button = self._insert_button(iter, ["align-right"])
-        button = self._insert_button(iter)
-        button.set_label(_("Homepage"))
-        button.set_tooltip_text(url)
-        button.connect("clicked", self.on_button_homepage_clicked, url)
-
-    def _insert_button(self, iter, tag_names=None):
-        """
-        insert a gtk.Button into at iter with a (optinal) list of tag names
-        """
-        buffer = self.get_buffer()
-        anchor = buffer.create_child_anchor(iter)
-        # align-to-icon needs (start,end) and we can not just copy
-        # the iter before create_child_anchor (it invalidates it)
-        start = iter.copy()
-        start.backward_char()
-        if tag_names:
-            for tag in tag_names:
-                buffer.apply_tag_by_name(tag, start, iter)
-        button = gtk.Button("")
-        button.show()
-        self.add_child_at_anchor(button, anchor)
-        return button
+        return s
 
     # callbacks
+    def on_button_enable_channel_clicked(self):
+        #print "on_enable_channel_clicked"
+        # FIXME: move this to utilities or something
+        import aptsources.sourceslist
+
+        # read channel file and add all relevant lines
+        for line in open(self.channelfile):
+            line = line.strip()
+            if not line:
+                continue
+            entry = aptsources.sourceslist.SourceEntry(line)
+            if entry.invalid:
+                continue
+            sourcepart = os.path.basename(self.channelfile)
+            try:
+                self.aptd_client.add_repository(
+                    entry.type, entry.uri, entry.dist, entry.comps, 
+                    "Added by software-store", sourcepart)
+            except dbus.exceptions.DBusException, e:
+                if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                    return
+        # FIXME: make the button in-sensitve (maybe directly in the html/JS?)
+        #widget.set_sensitive(False)
+        trans = self.aptd_client.update_cache(
+            exit_handler=self._on_trans_finished)
+        self._run_transaction(trans)
+
     def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()
         subprocess.call([cmd, self.homepage_url])
 
-    def _run_transaction(self, trans):
-        trans.set_data("appname", self.appname)
-        trans.set_data("iconname", self.iconname)
-        trans.set_data("pkgname", self.pkgname)
-        try:
-            trans.run()
-        except dbus.exceptions.DBusException, e:
-            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                pass
-            else:
-                raise
-
-    def on_button_upgrade_clicked(self, button):
-        #print "on_button_upgrade_clicked", pkgname
+    def on_button_upgrade_clicked(self):
         trans = self.aptd_client.commit_packages([], [], [], [], [self.pkgname], 
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
-    def remove(self):
+    def on_button_remove_clicked(self):
         # generic removal text
         primary=_("%s depends on other software on the system. ") % self.appname
         secondary = _("Uninstalling it means that the following "
@@ -443,16 +283,10 @@ class AppDetailsView(WebkitWidget):
                                          exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
-    def on_button_remove_clicked(self, button):
-        self.remove()
-
-    def install(self):
+    def on_button_install_clicked(self):
         trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
-
-    def on_button_install_clicked(self, button):
-        self.install()
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
@@ -471,6 +305,18 @@ class AppDetailsView(WebkitWidget):
         self.show_app(self.appname)
 
     # internal helpers
+    def _run_transaction(self, trans):
+        trans.set_data("appname", self.appname)
+        trans.set_data("iconname", self.iconname)
+        trans.set_data("pkgname", self.pkgname)
+        try:
+            trans.run()
+        except dbus.exceptions.DBusException, e:
+            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                pass
+            else:
+                raise
+
     def _url_launch_app(self):
         """return the most suitable program for opening a url"""
         if "GNOME_DESKTOP_SESSION_ID" in os.environ:

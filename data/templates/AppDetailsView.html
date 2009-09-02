@@ -43,6 +43,11 @@
  #screenshot_thumbnail {visibility:hidden}
  #text {float:right; width:80%}
  #installed_overlay { z-index:999; width:24px; height:24px; background:url('file:${datadir}/icons/24x24/emblems/softwarestore_installed.png'); position:absolute; left:55px; top:55px; visibility:${installed} }
+ #package_information { font-size:70%; }
+ #maintainance_time { font-size:70%; }
+ #price { font-size:70%; }
+ #button_homepage { visibility:${homepage_button_visibility}; }
+ #action_button_description { font-size:70%; }
  </style>
 
  </head>
@@ -51,20 +56,25 @@
  <div id="icon" src=""></div>
  <div id="installed_overlay"></div>
  <div id="text">
- <p id="appname">$appname</p>
- <div id='screenshot_thumbnail_loading'>
- <img id="screenshot_thumbnail" src="http://screenshots.debian.net/thumbnail/$pkgname" alt="Application Screenshot"/>
+   <p id="appname">$appname</p>
+   <div id='screenshot_thumbnail_loading'>
+     <img id="screenshot_thumbnail" src="http://screenshots.debian.net/thumbnail/$pkgname" alt="Application Screenshot"/>
+   </div>
+   <div id="description">$description</div>
+   <p id="price">$price</p>
+   <p id="action_button_description">$action_button_description</p>
+   <input type="button" id="button_$action_button_value" 
+          value="$action_button_label"
+	  onclick='changeTitle("call:on_button_${action_button_value}_clicked")'
+	  />
+   
+   <input type="button" id="button_homepage" value="Homepage"
+	  onclick='changeTitle("call:on_button_homepage_clicked")'
+	  />
+   <p id="package_information">$package_information</p>
+   <p id="maintainance_time">$maintainance_time</p>
  </div>
- <div id="description">$description</p>
 
- <input type="button" name="button_$action_button_value" 
-        value="$action_button_label"
-      onclick='changeTitle("call:${action_button_value}")'
- />
 
- <input type="button" name="button_homepage" value="Homepage"
-      onclick='changeTitle("call:on_button_homepage_clicked")'
- />
- </div>
 </body>
 </html>
