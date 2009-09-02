@@ -8,29 +8,24 @@
   function changeTitle(title) { 
     document.title = title; 
   }
-  function wordToUpper(strSentence) {
-    return strSentence.toLowerCase().replace(/\b[a-z]/g, convertToUpper);
-
-    function convertToUpper() {
-        return arguments[0].toUpperCase();
-    }
-  }
   function addCategory(name, img) {
     oT = document.getElementsByTagName("table")[0];
     newTr = document.getElementsByTagName("tr")[0];
     newTd = document.createElement("td");
     newTd.setAttribute("tabindex", 0)
     newTd.className = "category_td";
+    newTextAroundImg = document.createElement("p");
     newImg = document.createElement("img");
     newImg.src = img;
+    newTextAroundImg.appendChild(newImg)
     newText = document.createElement("p");
     newText.align = "center";
     click_cb = 'changeTitle("call:on_category_clicked:' + name + '");';
     newTd.setAttribute('onclick', click_cb);
     key_cb = 'if (event.which == 13) { changeTitle("call:on_category_clicked:' + name + '"); };'
     newTd.setAttribute('onkeydown', key_cb);
-    newText.appendChild(document.createTextNode(wordToUpper(name)))
-    newTd.appendChild(newImg);
+    newText.appendChild(document.createTextNode(name))
+    newTd.appendChild(newTextAroundImg);
     newTd.appendChild(newText);
     newTr.appendChild(newTd);
     oT.appendChild(newTr);
@@ -39,10 +34,11 @@
  <style type="text/css">
  body { background-color:#b6bdc4; font-size:100%; padding:2px 10px; color:#000 }
  #header {font-size:100%; padding:10px; background-color:#7D91AA; border:2px solid #3F4B5A}
- .category_td { float:left; padding:2px; margin:8px}
+ /* debug border */
+ /*.category_td {border-width:1px;border-style:solid;}*/
+ .category_td {float:left; padding:8px; margin:8px; }
  .category_td:hover { cursor: pointer; }
- .category_td img { margin-left:21px }
- .category_td p { font-size:70% }
+ .category_td p { font-size:90%; text-align:center; }
  </style>
  </head>
 
