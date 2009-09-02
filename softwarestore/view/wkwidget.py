@@ -34,12 +34,21 @@ class WebkitWidget(webkit.WebView):
     no i18n supported. So all user visible strings should
     be set via templates.
 
+    When a function is prefixed with "wksub_" it will be
+    called on load of the page and the template in the
+    html page will be replaced by the value that is returned
+    by the function. E.g. the html has "... <p>$description</p>"
+    then that will get replaced by the call to 
+    "def wksub_description(self)".
+
     It support calls to functions via javascript title change
     methods. The title should look like any of those:
     - "call:func_name"
     - "call:func_name:argument"
     - "call:func_name:arg1,args2"
     """
+    SUBSTITUTE_FUNCTION_PREFIX = "wksub_"
+
     def __init__(self, datadir, substitute=None):
         # init webkit
         webkit.WebView.__init__(self)
@@ -52,14 +61,16 @@ class WebkitWidget(webkit.WebView):
         self._html = ""
         # callbacks
         self.connect('title-changed', self._on_title_changed)
-        # load page
+        self.connect("show", self._show)
+        
+    # internal helpers
+    def _show(self, widget):
+        """Load and render when show is called"""
+        logging.debug("%s.show() called" % self.__class__.__name__)
         self._load()
-        if not substitute:
-            substitute = {}
-        self._substitute(substitute)
+        self._substitute()
         self._render()
 
-    # internal helpers
     def _load(self):
         class_name = self.__class__.__name__        
         self._html_path = self.datadir+"/templates/%s.html" % class_name
@@ -71,7 +82,18 @@ class WebkitWidget(webkit.WebView):
         # FIXME: use self._html_path here as base_uri ?
         self.load_html_string(self._html, "file:/") 
 
-    def _substitute(self, subs):
+    def _substitute(self, subs=None):
+        """
+        substituate template strings in the html text. If a dict is passed
+        to the argument "subs" that will be used for the substitution.
+        Otherwise it will call all functions that are prefixed with 
+        "wksub_" and use those values for the substitution
+        """
+        if subs is None:
+            subs = {}
+            for (k, v) in self.__class__.__dict__.iteritems():
+                if callable(v) and k.startswith(self.SUBSTITUTE_FUNCTION_PREFIX):
+                    subs[k[len(self.SUBSTITUTE_FUNCTION_PREFIX):]] = v(self)
         self._html = string.Template(self._template).safe_substitute(subs)
 
     # internal callbacks

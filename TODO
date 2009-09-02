@@ -6,6 +6,8 @@ Webkit:
   cursor keys)
 - equal size for all category items in html not trivial
   apparently?
+- make the description -> html processing better, use
+  code from g-a-i for this
 
 
 UI:

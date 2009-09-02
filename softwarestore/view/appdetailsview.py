@@ -85,123 +85,100 @@ class AppDetailsView(WebkitWidget):
                                           self.APP_ICON_SIZE, 0)
         self.MISSING_ICON_PATH = iconinfo.get_filename()
         
-    
+    def _show(self, widget):
+        if not self.appname:
+            return
+        super(AppDetailsView, self)._show(widget)
+
+    # public API
     def show_app(self, appname):
         logging.debug("AppDetailsView.show_app '%s'" % appname)
 
-        # app specific data
+        # init app specific data
         self.appname = appname
         self.installed_rdeps = set()
         self.homepage_url = None
-        self.installed = "hidden"
         self.channelfile = None
+        self.doc = None
 
         # get xapian document
-        doc = None
         for m in self.xapiandb.postlist("AA"+appname):
-            doc = self.xapiandb.get_document(m.docid)
+            self.doc = self.xapiandb.get_document(m.docid)
             break
-        if not doc:
+        if not self.doc:
             raise IndexError, "No app '%s' in database" % appname
-        # icon
-        self.iconname = doc.get_value(XAPIAN_VALUE_ICON)
-        # get apt cache data
-        self.pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-        pkg = None
-        if self.cache.has_key(self.pkgname):
-            pkg = self.cache[self.pkgname]
 
-        # description
-        if pkg:
-            details = pkg.candidate.description
+        # get icon
+        self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)
+
+        # get apt cache data
+        self.pkgname = self.doc.get_value(XAPIAN_VALUE_PKGNAME)
+        self.pkg = None
+        if self.cache.has_key(self.pkgname):
+            self.pkg = self.cache[self.pkgname]
+        if self.pkg:
+            self.homepage_url = self.pkg.candidate.homepage
+
+        # show (and let the wksub_ magic do the right substitutions)
+        self._show(self)
+        self.emit("selected", self.appname, self.pkg)
+
+    # substitute functions called during page display
+    def wksub_appname(self):
+        return self.appname
+    def wksub_pkgname(self):
+        return self.pkgname
+    def wksub_iconname(self):
+        return self.iconname
+    def wksub_description(self):
+        if self.pkg:
+            details = self.pkg.candidate.description
         else:
             details = _("Not available in the current data")
         description = details.replace("*","</p><p>*")
         description = description.replace("\n-","</p><p>-")
         description = description.replace("\n\n","</p><p>")
-
-        # icon
+        return description
+    def wksub_iconpath(self):
         iconinfo = self.icons.lookup_icon(self.iconname, self.APP_ICON_SIZE, 0)
         if iconinfo:
             iconpath = iconinfo.get_filename()
         else:
             iconpath = self.MISSING_ICON_PATH
-
-        if pkg:
-            self.homepage_url = pkg.candidate.homepage
-
-        # button data
-        if pkg:
-            if pkg.installed and pkg.isUpgradable:
-                action_button_label = _("Upgrade")
-                action_button_value = "upgrade"
-            elif pkg.installed:
-                action_button_label = _("Remove")
-                action_button_value = "remove"
-                self.installed = "visible"
-            else:
-                action_button_label = _("Install")
-                action_button_value = "install"
-                self.installed = "hidden"
-        else:
-            channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                if os.path.exists(path):
-                    self.channelfile = path
-                    # FIXME: deal with the EULA stuff
-                    action_button_label = _("Enable channel")
-                    action_button_value = "enable_channel"
-
-        # subs dict
-        subs = { 'appname' : self.appname,
-                 'pkgname' : self.pkgname,
-                 'iconname' : self.iconname,
-                 'description' : description,
-                 'iconpath' : iconpath,
-                 'width' : self.APP_ICON_SIZE,
-                 'height' : self.APP_ICON_SIZE,
-                 'action_button_label' : action_button_label,
-                 'action_button_value' : action_button_value,
-                 'homepage_button_visibility' : self.get_homepage_button_visibility(),
-                 'datadir' : os.path.abspath(self.datadir),
-                 'installed' : self.installed,
-                 'price' : _("Price: %s") % _("Free"),
-                 'package_information' : self.get_pkg_information(pkg),
-                 'maintainance_time' : self.get_maintainance_time(pkg),
-                 'action_button_description' : self.get_action_button_description(pkg),
-               }
-        
-        self._load()
-        self._substitute(subs)
-        self._render()
-        self.emit("selected", appname, pkg)
-
-    def get_homepage_button_visibility(self):
+        return iconpath
+    def wksub_width(self):
+        return self.APP_ICON_SIZE
+    def wksub_height(self):
+        return self.APP_ICON_SIZE
+    def wksub_action_button_label(self):
+        return self._get_action_button_label_and_value()[0]
+    def wksub_action_button_value(self):
+        return self._get_action_button_label_and_value()[1]
+    def wksub_homepage_button_visibility(self):
         if self.homepage_url:
             return "visible"
         return "hidden"
-
-    def get_pkg_information(self, pkg):
-        if not pkg or not pkg.candidate:
+    def wksub_package_information(self):
+        if not self.pkg or not self.pkg.candidate:
             return ""
-        version = pkg.candidate.version
+        version = self.pkg.candidate.version
         if version:
-            s = _("Version: %s (%s)") % (version, pkg.name)
+            s = _("Version: %s (%s)") % (version, self.pkg.name)
             return s
         return ""
-
-    def get_maintainance_time(self, pkg):
+    def wksub_datadir(self):
+        return self.datadir
+    def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
         # FIXME: add code
         return ""
-
-    def get_action_button_description(self, pkg):
+    def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
         s = ""
-        if not pkg:
+        if not self.pkg:
             return s
         # its installed, tell about rdepends
+        pkg = self.pkg
         if pkg.installed:
             # generic message
             s = _("%s is installed on this computer.") % self.appname
@@ -220,7 +197,14 @@ class AppDetailsView(WebkitWidget):
                     "It is used by %s pieces of installed software.",
                     len(self.installed_rdeps)) % len(self.installed_rdeps)
         return s
-
+    def wksub_price(self):
+        s = _("Price: %s") % _("Free")
+        return s
+    def wksub_installed(self):
+        if self.pkg and self.pkg.installed:
+            return "visible"
+        return "hidden"
+        
     # callbacks
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
@@ -288,6 +272,7 @@ class AppDetailsView(WebkitWidget):
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
+    # internal callback
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
         #print "finish: ", trans, enum
@@ -305,6 +290,31 @@ class AppDetailsView(WebkitWidget):
         self.show_app(self.appname)
 
     # internal helpers
+    def _get_action_button_label_and_value(self):
+        action_button_label = ""
+        action_button_value = ""
+        if self.pkg:
+            pkg = self.pkg
+            if pkg.installed and pkg.isUpgradable:
+                action_button_label = _("Upgrade")
+                action_button_value = "upgrade"
+            elif pkg.installed:
+                action_button_label = _("Remove")
+                action_button_value = "remove"
+            else:
+                action_button_label = _("Install")
+                action_button_value = "install"
+        elif self.doc:
+            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            if channel:
+                path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+                if os.path.exists(path):
+                    self.channelfile = path
+                    # FIXME: deal with the EULA stuff
+                    action_button_label = _("Enable channel")
+                    action_button_value = "enable_channel"
+        return (action_button_label, action_button_value)
+
     def _run_transaction(self, trans):
         trans.set_data("appname", self.appname)
         trans.set_data("iconname", self.iconname)
