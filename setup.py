@@ -5,7 +5,7 @@ from DistUtilsExtra.command import *
 import glob
 import os
 
-setup(name="software-store", version='0.1',
+setup(name="software-store", version='0.2',
       scripts=["software-store",
                "utils/update-software-store",
                ],
@@ -17,6 +17,10 @@ setup(name="software-store", version='0.1',
                   ('share/software-store/ui/',
                    ["data/ui/SoftwareStore.ui",
                    ]),
+                  ('share/software-store/templates/',
+                   glob.glob("data/templates/*.html")),
+                  ('share/software-store/status',
+                   glob.glob("data/status/*")),
                   ],
       cmdclass = { "build" : build_extra.build_extra,
                    "build_i18n" :  build_i18n.build_i18n,

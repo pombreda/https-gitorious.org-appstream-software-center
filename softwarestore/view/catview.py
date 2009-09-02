@@ -18,12 +18,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gettext
+import glib
 import gobject
 import gtk
 import logging
 import os
 import xapian
 
+from wkwidget import WebkitWidget
 
 from gettext import gettext as _
 from xml.etree import ElementTree as ET
@@ -34,6 +36,9 @@ from ConfigParser import ConfigParser
  COL_CAT_QUERY,
  COL_CAT_MARKUP) = range(4)
 
+def encode_for_xml(unicode_data, encoding="ascii"):
+    return unicode_data.encode(encoding, 'xmlcharrefreplace')
+
 class Category(object):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query):
@@ -42,16 +47,56 @@ class Category(object):
         self.iconname = iconname
         self.query = query
 
-class CategoriesModel(gtk.ListStore):
 
-    def __init__(self, desktopdir, xapiandb, icons):
-        gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, object, str)
-        categories = self.parse_applications_menu(desktopdir)
-        for cat in sorted(categories, cmp=self._cat_sort_cmp):
-            icon = icons.load_icon(cat.iconname, 24, 0)
-            cat.query.name = cat.name
-            markup = "<small>%s</small>" % gobject.markup_escape_text(cat.name)
-            self.append([cat.name, icon, cat.query, markup])
+class CategoriesView(WebkitWidget):
+
+    # 24px for now because the human icon theme has some of
+    # the icons *only* in 24px resolution
+    CATEGORY_ICON_SIZE = 24
+
+    __gsignals__ = {
+        "category-selected" : (gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_NONE, 
+                               (str, gobject.TYPE_PYOBJECT),
+                              )
+        }
+
+    def __init__(self, datadir, desktopdir, xapiandb, icons):
+        """ init the widget, takes
+        
+        datadir - the base directory of the app-store data
+        desktopdir - the dir where the applications.menu file can be found
+        xapiandb - a xapian.Database object
+        icons - a gtk.IconTheme
+        """
+        super(CategoriesView, self).__init__(datadir)
+        self.icons = icons
+        self.categories = self.parse_applications_menu(desktopdir)
+        self.connect("load-finished", self._on_load_finished)
+
+    def on_category_clicked(self, name):
+        """emit the category-selected signal when a category was clicked"""
+        logging.debug("on_category_changed: %s" % name)
+        for n in self.categories:
+            if n.name == name:
+                self.emit("category-selected", name, n.query)
+
+    def _on_load_finished(self, view, frame):
+        """
+        helper for the webkit widget that injects the categories into
+        the page when it has finished loading
+        """
+        for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
+            iconpath = ""
+            iconinfo = self.icons.lookup_icon(cat.iconname, 
+                                              self.CATEGORY_ICON_SIZE, 0)
+            if iconinfo:
+                iconpath = iconinfo.get_filename()
+                logging.debug("icon: %s %s" % (iconinfo, iconpath))
+            # FIXME: this looks funny with german locales
+            s = 'addCategory("%s","%s")' % (cat.name, iconpath)
+            logging.debug("running script '%s'" % s)
+            self.execute_script(s)
 
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
@@ -124,101 +169,12 @@ class CategoriesModel(gtk.ListStore):
         # debug print
         for catname in categories:
             cat = categories[catname]
-            logging.debug(cat.name, cat.iconname, cat.query.get_description())
+            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query.get_description()))
         return categories.values()
-
-class LabeledCategoriesView(gtk.VBox):
-    """Category view with a additional label"""
-
-    __gsignals__ = {
-        "category-selected" : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE, 
-                               (str, gobject.TYPE_PYOBJECT),
-                              )
-        }
-
-    def __init__(self, datadir, xapiandb, icons, label=_("Categories")):
-        super(LabeledCategoriesView, self).__init__()
-        # a vbox in the outside and a hbox in the inside
-        #vbox = gtk.VBox()
-        align = gtk.Alignment()
-        top = bottom = 2
-        left = right = 8
-        align.set_padding(top, bottom, left, right)
-        # we need a eventbox around the label to set the background
-        labelw = gtk.Label("")
-        labelw.set_markup("<b>%s</b>" % label)
-        labelw.set_alignment(0.0, 0.5)
-        align.add(labelw)
-        eb = gtk.EventBox()
-        color =  gtk.gdk.color_parse("lightblue")
-        eb.modify_bg(gtk.STATE_NORMAL, color)
-        eb.add(align)
-        # needed to make the background not spawn all over
-        hbox_inside = gtk.HBox()
-        hbox_inside.pack_start(eb, expand=False, fill=False)
-        # FIXME: how to make sure the background color is right
-        hbox_inside.pack_start(gtk.IconView())
-        self.pack_start(hbox_inside, expand=False, fill=False)
-        # and now the categoryies
-        self.catview = CategoriesView(datadir, xapiandb, icons)
-        self.pack_start(self.catview)
-        self.catview.connect("category-selected", self._category_selected)
-    def _category_selected(self, widget, name, query):
-        self.emit("category-selected", name, query)
-
-class CategoriesView(gtk.IconView):
-    """Base category view widget based on a gtk.IconView"""
-
-    __gsignals__ = {
-        "category-selected" : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE, 
-                               (str, gobject.TYPE_PYOBJECT),
-                              )
-        }
+        
 
 
 
-    def __init__(self, datadir, xapiandb, icons):
-        # model
-        model = CategoriesModel(datadir, xapiandb, icons)
-        gtk.IconView.__init__(self, model)
-
-        # data
-        self.xapiandb = xapiandb
-        self.icons = icons
-        self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
-        # customization
-        self.set_markup_column(COL_CAT_MARKUP)
-        self.set_pixbuf_column(COL_CAT_PIXBUF)
-        # signals
-        self.connect("motion-notify-event", self.on_motion_notify_event)
-        self.connect("button-press-event", self.on_button_press_event)
-        self.connect("item-activated", self.on_item_activated)
-    def on_item_activated(self, widget, path):
-        model = widget.get_model()
-        name = model[path][COL_CAT_NAME]
-        query = model[path][COL_CAT_QUERY]
-        #print "selected: ", name, query
-        self.emit("category-selected", name, query)
-    def on_motion_notify_event(self, widget, event):
-        #print "on_motion_notify_event: ", event
-        path = self.get_path_at_pos(int(event.x), int(event.y))
-        if path is None:
-            self.window.set_cursor(None)
-        else:
-            self.window.set_cursor(self.cursor_hand)
-    def on_button_press_event(self, widget, event):
-        #print "on_button_press_event: ", event
-        path = self.get_path_at_pos(int(event.x), int(event.y))
-        if event.button != 1 or path is None:
-            return
-        #self.emit("item-activated", path)
-        model = self.get_model()
-        name = model[path][COL_CAT_NAME]
-        query = model[path][COL_CAT_QUERY]
-        #print "selected: ", name, query
-        self.emit("category-selected", name, query)
 
 # test code
 def category_activated(iconview, name, query, xapiandb):
@@ -239,7 +195,8 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
 
-    datadir = "/usr/share/app-install"
+    appdir = "/usr/share/app-install"
+    datadir = "./data"
 
     xapian_base_path = "/var/cache/app-install"
     pathname = os.path.join(xapian_base_path, "xapian")
@@ -250,7 +207,7 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
-    view = LabeledCategoriesView(datadir, db, icons)
+    view = CategoriesView(datadir, appdir, db, icons)
     #view = CategoriesView(datadir, db, icons)
     view.connect("category-selected", category_activated, db)
 

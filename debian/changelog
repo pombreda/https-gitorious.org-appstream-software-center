@@ -1,9 +1,16 @@
-software-store (0.1.4) UNRELEASED; urgency=low
+software-store (0.2.0) UNRELEASED; urgency=low
 
+  * merge from rugby471, lots of fixes, improvements, 
+    many thanks!
+  * merge the "webkit" branch:
+    - improved layout for the application details view
+    - improved layout for the categories view
+    - support for screenshots from screenshots.debian.net
+    - add dependency to python-webkit
+  * add man-page (thanks to rugby471)
   * software-store:
     - improve test if running from a local checkout (LP: #420784)
   * add animation to the pending view
-  * merge from rugby471, lots of fix, many thanks!
   * fix bug in search clearning
   * show find icon in the search entry
 

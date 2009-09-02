@@ -18,16 +18,15 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import gobject
 import logging
 import os
-
-from softwarestore.app import SoftwareStoreApp
 from optparse import OptionParser
 
 
 if __name__ == "__main__":
 
-    parser = OptionParser("usage: %prog [options] package")
+    parser = OptionParser("usage: %prog [options] package", version="%prog 0.1")
     parser.add_option("--debug", dest="debug", action="store_true",
                       help="enable debug mode", default=False)
     (options, args) = parser.parse_args()
@@ -41,11 +40,15 @@ if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
     logging.basicConfig(level=logging.INFO)
 
+    gobject.threads_init()
+
     if os.path.exists("./data/ui/SoftwareStore.ui"):
         datadir = "./data"
     else:
         datadir = "/usr/share/software-store/"
-
+    
+    from softwarestore.app import SoftwareStoreApp
+    
     app = SoftwareStoreApp(datadir)
     app.run()
 

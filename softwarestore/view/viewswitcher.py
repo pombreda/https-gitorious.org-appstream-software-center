@@ -93,7 +93,7 @@ class ViewSwitcherList(gtk.ListStore):
         # setup the normal stuff
         icon = AnimatedImage(self.icons.load_icon("software-store", self.ICON_SIZE, 0))
         self.append([icon, _("Get Free software"), self.ACTION_ITEM_AVAILABLE])
-        icon = AnimatedImage(self.icons.load_icon("gtk-harddisk", self.ICON_SIZE, 0))
+        icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed software"), self.ACTION_ITEM_INSTALLED])
         # spacer - not working
         #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
@@ -127,7 +127,7 @@ class ViewSwitcherList(gtk.ListStore):
                     row[self.COL_NAME] = _("In Progress (%i)") % pending
                     break
             else:
-                icon = AnimatedImage(self.datadir+"/icons/32x32/status/software-store-progress-*.png")
+                icon = AnimatedImage(self.datadir+"/status/software-store-progress-*.png")
                 icon.start()
                 self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])
