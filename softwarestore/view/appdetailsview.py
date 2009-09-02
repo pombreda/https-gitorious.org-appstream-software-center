@@ -93,6 +93,10 @@ class AppDetailsView(WebkitWidget):
     # public API
     def show_app(self, appname):
         logging.debug("AppDetailsView.show_app '%s'" % appname)
+        
+        # clear first to avoid showing the old app details for
+        # some milliseconds before switching to the new app 
+        self.clear()
 
         # init app specific data
         self.appname = appname
@@ -122,6 +126,12 @@ class AppDetailsView(WebkitWidget):
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkg)
+
+    def clear(self):
+        " clear the current view "
+        self.load_string("","text/plain","ascii","file:/")
+        while gtk.events_pending(): 
+            gtk.main_iteration()
 
     # substitute functions called during page display
     def wksub_appname(self):
