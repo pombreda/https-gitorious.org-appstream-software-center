@@ -1,4 +1,4 @@
-software-store (0.2.0) UNRELEASED; urgency=low
+software-store (0.2.0) UNRELEASEDkarmic; urgency=low
 
   * merge from rugby471, lots of fixes, improvements, 
     many thanks!
@@ -14,8 +14,9 @@ software-store (0.2.0) UNRELEASED; urgency=low
   * fix bug in search clearning
   * show find icon in the search entry
   * open on the center of the screen by default (thanks to mac_v)
+  * show overlay icon in the details view for installed software
 
- -- Michael Vogt <egon@top.ping.de>  Sat, 29 Aug 2009 09:27:17 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 03 Sep 2009 11:35:43 +0200
 
 software-store (0.1.3) karmic; urgency=low
 

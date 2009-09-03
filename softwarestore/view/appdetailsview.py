@@ -160,6 +160,10 @@ class AppDetailsView(WebkitWidget):
         else:
             iconpath = self.MISSING_ICON_PATH
         return iconpath
+    def wksub_software_installed_icon(self):
+        # FIXME: use relative path here
+        iconpath = "/usr/share/icons/hicolor/24x24/emblems/softwarestore_installed.png"
+        return iconpath
     def wksub_width(self):
         return self.APP_ICON_SIZE
     def wksub_height(self):
@@ -379,7 +383,8 @@ if __name__ == "__main__":
     view = AppDetailsView(db, icons, cache, datadir)
     #view.show_app("AMOR")
     #view.show_app("3D Chess")
-    view.show_app("Configuration Editor")
+    #view.show_app("Configuration Editor")
+    view.show_app("ACE")
 
     win = gtk.Window()
     scroll.add(view)
