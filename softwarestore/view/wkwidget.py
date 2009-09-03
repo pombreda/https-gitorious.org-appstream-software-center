@@ -94,7 +94,7 @@ class WebkitWidget(webkit.WebView):
             for (k, v) in self.__class__.__dict__.iteritems():
                 if callable(v) and k.startswith(self.SUBSTITUTE_FUNCTION_PREFIX):
                     subs[k[len(self.SUBSTITUTE_FUNCTION_PREFIX):]] = v(self)
-        self._html = string.Template(self._template).safe_substitute(subs)
+        self._html = string.Template(self._template).safe_substitute(subs)z
 
     # internal callbacks
     def _on_title_changed(self, view, frame, title):

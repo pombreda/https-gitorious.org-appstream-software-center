@@ -127,7 +127,7 @@ class ViewSwitcherList(gtk.ListStore):
                     row[self.COL_NAME] = _("In Progress (%i)") % pending
                     break
             else:
-                icon = AnimatedImage(self.datadir+"/status/software-store-progress-*.png")
+                icon = AnimatedImage(self.datadir+"/icons/32x32/status/software-store-progress-*.png")
                 icon.start()
                 self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])

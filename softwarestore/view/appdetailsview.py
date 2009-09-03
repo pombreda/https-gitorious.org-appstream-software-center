@@ -150,9 +150,8 @@ class AppDetailsView(WebkitWidget):
         description = description.replace("\n\n","</p><p>")
         return description
     def wksub_iconpath_loading(self):
-        # FIXME: looks ugly right now, gives a black rectangle on fade-in
-        #return self.datadir+"/status/loading.gif"
-        return ""
+        # FIXME: use relative path here
+        return "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
     def wksub_iconpath(self):
         iconinfo = self.icons.lookup_icon(self.iconname, self.APP_ICON_SIZE, 0)
         if iconinfo:
@@ -162,8 +161,7 @@ class AppDetailsView(WebkitWidget):
         return iconpath
     def wksub_software_installed_icon(self):
         # FIXME: use relative path here
-        iconpath = "/usr/share/icons/hicolor/24x24/emblems/softwarestore_installed.png"
-        return iconpath
+        return "/usr/share/icons/hicolor/24x24/emblems/software-store-installed.png"
     def wksub_width(self):
         return self.APP_ICON_SIZE
     def wksub_height(self):
