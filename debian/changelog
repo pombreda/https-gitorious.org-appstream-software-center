@@ -1,3 +1,10 @@
+software-store (0.2.1) UNRELEASEDkarmic; urgency=low
+
+  * data/ui/SoftwareStore.ui:
+    - add menu shortcuts (thanks to seb128)
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 03 Sep 2009 16:18:06 +0200
+
 software-store (0.2.0) karmic; urgency=low
 
   * merge from rugby471, lots of fixes, improvements, 
