@@ -86,6 +86,8 @@ class ViewSwitcherList(gtk.ListStore):
 
     ICON_SIZE = 32
 
+    ANIMATION_PATH = "/usr/share/icons/hicolor/32x32/status/software-store-progress-*.png"
+
     def __init__(self, datadir, icons):
         gtk.ListStore.__init__(self, AnimatedImage, str, int)
         self.icons = icons
@@ -127,7 +129,7 @@ class ViewSwitcherList(gtk.ListStore):
                     row[self.COL_NAME] = _("In Progress (%i)") % pending
                     break
             else:
-                icon = AnimatedImage(self.datadir+"/status/software-store-progress-*.png")
+                icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
                 self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])

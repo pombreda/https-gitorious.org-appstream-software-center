@@ -2,6 +2,8 @@ software-store (0.2.1) UNRELEASEDkarmic; urgency=low
 
   * data/ui/SoftwareStore.ui:
     - add menu shortcuts (thanks to seb128)
+  * show loading animation when fetching screenshots 
+    (thanks to rugby471)
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 03 Sep 2009 16:18:06 +0200
 
