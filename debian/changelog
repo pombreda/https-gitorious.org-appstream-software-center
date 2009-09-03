@@ -1,4 +1,4 @@
-software-store (0.2.0) UNRELEASEDkarmic; urgency=low
+software-store (0.2.0) karmic; urgency=low
 
   * merge from rugby471, lots of fixes, improvements, 
     many thanks!
