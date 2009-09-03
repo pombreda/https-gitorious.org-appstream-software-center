@@ -13,6 +13,7 @@ software-store (0.2.0) UNRELEASED; urgency=low
   * add animation to the pending view
   * fix bug in search clearning
   * show find icon in the search entry
+  * open on the center of the screen by default (thanks to mac_v)
 
  -- Michael Vogt <egon@top.ping.de>  Sat, 29 Aug 2009 09:27:17 +0200
 
