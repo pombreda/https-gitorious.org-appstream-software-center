@@ -29,6 +29,7 @@ import pango
 import string
 import subprocess
 import sys
+import tempfile
 import time
 import xapian
 
@@ -153,11 +154,19 @@ class AppDetailsView(WebkitWidget):
         # FIXME: use relative path here
         return "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
     def wksub_iconpath(self):
+        iconpath = None
         iconinfo = self.icons.lookup_icon(self.iconname, self.APP_ICON_SIZE, 0)
         if iconinfo:
             iconpath = iconinfo.get_filename()
         else:
             iconpath = self.MISSING_ICON_PATH
+        # *meh* if not png -> convert
+        # FIXME: make webkit understand xpm files instead
+        if iconpath.endswith(".xpm"):
+            self.tf = tempfile.NamedTemporaryFile()
+            pix = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
+            pix.save(self.tf.name, "png")
+            iconpath = self.tf.name
         return iconpath
     def wksub_software_installed_icon(self):
         # FIXME: use relative path here
