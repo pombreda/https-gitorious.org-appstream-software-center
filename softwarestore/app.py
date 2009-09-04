@@ -272,6 +272,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         
     def on_category_activated(self, cat_view, name, query):
         #print cat_view, name, query
+        # FIXME: integrate this at a lower level, e.g. by sending a 
+        #        full Category class with the signal
+        query.name = name
         self.apps_category_query = query
         # show new category
         self.refresh_apps()
