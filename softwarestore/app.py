@@ -18,10 +18,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import dbus
+import dbus.service
 import logging
 import glib
 import gtk
 import os
+import sys
 import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
@@ -46,6 +49,21 @@ from apt.aptcache import AptCache
 
 from gettext import gettext as _
 
+class SoftwareStoreDbusController(dbus.service.Object):
+    """ 
+    This is a helper to provide the SoftwareStoreIFace
+    
+    It provides 
+    """
+    def __init__(self, parent, bus_name,
+                 object_path='/com/ubuntu/SoftwareStore'):
+        dbus.service.Object.__init__(self, bus_name, object_path)
+        self.parent = parent
+
+    @dbus.service.method('com.ubuntu.SoftwareStoreIFace')
+    def bringToFront(self):
+        self.parent.window_main.present()
+        return True
 
 class SoftwareStoreApp(SimpleGtkbuilderApp):
     
@@ -59,6 +77,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def __init__(self, datadir):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/SoftwareStore.ui")
 
+        # setup dbus and exit if there is another instance already
+        # running
+        self.setup_dbus_or_bring_other_instance_to_front()
+        
         # xapian
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -338,3 +360,24 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def run(self):
         self.window_main.show_all()
         SimpleGtkbuilderApp.run(self)
+
+    def setup_dbus_or_bring_other_instance_to_front(self):
+        """ 
+        This sets up a dbus listener
+        """
+        try:
+            bus = dbus.SessionBus()
+        except:
+            logging.warn("could not initiate dbus")
+            return
+        # if there is another SoftwareStore running bring it to front
+        # and exit, otherwise install the dbus controller
+        try:
+            proxy_obj = bus.get_object('com.ubuntu.SoftwareStore', 
+                                       '/com/ubuntu/SoftwareStore')
+            iface = dbus.Interface(proxy_obj, 'com.ubuntu.SoftwareStoreIFace')
+            iface.bringToFront()
+            sys.exit()
+        except dbus.DBusException, e:
+            bus_name = dbus.service.BusName('com.ubuntu.SoftwareStore',bus)
+            self.dbusControler = SoftwareStoreDbusController(self, bus_name)
