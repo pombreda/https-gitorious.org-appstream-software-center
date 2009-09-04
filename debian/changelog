@@ -8,6 +8,7 @@ software-store (0.2.1) UNRELEASEDkarmic; urgency=low
     - fix crash when searching in sub-categories
   * softwarestore/view/appdetailsview.py:
     - add workaround for missing xpm rendering with webkit
+    - scale icons to default icon size
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 03 Sep 2009 16:18:06 +0200
 

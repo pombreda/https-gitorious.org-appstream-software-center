@@ -154,7 +154,6 @@ class AppDetailsView(WebkitWidget):
         # FIXME: use relative path here
         return "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
     def wksub_iconpath(self):
-        iconpath = None
         iconinfo = self.icons.lookup_icon(self.iconname, self.APP_ICON_SIZE, 0)
         if iconinfo:
             iconpath = iconinfo.get_filename()
@@ -171,9 +170,9 @@ class AppDetailsView(WebkitWidget):
     def wksub_software_installed_icon(self):
         # FIXME: use relative path here
         return "/usr/share/icons/hicolor/24x24/emblems/software-store-installed.png"
-    def wksub_width(self):
+    def wksub_icon_width(self):
         return self.APP_ICON_SIZE
-    def wksub_height(self):
+    def wksub_icon_height(self):
         return self.APP_ICON_SIZE
     def wksub_action_button_label(self):
         return self._get_action_button_label_and_value()[0]
@@ -391,7 +390,9 @@ if __name__ == "__main__":
     #view.show_app("AMOR")
     #view.show_app("3D Chess")
     #view.show_app("Configuration Editor")
-    view.show_app("ACE")
+    #view.show_app("ACE")
+    #view.show_app("Artha")
+    view.show_app("cournol")
 
     win = gtk.Window()
     scroll.add(view)
