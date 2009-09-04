@@ -154,7 +154,8 @@ class AppDetailsView(WebkitWidget):
         # FIXME: use relative path here
         return "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
     def wksub_iconpath(self):
-        iconinfo = self.icons.lookup_icon(self.iconname, self.APP_ICON_SIZE, 0)
+        iconinfo = self.icons.lookup_icon(os.path.splitext(self.iconname)[0], 
+                                          self.APP_ICON_SIZE, 0)
         if iconinfo:
             iconpath = iconinfo.get_filename()
         else:
