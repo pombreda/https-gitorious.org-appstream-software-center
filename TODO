@@ -8,6 +8,7 @@ Webkit:
   apparently?
 - make the description -> html processing better, use
   code from g-a-i for this
+- make action button insensitive on click
 
 
 UI:
