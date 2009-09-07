@@ -172,6 +172,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         return query
 
     # callbacks
+    def on_menuitem_help_activate(self, menuitem):
+        import subprocess
+        subprocess.call(["yelp","ghelp:software-store"])
+
     def on_menuitem_install_activate(self, menuitem):
         self.app_details_view.install()
 

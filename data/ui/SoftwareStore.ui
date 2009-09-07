@@ -158,6 +158,19 @@
                   <object class="GtkMenu" id="menu_help">
                     <property name="visible">True</property>
                     <child>
+                      <object class="GtkMenuItem" id="menuitem_help">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Software Store _Help</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menuitem_help_activate"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="menuitem3">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem" id="menuitem_about">
                         <property name="label">gtk-about</property>
                         <property name="visible">True</property>

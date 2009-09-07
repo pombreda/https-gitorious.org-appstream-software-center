@@ -20,6 +20,7 @@ software-store (0.2.2) UNRELEASED; urgency=low
     - use "Comment", "GenericName" and pkg.summary (in this order)
       for the application summary
     - add missing "locale.setlocale()"
+  * add a stub help page
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Sep 2009 08:51:35 +0200
 
