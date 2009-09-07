@@ -23,6 +23,7 @@ import logging
 import gtk
 import gobject
 import os
+import pango
 import sys
 import time
 import xapian
@@ -197,6 +198,14 @@ class AppStore(gtk.GenericTreeModel):
 
 class AppView(gtk.TreeView):
     """Treeview based view component that takes a AppStore and displays it"""
+
+    __gsignals__ = {
+        "application-activated" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE, 
+                                   (str, ),
+                                  )
+    }
+
     def __init__(self, store):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
@@ -207,31 +216,17 @@ class AppView(gtk.TreeView):
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         tr = gtk.CellRendererText()
+        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
         column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         self.set_model(store)
-        # single click
-        self.cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
-        self.connect("motion-notify-event", self.on_motion_notify_event)
-        self.connect("button-press-event", self.on_button_press_event)
-    def on_motion_notify_event(self, widget, event):
-        #print "on_motion_notify_event: ", event
-        path = self.get_path_at_pos(int(event.x), int(event.y))
-        if path is None:
-            self.window.set_cursor(None)
-        else:
-            self.window.set_cursor(self.cursor_hand)
-    def on_button_press_event(self, widget, event):
-        #print "on_button_press_event: ", event
-        res = self.get_path_at_pos(int(event.x), int(event.y))
-        if not res:
-            return
-        (path, column, wx, wy) = res
-        if event.button != 1 or path is None:
-            return
-        self.emit("row-activated", path, column)
+        # our own activation handler
+        self.connect("row-activated", self._on_row_activated)
+    def _on_row_activated(self, treeview, path, column):
+        (name, text, icon) = treeview.get_model()[path]
+        self.emit("application-activated", name)
 
 # XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):

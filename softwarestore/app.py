@@ -123,7 +123,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # apps
         empty_store = gtk.ListStore(gtk.gdk.Pixbuf, str)
         self.app_view = AppView(empty_store)
-        self.app_view.connect("row-activated", self.on_app_activated)
+        self.app_view.connect("application-activated", self.on_app_activated)
         self.scrolledwindow_applist.add(self.app_view)
         self.app_view.show()
 
@@ -282,8 +282,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def on_navigation_button_app_details(self, widget):
         self.change_notebook_view(self.NOTEBOOK_PAGE_APP_DETAILS)
 
-    def on_app_activated(self, app_view, path, column):
-        (name, text, icon) = app_view.get_model()[path]
+    def on_app_activated(self, app_view, name):
         # show new app
         self.app_details_view.show_app(name)
         self.change_notebook_view(self.NOTEBOOK_PAGE_APP_DETAILS)
