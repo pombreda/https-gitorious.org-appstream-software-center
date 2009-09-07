@@ -163,7 +163,8 @@ class AppStore(gtk.GenericTreeModel):
                     icon = self.icons.load_icon(icon_name, self.ICON_SIZE,0)
                     return icon
             except Exception, e:
-                if not str(e).endswith("not present in theme"):
+                if not (str(e).endswith("not present in theme") or
+                        str(e).endswith("Unrecognized image file format")):
                     logging.exception("get_icon")
         return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
     def on_iter_next(self, rowref):

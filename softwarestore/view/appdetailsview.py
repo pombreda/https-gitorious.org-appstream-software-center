@@ -154,7 +154,9 @@ class AppDetailsView(WebkitWidget):
         # FIXME: use relative path here
         return "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
     def wksub_iconpath(self):
-        iconinfo = self.icons.lookup_icon(os.path.splitext(self.iconname)[0], 
+        # the iconname in the theme is without extension
+        iconname = os.path.splitext(self.iconname)[0]
+        iconinfo = self.icons.lookup_icon(iconname, 
                                           self.APP_ICON_SIZE, 0)
         if iconinfo:
             iconpath = iconinfo.get_filename()
@@ -164,7 +166,7 @@ class AppDetailsView(WebkitWidget):
         # FIXME: make webkit understand xpm files instead
         if iconpath.endswith(".xpm"):
             self.tf = tempfile.NamedTemporaryFile()
-            pix = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
+            pix = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
             pix.save(self.tf.name, "png")
             iconpath = self.tf.name
         return iconpath
