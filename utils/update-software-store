@@ -45,6 +45,7 @@ WEIGHT_DESKTOP_COMMENT = 1
 WEIGHT_APT_SUMMARY = 5
 WEIGHT_APT_DESCRIPTION = 1
 
+# FIXME: *i18n*
 class DesktopConfigParser(RawConfigParser):
     " thin wrapper that is tailored for xdg Desktop files "
     def get_desktop(self, key):
@@ -121,9 +122,18 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 # sort_by_value uses string compare, so we need to pad here
                 doc.add_value(XAPIAN_VALUE_POPCON, 
                               xapian.sortable_serialise(float(popcon)))
-            # comment
+
+            # comment goes into the summary data if there is one,
+            # other wise we try GenericName
             if parser.has_option_desktop("Comment"):
                 s = parser.get_desktop("Comment")
+                doc.add_value(XAPIAN_VALUE_SUMMARY, s)
+            elif parser.has_option_desktop("GenericName"):
+                s = parser.get_desktop("GenericName")
+                if s != name:
+                    doc.add_value(XAPIAN_VALUE_SUMMARY, s)
+            elif pkgname in cache and cache[pkgname].candidate:
+                s = cache[pkgname].candidate.summary
                 doc.add_value(XAPIAN_VALUE_SUMMARY, s)
 
             # now add search data from the desktop file
@@ -158,6 +168,12 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
+
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except Exception, e:
+        logging.exception("setlocale failed")
+
     xapian_base_path = XAPIAN_BASE_PATH
     
     # set locale so that apt-ddtp stuff works

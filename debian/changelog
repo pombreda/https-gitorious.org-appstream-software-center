@@ -9,6 +9,10 @@ software-store (0.2.2) UNRELEASED; urgency=low
   * softwarestore/view/appdetailsview.py:
     - if the package is not available in the archive and there
       is no channel for it, do not display any buttons (LP: #424473)
+  * utils/update-software-store:
+    - use "Comment", "GenericName" and pkg.summary (in this order)
+      for the application summary
+    - add missing "locale.setlocale()"
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Sep 2009 08:51:35 +0200
 
