@@ -12,6 +12,9 @@ Webkit:
 
 
 UI:
+- if a package is only available for a subset of the 
+  architectures, do the same as g-a-i and display that in 
+  the details UI (e.g. qlix not available on amd64)
 - add warning if a package is removed that causes the removal
   of a unreleated meta-package (that is not ubuntu-desktop)
 - make the textview more visual attractive (GtkTextView has
