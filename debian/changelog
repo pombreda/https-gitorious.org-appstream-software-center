@@ -1,4 +1,4 @@
-software-store (0.2.2) UNRELEASED; urgency=low
+software-store (0.2.2) karmic; urgency=low
 
   * softwarestore/view/appdetailsview.py:
     - fix icon theme name
@@ -22,7 +22,7 @@ software-store (0.2.2) UNRELEASED; urgency=low
     - add missing "locale.setlocale()"
   * add a stub help page
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Sep 2009 08:51:35 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Sep 2009 18:05:49 +0200
 
 software-store (0.2.1) karmic; urgency=low
 
