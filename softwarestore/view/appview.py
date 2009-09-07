@@ -196,6 +196,40 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_parent(self, child):
         return None
 
+# custom renderer for the arrow thing that mpt wants
+class CellRendererTextWithActivateArrow(gtk.CellRendererText):
+    
+    # padding around the arrow at the end
+    ARROW_PADDING = 4
+
+    def __init__(self):
+        gtk.CellRendererText.__init__(self)
+        icons = gtk.icon_theme_get_default()
+        self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
+        self._forward = icons.load_icon("gtk-go-forward-ltr", 
+                                        AppStore.ICON_SIZE, 0)
+    def do_render(self, window, widget, background_area, cell_area, 
+                  expose_area, flags):
+        # reserve space at the end for the arrow
+        cell_area.width -= self._arrow_space
+        gtk.CellRendererText.do_render(self, window, widget, background_area, 
+                                       cell_area, expose_area, flags)
+        # now render the arrow if its selected
+        # FIXME: should we show the arrow on gtk.CELL_RENDERER_PRELIT too?
+        if gtk.CELL_RENDERER_SELECTED & flags:
+            (x, y, width, height, depth) = window.get_geometry()
+            dest_x = cell_area.x + cell_area.width
+            dest_y = (cell_area.y + 
+                      int(((cell_area.height - AppStore.ICON_SIZE)/2.0)))
+            window.draw_pixbuf(None, 
+                               self._forward,   # icon
+                               0, 0,            # src pixbuf
+                               dest_x, dest_y,  # dest in window
+                               -1, -1,          # size
+                               0, 0, 0)         # dither
+gobject.type_register(CellRendererTextWithActivateArrow)
+
+
 class AppView(gtk.TreeView):
     """Treeview based view component that takes a AppStore and displays it"""
 
@@ -215,18 +249,47 @@ class AppView(gtk.TreeView):
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
-        tr = gtk.CellRendererText()
+        tr = CellRendererTextWithActivateArrow()
         tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
         column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         self.set_model(store)
-        # our own activation handler
+        # custom cursor
+        self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
+        # our own "activate" handler
         self.connect("row-activated", self._on_row_activated)
+        # button and motion are "special" 
+        self.connect("button-press-event", self._on_button_press_event)
+        self.connect("motion-notify-event", self._on_motion_notify_event)
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon) = treeview.get_model()[path]
         self.emit("application-activated", name)
+    def _on_motion_notify_event(self, widget, event):
+        (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
+        if width - event.x <= AppStore.ICON_SIZE:
+            self.window.set_cursor(self._cursor_hand)
+        else:
+            self.window.set_cursor(None)
+    def _on_button_press_event(self, widget, event):
+        if event.button != 1:
+            return
+        res = self.get_path_at_pos(event.x, event.y)
+        if not res:
+            return
+        (path, column, wx, wy) = res
+        if path is None:
+            return
+        # only act when the selection is already there 
+        selection = widget.get_selection()
+        if not selection.path_is_selected(path):
+            return
+        # get the size of gdk window
+        (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
+        # the last pixels of the view are reserved for the arrow icon
+        if width - event.x <= AppStore.ICON_SIZE:
+            self.emit("row-activated", path, column)
 
 # XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):
