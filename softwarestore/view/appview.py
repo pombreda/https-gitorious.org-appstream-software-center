@@ -169,7 +169,7 @@ class AppStore(gtk.GenericTreeModel):
         return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
-        new_rowref = rowref + 1
+        new_rowref = int(rowref) + 1
         if new_rowref >= len(self.appnames):
             return None
         return new_rowref

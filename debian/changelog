@@ -4,6 +4,8 @@ software-store (0.2.2) UNRELEASED; urgency=low
     - fix icon theme name
   * softwarestore/view/appview.py:
     - ignore Unknown file format errors
+  * softwarestore/view/appview.py:
+    - fix incorrect type mixing in iter_next (LP: #422036)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Sep 2009 08:51:35 +0200
 
