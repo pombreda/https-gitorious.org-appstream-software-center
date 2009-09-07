@@ -181,6 +181,10 @@ class AppDetailsView(WebkitWidget):
         return self._get_action_button_label_and_value()[0]
     def wksub_action_button_value(self):
         return self._get_action_button_label_and_value()[1]
+    def wksub_action_button_visible(self):
+        if not self.channelfile and not self.pkg:
+            return "hidden"
+        return "visible"
     def wksub_homepage_button_visibility(self):
         if self.homepage_url:
             return "visible"
@@ -395,7 +399,8 @@ if __name__ == "__main__":
     #view.show_app("Configuration Editor")
     #view.show_app("ACE")
     #view.show_app("Artha")
-    view.show_app("cournol")
+    #view.show_app("cournol")
+    view.show_app("Qlix")
 
     win = gtk.Window()
     scroll.add(view)

@@ -48,6 +48,7 @@
  #price { font-size:70%; }
  #button_homepage { visibility:${homepage_button_visibility}; }
  #action_button_description { font-size:70%; }
+ .action_button { visibility:${action_button_visible}; }
  </style>
 
  </head>
@@ -63,7 +64,7 @@
    <div id="description">$description</div>
    <p id="price">$price</p>
    <p id="action_button_description">$action_button_description</p>
-   <input type="button" id="button_$action_button_value" 
+   <input type="button" id="button_$action_button_value" class="action_button"
           value="$action_button_label"
 	  onclick='changeTitle("call:on_button_${action_button_value}_clicked")'
 	  />
