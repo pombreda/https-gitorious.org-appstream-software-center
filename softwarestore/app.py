@@ -346,7 +346,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             query = None
 
         # create new model and attach it
-        new_model = AppStore(self.xapiandb, 
+        new_model = AppStore(self.cache,
+                             self.xapiandb, 
                              self.icons, 
                              query, 
                              limit=self.apps_limit,

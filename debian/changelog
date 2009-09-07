@@ -7,6 +7,10 @@ software-store (0.2.2) UNRELEASED; urgency=low
     - no longer use single click, but use a custom CellRenderer
       instead that provides a single-click arrow at the end of
       the app description column (LP: #419791)
+    - add custom CellRenderer that can draw generic overlay
+      icons
+    - use the overlay icon cell renderer to draw the installed
+      icon as a overlay to the regular icon of the app
   * softwarestore/view/appview.py:
     - fix incorrect type mixing in iter_next (LP: #422036)
   * softwarestore/view/appdetailsview.py:

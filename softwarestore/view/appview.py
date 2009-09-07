@@ -61,20 +61,23 @@ class AppStore(gtk.GenericTreeModel):
     (COL_APP_NAME,
      COL_TEXT, 
      COL_ICON,
-     ) = range(3)
+     COL_INSTALLED_OVERLAY,
+     ) = range(4)
 
     column_type = (str, 
                    str,
-                   gtk.gdk.Pixbuf)
+                   gtk.gdk.Pixbuf,
+                   bool)
 
     ICON_SIZE = 24
 
-    def __init__(self, db, icons, search_query=None, limit=200, 
+    def __init__(self, cache, db, icons, search_query=None, limit=200, 
                  sort=False, filter=None):
         """
         Initalize a AppStore. 
 
         :Parameters: 
+        - `cache`: apt cache (for stuff like the overlay icon)
         - `db`: a xapian.Database that contians the applications
         - `icons`: a gtk.IconTheme that contains the icons
         - `search_query`: a search as a xapian.Query 
@@ -85,6 +88,7 @@ class AppStore(gtk.GenericTreeModel):
                     data further. A python function that gets a pkgname
         """
         gtk.GenericTreeModel.__init__(self)
+        self.cache = cache
         self.xapiandb = db
         self.icons = icons
         self.appnames = []
@@ -167,7 +171,16 @@ class AppStore(gtk.GenericTreeModel):
                 if not (str(e).endswith("not present in theme") or
                         str(e).endswith("Unrecognized image file format")):
                     logging.exception("get_icon")
-        return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+            return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+        elif column == self.COL_INSTALLED_OVERLAY:
+            for post in self.xapiandb.postlist("AA"+appname):
+                doc = self.xapiandb.get_document(post.docid)
+                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                break
+            if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
+                return True
+            return False
+    
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -196,9 +209,16 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_parent(self, child):
         return None
 
+
+
+
 # custom renderer for the arrow thing that mpt wants
 class CellRendererTextWithActivateArrow(gtk.CellRendererText):
-    
+    """ 
+    a custom cell renderer that renders a arrow at the very right
+    of the text and that emits a "row-activated" signal when the 
+    arrow is clicked
+    """
     # padding around the arrow at the end
     ARROW_PADDING = 4
 
@@ -208,6 +228,8 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
         self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
         self._forward = icons.load_icon("gtk-go-forward-ltr", 
                                         AppStore.ICON_SIZE, 0)
+    # FIMXE: what about right-to-left languages? we need to 
+    #        render the button differently there
     def do_render(self, window, widget, background_area, cell_area, 
                   expose_area, flags):
         # reserve space at the end for the arrow
@@ -229,6 +251,49 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
                                0, 0, 0)         # dither
 gobject.type_register(CellRendererTextWithActivateArrow)
 
+# custom renderer for the arrow thing that mpt wants
+class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
+    
+    # offset of the install overlay icon
+    OFFSET_X = 14
+    OFFSET_Y = 16
+
+    # size of the install overlay icon
+    OVERLAY_SIZE = 16
+    
+    __gproperties__ = {
+        'overlay' : (bool, 'overlay', 'show a overlay icon', False,
+                     gobject.PARAM_READWRITE),
+   }
+
+    def __init__(self, overlay_icon_name):
+        gtk.CellRendererPixbuf.__init__(self)
+        icons = gtk.icon_theme_get_default()
+        self.overlay = False
+        self._installed = icons.load_icon(overlay_icon_name,
+                                          self.OVERLAY_SIZE, 0)
+    def do_set_property(self, pspec, value):
+        setattr(self, pspec.name, value)
+    def do_get_property(self, pspec):
+        return getattr(self, pspec.name)
+    def do_render(self, window, widget, background_area, cell_area, 
+                  expose_area, flags):
+        gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, 
+                                         cell_area, expose_area, flags)
+        overlay = self.get_property("overlay")
+        if overlay:
+            dest_x = cell_area.x + self.OFFSET_X
+            dest_y = cell_area.y + self.OFFSET_Y
+            window.draw_pixbuf(None, 
+                               self._installed, # icon
+                               0, 0,            # src pixbuf
+                               dest_x, dest_y,  # dest in window
+                               -1, -1,          # size
+                               0, 0, 0)         # dither
+gobject.type_register(CellRendererPixbufWithOverlay)
+
+
+
 
 class AppView(gtk.TreeView):
     """Treeview based view component that takes a AppStore and displays it"""
@@ -244,8 +309,10 @@ class AppView(gtk.TreeView):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
-        tp = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("Icon", tp, pixbuf=AppStore.COL_ICON)
+        tp = CellRendererPixbufWithOverlay("software-store-installed")
+        column = gtk.TreeViewColumn("Icon", tp, 
+                                    pixbuf=AppStore.COL_ICON,
+                                    overlay=AppStore.COL_INSTALLED_OVERLAY)
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -264,7 +331,7 @@ class AppView(gtk.TreeView):
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("motion-notify-event", self._on_motion_notify_event)
     def _on_row_activated(self, treeview, path, column):
-        (name, text, icon) = treeview.get_model()[path]
+        (name, text, icon, overlay) = treeview.get_model()[path]
         self.emit("application-activated", name)
     def _on_motion_notify_event(self, widget, event):
         (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
@@ -275,7 +342,7 @@ class AppView(gtk.TreeView):
     def _on_button_press_event(self, widget, event):
         if event.button != 1:
             return
-        res = self.get_path_at_pos(event.x, event.y)
+        res = self.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
@@ -345,9 +412,9 @@ def on_entry_changed(widget, data):
     print "on_entry_changed: ", new_text
     #if len(new_text) < 3:
     #    return
-    (db, view) = data
+    (cache, db, view) = data
     query = get_query_from_search_entry(new_text)
-    view.set_model(AppStore(db, icons, query))
+    view.set_model(AppStore(cache, db, icons, query))
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -371,14 +438,15 @@ if __name__ == "__main__":
     cache = apt.Cache(apt.progress.OpTextProgress())
     filter = AppViewFilter(cache)
     filter.set_supported_only(True)
-    store = AppStore(db, icons, filter=filter)
+    filter.set_installed_only(True)
+    store = AppStore(cache, db, icons, filter=filter)
 
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppView(store)
 
     entry = gtk.Entry()
-    entry.connect("changed", on_entry_changed, (db, view))
+    entry.connect("changed", on_entry_changed, (cache, db, view))
 
     box = gtk.VBox()
     box.pack_start(entry, expand=False)

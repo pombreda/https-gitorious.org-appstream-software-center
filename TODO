@@ -32,6 +32,8 @@ UI:
   we have a animatedimage (that works fine) it won't work
   inside a Treeview. so we need a custom cell renderer that
   can render normal pixbufs and animated pixbufs
+- CellRendererTextWithActivateArrow needs a mode for 
+  right-to-left languages
 
 Missing:
 - when the xapian db is rebuilding (e.g. because app-center is 
