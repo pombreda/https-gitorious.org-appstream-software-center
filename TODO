@@ -34,6 +34,9 @@ UI:
   can render normal pixbufs and animated pixbufs
 - CellRendererTextWithActivateArrow needs a mode for 
   right-to-left languages
+- refresh app list when a package gets installed (some 
+  packages may no longer be installed/not installed)
+  
 
 Missing:
 - when the xapian db is rebuilding (e.g. because app-center is 
