@@ -43,6 +43,12 @@
         <surname>Vogt</surname>
         <email>mvo@ubuntu.com</email>
       </author>
+      <author>
+        <firstname>Matthew</firstname>
+        <firstname>Paul</firstname>
+        <surname>Thomas</surname>
+        <email>mpt@ubuntu.com</email>
+      </author>
     </authorgroup>
     <abstract>
     	<para>This manual explains how to use <application>Software Store</application>.</para>
@@ -52,13 +58,18 @@
 
   <!-- ============= Introduction ============================== -->
   <chapter id="introduction">
-    <title>Introduction</title>
+    <title>What is the Ubuntu Software Store?</title>
     <para>
-    The <application>Ubuntu Software Store</application> allows you to 
-    manage applications with a click of a button. You can browse through 
-    the categories to find applications or search through all of the 
-    applications using the search box. 
-    </para> 
+    The Ubuntu Software Store is a virtual catalog of thousands of free
+    applications available for Ubuntu.
+    You can find applications by category or by searching,
+    and you can install an application with the click of a button.
+    </para>
+    <para>
+      The Store also lets you examine the applications that are installed
+      already,
+      and remove those you no longer need.
+    </para>
   </chapter> 
   
   <chapter id="getting-started">
