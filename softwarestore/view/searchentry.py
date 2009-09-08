@@ -35,12 +35,14 @@ class SearchEntry(sexy.IconEntry):
 
     SEARCH_TIMEOUT = 200
 
-    def __init__(self, icon_theme):
+    def __init__(self, icon_theme=None):
         """
         Creates an enhanced IconEntry that supports a time out when typing
         and uses a different background colour when the search is active
         """
         sexy.IconEntry.__init__(self)
+        if not icon_theme:
+            icon_theme = gtk.icon_theme_get_default()
         self._handler_changed = self.connect_after("changed",
                                                    self._on_changed)
         self.connect("icon-pressed", self._on_icon_pressed)

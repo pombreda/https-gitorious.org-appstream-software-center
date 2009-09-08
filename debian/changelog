@@ -5,6 +5,13 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
     - i18n fixes
   * softwarestore/view/gbwidget.py:
     - add new Gtkbuilder widget base class
+  * softwarestore/view/appview.py:
+    - allow a empty AppView
+  * softwarestore/view/installedpane.py:
+    - composited widget that contains navigation, applist and search
+      for the installed software
+  * softwarestore/view/searchentry.py:
+    - make the icon_theme optional
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
 

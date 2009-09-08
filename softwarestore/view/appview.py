@@ -305,7 +305,7 @@ class AppView(gtk.TreeView):
                                   )
     }
 
-    def __init__(self, store):
+    def __init__(self, store=None):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
@@ -322,6 +322,8 @@ class AppView(gtk.TreeView):
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
+        if store is None:
+            store = gtk.ListStore(str, gtk.gdk.Pixbuf)
         self.set_model(store)
         # custom cursor
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
