@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import glib
 import gobject
 import gtk
 import logging
@@ -81,6 +82,7 @@ class InstalledPane(gtk.VBox):
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         scroll_app_list = gtk.ScrolledWindow()
+        scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_app_list.add(self.app_view)
         self.notebook.append_page(scroll_app_list, gtk.Label("installed"))
         # details
@@ -89,6 +91,7 @@ class InstalledPane(gtk.VBox):
                                           self.cache, 
                                           self.datadir)
         scroll_details = gtk.ScrolledWindow()
+        scroll_details.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_details.add(self.app_details)
         self.notebook.append_page(scroll_details, gtk.Label("details"))
         # initial refresh
@@ -98,6 +101,11 @@ class InstalledPane(gtk.VBox):
         """refresh the applist after search changes and update the 
            navigation bar
         """
+        if not self.cache.ready:
+            if self.app_view.window:
+                self.app_view.window.set_cursor(self.busy_cursor)
+            glib.timeout_add(100, lambda: self.refresh_apps())
+            return False
         if self.search_terms:
             # FIXME: move this into generic code? 
             #        something like "build_query_from_search_terms()"
@@ -118,6 +126,7 @@ class InstalledPane(gtk.VBox):
                              query, 
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        return False
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
