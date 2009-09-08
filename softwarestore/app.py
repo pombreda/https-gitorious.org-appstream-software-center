@@ -100,18 +100,13 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
 
-        # navigation bar
-        self.navigation_bar = NavigationBar(self.button_home)
-        self.hbox_navigation_buttons.pack_start(self.navigation_bar)
-        self.navigation_bar.show()
-
         # view switcher
         self.view_switcher = ViewSwitcher(datadir, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
-        self.view_switcher.set_cursor((0,))
-        self.view_switcher.connect("row-activated", 
-                                   self.on_view_switcher_activated)
+        self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
+        self.view_switcher.connect("view-changed", 
+                                   self.on_view_switcher_changed)
 
         # categories
         self.cat_view = CategoriesView(datadir, APP_INSTALL_PATH, self.xapiandb,
@@ -256,10 +251,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def on_button_search_entry_clear_clicked(self, widget):
         self.entry_search.set_text("")
 
-    def on_view_switcher_activated(self, view_switcher, row, column):
-        logging.debug("view_switcher_activated")
-        model = view_switcher.get_model()
-        action = model[row][ViewSwitcherList.COL_ACTION]
+    def on_view_switcher_changed(self, view_switcher, action):
+        logging.debug("view_switcher_activated: %s %s" % (view_switcher, action))
         if action == ViewSwitcherList.ACTION_ITEM_AVAILABLE:
             logging.debug("show available")
             if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
@@ -278,7 +271,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             logging.debug("show pending")
             self.change_notebook_view(self.NOTEBOOK_PAGE_PENDING)
         else:
-            assert False, "Not reached"
+            assert False, "Not reached '%s'" % action
 
     def on_navigation_button_category(self, widget):
         self.change_notebook_view(self.NOTEBOOK_PAGE_APPLIST)
