@@ -116,7 +116,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
-        # misc sate
+        # misc state
         self._block_menuitem_view = False
 
         # launchpad integration help, its ok if that fails
@@ -182,6 +182,12 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.active_pane.apps_filter.set_supported_only(True)
         self.active_pane.refresh_apps()
 
+    def on_menuitem_search_activate(self, widget):
+        #print "on_menuitem_search_activate"
+        if self.active_pane:
+            self.active_pane.searchentry.grab_focus()
+            self.active_pane.searchentry.select_region(0, -1)
+
     def run(self):
         self.window_main.show_all()
         SimpleGtkbuilderApp.run(self)
@@ -225,11 +231,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(installed)
-    #FIXME: portme to multi-view
-    def on_menuitem_search_activate(self, widget):
-        #print "on_menuitem_search_activate"
-        self.entry_search.grab_focus()
-        self.entry_search.select_region(0, -1)
 
     #FIXME: dead-code in multi-view
     def on_button_home_clicked(self, widget):
