@@ -40,16 +40,18 @@ from navigationbar import NavigationBar
 from searchentry import SearchEntry
 from appview import AppView, AppStore, AppViewFilter
 from appdetailsview import AppDetailsView
+from catview import CategoriesView
 
-class InstalledPane(gtk.VBox):
-    """Widget that represents the installed panel in software-store
+class AvailablePane(gtk.VBox):
+    """Widget that represents the available panel in software-store
        It contains a search entry and navigation buttons
     """
 
 
     PADDING = 6
-    (PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(2)
+    (PAGE_CATEGORY,
+     PAGE_APPLIST,
+     PAGE_APP_DETAILS) = range(3)
 
     def __init__(self, cache, db, icons, datadir):
         gtk.VBox.__init__(self)
@@ -61,7 +63,7 @@ class InstalledPane(gtk.VBox):
         self.icons = icons
         self.datadir = datadir
         self.apps_filter = AppViewFilter(cache)
-        self.apps_filter.set_installed_only(True)
+        self.apps_filter.set_not_installed_only(True)
         self._build_ui()
     def _build_ui(self):
         # navigation bar and search on top in a hbox
@@ -76,7 +78,15 @@ class InstalledPane(gtk.VBox):
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
         self.pack_start(self.notebook, padding=self.PADDING)
-        # appview and details into the notebook in the bottom
+        # categories, appview and details into the notebook in the bottom
+        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH, 
+                                       self.xapiandb,
+                                       self.icons)
+        scroll_categories = gtk.ScrolledWindow()
+        scroll_categories.add(self.cat_view)
+        self.notebook.append_page(scroll_categories, gtk.Label("categories"))
+        # app list
+        self.cat_view.connect("category-selected", self.on_category_activated)
         self.app_view = AppView()
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
@@ -92,6 +102,7 @@ class InstalledPane(gtk.VBox):
         scroll_details.add(self.app_details)
         self.notebook.append_page(scroll_details, gtk.Label("details"))
         # initial refresh
+        self.category_query = None
         self.search_terms = ""
         self.refresh_apps()
     def refresh_apps(self):
@@ -103,13 +114,13 @@ class InstalledPane(gtk.VBox):
             #        something like "build_query_from_search_terms()"
             query = self.xapian_parser.parse_query(self.search_terms, 
                                               xapian.QueryParser.FLAG_PARTIAL)
-            self.navigation_bar.add_with_id(_("Search in Installed Software"), 
-                                           self.on_navigation_list,
-                                           "list")
+            self.navigation_bar.add_with_id(_("Search in Get Free Software"), 
+                                           self.on_navigation_category,
+                                           "category")
         else:
-            self.navigation_bar.add_with_id(_("Installed Software"), 
-                                           self.on_navigation_list,
-                                           "list")
+            self.navigation_bar.add_with_id(_("Get Free Software"), 
+                                           self.on_navigation_category,
+                                           "category")
             query = None
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
@@ -132,6 +143,10 @@ class InstalledPane(gtk.VBox):
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+    def on_navigation_category(self, button):
+        """callback when the navigation button with id 'category' is clicked"""
+        self.notebook.set_current_page(self.PAGE_CATEGORY)
+        self.searchentry.show()
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -140,6 +155,21 @@ class InstalledPane(gtk.VBox):
         """callback when the navigation button with id 'details' is clicked"""
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+    def on_category_activated(self, cat_view, name, query):
+        #print cat_view, name, query
+        # FIXME: integrate this at a lower level, e.g. by sending a 
+        #        full Category class with the signal
+        query.name = name
+        self.category_query = query
+        # show new category
+        self.refresh_apps()
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        # update navigation bar
+        self.navigation_bar.add_with_id(name, 
+                                        self.on_navigation_list, 
+                                        "list")
+
+
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
@@ -158,12 +188,12 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
     cache = apt.Cache(apt.progress.OpTextProgress())
 
-    w = InstalledPane(cache, db, icons, datadir)
+    w = AvailablePane(cache, db, icons, datadir)
     w.show()
 
     win = gtk.Window()
     win.add(w)
-    win.set_size_request(400,600)
+    win.set_size_request(500,400)
     win.show_all()
 
     gtk.main()

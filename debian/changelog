@@ -10,6 +10,9 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
   * softwarestore/view/installedpane.py:
     - composited widget that contains navigation, applist and search
       for the installed software
+  * softwarestore/view/availablepane.py:
+    - composited widget that contains navigation, applist and search
+      for the available software
   * softwarestore/view/searchentry.py:
     - make the icon_theme optional
 
