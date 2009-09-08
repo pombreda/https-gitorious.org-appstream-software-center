@@ -55,6 +55,9 @@ class InstalledPane(gtk.VBox):
         gtk.VBox.__init__(self)
         self.cache = cache
         self.xapiandb = db
+        self.xapian_parser = xapian.QueryParser()
+        self.xapian_parser.set_database(self.xapiandb)
+        self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.icons = icons
         self.datadir = datadir
         self.apps_filter = AppViewFilter(cache)
@@ -62,11 +65,11 @@ class InstalledPane(gtk.VBox):
         self._build_ui()
     def _build_ui(self):
         # navigation bar and search on top in a hbox
-        self.navigationbar = NavigationBar()
+        self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigationbar)
+        top_hbox.pack_start(self.navigation_bar)
         top_hbox.pack_start(self.searchentry, expand=False)
         self.pack_start(top_hbox, expand=False, padding=self.PADDING)
         # a notebook below
@@ -95,17 +98,16 @@ class InstalledPane(gtk.VBox):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        xapian_parser = xapian.QueryParser()
         if self.search_terms:
             # FIXME: move this into generic code? 
             #        something like "build_query_from_search_terms()"
-            query = xapian_parser.parse_query(self.search_terms, 
+            query = self.xapian_parser.parse_query(self.search_terms, 
                                               xapian.QueryParser.FLAG_PARTIAL)
-            self.navigationbar.add_with_id(_("Search in Installed Software"), 
+            self.navigation_bar.add_with_id(_("Search in Installed Software"), 
                                            self.on_navigation_installed_software,
                                            "installed")
         else:
-            self.navigationbar.add_with_id(_("Installed Software"), 
+            self.navigation_bar.add_with_id(_("Installed Software"), 
                                            self.on_navigation_installed_software,
                                            "installed")
             query = None
@@ -126,7 +128,7 @@ class InstalledPane(gtk.VBox):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
         self.app_details.show_app(name)
-        self.navigationbar.add_with_id(name,
+        self.navigation_bar.add_with_id(name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
