@@ -1,3 +1,11 @@
+software-store (0.2.3) UNRELEASEDkarmic; urgency=low
+
+  * merged from rugby471:
+    - documentation updates
+    - i18n fixes
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
+
 software-store (0.2.2) karmic; urgency=low
 
   * softwarestore/view/appdetailsview.py:
