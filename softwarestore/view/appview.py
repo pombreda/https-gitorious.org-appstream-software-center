@@ -378,6 +378,8 @@ class AppViewFilter(object):
         self.installed_only = v
     def set_not_installed_only(self, v):
         self.not_installed_only = v
+    def get_supported_only(self):
+        return self.supported_only
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
         logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (

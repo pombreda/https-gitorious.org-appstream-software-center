@@ -94,27 +94,30 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
 
-        # view switcher
-        self.view_switcher = ViewSwitcher(datadir, self.icons)
-        self.scrolledwindow_viewswitcher.add(self.view_switcher)
-        self.view_switcher.show()
-        self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
-        self.view_switcher.connect("view-changed", 
-                                   self.on_view_switcher_changed)
+        # available pane
+        self.available_pane = AvailablePane(self.cache, self.xapiandb,
+                                            self.icons, datadir)
+        self.alignment_available.add(self.available_pane)
 
         # installed pane
         self.installed_pane = InstalledPane(self.cache, self.xapiandb,
                                             self.icons, datadir)
         self.alignment_installed.add(self.installed_pane)
 
-        # available pane
-        self.available_pane = AvailablePane(self.cache, self.xapiandb,
-                                            self.icons, datadir)
-        self.alignment_available.add(self.available_pane)
-
         # pending view
         self.pending_view = PendingView(self.icons)
         self.scrolledwindow_transactions.add(self.pending_view)
+
+        # view switcher
+        self.view_switcher = ViewSwitcher(datadir, self.icons)
+        self.scrolledwindow_viewswitcher.add(self.view_switcher)
+        self.view_switcher.show()
+        self.view_switcher.connect("view-changed", 
+                                   self.on_view_switcher_changed)
+        self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
+
+        # misc sate
+        self._block_menuitem_view = False
 
         # launchpad integration help, its ok if that fails
         try:
@@ -145,7 +148,39 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     def on_view_switcher_changed(self, view_switcher, action):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
+        if action == self.NOTEBOOK_PAGE_AVAILABLE:
+            self.active_pane = self.available_pane
+        elif action == self.NOTEBOOK_PAGE_INSTALLED:
+            self.active_pane = self.installed_pane
+        elif action == self.NOTEBOOK_PAGE_PENDING:
+            self.active_pane = None
+        else:
+            assert False, "Not reached"
+        # set menu sensitve
+        self.menuitem_view_supported_only.set_sensitive(self.active_pane != None)
+        self.menuitem_view_all.set_sensitive(self.active_pane != None)
+        # set menu state
+        if self.active_pane:
+            self._block_menuitem_view = True
+            if self.active_pane.apps_filter.get_supported_only():
+                self.menuitem_view_supported_only.activate()
+            else:
+                self.menuitem_view_all.activate()
+            self._block_menuitem_view = False
+        # switch to new page
         self.notebook_view.set_current_page(action)
+
+    def on_menuitem_view_all_activate(self, widget):
+        if self._block_menuitem_view:
+            return
+        self.active_pane.apps_filter.set_supported_only(False)
+        self.active_pane.refresh_apps()
+
+    def on_menuitem_view_supported_only_activate(self, widget):
+        if self._block_menuitem_view: 
+            return
+        self.active_pane.apps_filter.set_supported_only(True)
+        self.active_pane.refresh_apps()
 
     def run(self):
         self.window_main.show_all()
@@ -195,16 +230,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         #print "on_menuitem_search_activate"
         self.entry_search.grab_focus()
         self.entry_search.select_region(0, -1)
-    #FIXME: portme to multi-view
-    def on_menuitem_view_all_activate(self, widget):
-        #print "on_menuitem_view_all_activate", widget
-        self.apps_filter.set_supported_only(False)
-        self.refresh_apps()
-    #FIXME: portme to multi-view
-    def on_menuitem_view_canonical_activate(self, widget):
-        #print "on_menuitem_view_canonical_activate", widget
-        self.apps_filter.set_supported_only(True)
-        self.refresh_apps()
 
     #FIXME: dead-code in multi-view
     def on_button_home_clicked(self, widget):

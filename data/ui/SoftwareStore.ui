@@ -133,17 +133,17 @@
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <property name="draw_as_radio">True</property>
-                        <property name="group">menuitem_view_canonical</property>
+                        <property name="group">menuitem_view_supported_only</property>
                         <signal name="activate" handler="on_menuitem_view_all_activate"/>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkRadioMenuItem" id="menuitem_view_canonical">
+                      <object class="GtkRadioMenuItem" id="menuitem_view_supported_only">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Canonical-Maintained Applications</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
-                        <signal name="activate" handler="on_menuitem_view_canonical_activate"/>
+                        <signal name="activate" handler="on_menuitem_view_supported_only_activate"/>
                       </object>
                     </child>
                   </object>
