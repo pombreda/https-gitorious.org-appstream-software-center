@@ -70,6 +70,77 @@
       already,
       and remove those you no longer need.
     </para>
-  </chapter> 
-  
+  </chapter>
+  <chapter id="installing">
+    <title>Installing a program</title>
+    <para>
+      To install a program from the Store,
+      you need a working Internet connection,
+      and administrator access.
+      (If you set up Ubuntu on this computer yourself,
+      you have administrator access automatically.)
+    </para>
+    <orderedlist>
+      <listitem>
+        <para>
+          Find the program you want to install.
+          If you already know its name, try typing the name in the search field.
+          Or try searching for the type of program you want
+          (like &#8220;spreadsheet&#8221;).
+          Otherwise, browse the Store departments to find the program.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Click the program in the list, and click the arrow button to go to the
+          screen for the program.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Click the <guilabel>Install</guilabel> button.
+          You may need to enter your Ubuntu password
+          before the installation can begin.
+        </para>
+      </listitem>
+    </orderedlist>
+    <para>
+      How long a program takes to install depends on how large it is,
+      and the speed of your computer and Internet connection.
+    </para>
+    <para>
+      While a program is being installed,
+      it appears in the Store&#8217;s <guilabel>In Progress</guilabel> section.
+      As soon as it disappears, the program is installed.
+    </para>
+    <itemizedlist>
+      <listitem><xref linkend="launching" endterm="launching-title"/></listitem>
+      <listitem><xref linkend="missing" endterm="missing-title"/></listitem>
+    </itemizedlist>
+  </chapter>
+  <chapter id="launching">
+    <title id="launching-title"
+    >Using a program once it&#8217;s installed</title>
+  </chapter>
+  <chapter id="removing">
+    <title id="removing-title">Removing a program</title>
+  </chapter>
+  <chapter id="metapackages">
+    <title id="metapackages-title"
+    >Why is it asking me to remove several programs together?</title>
+  </chapter>
+  <chapter id="canonical-maintained">
+    <title>What does &#8220;Canonical-maintained&#8221; mean?</title>
+  </chapter>
+  <chapter id="why-free">
+    <title id="why-free-title">Why are all the programs free?</title>
+  </chapter>
+  <chapter id="missing">
+    <title id="missing-title"
+    >What if a program I want isn&#8217;t in the Store?</title>
+  </chapter>
+  <chapter id="bugs">
+    <title id="bugs-title"
+    >What should I do if a program doesn&#8217;t work?</title>
+  </chapter>
 </book>
