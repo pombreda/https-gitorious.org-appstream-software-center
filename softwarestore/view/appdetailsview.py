@@ -228,6 +228,9 @@ class AppDetailsView(WebkitWidget):
                     "It is used by %s pieces of installed software.",
                     len(self.installed_rdeps)) % len(self.installed_rdeps)
         return s
+    def wksub_homepage(self):
+        s = _("Website")
+        return s
     def wksub_price(self):
         s = _("Price: %s") % _("Free")
         return s
