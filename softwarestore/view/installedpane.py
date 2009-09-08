@@ -82,6 +82,7 @@ class InstalledPane(gtk.VBox):
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         scroll_app_list = gtk.ScrolledWindow()
+        scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_app_list.add(self.app_view)
         self.notebook.append_page(scroll_app_list, gtk.Label("installed"))
         # details
@@ -90,6 +91,7 @@ class InstalledPane(gtk.VBox):
                                           self.cache, 
                                           self.datadir)
         scroll_details = gtk.ScrolledWindow()
+        scroll_details.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_details.add(self.app_details)
         self.notebook.append_page(scroll_details, gtk.Label("details"))
         # initial refresh

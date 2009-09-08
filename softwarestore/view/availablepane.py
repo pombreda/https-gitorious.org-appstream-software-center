@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import glib
 import gobject
 import gtk
 import logging
@@ -47,8 +48,9 @@ class AvailablePane(gtk.VBox):
        It contains a search entry and navigation buttons
     """
 
-
+    DEFAULT_SEARCH_APPS_LIMIT = 200
     PADDING = 6
+
     (PAGE_CATEGORY,
      PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(3)
@@ -62,9 +64,16 @@ class AvailablePane(gtk.VBox):
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.icons = icons
         self.datadir = datadir
+        # state
+        self.apps_category_query = None
+        self.apps_search_query = None
+        self.apps_sorted = True
+        self.apps_limit = 0
         self.apps_filter = AppViewFilter(cache)
         self.apps_filter.set_not_installed_only(True)
         self._build_ui()
+        # initial refresh
+        self.refresh_apps()
     def _build_ui(self):
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()
@@ -83,6 +92,7 @@ class AvailablePane(gtk.VBox):
                                        self.xapiandb,
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
+        scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_categories.add(self.cat_view)
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
         # app list
@@ -91,6 +101,7 @@ class AvailablePane(gtk.VBox):
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         scroll_app_list = gtk.ScrolledWindow()
+        scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_app_list.add(self.app_view)
         self.notebook.append_page(scroll_app_list, gtk.Label("installed"))
         # details
@@ -99,42 +110,83 @@ class AvailablePane(gtk.VBox):
                                           self.cache, 
                                           self.datadir)
         scroll_details = gtk.ScrolledWindow()
+        scroll_details.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_details.add(self.app_details)
         self.notebook.append_page(scroll_details, gtk.Label("details"))
-        # initial refresh
-        self.category_query = None
-        self.search_terms = ""
-        self.refresh_apps()
+        # home button
+        self.navigation_bar.add_with_id(_("Get Free Software"), 
+                                        self.on_navigation_category,
+                                        "category")
+
     def refresh_apps(self):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        if self.search_terms:
-            # FIXME: move this into generic code? 
-            #        something like "build_query_from_search_terms()"
-            query = self.xapian_parser.parse_query(self.search_terms, 
-                                              xapian.QueryParser.FLAG_PARTIAL)
-            self.navigation_bar.add_with_id(_("Search in Get Free Software"), 
-                                           self.on_navigation_category,
-                                           "category")
+        # wait for the apt cache
+        if not self.cache.ready:
+            if self.app_view.window:
+                self.app_view.window.set_cursor(self.busy_cursor)
+            glib.timeout_add(100, lambda: self.refresh_apps())
+            return False
+        # build query
+        if self.apps_category_query and self.apps_search_query:
+            query = xapian.Query(xapian.Query.OP_AND, 
+                                 self.apps_category_query,
+                                 self.apps_search_query)
+        elif self.apps_category_query:
+            query = self.apps_category_query
+        elif self.apps_search_query:
+            query = self.apps_search_query
         else:
-            self.navigation_bar.add_with_id(_("Get Free Software"), 
-                                           self.on_navigation_category,
-                                           "category")
             query = None
-        # get a new store and attach it to the view
+        # create new model and attach it
         new_model = AppStore(self.cache,
                              self.xapiandb, 
                              self.icons, 
                              query, 
+                             limit=self.apps_limit,
+                             sort=self.apps_sorted,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
-    def on_search_terms_changed(self, searchentry, terms):
+        return False
+
+    # helper FIXME: move to more generic code?
+    def get_query_from_search_entry(self, search_term):
+        """ get xapian.Query from a search term string """
+        query = self.xapian_parser.parse_query(search_term, 
+                                               xapian.QueryParser.FLAG_PARTIAL)
+        # FIXME: expand to add "AA" and "AP" before each search term?
+        return query
+
+    # callbacks
+    def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
-        logging.debug("on_search_terms_changed: '%s'" % terms)
-        self.search_terms = terms
+        logging.debug("on_entry_changed: %s" % new_text)
+        self.navigation_bar.remove_id("search")
+        if self.apps_category_query:
+            cat =  self.apps_category_query.name
+        else:
+            cat = _("All")
+        if not new_text:
+            self.apps_limit = 0
+            self.apps_sorted = True
+            self.apps_search_query = None
+            self.navigation_bar.add_with_id(cat,
+                                            self.on_navigation_list, 
+                                            "list")
+        else:
+            self.apps_search_query = self.get_query_from_search_entry(new_text)
+            self.apps_sorted = False
+            self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
+            self.navigation_bar.add_with_id(_("Search in %s") % cat, 
+                                            self.on_navigation_list, 
+                                            "list")
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
+
+    def on_button_search_entry_clear_clicked(self, widget):
+        self.entry_search.set_text("")
+
     def on_application_activated(self, appview, name):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
@@ -156,11 +208,11 @@ class AvailablePane(gtk.VBox):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
     def on_category_activated(self, cat_view, name, query):
-        #print cat_view, name, query
+        print cat_view, name, query
         # FIXME: integrate this at a lower level, e.g. by sending a 
         #        full Category class with the signal
         query.name = name
-        self.category_query = query
+        self.apps_category_query = query
         # show new category
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -186,7 +238,9 @@ if __name__ == "__main__":
     db = xapian.Database(pathname)
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
+
     cache = apt.Cache(apt.progress.OpTextProgress())
+    cache.ready = True
 
     w = AvailablePane(cache, db, icons, datadir)
     w.show()

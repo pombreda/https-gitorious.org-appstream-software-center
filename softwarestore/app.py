@@ -37,13 +37,10 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from softwarestore.enums import *
 
-from view.appview import AppView, AppStore, AppViewFilter
-from view.catview import CategoriesView
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
-from view.appdetailsview import AppDetailsView
 from view.pendingview import PendingView
-from view.navigationbar import NavigationBar
-from view.searchentry import SearchEntry
+from view.installedpane import InstalledPane
+from view.availablepane import AvailablePane
 
 from apt.aptcache import AptCache
 
@@ -67,12 +64,9 @@ class SoftwareStoreDbusController(dbus.service.Object):
 
 class SoftwareStoreApp(SimpleGtkbuilderApp):
     
-    (NOTEBOOK_PAGE_CATEGORIES,
-     NOTEBOOK_PAGE_APPLIST,
-     NOTEBOOK_PAGE_APP_DETAILS,
-     NOTEBOOK_PAGE_PENDING) = range(4)
-
-    DEFAULT_SEARCH_APPS_LIMIT = 200
+    (NOTEBOOK_PAGE_AVAILABLE,
+     NOTEBOOK_PAGE_INSTALLED,
+     NOTEBOOK_PAGE_PENDING) = range(3)
 
     def __init__(self, datadir):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/SoftwareStore.ui")
@@ -108,41 +102,19 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
 
-        # categories
-        self.cat_view = CategoriesView(datadir, APP_INSTALL_PATH, self.xapiandb,
-                                       self.icons)
-        self.scrolledwindow_categories.add(self.cat_view)
-        self.cat_view.show()
-        self.cat_view.connect("category-selected", self.on_category_activated)
-        
-        # apps
-        empty_store = gtk.ListStore(gtk.gdk.Pixbuf, str)
-        self.app_view = AppView(empty_store)
-        self.app_view.connect("application-activated", self.on_app_activated)
-        self.scrolledwindow_applist.add(self.app_view)
-        self.app_view.show()
+        # installed pane
+        self.installed_pane = InstalledPane(self.cache, self.xapiandb,
+                                            self.icons, datadir)
+        self.alignment_installed.add(self.installed_pane)
 
-        # pending
+        # available pane
+        self.available_pane = AvailablePane(self.cache, self.xapiandb,
+                                            self.icons, datadir)
+        self.alignment_available.add(self.available_pane)
+
+        # pending view
         self.pending_view = PendingView(self.icons)
         self.scrolledwindow_transactions.add(self.pending_view)
-
-        # details
-        self.app_details_view = AppDetailsView(self.xapiandb, self.icons, self.cache, datadir)
-        self.app_details_view.connect("selected", self.on_app_details_selected)
-        self.scrolledwindow_app_details.add(self.app_details_view)
-        self.app_details_view.show()
-
-        # search
-        self.entry_search = SearchEntry(self.icons)
-        self.hbox_search_entry.pack_start(self.entry_search)
-        self.entry_search.connect("terms-changed", self.on_entry_search_changed)
-
-        # state
-        self.apps_filter = AppViewFilter(self.cache)
-        self.apps_category_query = None
-        self.apps_search_query = None
-        self.apps_sorted = True
-        self.apps_limit = 0
 
         # launchpad integration help, its ok if that fails
         try:
@@ -153,44 +125,12 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             logging.debug("launchpad integration error: '%s'" % e)
 
         # default focus
-        self.cat_view.grab_focus()
+        self.available_pane.cat_view.grab_focus()
         
-        # set filter to software not installed (get free software)
-        self.apps_filter.set_not_installed_only(True)
-
-    # xapian query
-    def get_query_from_search_entry(self, search_term):
-        """ get xapian.Query from a search term string """
-        query = self.xapian_parser.parse_query(search_term, 
-                                               xapian.QueryParser.FLAG_PARTIAL)
-        # FIXME: expand to add "AA" and "AP" before each search term?
-        return query
-
     # callbacks
     def on_menuitem_help_activate(self, menuitem):
         import subprocess
         subprocess.call(["yelp","ghelp:software-store"])
-
-    def on_menuitem_install_activate(self, menuitem):
-        self.app_details_view.install()
-
-    def on_menuitem_remove_activate(self, menuitem):
-        self.app_details_view.remove()
-
-    def on_app_details_selected(self, widget, appname, pkg):
-        logging.debug("on_app_details_selected %s %s" % (appname, pkg))
-        installed = bool(pkg and pkg.installed)
-        # check if the package is in the cache at all
-        if pkg:
-            self.menuitem_install.set_sensitive(not installed)
-        else:
-            self.menuitem_install.set_sensitive(False)
-        self.menuitem_remove.set_sensitive(installed)
-
-    def on_menuitem_search_activate(self, widget):
-        #print "on_menuitem_search_activate"
-        self.entry_search.grab_focus()
-        self.entry_search.select_region(0, -1)
 
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -200,159 +140,12 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.aboutdialog.run()
         self.aboutdialog.hide()
 
-    def on_menuitem_view_all_activate(self, widget):
-        #print "on_menuitem_view_all_activate", widget
-        self.apps_filter.set_supported_only(False)
-        self.refresh_apps()
-
-    def on_menuitem_view_canonical_activate(self, widget):
-        #print "on_menuitem_view_canonical_activate", widget
-        self.apps_filter.set_supported_only(True)
-        self.refresh_apps()
-
     def on_window_main_delete_event(self, widget, event):
         gtk.main_quit()
 
-    def on_button_home_clicked(self, widget):
-        logging.debug("on_button_home_clicked")
-        # we get the clicked signal when the radio-group toggles
-        # so we do not react unless we were not already pressed in
-        if not widget.get_active():
-            return
-        self.apps_category_query = None
-        # HACK: ensure that no signal term-changed is send, otherwise
-        #       self.on_search_entry_changed() is called and that
-        #       moves to a new notebook page 
-        # FIXME: deal with it in a cleaner way
-        self.entry_search.clear_with_no_signal()
-        self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
-
-    def on_entry_search_changed(self, widget, new_text):
-        self.navigation_bar.remove_id("search")
-        logging.debug("on_entry_changed: %s" % new_text)
-        if not new_text:
-            self.apps_limit = 0
-            self.apps_sorted = True
-            self.apps_search_query = None
-        else:
-            self.apps_search_query = self.get_query_from_search_entry(new_text)
-            self.apps_sorted = False
-            self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
-            if self.apps_category_query:
-                cat =  self.apps_category_query.name
-            else:
-                cat = _("All")
-            self.navigation_bar.add_with_id(_("Search in %s") % cat, 
-                                            self.on_navigation_button_category, 
-                                            "category")
-        self.refresh_apps()
-        self.change_notebook_view(self.NOTEBOOK_PAGE_APPLIST)
-
-    def on_button_search_entry_clear_clicked(self, widget):
-        self.entry_search.set_text("")
-
     def on_view_switcher_changed(self, view_switcher, action):
-        logging.debug("view_switcher_activated: %s %s" % (view_switcher, action))
-        if action == ViewSwitcherList.ACTION_ITEM_AVAILABLE:
-            logging.debug("show available")
-            if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
-                self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
-            self.apps_filter.set_installed_only(False)
-            self.apps_filter.set_not_installed_only(True)
-            self.refresh_apps()
-        elif action == ViewSwitcherList.ACTION_ITEM_INSTALLED:
-            logging.debug("show installed")
-            if self.notebook_view.get_current_page() == self.NOTEBOOK_PAGE_PENDING:
-                self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
-            self.apps_filter.set_installed_only(True)
-            self.apps_filter.set_not_installed_only(False)
-            self.refresh_apps()
-        elif action == ViewSwitcherList.ACTION_ITEM_PENDING:
-            logging.debug("show pending")
-            self.change_notebook_view(self.NOTEBOOK_PAGE_PENDING)
-        else:
-            assert False, "Not reached '%s'" % action
-
-    def on_navigation_button_category(self, widget):
-        self.change_notebook_view(self.NOTEBOOK_PAGE_APPLIST)
-
-    def on_navigation_button_app_details(self, widget):
-        self.change_notebook_view(self.NOTEBOOK_PAGE_APP_DETAILS)
-
-    def on_app_activated(self, app_view, name):
-        # show new app
-        self.app_details_view.show_app(name)
-        self.change_notebook_view(self.NOTEBOOK_PAGE_APP_DETAILS)
-        # add navigation button
-        self.navigation_bar.add_with_id(name, 
-                                        self.on_navigation_button_app_details, 
-                                        "app")
-        
-    def on_category_activated(self, cat_view, name, query):
-        #print cat_view, name, query
-        # FIXME: integrate this at a lower level, e.g. by sending a 
-        #        full Category class with the signal
-        query.name = name
-        self.apps_category_query = query
-        # show new category
-        self.refresh_apps()
-        self.change_notebook_view(self.NOTEBOOK_PAGE_APPLIST)
-        # update navigation bar
-        self.navigation_bar.add_with_id(name, 
-                                        self.on_navigation_button_category, 
-                                        "category")
-
-    # gui helper
-    def change_notebook_view(self, page):
-        self.notebook_view.set_current_page(page)
-        if page == self.NOTEBOOK_PAGE_APPLIST:
-            #self.navigation_bar.remove_id("app") #  Doesn't currently work yet
-            self.hbox_search_entry.show()
-            self.hbox_breadcrumbs.show()
-        if page == self.NOTEBOOK_PAGE_APP_DETAILS:
-            self.hbox_search_entry.hide()
-            self.hbox_breadcrumbs.show()
-        if page == self.NOTEBOOK_PAGE_CATEGORIES:
-            self.navigation_bar.remove_id("app")
-            self.navigation_bar.remove_id("category")
-            self.hbox_search_entry.show()
-            self.hbox_breadcrumbs.show()
-        if page == self.NOTEBOOK_PAGE_PENDING:
-            self.hbox_search_entry.hide()
-            self.hbox_breadcrumbs.hide()
-        
-
-    def refresh_apps(self):
-        # wait if the cache is not ready yet
-        if not self.cache.ready:
-            self.window_main.window.set_cursor(self.busy_cursor)
-            glib.timeout_add(100, lambda: self.refresh_apps())
-            return False
-        self.window_main.window.set_cursor(None)
-
-        # build query
-        if self.apps_category_query and self.apps_search_query:
-            query = xapian.Query(xapian.Query.OP_AND, 
-                                 self.apps_category_query,
-                                 self.apps_search_query)
-        elif self.apps_category_query:
-            query = self.apps_category_query
-        elif self.apps_search_query:
-            query = self.apps_search_query
-        else:
-            query = None
-
-        # create new model and attach it
-        new_model = AppStore(self.cache,
-                             self.xapiandb, 
-                             self.icons, 
-                             query, 
-                             limit=self.apps_limit,
-                             sort=self.apps_sorted,
-                             filter=self.apps_filter)
-        self.app_view.set_model(new_model)
-        id = self.statusbar_main.get_context_id("items")
-        self.statusbar_main.push(id, _("%s items available") % len(new_model))
+        logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
+        self.notebook_view.set_current_page(action)
 
     def run(self):
         self.window_main.show_all()
@@ -378,3 +171,54 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         except dbus.DBusException, e:
             bus_name = dbus.service.BusName('com.ubuntu.SoftwareStore',bus)
             self.dbusControler = SoftwareStoreDbusController(self, bus_name)
+
+
+
+    #FIXME: portme to multi-view
+    def on_menuitem_install_activate(self, menuitem):
+        self.app_details_view.install()
+    #FIXME: portme to multi-view
+    def on_menuitem_remove_activate(self, menuitem):
+        self.app_details_view.remove()
+    #FIXME: portme to multi-view
+    def on_app_details_selected(self, widget, appname, pkg):
+        logging.debug("on_app_details_selected %s %s" % (appname, pkg))
+        installed = bool(pkg and pkg.installed)
+        # check if the package is in the cache at all
+        if pkg:
+            self.menuitem_install.set_sensitive(not installed)
+        else:
+            self.menuitem_install.set_sensitive(False)
+        self.menuitem_remove.set_sensitive(installed)
+    #FIXME: portme to multi-view
+    def on_menuitem_search_activate(self, widget):
+        #print "on_menuitem_search_activate"
+        self.entry_search.grab_focus()
+        self.entry_search.select_region(0, -1)
+    #FIXME: portme to multi-view
+    def on_menuitem_view_all_activate(self, widget):
+        #print "on_menuitem_view_all_activate", widget
+        self.apps_filter.set_supported_only(False)
+        self.refresh_apps()
+    #FIXME: portme to multi-view
+    def on_menuitem_view_canonical_activate(self, widget):
+        #print "on_menuitem_view_canonical_activate", widget
+        self.apps_filter.set_supported_only(True)
+        self.refresh_apps()
+
+    #FIXME: dead-code in multi-view
+    def on_button_home_clicked(self, widget):
+        logging.debug("on_button_home_clicked")
+        # we get the clicked signal when the radio-group toggles
+        # so we do not react unless we were not already pressed in
+        if not widget.get_active():
+            return
+        self.apps_category_query = None
+        # HACK: ensure that no signal term-changed is send, otherwise
+        #       self.on_search_entry_changed() is called and that
+        #       moves to a new notebook page 
+        # FIXME: deal with it in a cleaner way
+        self.entry_search.clear_with_no_signal()
+        self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
+
+
