@@ -40,8 +40,9 @@ software-store (0.3.0) UNRELEASEDkarmic; urgency=low
   * help updates (thanks to Matthew Paul Thomas)
   * make the progress bar less cramped (LP: #426281)
   * make default icon size in category view 48px
+  * merged lp:~mpt/software-store/css branch (many thanks)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 09 Sep 2009 23:34:06 +0200
 
 software-store (0.2.2) karmic; urgency=low
 
