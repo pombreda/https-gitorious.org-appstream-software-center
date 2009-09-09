@@ -43,13 +43,19 @@
       width:64px;
       height:64px;
       z-index:-1;
-      background: url('file:$iconpath') center center no-repeat;
+      background: url('file:$iconpath') top center no-repeat;
       position:absolute;
       -webkit-background-clip: border-box;
       -webkit-background-origin: border-box;
       -webkit-background-size: ${icon_width}px ${icon_height}px;
     }
- #screenshot_thumbnail_loading {float:right; padding:10px; width:160px; height:120px; background:#fff url('file:$iconpath_loading') 50% 50% no-repeat;}
+    #screenshot_thumbnail_loading {
+      background: url('file:$iconpath_loading') 50% 50% no-repeat;
+      float:right;
+      height:120px;
+      margin: 0 0 1em 1em;
+      width:160px;
+    }
  #screenshot_thumbnail {visibility:hidden}
  #text {float:left; padding-left:86px;}
  #installed_overlay { z-index:999; width:24px; height:24px; background: url('file:${software_installed_icon}'); position:absolute; left:40px; top:40px; visibility:${installed} }
