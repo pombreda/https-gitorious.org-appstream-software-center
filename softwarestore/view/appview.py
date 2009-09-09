@@ -234,7 +234,7 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
         gtk.CellRendererText.__init__(self)
         icons = gtk.icon_theme_get_default()
         self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
-        self._forward = icons.load_icon("gtk-go-forward-ltr", 
+        self._forward = icons.load_icon("software-store-arrow-button", 
                                         AppStore.ICON_SIZE, 0)
     # FIMXE: what about right-to-left languages? we need to 
     #        render the button differently there
@@ -258,6 +258,7 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
                                -1, -1,          # size
                                0, 0, 0)         # dither
 gobject.type_register(CellRendererTextWithActivateArrow)
+
 
 # custom renderer for the arrow thing that mpt wants
 class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
