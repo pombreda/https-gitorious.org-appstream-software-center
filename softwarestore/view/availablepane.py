@@ -48,6 +48,13 @@ class AvailablePane(gtk.VBox):
        It contains a search entry and navigation buttons
     """
 
+    __gsignals__ = {
+        "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_NONE, 
+                              (int, ),
+                             )
+    }
+
     DEFAULT_SEARCH_APPS_LIMIT = 200
     PADDING = 6
 
@@ -148,6 +155,7 @@ class AvailablePane(gtk.VBox):
                              sort=self.apps_sorted,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        self.emit("app-list-changed", len(new_model))
         return False
 
     # helper FIXME: move to more generic code?
@@ -198,10 +206,13 @@ class AvailablePane(gtk.VBox):
     def on_navigation_category(self, button):
         """callback when the navigation button with id 'category' is clicked"""
         self.notebook.set_current_page(self.PAGE_CATEGORY)
+        # emit signal here to ensure to show count of all available items
+        self.emit("app-list-changed", self.xapiandb.get_doccount())
         self.searchentry.show()
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""

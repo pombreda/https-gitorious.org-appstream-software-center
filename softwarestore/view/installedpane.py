@@ -47,6 +47,13 @@ class InstalledPane(gtk.VBox):
        It contains a search entry and navigation buttons
     """
 
+    __gsignals__ = {
+        "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_NONE, 
+                              (int, ),
+                             )
+    }
+
 
     PADDING = 6
     (PAGE_APPLIST,
@@ -126,6 +133,7 @@ class InstalledPane(gtk.VBox):
                              query, 
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        self.emit("app-list-changed", len(new_model))
         return False
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""

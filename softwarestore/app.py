@@ -20,6 +20,7 @@
 import apt
 import dbus
 import dbus.service
+import gettext
 import logging
 import glib
 import gtk
@@ -94,14 +95,24 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
 
+        # misc state
+        self._block_menuitem_view = False
+        self._available_items_for_page = {}
+
         # available pane
         self.available_pane = AvailablePane(self.cache, self.xapiandb,
                                             self.icons, datadir)
+        self.available_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    self.NOTEBOOK_PAGE_AVAILABLE)
         self.alignment_available.add(self.available_pane)
 
         # installed pane
         self.installed_pane = InstalledPane(self.cache, self.xapiandb,
                                             self.icons, datadir)
+        self.installed_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    self.NOTEBOOK_PAGE_INSTALLED)
         self.alignment_installed.add(self.installed_pane)
 
         # pending view
@@ -116,9 +127,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
-        # misc state
-        self._block_menuitem_view = False
-
         # launchpad integration help, its ok if that fails
         try:
             import LaunchpadIntegration
@@ -129,8 +137,13 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
         # default focus
         self.available_pane.cat_view.grab_focus()
-        
+
     # callbacks
+    def on_app_list_changed(self, pane, new_len, page):
+        self._available_items_for_page[page] = new_len
+        if self.notebook_view.get_current_page() == page:
+            self.update_status_bar()
+
     def on_menuitem_help_activate(self, menuitem):
         import subprocess
         subprocess.call(["yelp","ghelp:software-store"])
@@ -169,6 +182,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self._block_menuitem_view = False
         # switch to new page
         self.notebook_view.set_current_page(action)
+        self.update_status_bar()
 
     def on_menuitem_view_all_activate(self, widget):
         if self._block_menuitem_view:
@@ -188,9 +202,18 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.active_pane.searchentry.grab_focus()
             self.active_pane.searchentry.select_region(0, -1)
 
-    def run(self):
-        self.window_main.show_all()
-        SimpleGtkbuilderApp.run(self)
+    # helper
+    def update_status_bar(self):
+        "Helper that updates the status bar"
+        page = self.notebook_view.get_current_page()
+        try:
+            new_len = self._available_items_for_page[page]
+            s = gettext.ngettext("%s item available",
+                                 "%s items available",
+                                 new_len) % new_len
+        except KeyError, e:
+            s = ""
+        self.label_status.set_text(s)
 
     def setup_dbus_or_bring_other_instance_to_front(self):
         """ 
@@ -212,6 +235,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         except dbus.DBusException, e:
             bus_name = dbus.service.BusName('com.ubuntu.SoftwareStore',bus)
             self.dbusControler = SoftwareStoreDbusController(self, bus_name)
+
+    def run(self):
+        self.window_main.show_all()
+        SimpleGtkbuilderApp.run(self)
 
 
 

@@ -289,9 +289,8 @@
           </packing>
         </child>
         <child>
-          <object class="GtkStatusbar" id="statusbar_main">
+          <object class="GtkLabel" id="label_status">
             <property name="visible">True</property>
-            <property name="spacing">2</property>
           </object>
           <packing>
             <property name="expand">False</property>
