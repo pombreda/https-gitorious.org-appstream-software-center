@@ -159,7 +159,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.update_status_bar()
 
     def on_menuitem_help_activate(self, menuitem):
-        subprocess.call(["yelp","ghelp:software-store"])
+        # run yelp
+        p = subprocess.Popen(["yelp","ghelp:software-store"])
+        # collect the exit status (otherwise we leave zombies)
+        glib.timeout_add(1000, lambda p: p.poll() == None, p)
 
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
