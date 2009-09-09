@@ -313,7 +313,7 @@
     <property name="program_name">Ubuntu Software Store</property>
     <property name="version">0.2.2</property>
     <property name="copyright" translatable="yes">(c) 2009 Canonical</property>
-    <property name="comments" translatable="yes">A application to install and remove software</property>
+    <property name="comments" translatable="yes">Lets you choose from thousands of free applications available for Ubuntu.</property>
     <property name="website">http://launchpad.net/software-store</property>
     <property name="authors">Michael Vogt</property>
     <property name="logo_icon_name">software-store</property>
