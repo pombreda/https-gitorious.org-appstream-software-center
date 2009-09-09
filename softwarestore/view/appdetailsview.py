@@ -53,7 +53,7 @@ except ImportError:
 class AppDetailsView(WebkitWidget):
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 48
+    APP_ICON_SIZE = 64
     APP_ICON_PADDING = 8
 
     # dependency types we are about
