@@ -136,7 +136,7 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_column_type(self, index):
         return self.column_type[index]
     def on_get_iter(self, path):
-        logging.debug("on_get_iter: %s" % path)
+        #logging.debug("on_get_iter: %s" % path)
         if len(self.appnames) == 0:
             return None
         index = path[0]
@@ -199,7 +199,7 @@ class AppStore(gtk.GenericTreeModel):
             return 0
         return len(self.appnames)
     def on_iter_nth_child(self, parent, n):
-        logging.debug("on_iter_nth_child: %s %i" % (parent, n))
+        #logging.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
         try:
@@ -382,8 +382,8 @@ class AppViewFilter(object):
         return self.supported_only
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
-        logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
-                self.supported_only, self.installed_only, pkgname))
+        #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
+        #        self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
             if (self.cache.has_key(pkgname) and 
                 not self.cache[pkgname].isInstalled):
