@@ -66,8 +66,8 @@
     and you can install an application with the click of a button.
     </para>
     <para>
-      The Store also lets you examine the applications that are installed
-      already,
+      The Store also lets you examine the applications installed on the
+      computer already,
       and remove those you no longer need.
     </para>
   </chapter>
@@ -75,8 +75,7 @@
     <title>Installing a program</title>
     <para>
       To install a program from the Store,
-      you need a working Internet connection,
-      and administrator access.
+      you need administrator access and a working Internet connection.
       (If you set up Ubuntu on this computer yourself,
       you have administrator access automatically.)
     </para>
