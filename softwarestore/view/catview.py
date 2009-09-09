@@ -50,9 +50,7 @@ class Category(object):
 
 class CategoriesView(WebkitWidget):
 
-    # 24px for now because the human icon theme has some of
-    # the icons *only* in 24px resolution
-    CATEGORY_ICON_SIZE = 24
+    CATEGORY_ICON_SIZE = 48
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,

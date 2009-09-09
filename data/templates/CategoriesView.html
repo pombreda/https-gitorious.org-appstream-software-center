@@ -36,7 +36,7 @@
     body {background-color:#b6bdc4; margin: 0; padding: 1em; color:#000;}
     h2 {
       background-color: #7D91aa;
-      border: 0px solid;
+      border-style: solid;
       border-width: 0 0 1px 0;
       border-color: #E2E7EC #404a57 #404a57 #E2E7EC;
       color: #fff;
@@ -50,7 +50,15 @@
  /* .category_td {border-width:1px;border-style:solid;} */
  /* fixed width does not work, it does not ellipsis but overflows the box */
  /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
- .category_td {padding:8px; margin:8px; display:inline-block; text-overflow: ellipsis;} 
+
+    .category_td {
+      padding: 0 8px;
+      display:inline-block;
+      text-overflow: ellipsis;
+      vertical-align: top;
+      width: 6em !important;
+    } 
+
  .category_td:hover { cursor: pointer; opacity:0.65; }
  .category_td p { font-size:90%; text-align:center; }
  </style>
