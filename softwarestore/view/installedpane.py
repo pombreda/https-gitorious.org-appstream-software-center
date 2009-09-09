@@ -157,8 +157,10 @@ class InstalledPane(gtk.VBox):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
-        self.notebook.set_current_page(self.PAGE_APPLIST)
+        # remove the details and clear the search
+        self.searchentry.clear()
         self.navigation_bar.remove_id("details")
+        self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""

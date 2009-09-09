@@ -84,11 +84,14 @@ class SearchEntry(sexy.IconEntry):
             self.handler_unblock(self._handler_changed)
             self.emit("terms-changed", self.get_text())
 
+    def clear(self):
+        self.set_text("")
+        self._check_style()
+
     def clear_with_no_signal(self):
         """Clear and do not send a term-changed signal"""
         self.handler_block(self._handler_changed)
-        self.set_text("")
-        self._check_style()
+        self.clear()
         self.handler_unblock(self._handler_changed)
 
     def _on_changed(self, widget):

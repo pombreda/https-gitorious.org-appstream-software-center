@@ -206,7 +206,7 @@ class AvailablePane(gtk.VBox):
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
     def on_button_search_entry_clear_clicked(self, widget):
-        self.entry_search.set_text("")
+        self.searchentry.set_text("")
 
     def on_application_activated(self, appview, name):
         """callback when a app is clicked"""
@@ -220,7 +220,12 @@ class AvailablePane(gtk.VBox):
         """callback when the navigation button with id 'category' is clicked"""
         if not button.get_active():
             return
-        # remove navigation bar items
+        #  clear the search
+        self.searchentry.clear_with_no_signal()
+        self.apps_limit = 0
+        self.apps_sorted = True
+        self.apps_search_query = None
+        # remove navigation bar elements
         self.navigation_bar.remove_id("list")
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_CATEGORY)
