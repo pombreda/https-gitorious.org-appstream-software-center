@@ -82,7 +82,8 @@
     <orderedlist>
       <listitem>
         <para>
-          Find the program you want to install.
+          In the <guilabel>Get Free Software</guilabel> section,
+          find the program you want to install.
           If you already know its name, try typing the name in the search field.
           Or try searching for the type of program you want
           (like &#8220;spreadsheet&#8221;).
@@ -152,6 +153,39 @@
   </chapter>
   <chapter id="removing">
     <title id="removing-title">Removing a program</title>
+    <para>
+      To remove a program, you need administrator access.
+      (If you set up Ubuntu on this computer yourself,
+      you have administrator access automatically.)
+    </para>
+    <orderedlist>
+      <listitem>
+        <para>
+          In the <guilabel>Installed Software</guilabel> section,
+          find the program you want to remove.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Click the program in the list, and click the arrow button to go to the
+          screen for the program.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Click the <guilabel>Remove</guilabel> button.
+          You may need to enter your Ubuntu password.
+        </para>
+      </listitem>
+    </orderedlist>
+    <para>
+      If a program is open when you remove it,
+      usually it will stay open after it is removed.
+      As soon as you close it, it will no longer be available.
+    </para>
+    <itemizedlist>
+      <listitem><xref linkend="metapackages" endterm="metapackages-title"/></listitem>
+    </itemizedlist>
   </chapter>
   <chapter id="metapackages">
     <title id="metapackages-title"
