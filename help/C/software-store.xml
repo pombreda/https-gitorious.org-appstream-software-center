@@ -84,7 +84,6 @@
             </listitem>
         </orderedlist>
     </sect1>
-    
     <sect1 id="main-window">
         <title>Main Window</title>
         <para>
@@ -93,7 +92,7 @@
         <screenshot>
             <mediaobject>
               <imageobject>
-                <imagedata fileref="./figures/main_window.png" format="PNG"/>
+                <imagedata fileref="./figures/placeholder.png" format="PNG"/>
               </imageobject>
               <caption>
                 <para>Ubuntu Software Store main window</para>
@@ -110,5 +109,132 @@
                     <listitem><para><guilabel>Status bar</guilabel> - displays information relating to what you are currently viewing.</para></listitem>
           </orderedlist>
     </sect1>
-  </chapter> 
+  </chapter>
+  
+    <chapter id="managing-applications">
+    <title>Managing Applications</title>
+     <sect1 id="searching-applications">
+		<title>Searching for applications to manage</title>
+		<para>The first thing to do before installing or removing an application using The <application>Ubuntu Software Store</application> is to locate it from the software catalog. To start a search from the software catalog, do the following:</para>
+		<procedure>
+                <step>
+					<para>To manage an installed application, click the <guilabel>Installed Software</guilabel> item from the navigation pane. To manage an application that is not installed yet, click the <guilabel>Get Free Software</guilabel> item from the navigation pane.</para>				
+				</step>
+				<step>
+					<para>(optional) Select a category from the department lobby. This will filter your search to only those pieces of software that are in this category.</para>				
+				</step>
+				<step>
+					<para>Type the name of the application you wish to locate in the search field.</para>				
+				</step>
+				<step>
+					<para>When you find the application you need, click on the arrow beside the name of the application in the Main Pane to see more details.</para>				
+				</step>
+		</procedure>
+		<screenshot>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="./figures/placeholder.png" format="PNG"/>
+          </imageobject>
+          <caption>
+            <para>Use the search field to search for applications to manage.</para>
+          </caption>
+        </mediaobject>
+      </screenshot>
+    </sect1>
+    <!-- not done yet 
+    <sect1 id="installing-applications">
+    	<title>Installing new applications</title>
+    	<para>To install an application, check the corresponding application in the application pane. If it is not listed there, follow the steps as enumerated in <xref linkend="searching-applications" />.
+</para>
+		<procedure>
+			<step><para>Once you have checked an application to be installed, click <guibutton>Apply</guibutton> to start the installation. A dialog will appear that shows the applications that will be added to or removed from your system.</para>
+    		<screenshot>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="./figures/add_apps.png" format="PNG"/>
+          </imageobject>
+          <caption>
+            <para>List of applications to be added after selecting and applying them from the main window</para>
+          </caption>
+        </mediaobject>
+      </screenshot></step>
+		<step>
+		<para>To confirm the installation, click <guibutton>Apply</guibutton>. The software will then be downloaded and installed. If you wish to go back to the main window or cancel the installation, click <guibutton>Cancel</guibutton>.</para>
+		<screenshot>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="./figures/download_apps.png" format="PNG"/>
+          </imageobject>
+          <caption>
+            <para>Downloading package files</para>
+          </caption>
+        </mediaobject>
+      </screenshot>
+      </step>
+		<step>
+				<para>The downloaded package will then be installed. To have the progress dialog close after installation, select <guibutton>Automatically close after the changes have been successfully applied</guibutton>. You can also check the progress of the installation from a terminal output by maximizing the Terminal option.</para>
+      <screenshot>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="./figures/configure_install_apps.png" format="PNG"/>
+          </imageobject>
+          <caption>
+            <para>Installing software</para>
+          </caption>
+        </mediaobject>
+      </screenshot>		
+		</step>
+      <step>
+      	<para>When installation is done, a dialog containing a list of all newly installed applications will appear. You can double-click on an icon to launch it from here or you can close this dialog to finish the installation.</para>
+      	<screenshot>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="./figures/new_apps.png" format="PNG"/>
+          </imageobject>
+          <caption>
+            <para>New applications installed</para>
+          </caption>
+        </mediaobject>
+      </screenshot>
+      </step>
+      </procedure>
+    </sect1>
+    <sect1 id="removing-applications">
+    	<title>Removing applications from the system</title>
+    	<para>To remove an application, uncheck the corresponding application in the application pane. If it is not listed there, follow the steps as enumerated in <xref linkend="searching-applications" />.</para>
+    	<procedure>
+			<step><para>Once you have selected an application to be removed, click <guibutton>Apply</guibutton> to start the process. A dialog will show the applications that will be removed from your system. To continue removing the application, click <guibutton>Apply</guibutton>. To cancel the removal, click <guibutton>Cancel</guibutton>.</para>
+			<screenshot>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="./figures/remove_apps.png" format="PNG"/>
+          </imageobject>
+          <caption>
+            <para>List of applications to be removed after selecting and applying them from the main window</para>
+          </caption>
+        </mediaobject>
+      </screenshot>			
+			</step>  
+			<step>
+			<para>Once the removal of the application is confirmed, <application>Install and Remove Applications</application> will start de-installing the application from the system. Once it is done, you can now close the dialog and you will be sent back to the main window.</para>
+				<screenshot>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="./figures/configure_remove_apps.png" format="PNG"/>
+          </imageobject>
+          <caption>
+            <para>Removing software</para>
+          </caption>
+        </mediaobject>
+      </screenshot>			
+			</step>  	
+    	</procedure>
+    </sect1>-->
+  </chapter>
+  <chapter id="about-software-store">
+    <title>About Ubuntu Software Store</title>
+    <para>The <application>Ubuntu Software Store</application> was written by Michael Vogt <email>michael.vogt@ubuntu.com</email> and Andrew Higginson <email>rugby471@gmail.com</email>. The interface was designed by Matthew Paul Thomas <email>mpt@canonical.com</email>.</para>
+    <para>To report a bug or make a suggestion regarding this package or this
+      manual, send mail to <email>ubuntu-users@lists.ubuntu.com</email>.</para>
+  </chapter>
 </book>

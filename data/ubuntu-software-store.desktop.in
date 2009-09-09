@@ -1,7 +1,7 @@
 [Desktop Entry]
 _Name=Ubuntu Software Store
 _GenericName=Software Store
-_Comment=Install and remove software
+_Comment=Lets you choose from thousands of free applications available for Ubuntu
 Exec=/usr/bin/software-store
 Icon=software-store
 Terminal=false

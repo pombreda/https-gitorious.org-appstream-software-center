@@ -52,6 +52,7 @@ class PendingStore(gtk.ListStore):
     PENDING_STORE_ICON_CANCEL = gtk.STOCK_CANCEL
     PENDING_STORE_ICON_NO_CANCEL = "" # gtk.STOCK_YES
 
+
     def __init__(self, icons):
         # icon, status, progress
         gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, str, str, float, str)
@@ -77,6 +78,8 @@ class PendingStore(gtk.ListStore):
         self._signals = []
 
     def on_transactions_changed(self, current_tid, pending_tids):
+        ICON_SIZE = 32
+        
         #print "on_transaction_changed", current_tid, len(pending_tids)
         self.clear()
         for tid in [current_tid]+pending_tids:
@@ -96,11 +99,11 @@ class PendingStore(gtk.ListStore):
             iconname = trans.get_data("iconname")
             if iconname:
                 try:
-                    icon = self.icons.load_icon(iconname, 24, 0)
+                    icon = self.icons.load_icon(iconname, ICON_SIZE, 0)
                 except Exception, e:
-                    icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
+                    icon = self.icons.load_icon(MISSING_APP_ICON, ICON_SIZE, 0)
             else:
-                icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
+                icon = self.icons.load_icon(MISSING_APP_ICON, ICON_SIZE, 0)
             self.append([tid, icon, appname, "", 0.0, ""])
             del trans
 

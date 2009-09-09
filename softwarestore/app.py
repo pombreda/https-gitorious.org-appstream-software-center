@@ -314,17 +314,25 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.notebook_view.set_current_page(page)
         if page == self.NOTEBOOK_PAGE_APPLIST:
             #self.navigation_bar.remove_id("app") #  Doesn't currently work yet
+            id = self.statusbar_main.get_context_id("items")
+            #self.statusbar_main.push(id, _("%s items available") % len(self.app_view.get_model))
             self.hbox_search_entry.show()
             self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_APP_DETAILS:
+            id = self.statusbar_main.get_context_id("details")
+            self.statusbar_main.push(id, _(""))
             self.hbox_search_entry.hide()
             self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_CATEGORIES:
+            id = self.statusbar_main.get_context_id("items")
+            #self.statusbar_main.push(id, _("%s items available") % len(self.app_view.get_model))
             self.navigation_bar.remove_id("app")
             self.navigation_bar.remove_id("category")
             self.hbox_search_entry.show()
             self.hbox_breadcrumbs.show()
         if page == self.NOTEBOOK_PAGE_PENDING:
+            id = self.statusbar_main.get_context_id("details")
+            self.statusbar_main.push(id, _(""))
             self.hbox_search_entry.hide()
             self.hbox_breadcrumbs.hide()
         
@@ -360,6 +368,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.app_view.set_model(new_model)
         id = self.statusbar_main.get_context_id("items")
         self.statusbar_main.push(id, _("%s items available") % len(new_model))
+        self.new_model = new_model
 
     def run(self):
         self.window_main.show_all()
