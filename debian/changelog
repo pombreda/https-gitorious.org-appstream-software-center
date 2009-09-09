@@ -34,6 +34,7 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
       Category screen). The search must be cleared with the cleared
       via the search field in this case. 
     (LP: #425809)
+  * help updates (thanks to Matthew Paul Thomas)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
 
