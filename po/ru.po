@@ -7,94 +7,147 @@ msgid ""
 msgstr ""
 "Project-Id-Version: software-store\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2009-08-24 16:16+0200\n"
-"PO-Revision-Date: 2009-08-26 03:33+0000\n"
-"Last-Translator: idle sign <Unknown>\n"
+"POT-Creation-Date: 2009-09-02 13:52+0200\n"
+"PO-Revision-Date: 2009-08-29 10:00+0000\n"
+"Last-Translator: Alexander Semyonov <Unknown>\n"
 "Language-Team: Russian <ru@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2009-08-26 15:04+0000\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../softwarestore/app.py:174
-msgid "Search"
-msgstr "Поиск"
+#: ../softwarestore/app.py:223
+msgid "All"
+msgstr "Все"
 
-#: ../softwarestore/app.py:251
+#: ../softwarestore/app.py:224
+#, python-format
+msgid "Search in %s"
+msgstr "Поиск в %s"
+
+#: ../softwarestore/app.py:333
 #, python-format
 msgid "%s items available"
-msgstr ""
+msgstr "%s приложений доступно"
 
-#: ../softwarestore/view/appdetailsview.py:65
+#: ../softwarestore/view/appdetailsview.py:77
 msgid "Description"
 msgstr "Описание"
 
-#: ../softwarestore/view/appdetailsview.py:150
-#, python-format
-msgid "Price: %s"
-msgstr ""
+#: ../softwarestore/view/appdetailsview.py:147
+msgid "Not available in the current data"
+msgstr "Нет данных"
 
-#: ../softwarestore/view/appdetailsview.py:150
-msgid "Free"
-msgstr ""
-
-#: ../softwarestore/view/appdetailsview.py:160
+#: ../softwarestore/view/appdetailsview.py:176
 #, python-format
 msgid "Version: %s (%s)"
 msgstr "Версия: %s (%s)"
 
-#: ../softwarestore/view/appdetailsview.py:169
-msgid "Not available in the current data"
+#. generic message
+#: ../softwarestore/view/appdetailsview.py:194
+#, python-format
+msgid "%s is installed on this computer."
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:195
-msgid "Upgrade"
-msgstr "Обновить"
+#: ../softwarestore/view/appdetailsview.py:206
+#, python-format
+msgid "It is used by %s piece of installed software."
+msgid_plural "It is used by %s pieces of installed software."
+msgstr[0] ""
+msgstr[1] ""
 
-#: ../softwarestore/view/appdetailsview.py:198
-msgid "Remove"
-msgstr "Удалить"
+#: ../softwarestore/view/appdetailsview.py:211
+#, python-format
+msgid "Price: %s"
+msgstr "Стоимость: %s"
 
-#: ../softwarestore/view/appdetailsview.py:201
-msgid "Install"
-msgstr "Установить"
+#: ../softwarestore/view/appdetailsview.py:211
+msgid "Free"
+msgstr "Бесплатно"
 
-#: ../softwarestore/view/appdetailsview.py:217
-msgid "Homepage"
-msgstr "Домашняя страница"
+#. generic removal text
+#: ../softwarestore/view/appdetailsview.py:257
+#, python-format
+msgid "%s depends on other software on the system. "
+msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:279
+#: ../softwarestore/view/appdetailsview.py:258
+msgid ""
+"Uninstalling it means that the following additional software needs to be "
+"removed."
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:263
+#, python-format
+msgid "%s is a core component"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:264
+#, python-format
+msgid ""
+"%s is a core application in Ubuntu. Uninstalling it may cause future "
+"upgrades to be incomplete. Are you sure you want to continue?"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:293
 msgid "ERROR"
 msgstr "ОШИБКА"
 
-#: ../softwarestore/view/catview.py:109
-msgid "Categories"
-msgstr "Категории"
+#: ../softwarestore/view/appdetailsview.py:309
+msgid "Upgrade"
+msgstr "Обновить"
 
-#. setup the normal stuff
-#: ../softwarestore/view/viewswitcher.py:90
-msgid "Get new software"
+#: ../softwarestore/view/appdetailsview.py:312
+msgid "Remove"
+msgstr "Удалить"
+
+#: ../softwarestore/view/appdetailsview.py:315
+msgid "Install"
+msgstr "Установить"
+
+#. FIXME: deal with the EULA stuff
+#: ../softwarestore/view/appdetailsview.py:324
+msgid "Enable channel"
 msgstr ""
 
-#: ../softwarestore/view/viewswitcher.py:91
-msgid "Installed software"
-msgstr "Установленое"
+#: ../softwarestore/view/viewswitcher.py:95
+msgid "Get Free software"
+msgstr "Получить свободное ПО"
 
-#: ../softwarestore/view/viewswitcher.py:119
-#: ../softwarestore/view/viewswitcher.py:122
+#: ../softwarestore/view/viewswitcher.py:97
+msgid "Installed software"
+msgstr "Установленные приложения"
+
+#: ../softwarestore/view/viewswitcher.py:127
+#, python-format
+msgid "In Progress (%i)"
+msgstr "В процессе (%i)"
+
+#: ../softwarestore/view/viewswitcher.py:132
 #, python-format
 msgid "Pending (%i)"
-msgstr ""
+msgstr "В очереди (%i)"
 
 #: ../data/ubuntu-software-store.desktop.in.h:1
 msgid "Install and remove software"
-msgstr ""
+msgstr "Установка и удаление программ"
 
 #: ../data/ubuntu-software-store.desktop.in.h:2
 msgid "Software Store"
-msgstr ""
+msgstr "Software Store"
 
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
-msgstr ""
+msgstr "Ubuntu Software Store"
+
+#~ msgid "Search"
+#~ msgstr "Поиск"
+
+#~ msgid "Homepage"
+#~ msgstr "Домашняя страница"
+
+#~ msgid "Categories"
+#~ msgstr "Категории"

@@ -1,84 +1,93 @@
-#, fuzzy
+# Arabic translation for software-store
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the software-store package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: software-store\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-09-02 13:52+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2009-09-08 22:23+0000\n"
+"Last-Translator: saudi linux <saudi.unix@gmail.com>\n"
+"Language-Team: Arabic <ar@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n % 100 >= "
+"3 && n % 100 <= 10 ? 3 : n % 100 >= 11 && n % 100 <= 99 ? 4 : 5;\n"
 "X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../softwarestore/app.py:223
 msgid "All"
-msgstr ""
+msgstr "الكل"
 
 #: ../softwarestore/app.py:224
 #, python-format
 msgid "Search in %s"
-msgstr ""
+msgstr "ابحث في %s"
 
 #: ../softwarestore/app.py:333
 #, python-format
 msgid "%s items available"
-msgstr ""
+msgstr "%s عناصر متوفرة"
 
 #: ../softwarestore/view/appdetailsview.py:77
 msgid "Description"
-msgstr ""
+msgstr "الوصف"
 
 #: ../softwarestore/view/appdetailsview.py:147
 msgid "Not available in the current data"
-msgstr ""
+msgstr "غير متوفر في البيانات الحالية"
 
 #: ../softwarestore/view/appdetailsview.py:176
 #, python-format
 msgid "Version: %s (%s)"
-msgstr ""
+msgstr "الإصدار: %s (%s)"
 
 #. generic message
 #: ../softwarestore/view/appdetailsview.py:194
 #, python-format
 msgid "%s is installed on this computer."
-msgstr ""
+msgstr "%s مثبت على هذا الحاسوب."
 
 #: ../softwarestore/view/appdetailsview.py:206
 #, python-format
 msgid "It is used by %s piece of installed software."
 msgid_plural "It is used by %s pieces of installed software."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "ليس مستخدما من قبل أي قطعة من البرمجيات المثبّتة."
+msgstr[1] "مستخدم من قبل قطعة من البرمجيات المثبّتة."
+msgstr[2] "مستخدم من قبل قطعتان من البرمجيات المثبّتة."
+msgstr[3] "مستخدم من قبل %s قطعات من البرمجيات المثبّتة."
+msgstr[4] "مستخدم من قبل %s قطعةً من البرمجيات المثبّتة."
+msgstr[5] "مستخدم من قبل %s قطعة من البرمجيات المثبّتة."
 
 #: ../softwarestore/view/appdetailsview.py:211
 #, python-format
 msgid "Price: %s"
-msgstr ""
+msgstr "السعر: %s"
 
 #: ../softwarestore/view/appdetailsview.py:211
 msgid "Free"
-msgstr ""
+msgstr "حرّ"
 
 #. generic removal text
 #: ../softwarestore/view/appdetailsview.py:257
 #, python-format
 msgid "%s depends on other software on the system. "
-msgstr ""
+msgstr "%s يعتمد على برمجيات أخرى في النظام "
 
 #: ../softwarestore/view/appdetailsview.py:258
 msgid ""
 "Uninstalling it means that the following additional software needs to be "
 "removed."
-msgstr ""
+msgstr "إلغاء تثبيته يعني أن البرمجيات الإضافية التالية يجب إزالتها."
 
 #: ../softwarestore/view/appdetailsview.py:263
 #, python-format
 msgid "%s is a core component"
-msgstr ""
+msgstr "%s هو مكون أساسي"
 
 #: ../softwarestore/view/appdetailsview.py:264
 #, python-format
@@ -86,54 +95,56 @@ msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
+"%s هو مكون أساسي في أوبونتو. إلغاء تثبيته قد يتسبب في أن تكون الترقيات "
+"المستقبلية ناقصة. هل أنت متأكد من أنك تريد المتابعة؟"
 
 #: ../softwarestore/view/appdetailsview.py:293
 msgid "ERROR"
-msgstr ""
+msgstr "خطأ"
 
 #: ../softwarestore/view/appdetailsview.py:309
 msgid "Upgrade"
-msgstr ""
+msgstr "ترقية"
 
 #: ../softwarestore/view/appdetailsview.py:312
 msgid "Remove"
-msgstr ""
+msgstr "إحذف"
 
 #: ../softwarestore/view/appdetailsview.py:315
 msgid "Install"
-msgstr ""
+msgstr "ثبّت"
 
 #. FIXME: deal with the EULA stuff
 #: ../softwarestore/view/appdetailsview.py:324
 msgid "Enable channel"
-msgstr ""
+msgstr "فعّل القناة"
 
 #: ../softwarestore/view/viewswitcher.py:95
 msgid "Get Free software"
-msgstr ""
+msgstr "احصل على برمجيات مجانية"
 
 #: ../softwarestore/view/viewswitcher.py:97
 msgid "Installed software"
-msgstr ""
+msgstr "البرمجيات المثبتة"
 
 #: ../softwarestore/view/viewswitcher.py:127
 #, python-format
 msgid "In Progress (%i)"
-msgstr ""
+msgstr "يتقدّم (%i)"
 
 #: ../softwarestore/view/viewswitcher.py:132
 #, python-format
 msgid "Pending (%i)"
-msgstr ""
+msgstr "ينتظِر (%i)"
 
 #: ../data/ubuntu-software-store.desktop.in.h:1
 msgid "Install and remove software"
-msgstr ""
+msgstr "ثبّت و أزل برمجيات"
 
 #: ../data/ubuntu-software-store.desktop.in.h:2
 msgid "Software Store"
-msgstr ""
+msgstr "متجر البرمجيات"
 
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
-msgstr ""
+msgstr "متجر برمجيات أوبونتو"

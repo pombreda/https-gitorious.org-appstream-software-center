@@ -1,84 +1,90 @@
-#, fuzzy
+# French translation for software-store
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the software-store package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: software-store\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-09-02 13:52+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2009-09-03 12:36+0000\n"
+"Last-Translator: Nizar Kerkeni <nizarus@nizarus.org>\n"
+"Language-Team: French <fr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../softwarestore/app.py:223
 msgid "All"
-msgstr ""
+msgstr "Tout"
 
 #: ../softwarestore/app.py:224
 #, python-format
 msgid "Search in %s"
-msgstr ""
+msgstr "Chercher dans %s"
 
 #: ../softwarestore/app.py:333
 #, python-format
 msgid "%s items available"
-msgstr ""
+msgstr "%s éléments disponibles"
 
 #: ../softwarestore/view/appdetailsview.py:77
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
 #: ../softwarestore/view/appdetailsview.py:147
 msgid "Not available in the current data"
-msgstr ""
+msgstr "Non disponible dans les données actuelles"
 
 #: ../softwarestore/view/appdetailsview.py:176
 #, python-format
 msgid "Version: %s (%s)"
-msgstr ""
+msgstr "Version : %s (%s)"
 
 #. generic message
 #: ../softwarestore/view/appdetailsview.py:194
 #, python-format
 msgid "%s is installed on this computer."
-msgstr ""
+msgstr "%s est installé sur cet ordinateur."
 
 #: ../softwarestore/view/appdetailsview.py:206
 #, python-format
 msgid "It is used by %s piece of installed software."
 msgid_plural "It is used by %s pieces of installed software."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "il est utilisé par %s morceau de logiciels installés."
+msgstr[1] "il est utilisé par %s morceaux de logiciels installés."
 
 #: ../softwarestore/view/appdetailsview.py:211
 #, python-format
 msgid "Price: %s"
-msgstr ""
+msgstr "Prix : %s"
 
 #: ../softwarestore/view/appdetailsview.py:211
 msgid "Free"
-msgstr ""
+msgstr "Libre"
 
 #. generic removal text
 #: ../softwarestore/view/appdetailsview.py:257
 #, python-format
 msgid "%s depends on other software on the system. "
-msgstr ""
+msgstr "%s dépend d'autres logiciels dans le système. "
 
 #: ../softwarestore/view/appdetailsview.py:258
 msgid ""
 "Uninstalling it means that the following additional software needs to be "
 "removed."
 msgstr ""
+"Le désinstaller signifie que les logiciels supplémentaires suivant doivent "
+"être supprimés."
 
 #: ../softwarestore/view/appdetailsview.py:263
 #, python-format
 msgid "%s is a core component"
-msgstr ""
+msgstr "%s est un composant principal."
 
 #: ../softwarestore/view/appdetailsview.py:264
 #, python-format
@@ -86,54 +92,56 @@ msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
+"%s est un composant principal dans Ubuntu. Le désinstaller peut causer des "
+"mises à jour incomplètes dans le future. Êtes-vous sûr de vouloir continuer ?"
 
 #: ../softwarestore/view/appdetailsview.py:293
 msgid "ERROR"
-msgstr ""
+msgstr "ERREUR"
 
 #: ../softwarestore/view/appdetailsview.py:309
 msgid "Upgrade"
-msgstr ""
+msgstr "Mettre à niveau"
 
 #: ../softwarestore/view/appdetailsview.py:312
 msgid "Remove"
-msgstr ""
+msgstr "Supprimer"
 
 #: ../softwarestore/view/appdetailsview.py:315
 msgid "Install"
-msgstr ""
+msgstr "Installer"
 
 #. FIXME: deal with the EULA stuff
 #: ../softwarestore/view/appdetailsview.py:324
 msgid "Enable channel"
-msgstr ""
+msgstr "Activer la chaîne"
 
 #: ../softwarestore/view/viewswitcher.py:95
 msgid "Get Free software"
-msgstr ""
+msgstr "Obtenir des logiciels libres"
 
 #: ../softwarestore/view/viewswitcher.py:97
 msgid "Installed software"
-msgstr ""
+msgstr "Logiciels installés"
 
 #: ../softwarestore/view/viewswitcher.py:127
 #, python-format
 msgid "In Progress (%i)"
-msgstr ""
+msgstr "En cours (%i)"
 
 #: ../softwarestore/view/viewswitcher.py:132
 #, python-format
 msgid "Pending (%i)"
-msgstr ""
+msgstr "En attente (%i)"
 
 #: ../data/ubuntu-software-store.desktop.in.h:1
 msgid "Install and remove software"
-msgstr ""
+msgstr "Installer et supprimer des logiciels"
 
 #: ../data/ubuntu-software-store.desktop.in.h:2
 msgid "Software Store"
-msgstr ""
+msgstr "Software Store"
 
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
-msgstr ""
+msgstr "Ubuntu Software Store"

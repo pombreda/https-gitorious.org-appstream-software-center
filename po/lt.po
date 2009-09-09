@@ -1,16 +1,21 @@
-#, fuzzy
+# Lithuanian translation for software-store
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the software-store package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: software-store\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-09-02 13:52+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2009-08-28 15:27+0000\n"
+"Last-Translator: Mantas Kriaučiūnas <mantas@akl.lt>\n"
+"Language-Team: Lithuanian <lt@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"(n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
@@ -26,11 +31,11 @@ msgstr ""
 #: ../softwarestore/app.py:333
 #, python-format
 msgid "%s items available"
-msgstr ""
+msgstr "rasta %s programų (-os)"
 
 #: ../softwarestore/view/appdetailsview.py:77
 msgid "Description"
-msgstr ""
+msgstr "Aprašymas"
 
 #: ../softwarestore/view/appdetailsview.py:147
 msgid "Not available in the current data"
@@ -39,7 +44,7 @@ msgstr ""
 #: ../softwarestore/view/appdetailsview.py:176
 #, python-format
 msgid "Version: %s (%s)"
-msgstr ""
+msgstr "Versija: %s (%s)"
 
 #. generic message
 #: ../softwarestore/view/appdetailsview.py:194
@@ -57,11 +62,11 @@ msgstr[1] ""
 #: ../softwarestore/view/appdetailsview.py:211
 #, python-format
 msgid "Price: %s"
-msgstr ""
+msgstr "Kaina: %s"
 
 #: ../softwarestore/view/appdetailsview.py:211
 msgid "Free"
-msgstr ""
+msgstr "Nemokama"
 
 #. generic removal text
 #: ../softwarestore/view/appdetailsview.py:257
@@ -89,19 +94,19 @@ msgstr ""
 
 #: ../softwarestore/view/appdetailsview.py:293
 msgid "ERROR"
-msgstr ""
+msgstr "KLAIDA"
 
 #: ../softwarestore/view/appdetailsview.py:309
 msgid "Upgrade"
-msgstr ""
+msgstr "Atnaujinti"
 
 #: ../softwarestore/view/appdetailsview.py:312
 msgid "Remove"
-msgstr ""
+msgstr "Pašalinti"
 
 #: ../softwarestore/view/appdetailsview.py:315
 msgid "Install"
-msgstr ""
+msgstr "Įdiegti"
 
 #. FIXME: deal with the EULA stuff
 #: ../softwarestore/view/appdetailsview.py:324
@@ -110,11 +115,11 @@ msgstr ""
 
 #: ../softwarestore/view/viewswitcher.py:95
 msgid "Get Free software"
-msgstr ""
+msgstr "Įdiegti laisvas programas"
 
 #: ../softwarestore/view/viewswitcher.py:97
 msgid "Installed software"
-msgstr ""
+msgstr "Jau įdiegtos programos"
 
 #: ../softwarestore/view/viewswitcher.py:127
 #, python-format
@@ -128,12 +133,12 @@ msgstr ""
 
 #: ../data/ubuntu-software-store.desktop.in.h:1
 msgid "Install and remove software"
-msgstr ""
+msgstr "Įdiegti ar pašalinti programas"
 
 #: ../data/ubuntu-software-store.desktop.in.h:2
 msgid "Software Store"
-msgstr ""
+msgstr "Programų įdiegimas ir priežiūra"
 
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
-msgstr ""
+msgstr "Programų įdiegimas ir priežiūra"
