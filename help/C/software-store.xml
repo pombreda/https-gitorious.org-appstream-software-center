@@ -43,6 +43,17 @@
         <surname>Vogt</surname>
         <email>mvo@ubuntu.com</email>
       </author>
+      <author>
+        <firstname>Matthew</firstname>
+        <firstname>Paul</firstname>
+        <surname>Thomas</surname>
+        <email>mpt@ubuntu.com</email>
+      </author>
+      <author>
+        <firstname>Andrew</firstname>
+        <surname>Higginson</surname></surname>
+        <email>rugby471@gmail.com</email>
+      </author>
     </authorgroup>
     <abstract>
     	<para>This manual explains how to use <application>Software Store</application>.</para>
@@ -61,179 +72,95 @@
     </para> 
   </chapter> 
   
-  <chapter id="getting-started">
-    <title>Getting Started</title>
-    <sect1 id="starting-software-store">
-        <title>Starting The Ubuntu Software Store</title>
-        <para>
-            There are two ways to start the Ubuntu Software Store:
-        </para>
-        <orderedlist>
-            <listitem>
-                 From the main menu, select 
-                 <menuchoice>
-                    <guimenu>System</guimenu>
-                    <guisubmenu>Administration</guisubmenu>
-                    <guimenuitem>Ubuntu Software Store</guimenuitem>
-                 </menuchoice>
-            </listitem>
-            <listitem>
-            To run the Software Store from the command line, run:
-                <programlisting>software-store pkgname</programlisting>
-                <i>Where pkgname is an (optional) name of a package to open the Software Store at.</i>
-            </listitem>
-        </orderedlist>
-    </sect1>
-    <sect1 id="main-window">
-        <title>Main Window</title>
-        <para>
-        When you start the Ubuntu Software Store, the following window is displayed.
-        </para>
-        <screenshot>
-            <mediaobject>
-              <imageobject>
-                <imagedata fileref="./figures/placeholder.png" format="PNG"/>
-              </imageobject>
-              <caption>
-                <para>Ubuntu Software Store main window</para>
-              </caption>
-            </mediaobject>
-          </screenshot>
-          <para>The main window of consists of the following:</para>
-          <orderedlist>
-                    <listitem><para><guilabel>Menu bar</guilabel> - allows you to perform specific actions, filter the software displayed or look for help.</para></listitem>
-                    <listitem><para><guilabel>Navigation pane</guilabel> - displays the different parts of the Software Store.</para></listitem>
-                    <listitem><para><guilabel>Main Pane</guilabel> - shows the software available from the category chosen from the software catalog column.</para></listitem>
-                    <listitem><para><guilabel>Location bar</guilabel> - indicates where you are in the Software Store.</para></listitem>
-                    <listitem><para><guilabel>Search field</guilabel> - searches for a piece of specific software.</para></listitem>
-                    <listitem><para><guilabel>Status bar</guilabel> - displays information relating to what you are currently viewing.</para></listitem>
-          </orderedlist>
-    </sect1>
+  <chapter id="introduction">
+    <title>What is the Ubuntu Software Store?</title>
+    <para>
+    The Ubuntu Software Store is a virtual catalog of thousands of free
+    applications available for Ubuntu.
+    You can find applications by category or by searching,
+    and you can install an application with the click of a button.
+    </para>
+    <para>
+      The Store also lets you examine the applications that are installed
+      already,
+      and remove those you no longer need.
+    </para>
   </chapter>
-  
-    <chapter id="managing-applications">
-    <title>Managing Applications</title>
-     <sect1 id="searching-applications">
-		<title>Searching for applications to manage</title>
-		<para>The first thing to do before installing or removing an application using The <application>Ubuntu Software Store</application> is to locate it from the software catalog. To start a search from the software catalog, do the following:</para>
-		<procedure>
-                <step>
-					<para>To manage an installed application, click the <guilabel>Installed Software</guilabel> item from the navigation pane. To manage an application that is not installed yet, click the <guilabel>Get Free Software</guilabel> item from the navigation pane.</para>				
-				</step>
-				<step>
-					<para>(optional) Select a category from the department lobby. This will filter your search to only those pieces of software that are in this category.</para>				
-				</step>
-				<step>
-					<para>Type the name of the application you wish to locate in the search field.</para>				
-				</step>
-				<step>
-					<para>When you find the application you need, click on the arrow beside the name of the application in the Main Pane to see more details.</para>				
-				</step>
-		</procedure>
-		<screenshot>
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="./figures/placeholder.png" format="PNG"/>
-          </imageobject>
-          <caption>
-            <para>Use the search field to search for applications to manage.</para>
-          </caption>
-        </mediaobject>
-      </screenshot>
-    </sect1>
-    <!-- not done yet 
-    <sect1 id="installing-applications">
-    	<title>Installing new applications</title>
-    	<para>To install an application, check the corresponding application in the application pane. If it is not listed there, follow the steps as enumerated in <xref linkend="searching-applications" />.
-</para>
-		<procedure>
-			<step><para>Once you have checked an application to be installed, click <guibutton>Apply</guibutton> to start the installation. A dialog will appear that shows the applications that will be added to or removed from your system.</para>
-    		<screenshot>
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="./figures/add_apps.png" format="PNG"/>
-          </imageobject>
-          <caption>
-            <para>List of applications to be added after selecting and applying them from the main window</para>
-          </caption>
-        </mediaobject>
-      </screenshot></step>
-		<step>
-		<para>To confirm the installation, click <guibutton>Apply</guibutton>. The software will then be downloaded and installed. If you wish to go back to the main window or cancel the installation, click <guibutton>Cancel</guibutton>.</para>
-		<screenshot>
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="./figures/download_apps.png" format="PNG"/>
-          </imageobject>
-          <caption>
-            <para>Downloading package files</para>
-          </caption>
-        </mediaobject>
-      </screenshot>
-      </step>
-		<step>
-				<para>The downloaded package will then be installed. To have the progress dialog close after installation, select <guibutton>Automatically close after the changes have been successfully applied</guibutton>. You can also check the progress of the installation from a terminal output by maximizing the Terminal option.</para>
-      <screenshot>
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="./figures/configure_install_apps.png" format="PNG"/>
-          </imageobject>
-          <caption>
-            <para>Installing software</para>
-          </caption>
-        </mediaobject>
-      </screenshot>		
-		</step>
-      <step>
-      	<para>When installation is done, a dialog containing a list of all newly installed applications will appear. You can double-click on an icon to launch it from here or you can close this dialog to finish the installation.</para>
-      	<screenshot>
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="./figures/new_apps.png" format="PNG"/>
-          </imageobject>
-          <caption>
-            <para>New applications installed</para>
-          </caption>
-        </mediaobject>
-      </screenshot>
-      </step>
-      </procedure>
-    </sect1>
-    <sect1 id="removing-applications">
-    	<title>Removing applications from the system</title>
-    	<para>To remove an application, uncheck the corresponding application in the application pane. If it is not listed there, follow the steps as enumerated in <xref linkend="searching-applications" />.</para>
-    	<procedure>
-			<step><para>Once you have selected an application to be removed, click <guibutton>Apply</guibutton> to start the process. A dialog will show the applications that will be removed from your system. To continue removing the application, click <guibutton>Apply</guibutton>. To cancel the removal, click <guibutton>Cancel</guibutton>.</para>
-			<screenshot>
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="./figures/remove_apps.png" format="PNG"/>
-          </imageobject>
-          <caption>
-            <para>List of applications to be removed after selecting and applying them from the main window</para>
-          </caption>
-        </mediaobject>
-      </screenshot>			
-			</step>  
-			<step>
-			<para>Once the removal of the application is confirmed, <application>Install and Remove Applications</application> will start de-installing the application from the system. Once it is done, you can now close the dialog and you will be sent back to the main window.</para>
-				<screenshot>
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="./figures/configure_remove_apps.png" format="PNG"/>
-          </imageobject>
-          <caption>
-            <para>Removing software</para>
-          </caption>
-        </mediaobject>
-      </screenshot>			
-			</step>  	
-    	</procedure>
-    </sect1>-->
+  <chapter id="installing">
+    <title>Installing a program</title>
+    <para>
+      To install a program from the Store,
+      you need a working Internet connection,
+      and administrator access.
+      (If you set up Ubuntu on this computer yourself,
+      you have administrator access automatically.)
+    </para>
+    <orderedlist>
+      <listitem>
+        <para>
+          Find the program you want to install.
+          If you already know its name, try typing the name in the search field.
+          Or try searching for the type of program you want
+          (like &#8220;spreadsheet&#8221;).
+          Otherwise, browse the Store departments to find the program.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Click the program in the list, and click the arrow button to go to the
+          screen for the program.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Click the <guilabel>Install</guilabel> button.
+          You may need to enter your Ubuntu password
+          before the installation can begin.
+        </para>
+      </listitem>
+    </orderedlist>
+    <para>
+      How long a program takes to install depends on how large it is,
+      and the speed of your computer and Internet connection.
+    </para>
+    <para>
+      While a program is being installed,
+      it appears in the Store&#8217;s <guilabel>In Progress</guilabel> section.
+      As soon as it disappears, the program is installed.
+    </para>
+    <itemizedlist>
+      <listitem><xref linkend="launching" endterm="launching-title"/></listitem>
+      <listitem><xref linkend="missing" endterm="missing-title"/></listitem>
+    </itemizedlist>
+  </chapter>
+  <chapter id="launching">
+    <title id="launching-title"
+    >Using a program once it&#8217;s installed</title>
+  </chapter>
+  <chapter id="removing">
+    <title id="removing-title">Removing a program</title>
+  </chapter>
+  <chapter id="metapackages">
+    <title id="metapackages-title"
+    >Why is it asking me to remove several programs together?</title>
+  </chapter>
+  <chapter id="canonical-maintained">
+    <title>What does &#8220;Canonical-maintained&#8221; mean?</title>
+  </chapter>
+  <chapter id="why-free">
+    <title id="why-free-title">Why are all the programs free?</title>
+  </chapter>
+  <chapter id="missing">
+    <title id="missing-title"
+    >What if a program I want isn&#8217;t in the Store?</title>
+  </chapter>
+  <chapter id="bugs">
+    <title id="bugs-title"
+    >What should I do if a program doesn&#8217;t work?</title>
   </chapter>
   <chapter id="about-software-store">
     <title>About Ubuntu Software Store</title>
-    <para>The <application>Ubuntu Software Store</application> was written by Michael Vogt <email>michael.vogt@ubuntu.com</email> and Andrew Higginson <email>rugby471@gmail.com</email>. The interface was designed by Matthew Paul Thomas <email>mpt@canonical.com</email>.</para>
+    <para>The <application>Ubuntu Software Store</application> was written by Michael Vogt <email>michael.vogt@ubuntu.com</email> and Andrew Higginson <email>rugby471@gmail.com</email>. The interface was designed by Matthew Paul Thomas <email>mpt@ubuntu.com</email>.</para>
     <para>To report a bug or make a suggestion regarding this package or this
       manual, send mail to <email>ubuntu-users@lists.ubuntu.com</email>.</para>
   </chapter>

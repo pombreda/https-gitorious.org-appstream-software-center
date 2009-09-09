@@ -97,12 +97,8 @@ class ViewSwitcherList(gtk.ListStore):
         self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
-        # spacer - not working
-        #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
-        #                     self.ICON_SIZE/4.0, self.ICON_SIZE/4.0)
-        #icon.fill(0)
-        #self.append([icon, '<span size="xx-small"></span>', 
-        #             self.ACTION_ITEM_NONE])
+        icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.ICON_SIZE/4.0, self.ICON_SIZE/4.0)
+        self.append([AnimatedImage(icon), '<span size="xx-small">hi</span>', self.ACTION_ITEM_NONE])
 
         # watch the daemon exit and (re)register the signal
         bus = dbus.SystemBus()

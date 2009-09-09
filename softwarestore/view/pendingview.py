@@ -79,7 +79,6 @@ class PendingStore(gtk.ListStore):
 
     def on_transactions_changed(self, current_tid, pending_tids):
         ICON_SIZE = 32
-        
         #print "on_transaction_changed", current_tid, len(pending_tids)
         self.clear()
         for tid in [current_tid]+pending_tids:
