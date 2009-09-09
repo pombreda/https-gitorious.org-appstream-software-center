@@ -169,29 +169,39 @@ class AvailablePane(gtk.VBox):
         # FIXME: expand to add "AA" and "AP" before each search term?
         return query
 
-    # callbacks
-    def on_search_terms_changed(self, widget, new_text):
-        """callback when the search entry widget changes"""
-        logging.debug("on_entry_changed: %s" % new_text)
-        self.navigation_bar.remove_id("search")
+    def update_navigation_button(self):
+        """Update the navigation button"""
         if self.apps_category_query:
             cat =  self.apps_category_query.name
         else:
             cat = _("All")
+        if self.apps_search_query:
+            self.navigation_bar.add_with_id(_("Search in %s") % cat, 
+                                            self.on_navigation_list, 
+                                            "list")
+        else:
+            self.navigation_bar.add_with_id(cat,
+                                            self.on_navigation_list, 
+                                            "list")
+
+    # callbacks
+    def on_search_terms_changed(self, widget, new_text):
+        """callback when the search entry widget changes"""
+        logging.debug("on_entry_changed: %s" % new_text)
+        # if the user searches in the category page, reset the specific
+        # category query (to ensure all apps are searched)
+        if self.notebook.get_current_page() == self.PAGE_CATEGORY:
+            self.apps_category_query = None
+        # DTRT if the search is reseted
         if not new_text:
             self.apps_limit = 0
             self.apps_sorted = True
             self.apps_search_query = None
-            self.navigation_bar.add_with_id(cat,
-                                            self.on_navigation_list, 
-                                            "list")
         else:
             self.apps_search_query = self.get_query_from_search_entry(new_text)
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
-            self.navigation_bar.add_with_id(_("Search in %s") % cat, 
-                                            self.on_navigation_list, 
-                                            "list")
+        self.update_navigation_button()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
@@ -228,14 +238,9 @@ class AvailablePane(gtk.VBox):
         query.name = name
         self.apps_category_query = query
         # show new category
+        self.update_navigation_button()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        # update navigation bar
-        self.navigation_bar.add_with_id(name, 
-                                        self.on_navigation_list, 
-                                        "list")
-
-
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
