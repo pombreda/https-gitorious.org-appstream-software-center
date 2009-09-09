@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import aptdaemon
 import dbus
 import dbus.service
 import gettext
@@ -25,6 +26,7 @@ import logging
 import glib
 import gtk
 import os
+import subprocess
 import sys
 import xapian
 
@@ -145,7 +147,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.update_status_bar()
 
     def on_menuitem_help_activate(self, menuitem):
-        import subprocess
         subprocess.call(["yelp","ghelp:software-store"])
 
     def on_menuitem_close_activate(self, widget):
@@ -202,7 +203,55 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.active_pane.searchentry.grab_focus()
             self.active_pane.searchentry.select_region(0, -1)
 
+    def on_menuitem_software_sources_activate(self, widget):
+        #print "on_menu_item_software_sources_activate"
+        self.window_main.set_sensitive(False)
+        # run software-properties-gtk
+        p = subprocess.Popen(
+            ["gksu",
+             "--desktop", "/usr/share/applications/software-properties.desktop",
+             "--",
+             "/usr/bin/software-properties-gtk", 
+             "-n", 
+             "-t", str(self.window_main.window.xid)])
+        # return code of 1 means that it changed
+        ret = None
+        while ret is None:
+            while gtk.events_pending():
+                gtk.main_iteration()
+            ret = p.poll()
+        if ret == 1:
+            self.run_update_cache()
+        self.window_main.set_sensitive(True)
+
     # helper
+
+    # FIXME: move the two functions below into generic code
+    #        and share that with the appdetailsview
+    def _on_trans_finished(self, trans, enum):
+        """callback when a aptdaemon transaction finished"""
+        if enum == aptdaemon.enums.EXIT_FAILED:
+            excep = trans.get_error()
+            msg = "%s: %s\n%s\n\n%s" % (
+                   _("ERROR"),
+                   aptdaemon.enums.get_error_string_from_enum(excep.code),
+                   aptdaemon.enums.get_error_description_from_enum(excep.code),
+                   excep.details)
+            print msg
+        # re-open cache and refresh app display
+        self.cache.open()
+    def run_update_cache(self):
+        """update the apt cache (e.g. after new sources where added """
+        aptd_client = aptdaemon.client.AptClient()
+        trans = aptd_client.update_cache(exit_handler=self._on_trans_finished)
+        try:
+            trans.run()
+        except dbus.exceptions.DBusException, e:
+            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                pass
+            else:
+                raise
+
     def update_status_bar(self):
         "Helper that updates the status bar"
         page = self.notebook_view.get_current_page()
