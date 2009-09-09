@@ -37,7 +37,9 @@
  #header {font-size:100%; padding:10px; background-color:#7D91AA; border:2px solid #3F4B5A}
  /* debug border */
  /* .category_td {border-width:1px;border-style:solid;} */
- .category_td {float:left; padding:8px; margin:8px; min-width:15%; }
+ /* fixed width does not work, it does not ellipsis but overflows the box */
+ /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
+ .category_td {padding:8px; margin:8px; display:inline-block; text-overflow: ellipsis;} 
  .category_td:hover { cursor: pointer; opacity:0.65; }
  .category_td p { font-size:90%; text-align:center; }
  </style>
