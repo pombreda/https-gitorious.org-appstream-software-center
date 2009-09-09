@@ -21,6 +21,9 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
   * updated po files from rosetta
   * make the default size bigger (LP: #425862)
   * merged the fixes from Murat Güneş (many thanks!)
+  * when using the navigation bar to navigate back one (or more)
+    elements, remove the elements from the navigation bar 
+    (LP: #425810)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
 

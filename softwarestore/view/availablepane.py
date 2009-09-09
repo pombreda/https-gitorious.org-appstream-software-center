@@ -218,17 +218,27 @@ class AvailablePane(gtk.VBox):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
     def on_navigation_category(self, button):
         """callback when the navigation button with id 'category' is clicked"""
+        if not button.get_active():
+            return
+        # remove navigation bar items
+        self.navigation_bar.remove_id("list")
+        self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_CATEGORY)
         # emit signal here to ensure to show count of all available items
         self.emit("app-list-changed", self.xapiandb.get_doccount())
         self.searchentry.show()
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
+        if not button.get_active():
+            return
+        self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""
+        if not button.get_active():
+            return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
     def on_category_activated(self, cat_view, name, query):
