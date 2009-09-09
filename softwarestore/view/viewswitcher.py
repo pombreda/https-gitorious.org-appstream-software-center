@@ -25,6 +25,7 @@ import logging
 import os
 import time
 import xapian
+import pango
 
 import aptdaemon.client
 
@@ -47,6 +48,7 @@ class ViewSwitcher(gtk.TreeView):
         #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         tr = gtk.CellRendererText()
+        tr.set_property("ellipsize", pango.ELLIPSIZE_END)
         column = gtk.TreeViewColumn("Name", tr, markup=store.COL_NAME)
         #column.set_fixed_width(200)
         #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
@@ -97,8 +99,10 @@ class ViewSwitcherList(gtk.ListStore):
         self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
-        icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.ICON_SIZE/4.0, self.ICON_SIZE/4.0)
-        self.append([AnimatedImage(icon), '<span size="xx-small">hi</span>', self.ACTION_ITEM_NONE])
+        #not working
+        #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 24, 2)
+        #icon.fill(0)
+        #self.append([AnimatedImage(icon), '', self.ACTION_ITEM_NONE])
 
         # watch the daemon exit and (re)register the signal
         bus = dbus.SystemBus()
@@ -127,7 +131,7 @@ class ViewSwitcherList(gtk.ListStore):
             else:
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
-                self.append([icon, _("Pending (%i)") % pending, 
+                pendingrow = self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])
         else:
             for (i, row) in enumerate(self):

@@ -277,6 +277,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         elif action == ViewSwitcherList.ACTION_ITEM_PENDING:
             logging.debug("show pending")
             self.change_notebook_view(self.NOTEBOOK_PAGE_PENDING)
+        elif action == ViewSwitcherList.ACTION_ITEM_NONE:
+            pass
         else:
             assert False, "Not reached"
 
