@@ -306,6 +306,14 @@ class AppDetailsView(WebkitWidget):
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
+    # public interface
+    def install(self):
+        self.on_button_install_clicked()
+    def remove(self):
+        self.on_button_remove_clicked()
+    def upgrade(self):
+        self.on_button_upgrade_clicked()
+
     # internal callback
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""

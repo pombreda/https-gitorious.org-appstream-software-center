@@ -238,6 +238,12 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.run_update_cache()
         self.window_main.set_sensitive(True)
 
+    def on_menuitem_install_activate(self, menuitem):
+        self.active_pane.app_details.install()
+
+    def on_menuitem_remove_activate(self, menuitem):
+        self.active_pane.app_details.remove()
+
     # helper
 
     # FIXME: move the two functions below into generic code
@@ -270,7 +276,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         """Helper that updates the 'File' menu to enable/disable
            install/remove
         """
-        print "update_app_status_menu"
+        logging.debug("update_app_status_menu")
         # check if we have a pkg for this page
         page = self.notebook_view.get_current_page()
         try:
@@ -331,15 +337,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def run(self):
         self.window_main.show_all()
         SimpleGtkbuilderApp.run(self)
-
-
-
-    #FIXME: portme to multi-view
-    def on_menuitem_install_activate(self, menuitem):
-        self.app_details_view.install()
-    #FIXME: portme to multi-view
-    def on_menuitem_remove_activate(self, menuitem):
-        self.app_details_view.remove()
 
     #FIXME: dead-code in multi-view
     def on_button_home_clicked(self, widget):
