@@ -220,9 +220,25 @@
       items from the <guimenu>Applications</guimenu> menu without
       removing the actual programs.
     </para>
+    <itemizedlist>
+      <listitem>
+        <ulink url="ghelp:user-guide?menu-editor"
+        >Customizing the menu bar</ulink>
+      </listitem>
+    </itemizedlist>
   </chapter>
   <chapter id="canonical-maintained">
     <title>What does &#8220;Canonical-maintained&#8221; mean?</title>
+    <para>
+      Some of the software available in the Ubuntu Software Store is
+      maintained by Canonical.
+      Canonical engineers ensure that security fixes and other critical updates
+      are provided for these programs.
+    </para>
+    <para>
+      Other software is maintained by the Ubuntu developer community.
+      Any updates are provided on a best-effort basis.
+    </para>
   </chapter>
   <chapter id="why-free">
     <title id="why-free-title">Why are all the programs free?</title>
