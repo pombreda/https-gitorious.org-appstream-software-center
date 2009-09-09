@@ -17,7 +17,7 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
     - make the icon_theme optional
   * make the status bar display the current number of items displayed
   * center the status bar (LP: #424895)
-  * make menuitem "Software Sources" work
+  * make menuitems "Copy", "Copy Weblink", "Software Sources" work
   * updated po files from rosetta
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200

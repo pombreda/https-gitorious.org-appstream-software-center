@@ -302,7 +302,11 @@ class AppView(gtk.TreeView):
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
                                    (str, ),
-                                  )
+                                  ),
+        "application-selected" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE, 
+                                   (str, ),
+                                  ),
     }
 
     def __init__(self, store=None):
@@ -332,9 +336,17 @@ class AppView(gtk.TreeView):
         # button and motion are "special" 
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("motion-notify-event", self._on_motion_notify_event)
+        self.connect("cursor-changed", self._on_cursor_changed)
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon, overlay) = treeview.get_model()[path]
         self.emit("application-activated", name)
+    def _on_cursor_changed(self, treeview):
+        selection = treeview.get_selection()
+        (model, iter) = selection.get_selected()
+        if iter is None:
+            return
+        (name, text, icon, overlay) = model[iter]
+        self.emit("application-selected", name)
     def _on_motion_notify_event(self, widget, event):
         (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
         if width - event.x <= AppStore.ICON_SIZE:

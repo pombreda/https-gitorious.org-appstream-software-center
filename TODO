@@ -1,8 +1,15 @@
 
+
+
 Code:
 - make the order of "cache, db, datadir" identical 
   accross the various widgets (e.g. AppDetailsView
   and AppStore use different ordering)
+- make the:
+         if not self.cache.ready:
+            glib.timeout_add(100, lambda: me())
+            return False
+  a decorator
 
 Webkit:
 - xpm images can not be loaded
@@ -14,6 +21,7 @@ Webkit:
 - make the description -> html processing better, use
   code from g-a-i for this
 - make action button insensitive on click
+
 
 
 UI:

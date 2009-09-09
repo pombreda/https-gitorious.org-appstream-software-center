@@ -100,7 +100,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # misc state
         self._block_menuitem_view = False
         self._available_items_for_page = {}
+        # FIXME: make this all part of a application object
         self._selected_pkgname_for_page = {}
+        self._selected_appname_for_page = {}
+        self._selected_weblink_for_page = {}
 
         # available pane
         self.available_pane = AvailablePane(self.cache, self.xapiandb,
@@ -108,6 +111,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
+        self.available_pane.app_view.connect("application-selected",
+                                             self.on_app_selected,
+                                             self.NOTEBOOK_PAGE_AVAILABLE)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -119,6 +125,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_INSTALLED)
+        self.installed_pane.app_view.connect("application-selected",
+                                             self.on_app_selected,
+                                             self.NOTEBOOK_PAGE_INSTALLED)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_INSTALLED)
@@ -151,12 +160,19 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def on_app_details_changed(self, widget, appname, pkg, page):
         #print widget, appname, pkg, page
         self._selected_pkgname_for_page[page] = pkg.name
+        self._selected_appname_for_page[page] = appname
         self.update_app_status_menu()
         
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.notebook_view.get_current_page() == page:
             self.update_status_bar()
+
+    def on_app_selected(self, widget, appname, page):
+        self._selected_appname_for_page[page] = appname
+        self.menuitem_copy.set_sensitive(True)
+        # FIXME: weblink is only available via details for now
+        self.menuitem_copy_web_link.set_sensitive(False)
 
     def on_menuitem_help_activate(self, menuitem):
         # run yelp
@@ -247,6 +263,24 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def on_menuitem_remove_activate(self, menuitem):
         self.active_pane.app_details.remove()
 
+    def on_menuitem_copy_activate(self, menuitem):
+        page = self.notebook_view.get_current_page()
+        try:
+            app = self._selected_appname_for_page[page]
+        except KeyError, e:
+            return
+        clipboard = gtk.Clipboard()
+        clipboard.set_text(app)
+
+    def on_menuitem_copy_web_link_activate(self, menuitem):
+        page = self.notebook_view.get_current_page()
+        try:
+            url = self._selected_weblink_for_page[page]
+        except KeyError, e:
+            return
+        clipboard = gtk.Clipboard()
+        clipboard.set_text(url)
+
     # helper
 
     # FIXME: move the two functions below into generic code
@@ -276,8 +310,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                 raise
 
     def update_app_status_menu(self):
-        """Helper that updates the 'File' menu to enable/disable
-           install/remove
+        """Helper that updates the 'File' and 'Edit' menu to enable/disable
+           install/remove and Copy/Copy weblink
         """
         logging.debug("update_app_status_menu")
         # check if we have a pkg for this page
@@ -287,6 +321,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         except KeyError, e:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
+            self.menuitem_copy.set_sensitive(False)
+            self.menuitem_copy_web_link.set_sensitive(False)
             return False
         # wait for the cache to become ready (if needed)
         if not self.cache.ready:
@@ -296,11 +332,18 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         if not self.cache.has_key(pkgname):
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
-        # if it is, set status
+            self.menuitem_copy_web_link.set_sensitive(False)
+        # update File menu status
         pkg = self.cache[pkgname]
         installed = bool(pkg.installed)
         self.menuitem_install.set_sensitive(not installed)
         self.menuitem_remove.set_sensitive(installed)
+        # update Edit menu status
+        self.menuitem_copy.set_sensitive(True)
+        has_weblink = bool(pkg.candidate and pkg.candidate.homepage)
+        if has_weblink:
+            self._selected_weblink_for_page[page] = pkg.candidate.homepage
+        self.menuitem_copy_web_link.set_sensitive(has_weblink)
         # return False to ensure that a possible glib.timeout_add ends
         return False
 
