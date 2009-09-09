@@ -90,8 +90,8 @@ class AvailablePane(gtk.VBox):
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigation_bar)
-        top_hbox.pack_start(self.searchentry, expand=False)
+        top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
+        top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(top_hbox, expand=False, padding=self.PADDING)
         # a notebook below
         self.notebook = gtk.Notebook()
