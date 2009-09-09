@@ -204,8 +204,7 @@
       </listitem>
       <listitem>
         <para>
-          Multiple applications are sometimes provided as a single
-          &#8220;package&#8221;.
+          Multiple applications are sometimes provided as a single package.
           If any of them are installed, all of them are installed.
           And if any of them are removed, all of them are removed.
           The Store cannot remove them individually,
@@ -242,6 +241,20 @@
   </chapter>
   <chapter id="why-free">
     <title id="why-free-title">Why are all the programs free?</title>
+    <para>
+      Currently, all software in the Ubuntu Software Store is free of charge.
+    </para>
+    <para>
+      Most of this software is developed as <firstterm>open source</firstterm>,
+      which means anyone is allowed to customize it and redistribute it for any
+      price.
+      Ubuntu developers and others package the software available in the Store,
+      and make it available to you for free.
+    </para>
+    <para>
+      In a future version of Ubuntu, the Store will also allow software
+      purchases.
+    </para>
   </chapter>
   <chapter id="missing">
     <title id="missing-title"
