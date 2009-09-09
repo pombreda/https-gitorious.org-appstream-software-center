@@ -38,6 +38,7 @@ software-store (0.3.0) UNRELEASEDkarmic; urgency=low
     - show/hide the clear item based on if there is text in it 
       or not
   * help updates (thanks to Matthew Paul Thomas)
+  * make the progress bar less cramped (LP: #426281)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
 

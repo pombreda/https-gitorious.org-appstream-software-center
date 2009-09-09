@@ -52,6 +52,8 @@ class PendingStore(gtk.ListStore):
     PENDING_STORE_ICON_CANCEL = gtk.STOCK_CANCEL
     PENDING_STORE_ICON_NO_CANCEL = "" # gtk.STOCK_YES
 
+    ICON_SIZE = 24
+
     def __init__(self, icons):
         # icon, status, progress
         gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, str, str, float, str)
@@ -96,11 +98,11 @@ class PendingStore(gtk.ListStore):
             iconname = trans.get_data("iconname")
             if iconname:
                 try:
-                    icon = self.icons.load_icon(iconname, 24, 0)
+                    icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
                 except Exception, e:
-                    icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
+                    icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
             else:
-                icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
+                icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
             self.append([tid, icon, appname, "", 0.0, ""])
             del trans
 
@@ -131,12 +133,18 @@ class PendingStore(gtk.ListStore):
             if row[self.COL_TID] == trans.tid:
                 # FIXME: the spaces around %s are poor mans padding because
                 #        setting xpad on the cell-renderer seems to not work
-                row[self.COL_STATUS] = "  %s  " % get_status_string_from_enum(status)
+                name = row[self.COL_NAME]
+                if not name:
+                    name = ""
+                s = "%s\n<small>%s</small>" % (
+                    name, get_status_string_from_enum(status))
+                row[self.COL_STATUS] = s
 
 
 class PendingView(gtk.TreeView):
     
-    CANCEL_XPAD = 4
+    CANCEL_XPAD = 6
+    CANCEL_YPAD = 6
 
     def __init__(self, icons):
         gtk.TreeView.__init__(self)
@@ -146,24 +154,27 @@ class PendingView(gtk.TreeView):
         # icon
         self.icons = icons
         tp = gtk.CellRendererPixbuf()
+        tp.set_property("xpad", self.CANCEL_XPAD)
+        tp.set_property("ypad", self.CANCEL_YPAD)
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=PendingStore.COL_ICON)
-        #column.set_fixed_width(32)
-        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         # name
         tr = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Name", tr, markup=PendingStore.COL_NAME)
+        column = gtk.TreeViewColumn("Name", tr, markup=PendingStore.COL_STATUS)
+        column.set_min_width(200)
+        #column.set_expand(True)
         self.append_column(column)
         # progress
         tp = gtk.CellRendererProgress()
+        tp.set_property("xpad", self.CANCEL_XPAD)
+        tp.set_property("ypad", self.CANCEL_YPAD)
         column = gtk.TreeViewColumn("Progress", tp, 
-                                    value=PendingStore.COL_PROGRESS,
-                                    text=PendingStore.COL_STATUS)
+                                    value=PendingStore.COL_PROGRESS)
+        column.set_min_width(200)
         self.append_column(column)
         # cancel icon
-        tp = gtk.CellRendererPixbuf()
-        tp.set_property("xpad", self.CANCEL_XPAD)
-        column = gtk.TreeViewColumn("Cancel", tp, 
+        tpix = gtk.CellRendererPixbuf()
+        column = gtk.TreeViewColumn("Cancel", tpix, 
                                     stock_id=PendingStore.COL_CANCEL)
         self.append_column(column)
         # fake columns that eats the extra space at the end
