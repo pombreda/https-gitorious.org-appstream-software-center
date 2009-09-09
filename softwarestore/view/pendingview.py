@@ -162,7 +162,7 @@ class PendingView(gtk.TreeView):
         tr = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Name", tr, markup=PendingStore.COL_STATUS)
         column.set_min_width(200)
-        #column.set_expand(True)
+        column.set_expand(True)
         self.append_column(column)
         # progress
         tp = gtk.CellRendererProgress()
