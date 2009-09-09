@@ -1,4 +1,4 @@
-software-store (0.2.3) UNRELEASEDkarmic; urgency=low
+software-store (0.3.0) UNRELEASEDkarmic; urgency=low
 
   * merged from rugby471:
     - documentation updates
@@ -34,6 +34,9 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
       Category screen). The search must be cleared with the cleared
       via the search field in this case. 
     (LP: #425809)
+  * softwarestore/view/searchentry.py:
+    - show/hide the clear item based on if there is text in it 
+      or not
   * help updates (thanks to Matthew Paul Thomas)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200

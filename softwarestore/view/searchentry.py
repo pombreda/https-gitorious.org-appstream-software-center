@@ -57,12 +57,13 @@ class SearchEntry(sexy.IconEntry):
         image_find.set_from_pixbuf(pixbuf)
         self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
 
-        image = gtk.Image()
+        self.empty_image = gtk.Image()
+        self.clear_image = gtk.Image()
         pixbuf = icon_theme.load_icon(gtk.STOCK_CLEAR,
                                       gtk.ICON_SIZE_MENU,
                                       0)
-        image.set_from_pixbuf(pixbuf)
-        self.set_icon(sexy.ICON_ENTRY_SECONDARY, image)
+        self.clear_image.set_from_pixbuf(pixbuf)
+        self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
         self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
 
         # Do not draw a yellow bg if an a11y theme is used
@@ -109,6 +110,11 @@ class SearchEntry(sexy.IconEntry):
         """
         Use a different background colour if a search is active
         """
+        # show/hide icon
+        if self.get_text() != "":
+            self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
+        else:
+            self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.empty_image)
         # Based on the Rhythmbox code
         yellowish = gtk.gdk.Color(63479, 63479, 48830)
         if self._a11y == True:
