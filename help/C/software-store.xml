@@ -246,7 +246,7 @@
     </para>
     <para>
       Most of this software is developed as <firstterm>open source</firstterm>,
-      which means anyone is allowed to customize it and redistribute it for any
+      which means anyone is allowed to alter it and redistribute it for any
       price.
       Ubuntu developers and others package the software available in the Store,
       and make it available to you for free.
@@ -259,6 +259,21 @@
   <chapter id="missing">
     <title id="missing-title"
     >What if a program I want isn&#8217;t in the Store?</title>
+    <para>
+      The developers of the Ubuntu and Debian systems work hard
+      to make thousands of applications available in the Ubuntu Software Store.
+    </para>
+    <para>
+      If a program isn&#8217;t in the Store,
+      but you know that it runs on Ubuntu,
+      try contacting the original developers of the software
+      to ask them if they can help make it available.
+    </para>
+    <para>
+      If a program is available for other operating systems but not for Ubuntu,
+      let the developers know that you&#8217;re interested in running it on
+      Ubuntu.
+    </para>
   </chapter>
   <chapter id="bugs">
     <title id="bugs-title"
