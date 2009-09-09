@@ -79,6 +79,7 @@ class CategoriesView(WebkitWidget):
             if n.name == name:
                 self.emit("category-selected", name, n.query)
 
+    # run javascript inside the html
     def _on_load_finished(self, view, frame):
         """
         helper for the webkit widget that injects the categories into
@@ -96,6 +97,11 @@ class CategoriesView(WebkitWidget):
             logging.debug("running script '%s'" % s)
             self.execute_script(s)
 
+    # substitute stuff
+    def wksub_icon_size(self):
+        return self.CATEGORY_ICON_SIZE
+
+    # helper code for menu parsing etc
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name

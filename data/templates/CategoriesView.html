@@ -18,6 +18,8 @@
     newTextAroundImg = document.createElement("p");
     newImg = document.createElement("img");
     newImg.src = img;
+    newImg.setAttribute("width", ${icon_size})
+    newImg.setAttribute("height", ${icon_size})
     newTextAroundImg.appendChild(newImg)
     newText = document.createElement("p");
     newText.align = "center";

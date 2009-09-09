@@ -141,6 +141,11 @@ class AppDetailsView(WebkitWidget):
         return self.pkgname
     def wksub_iconname(self):
         return self.iconname
+    def wksub_body_class(self):
+        if (self.cache.has_key(self.pkgname) and
+            self.cache[self.pkgname].isInstalled):
+            return "section-installed"
+        return "section-get"
     def wksub_description(self):
         if self.pkg:
             details = self.pkg.candidate.description
