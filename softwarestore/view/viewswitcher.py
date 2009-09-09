@@ -131,7 +131,7 @@ class ViewSwitcherList(gtk.ListStore):
             else:
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
-                pendingrow = self.append([icon, _("Pending (%i)") % pending, 
+                self.append([icon, _("Pending (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])
         else:
             for (i, row) in enumerate(self):
