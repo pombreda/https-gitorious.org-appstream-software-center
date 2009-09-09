@@ -20,6 +20,7 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
   * make menuitems "Copy", "Copy Weblink", "Software Sources" work
   * updated po files from rosetta
   * make the default size bigger (LP: #425862)
+  * merged the fixes from Murat Güneş (many thanks!)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
 
