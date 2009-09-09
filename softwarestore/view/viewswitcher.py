@@ -22,6 +22,7 @@ import dbus
 import gtk
 import gobject
 import logging
+import pango
 import os
 import time
 import xapian
@@ -56,6 +57,7 @@ class ViewSwitcher(gtk.TreeView):
         #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         tr = gtk.CellRendererText()
+        tr.set_property("ellipsize", pango.ELLIPSIZE_END)
         column = gtk.TreeViewColumn("Name", tr, markup=store.COL_NAME)
         #column.set_fixed_width(200)
         #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
