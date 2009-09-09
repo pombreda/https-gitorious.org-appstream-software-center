@@ -100,10 +100,14 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # misc state
         self._block_menuitem_view = False
         self._available_items_for_page = {}
+        self._selected_pkgname_for_page = {}
 
         # available pane
         self.available_pane = AvailablePane(self.cache, self.xapiandb,
                                             self.icons, datadir)
+        self.available_pane.app_details.connect("selected", 
+                                                self.on_app_details_changed,
+                                                self.NOTEBOOK_PAGE_AVAILABLE)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -112,6 +116,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # installed pane
         self.installed_pane = InstalledPane(self.cache, self.xapiandb,
                                             self.icons, datadir)
+        self.installed_pane.app_details.connect("selected", 
+                                                self.on_app_details_changed,
+                                                self.NOTEBOOK_PAGE_INSTALLED)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_INSTALLED)
@@ -141,6 +148,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.available_pane.cat_view.grab_focus()
 
     # callbacks
+    def on_app_details_changed(self, widget, appname, pkg, page):
+        #print widget, appname, pkg, page
+        self._selected_pkgname_for_page[page] = pkg.name
+        self.update_app_status_menu()
+        
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.notebook_view.get_current_page() == page:
@@ -184,6 +196,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # switch to new page
         self.notebook_view.set_current_page(action)
         self.update_status_bar()
+        self.update_app_status_menu()
 
     def on_menuitem_view_all_activate(self, widget):
         if self._block_menuitem_view:
@@ -253,6 +266,35 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             else:
                 raise
 
+    def update_app_status_menu(self):
+        """Helper that updates the 'File' menu to enable/disable
+           install/remove
+        """
+        print "update_app_status_menu"
+        # check if we have a pkg for this page
+        page = self.notebook_view.get_current_page()
+        try:
+            pkgname = self._selected_pkgname_for_page[page]
+        except KeyError, e:
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
+            return False
+        # wait for the cache to become ready (if needed)
+        if not self.cache.ready:
+            glib.timeout_add(100, lambda: self.update_app_status_menu())
+            return False
+        # if the pkg is not in the cache, clear menu
+        if not self.cache.has_key(pkgname):
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
+        # if it is, set status
+        pkg = self.cache[pkgname]
+        installed = bool(pkg.installed)
+        self.menuitem_install.set_sensitive(not installed)
+        self.menuitem_remove.set_sensitive(installed)
+        # return False to ensure that a possible glib.timeout_add ends
+        return False
+
     def update_status_bar(self):
         "Helper that updates the status bar"
         page = self.notebook_view.get_current_page()
@@ -298,16 +340,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     #FIXME: portme to multi-view
     def on_menuitem_remove_activate(self, menuitem):
         self.app_details_view.remove()
-    #FIXME: portme to multi-view
-    def on_app_details_selected(self, widget, appname, pkg):
-        logging.debug("on_app_details_selected %s %s" % (appname, pkg))
-        installed = bool(pkg and pkg.installed)
-        # check if the package is in the cache at all
-        if pkg:
-            self.menuitem_install.set_sensitive(not installed)
-        else:
-            self.menuitem_install.set_sensitive(False)
-        self.menuitem_remove.set_sensitive(installed)
 
     #FIXME: dead-code in multi-view
     def on_button_home_clicked(self, widget):
