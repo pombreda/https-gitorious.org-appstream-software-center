@@ -112,7 +112,7 @@
                     <child>
                       <object class="GtkMenuItem" id="menuitem_software_sources">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Software Sources</property>
+                        <property name="label" translatable="yes">_Software Sources&#x2026;</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menuitem_software_sources_activate"/>
                       </object>
