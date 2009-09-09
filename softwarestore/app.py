@@ -71,6 +71,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
      NOTEBOOK_PAGE_INSTALLED,
      NOTEBOOK_PAGE_PENDING) = range(3)
 
+    WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
+
     def __init__(self, datadir):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/SoftwareStore.ui")
 
@@ -90,9 +92,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path(ICON_PATH)
-
-        # cursor
-        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         
         # a main iteration friendly apt cache
         self.cache = AptCache()
@@ -103,7 +102,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # FIXME: make this all part of a application object
         self._selected_pkgname_for_page = {}
         self._selected_appname_for_page = {}
-        self._selected_weblink_for_page = {}
 
         # available pane
         self.available_pane = AvailablePane(self.cache, self.xapiandb,
@@ -168,11 +166,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         if self.notebook_view.get_current_page() == page:
             self.update_status_bar()
 
-    def on_app_selected(self, widget, appname, page):
+    def on_app_selected(self, widget, appname, pkgname, page):
         self._selected_appname_for_page[page] = appname
+        self._selected_pkgname_for_page[page] = pkgname
         self.menuitem_copy.set_sensitive(True)
-        # FIXME: weblink is only available via details for now
-        self.menuitem_copy_web_link.set_sensitive(False)
+        self.menuitem_copy_web_link.set_sensitive(True)
 
     def on_menuitem_help_activate(self, menuitem):
         # run yelp
@@ -275,11 +273,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def on_menuitem_copy_web_link_activate(self, menuitem):
         page = self.notebook_view.get_current_page()
         try:
-            url = self._selected_weblink_for_page[page]
+            pkg = self._selected_pkgname_for_page[page]
         except KeyError, e:
             return
         clipboard = gtk.Clipboard()
-        clipboard.set_text(url)
+        clipboard.set_text(self.WEBLINK_URL % pkg)
 
     # helper
 
@@ -338,12 +336,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         installed = bool(pkg.installed)
         self.menuitem_install.set_sensitive(not installed)
         self.menuitem_remove.set_sensitive(installed)
-        # update Edit menu status
-        self.menuitem_copy.set_sensitive(True)
-        has_weblink = bool(pkg.candidate and pkg.candidate.homepage)
-        if has_weblink:
-            self._selected_weblink_for_page[page] = pkg.candidate.homepage
-        self.menuitem_copy_web_link.set_sensitive(has_weblink)
         # return False to ensure that a possible glib.timeout_add ends
         return False
 

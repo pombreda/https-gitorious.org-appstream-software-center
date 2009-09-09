@@ -71,6 +71,8 @@ class AvailablePane(gtk.VBox):
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.icons = icons
         self.datadir = datadir
+        # cursor
+        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # state
         self.apps_category_query = None
         self.apps_search_query = None
@@ -78,6 +80,7 @@ class AvailablePane(gtk.VBox):
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(cache)
         self.apps_filter.set_not_installed_only(True)
+        # UI
         self._build_ui()
         # initial refresh
         self.refresh_apps()

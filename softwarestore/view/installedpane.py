@@ -68,8 +68,12 @@ class InstalledPane(gtk.VBox):
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.icons = icons
         self.datadir = datadir
+        # cursor
+        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        # state
         self.apps_filter = AppViewFilter(cache)
         self.apps_filter.set_installed_only(True)
+        # UI
         self._build_ui()
     def _build_ui(self):
         # navigation bar and search on top in a hbox

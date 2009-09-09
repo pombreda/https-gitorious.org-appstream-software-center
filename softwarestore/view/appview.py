@@ -62,12 +62,14 @@ class AppStore(gtk.GenericTreeModel):
      COL_TEXT, 
      COL_ICON,
      COL_INSTALLED_OVERLAY,
-     ) = range(4)
+     COL_PKGNAME,
+     ) = range(5)
 
     column_type = (str, 
                    str,
                    gtk.gdk.Pixbuf,
-                   bool)
+                   bool,
+                   str)
 
     ICON_SIZE = 24
 
@@ -180,6 +182,12 @@ class AppStore(gtk.GenericTreeModel):
             if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
                 return True
             return False
+        elif column == self.COL_PKGNAME:
+            for post in self.xapiandb.postlist("AA"+appname):
+                doc = self.xapiandb.get_document(post.docid)
+                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                break
+            return pkgname
     
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
@@ -305,7 +313,7 @@ class AppView(gtk.TreeView):
                                   ),
         "application-selected" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
-                                   (str, ),
+                                   (str, str, ),
                                   ),
     }
 
@@ -338,15 +346,15 @@ class AppView(gtk.TreeView):
         self.connect("motion-notify-event", self._on_motion_notify_event)
         self.connect("cursor-changed", self._on_cursor_changed)
     def _on_row_activated(self, treeview, path, column):
-        (name, text, icon, overlay) = treeview.get_model()[path]
+        (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
         self.emit("application-activated", name)
     def _on_cursor_changed(self, treeview):
         selection = treeview.get_selection()
         (model, iter) = selection.get_selected()
         if iter is None:
             return
-        (name, text, icon, overlay) = model[iter]
-        self.emit("application-selected", name)
+        (name, text, icon, overlay, pkgname) = model[iter]
+        self.emit("application-selected", name, pkgname)
     def _on_motion_notify_event(self, widget, event):
         (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
         if width - event.x <= AppStore.ICON_SIZE:
