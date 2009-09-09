@@ -87,7 +87,7 @@ class InstalledPane(gtk.VBox):
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
-        self.pack_start(self.notebook, padding=self.PADDING)
+        self.pack_start(self.notebook)
         # appview and details into the notebook in the bottom
         self.app_view = AppView()
         self.app_view.connect("application-activated", 

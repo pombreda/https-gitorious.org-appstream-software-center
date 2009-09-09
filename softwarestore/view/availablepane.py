@@ -96,7 +96,7 @@ class AvailablePane(gtk.VBox):
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
-        self.pack_start(self.notebook, padding=self.PADDING)
+        self.pack_start(self.notebook)
         # categories, appview and details into the notebook in the bottom
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH, 
                                        self.xapiandb,
