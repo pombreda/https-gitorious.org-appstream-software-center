@@ -173,25 +173,24 @@ class AvailablePane(gtk.VBox):
         """Update the navigation button"""
         if self.apps_category_query:
             cat =  self.apps_category_query.name
-        else:
-            cat = _("All")
-        if self.apps_search_query:
-            self.navigation_bar.add_with_id(_("Search in %s") % cat, 
-                                            self.on_navigation_list, 
-                                            "list")
-        else:
-            self.navigation_bar.add_with_id(cat,
-                                            self.on_navigation_list, 
-                                            "list")
-
+            self.navigation_bar.add_with_id(cat, self.on_navigation_list, "list")
+        
     # callbacks
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
         logging.debug("on_entry_changed: %s" % new_text)
+
+        # yeah for special cases - as discussed on irc, mpt
+        # wants this to return to the category screen *if*
+        # we are searching but we are not in a any category
+        if not self.apps_category_query and not new_text:
+            self.navigation_bar.get_button_from_id("category").activate()
+
         # if the user searches in the category page, reset the specific
         # category query (to ensure all apps are searched)
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
             self.apps_category_query = None
+
         # DTRT if the search is reseted
         if not new_text:
             self.apps_limit = 0
@@ -205,9 +204,6 @@ class AvailablePane(gtk.VBox):
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
-    def on_button_search_entry_clear_clicked(self, widget):
-        self.searchentry.set_text("")
-
     def on_application_activated(self, appview, name):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
@@ -220,7 +216,13 @@ class AvailablePane(gtk.VBox):
         """callback when the navigation button with id 'category' is clicked"""
         if not button.get_active():
             return
-        #  clear the search
+        # yeah for special cases - as discussed on irc, mpt
+        # wants this to behave differently *if* we are not
+        # in a sub-category *and* there is a search going on
+        if not self.apps_category_query and self.apps_search_query:
+            self.on_navigation_list(button)
+            return
+        # clear the search
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
         self.apps_sorted = True

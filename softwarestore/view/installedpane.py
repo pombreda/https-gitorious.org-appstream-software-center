@@ -122,14 +122,11 @@ class InstalledPane(gtk.VBox):
             #        something like "build_query_from_search_terms()"
             query = self.xapian_parser.parse_query(self.search_terms, 
                                               xapian.QueryParser.FLAG_PARTIAL)
-            self.navigation_bar.add_with_id(_("Search in Installed Software"), 
-                                           self.on_navigation_list,
-                                           "list")
         else:
-            self.navigation_bar.add_with_id(_("Installed Software"), 
-                                           self.on_navigation_list,
-                                           "list")
             query = None
+        self.navigation_bar.add_with_id(_("Installed Software"), 
+                                        self.on_navigation_list,
+                                        "list")
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.xapiandb, 

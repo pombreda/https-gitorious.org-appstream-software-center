@@ -74,6 +74,14 @@ class NavigationBar(gtk.HBox):
         self.id_to_widget = {}
         self.id_to_callback = {}
         
+    def get_button_from_id(self, id):
+        """
+        return the button for the given id (or None)
+        """
+        if not id in self.id_to_widget:
+            return None
+        return self.id_to_widget[id]
+
     def get_label(self, id):
         """
         Return the label of the navigation button with the given id

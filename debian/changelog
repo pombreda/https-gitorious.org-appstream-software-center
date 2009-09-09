@@ -24,6 +24,16 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
   * when using the navigation bar to navigate back one (or more)
     elements, remove the elements from the navigation bar 
     (LP: #425810)
+  * do not show "Search in Category", "Search in all" buttons. 
+    Instead do the follwing: 
+    - If the user clicks on "Get Free Software" while doing a search
+      in a sub-Category clear the search and go to the Category screen.
+    - If the user does click on the same button while doing a search
+      that originates from the Category screen do not clear the search 
+      and go back to the list of the search results (and not to the
+      Category screen). The search must be cleared with the cleared
+      via the search field in this case. 
+    (LP: #425809)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
 
