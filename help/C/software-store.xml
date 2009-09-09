@@ -190,6 +190,36 @@
   <chapter id="metapackages">
     <title id="metapackages-title"
     >Why is it asking me to remove several programs together?</title>
+    <para>
+      Sometimes if you try to remove one program,
+      the Store will warn you that other programs will be removed too.
+      There are two main reasons this happens.
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          If you remove an application, any add-ons or accessories
+          for that application usually will be removed too.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Multiple applications are sometimes provided as a single
+          &#8220;package&#8221;.
+          If any of them are installed, all of them are installed.
+          And if any of them are removed, all of them are removed.
+          The Store cannot remove them individually,
+          because it has no instructions on how to separate them.
+        </para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      You can use <menuchoice><guimenu>System</guimenu>
+      <guisubmenu>Preferences</guisubmenu>
+      <guimenuitem>Main Menu</guimenuitem></menuchoice> to hide unwanted
+      items from the <guimenu>Applications</guimenu> menu without
+      removing the actual programs.
+    </para>
   </chapter>
   <chapter id="canonical-maintained">
     <title>What does &#8220;Canonical-maintained&#8221; mean?</title>
