@@ -120,6 +120,35 @@
   <chapter id="launching">
     <title id="launching-title"
     >Using a program once it&#8217;s installed</title>
+    <para>
+      Most installed applications appear
+      in the <guimenu>Applications</guimenu> menu in the corner of the screen,
+      in the same category as they came from in the Store.
+    </para>
+    <para>
+      For example, if you installed a program from the
+      <guilabel>Office</guilabel> department, it will appear inside
+      <menuchoice><guimenu>Applications</guimenu>
+      <guisubmenu>Office</guisubmenu></menuchoice>.
+    </para>
+    <para>
+      Applications for configuring the computer system may appear inside
+      <menuchoice><guimenu>System</guimenu>
+      <guisubmenu>Preferences</guisubmenu></menuchoice> or
+      <menuchoice><guimenu>System</guimenu>
+      <guisubmenu>Administration</guisubmenu></menuchoice>.
+    </para>
+    <para>
+      If you are using Ubuntu Netbook Remix,
+      an application appears in its category on the home screen.
+    </para>
+    <para>
+      Some items, such as media playback or Web browser plugins,
+      do not appear in the menus.
+      They are used automatically when Ubuntu needs them.
+      For a Web browser plugin, you may need to close the browser and
+      reopen it before the plugin will be used.
+    </para>
   </chapter>
   <chapter id="removing">
     <title id="removing-title">Removing a program</title>
