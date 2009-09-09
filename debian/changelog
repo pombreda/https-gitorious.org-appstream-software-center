@@ -1,4 +1,4 @@
-software-store (0.3.0) UNRELEASEDkarmic; urgency=low
+software-store (0.3.0) karmic; urgency=low
 
   * merged from rugby471:
     - documentation updates
@@ -42,7 +42,7 @@ software-store (0.3.0) UNRELEASEDkarmic; urgency=low
   * make default icon size in category view 48px
   * merged lp:~mpt/software-store/css branch (many thanks)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 09 Sep 2009 23:34:06 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 09 Sep 2009 23:54:06 +0200
 
 software-store (0.2.2) karmic; urgency=low
 
