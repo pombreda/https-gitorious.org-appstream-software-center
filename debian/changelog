@@ -19,6 +19,7 @@ software-store (0.2.3) UNRELEASEDkarmic; urgency=low
   * center the status bar (LP: #424895)
   * make menuitems "Copy", "Copy Weblink", "Software Sources" work
   * updated po files from rosetta
+  * make the default size bigger (LP: #425862)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Sep 2009 11:23:58 +0200
 
