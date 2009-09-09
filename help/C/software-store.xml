@@ -60,14 +60,17 @@
   <chapter id="introduction">
     <title>What is the Ubuntu Software Store?</title>
     <para>
-    The Ubuntu Software Store is a virtual catalog of thousands of free
-    applications available for Ubuntu.
-    You can find applications by category or by searching,
-    and you can install an application with the click of a button.
+      The Ubuntu Software Store is a virtual catalog of thousands of free
+      applications available for Ubuntu &#8212;
+      software to make your computer more useful.
     </para>
     <para>
-      The Store also lets you examine the applications that are installed
-      already,
+      You can find applications by category or by searching,
+      and you can install an application with the click of a button.
+    </para>
+    <para>
+      The Store also lets you examine the applications installed on the
+      computer already,
       and remove those you no longer need.
     </para>
   </chapter>
@@ -75,15 +78,15 @@
     <title>Installing a program</title>
     <para>
       To install a program from the Store,
-      you need a working Internet connection,
-      and administrator access.
+      you need administrator access and a working Internet connection.
       (If you set up Ubuntu on this computer yourself,
       you have administrator access automatically.)
     </para>
     <orderedlist>
       <listitem>
         <para>
-          Find the program you want to install.
+          In the <guilabel>Get Free Software</guilabel> section,
+          find the program you want to install.
           If you already know its name, try typing the name in the search field.
           Or try searching for the type of program you want
           (like &#8220;spreadsheet&#8221;).
@@ -121,26 +124,181 @@
   <chapter id="launching">
     <title id="launching-title"
     >Using a program once it&#8217;s installed</title>
+    <para>
+      Most installed applications appear
+      in the <guimenu>Applications</guimenu> menu in the corner of the screen,
+      in the same category as they came from in the Store.
+    </para>
+    <para>
+      For example, if you installed a program from the
+      <guilabel>Office</guilabel> department, it will appear inside
+      <menuchoice><guimenu>Applications</guimenu>
+      <guisubmenu>Office</guisubmenu></menuchoice>.
+    </para>
+    <para>
+      Utilities for configuring the computer system may appear inside
+      <menuchoice><guimenu>System</guimenu>
+      <guisubmenu>Preferences</guisubmenu></menuchoice> or
+      <menuchoice><guimenu>System</guimenu>
+      <guisubmenu>Administration</guisubmenu></menuchoice>.
+    </para>
+    <para>
+      If you are using Ubuntu Netbook Remix,
+      an application appears in its category on the home screen.
+    </para>
+    <para>
+      Some items, such as media playback or Web browser plugins,
+      do not appear in the menus.
+      They are used automatically when Ubuntu needs them.
+      For a Web browser plugin, you may need to close the browser and
+      reopen it before the plugin will be used.
+    </para>
   </chapter>
   <chapter id="removing">
     <title id="removing-title">Removing a program</title>
+    <para>
+      To remove a program, you need administrator access.
+      (If you set up Ubuntu on this computer yourself,
+      you have administrator access automatically.)
+    </para>
+    <orderedlist>
+      <listitem>
+        <para>
+          In the <guilabel>Installed Software</guilabel> section,
+          find the program you want to remove.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Click the program in the list, and click the arrow button to go to the
+          screen for the program.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Click the <guilabel>Remove</guilabel> button.
+          You may need to enter your Ubuntu password.
+        </para>
+      </listitem>
+    </orderedlist>
+    <para>
+      If a program is open when you remove it,
+      usually it will stay open after it is removed.
+      As soon as you close it, it will no longer be available.
+    </para>
+    <itemizedlist>
+      <listitem><xref linkend="metapackages" endterm="metapackages-title"/></listitem>
+    </itemizedlist>
   </chapter>
   <chapter id="metapackages">
     <title id="metapackages-title"
     >Why is it asking me to remove several programs together?</title>
+    <para>
+      Sometimes if you try to remove one program,
+      the Store will warn you that other programs will be removed too.
+      There are two main reasons this happens.
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          If you remove an application, any add-ons or accessories
+          for that application usually will be removed too.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Multiple applications are sometimes provided as a single package.
+          If any of them are installed, all of them are installed.
+          And if any of them are removed, all of them are removed.
+          The Store cannot remove them individually,
+          because it has no instructions on how to separate them.
+        </para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      You can use <menuchoice><guimenu>System</guimenu>
+      <guisubmenu>Preferences</guisubmenu>
+      <guimenuitem>Main Menu</guimenuitem></menuchoice> to hide unwanted
+      items from the <guimenu>Applications</guimenu> menu without
+      removing the actual programs.
+    </para>
+    <itemizedlist>
+      <listitem>
+        <ulink url="ghelp:user-guide?menu-editor"
+        >Customizing the menu bar</ulink>
+      </listitem>
+    </itemizedlist>
   </chapter>
   <chapter id="canonical-maintained">
     <title>What does &#8220;Canonical-maintained&#8221; mean?</title>
+    <para>
+      Some of the software available in the Ubuntu Software Store is
+      maintained by Canonical.
+      Canonical engineers ensure that security fixes and other critical updates
+      are provided for these programs.
+    </para>
+    <para>
+      Other software is maintained by the Ubuntu developer community.
+      Any updates are provided on a best-effort basis.
+    </para>
   </chapter>
   <chapter id="why-free">
     <title id="why-free-title">Why are all the programs free?</title>
+    <para>
+      Currently, all software in the Ubuntu Software Store is free of charge.
+    </para>
+    <para>
+      Most of this software is developed as <firstterm>open source</firstterm>,
+      which means anyone is allowed to alter it and redistribute it for any
+      price.
+      Ubuntu developers, Debian developers, and others
+      package the software available in the Store,
+      and make it available to you for free.
+    </para>
+    <para>
+      In a future version of Ubuntu, the Store will also allow software
+      purchases.
+    </para>
   </chapter>
   <chapter id="missing">
     <title id="missing-title"
     >What if a program I want isn&#8217;t in the Store?</title>
+    <para>
+      First, check that <menuchoice><guimenu>View</guimenu>
+      <guimenuitem>All Applications</guimenuitem></menuchoice> is selected.
+      That ensures you can see all the software available in the Store.
+    </para>
+    <para>
+      If a program isn&#8217;t in the Store,
+      but you know that it runs on Ubuntu,
+      try contacting the original developers of the program
+      to ask if they can help make it available.
+    </para>
+    <para>
+      If a program is available for other operating systems but not for Ubuntu,
+      let the developers know that you&#8217;re interested in running it on
+      Ubuntu.
+    </para>
   </chapter>
   <chapter id="bugs">
     <title id="bugs-title"
-    >What should I do if a program doesn&#8217;t work?</title>
+    >What if a program doesn&#8217;t work?</title>
+    <para>
+      With thousands of applications in the Store,
+      there&#8217;s always the chance that a few of them won&#8217;t work
+      properly on your computer.
+    </para>
+    <para>
+      If you are familiar with reporting bugs in software,
+      you can help out by reporting the problem to the Ubuntu developers.
+      Most programs have a <guimenuitem>Report a Problem</guimenuitem> item in
+      their <guimenu>Help</guimenu> menu.
+    </para>
+    <para>
+      Otherwise, look through the Store for another program to do what you want.
+    </para>
+    <itemizedlist>
+     <listitem><xref linkend="removing" endterm="removing-title"/></listitem>
+    </itemizedlist>
   </chapter>
 </book>
