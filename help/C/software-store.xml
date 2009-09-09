@@ -278,5 +278,23 @@
   <chapter id="bugs">
     <title id="bugs-title"
     >What should I do if a program doesn&#8217;t work?</title>
+    <para>
+      With thousands of applications in the Store,
+      there&#8217;s always the chance that a few of them won&#8217;t work
+      properly on your computer.
+    </para>
+    <para>
+      If you are familiar with reporting bugs in software,
+      you can help out by reporting the problem to the Ubuntu developers.
+      Most programs have a <guimenuitem>Report a Problem</guimenuitem> item in
+      their <guimenu>Help</guimenu> menu.
+    </para>
+    <para>
+      Otherwise, remove the program,
+      and look through the Store for another program to do what you want.
+    </para>
+    <itemizedlist>
+     <listitem><xref linkend="removing" endterm="removing-title"/></listitem>
+    </itemizedlist>
   </chapter>
 </book>
