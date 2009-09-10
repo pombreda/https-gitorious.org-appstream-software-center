@@ -27,6 +27,9 @@ import sys
 import string
 import xapian
 
+from appview import AppView, AppStore, AppViewFilter
+from appdetailsview import AppDetailsView
+
 
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that the cache is ready using a
@@ -61,6 +64,7 @@ class BasePane(gtk.VBox):
 
     def __init__(self, cache, db, icons, datadir):
         gtk.VBox.__init__(self)
+        # other classes we need
         self.cache = cache
         self.xapiandb = db
         self.xapian_parser = xapian.QueryParser()
@@ -68,6 +72,23 @@ class BasePane(gtk.VBox):
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.icons = icons
         self.datadir = datadir
+        # common UI elements (applist and appdetails) 
+        # its the job of the Child class to put it into a good location
+        # list
+        self.app_view = AppView()
+        self.scroll_app_list = gtk.ScrolledWindow()
+        self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
+                                        gtk.POLICY_AUTOMATIC)
+        self.scroll_app_list.add(self.app_view)
+        # details
+        self.app_details = AppDetailsView(self.xapiandb, 
+                                          self.icons, 
+                                          self.cache, 
+                                          self.datadir)
+        self.scroll_details = gtk.ScrolledWindow()
+        self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
+                                       gtk.POLICY_AUTOMATIC)
+        self.scroll_details.add(self.app_details)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -75,7 +96,12 @@ class BasePane(gtk.VBox):
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
+        # FIXME: preserve selection too
+        # get previous vadjustment and reapply it
+        vadj = self.scroll_app_list.get_vadjustment()
         self.refresh_apps()
+        # needed otherwise we jump back to the beginning of the table
+        vadj.value_changed()
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):

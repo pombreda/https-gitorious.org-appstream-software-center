@@ -17,6 +17,8 @@ software-store (0.3.1) karmic; urgency=low
   * updated icon (LP: #427279)
   * properly update the current app list (ensure installed emblems
     are good) if the cache is re-opened
+  * when the cache is refreshed, ensure that the scrolled position
+    is kept
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 15:36:47 +0200
 

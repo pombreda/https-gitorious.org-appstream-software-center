@@ -93,22 +93,11 @@ class AvailablePane(BasePane):
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
         # app list
         self.cat_view.connect("category-selected", self.on_category_activated)
-        self.app_view = AppView()
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-        scroll_app_list = gtk.ScrolledWindow()
-        scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll_app_list.add(self.app_view)
-        self.notebook.append_page(scroll_app_list, gtk.Label("installed"))
+        self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
         # details
-        self.app_details = AppDetailsView(self.xapiandb, 
-                                          self.icons, 
-                                          self.cache, 
-                                          self.datadir)
-        scroll_details = gtk.ScrolledWindow()
-        scroll_details.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll_details.add(self.app_details)
-        self.notebook.append_page(scroll_details, gtk.Label("details"))
+        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # home button
         self.navigation_bar.add_with_id(_("Get Free Software"), 
                                         self.on_navigation_category,
