@@ -24,11 +24,20 @@
     obj.style.opacity = opacity/100;
   }
   function initImage() {
-    imageId = 'screenshot_thumbnail';
-    image = document.getElementById(imageId);
+    id = 'screenshot_thumbnail'
+    image = document.getElementById(id);
     setOpacity(image, 0);
     image.style.visibility = 'visible';
-    fadeIn(imageId,0);
+    fadeIn(id,0);
+  }
+  function initWhereIsItvisible() {
+    id = 'whereisit_div'
+    div = document.getElementById(id);
+    setOpacity(div, 0);
+    div.style.visibility = 'visible';
+    fadeIn(id,0);
+  }
+  function initWhereIsIthidden() {
   }
   window.onload = function() {
     initImage()
@@ -58,6 +67,7 @@
       width:160px;
     }
  #screenshot_thumbnail {visibility:hidden}
+ #whereisit_div {visibility:hidden}
  #text {float:left; padding-left:86px;}
  #installed_overlay { z-index:999; width:24px; height:24px; background: url('file:${software_installed_icon}'); position:absolute; left:40px; top:40px; visibility:${installed} }
  #package_information { font-size:70%; }
@@ -84,14 +94,31 @@
    <div id="description">$description</div>
    <p id="price">$price</p>
    <p id="action_button_description">$action_button_description</p>
-   <input type="button" id="button_$action_button_value" class="action_button"
+    <input type="button" id="button_$action_button_value" class="action_button"
           value="$action_button_label"
 	  onclick='changeTitle("call:on_button_${action_button_value}_clicked")'
 	  />
    
-   <input type="button" id="button_homepage" value="$homepage"
+    <input type="button" id="button_homepage" value="$homepage"
 	  onclick='changeTitle("call:on_button_homepage_clicked")'
 	  />
+    <input type="button" id="button_whereisit" value="$whereisit"
+	  onclick='initWhereIsIt$installed();'
+	  />
+   <div id="whereisit_div">
+       <div id="whereisit-top">
+            <img src="file:$whereisit_top_icon" />
+            <span class="whereisit_top_text">$whereisit_top_text</span>
+       </div>
+       <div id="whereisit-middle">
+            <img src="file:$whereisit_middle_icon" />
+            <span class="whereisit_middle_text">$whereisit_middle_text</span>
+       </div>
+       <div id="whereisit-bottom">
+            <img src="file:$iconpath" />
+            <span class="whereisit_bottom_text">$appname</span>
+       </div>
+   </div>
    <p id="package_information">$package_information</p>
    <p id="maintainance_time">$maintainance_time</p>
  </div>

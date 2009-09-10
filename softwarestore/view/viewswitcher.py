@@ -109,7 +109,7 @@ class ViewSwitcherList(gtk.ListStore):
         self.icons = icons
         self.datadir = datadir
         # setup the normal stuff
-        icon = AnimatedImage(self.icons.load_icon("softwarestore", self.ICON_SIZE, 0))
+        icon = AnimatedImage(self.icons.load_icon("software-store", self.ICON_SIZE, 0))
         self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
