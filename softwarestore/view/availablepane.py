@@ -70,8 +70,6 @@ class AvailablePane(BasePane):
         #self.apps_filter.set_not_installed_only(True)
         # UI
         self._build_ui()
-        # initial refresh
-        self.refresh_apps()
     def _build_ui(self):
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()

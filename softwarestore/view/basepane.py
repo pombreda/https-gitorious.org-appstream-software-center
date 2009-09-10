@@ -70,3 +70,14 @@ class BasePane(gtk.VBox):
         self.datadir = datadir
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        # when the cache changes, refresh the app list
+        self.cache.connect("cache-ready", self.on_cache_ready)
+
+    def on_cache_ready(self, cache):
+        " refresh the application list when the cache is re-opened "
+        self.refresh_apps()
+
+    @wait_for_apt_cache_ready
+    def refresh_apps(self):
+        " stub implementation "
+        pass

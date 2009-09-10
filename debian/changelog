@@ -1,4 +1,4 @@
-software-store (0.3.1) UNRELEASEDkarmic; urgency=low
+software-store (0.3.1) karmic; urgency=low
 
   * softwarestore/app.py, softwarestore/view/appdetailsview.py:
     - send pkgname instead of apt.Package object in the selected
@@ -14,9 +14,11 @@ software-store (0.3.1) UNRELEASEDkarmic; urgency=low
   * data/ui/SoftwareStore.ui:
     - adjust default size so that all icons fit into the
       window in a english locale (thanks to mac_v)
-  * new icon
+  * updated icon (LP: #427279)
+  * properly update the current app list (ensure installed emblems
+    are good) if the cache is re-opened
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 09:45:02 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 15:36:47 +0200
 
 software-store (0.3.0) karmic; urgency=low
 
