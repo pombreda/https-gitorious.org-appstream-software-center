@@ -20,8 +20,9 @@
 
 import apt
 import logging
-import gtk
+import glib
 import gobject
+import gtk
 import os
 import pango
 import sys
@@ -169,10 +170,8 @@ class AppStore(gtk.GenericTreeModel):
                 if icon_name:
                     icon = self.icons.load_icon(icon_name, self.ICON_SIZE,0)
                     return icon
-            except Exception, e:
-                if not (str(e).endswith("not present in theme") or
-                        str(e).endswith("Unrecognized image file format")):
-                    logging.exception("get_icon")
+            except glib.GError, e:
+                logging.debug("get_icon returned '%s'" % e)
             return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         elif column == self.COL_INSTALLED_OVERLAY:
             for post in self.xapiandb.postlist("AA"+appname):
