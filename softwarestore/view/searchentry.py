@@ -80,6 +80,7 @@ class SearchEntry(sexy.IconEntry):
         """
         if icon == sexy.ICON_ENTRY_SECONDARY:
             self.handler_block(self._handler_changed)
+            self.grab_focus()
             self.set_text("")
             self._check_style()
             self.handler_unblock(self._handler_changed)
