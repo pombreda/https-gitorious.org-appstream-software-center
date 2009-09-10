@@ -5,24 +5,19 @@ Code:
 - make the order of "cache, db, datadir" identical 
   accross the various widgets (e.g. AppDetailsView
   and AppStore use different ordering)
-- make the:
-         if not self.cache.ready:
-            glib.timeout_add(100, lambda: me())
-            return False
-  a decorator
 
 Webkit:
 - xpm images can not be loaded
-- the human icons for the categories are only 24x24
 - only simple keyboard nagvigation in the widgets (tab, no
   cursor keys)
-- equal size for all category items in html not trivial
-  apparently?
 - make the description -> html processing better, use
   code from g-a-i for this
 - make action button insensitive on click
 
-
+Missing functionality compared to g-a-i:
+- maintainance calculation
+- displaying EULA
+- enable of components (like universe)
 
 UI:
 - if a package is only available for a subset of the 
@@ -30,26 +25,14 @@ UI:
   the details UI (e.g. qlix not available on amd64)
 - add warning if a package is removed that causes the removal
   of a unreleated meta-package (that is not ubuntu-desktop)
-- make the textview more visual attractive (GtkTextView has
-  probably too many limitations, switch to the webkit branch
-- connect the menu items from the "Edit" menu
-- make "installed" and "available" two fully seperate internal
-  tabs and change the "installed" main page to not show 
-  categories but use a different view (spec says treeview, lets
-  see if that can be done in time)
 - implement the removal dialog in the way the spec calls for
   it (different ui design)
 - implement warning when a package contains of multiple apps
   and show the apps in this case
-- implement the spinning icon for pending transactions. while
-  we have a animatedimage (that works fine) it won't work
-  inside a Treeview. so we need a custom cell renderer that
-  can render normal pixbufs and animated pixbufs
 - CellRendererTextWithActivateArrow needs a mode for 
-  right-to-left languages
+  right-to-left languages and a button-pressed image
 - refresh app list when a package gets installed (some 
   packages may no longer be installed/not installed)
-  
 
 Missing:
 - when the xapian db is rebuilding (e.g. because app-center is 
@@ -76,11 +59,6 @@ Missing (hard):
      we need re-calculate the cache when a cancel happens
   -> what about transactions that come from outside of 
      software-store
-
-Missing functionality compared to g-a-i:
-- maintainance calculation
-- displaying EULA
-- enable of components (like universe)
 
 Missing but not so important:
 - searching for codecs (now done by gnome-codec-install)
