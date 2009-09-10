@@ -1,16 +1,20 @@
-#, fuzzy
+# Scots translation for software-store
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the software-store package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: software-store\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-09-02 13:52+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2009-08-31 23:14+0000\n"
+"Last-Translator: Stephen Brown <sbrown1992@gmail.com>\n"
+"Language-Team: Scots <sco@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
@@ -30,7 +34,7 @@ msgstr ""
 
 #: ../softwarestore/view/appdetailsview.py:77
 msgid "Description"
-msgstr ""
+msgstr "Descrieftion"
 
 #: ../softwarestore/view/appdetailsview.py:147
 msgid "Not available in the current data"
@@ -57,7 +61,7 @@ msgstr[1] ""
 #: ../softwarestore/view/appdetailsview.py:211
 #, python-format
 msgid "Price: %s"
-msgstr ""
+msgstr "Cast: %s"
 
 #: ../softwarestore/view/appdetailsview.py:211
 msgid "Free"
@@ -89,7 +93,7 @@ msgstr ""
 
 #: ../softwarestore/view/appdetailsview.py:293
 msgid "ERROR"
-msgstr ""
+msgstr "ERRIR"
 
 #: ../softwarestore/view/appdetailsview.py:309
 msgid "Upgrade"
@@ -97,11 +101,11 @@ msgstr ""
 
 #: ../softwarestore/view/appdetailsview.py:312
 msgid "Remove"
-msgstr ""
+msgstr "Remove"
 
 #: ../softwarestore/view/appdetailsview.py:315
 msgid "Install"
-msgstr ""
+msgstr "Insta"
 
 #. FIXME: deal with the EULA stuff
 #: ../softwarestore/view/appdetailsview.py:324
@@ -132,8 +136,8 @@ msgstr ""
 
 #: ../data/ubuntu-software-store.desktop.in.h:2
 msgid "Software Store"
-msgstr ""
+msgstr "Saftwaire Stare"
 
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
-msgstr ""
+msgstr "Ubuntu Saftwaire Stare"

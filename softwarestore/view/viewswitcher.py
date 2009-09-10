@@ -22,6 +22,7 @@ import dbus
 import gtk
 import gobject
 import logging
+import pango
 import os
 import time
 import xapian
@@ -31,9 +32,18 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-from animatedimage import CellRendererAnimatedImage, AnimatedImage
+from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
 class ViewSwitcher(gtk.TreeView):
+
+    __gsignals__ = {
+        "view-changed" : (gobject.SIGNAL_RUN_LAST,
+                          gobject.TYPE_NONE, 
+                          (int, ),
+                         )
+    }
+
+
     def __init__(self, datadir, icons, store=None):
         super(ViewSwitcher, self).__init__()
         self.datadir = datadir
@@ -56,6 +66,9 @@ class ViewSwitcher(gtk.TreeView):
         self.set_model(store)
         self.set_headers_visible(False)
         self.connect("button-press-event", self.on_button_press_event)
+    def set_view(self, action):
+        self.set_cursor((action,))
+        self.emit("view-changed", action)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
         path = self.get_path_at_pos(int(event.x), int(event.y))
@@ -71,7 +84,9 @@ class ViewSwitcher(gtk.TreeView):
         (path, column, wx, wy) = res
         if event.button != 1 or path is None:
             return
-        self.emit("row-activated", path, column)
+        model = self.get_model()
+        action = model[path][ViewSwitcherList.COL_ACTION]
+        self.emit("view-changed", action)
 
 class ViewSwitcherList(gtk.ListStore):
     
@@ -81,10 +96,9 @@ class ViewSwitcherList(gtk.ListStore):
      COL_ACTION) = range(3)
 
     # items in the treeview
-    (ACTION_ITEM_NONE,
-     ACTION_ITEM_AVAILABLE,
+    (ACTION_ITEM_AVAILABLE,
      ACTION_ITEM_INSTALLED,
-     ACTION_ITEM_PENDING) = range(4)
+     ACTION_ITEM_PENDING) = range(3)
 
     ICON_SIZE = 24
 
@@ -95,7 +109,7 @@ class ViewSwitcherList(gtk.ListStore):
         self.icons = icons
         self.datadir = datadir
         # setup the normal stuff
-        icon = AnimatedImage(self.icons.load_icon("software-store", self.ICON_SIZE, 0))
+        icon = AnimatedImage(self.icons.load_icon("softwarestore", self.ICON_SIZE, 0))
         self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])

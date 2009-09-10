@@ -20,8 +20,9 @@
 
 import apt
 import logging
-import gtk
+import glib
 import gobject
+import gtk
 import os
 import pango
 import sys
@@ -62,12 +63,14 @@ class AppStore(gtk.GenericTreeModel):
      COL_TEXT, 
      COL_ICON,
      COL_INSTALLED_OVERLAY,
-     ) = range(4)
+     COL_PKGNAME,
+     ) = range(5)
 
     column_type = (str, 
                    str,
                    gtk.gdk.Pixbuf,
-                   bool)
+                   bool,
+                   str)
 
     ICON_SIZE = 24
 
@@ -136,7 +139,7 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_column_type(self, index):
         return self.column_type[index]
     def on_get_iter(self, path):
-        logging.debug("on_get_iter: %s" % path)
+        #logging.debug("on_get_iter: %s" % path)
         if len(self.appnames) == 0:
             return None
         index = path[0]
@@ -167,10 +170,8 @@ class AppStore(gtk.GenericTreeModel):
                 if icon_name:
                     icon = self.icons.load_icon(icon_name, self.ICON_SIZE,0)
                     return icon
-            except Exception, e:
-                if not (str(e).endswith("not present in theme") or
-                        str(e).endswith("Unrecognized image file format")):
-                    logging.exception("get_icon")
+            except glib.GError, e:
+                logging.debug("get_icon returned '%s'" % e)
             return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         elif column == self.COL_INSTALLED_OVERLAY:
             for post in self.xapiandb.postlist("AA"+appname):
@@ -180,6 +181,12 @@ class AppStore(gtk.GenericTreeModel):
             if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
                 return True
             return False
+        elif column == self.COL_PKGNAME:
+            for post in self.xapiandb.postlist("AA"+appname):
+                doc = self.xapiandb.get_document(post.docid)
+                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                break
+            return pkgname
     
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
@@ -199,7 +206,7 @@ class AppStore(gtk.GenericTreeModel):
             return 0
         return len(self.appnames)
     def on_iter_nth_child(self, parent, n):
-        logging.debug("on_iter_nth_child: %s %i" % (parent, n))
+        #logging.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
         try:
@@ -226,7 +233,7 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
         gtk.CellRendererText.__init__(self)
         icons = gtk.icon_theme_get_default()
         self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
-        self._forward = icons.load_icon("gtk-go-forward-ltr", 
+        self._forward = icons.load_icon("software-store-arrow-button", 
                                         AppStore.ICON_SIZE, 0)
     # FIMXE: what about right-to-left languages? we need to 
     #        render the button differently there
@@ -250,6 +257,7 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
                                -1, -1,          # size
                                0, 0, 0)         # dither
 gobject.type_register(CellRendererTextWithActivateArrow)
+
 
 # custom renderer for the arrow thing that mpt wants
 class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
@@ -302,10 +310,14 @@ class AppView(gtk.TreeView):
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
                                    (str, ),
-                                  )
+                                  ),
+        "application-selected" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE, 
+                                   (str, str, ),
+                                  ),
     }
 
-    def __init__(self, store):
+    def __init__(self, store=None):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
@@ -322,6 +334,8 @@ class AppView(gtk.TreeView):
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
+        if store is None:
+            store = gtk.ListStore(str, gtk.gdk.Pixbuf)
         self.set_model(store)
         # custom cursor
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
@@ -330,9 +344,17 @@ class AppView(gtk.TreeView):
         # button and motion are "special" 
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("motion-notify-event", self._on_motion_notify_event)
+        self.connect("cursor-changed", self._on_cursor_changed)
     def _on_row_activated(self, treeview, path, column):
-        (name, text, icon, overlay) = treeview.get_model()[path]
+        (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
         self.emit("application-activated", name)
+    def _on_cursor_changed(self, treeview):
+        selection = treeview.get_selection()
+        (model, iter) = selection.get_selected()
+        if iter is None:
+            return
+        (name, text, icon, overlay, pkgname) = model[iter]
+        self.emit("application-selected", name, pkgname)
     def _on_motion_notify_event(self, widget, event):
         (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
         if width - event.x <= AppStore.ICON_SIZE:
@@ -376,10 +398,12 @@ class AppViewFilter(object):
         self.installed_only = v
     def set_not_installed_only(self, v):
         self.not_installed_only = v
+    def get_supported_only(self):
+        return self.supported_only
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
-        logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
-                self.supported_only, self.installed_only, pkgname))
+        #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
+        #        self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
             if (self.cache.has_key(pkgname) and 
                 not self.cache[pkgname].isInstalled):

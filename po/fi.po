@@ -1,84 +1,90 @@
-#, fuzzy
+# Finnish translation for software-store
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the software-store package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: software-store\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-09-02 13:52+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2009-09-04 15:43+0000\n"
+"Last-Translator: Timo Jyrinki <timo-jyrinki@ubuntu.com>\n"
+"Language-Team: Finnish <fi@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../softwarestore/app.py:223
 msgid "All"
-msgstr ""
+msgstr "Kaikki"
 
 #: ../softwarestore/app.py:224
 #, python-format
 msgid "Search in %s"
-msgstr ""
+msgstr "Hae (%s)"
 
 #: ../softwarestore/app.py:333
 #, python-format
 msgid "%s items available"
-msgstr ""
+msgstr "%s sovellusta saatavilla"
 
 #: ../softwarestore/view/appdetailsview.py:77
 msgid "Description"
-msgstr ""
+msgstr "Kuvaus"
 
 #: ../softwarestore/view/appdetailsview.py:147
 msgid "Not available in the current data"
-msgstr ""
+msgstr "Ei saatavilla nykyisissä tiedoissa"
 
 #: ../softwarestore/view/appdetailsview.py:176
 #, python-format
 msgid "Version: %s (%s)"
-msgstr ""
+msgstr "Versio: %s (%s)"
 
 #. generic message
 #: ../softwarestore/view/appdetailsview.py:194
 #, python-format
 msgid "%s is installed on this computer."
-msgstr ""
+msgstr "%s on asennettu tälle tietokoneelle."
 
 #: ../softwarestore/view/appdetailsview.py:206
 #, python-format
 msgid "It is used by %s piece of installed software."
 msgid_plural "It is used by %s pieces of installed software."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Sitä käyttää %s asennettu ohjelmisto."
+msgstr[1] "Sitä käyttää %s asennettua ohjelmistoa."
 
 #: ../softwarestore/view/appdetailsview.py:211
 #, python-format
 msgid "Price: %s"
-msgstr ""
+msgstr "Hinta: %s"
 
 #: ../softwarestore/view/appdetailsview.py:211
 msgid "Free"
-msgstr ""
+msgstr "ilmainen"
 
 #. generic removal text
 #: ../softwarestore/view/appdetailsview.py:257
 #, python-format
 msgid "%s depends on other software on the system. "
-msgstr ""
+msgstr "%s on riippuvainen muista järjestelmässä olevista ohjelmistoista. "
 
 #: ../softwarestore/view/appdetailsview.py:258
 msgid ""
 "Uninstalling it means that the following additional software needs to be "
 "removed."
 msgstr ""
+"Sen asennuksen poistaminen tarkoittaa, että myös seuraavat ylimääräiset "
+"ohjelmistot tulee poistaa."
 
 #: ../softwarestore/view/appdetailsview.py:263
 #, python-format
 msgid "%s is a core component"
-msgstr ""
+msgstr "%s on ydinkomponentti"
 
 #: ../softwarestore/view/appdetailsview.py:264
 #, python-format
@@ -86,54 +92,56 @@ msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
+"%s on ydinsovellus Ubuntussa. Sen asennuksen poistaminen voi johtaa tulevien "
+"päivitysten epäonnistumiseen. Oletko varma, että haluat jatkaa?"
 
 #: ../softwarestore/view/appdetailsview.py:293
 msgid "ERROR"
-msgstr ""
+msgstr "VIRHE"
 
 #: ../softwarestore/view/appdetailsview.py:309
 msgid "Upgrade"
-msgstr ""
+msgstr "Päivitä"
 
 #: ../softwarestore/view/appdetailsview.py:312
 msgid "Remove"
-msgstr ""
+msgstr "Poista"
 
 #: ../softwarestore/view/appdetailsview.py:315
 msgid "Install"
-msgstr ""
+msgstr "Asenna"
 
 #. FIXME: deal with the EULA stuff
 #: ../softwarestore/view/appdetailsview.py:324
 msgid "Enable channel"
-msgstr ""
+msgstr "Ota kanava käyttöön"
 
 #: ../softwarestore/view/viewswitcher.py:95
 msgid "Get Free software"
-msgstr ""
+msgstr "Hae vapaita ohjelmistoja"
 
 #: ../softwarestore/view/viewswitcher.py:97
 msgid "Installed software"
-msgstr ""
+msgstr "Asennetut ohjelmistot"
 
 #: ../softwarestore/view/viewswitcher.py:127
 #, python-format
 msgid "In Progress (%i)"
-msgstr ""
+msgstr "Käynnissä (%i)"
 
 #: ../softwarestore/view/viewswitcher.py:132
 #, python-format
 msgid "Pending (%i)"
-msgstr ""
+msgstr "Odottaa (%i)"
 
 #: ../data/ubuntu-software-store.desktop.in.h:1
 msgid "Install and remove software"
-msgstr ""
+msgstr "Asenna tai poista sovelluksia"
 
 #: ../data/ubuntu-software-store.desktop.in.h:2
 msgid "Software Store"
-msgstr ""
+msgstr "Sovelluskauppa"
 
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
-msgstr ""
+msgstr "Ubuntun sovelluskauppa"

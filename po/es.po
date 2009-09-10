@@ -7,82 +7,129 @@ msgid ""
 msgstr ""
 "Project-Id-Version: software-store\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2009-08-24 16:16+0200\n"
-"PO-Revision-Date: 2009-08-25 03:33+0000\n"
+"POT-Creation-Date: 2009-09-02 13:52+0200\n"
+"PO-Revision-Date: 2009-09-04 19:35+0000\n"
 "Last-Translator: Julián Alarcón <alarconj@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2009-08-26 15:04+0000\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../softwarestore/app.py:174
-msgid "Search"
-msgstr "Buscar"
+#: ../softwarestore/app.py:223
+msgid "All"
+msgstr "Todo"
 
-#: ../softwarestore/app.py:251
+#: ../softwarestore/app.py:224
+#, python-format
+msgid "Search in %s"
+msgstr "Buscar en %s"
+
+#: ../softwarestore/app.py:333
 #, python-format
 msgid "%s items available"
 msgstr "%s elementos disponibles"
 
-#: ../softwarestore/view/appdetailsview.py:65
+#: ../softwarestore/view/appdetailsview.py:77
 msgid "Description"
 msgstr "Descripción"
 
-#: ../softwarestore/view/appdetailsview.py:150
-#, python-format
-msgid "Price: %s"
-msgstr "Precio: %s"
+#: ../softwarestore/view/appdetailsview.py:147
+msgid "Not available in the current data"
+msgstr "No disponible en los datos actuales"
 
-#: ../softwarestore/view/appdetailsview.py:150
-msgid "Free"
-msgstr ""
-
-#: ../softwarestore/view/appdetailsview.py:160
+#: ../softwarestore/view/appdetailsview.py:176
 #, python-format
 msgid "Version: %s (%s)"
 msgstr "Versión: %s (%s)"
 
-#: ../softwarestore/view/appdetailsview.py:169
-msgid "Not available in the current data"
-msgstr "No disponible en los datos actuales"
+#. generic message
+#: ../softwarestore/view/appdetailsview.py:194
+#, python-format
+msgid "%s is installed on this computer."
+msgstr "%s está instalado en este equipo."
 
-#: ../softwarestore/view/appdetailsview.py:195
-msgid "Upgrade"
-msgstr "Actualizar"
+#: ../softwarestore/view/appdetailsview.py:206
+#, python-format
+msgid "It is used by %s piece of installed software."
+msgid_plural "It is used by %s pieces of installed software."
+msgstr[0] "Este es usado por %s pieza de software instalado."
+msgstr[1] "Este es usado por %s piezas de software instalado."
 
-#: ../softwarestore/view/appdetailsview.py:198
-msgid "Remove"
-msgstr "Eliminar"
+#: ../softwarestore/view/appdetailsview.py:211
+#, python-format
+msgid "Price: %s"
+msgstr "Precio: %s"
 
-#: ../softwarestore/view/appdetailsview.py:201
-msgid "Install"
-msgstr "Instalar"
+#: ../softwarestore/view/appdetailsview.py:211
+msgid "Free"
+msgstr "Gratis"
 
-#: ../softwarestore/view/appdetailsview.py:217
-msgid "Homepage"
-msgstr "Sitio web"
+#. generic removal text
+#: ../softwarestore/view/appdetailsview.py:257
+#, python-format
+msgid "%s depends on other software on the system. "
+msgstr "%s depende de otro software en el sistema. "
 
-#: ../softwarestore/view/appdetailsview.py:279
+#: ../softwarestore/view/appdetailsview.py:258
+msgid ""
+"Uninstalling it means that the following additional software needs to be "
+"removed."
+msgstr ""
+"Desinstalándolo significa que el software adicional a continuación necesita "
+"ser removido."
+
+#: ../softwarestore/view/appdetailsview.py:263
+#, python-format
+msgid "%s is a core component"
+msgstr "%s es un componente principal"
+
+#: ../softwarestore/view/appdetailsview.py:264
+#, python-format
+msgid ""
+"%s is a core application in Ubuntu. Uninstalling it may cause future "
+"upgrades to be incomplete. Are you sure you want to continue?"
+msgstr ""
+"%s es una aplicación principal en Ubuntu. Desinstalarlo podría causar que "
+"futuras actualizaciones queden incompletas. ¿Desea continuar?"
+
+#: ../softwarestore/view/appdetailsview.py:293
 msgid "ERROR"
 msgstr "ERROR"
 
-#: ../softwarestore/view/catview.py:109
-msgid "Categories"
-msgstr "Categorías"
+#: ../softwarestore/view/appdetailsview.py:309
+msgid "Upgrade"
+msgstr "Actualizar"
 
-#. setup the normal stuff
-#: ../softwarestore/view/viewswitcher.py:90
-msgid "Get new software"
-msgstr "Adquirir nuevo software"
+#: ../softwarestore/view/appdetailsview.py:312
+msgid "Remove"
+msgstr "Quitar"
 
-#: ../softwarestore/view/viewswitcher.py:91
+#: ../softwarestore/view/appdetailsview.py:315
+msgid "Install"
+msgstr "Instalar"
+
+#. FIXME: deal with the EULA stuff
+#: ../softwarestore/view/appdetailsview.py:324
+msgid "Enable channel"
+msgstr ""
+
+#: ../softwarestore/view/viewswitcher.py:95
+msgid "Get Free software"
+msgstr "Obtener sofware gratuito"
+
+#: ../softwarestore/view/viewswitcher.py:97
 msgid "Installed software"
 msgstr "Software instalado"
 
-#: ../softwarestore/view/viewswitcher.py:119
-#: ../softwarestore/view/viewswitcher.py:122
+#: ../softwarestore/view/viewswitcher.py:127
+#, python-format
+msgid "In Progress (%i)"
+msgstr "En progreso (%i)"
+
+#: ../softwarestore/view/viewswitcher.py:132
 #, python-format
 msgid "Pending (%i)"
 msgstr "Pendiente (%i)"
@@ -93,8 +140,20 @@ msgstr "Instalar y eliminar software"
 
 #: ../data/ubuntu-software-store.desktop.in.h:2
 msgid "Software Store"
-msgstr "Tienda de Software"
+msgstr "Tienda de software"
 
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
-msgstr "Tienda de Software de Ubuntu"
+msgstr "Tienda de software de Ubuntu"
+
+#~ msgid "Search"
+#~ msgstr "Buscar"
+
+#~ msgid "Homepage"
+#~ msgstr "Sitio web"
+
+#~ msgid "Categories"
+#~ msgstr "Categorías"
+
+#~ msgid "Get new software"
+#~ msgstr "Adquirir nuevo software"

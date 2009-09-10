@@ -1,4 +1,84 @@
-software-store (0.2.2) UNRELEASED; urgency=low
+software-store (0.3.2) UNRELEASED; urgency=low
+
+  * softwarestore/view/viewswitcher.py:
+    - make the iconsize 24px (LP: #425797)
+  * data/ubuntu-software-store.desktop.in:
+    - add "NoDisplay=true", we enforce showing it at a special
+      location via a gnome-panel patch (LP: #426209)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 16:54:39 +0200
+
+software-store (0.3.1) karmic; urgency=low
+
+  * softwarestore/app.py, softwarestore/view/appdetailsview.py:
+    - send pkgname instead of apt.Package object in the selected
+      signal (LP: #427157)
+  * softwarestore/view/availablepane.py:
+    - Show installed software in the "Get Free Software" pane
+      as well (as the spec says) LP: #427014
+  * softwarestore/view/appview.py:
+    - log icon_load errors only in loglevel DEBUG to avoid
+      noise on the console
+  * softwarestore/view/searchentry.py:
+    - grab focus when clear icon is clicked (LP: #421552)
+  * data/ui/SoftwareStore.ui:
+    - adjust default size so that all icons fit into the
+      window in a english locale (thanks to mac_v)
+  * updated icon (LP: #427279)
+  * properly update the current app list (ensure installed emblems
+    are good) if the cache is re-opened
+  * when the cache is refreshed, ensure that the scrolled position
+    is kept
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 16:13:57 +0200
+
+software-store (0.3.0) karmic; urgency=low
+
+  * merged from rugby471:
+    - documentation updates
+    - i18n fixes
+  * softwarestore/view/gbwidget.py:
+    - add new Gtkbuilder widget base class
+  * softwarestore/view/appview.py:
+    - allow a empty AppView
+  * softwarestore/view/installedpane.py:
+    - composited widget that contains navigation, applist and search
+      for the installed software
+  * softwarestore/view/availablepane.py:
+    - composited widget that contains navigation, applist and search
+      for the available software
+  * softwarestore/view/searchentry.py:
+    - make the icon_theme optional
+  * make the status bar display the current number of items displayed
+  * center the status bar (LP: #424895)
+  * make menuitems "Copy", "Copy Weblink", "Software Sources" work
+  * updated po files from rosetta
+  * make the default size bigger (LP: #425862)
+  * merged the fixes from Murat Güneş (many thanks!)
+  * when using the navigation bar to navigate back one (or more)
+    elements, remove the elements from the navigation bar 
+    (LP: #425810)
+  * do not show "Search in Category", "Search in all" buttons. 
+    Instead do the follwing: 
+    - If the user clicks on "Get Free Software" while doing a search
+      in a sub-Category clear the search and go to the Category screen.
+    - If the user does click on the same button while doing a search
+      that originates from the Category screen do not clear the search 
+      and go back to the list of the search results (and not to the
+      Category screen). The search must be cleared with the cleared
+      via the search field in this case. 
+    (LP: #425809)
+  * softwarestore/view/searchentry.py:
+    - show/hide the clear item based on if there is text in it 
+      or not
+  * help updates (thanks to Matthew Paul Thomas)
+  * make the progress bar less cramped (LP: #426281)
+  * make default icon size in category view 48px
+  * merged lp:~mpt/software-store/css branch (many thanks)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 09 Sep 2009 23:54:06 +0200
+
+software-store (0.2.2) karmic; urgency=low
 
   * softwarestore/view/appdetailsview.py:
     - fix icon theme name
@@ -22,7 +102,7 @@ software-store (0.2.2) UNRELEASED; urgency=low
     - add missing "locale.setlocale()"
   * add a stub help page
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Sep 2009 08:51:35 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Sep 2009 18:05:49 +0200
 
 software-store (0.2.1) karmic; urgency=low
 
@@ -96,7 +176,7 @@ software-store (0.1.2) karmic; urgency=low
     - render the category text one pango shrink step smaller
   * softwarestore/view/appdetailsview.py:
     - ignore dbus errors resulting from canceling the authentication
-      dialog (LP: #412269)
+      dialog 
   * softwarestore/view/catview.py:
     - fix crash in non english languages when parsing the 
       applications.menu (LP: #419356)

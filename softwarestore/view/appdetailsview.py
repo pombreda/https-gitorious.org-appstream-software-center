@@ -39,7 +39,7 @@ from aptdaemon import enums
  
 from gettext import gettext as _
 
-from wkwidget import WebkitWidget
+from widgets.wkwidget import WebkitWidget
 import dialogs
 
 try:
@@ -53,7 +53,7 @@ except ImportError:
 class AppDetailsView(WebkitWidget):
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 48
+    APP_ICON_SIZE = 64
     APP_ICON_PADDING = 8
 
     # dependency types we are about
@@ -62,8 +62,7 @@ class AppDetailsView(WebkitWidget):
 
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
-                                (gobject.TYPE_PYOBJECT,
-                                 gobject.TYPE_PYOBJECT))
+                                (str,str, ))
                     }
 
 
@@ -126,7 +125,7 @@ class AppDetailsView(WebkitWidget):
 
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
-        self.emit("selected", self.appname, self.pkg)
+        self.emit("selected", self.appname, self.pkgname)
 
     def clear(self):
         " clear the current view "
@@ -141,6 +140,11 @@ class AppDetailsView(WebkitWidget):
         return self.pkgname
     def wksub_iconname(self):
         return self.iconname
+    def wksub_body_class(self):
+        if (self.cache.has_key(self.pkgname) and
+            self.cache[self.pkgname].isInstalled):
+            return "section-installed"
+        return "section-get"
     def wksub_description(self):
         if self.pkg:
             details = self.pkg.candidate.description
@@ -305,6 +309,14 @@ class AppDetailsView(WebkitWidget):
         trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
+
+    # public interface
+    def install(self):
+        self.on_button_install_clicked()
+    def remove(self):
+        self.on_button_remove_clicked()
+    def upgrade(self):
+        self.on_button_upgrade_clicked()
 
     # internal callback
     def _on_trans_finished(self, trans, enum):

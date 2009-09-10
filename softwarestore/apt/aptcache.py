@@ -27,6 +27,7 @@ class AptCache(gobject.GObject):
     def __init__(self):
         gobject.GObject.__init__(self)
         self._cache = None
+        self._ready = False
         glib.timeout_add(100, self.open)
     def open(self):
         self._ready = False

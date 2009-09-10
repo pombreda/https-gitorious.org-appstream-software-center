@@ -18,6 +18,8 @@
     newTextAroundImg = document.createElement("p");
     newImg = document.createElement("img");
     newImg.src = img;
+    newImg.setAttribute("width", ${icon_size})
+    newImg.setAttribute("height", ${icon_size})
     newTextAroundImg.appendChild(newImg)
     newText = document.createElement("p");
     newText.align = "center";
@@ -32,19 +34,41 @@
     oT.appendChild(newTr);
   }
  </script>
- <style type="text/css">
- body { background-color:#b6bdc4; font-size:100%; padding:2px 10px; color:#000 }
- #header {font-size:100%; padding:10px; background-color:#7D91AA; border:2px solid #3F4B5A}
+  <style type="text/css">
+    body {background-color:#b6bdc4; margin: 0; padding: 1em; color:#000;}
+    h2 {
+      background-color: #7D91aa;
+      border-style: solid;
+      border-width: 0 0 1px 0;
+      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;
+      color: #fff;
+      font-size: 100%;
+      font-weight: normal;
+      padding: 0.25em 0.5em;
+      margin: 0;
+      text-shadow: #404a57 0 -1px 1px;
+    }
  /* debug border */
  /* .category_td {border-width:1px;border-style:solid;} */
- .category_td {float:left; padding:8px; margin:8px; min-width:15%; }
- .category_td:hover { cursor: pointer; opacity:0.65; }
+ /* fixed width does not work, it does not ellipsis but overflows the box */
+ /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
+
+    .category_td {
+      padding: 0 8px;
+      display:inline-block;
+      text-overflow: ellipsis;
+      vertical-align: top;
+      width: 8em !important;
+    }
+    .category_td:hover {cursor: pointer;}
+    .category_td:active {background-color: #7D91aa;}
+
  .category_td p { font-size:90%; text-align:center; }
  </style>
  </head>
 
 <body>
-  <p id="header">Departments</p>
+  <h2>Departments</h2>
   <table>
     <tr></tr>
   </table>

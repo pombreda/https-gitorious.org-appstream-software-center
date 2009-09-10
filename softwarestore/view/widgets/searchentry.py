@@ -35,12 +35,14 @@ class SearchEntry(sexy.IconEntry):
 
     SEARCH_TIMEOUT = 200
 
-    def __init__(self, icon_theme):
+    def __init__(self, icon_theme=None):
         """
         Creates an enhanced IconEntry that supports a time out when typing
         and uses a different background colour when the search is active
         """
         sexy.IconEntry.__init__(self)
+        if not icon_theme:
+            icon_theme = gtk.icon_theme_get_default()
         self._handler_changed = self.connect_after("changed",
                                                    self._on_changed)
         self.connect("icon-pressed", self._on_icon_pressed)
@@ -55,12 +57,13 @@ class SearchEntry(sexy.IconEntry):
         image_find.set_from_pixbuf(pixbuf)
         self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
 
-        image = gtk.Image()
+        self.empty_image = gtk.Image()
+        self.clear_image = gtk.Image()
         pixbuf = icon_theme.load_icon(gtk.STOCK_CLEAR,
                                       gtk.ICON_SIZE_MENU,
                                       0)
-        image.set_from_pixbuf(pixbuf)
-        self.set_icon(sexy.ICON_ENTRY_SECONDARY, image)
+        self.clear_image.set_from_pixbuf(pixbuf)
+        self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
         self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
 
         # Do not draw a yellow bg if an a11y theme is used
@@ -77,16 +80,20 @@ class SearchEntry(sexy.IconEntry):
         """
         if icon == sexy.ICON_ENTRY_SECONDARY:
             self.handler_block(self._handler_changed)
+            self.grab_focus()
             self.set_text("")
             self._check_style()
             self.handler_unblock(self._handler_changed)
             self.emit("terms-changed", self.get_text())
 
+    def clear(self):
+        self.set_text("")
+        self._check_style()
+
     def clear_with_no_signal(self):
         """Clear and do not send a term-changed signal"""
         self.handler_block(self._handler_changed)
-        self.set_text("")
-        self._check_style()
+        self.clear()
         self.handler_unblock(self._handler_changed)
 
     def _on_changed(self, widget):
@@ -104,6 +111,11 @@ class SearchEntry(sexy.IconEntry):
         """
         Use a different background colour if a search is active
         """
+        # show/hide icon
+        if self.get_text() != "":
+            self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
+        else:
+            self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.empty_image)
         # Based on the Rhythmbox code
         yellowish = gtk.gdk.Color(63479, 63479, 48830)
         if self._a11y == True:
