@@ -20,7 +20,7 @@ software-store (0.3.1) karmic; urgency=low
   * when the cache is refreshed, ensure that the scrolled position
     is kept
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 15:36:47 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 16:13:57 +0200
 
 software-store (0.3.0) karmic; urgency=low
 
