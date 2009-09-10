@@ -1,3 +1,10 @@
+software-store (0.3.2) UNRELEASED; urgency=low
+
+  * softwarestore/view/viewswitcher.py:
+    - make the iconsize 24px (LP: #425797)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 16:54:39 +0200
+
 software-store (0.3.1) karmic; urgency=low
 
   * softwarestore/app.py, softwarestore/view/appdetailsview.py:

@@ -99,7 +99,7 @@ class ViewSwitcherList(gtk.ListStore):
      ACTION_ITEM_INSTALLED,
      ACTION_ITEM_PENDING) = range(3)
 
-    ICON_SIZE = 32
+    ICON_SIZE = 24
 
     ANIMATION_PATH = "/usr/share/icons/hicolor/32x32/status/software-store-progress-*.png"
 
