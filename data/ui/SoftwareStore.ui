@@ -73,20 +73,36 @@
                   <object class="GtkMenu" id="menu2">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem_copy">
+                      <object class="GtkImageMenuItem" id="menuitem_cut">
+                        <property name="label">gtk-cut</property>
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Copy</property>
                         <property name="use_underline">True</property>
-                        <accelerator key="c" signal="activate" modifiers="GDK_CONTROL_MASK"/>
-                        <signal name="activate" handler="on_menuitem_copy_activate"/>
+                        <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem_copy_web_link">
+                      <object class="GtkImageMenuItem" id="menuitem_copy">
+                        <property name="label">gtk-copy</property>
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Copy _Web Link</property>
                         <property name="use_underline">True</property>
-                        <accelerator key="c" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
+                        <property name="use_stock">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menuitem_paste">
+                        <property name="label">gtk-paste</property>
+                        <property name="visible">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menuitem_copy_web_link">
+                        <property name="label" translatable="yes">Copy _Web Link</property>
+                        <property name="visible">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">image5</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_menuitem_copy_web_link_activate"/>
                       </object>
                     </child>
@@ -96,11 +112,12 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem_search">
-                        <property name="visible">True</property>
+                      <object class="GtkImageMenuItem" id="menuitem_search">
                         <property name="label" translatable="yes">Searc_h...</property>
+                        <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <accelerator key="f" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="image">image2</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_menuitem_search_activate"/>
                       </object>
                     </child>
@@ -110,10 +127,12 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem_software_sources">
-                        <property name="visible">True</property>
+                      <object class="GtkImageMenuItem" id="menuitem_software_sources">
                         <property name="label" translatable="yes">_Software Sources&#x2026;</property>
+                        <property name="visible">True</property>
                         <property name="use_underline">True</property>
+                        <property name="image">image4</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_menuitem_software_sources_activate"/>
                       </object>
                     </child>
@@ -162,10 +181,12 @@
                   <object class="GtkMenu" id="menu_help">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem_help">
-                        <property name="visible">True</property>
+                      <object class="GtkImageMenuItem" id="menuitem_help">
                         <property name="label" translatable="yes">Software Store _Help</property>
+                        <property name="visible">True</property>
                         <property name="use_underline">True</property>
+                        <property name="image">image1</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_menuitem_help_activate"/>
                       </object>
                     </child>
@@ -340,5 +361,25 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="stock">gtk-help</property>
+    <property name="pixel_size">1</property>
+    <property name="icon-size">1</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="stock">gtk-find</property>
+    <property name="icon-size">1</property>
+  </object>
+  <object class="GtkImage" id="image4">
+    <property name="visible">True</property>
+    <property name="icon_name">software-properties</property>
+  </object>
+  <object class="GtkImage" id="image5">
+    <property name="visible">True</property>
+    <property name="stock">gtk-network</property>
+    <property name="icon-size">1</property>
   </object>
 </interface>
