@@ -49,6 +49,11 @@
         <surname>Thomas</surname>
         <email>mpt@ubuntu.com</email>
       </author>
+      <author>
+        <firstname>Andrew</firstname>
+        <surname>Higginson</surname></surname>
+        <email>rugby471@gmail.com</email>
+      </author>
     </authorgroup>
     <abstract>
     	<para>This manual explains how to use <application>Software Store</application>.</para>
