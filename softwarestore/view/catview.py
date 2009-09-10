@@ -25,7 +25,7 @@ import logging
 import os
 import xapian
 
-from wkwidget import WebkitWidget
+from widgets.wkwidget import WebkitWidget
 
 from gettext import gettext as _
 from xml.etree import ElementTree as ET

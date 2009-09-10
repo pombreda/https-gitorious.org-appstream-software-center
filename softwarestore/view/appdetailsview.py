@@ -39,7 +39,7 @@ from aptdaemon import enums
  
 from gettext import gettext as _
 
-from wkwidget import WebkitWidget
+from widgets.wkwidget import WebkitWidget
 import dialogs
 
 try:

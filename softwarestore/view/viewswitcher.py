@@ -31,7 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-from animatedimage import CellRendererAnimatedImage, AnimatedImage
+from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
 class ViewSwitcher(gtk.TreeView):
 

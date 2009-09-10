@@ -12,6 +12,7 @@ setup(name="software-store", version='0.2',
       packages = ['softwarestore',
                   'softwarestore.apt',
                   'softwarestore.view',
+                  'softwarestore.view.widgets',
                  ],
       data_files=[
                   ('share/software-store/ui/',
