@@ -8,4 +8,5 @@ Terminal=false
 Type=Application
 Categories=PackageManager;GTK;System;Settings
 StartupNotify=true
+NoDisplay=true
 X-Ubuntu-Gettext-Domain=software-store
