@@ -157,9 +157,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.available_pane.cat_view.grab_focus()
 
     # callbacks
-    def on_app_details_changed(self, widget, appname, pkg, page):
+    def on_app_details_changed(self, widget, appname, pkgname, page):
         #print widget, appname, pkg, page
-        self._selected_pkgname_for_page[page] = pkg.name
+        self._selected_pkgname_for_page[page] = pkgname
         self._selected_appname_for_page[page] = appname
         self.update_app_status_menu()
         

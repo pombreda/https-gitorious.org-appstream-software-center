@@ -62,8 +62,7 @@ class AppDetailsView(WebkitWidget):
 
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
-                                (gobject.TYPE_PYOBJECT,
-                                 gobject.TYPE_PYOBJECT))
+                                (str,str, ))
                     }
 
 
@@ -126,7 +125,7 @@ class AppDetailsView(WebkitWidget):
 
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
-        self.emit("selected", self.appname, self.pkg)
+        self.emit("selected", self.appname, self.pkgname)
 
     def clear(self):
         " clear the current view "

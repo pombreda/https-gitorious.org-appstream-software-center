@@ -1,3 +1,11 @@
+software-store (0.3.1) UNRELEASEDkarmic; urgency=low
+
+  * softwarestore/app.py, softwarestore/view/appdetailsview.py:
+    - send pkgname instead of apt.Package object in the selected
+      signal (LP: #427157)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 09:45:02 +0200
+
 software-store (0.3.0) karmic; urgency=low
 
   * merged from rugby471:
