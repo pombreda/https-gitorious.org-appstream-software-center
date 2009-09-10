@@ -14,6 +14,7 @@ software-store (0.3.1) UNRELEASEDkarmic; urgency=low
   * data/ui/SoftwareStore.ui:
     - adjust default size so that all icons fit into the
       window in a english locale (thanks to mac_v)
+  * new icon
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 09:45:02 +0200
 
