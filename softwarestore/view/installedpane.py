@@ -43,34 +43,19 @@ from widgets.searchentry import SearchEntry
 from appview import AppView, AppStore, AppViewFilter
 from appdetailsview import AppDetailsView
 
-class InstalledPane(gtk.VBox):
+from basepane import BasePane, wait_for_apt_cache_ready
+
+class InstalledPane(BasePane):
     """Widget that represents the installed panel in software-store
        It contains a search entry and navigation buttons
     """
 
-    __gsignals__ = {
-        "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (int, ),
-                             )
-    }
-
-
-    PADDING = 6
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
 
     def __init__(self, cache, db, icons, datadir):
-        gtk.VBox.__init__(self)
-        self.cache = cache
-        self.xapiandb = db
-        self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
-        self.icons = icons
-        self.datadir = datadir
-        # cursor
-        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        # parent
+        BasePane.__init__(self, cache, db, icons, datadir)
         # state
         self.apps_filter = AppViewFilter(cache)
         self.apps_filter.set_installed_only(True)
@@ -109,15 +94,12 @@ class InstalledPane(gtk.VBox):
         # initial refresh
         self.search_terms = ""
         self.refresh_apps()
+
+    @wait_for_apt_cache_ready
     def refresh_apps(self):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        if not self.cache.ready:
-            if self.app_view.window:
-                self.app_view.window.set_cursor(self.busy_cursor)
-            glib.timeout_add(100, lambda: self.refresh_apps())
-            return False
         if self.search_terms:
             # FIXME: move this into generic code? 
             #        something like "build_query_from_search_terms()"

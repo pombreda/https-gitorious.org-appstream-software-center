@@ -44,36 +44,22 @@ from appview import AppView, AppStore, AppViewFilter
 from appdetailsview import AppDetailsView
 from catview import CategoriesView
 
-class AvailablePane(gtk.VBox):
+from basepane import BasePane, wait_for_apt_cache_ready
+
+class AvailablePane(BasePane):
     """Widget that represents the available panel in software-store
        It contains a search entry and navigation buttons
     """
 
-    __gsignals__ = {
-        "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (int, ),
-                             )
-    }
-
     DEFAULT_SEARCH_APPS_LIMIT = 200
-    PADDING = 6
 
     (PAGE_CATEGORY,
      PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(3)
 
     def __init__(self, cache, db, icons, datadir):
-        gtk.VBox.__init__(self)
-        self.cache = cache
-        self.xapiandb = db
-        self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
-        self.icons = icons
-        self.datadir = datadir
-        # cursor
-        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        # parent
+        BasePane.__init__(self, cache, db, icons, datadir)
         # state
         self.apps_category_query = None
         self.apps_search_query = None
@@ -129,17 +115,11 @@ class AvailablePane(gtk.VBox):
         self.navigation_bar.add_with_id(_("Get Free Software"), 
                                         self.on_navigation_category,
                                         "category")
-
+    @wait_for_apt_cache_ready
     def refresh_apps(self):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        # wait for the apt cache
-        if not self.cache.ready:
-            if self.app_view.window:
-                self.app_view.window.set_cursor(self.busy_cursor)
-            glib.timeout_add(100, lambda: self.refresh_apps())
-            return False
         # build query
         if self.apps_category_query and self.apps_search_query:
             query = xapian.Query(xapian.Query.OP_AND, 
