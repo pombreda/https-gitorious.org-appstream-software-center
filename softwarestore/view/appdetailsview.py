@@ -242,6 +242,11 @@ class AppDetailsView(WebkitWidget):
         if self.pkg and self.pkg.installed:
             return "visible"
         return "hidden"
+    def wksub_screenshot_installed(self):
+        if (self.cache.has_key(self.pkgname) and
+            self.cache[self.pkgname].isInstalled):
+            return "screenshot_thumbnail-installed"
+        return "screenshot_thumbnail"
         
     # callbacks
     def on_button_enable_channel_clicked(self):

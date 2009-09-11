@@ -23,15 +23,15 @@
     opacity = (opacity == 100)?99.999:opacity;
     obj.style.opacity = opacity/100;
   }
-  function initImage() {
-    imageId = 'screenshot_thumbnail';
-    image = document.getElementById(imageId);
-    setOpacity(image, 0);
-    image.style.visibility = 'visible';
-    fadeIn(imageId,0);
+  function initElement(id) {
+    element = document.getElementById(id);
+    setOpacity(element, 0);
+    element.style.visibility = 'visible';
+    fadeIn(id,0);
   }
   window.onload = function() {
-    initImage()
+    initElement('screenshot_thumbnail_img');
+    initElement('$screenshot_installed')
   }
  </script>
 
@@ -57,7 +57,9 @@
       margin: 0 0 1em 1em;
       width:160px;
     }
- #screenshot_thumbnail {visibility:hidden}
+ #screenshot_thumbnail {visibility:hidden; background-color:#b6bdc4; width:160px; height:120px;}
+ #screenshot_thumbnail-installed {visibility:hidden; background-color:#fff; width:160px; height:120px;}
+ #screenshot_thumbnail_img {visibility:hidden; background:url('http://screenshots.debian.net/thumbnail/${pkgname}') no-repeat; width:160px; height:120px}
  #text {float:left; padding-left:86px;}
  #installed_overlay { z-index:999; width:24px; height:24px; background: url('file:${software_installed_icon}'); position:absolute; left:40px; top:40px; visibility:${installed} }
  #package_information { font-size:70%; }
@@ -79,7 +81,9 @@
  <div id="text">
    <h1>$appname</h1>
    <div id='screenshot_thumbnail_loading'>
-     <img id="screenshot_thumbnail" src="http://screenshots.debian.net/thumbnail/$pkgname" alt="Application Screenshot"/>
+        <div id='$screenshot_installed'>
+            <img id="screenshot_thumbnail_img" alt="Application Screenshot"/>
+        </div>
    </div>
    <div id="description">$description</div>
    <p id="price">$price</p>
