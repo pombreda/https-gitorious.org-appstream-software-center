@@ -104,6 +104,8 @@ class AppStore(gtk.GenericTreeModel):
                 if filter and self.is_filtered_out(filter, doc):
                     continue
                 self.appnames.append(doc.get_data())
+            # sort(key=locale.strxfrm) would be more efficient, but its
+            # currently broken, see http://bugs.python.org/issue2481
             self.appnames.sort(cmp=locale.strcoll)
         else:
             enquire = xapian.Enquire(db)
