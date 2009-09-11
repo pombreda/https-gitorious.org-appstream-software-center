@@ -242,18 +242,6 @@ class AppDetailsView(WebkitWidget):
         if self.pkg and self.pkg.installed:
             return "visible"
         return "hidden"
-    def wksub_whereisit(self):
-        return _("Where is it?")
-    def wksub_whereisit_top_text(self):
-        applications = ["Accessories","Education", "Games", "Graphics", \
-        "Internet", "Office", "Programming", "Sound and Video", "System"]
-        print XAPIAN_VALUE_DESKTOP_FILE
-        if self.doc.get_value(self.pkgcategory) in applications:
-            return _("Applications")
-        else:
-            return _("System")
-    def wksub_whereisit_middle_text(self):
-        return pkg.category
         
     # callbacks
     def on_button_enable_channel_clicked(self):
