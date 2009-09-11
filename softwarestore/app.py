@@ -74,7 +74,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
-    def __init__(self, datadir):
+    def __init__(self, datadir, xapian_base_path=None):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/SoftwareStore.ui")
 
         # setup dbus and exit if there is another instance already
@@ -87,9 +87,23 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             logging.exception("setlocale failed")
 
         # xapian
-        xapian_base_path = XAPIAN_BASE_PATH
+        if not xapian_base_path:
+            xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
-        self.xapiandb = xapian.Database(pathname)
+        try:
+            self.xapiandb = xapian.Database(pathname)
+        except xapian.DatabaseOpeningError:
+            # Couldn't use that folder as a database
+            # This may be because we are in a bzr checkout and that
+            #   folder is empty. If the folder is empty, and we can find the
+            # script that does population, populate a database in it.
+            if os.path.isdir(pathname) and not os.listdir(pathname):
+                from softwarestore.update_utils import update
+                db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
+                cache = apt.Cache(memonly=True)
+                update(db, cache)
+                self.xapiandb = xapian.Database(pathname)
+    
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "AP")

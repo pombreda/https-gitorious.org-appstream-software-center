@@ -44,11 +44,13 @@ if __name__ == "__main__":
 
     if os.path.exists("./data/ui/SoftwareStore.ui"):
         datadir = "./data"
+        xapian_base_path = datadir
     else:
         datadir = "/usr/share/software-store/"
+        xapian_base_path = None
     
     from softwarestore.app import SoftwareStoreApp
     
-    app = SoftwareStoreApp(datadir)
+    app = SoftwareStoreApp(datadir, xapian_base_path)
     app.run()
 
