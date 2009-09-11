@@ -17,6 +17,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from __future__ import absolute_import
+
 import apt
 import aptdaemon
 import locale
@@ -31,7 +33,7 @@ import subprocess
 import sys
 import xapian
 
-from SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from .SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
 try:
     from softwarestore.enums import *
@@ -41,12 +43,12 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from softwarestore.enums import *
 
-from view.viewswitcher import ViewSwitcher, ViewSwitcherList
-from view.pendingview import PendingView
-from view.installedpane import InstalledPane
-from view.availablepane import AvailablePane
+from .view.viewswitcher import ViewSwitcher, ViewSwitcherList
+from .view.pendingview import PendingView
+from .view.installedpane import InstalledPane
+from .view.availablepane import AvailablePane
 
-from apt.aptcache import AptCache
+from .apt.aptcache import AptCache
 
 from gettext import gettext as _
 
@@ -99,9 +101,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             # script that does population, populate a database in it.
             if os.path.isdir(pathname) and not os.listdir(pathname):
                 from softwarestore.update_utils import update
-                db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
                 cache = apt.Cache(memonly=True)
+                db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
                 update(db, cache)
+                db.flush()
                 self.xapiandb = xapian.Database(pathname)
     
         self.xapian_parser = xapian.QueryParser()
