@@ -19,6 +19,7 @@
 
 
 import apt
+import locale
 import logging
 import glib
 import gobject
@@ -103,7 +104,7 @@ class AppStore(gtk.GenericTreeModel):
                 if filter and self.is_filtered_out(filter, doc):
                     continue
                 self.appnames.append(doc.get_data())
-            self.appnames.sort()
+            self.appnames.sort(cmp=locale.strcoll)
         else:
             enquire = xapian.Enquire(db)
             enquire.set_query(search_query)

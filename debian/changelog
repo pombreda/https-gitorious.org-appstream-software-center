@@ -6,6 +6,11 @@ software-store (0.3.2) UNRELEASED; urgency=low
     - add "NoDisplay=true", we enforce showing it at a special
       location via a gnome-panel patch (LP: #426209)
   * merge fixes from rugby471, many thanks!
+  * softwarestore/view/appview.py:
+    - sort in locale friendly way
+  * softwarestore/app.py:
+    - call setlocale() to ensure python-apt provides translated
+      package descriptions
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 16:54:39 +0200
 

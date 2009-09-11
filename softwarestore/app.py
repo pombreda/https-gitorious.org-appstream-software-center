@@ -19,6 +19,7 @@
 
 import apt
 import aptdaemon
+import locale
 import dbus
 import dbus.service
 import gettext
@@ -80,6 +81,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # running
         self.setup_dbus_or_bring_other_instance_to_front()
         
+        try:
+            locale.setlocale(locale.LC_ALL, "")
+        except Exception, e:
+            logging.exception("setlocale failed")
+
         # xapian
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
