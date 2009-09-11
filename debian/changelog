@@ -11,6 +11,8 @@ software-store (0.3.2) UNRELEASED; urgency=low
   * softwarestore/app.py:
     - call setlocale() to ensure python-apt provides translated
       package descriptions
+  * do not display progress circle once the screenshot has 
+    loaded (LP: #425859) - thanks to rugby471
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 16:54:39 +0200
 
