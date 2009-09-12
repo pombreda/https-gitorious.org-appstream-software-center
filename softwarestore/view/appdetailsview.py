@@ -270,8 +270,6 @@ class AppDetailsView(WebkitWidget):
             except dbus.exceptions.DBusException, e:
                 if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                     return
-        # FIXME: make the button in-sensitve (maybe directly in the html/JS?)
-        #widget.set_sensitive(False)
         trans = self.aptd_client.update_cache(
             exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
