@@ -88,6 +88,9 @@ class SearchEntry(sexy.IconEntry):
                 gobject.source_remove(self._timeout_id)
             self._timeout_id = gobject.timeout_add(self.SEARCH_TIMEOUT,
                                                lambda: self.emit("terms-changed", self.get_text()))
+        if icon == sexy.ICON_ENTRY_PRIMARY:
+            self.select_region(0, -1)
+            self.grab_focus()
 
     def clear(self):
         self.set_text("")

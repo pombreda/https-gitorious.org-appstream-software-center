@@ -179,24 +179,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self._selected_pkgname_for_page[page] = pkgname
         self.menuitem_copy.set_sensitive(True)
         self.menuitem_copy_web_link.set_sensitive(True)
-
-    def on_menuitem_help_activate(self, menuitem):
-        # run yelp
-        p = subprocess.Popen(["yelp","ghelp:software-store"])
-        # collect the exit status (otherwise we leave zombies)
-        glib.timeout_add(1000, lambda p: p.poll() == None, p)
-
-    def on_menuitem_close_activate(self, widget):
-        gtk.main_quit()
-
-    def on_menuitem_about_activate(self, widget):
-        #print "about"
-        self.aboutdialog.run()
-        self.aboutdialog.hide()
-
+    
     def on_window_main_delete_event(self, widget, event):
         gtk.main_quit()
-
+        
     def on_view_switcher_changed(self, view_switcher, action):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
@@ -223,20 +209,63 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.update_status_bar()
         self.update_app_status_menu()
 
-    def on_menuitem_view_all_activate(self, widget):
-        if self._block_menuitem_view:
-            return
-        self.active_pane.apps_filter.set_supported_only(False)
-        self.active_pane.refresh_apps()
+    # Menu Items
 
-    def on_menuitem_view_supported_only_activate(self, widget):
-        if self._block_menuitem_view: 
+    def on_menuitem_install_activate(self, menuitem):
+        self.active_pane.app_details.install()
+
+    def on_menuitem_remove_activate(self, menuitem):
+        self.active_pane.app_details.remove()
+        
+    def on_menuitem_close_activate(self, widget):
+        gtk.main_quit()
+
+    def on_menu_edit_activate(self, menuitem):
+        """
+            Check whether the search field is focused and if so, focus some items
+        """
+        state = self.active_pane.searchentry.is_focus()
+        edit_menu_items = [self.menuitem_undo, self.menuitem_redo, self.menuitem_cut, 
+            self.menuitem_copy, self.menuitem_paste, self.menuitem_delete, self.menuitem_select_all]
+        for item in edit_menu_items:
+            item.set_sensitive(state)
+
+    def on_menuitem_undo_activate(self, menuitem):
+        pass
+        
+    def on_menuitem_redo_activate(self, menuitem):
+        pass
+
+    def on_menuitem_cut_activate(self, menuitem):
+        clipboard = gtk.Clipboard()
+        clipboard.set_text(self.active_pane.searchentry.get_text())
+        self.active_pane.searchentry.set_text("")
+
+    def on_menuitem_copy_activate(self, menuitem):
+        clipboard = gtk.Clipboard()
+        clipboard.set_text(self.active_pane.searchentry.get_text())
+        self.active_pane.searchentry.select_region(0, -1)
+
+    def on_menuitem_paste_activate(self, menuitem):
+        clipboard = gtk.Clipboard()
+        clipboard.request_text(lambda clipboard, text, data : self.active_pane.searchentry.set_text(text) )
+
+    def on_menuitem_delete_activate(self, menuitem):
+        self.active_pane.searchentry.set_text("")
+
+    def on_menuitem_select_all_activate(self, menuitem):
+        self.active_pane.searchentry.select_region(0, -1)
+
+    def on_menuitem_copy_web_link_activate(self, menuitem):
+        page = self.notebook_view.get_current_page()
+        try:
+            pkg = self._selected_pkgname_for_page[page]
+        except KeyError, e:
             return
-        self.active_pane.apps_filter.set_supported_only(True)
-        self.active_pane.refresh_apps()
+        clipboard = gtk.Clipboard()
+        clipboard.set_text(self.WEBLINK_URL % pkg)
 
     def on_menuitem_search_activate(self, widget):
-        #print "on_menuitem_search_activate"
         if self.active_pane:
             self.active_pane.searchentry.grab_focus()
             self.active_pane.searchentry.select_region(0, -1)
@@ -263,29 +292,27 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.run_update_cache()
         self.window_main.set_sensitive(True)
 
-    def on_menuitem_install_activate(self, menuitem):
-        self.active_pane.app_details.install()
+    def on_menuitem_about_activate(self, widget):
+        self.aboutdialog.run()
+        self.aboutdialog.hide()
 
-    def on_menuitem_remove_activate(self, menuitem):
-        self.active_pane.app_details.remove()
+    def on_menuitem_help_activate(self, menuitem):
+        # run yelp
+        p = subprocess.Popen(["yelp","ghelp:software-store"])
+        # collect the exit status (otherwise we leave zombies)
+        glib.timeout_add(1000, lambda p: p.poll() == None, p)
 
-    def on_menuitem_copy_activate(self, menuitem):
-        page = self.notebook_view.get_current_page()
-        try:
-            app = self._selected_appname_for_page[page]
-        except KeyError, e:
+    def on_menuitem_view_all_activate(self, widget):
+        if self._block_menuitem_view:
             return
-        clipboard = gtk.Clipboard()
-        clipboard.set_text(app)
+        self.active_pane.apps_filter.set_supported_only(False)
+        self.active_pane.refresh_apps()
 
-    def on_menuitem_copy_web_link_activate(self, menuitem):
-        page = self.notebook_view.get_current_page()
-        try:
-            pkg = self._selected_pkgname_for_page[page]
-        except KeyError, e:
+    def on_menuitem_view_supported_only_activate(self, widget):
+        if self._block_menuitem_view: 
             return
-        clipboard = gtk.Clipboard()
-        clipboard.set_text(self.WEBLINK_URL % pkg)
+        self.active_pane.apps_filter.set_supported_only(True)
+        self.active_pane.refresh_apps()
 
     # helper
 
@@ -327,7 +354,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         except KeyError, e:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
-            self.menuitem_copy.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
             return False
         # wait for the cache to become ready (if needed)
