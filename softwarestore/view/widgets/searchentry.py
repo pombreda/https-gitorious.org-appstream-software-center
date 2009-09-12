@@ -84,7 +84,10 @@ class SearchEntry(sexy.IconEntry):
             self.set_text("")
             self._check_style()
             self.handler_unblock(self._handler_changed)
-            self.emit("terms-changed", self.get_text())
+            if self._timeout_id > 0:
+                gobject.source_remove(self._timeout_id)
+            self._timeout_id = gobject.timeout_add(self.SEARCH_TIMEOUT,
+                                               lambda: self.emit("terms-changed", self.get_text()))
 
     def clear(self):
         self.set_text("")
