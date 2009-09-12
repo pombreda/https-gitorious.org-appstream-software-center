@@ -331,6 +331,7 @@ class AppDetailsView(WebkitWidget):
                    enums.get_error_description_from_enum(excep.code),
                    excep.details)
             print msg
+        self.execute_script("enable_action_button()")
         # re-open cache and refresh app display
         self.cache.open()
         self.show_app(self.appname)
@@ -368,6 +369,7 @@ class AppDetailsView(WebkitWidget):
         try:
             trans.run()
         except dbus.exceptions.DBusException, e:
+            self.execute_script("enable_action_button()")
             if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 pass
             else:
