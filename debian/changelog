@@ -1,12 +1,20 @@
-software-store (0.3.2) UNRELEASED; urgency=low
+software-store (0.3.2) karmic; urgency=low
 
   * softwarestore/view/viewswitcher.py:
     - make the iconsize 24px (LP: #425797)
   * data/ubuntu-software-store.desktop.in:
     - add "NoDisplay=true", we enforce showing it at a special
       location via a gnome-panel patch (LP: #426209)
+  * merge fixes from rugby471, many thanks!
+  * softwarestore/view/appview.py:
+    - sort in locale friendly way
+  * softwarestore/app.py:
+    - call setlocale() to ensure python-apt provides translated
+      package descriptions
+  * do not display progress circle once the screenshot has 
+    loaded (LP: #425859) - thanks to rugby471
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Sep 2009 16:54:39 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Sep 2009 23:25:57 +0200
 
 software-store (0.3.1) karmic; urgency=low
 

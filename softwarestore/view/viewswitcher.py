@@ -19,15 +19,15 @@
 
 import apt
 import dbus
-import gtk
+import glib
 import gobject
+import gtk
 import logging
 import pango
 import os
 import time
 import xapian
 import pango
-import glib
 
 import aptdaemon.client
 
@@ -117,10 +117,12 @@ class ViewSwitcherList(gtk.ListStore):
         self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
-        #not working
-        #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 24, 2)
+        # spacer - not working
+        #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
+        #                     self.ICON_SIZE/4.0, self.ICON_SIZE/4.0)
         #icon.fill(0)
-        #self.append([AnimatedImage(icon), '', self.ACTION_ITEM_NONE])
+        #self.append([icon, '<span size="xx-small"></span>', 
+        #             self.ACTION_ITEM_NONE])
 
         # watch the daemon exit and (re)register the signal
         bus = dbus.SystemBus()

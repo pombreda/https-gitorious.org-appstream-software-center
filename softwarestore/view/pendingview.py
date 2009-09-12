@@ -52,7 +52,7 @@ class PendingStore(gtk.ListStore):
     PENDING_STORE_ICON_CANCEL = gtk.STOCK_CANCEL
     PENDING_STORE_ICON_NO_CANCEL = "" # gtk.STOCK_YES
 
-    ICON_SIZE = 32
+    ICON_SIZE = 24
 
     def __init__(self, icons):
         # icon, status, progress
