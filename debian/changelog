@@ -1,3 +1,10 @@
+software-store (0.3.3) UNRELEASEDkarmic; urgency=low
+
+  * softwarestore/view/appdetailsview.py:
+    - ensure the gnome debconf frontend is used
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Sep 2009 10:38:06 +0200
+
 software-store (0.3.2) karmic; urgency=low
 
   * softwarestore/view/viewswitcher.py:

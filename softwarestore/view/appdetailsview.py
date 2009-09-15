@@ -370,6 +370,7 @@ class AppDetailsView(WebkitWidget):
         trans.set_data("appname", self.appname)
         trans.set_data("iconname", self.iconname)
         trans.set_data("pkgname", self.pkgname)
+        trans.set_debconf_frontend("gnome")
         try:
             trans.run()
         except dbus.exceptions.DBusException, e:
@@ -415,12 +416,12 @@ if __name__ == "__main__":
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache, datadir)
     #view.show_app("AMOR")
-    #view.show_app("3D Chess")
+    view.show_app("3D Chess")
     #view.show_app("Configuration Editor")
     #view.show_app("ACE")
     #view.show_app("Artha")
     #view.show_app("cournol")
-    view.show_app("Qlix")
+    #view.show_app("Qlix")
 
     win = gtk.Window()
     scroll.add(view)
