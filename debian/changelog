@@ -1,4 +1,4 @@
-software-store (0.3.3) UNRELEASEDkarmic; urgency=low
+software-store (0.3.3) karmic; urgency=low
 
   [ Andrew Higginson ]
   * softwarestore/view/widgets/searchentry.py:
