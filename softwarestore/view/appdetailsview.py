@@ -41,6 +41,7 @@ from aptdaemon import enums
 from gettext import gettext as _
 
 from widgets.wkwidget import WebkitWidget
+from widgets.imagedialog import ShowImageDialog
 import dialogs
 
 try:
@@ -50,20 +51,6 @@ except ImportError:
     d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
-
-# FIXME: move this into a utility file
-class GnomeProxyURLopener(urllib.FancyURLopener):
-    """A urllib.URLOpener that honors the gnome proxy settings"""
-    def __init__(self):
-        proxies = {}
-        import gconf
-        client = gconf.client_get_default()
-        if client.get_bool("/system/http_proxy/use_http_proxy"):
-            host = client.get_string("/system/http_proxy/host")
-            port = client.get_int("/system/http_proxy/port")
-            proxies = { "http" : "http://%s:%s/" %  (host, port) }
-        urllib.FancyURLopener.__init__(self, proxies)
-urllib._urlopener = GnomeProxyURLopener()
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -302,32 +289,10 @@ class AppDetailsView(WebkitWidget):
         self._run_transaction(trans)
 
     def on_screenshot_thumbnail_clicked(self):
-        # FIXME: show progress bar here
-        def _progress(count, block, total):
-            print count, block, total
-        location = tempfile.NamedTemporaryFile()
-        try:
-            url = self.SCREENSHOT_LARGE_URL % self.pkgname
-            screenshot = urllib.urlretrieve(url, location.name, _progress)
-        except Exception, e:
-            logging.exception("urlopen error")
-            return
-        # load into icon
-        img = gtk.Image()
-        img.set_from_file(location.name)
-        img.show()
-        # find parent window for the dialog
-        w = self.get_parent()
-        while w:
-            w = w.get_parent()
-        # FIXME: make this a proper class
-        dia = gtk.Dialog(parent=w,
-                         flags=gtk.DIALOG_MODAL)
-        dia.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
-        dia.get_content_area().add(img)
-        dia.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-        dia.run()
-        dia.destroy()
+        url = self.SCREENSHOT_LARGE_URL % self.pkgname
+        d = ShowImageDialog(url, self.IMAGE_LOADING)
+        d.run()
+        d.destroy()
 
     def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()
