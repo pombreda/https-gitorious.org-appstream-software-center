@@ -1,5 +1,6 @@
-software-store (0.3.3) karmic; urgency=low
+software-store (0.3.3) UNRELEASEDkarmic; urgency=low
 
+  [ Andrew Higginson ]
   * softwarestore/view/widgets/searchentry.py:
     - Included clearing of the main pane timeout
       when clicking the clear button in the search
@@ -29,7 +30,33 @@ software-store (0.3.3) karmic; urgency=low
   * softwarestore/view/appdetailsview.py:
     - removed implemented FIXME
 
- -- Andrew Higginson <rugby471@gmail.com>  Mon, 14 Sep 2009 16:55:15 +0100
+  [ Michael Vogt ]
+  * softwarestore/view/appdetailsview.py:
+    - ensure the gnome debconf frontend is used
+    - make screenshot loading url configurable
+    - cleanup
+    - use internal viewer for large screenshot display 
+      (thanks to Andrew Higginson)
+    - made install/remove button enable again if the user
+      cancels the action
+    - use the new ShowImageDialog
+    - detect if a package is not available for the given 
+      architecture
+  * softwarestore/view/widgets/imagedialog.py:
+    - new widget for the large screenshot display
+  * merged the help xml fixes from Matthew East (many thanks!)
+    LP: #429897
+  * fix icon display in the progress view (LP: #428679)
+  * softwarestore/view/appview.py:
+    - fix crash for applications with no summary
+  * softwarestore/view/widgets/searchentry.py:
+    - add undo/redo (LP: #428291)
+  * softwarestore/app.py:
+    - simply the copy/cut/paste
+    - use undo/redo from searchentry 
+    - fix crash for packages not available in cache (LP #428356)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Sep 2009 11:35:48 +0200
 
 software-store (0.3.2) karmic; urgency=low
 

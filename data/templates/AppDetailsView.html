@@ -39,10 +39,10 @@
     element.style.visibility = 'visible';
     fadeIn(id,0);
   }
-  function reprogress(id){
-  element = document.getElementById(id);
-  fadeOut(id, 99);
-  setOpacity(element, 0);
+  function reprogress(id) {
+    element = document.getElementById(id);
+    fadeOut(id, 99);
+    setOpacity(element, 0);
   }
   window.onload = function() {
     initElement('screenshot_thumbnail_img');
@@ -51,10 +51,22 @@
  </script>
 
   <style type="text/css">
-    body {margin: 0; padding: 1em 12px;}
-    body.section-get {background-color:#b6bdc4; color: #000;}
-    h1 {font-size:100%; font-weight: normal; margin: 0 0 1em;}
-    #description {font-size: 80%;}
+    body {
+      margin: 0; 
+      padding: 1em 12px;
+    }
+    body.section-get {
+      background-color:#b6bdc4; 
+      color: #000;
+    }
+    h1 {
+      font-size:100%;
+      font-weight: normal; 
+      margin: 0 0 1em;
+    }
+    #description {
+      font-size: 80%;
+    }
     #icon {
       width:64px;
       height:64px;
@@ -66,23 +78,64 @@
       -webkit-background-size: ${icon_width}px ${icon_height}px;
     }
     #screenshot_thumbnail_loading {
-      background: url('file:$iconpath_loading') 50% 50% no-repeat;
+    background: url('file:$iconpath_loading') 50% 50% no-repeat;
       float:right;
       height:120px;
       margin: 0 0 1em 1em;
       width:160px;
     }
- #screenshot_thumbnail {visibility:hidden; background-color:#b6bdc4; width:160px; height:120px}
- #screenshot_thumbnail-installed {visibility:hidden; background-color:#fff; width:160px; height:120px;}
- #screenshot_thumbnail_img {visibility:hidden; background:url('http://screenshots.debian.net/thumbnail/${pkgname}') no-repeat; width:160px; height:120px; cursor: -webkit-zoom-in}
- #text {float:left; padding-left:86px;}
- #installed_overlay { z-index:999; width:24px; height:24px; background: url('file:${software_installed_icon}'); position:absolute; left:40px; top:40px; visibility:${installed} }
- #package_information { font-size:70%; }
- #maintainance_time { font-size:70%; }
- #price { font-size:70%; }
- #button_homepage { visibility:${homepage_button_visibility}; }
- #action_button_description { font-size:70%; }
- .action_button { visibility:${action_button_visible}; }
+    #screenshot_thumbnail {
+      visibility:hidden; 
+      background-color:#b6bdc4;
+      width:160px; 
+      height:120px
+    }
+    #screenshot_thumbnail-installed {
+      visibility:hidden; 
+      background-color:#fff; 
+      width:160px; 
+      height:120px;
+    }
+    #screenshot_thumbnail_img {
+      visibility:hidden; 
+      background:url('${screenshot_thumbnail_url}') no-repeat;
+      width:160px; 
+      height:120px; 
+      cursor: -webkit-zoom-in
+    }
+    #text {
+      float:left; 
+      padding-left:86px;
+    }
+    #installed_overlay { 
+      z-index:999; 
+      width:24px;
+      height:24px;
+      background: 
+      url('file:${software_installed_icon}'); 
+      position:absolute; 
+      left:40px; 
+      top:40px; 
+      visibility:${installed} 
+    }
+    #package_information { 
+      font-size:70%; 
+    }
+    #maintainance_time { 
+      font-size:70%; 
+    }
+    #price { 
+      font-size:70%; 
+    }
+    #button_homepage { 
+      visibility:${homepage_button_visibility}; 
+    }
+    #action_button_description { 
+      font-size:70%; 
+    }
+    .action_button { 
+      visibility:${action_button_visible}; 
+    }
  </style>
 
  </head>
@@ -105,9 +158,10 @@
    <div id="description">$description</div>
    <p id="price">$price</p>
    <p id="action_button_description">$action_button_description</p>
-   <input type="button" id="button_$action_button_value" class="action_button"
+   <input type="button" id="button_${action_button_value}" 
+          class="action_button"
           value="$action_button_label"
-	  onclick='document.getElementById("button_$action_button_value").disabled="true"; changeTitle("call:on_button_${action_button_value}_clicked")'
+	  onclick='changeTitle("call:on_button_${action_button_value}_clicked")'
 	  />
    
    <input type="button" id="button_homepage" value="$homepage"

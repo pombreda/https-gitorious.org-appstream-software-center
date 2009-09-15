@@ -32,7 +32,7 @@ import sys
 import tempfile
 import time
 import xapian
-import urllib2
+import urllib
 
 from aptdaemon import policykit1
 from aptdaemon import client
@@ -41,6 +41,7 @@ from aptdaemon import enums
 from gettext import gettext as _
 
 from widgets.wkwidget import WebkitWidget
+from widgets.imagedialog import ShowImageDialog
 import dialogs
 
 try:
@@ -52,6 +53,7 @@ except ImportError:
     from enums import *
 
 class AppDetailsView(WebkitWidget):
+    """The view that shows the application details """
 
     # the size of the icon on the left side
     APP_ICON_SIZE = 64
@@ -61,6 +63,14 @@ class AppDetailsView(WebkitWidget):
     DEPENDENCY_TYPES = ("PreDepends", "Depends", "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
+    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
+    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%s"
+
+    # FIXME: use relative path here
+    INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-store-installed.png"
+    IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading.gif"
+    IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading-installed.gif"
+    
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (str,str, ))
@@ -73,6 +83,8 @@ class AppDetailsView(WebkitWidget):
         self.icons = icons
         self.cache = cache
         self.datadir = datadir
+        self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
+                                     stdout=subprocess.PIPE).communicate()[0]
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
@@ -115,6 +127,9 @@ class AppDetailsView(WebkitWidget):
 
         # get icon
         self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)
+        # remove extension (e.g. .png) because the gtk.IconTheme
+        # will find fins a icon with it
+        self.iconname = os.path.splitext(self.iconname)[0]
 
         # get apt cache data
         self.pkgname = self.doc.get_value(XAPIAN_VALUE_PKGNAME)
@@ -139,8 +154,6 @@ class AppDetailsView(WebkitWidget):
         return self.appname
     def wksub_pkgname(self):
         return self.pkgname
-    def wksub_iconname(self):
-        return self.iconname
     def wksub_body_class(self):
         if (self.cache.has_key(self.pkgname) and
             self.cache[self.pkgname].isInstalled):
@@ -150,7 +163,18 @@ class AppDetailsView(WebkitWidget):
         if self.pkg:
             details = self.pkg.candidate.description
         else:
-            details = _("Not available in the current data")
+            # if we have no pkg, check if its available for the given
+            # architecture
+            arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+            if arches:
+                for arch in map(string.strip, arches.split(",")):
+                    if arch == self.arch:
+                        details = _("Not available in the current data")
+                        break
+                else:
+                    details = _("Not available for your hardware architecture.")
+            else:
+                details = _("Not available in the current data")
         description = details.replace("*","</p><p>*")
         description = description.replace("\n-","</p><p>-")
         description = description.replace("\n\n","</p><p>")
@@ -158,14 +182,10 @@ class AppDetailsView(WebkitWidget):
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and 
             self.cache[self.pkgname].isInstalled):
-        # FIXME: use relative path here
-            return "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading-installed.gif"
-        return "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading.gif"
-        
+        return self.IMAGE_LOADING_INSTALLED
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
-        iconname = os.path.splitext(self.iconname)[0]
-        iconinfo = self.icons.lookup_icon(iconname, 
+        iconinfo = self.icons.lookup_icon(self.iconname, 
                                           self.APP_ICON_SIZE, 0)
         if iconinfo:
             iconpath = iconinfo.get_filename()
@@ -179,17 +199,22 @@ class AppDetailsView(WebkitWidget):
             pix.save(self.tf.name, "png")
             iconpath = self.tf.name
         return iconpath
+    def wksub_screenshot_thumbnail_url(self):
+        url = self.SCREENSHOT_THUMB_URL % self.pkgname
+        return url
     def wksub_software_installed_icon(self):
         # FIXME: use relative path here
-        return "/usr/share/icons/hicolor/24x24/emblems/software-store-installed.png"
+        return self.INSTALLED_ICON
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):
         return self.APP_ICON_SIZE
     def wksub_action_button_label(self):
-        return self._get_action_button_label_and_value()[0]
+        self.action_button_label = self._get_action_button_label_and_value()[0]
+        return self.action_button_label
     def wksub_action_button_value(self):
-        return self._get_action_button_label_and_value()[1]
+        self.action_button_value = self._get_action_button_label_and_value()[1]
+        return self.action_button_value
     def wksub_action_button_visible(self):
         if not self.channelfile and not self.pkg:
             return "hidden"
@@ -280,11 +305,10 @@ class AppDetailsView(WebkitWidget):
         self._run_transaction(trans)
 
     def on_screenshot_thumbnail_clicked(self):
-        screenshot = urllib2.urlopen("http://screenshots.debian.net/screenshot/%s" % self.pkgname)
-        location = tempfile.NamedTemporaryFile(delete=False)
-        location.write(screenshot.read())
-        cmd = self._url_launch_app()
-        subprocess.call([cmd, location.name])
+        url = self.SCREENSHOT_LARGE_URL % self.pkgname
+        d = ShowImageDialog(url, self.IMAGE_LOADING)
+        d.run()
+        d.destroy()
 
     def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()
@@ -376,15 +400,26 @@ class AppDetailsView(WebkitWidget):
                     action_button_value = "enable_channel"
         return (action_button_label, action_button_value)
 
+    def _set_action_button_sensitive(self, enabled):
+        script = 'document.getElementById("button_%s").disabled=' % self.action_button_value
+        if enabled:
+            script += '"";'
+        else:
+            script += '"true";'
+        self.execute_script(script)
+
     def _run_transaction(self, trans):
         trans.set_data("appname", self.appname)
         trans.set_data("iconname", self.iconname)
         trans.set_data("pkgname", self.pkgname)
+        trans.set_debconf_frontend("gnome")
+        self._set_action_button_sensitive(False)
         try:
             trans.run()
         except dbus.exceptions.DBusException, e:
             if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                pass
+                # re-enable the action button again
+                self._set_action_button_sensitive(True)
             else:
                 raise
 
@@ -425,12 +460,12 @@ if __name__ == "__main__":
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache, datadir)
     #view.show_app("AMOR")
-    #view.show_app("3D Chess")
+    view.show_app("3D Chess")
     #view.show_app("Configuration Editor")
     #view.show_app("ACE")
     #view.show_app("Artha")
     #view.show_app("cournol")
-    view.show_app("Qlix")
+    #view.show_app("Qlix")
 
     win = gtk.Window()
     scroll.add(view)
