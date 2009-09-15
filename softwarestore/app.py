@@ -366,10 +366,14 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
         # update File menu status
-        pkg = self.cache[pkgname]
-        installed = bool(pkg.installed)
-        self.menuitem_install.set_sensitive(not installed)
-        self.menuitem_remove.set_sensitive(installed)
+        if self.cache.has_key(pkgname):
+            pkg = self.cache[pkgname]
+            installed = bool(pkg.installed)
+            self.menuitem_install.set_sensitive(not installed)
+            self.menuitem_remove.set_sensitive(installed)
+        else:
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
         # return False to ensure that a possible glib.timeout_add ends
         return False
 

@@ -52,6 +52,7 @@ software-store (0.3.3) UNRELEASEDkarmic; urgency=low
   * softwarestore/app.py:
     - simply the copy/cut/paste
     - use undo/redo from searchentry 
+    - fix crash for packages not available in cache
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Sep 2009 11:35:48 +0200
 
