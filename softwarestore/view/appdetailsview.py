@@ -156,8 +156,12 @@ class AppDetailsView(WebkitWidget):
         description = description.replace("\n\n","</p><p>")
         return description
     def wksub_iconpath_loading(self):
+        if (self.cache.has_key(self.pkgname) and 
+            self.cache[self.pkgname].isInstalled):
         # FIXME: use relative path here
-        return "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
+            return "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading-installed.gif"
+        return "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading.gif"
+        
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
         iconname = os.path.splitext(self.iconname)[0]
