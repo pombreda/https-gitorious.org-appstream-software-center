@@ -32,6 +32,7 @@ import sys
 import tempfile
 import time
 import xapian
+import urllib2
 
 from aptdaemon import policykit1
 from aptdaemon import client
@@ -273,6 +274,13 @@ class AppDetailsView(WebkitWidget):
         trans = self.aptd_client.update_cache(
             exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
+
+    def on_screenshot_thumbnail_clicked(self):
+        screenshot = urllib2.urlopen("http://screenshots.debian.net/screenshot/%s" % self.pkgname)
+        location = tempfile.NamedTemporaryFile(delete=False)
+        location.write(screenshot.read())
+        cmd = self._url_launch_app()
+        subprocess.call([cmd, location.name])
 
     def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()

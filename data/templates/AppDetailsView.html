@@ -19,6 +19,16 @@
       }
     }
   }
+  function fadeOut(objId,opacity) {
+    if (document.getElementById) {
+      obj = document.getElementById(objId);
+      if (opacity <= 100) {
+        setOpacity(obj, opacity);
+        opacity -= 10;
+        window.setTimeout("fadeIn('"+objId+"',"+opacity+")", 100);
+      }
+    }
+  }
   function setOpacity(obj, opacity) {
     opacity = (opacity == 100)?99.999:opacity;
     obj.style.opacity = opacity/100;
@@ -28,6 +38,11 @@
     setOpacity(element, 0);
     element.style.visibility = 'visible';
     fadeIn(id,0);
+  }
+  function reprogress(id){
+  element = document.getElementById(id);
+  fadeOut(id, 99);
+  setOpacity(element, 0);
   }
   window.onload = function() {
     initElement('screenshot_thumbnail_img');
@@ -57,9 +72,9 @@
       margin: 0 0 1em 1em;
       width:160px;
     }
- #screenshot_thumbnail {visibility:hidden; background-color:#b6bdc4; width:160px; height:120px;}
+ #screenshot_thumbnail {visibility:hidden; background-color:#b6bdc4; width:160px; height:120px}
  #screenshot_thumbnail-installed {visibility:hidden; background-color:#fff; width:160px; height:120px;}
- #screenshot_thumbnail_img {visibility:hidden; background:url('http://screenshots.debian.net/thumbnail/${pkgname}') no-repeat; width:160px; height:120px}
+ #screenshot_thumbnail_img {visibility:hidden; background:url('http://screenshots.debian.net/thumbnail/${pkgname}') no-repeat; width:160px; height:120px; cursor: -webkit-zoom-in}
  #text {float:left; padding-left:86px;}
  #installed_overlay { z-index:999; width:24px; height:24px; background: url('file:${software_installed_icon}'); position:absolute; left:40px; top:40px; visibility:${installed} }
  #package_information { font-size:70%; }
@@ -82,7 +97,9 @@
    <h1>$appname</h1>
    <div id='screenshot_thumbnail_loading'>
         <div id='$screenshot_installed'>
+            <a href="#" onclick='reprogress("screenshot_thumbnail"); reprogress("screenshot_thumbnail_img");changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">
             <img id="screenshot_thumbnail_img" alt="Application Screenshot"/>
+            </a>
         </div>
    </div>
    <div id="description">$description</div>
