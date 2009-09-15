@@ -29,6 +29,7 @@ import gobject
 
 class SearchEntry(sexy.IconEntry):
 
+    # FIMXE: we need "can-undo", "can-redo" signals
     __gsignals__ = {'terms-changed':(gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
                                      (gobject.TYPE_STRING,))}
@@ -71,7 +72,10 @@ class SearchEntry(sexy.IconEntry):
         theme = settings.get_property("gtk-theme-name")
         self._a11y = (theme.startswith("HighContrast") or
                       theme.startswith("LowContrast"))
+        # data
         self._timeout_id = 0
+        self._undo_stack = [""]
+        self._redo_stack = []
 
     def _on_icon_pressed(self, widget, icon, mouse_button):
         """
@@ -88,6 +92,25 @@ class SearchEntry(sexy.IconEntry):
             self.select_region(0, -1)
             self.grab_focus()
 
+    def undo(self):
+        if len(self._undo_stack) <= 1:
+            return
+        # pop top element and push on redo stack
+        text = self._undo_stack.pop()
+        self._redo_stack.append(text)
+        # the next element is the one we want to display
+        text = self._undo_stack.pop()
+        self.set_text(text)
+        self.set_position(-1)
+    
+    def redo(self):
+        if not self._redo_stack:
+            return
+        # just reply the redo stack
+        text = self._redo_stack.pop()
+        self.set_text(text)
+        self.set_position(-1)
+
     def clear(self):
         self.set_text("")
         self._check_style()
@@ -98,6 +121,12 @@ class SearchEntry(sexy.IconEntry):
         self.clear()
         self.handler_unblock(self._handler_changed)
 
+    def _emit_terms_changed(self):
+        text = self.get_text()
+        # add to the undo stack once a term changes
+        self._undo_stack.append(text)
+        self.emit("terms-changed", text)
+
     def _on_changed(self, widget):
         """
         Call the actual search method after a small timeout to allow the user
@@ -107,7 +136,7 @@ class SearchEntry(sexy.IconEntry):
         if self._timeout_id > 0:
             gobject.source_remove(self._timeout_id)
         self._timeout_id = gobject.timeout_add(self.SEARCH_TIMEOUT,
-                                               lambda: self.emit("terms-changed", self.get_text()))
+                                               self._emit_terms_changed)
 
     def _check_style(self):
         """

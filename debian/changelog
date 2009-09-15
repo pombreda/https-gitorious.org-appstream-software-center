@@ -47,6 +47,11 @@ software-store (0.3.3) UNRELEASEDkarmic; urgency=low
   * fix icon display in the progress view (LP: #428679)
   * softwarestore/view/appview.py:
     - fix crash for applications with no summary
+  * softwarestore/view/widgets/searchentry.py:
+    - add undo/redo (LP: #428291)
+  * softwarestore/app.py:
+    - simply the copy/cut/paste
+    - use undo/redo from searchentry 
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Sep 2009 11:35:48 +0200
 

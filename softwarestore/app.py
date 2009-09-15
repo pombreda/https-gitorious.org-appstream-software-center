@@ -225,30 +225,30 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         Check whether the search field is focused and if so, focus some items
         """
         state = self.active_pane.searchentry.is_focus()
-        edit_menu_items = [self.menuitem_undo, self.menuitem_redo, self.menuitem_cut, 
-            self.menuitem_copy, self.menuitem_paste, self.menuitem_delete, self.menuitem_select_all]
+        edit_menu_items = [self.menuitem_undo, 
+                           self.menuitem_redo, 
+                           self.menuitem_cut, 
+                           self.menuitem_copy, 
+                           self.menuitem_paste, 
+                           self.menuitem_delete, 
+                           self.menuitem_select_all]
         for item in edit_menu_items:
             item.set_sensitive(state)
 
     def on_menuitem_undo_activate(self, menuitem):
-        pass
+        self.active_pane.searchentry.undo()
         
     def on_menuitem_redo_activate(self, menuitem):
-        pass
+        self.active_pane.searchentry.redo()
 
     def on_menuitem_cut_activate(self, menuitem):
-        clipboard = gtk.Clipboard()
-        clipboard.set_text(self.active_pane.searchentry.get_text())
-        self.active_pane.searchentry.set_text("")
+        self.active_pane.searchentry.cut_clipboard()
 
     def on_menuitem_copy_activate(self, menuitem):
-        clipboard = gtk.Clipboard()
-        clipboard.set_text(self.active_pane.searchentry.get_text())
-        self.active_pane.searchentry.select_region(0, -1)
+        self.active_pane.searchentry.copy_clipboard()
 
     def on_menuitem_paste_activate(self, menuitem):
-        clipboard = gtk.Clipboard()
-        clipboard.request_text(lambda clipboard, text, data : self.active_pane.searchentry.set_text(text) )
+        self.active_pane.searchentry.paste_clipboard()
 
     def on_menuitem_delete_activate(self, menuitem):
         self.active_pane.searchentry.set_text("")
@@ -410,19 +410,5 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.window_main.show_all()
         SimpleGtkbuilderApp.run(self)
 
-    #FIXME: dead-code in multi-view
-    def on_button_home_clicked(self, widget):
-        logging.debug("on_button_home_clicked")
-        # we get the clicked signal when the radio-group toggles
-        # so we do not react unless we were not already pressed in
-        if not widget.get_active():
-            return
-        self.apps_category_query = None
-        # HACK: ensure that no signal term-changed is send, otherwise
-        #       self.on_search_entry_changed() is called and that
-        #       moves to a new notebook page 
-        # FIXME: deal with it in a cleaner way
-        self.entry_search.clear_with_no_signal()
-        self.change_notebook_view(self.NOTEBOOK_PAGE_CATEGORIES)
 
 
