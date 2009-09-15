@@ -82,6 +82,8 @@ class AppDetailsView(WebkitWidget):
         self.icons = icons
         self.cache = cache
         self.datadir = datadir
+        self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
+                                     stdout=subprocess.PIPE).communicate()[0]
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
@@ -160,7 +162,18 @@ class AppDetailsView(WebkitWidget):
         if self.pkg:
             details = self.pkg.candidate.description
         else:
-            details = _("Not available in the current data")
+            # if we have no pkg, check if its available for the given
+            # architecture
+            arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+            if arches:
+                for arch in map(string.strip, arches.split(",")):
+                    if arch == self.arch:
+                        details = _("Not available in the current data")
+                        break
+                else:
+                    details = _("Not available for your hardware architecture.")
+            else:
+                details = _("Not available in the current data")
         description = details.replace("*","</p><p>*")
         description = description.replace("\n-","</p><p>-")
         description = description.replace("\n\n","</p><p>")

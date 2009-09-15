@@ -40,6 +40,8 @@ software-store (0.3.3) UNRELEASEDkarmic; urgency=low
     - made install/remove button enable again if the user
       cancels the action
     - use the new ShowImageDialog
+    - detect if a package is not available for the given 
+      architecture
   * softwarestore/view/widgets/imagedialog.py:
     - new widget for the large screenshot display
   * merged the help xml fixes from Matthew East (many thanks!)
@@ -52,7 +54,7 @@ software-store (0.3.3) UNRELEASEDkarmic; urgency=low
   * softwarestore/app.py:
     - simply the copy/cut/paste
     - use undo/redo from searchentry 
-    - fix crash for packages not available in cache
+    - fix crash for packages not available in cache (LP #428356)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Sep 2009 11:35:48 +0200
 

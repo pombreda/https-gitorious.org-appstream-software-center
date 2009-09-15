@@ -111,8 +111,8 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 domain = parser.get_desktop("X-Ubuntu-Gettext-Domain")
                 doc.add_value(XAPIAN_VALUE_GETTEXT_DOMAIN, domain)
             # architecture
-            if parser.has_option_desktop("X-Ubuntu-Architectures"):
-                arches = parser.get_desktop("X-Ubuntu-Architectures")
+            if parser.has_option_desktop("X-AppInstall-Architectures"):
+                arches = parser.get_desktop("X-AppInstall-Architectures")
                 doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
             # popcon
             # FIXME: popularity not only based on popcon but also
