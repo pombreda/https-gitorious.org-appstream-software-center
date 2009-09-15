@@ -124,6 +124,9 @@ class AppDetailsView(WebkitWidget):
 
         # get icon
         self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)
+        # remove extension (e.g. .png) because the gtk.IconTheme
+        # will find fins a icon with it
+        self.iconname = os.path.splitext(self.iconname)[0]
 
         # get apt cache data
         self.pkgname = self.doc.get_value(XAPIAN_VALUE_PKGNAME)
@@ -148,8 +151,6 @@ class AppDetailsView(WebkitWidget):
         return self.appname
     def wksub_pkgname(self):
         return self.pkgname
-    def wksub_iconname(self):
-        return self.iconname
     def wksub_body_class(self):
         if (self.cache.has_key(self.pkgname) and
             self.cache[self.pkgname].isInstalled):
@@ -168,8 +169,7 @@ class AppDetailsView(WebkitWidget):
         return self.IMAGE_LOADING
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
-        iconname = os.path.splitext(self.iconname)[0]
-        iconinfo = self.icons.lookup_icon(iconname, 
+        iconinfo = self.icons.lookup_icon(self.iconname, 
                                           self.APP_ICON_SIZE, 0)
         if iconinfo:
             iconpath = iconinfo.get_filename()
