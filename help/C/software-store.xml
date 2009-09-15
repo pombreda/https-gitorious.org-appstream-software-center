@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" 
 	"http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+<!ENTITY legal SYSTEM "legal.xml">
 ]>
 <!--<?yelp:chunk-depth 4?>-->
 <!--
@@ -51,7 +52,7 @@
       </author>
       <author>
         <firstname>Andrew</firstname>
-        <surname>Higginson</surname></surname>
+        <surname>Higginson</surname>
         <email>rugby471@gmail.com</email>
       </author>
     </authorgroup>
@@ -122,8 +123,8 @@
       As soon as it disappears, the program is installed.
     </para>
     <itemizedlist>
-      <listitem><xref linkend="launching" endterm="launching-title"/></listitem>
-      <listitem><xref linkend="missing" endterm="missing-title"/></listitem>
+      <listitem><para><xref linkend="launching" endterm="launching-title"/></para></listitem>
+      <listitem><para><xref linkend="missing" endterm="missing-title"/></para></listitem>
     </itemizedlist>
   </chapter>
   <chapter id="launching">
@@ -192,7 +193,7 @@
       As soon as you close it, it will no longer be available.
     </para>
     <itemizedlist>
-      <listitem><xref linkend="metapackages" endterm="metapackages-title"/></listitem>
+      <listitem><para><xref linkend="metapackages" endterm="metapackages-title"/></para></listitem>
     </itemizedlist>
   </chapter>
   <chapter id="metapackages">
@@ -229,8 +230,8 @@
     </para>
     <itemizedlist>
       <listitem>
-        <ulink url="ghelp:user-guide?menu-editor"
-        >Customizing the menu bar</ulink>
+        <para><ulink url="ghelp:user-guide?menu-editor"
+        >Customizing the menu bar</ulink></para>
       </listitem>
     </itemizedlist>
   </chapter>
@@ -303,7 +304,7 @@
       Otherwise, look through the Store for another program to do what you want.
     </para>
     <itemizedlist>
-     <listitem><xref linkend="removing" endterm="removing-title"/></listitem>
+     <listitem><para><xref linkend="removing" endterm="removing-title"/></para></listitem>
     </itemizedlist>
   </chapter>
 </book>
