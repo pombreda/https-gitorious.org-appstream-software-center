@@ -133,6 +133,7 @@ class AppDetailsView(WebkitWidget):
 
         # get apt cache data
         self.pkgname = self.doc.get_value(XAPIAN_VALUE_PKGNAME)
+        self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.pkg = None
         if self.cache.has_key(self.pkgname):
             self.pkg = self.cache[self.pkgname]
@@ -236,8 +237,8 @@ class AppDetailsView(WebkitWidget):
         return self.datadir
     def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
-        # FIXME: add code
-        return ""
+        return self.cache.get_maintenance_status(
+            self.appname, self.pkgname, self.component, self.channelfile)
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
         s = ""

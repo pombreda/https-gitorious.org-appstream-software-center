@@ -42,6 +42,7 @@ software-store (0.3.3) UNRELEASEDkarmic; urgency=low
     - use the new ShowImageDialog
     - detect if a package is not available for the given 
       architecture
+    - add maintainance time to the status (LP: #427266)
   * softwarestore/view/widgets/imagedialog.py:
     - new widget for the large screenshot display
   * merged the help xml fixes from Matthew East (many thanks!)
