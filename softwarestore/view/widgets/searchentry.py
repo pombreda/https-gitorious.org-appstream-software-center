@@ -79,12 +79,14 @@ class SearchEntry(sexy.IconEntry):
         button was clicked
         """
         if icon == sexy.ICON_ENTRY_SECONDARY:
-            self.handler_block(self._handler_changed)
+            # clear with no signal and emit manually to avoid the
+            # search-timeout
+            self.clear_with_no_signal()
             self.grab_focus()
-            self.set_text("")
-            self._check_style()
-            self.handler_unblock(self._handler_changed)
-            self.emit("terms-changed", self.get_text())
+            self.emit("terms-changed", "")
+        elif icon == sexy.ICON_ENTRY_PRIMARY:
+            self.select_region(0, -1)
+            self.grab_focus()
 
     def clear(self):
         self.set_text("")

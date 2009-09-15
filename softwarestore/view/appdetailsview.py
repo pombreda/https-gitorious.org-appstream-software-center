@@ -32,6 +32,7 @@ import sys
 import tempfile
 import time
 import xapian
+import urllib
 
 from aptdaemon import policykit1
 from aptdaemon import client
@@ -50,7 +51,22 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
+# FIXME: move this into a utility file
+class GnomeProxyURLopener(urllib.FancyURLopener):
+    """A urllib.URLOpener that honors the gnome proxy settings"""
+    def __init__(self):
+        proxies = {}
+        import gconf
+        client = gconf.client_get_default()
+        if client.get_bool("/system/http_proxy/use_http_proxy"):
+            host = client.get_string("/system/http_proxy/host")
+            port = client.get_int("/system/http_proxy/port")
+            proxies = { "http" : "http://%s:%s/" %  (host, port) }
+        urllib.FancyURLopener.__init__(self, proxies)
+urllib._urlopener = GnomeProxyURLopener()
+
 class AppDetailsView(WebkitWidget):
+    """The view that shows the application details """
 
     # the size of the icon on the left side
     APP_ICON_SIZE = 64
@@ -60,6 +76,13 @@ class AppDetailsView(WebkitWidget):
     DEPENDENCY_TYPES = ("PreDepends", "Depends", "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
+    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
+    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%s"
+
+    # FIXME: use relative path here
+    INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-store-installed.png"
+    IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
+    
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (str,str, ))
@@ -155,8 +178,7 @@ class AppDetailsView(WebkitWidget):
         description = description.replace("\n\n","</p><p>")
         return description
     def wksub_iconpath_loading(self):
-        # FIXME: use relative path here
-        return "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
+        return self.IMAGE_LOADING
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
         iconname = os.path.splitext(self.iconname)[0]
@@ -174,17 +196,22 @@ class AppDetailsView(WebkitWidget):
             pix.save(self.tf.name, "png")
             iconpath = self.tf.name
         return iconpath
+    def wksub_screenshot_thumbnail_url(self):
+        url = self.SCREENSHOT_THUMB_URL % self.pkgname
+        return url
     def wksub_software_installed_icon(self):
         # FIXME: use relative path here
-        return "/usr/share/icons/hicolor/24x24/emblems/software-store-installed.png"
+        return self.INSTALLED_ICON
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):
         return self.APP_ICON_SIZE
     def wksub_action_button_label(self):
-        return self._get_action_button_label_and_value()[0]
+        self.action_button_label = self._get_action_button_label_and_value()[0]
+        return self.action_button_label
     def wksub_action_button_value(self):
-        return self._get_action_button_label_and_value()[1]
+        self.action_button_value = self._get_action_button_label_and_value()[1]
+        return self.action_button_value
     def wksub_action_button_visible(self):
         if not self.channelfile and not self.pkg:
             return "hidden"
@@ -270,11 +297,37 @@ class AppDetailsView(WebkitWidget):
             except dbus.exceptions.DBusException, e:
                 if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                     return
-        # FIXME: make the button in-sensitve (maybe directly in the html/JS?)
-        #widget.set_sensitive(False)
         trans = self.aptd_client.update_cache(
             exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
+
+    def on_screenshot_thumbnail_clicked(self):
+        # FIXME: show progress bar here
+        def _progress(count, block, total):
+            print count, block, total
+        location = tempfile.NamedTemporaryFile()
+        try:
+            url = self.SCREENSHOT_LARGE_URL % self.pkgname
+            screenshot = urllib.urlretrieve(url, location.name, _progress)
+        except Exception, e:
+            logging.exception("urlopen error")
+            return
+        # load into icon
+        img = gtk.Image()
+        img.set_from_file(location.name)
+        img.show()
+        # find parent window for the dialog
+        w = self.get_parent()
+        while w:
+            w = w.get_parent()
+        # FIXME: make this a proper class
+        dia = gtk.Dialog(parent=w,
+                         flags=gtk.DIALOG_MODAL)
+        dia.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
+        dia.get_content_area().add(img)
+        dia.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
+        dia.run()
+        dia.destroy()
 
     def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()
@@ -366,16 +419,26 @@ class AppDetailsView(WebkitWidget):
                     action_button_value = "enable_channel"
         return (action_button_label, action_button_value)
 
+    def _set_action_button_sensitive(self, enabled):
+        script = 'document.getElementById("button_%s").disabled=' % self.action_button_value
+        if enabled:
+            script += '"";'
+        else:
+            script += '"true";'
+        self.execute_script(script)
+
     def _run_transaction(self, trans):
         trans.set_data("appname", self.appname)
         trans.set_data("iconname", self.iconname)
         trans.set_data("pkgname", self.pkgname)
         trans.set_debconf_frontend("gnome")
+        self._set_action_button_sensitive(False)
         try:
             trans.run()
         except dbus.exceptions.DBusException, e:
             if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                pass
+                # re-enable the action button again
+                self._set_action_button_sensitive(True)
             else:
                 raise
 

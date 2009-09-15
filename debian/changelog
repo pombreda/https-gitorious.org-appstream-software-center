@@ -1,9 +1,46 @@
 software-store (0.3.3) UNRELEASEDkarmic; urgency=low
 
+  [ Andrew Higginson ]
+  * softwarestore/view/widgets/searchentry.py:
+    - Included clearing of the main pane timeout
+      when clicking the clear button in the search
+      entry (LP: #423747)
+    - Added correct behaviour when the search icon
+      in the search entry is clicked
+  * softwarestore/data/ui/SoftwareStore.ui:
+    - Made menu items have images (if they are enabled)
+    - Added Undo, Redo, Cut, Copy, Paste, Delete Menu 
+      items (LP: #426218)
+    - Version bump and correct logo in about 
+      dialog (LP: #428677)
+  * softwarestore/app.py:
+    - Added functions for when the Edit menu items are 
+      clicked (but not for Undo/Redo yet).
+    - Added code to hide the Edit menu items when the 
+      search entry is not focused
+  * data/icons/scalable/apps/software-store.svg:
+    - removed obselete file
+  * data/icons/*/status/softwarestore-progress-*.png:
+    - re-exported icons to be 24x24 and optimised
+  * software-store:
+    - version bump
+  * data/templates/AppDetailsView.html:
+    - made install/remove button disable itself 
+      after click
+  * softwarestore/view/appdetailsview.py:
+    - removed implemented FIXME
+
+  [ Michael Vogt ]
   * softwarestore/view/appdetailsview.py:
     - ensure the gnome debconf frontend is used
+    - make screenshot loading url configurable
+    - cleanup
+    - use internal viewer for large screenshot display 
+      (thanks to Andrew Higginson)
+    - made install/remove button enable again if the user
+      cancels the action
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Sep 2009 10:38:06 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Sep 2009 11:35:48 +0200
 
 software-store (0.3.2) karmic; urgency=low
 

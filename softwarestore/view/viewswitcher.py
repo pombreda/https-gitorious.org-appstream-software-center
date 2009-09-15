@@ -103,7 +103,7 @@ class ViewSwitcherList(gtk.ListStore):
 
     ICON_SIZE = 24
 
-    ANIMATION_PATH = "/usr/share/icons/hicolor/32x32/status/software-store-progress-*.png"
+    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarestore-progress-*.png"
 
     def __init__(self, datadir, icons):
         gtk.ListStore.__init__(self, AnimatedImage, str, int)
