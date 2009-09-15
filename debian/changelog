@@ -45,6 +45,8 @@ software-store (0.3.3) UNRELEASEDkarmic; urgency=low
   * merged the help xml fixes from Matthew East (many thanks!)
     LP: #429897
   * fix icon display in the progress view (LP: #428679)
+  * softwarestore/view/appview.py:
+    - fix crash for applications with no summary
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Sep 2009 11:35:48 +0200
 

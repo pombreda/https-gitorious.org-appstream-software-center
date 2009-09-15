@@ -156,6 +156,7 @@ class AppStore(gtk.GenericTreeModel):
         if column == self.COL_APP_NAME:
             return appname
         elif column == self.COL_TEXT:
+            summary = ""
             for post in self.xapiandb.postlist("AA"+appname):
                 doc = self.xapiandb.get_document(post.docid)
                 summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
