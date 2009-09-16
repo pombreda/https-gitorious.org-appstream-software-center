@@ -183,7 +183,14 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
 def rebuild_database(pathname):
     import apt
     cache = apt.Cache(memonly=True)
+    # check permission
+    if not os.access(pathname, os.W_OK):
+        logging.warn("Cannot write to '%s'." % pathname)
+        logging.warn("Please check you have the relevant permissions.")
+        return False
+    # write it
     db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
     update(db, cache)
     db.flush()
-    return
+    return True
+

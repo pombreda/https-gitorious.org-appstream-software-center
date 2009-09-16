@@ -207,7 +207,6 @@ class AppDetailsView(WebkitWidget):
         url = self.SCREENSHOT_THUMB_URL % self.pkgname
         return url
     def wksub_software_installed_icon(self):
-        # FIXME: use relative path here
         return self.INSTALLED_ICON
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
@@ -310,7 +309,8 @@ class AppDetailsView(WebkitWidget):
 
     def on_screenshot_thumbnail_clicked(self):
         url = self.SCREENSHOT_LARGE_URL % self.pkgname
-        d = ShowImageDialog(url, self.IMAGE_LOADING)
+        title = _("%s - Screenshot") % self.appname
+        d = ShowImageDialog(title, url, self.IMAGE_LOADING_INSTALLED)
         d.run()
         d.destroy()
 
