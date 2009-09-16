@@ -403,12 +403,10 @@ class AppDetailsView(WebkitWidget):
         return (action_button_label, action_button_value)
 
     def _set_action_button_sensitive(self, enabled):
-        script = 'document.getElementById("button_%s").disabled=' % self.action_button_value
         if enabled:
-            script += '"";'
+            self.execute_script("enable_action_button();")
         else:
-            script += '"true";'
-        self.execute_script(script)
+            self.execute_script("disable_action_button();")
 
     def _run_transaction(self, trans):
         trans.set_data("appname", self.appname)
@@ -419,9 +417,10 @@ class AppDetailsView(WebkitWidget):
         try:
             trans.run()
         except dbus.exceptions.DBusException, e:
+            # re-enable the action button again if anything went wrong
+            self._set_action_button_sensitive(True)
             if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                # re-enable the action button again
-                self._set_action_button_sensitive(True)
+                pass
             else:
                 raise
 

@@ -44,6 +44,16 @@
     fadeOut(id, 99);
     setOpacity(element, 0);
   }
+  function action_button_clicked() {
+    document.getElementById("button_$action_button_value").disabled = true;
+    changeTitle("call:on_button_${action_button_value}_clicked");
+  }
+  function enable_action_button() {
+    document.getElementById("button_$action_button_value").disabled = false;
+  }
+  function disable_action_button() {
+    document.getElementById("button_$action_button_value").disabled = true;
+  }
   window.onload = function() {
     initElement('screenshot_thumbnail_img');
     initElement('$screenshot_installed')
@@ -161,7 +171,7 @@
    <input type="button" id="button_${action_button_value}" 
           class="action_button"
           value="$action_button_label"
-	  onclick='changeTitle("call:on_button_${action_button_value}_clicked")'
+	  onclick='action_button_clicked()'
 	  />
    
    <input type="button" id="button_homepage" value="$homepage"
