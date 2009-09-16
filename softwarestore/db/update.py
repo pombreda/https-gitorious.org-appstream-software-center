@@ -28,13 +28,7 @@ import xapian
 from ConfigParser import RawConfigParser, NoOptionError
 from glob import glob
 
-try:
-    from softwarestore.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from softwarestore.enums import *
+from softwarestore.enums import *
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10

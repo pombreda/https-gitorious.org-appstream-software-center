@@ -104,7 +104,7 @@ class AppDetailsView(WebkitWidget):
         super(AppDetailsView, self)._show(widget)
 
     # public API
-    def show_app(self, appname):
+    def show_app(self, appname, pkgname):
         logging.debug("AppDetailsView.show_app '%s'" % appname)
         
         # clear first to avoid showing the old app details for
@@ -120,10 +120,12 @@ class AppDetailsView(WebkitWidget):
 
         # get xapian document
         for m in self.xapiandb.postlist("AA"+appname):
-            self.doc = self.xapiandb.get_document(m.docid)
-            break
+            doc = self.xapiandb.get_document(m.docid)
+            if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
+                self.doc = doc
+                break
         if not self.doc:
-            raise IndexError, "No app '%s' in database" % appname
+            raise IndexError, "No app '%s' for '%s' in database" % appname
 
         # get icon
         self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)

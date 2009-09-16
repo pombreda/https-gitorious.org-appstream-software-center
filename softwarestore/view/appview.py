@@ -152,6 +152,8 @@ class AppStore(gtk.GenericTreeModel):
         return rowref
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
+
+        # FIXME: use maping (appname, pkgname) here instead of just appname
         appname = self.appnames[rowref]
         if column == self.COL_APP_NAME:
             return appname
@@ -318,7 +320,7 @@ class AppView(gtk.TreeView):
     __gsignals__ = {
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
-                                   (str, ),
+                                   (str, str, ),
                                   ),
         "application-selected" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
@@ -356,7 +358,7 @@ class AppView(gtk.TreeView):
         self.connect("cursor-changed", self._on_cursor_changed)
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
-        self.emit("application-activated", name)
+        self.emit("application-activated", name, pkgname)
     def _on_cursor_changed(self, treeview):
         selection = treeview.get_selection()
         (model, iter) = selection.get_selected()
