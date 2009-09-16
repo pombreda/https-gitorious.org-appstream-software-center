@@ -1,4 +1,3 @@
-
 import gconf
 import gtk
 import logging
@@ -21,7 +20,7 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """
 
-    def __init__(self, url, loading_img, parent=None):
+    def __init__(self, url, appname, parent=None):
         gtk.Dialog.__init__(self)
         # find parent window for the dialog
         if not parent:
@@ -30,7 +29,6 @@ class ShowImageDialog(gtk.Dialog):
                 parent = w.get_parent()
         # image
         self.img = gtk.Image()
-        self.img.set_from_file(loading_img)
         self.img.show()
         # progress
         self.progress = gtk.ProgressBar()
@@ -46,6 +44,7 @@ class ShowImageDialog(gtk.Dialog):
         self.get_content_area().add(vbox)
         self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.set_default_size(400,400)
+        self.set_title(appname)
         # install urlopener
         urllib._urlopener = GnomeProxyURLopener()
         # data
@@ -80,7 +79,7 @@ class ShowImageDialog(gtk.Dialog):
             gtk.main_iteration()
 
 if __name__ == "__main__":
+    pkgname = "synaptic"
     url = "http://screenshots.debian.net/screenshot/synaptic"
-    loading = "/usr/share/icons/hicolor/32x32/animations/software-store-loading.gif"
-    d = ShowImageDialog(url, loading)
+    d = ShowImageDialog(url, pkgname)
     d.run()

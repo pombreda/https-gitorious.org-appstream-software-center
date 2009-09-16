@@ -1,0 +1,14 @@
+data/xapian/flintlock
+data/xapian/iamflint
+data/xapian/postlist.baseA
+data/xapian/postlist.baseB
+data/xapian/postlist.DB
+data/xapian/record.baseA
+data/xapian/record.baseB
+data/xapian/record.DB
+data/xapian/termlist.baseA
+data/xapian/termlist.baseB
+data/xapian/termlist.DB
+data/xapian/value.baseA
+data/xapian/value.baseB
+data/xapian/value.DB
