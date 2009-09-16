@@ -282,7 +282,12 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
         gtk.CellRendererPixbuf.__init__(self)
         icons = gtk.icon_theme_get_default()
         self.overlay = False
-        self._installed = icons.load_icon(overlay_icon_name,
+        try:
+            self._installed = icons.load_icon(overlay_icon_name,
+                                          self.OVERLAY_SIZE, 0)
+        except glib.GError:
+            # icon not present in theme, probably because running uninstalled
+            self._installed = icons.load_icon('emblem-system', 
                                           self.OVERLAY_SIZE, 0)
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)

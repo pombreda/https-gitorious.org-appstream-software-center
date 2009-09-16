@@ -21,12 +21,15 @@
 import gobject
 import logging
 import os
-from optparse import OptionParser
 
+import softwarestore.enums
+
+from optparse import OptionParser
 
 if __name__ == "__main__":
 
-    parser = OptionParser("usage: %prog [options] package", version="%prog 0.3.4")
+    parser = OptionParser("usage: %prog [options] package", 
+                          version="%prog 0.3.4")
     parser.add_option("--debug", dest="debug", action="store_true",
                       help="enable debug mode", default=False)
     (options, args) = parser.parse_args()
@@ -40,15 +43,18 @@ if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
     logging.basicConfig(level=logging.INFO)
 
+    # needed for webkit
     gobject.threads_init()
 
     if os.path.exists("./data/ui/SoftwareStore.ui"):
         datadir = "./data"
+        xapian_base_path = datadir
     else:
         datadir = "/usr/share/software-store/"
+        xapian_base_path = XAPIAN_BASE_PATH
     
     from softwarestore.app import SoftwareStoreApp
     
-    app = SoftwareStoreApp(datadir)
+    app = SoftwareStoreApp(datadir, xapian_base_path)
     app.run()
 

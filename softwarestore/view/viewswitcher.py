@@ -27,7 +27,6 @@ import pango
 import os
 import time
 import xapian
-import pango
 
 import aptdaemon.client
 
@@ -113,7 +112,9 @@ class ViewSwitcherList(gtk.ListStore):
         try:
             icon = AnimatedImage(self.icons.load_icon("softwarestore", self.ICON_SIZE, 0))
         except glib.GError:
-            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", self.ICON_SIZE, 0))
+            # icon not present in theme, probably because running uninstalled
+            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
+                                                      self.ICON_SIZE, 0))
         self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
