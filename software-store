@@ -47,6 +47,7 @@ if __name__ == "__main__":
     gobject.threads_init()
 
     if os.path.exists("./data/ui/SoftwareStore.ui"):
+        logging.info("Using data (UI, xapian) from current dir")
         datadir = "./data"
         xapian_base_path = datadir
     else:

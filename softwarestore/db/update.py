@@ -46,14 +46,22 @@ WEIGHT_APT_SUMMARY = 5
 WEIGHT_APT_DESCRIPTION = 1
 
 from locale import getdefaultlocale
+import gettext
 
 class DesktopConfigParser(RawConfigParser):
     " thin wrapper that is tailored for xdg Desktop files "
     DE = "Desktop Entry"
     def get_desktop(self, key):
         " get generic option under 'Desktop Entry'"
-        # first try the i18n version of the key, then the 
-        # regular one
+        # first try dgettext
+        if self.has_option_desktop("X-Ubuntu-Gettext-Domain"):
+            value = self.get(self.DE, key)
+            domain = self.get(self.DE, "X-Ubuntu-Gettext-Domain")
+            translated_value = gettext.dgettext(domain, value)
+            if value != translated_value:
+                return translated_value
+        # then try the i18n version of the key (in [de_DE] or
+        # [de]
         locale = getdefaultlocale()[0]
         if self.has_option_desktop("%s[%s]" % (key, locale)):
             return self.get(self.DE, "%s[%s]" % (key, locale))
@@ -61,6 +69,7 @@ class DesktopConfigParser(RawConfigParser):
             locale_short = locale.split("_")[0]
             if self.has_option_desktop("%s[%s]" % (key, locale_short)):
                 return self.get(self.DE, "%s[%s]" % (key, locale_short))
+        # and then the untranslated field
         return self.get(self.DE, key)
     def has_option_desktop(self, key):
         " test if there is the option under 'Desktop Entry'"
