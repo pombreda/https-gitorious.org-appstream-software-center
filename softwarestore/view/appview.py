@@ -191,7 +191,6 @@ class AppStore(gtk.GenericTreeModel):
                 pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
                 break
             return pkgname
-    
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -201,7 +200,8 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_children(self, parent):
         if parent:
             return None
-        return self.appnames[0]
+        # rowref of the first element, so we return zero here
+        return 0
     def on_iter_has_child(self, rowref):
         return False
     def on_iter_n_children(self, rowref):
