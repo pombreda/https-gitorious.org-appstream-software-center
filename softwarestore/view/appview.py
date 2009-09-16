@@ -52,6 +52,17 @@ class ExecutionTime(object):
     def __exit__(self, type, value, stack):
         print "%s: %s" % (self.info, time.time() - self.now)
 
+class Application(object):
+    __slots__ = ["appname", "pkgname"]
+    def __init__(self, appname, pkgname):
+        self.appname = appname
+        self.pkgname = pkgname
+
+# sort(key=locale.strxfrm) would be more efficient, but its
+# currently broken, see http://bugs.python.org/issue2481
+def apps_cmp(x, y):
+    return locale.strcoll(x.appname, y.appname)
+
 class AppStore(gtk.GenericTreeModel):
     """ 
     A subclass GenericTreeModel that reads its data from a xapian
@@ -95,7 +106,7 @@ class AppStore(gtk.GenericTreeModel):
         self.cache = cache
         self.xapiandb = db
         self.icons = icons
-        self.appnames = []
+        self.apps = []
         self.filter = filter
         if not search_query:
             # limit to applications
@@ -103,10 +114,10 @@ class AppStore(gtk.GenericTreeModel):
                 doc = db.get_document(m.docid)
                 if filter and self.is_filtered_out(filter, doc):
                     continue
-                self.appnames.append(doc.get_data())
-            # sort(key=locale.strxfrm) would be more efficient, but its
-            # currently broken, see http://bugs.python.org/issue2481
-            self.appnames.sort(cmp=locale.strcoll)
+                appname = doc.get_data()
+                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                self.apps.append(Application(appname, pkgname))
+            self.apps.sort(cmp=apps_cmp)
         else:
             enquire = xapian.Enquire(db)
             enquire.set_query(search_query)
@@ -124,11 +135,12 @@ class AppStore(gtk.GenericTreeModel):
                         print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
                     print "\n"
                 appname = doc.get_data()
+                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
                 if filter and self.is_filtered_out(filter, doc):
                     continue
-                self.appnames.append(appname)
+                self.apps.append(Application(appname, pkgname))
             if sort:
-                self.appnames.sort(key=str.lower)
+                self.apps.sort(cmp=apps_cmp)
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
@@ -143,7 +155,7 @@ class AppStore(gtk.GenericTreeModel):
         return self.column_type[index]
     def on_get_iter(self, path):
         #logging.debug("on_get_iter: %s" % path)
-        if len(self.appnames) == 0:
+        if len(self.apps) == 0:
             return None
         index = path[0]
         return index
@@ -152,51 +164,45 @@ class AppStore(gtk.GenericTreeModel):
         return rowref
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
-
-        # FIXME: use maping (appname, pkgname) here instead of just appname
-        appname = self.appnames[rowref]
+        app = self.apps[rowref]
+        # get the right xapian document
+        for post in self.xapiandb.postlist("AA"+app.appname):
+            doc = self.xapiandb.get_document(post.docid)
+            pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+            if pkgname == app.pkgname:
+                break
+        else:
+            raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
         if column == self.COL_APP_NAME:
-            return appname
+            return app.appname
         elif column == self.COL_TEXT:
-            summary = ""
-            for post in self.xapiandb.postlist("AA"+appname):
-                doc = self.xapiandb.get_document(post.docid)
-                summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
-            s = "%s\n<small>%s</small>" % (gobject.markup_escape_text(appname),
-                                   gobject.markup_escape_text(summary))
+            summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
+            s = "%s\n<small>%s</small>" % (
+                gobject.markup_escape_text(app.appname),
+                gobject.markup_escape_text(summary))
             return s
         elif column == self.COL_ICON:
             try:
-                icon_name = ""
-                for post in self.xapiandb.postlist("AA"+appname):
-                    doc = self.xapiandb.get_document(post.docid)
-                    icon_name = doc.get_value(XAPIAN_VALUE_ICON)
-                    icon_name = os.path.splitext(icon_name)[0]
-                    break
+                icon_name = doc.get_value(XAPIAN_VALUE_ICON)
                 if icon_name:
+                    icon_name = os.path.splitext(icon_name)[0]
                     icon = self.icons.load_icon(icon_name, self.ICON_SIZE,0)
                     return icon
             except glib.GError, e:
                 logging.debug("get_icon returned '%s'" % e)
             return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         elif column == self.COL_INSTALLED_OVERLAY:
-            for post in self.xapiandb.postlist("AA"+appname):
-                doc = self.xapiandb.get_document(post.docid)
-                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-                break
+            pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
             if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
                 return True
             return False
         elif column == self.COL_PKGNAME:
-            for post in self.xapiandb.postlist("AA"+appname):
-                doc = self.xapiandb.get_document(post.docid)
-                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-                break
+            pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
             return pkgname
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
-        if new_rowref >= len(self.appnames):
+        if new_rowref >= len(self.apps):
             return None
         return new_rowref
     def on_iter_children(self, parent):
@@ -207,16 +213,16 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_has_child(self, rowref):
         return False
     def on_iter_n_children(self, rowref):
-        logging.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.appnames)))
+        logging.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
         if rowref:
             return 0
-        return len(self.appnames)
+        return len(self.apps)
     def on_iter_nth_child(self, parent, n):
         #logging.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
         try:
-            return self.appnames[n]
+            return self.apps[n]
         except IndexError, e:
             return None
     def on_iter_parent(self, child):
@@ -239,8 +245,13 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
         gtk.CellRendererText.__init__(self)
         icons = gtk.icon_theme_get_default()
         self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
-        self._forward = icons.load_icon("software-store-arrow-button", 
-                                        AppStore.ICON_SIZE, 0)
+        try:
+            self._forward = icons.load_icon("software-store-arrow-button", 
+                                            AppStore.ICON_SIZE, 0)
+        except glib.GError:
+            # icon not present in theme, probably because running uninstalled
+            self._forward = icons.load_icon("gtk-go-forward-ltr",
+                                            AppStore.ICON_SIZE, 0)
     # FIMXE: what about right-to-left languages? we need to 
     #        render the button differently there
     def do_render(self, window, widget, background_area, cell_area, 
