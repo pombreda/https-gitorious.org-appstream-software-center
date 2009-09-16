@@ -7,6 +7,8 @@ software-store (0.3.4) UNRELEASED; urgency=low
   * merged lp:~sil/software-store/disable-install-button, many
     thanks to Stuart Langridge (this is cleaner than the previous
     way)
+  * softwarestore/db/update.py:
+    - fix i18n reading from the app-install-data files
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 16 Sep 2009 12:28:13 +0200
 

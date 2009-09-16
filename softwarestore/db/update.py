@@ -45,15 +45,26 @@ WEIGHT_DESKTOP_COMMENT = 1
 WEIGHT_APT_SUMMARY = 5
 WEIGHT_APT_DESCRIPTION = 1
 
-# FIXME: *i18n*
+from locale import getdefaultlocale
+
 class DesktopConfigParser(RawConfigParser):
     " thin wrapper that is tailored for xdg Desktop files "
+    DE = "Desktop Entry"
     def get_desktop(self, key):
         " get generic option under 'Desktop Entry'"
-        return self.get("Desktop Entry", key)
+        # first try the i18n version of the key, then the 
+        # regular one
+        locale = getdefaultlocale()[0]
+        if self.has_option_desktop("%s[%s]" % (key, locale)):
+            return self.get(self.DE, "%s[%s]" % (key, locale))
+        if "_" in locale:
+            locale_short = locale.split("_")[0]
+            if self.has_option_desktop("%s[%s]" % (key, locale_short)):
+                return self.get(self.DE, "%s[%s]" % (key, locale_short))
+        return self.get(self.DE, key)
     def has_option_desktop(self, key):
         " test if there is the option under 'Desktop Entry'"
-        return self.has_option("Desktop Entry", key)
+        return self.has_option(self.DE, key)
     def get_desktop_categories(self):
         " get the list of categories for the desktop file "
         categories = []
