@@ -18,10 +18,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-# we use a absolute import for apt
-from __future__ import absolute_import
 import apt
-
 import locale
 import logging
 import os
