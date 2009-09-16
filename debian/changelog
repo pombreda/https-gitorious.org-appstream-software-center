@@ -10,6 +10,8 @@ software-store (0.3.4) UNRELEASED; urgency=low
   * softwarestore/db/update.py:
     - fix i18n reading from the app-install-data files
     - add X-Ubuntu-Gettext-Domain support
+    - Don't crash if we cannot write to ./data/xapian, 
+      print that we cannot write to the directory.
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 16 Sep 2009 12:28:13 +0200
 
