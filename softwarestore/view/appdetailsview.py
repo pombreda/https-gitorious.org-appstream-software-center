@@ -133,6 +133,7 @@ class AppDetailsView(WebkitWidget):
 
         # get apt cache data
         self.pkgname = self.doc.get_value(XAPIAN_VALUE_PKGNAME)
+        self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.pkg = None
         if self.cache.has_key(self.pkgname):
             self.pkg = self.cache[self.pkgname]
@@ -182,7 +183,8 @@ class AppDetailsView(WebkitWidget):
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and 
             self.cache[self.pkgname].isInstalled):
-        return self.IMAGE_LOADING_INSTALLED
+            return self.IMAGE_LOADING_INSTALLED
+        return self.IMAGE_LOADING
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
         iconinfo = self.icons.lookup_icon(self.iconname, 
@@ -195,7 +197,7 @@ class AppDetailsView(WebkitWidget):
         # FIXME: make webkit understand xpm files instead
         if iconpath.endswith(".xpm"):
             self.tf = tempfile.NamedTemporaryFile()
-            pix = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
+            pix = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
             pix.save(self.tf.name, "png")
             iconpath = self.tf.name
         return iconpath
@@ -235,8 +237,8 @@ class AppDetailsView(WebkitWidget):
         return self.datadir
     def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
-        # FIXME: add code
-        return ""
+        return self.cache.get_maintenance_status(
+            self.appname, self.pkgname, self.component, self.channelfile)
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
         s = ""
@@ -401,12 +403,10 @@ class AppDetailsView(WebkitWidget):
         return (action_button_label, action_button_value)
 
     def _set_action_button_sensitive(self, enabled):
-        script = 'document.getElementById("button_%s").disabled=' % self.action_button_value
         if enabled:
-            script += '"";'
+            self.execute_script("enable_action_button();")
         else:
-            script += '"true";'
-        self.execute_script(script)
+            self.execute_script("disable_action_button();")
 
     def _run_transaction(self, trans):
         trans.set_data("appname", self.appname)
@@ -417,9 +417,10 @@ class AppDetailsView(WebkitWidget):
         try:
             trans.run()
         except dbus.exceptions.DBusException, e:
+            # re-enable the action button again if anything went wrong
+            self._set_action_button_sensitive(True)
             if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                # re-enable the action button again
-                self._set_action_button_sensitive(True)
+                pass
             else:
                 raise
 
