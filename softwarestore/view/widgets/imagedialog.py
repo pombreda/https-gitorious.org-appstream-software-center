@@ -62,6 +62,7 @@ class ShowImageDialog(gtk.Dialog):
         self.progress.set_fraction(0.0)
         location = tempfile.NamedTemporaryFile()
         try:
+            # FIXME: make this truely async
             screenshot = urllib.urlretrieve(url, location.name, self._progress)
         except Exception, e:
             logging.exception("urlopen error")

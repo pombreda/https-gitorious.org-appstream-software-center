@@ -83,6 +83,7 @@ class DesktopConfigParser(RawConfigParser):
 def update(db, cache, datadir=APP_INSTALL_PATH):
     " index the desktop files in $datadir/desktop/*.desktop "
     term_generator = xapian.TermGenerator()
+    seen = set()
     for desktopf in glob(datadir+"/desktop/*.desktop"):
         logging.debug("processing %s" % desktopf)
         parser = DesktopConfigParser()
@@ -92,6 +93,9 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             parser.read(desktopf)
             # app name is the data
             name = parser.get_desktop("Name")
+            if name in seen:
+                logging.debug("duplicated name '%s' (%s)" % (name, desktopf))
+            seen.add(name)
             doc.set_data(name)
             doc.add_term("AA"+name)
             # package name

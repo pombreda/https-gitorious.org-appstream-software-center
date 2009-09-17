@@ -125,7 +125,7 @@ class AppDetailsView(WebkitWidget):
                 self.doc = doc
                 break
         if not self.doc:
-            raise IndexError, "No app '%s' for '%s' in database" % appname
+            raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
 
         # get icon
         self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)
