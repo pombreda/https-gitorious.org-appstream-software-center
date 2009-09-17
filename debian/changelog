@@ -34,7 +34,7 @@ software-store (0.3.4) karmic; urgency=low
   * po/POTFILES.in:
     - updated
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Sep 2009 12:15:43 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Sep 2009 12:21:57 +0200
 
 software-store (0.3.3) karmic; urgency=low
 
