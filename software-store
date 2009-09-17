@@ -22,7 +22,7 @@ import gobject
 import logging
 import os
 
-import softwarestore.enums
+from softwarestore.enums import *
 
 from optparse import OptionParser
 
