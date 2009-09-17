@@ -385,8 +385,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         page = self.notebook_view.get_current_page()
         try:
             new_len = self._available_items_for_page[page]
-            s = gettext.ngettext("%s item available",
-                                 "%s items available",
+            s = gettext.ngettext("%s matching item",
+                                 "%s matching items",
                                  new_len) % new_len
         except KeyError, e:
             s = ""
