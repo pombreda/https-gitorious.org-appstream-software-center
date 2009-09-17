@@ -357,8 +357,6 @@ class AppDetailsView(WebkitWidget):
     # internal callback
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
-        #print "finish: ", trans, enum
-        # FIXME: do something useful here
         if enum == enums.EXIT_FAILED:
             excep = trans.get_error()
             msg = "%s: %s\n%s\n\n%s" % (
@@ -366,7 +364,14 @@ class AppDetailsView(WebkitWidget):
                    enums.get_error_string_from_enum(excep.code),
                    enums.get_error_description_from_enum(excep.code),
                    excep.details)
-            print msg
+            logging.error(msg)
+            # show dialog to the user and exit (no need to reopen
+            # the cache)
+            dialogs.error(None, 
+                          enums.get_error_string_from_enum(excep.code),
+                          enums.get_error_description_from_enum(excep.code),
+                          excep.details)
+            return
         # re-open cache and refresh app display
         self.cache.open()
         self.show_app(self.appname, self.pkgname)
@@ -450,7 +455,8 @@ if __name__ == "__main__":
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
     
-    cache = apt.Cache()
+    from softwarestore.apt.aptcache import AptCache
+    cache = AptCache()
 
     # gui
     scroll = gtk.ScrolledWindow()

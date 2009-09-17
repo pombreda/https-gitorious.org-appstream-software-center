@@ -1,13 +1,19 @@
 [type: python] software-store
 [type. python] utils/update-software-store
 softwarestore/app.py
+softwarestore/apt/aptcache.py
 softwarestore/__init__.py
 softwarestore/SimpleGtkbuilderApp.py
 softwarestore/view/__init__.py
 softwarestore/view/appdetailsview.py
 softwarestore/view/appview.py
+softwarestore/view/availablepane.py
 softwarestore/view/catview.py
+softwarestore/view/dialogs.py
 softwarestore/view/installed_view.py
+softwarestore/view/installedpane.py
 softwarestore/view/pendingview.py
 softwarestore/view/viewswitcher.py
+[type: gettext/glade] data/ui/GBTestWidget.ui
+[type: gettext/glade] data/ui/SoftwareStore.ui
 data/ubuntu-software-store.desktop.in
