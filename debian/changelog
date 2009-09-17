@@ -20,6 +20,8 @@ software-store (0.3.4) UNRELEASED; urgency=low
     - ensure correct icons for overlapping application names
   * softwarestore/view/widgets/imagedialog.py:
     - make the download fully threaded
+  * softwarestore/db/database.py:
+    - cleanup and move common code here
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 16 Sep 2009 12:28:13 +0200
 

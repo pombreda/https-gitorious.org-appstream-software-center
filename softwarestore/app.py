@@ -33,13 +33,8 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-try:
-    from softwarestore.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from softwarestore.enums import *
+from softwarestore.enums import *
+from softwarestore.db.database import StoreDatabase
 
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.pendingview import PendingView
@@ -47,7 +42,6 @@ from view.installedpane import InstalledPane
 from view.availablepane import AvailablePane
 
 from apt.aptcache import AptCache
-
 from gettext import gettext as _
 
 class SoftwareStoreDbusController(dbus.service.Object):
@@ -89,7 +83,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
-            self.xapiandb = xapian.Database(pathname)
+            self.xapiandb = StoreDatabase(pathname)
         except xapian.DatabaseOpeningError:
             # Couldn't use that folder as a database
             # This may be because we are in a bzr checkout and that
@@ -99,13 +93,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                 from softwarestore.db.update import rebuild_database
                 logging.info("building local database")
                 rebuild_database(pathname)
-                self.xapiandb = xapian.Database(pathname)
+                self.xapiandb = StoreDatabase(pathname)
     
-        self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
-        #self.xapian_parser.add_boolean_prefix("section", "AS")
-
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path(ICON_PATH)

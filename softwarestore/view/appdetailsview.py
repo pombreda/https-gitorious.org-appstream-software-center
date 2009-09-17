@@ -44,13 +44,10 @@ from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog
 import dialogs
 
-try:
-    from appcenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from enums import *
+if os.path.exists("./softwarestore/enums.py"):
+    sys.path.insert(0, ".")
+from softwarestore.enums import *
+from softwarestore.db.database import StoreDatabase
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -119,11 +116,7 @@ class AppDetailsView(WebkitWidget):
         self.doc = None
 
         # get xapian document
-        for m in self.xapiandb.postlist("AA"+appname):
-            doc = self.xapiandb.get_document(m.docid)
-            if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
-                self.doc = doc
-                break
+        self.doc = self.xapiandb.get_xapian_document(appname, pkgname)
         if not self.doc:
             raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
 
@@ -376,7 +369,7 @@ class AppDetailsView(WebkitWidget):
             print msg
         # re-open cache and refresh app display
         self.cache.open()
-        self.show_app(self.appname)
+        self.show_app(self.appname, self.pkgname)
 
     # internal helpers
     def _get_action_button_label_and_value(self):
@@ -452,7 +445,7 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-store"
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = xapian.Database(pathname)
+    db = StoreDatabase(pathname)
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
@@ -463,7 +456,7 @@ if __name__ == "__main__":
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache, datadir)
     #view.show_app("AMOR")
-    view.show_app("3D Chess")
+    view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")
     #view.show_app("ACE")
     #view.show_app("Artha")
