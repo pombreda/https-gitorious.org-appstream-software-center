@@ -3,6 +3,7 @@ import gtk
 import logging
 import tempfile
 import time
+import threading
 import urllib
 
 class GnomeProxyURLopener(urllib.FancyURLopener):
@@ -46,39 +47,59 @@ class ShowImageDialog(gtk.Dialog):
         self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.set_default_size(400,400)
         self.set_title(title)
+        self.connect("response", self._response)
         # install urlopener
         urllib._urlopener = GnomeProxyURLopener()
         # data
-        self.fetched = 0.0
         self.url = url
 
+    def _response(self, dialog, reponse_id):
+        self._finished = True
+        self._abort = True
+        
     def run(self):
         self.show()
-        self._load(self.url)
-        gtk.Dialog.run(self)
-
-    def _load(self, url):
         self.progress.show()
         self.progress.set_fraction(0.0)
-        location = tempfile.NamedTemporaryFile()
-        try:
-            # FIXME: make this truely async
-            screenshot = urllib.urlretrieve(url, location.name, self._progress)
-        except Exception, e:
-            logging.exception("urlopen error")
-            return
+        # thread
+        self._finished = False
+        self._abort = False
+        self._fetched = 0.0
+        self._percent = 0.0
+        t = threading.Thread(target=self._fetch)
+        t.start()
+        # wait for download to finish or for abort
+        while not self._finished:
+            time.sleep(0.1)
+            self.progress.set_fraction(self._percent)
+            while gtk.events_pending():
+                gtk.main_iteration()
+        # aborted
+        if self._abort:
+            return gtk.RESPONSE_CLOSE
         # load into icon
         self.progress.hide()
-        self.img.set_from_file(location.name)
+        self.img.set_from_file(self.location.name)
+        # and run the real thing
+        gtk.Dialog.run(self)
+
+    def _fetch(self):
+        "fetcher thread"
+        self.location = tempfile.NamedTemporaryFile()
+        try:
+            screenshot = urllib.urlretrieve(self.url, 
+                                            self.location.name, 
+                                            self._progress)
+        except Exception, e:
+            logging.exception("urlopen error")
+        self._finished = True
 
     def _progress(self, count, block, total):
-        #time.sleep(0.1)
-        self.fetched += block
+        "fetcher progress reporting"
+        #time.sleep(1)
+        self._fetched += block
         # ensure we do not go over 100%
-        percent = min(self.fetched/total, 1.0)
-        self.progress.set_fraction(percent)
-        while gtk.events_pending():
-            gtk.main_iteration()
+        self._percent = min(self._fetched/total, 1.0)
 
 if __name__ == "__main__":
     pkgname = "synaptic"
