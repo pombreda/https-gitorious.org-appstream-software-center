@@ -23,7 +23,8 @@ software-store (0.3.4) UNRELEASED; urgency=low
     - make the download fully threaded
   * softwarestore/db/database.py:
     - cleanup and move common code here
-  
+  * softwarestore/app.py:
+    - fix crash when no pane is active (LP: #430912)
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 16 Sep 2009 12:28:13 +0200
 

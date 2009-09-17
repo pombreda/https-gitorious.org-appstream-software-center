@@ -224,7 +224,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         """
         Check whether the search field is focused and if so, focus some items
         """
-        state = self.active_pane.searchentry.is_focus()
+        if self.active_pane:
+            state = self.active_pane.searchentry.is_focus()
+        else:
+            state = False
         edit_menu_items = [self.menuitem_undo, 
                            self.menuitem_redo, 
                            self.menuitem_cut, 
