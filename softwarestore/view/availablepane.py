@@ -37,7 +37,8 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
-from widgets.navigationbar import NavigationBar
+from widgets.navigationbar import NavigationBarShinny as NavigationBar
+
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter

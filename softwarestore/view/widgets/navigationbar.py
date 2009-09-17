@@ -18,12 +18,24 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gtk
+from pathbar2 import PathBar, PathPart
 
-class NavigationBar(gtk.HBox):
+class NavigationBarShinny(PathBar):
+
+    def add_with_id(self, label, callback, id):
+        part = PathPart(label)
+        part.set_callback(callback)
+        self.append(part)
+    def remove_id(self, id):
+        # FIXME: this is a fake, it does not remove ID but just
+        # the last element 
+        self.shorten()
+
+class NavigationBarHBox(gtk.HBox):
     """A navigation bar using button (like nautilus)"""
 
     def __init__(self, group=None):
-        super(NavigationBar, self).__init__()
+        super(NavigationBarHBox, self).__init__()
         self.id_to_widget = {}
         self.id_to_callback = {}
         if not group:
