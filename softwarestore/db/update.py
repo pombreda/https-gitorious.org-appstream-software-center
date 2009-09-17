@@ -28,13 +28,7 @@ import xapian
 from ConfigParser import RawConfigParser, NoOptionError
 from glob import glob
 
-try:
-    from softwarestore.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from softwarestore.enums import *
+from softwarestore.enums import *
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -89,6 +83,7 @@ class DesktopConfigParser(RawConfigParser):
 def update(db, cache, datadir=APP_INSTALL_PATH):
     " index the desktop files in $datadir/desktop/*.desktop "
     term_generator = xapian.TermGenerator()
+    seen = set()
     for desktopf in glob(datadir+"/desktop/*.desktop"):
         logging.debug("processing %s" % desktopf)
         parser = DesktopConfigParser()
@@ -98,6 +93,9 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             parser.read(desktopf)
             # app name is the data
             name = parser.get_desktop("Name")
+            if name in seen:
+                logging.debug("duplicated name '%s' (%s)" % (name, desktopf))
+            seen.add(name)
             doc.set_data(name)
             doc.add_term("AA"+name)
             # package name
@@ -189,12 +187,14 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
 def rebuild_database(pathname):
     import apt
     cache = apt.Cache(memonly=True)
-    if os.access(pathname, os.W_OK):
-        db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
-        update(db, cache)
-        db.flush()
-        return
-    else:
-        logging.warn("Cannot write to ./data/xapian.")
+    # check permission
+    if not os.access(pathname, os.W_OK):
+        logging.warn("Cannot write to '%s'." % pathname)
         logging.warn("Please check you have the relevant permissions.")
-        exit()
+        return False
+    # write it
+    db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
+    update(db, cache)
+    db.flush()
+    return True
+

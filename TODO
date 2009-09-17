@@ -12,10 +12,8 @@ Webkit:
   cursor keys)
 - make the description -> html processing better, use
   code from g-a-i for this
-- make action button insensitive on click
 
 Missing functionality compared to g-a-i:
-- maintainance calculation
 - displaying EULA
 - enable of components (like universe)
 
@@ -33,6 +31,11 @@ UI:
   right-to-left languages and a button-pressed image
 - refresh app list when a package gets installed (some 
   packages may no longer be installed/not installed)
+
+Database:
+- to extend to full axi 
+  * change set_data() from appname to pkgname
+  * make database.get_xapian_document() work with empty appname
 
 Missing:
 - when the xapian db is rebuilding (e.g. because app-center is 

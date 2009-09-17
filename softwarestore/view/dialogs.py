@@ -20,24 +20,39 @@
 
 import gtk
 from gettext import gettext as _
-
 from pkgview import PkgNamesView
 
-def error(parent, primary, secondary):
+def error(parent, primary, secondary, details=None):
     """ show a untitled error dialog """
     return messagedialog(parent=parent,
-                         primary=primary, secondary=secondary,
+                         primary=primary, 
+                         secondary=secondary,
+                         details=details,
                          dialogtype=gtk.MESSAGE_ERROR)
 
-def messagedialog(parent, title="", primary=None, secondary=None, 
-                      dialogbuttons=gtk.BUTTONS_OK, 
-                      dialogtype=gtk.MESSAGE_INFO):
+def messagedialog(parent, 
+                  title="", 
+                  primary=None, 
+                  secondary=None, 
+                  details=None,
+                  dialogbuttons=gtk.BUTTONS_OK, 
+                  dialogtype=gtk.MESSAGE_INFO):
     """ run a dialog """
     dialog = gtk.MessageDialog(parent=None, flags=0, type=dialogtype, 
                                buttons=dialogbuttons, message_format=primary)
     dialog.set_title(title)
     if secondary:
         dialog.format_secondary_markup(secondary)
+    if details:
+        textview = gtk.TextView()
+        textview.get_buffer().set_text(details)
+        scroll = gtk.ScrolledWindow()
+        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scroll.add(textview)
+        expand = gtk.Expander(_("Details"))
+        expand.add(scroll)
+        expand.show_all()
+        dialog.get_content_area().pack_start(expand)
     result = dialog.run()
     dialog.hide()
     return result

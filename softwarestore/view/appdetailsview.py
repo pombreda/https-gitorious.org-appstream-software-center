@@ -44,13 +44,10 @@ from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog
 import dialogs
 
-try:
-    from appcenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from enums import *
+if os.path.exists("./softwarestore/enums.py"):
+    sys.path.insert(0, ".")
+from softwarestore.enums import *
+from softwarestore.db.database import StoreDatabase
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -104,7 +101,7 @@ class AppDetailsView(WebkitWidget):
         super(AppDetailsView, self)._show(widget)
 
     # public API
-    def show_app(self, appname):
+    def show_app(self, appname, pkgname):
         logging.debug("AppDetailsView.show_app '%s'" % appname)
         
         # clear first to avoid showing the old app details for
@@ -119,11 +116,9 @@ class AppDetailsView(WebkitWidget):
         self.doc = None
 
         # get xapian document
-        for m in self.xapiandb.postlist("AA"+appname):
-            self.doc = self.xapiandb.get_document(m.docid)
-            break
+        self.doc = self.xapiandb.get_xapian_document(appname, pkgname)
         if not self.doc:
-            raise IndexError, "No app '%s' in database" % appname
+            raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
 
         # get icon
         self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)
@@ -307,7 +302,8 @@ class AppDetailsView(WebkitWidget):
 
     def on_screenshot_thumbnail_clicked(self):
         url = self.SCREENSHOT_LARGE_URL % self.pkgname
-        d = ShowImageDialog(url, _("%s - Screenshot") % self.appname)
+        title = _("%s - Screenshot") % self.appname
+        d = ShowImageDialog(title, url, self.IMAGE_LOADING_INSTALLED)
         d.run()
         d.destroy()
 
@@ -361,8 +357,6 @@ class AppDetailsView(WebkitWidget):
     # internal callback
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
-        #print "finish: ", trans, enum
-        # FIXME: do something useful here
         if enum == enums.EXIT_FAILED:
             excep = trans.get_error()
             msg = "%s: %s\n%s\n\n%s" % (
@@ -370,10 +364,17 @@ class AppDetailsView(WebkitWidget):
                    enums.get_error_string_from_enum(excep.code),
                    enums.get_error_description_from_enum(excep.code),
                    excep.details)
-            print msg
+            logging.error(msg)
+            # show dialog to the user and exit (no need to reopen
+            # the cache)
+            dialogs.error(None, 
+                          enums.get_error_string_from_enum(excep.code),
+                          enums.get_error_description_from_enum(excep.code),
+                          excep.details)
+            return
         # re-open cache and refresh app display
         self.cache.open()
-        self.show_app(self.appname)
+        self.show_app(self.appname, self.pkgname)
 
     # internal helpers
     def _get_action_button_label_and_value(self):
@@ -449,18 +450,19 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-store"
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = xapian.Database(pathname)
+    db = StoreDatabase(pathname)
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
     
-    cache = apt.Cache()
+    from softwarestore.apt.aptcache import AptCache
+    cache = AptCache()
 
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache, datadir)
     #view.show_app("AMOR")
-    view.show_app("3D Chess")
+    view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")
     #view.show_app("ACE")
     #view.show_app("Artha")

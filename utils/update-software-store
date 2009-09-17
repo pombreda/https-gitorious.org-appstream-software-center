@@ -53,7 +53,10 @@ if __name__ == "__main__":
     xapian_base_path = XAPIAN_BASE_PATH
     
     # set locale so that apt-ddtp stuff works
-    locale.setlocale(locale.LC_ALL, "")
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except:
+        logging.exception("locale.setlocale failed")
 
     pathname = os.path.join(xapian_base_path, "xapian")
     if not os.path.exists(pathname):

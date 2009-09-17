@@ -41,7 +41,6 @@ from widgets.navigationbar import NavigationBar
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter
-from appdetailsview import AppDetailsView
 from catview import CategoriesView
 
 from basepane import BasePane, wait_for_apt_cache_ready
@@ -173,10 +172,10 @@ class AvailablePane(BasePane):
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
-    def on_application_activated(self, appview, name):
+    def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
-        self.app_details.show_app(name)
+        self.app_details.show_app(name, pkgname)
         self.navigation_bar.add_with_id(name,
                                        self.on_navigation_details,
                                        "details")
