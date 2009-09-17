@@ -392,7 +392,7 @@ class AppViewFilter(object):
         #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
-            if (self.cache.has_key(pkgname) and 
+            if (not self.cache.has_key(pkgname) or
                 not self.cache[pkgname].isInstalled):
                 return False
         if self.not_installed_only:
