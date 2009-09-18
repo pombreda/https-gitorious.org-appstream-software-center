@@ -1,11 +1,17 @@
 software-store (0.3.5) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * data/ui/SoftwareStore.ui
     - use &#xA9; instead (c) (LP: #431298)
   * softwarestore/SimpleGtkbuilderApp.py, softwarestore/app.py:
     - fix gettext domain in gtkbuilder (thanks to sianis)
   * po/hu.po:
     - new translation, thanks to Gabor Kelemen 
+  
+  [ Andrew Higginson ]
+  * debian/control:
+    - better description
+    - add depedency to python-sexy (LP: #432173)
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Sep 2009 14:11:06 +0200
 

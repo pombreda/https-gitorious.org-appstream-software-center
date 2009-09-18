@@ -27,9 +27,16 @@ Depends: ${python:Depends},
 	 policykit-1-gnome | policykit-1-qt,
          python-gtk2,
 	 python-webkit,
+	 python-sexy,
 	 aptdaemon
 Recommends: lsb-release
 XB-Python-Version: ${python:Versions}
-Description: Software Installer
- A pretty software installer that provides a modern and easy to 
- use interface with fast searching.
+Description: Utility for browsing, installing, and removing applications
+ The Ubuntu Software Store lets you browse and install thousands of 
+ free applications available for Ubuntu. You can view available 
+ applications by category, or search quickly by name or description. 
+ You can also examine the applications already installed, and remove
+ those you no longer need.
+
+ To install or remove software using the Store, you need administrator
+ access on the computer.
