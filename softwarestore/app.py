@@ -23,6 +23,7 @@ import locale
 import dbus
 import dbus.service
 import gettext
+import locale
 import logging
 import glib
 import gtk
@@ -74,6 +75,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                      "software-store")
         gettext.bindtextdomain("software-store", "/usr/share/locale")
         gettext.textdomain("software-store")
+        try:
+            locale.setlocale(locale.LC_ALL, "")
+        except:
+            logging.exception("setlocale failed")
 
         # setup dbus and exit if there is another instance already
         # running
