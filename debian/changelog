@@ -1,4 +1,4 @@
-software-store (0.3.5) karmic; urgency=low
+software-store (0.3.6) karmic; urgency=low
 
   [ Michael Vogt ]
   * data/ui/SoftwareStore.ui
@@ -26,7 +26,7 @@ software-store (0.3.5) karmic; urgency=low
     - better description
     - add depedency to python-sexy (LP: #432173)
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 17:05:58 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 17:16:46 +0200
 
 software-store (0.3.4) karmic; urgency=low
 
