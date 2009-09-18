@@ -3,6 +3,7 @@ Section: gnome
 Priority: optional
 Maintainer: Michael Vogt <mvo@ubuntu.com>
 Build-Depends: debhelper (>= 7.0.50),
+	       lsb-release,
                gettext,
                intltool,
                python,

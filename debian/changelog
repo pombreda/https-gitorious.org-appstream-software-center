@@ -1,3 +1,10 @@
+software-store (0.3.6.1) karmic; urgency=low
+
+  * debian/control:
+    - add missing build-depend to lsb-release
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 18:00:54 +0200
+
 software-store (0.3.6) karmic; urgency=low
 
   [ Michael Vogt ]
