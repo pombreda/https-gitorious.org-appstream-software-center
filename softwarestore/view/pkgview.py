@@ -31,9 +31,11 @@ class PkgNamesView(gtk.TreeView):
         #self.set_headers_visible(False)
         tr = gtk.CellRendererText()
         column = gtk.TreeViewColumn(header, tr, text=0)
+        tr = gtk.CellRendererPixbuf()
+        column = gtk.TreeViewColumn(header, tr, text=0)
         self.append_column(column)
         for pkg in sorted(pkgnames):
-            s = "%s - %s" % (pkg, cache[pkg].installed.summary)
+            s = "%s <br> <x-small>%s</x-small>" % (cache[pkg].installed.summary, pkg)
             model.append([s])
 
 
