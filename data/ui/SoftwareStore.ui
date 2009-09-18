@@ -453,7 +453,7 @@
         <child>
           <object class="GtkLabel" id="label_rebuilding">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">The database is rebuilding, please hold on a minute.</property>
+            <property name="label" translatable="yes">Rebuilding application catalog…</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>
