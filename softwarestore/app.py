@@ -69,7 +69,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
     def __init__(self, datadir, xapian_base_path):
-        SimpleGtkbuilderApp.__init__(self, datadir+"/ui/SoftwareStore.ui")
+        SimpleGtkbuilderApp.__init__(self, 
+                                     datadir+"/ui/SoftwareStore.ui", 
+                                     "software-store")
 
         # setup dbus and exit if there is another instance already
         # running

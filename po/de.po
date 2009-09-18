@@ -146,3 +146,8 @@ msgstr "Software Store"
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
 msgstr "Ubuntu Software Store"
+
+#: ../data/ui/SoftwareStore.ui.h:11
+msgid "_File"
+msgstr "_Datei"
+
