@@ -26,7 +26,7 @@
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_install">
-                        <property name="label">_Install</property>
+                        <property name="label" translatable="yes">_Install</property>
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="use_underline">True</property>
@@ -168,7 +168,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_search">
-                        <property name="label" translatable="yes">Search...</property>
+                        <property name="label" translatable="yes">Search…</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="image">image2</property>
@@ -184,7 +184,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_software_sources">
-                        <property name="label" translatable="yes">_Software Sources&#x2026;</property>
+                        <property name="label" translatable="yes">_Software Sources…</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="image">image4</property>
@@ -199,7 +199,7 @@
             <child>
               <object class="GtkMenuItem" id="menuitem8">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">View</property>
+                <property name="label" translatable="yes">_View</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu4">
@@ -207,7 +207,7 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_all">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">All Applications</property>
+                        <property name="label" translatable="yes">_All Applications</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <property name="draw_as_radio">True</property>
@@ -218,7 +218,7 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_supported_only">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Canonical-Maintained Applications</property>
+                        <property name="label" translatable="yes">_Canonical-Maintained Applications</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
                         <signal name="activate" handler="on_menuitem_view_supported_only_activate"/>

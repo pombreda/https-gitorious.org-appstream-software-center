@@ -101,6 +101,9 @@ class CategoriesView(WebkitWidget):
     def wksub_icon_size(self):
         return self.CATEGORY_ICON_SIZE
 
+    def wksub_header(self):
+        return _("Departments")
+
     # helper code for menu parsing etc
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""

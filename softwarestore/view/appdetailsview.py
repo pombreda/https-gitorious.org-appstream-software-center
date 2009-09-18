@@ -204,6 +204,8 @@ class AppDetailsView(WebkitWidget):
         return url
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
+    def wksub_screenshot_alt(self):
+        return _("Application Screenshot")
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):

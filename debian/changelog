@@ -1,3 +1,9 @@
+software-store (0.3.6.2) UNRELEASED; urgency=low
+
+  * i18n fixes, thanks to Istvan Nyitrai 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 20:34:02 +0200
+
 software-store (0.3.6.1) karmic; urgency=low
 
   * debian/control:
