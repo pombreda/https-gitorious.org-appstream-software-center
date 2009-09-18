@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import glib
 import locale
 import logging
 import os
@@ -84,8 +85,12 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
     " index the desktop files in $datadir/desktop/*.desktop "
     term_generator = xapian.TermGenerator()
     seen = set()
+    context = glib.main_context_default()
     for desktopf in glob(datadir+"/desktop/*.desktop"):
         logging.debug("processing %s" % desktopf)
+        # process events
+        while context.pending():
+            context.iteration()
         parser = DesktopConfigParser()
         doc = xapian.Document()
         term_generator.set_document(doc)

@@ -438,4 +438,28 @@
     <property name="stock">gtk-network</property>
     <property name="icon-size">1</property>
   </object>
+  <object class="GtkWindow" id="window_rebuilding">
+    <property name="modal">True</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="default_width">440</property>
+    <property name="default_height">250</property>
+    <child>
+      <object class="GtkAlignment" id="alignment1">
+        <property name="visible">True</property>
+        <property name="top_padding">10</property>
+        <property name="bottom_padding">10</property>
+        <property name="left_padding">10</property>
+        <property name="right_padding">10</property>
+        <child>
+          <object class="GtkLabel" id="label_rebuilding">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">The database is rebuilding, please hold on a minute.</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
 </interface>

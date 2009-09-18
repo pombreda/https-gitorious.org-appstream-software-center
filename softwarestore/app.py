@@ -84,6 +84,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # setup dbus and exit if there is another instance already
         # running
         self.setup_dbus_or_bring_other_instance_to_front()
+        self.setup_database_rebuilding_listener()
         
         try:
             locale.setlocale(locale.LC_ALL, "")
@@ -403,6 +404,47 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             s = ""
         self.label_status.set_text(s)
 
+    def _on_database_rebuilding_handler(self, is_rebuilding):
+        logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
+        self._database_is_rebuilding = is_rebuilding
+        self.window_rebuilding.set_transient_for(self.window_main)
+        self.window_rebuilding.set_title("")
+        self.window_main.set_sensitive(not is_rebuilding)
+        # show dialog about the rebuilding status
+        if is_rebuilding:
+            self.window_rebuilding.show()
+        else:
+            # we need to reopen when the database finished updating
+            self.xapiandb.reopen()
+            self.window_rebuilding.hide()
+
+    def setup_database_rebuilding_listener(self):
+        """
+        Setup system bus listener for database rebuilding
+        """
+        self._database_is_rebuilding = False
+        # get dbus
+        try:
+            bus = dbus.SystemBus()
+        except:
+            logging.exception("could not get system bus")
+            return
+        # check if its currently rebuilding (most likely not, so we
+        # just ignore errors from dbus because the interface
+        try:
+            proxy_obj = bus.get_object("com.ubuntu.SoftwareStore",
+                                       "/com/ubuntu/SoftwareStore")
+            iface = dbus.Interface(proxy_obj, "com.ubuntu.SoftwareStore")
+            res = iface.IsRebuilding()
+            self._on_database_rebuilding_handler(res)
+        except Exception ,e:
+            logging.debug("query for the update-database exception '%s' (probably ok)" % e)
+
+        # add signal handler
+        bus.add_signal_receiver(self._on_database_rebuilding_handler,
+                                "DatabaseRebuilding",
+                                "com.ubuntu.SoftwareStore")
+
     def setup_dbus_or_bring_other_instance_to_front(self):
         """ 
         This sets up a dbus listener
@@ -410,7 +452,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         try:
             bus = dbus.SessionBus()
         except:
-            logging.warn("could not initiate dbus")
+            logging.exception("could not initiate dbus")
             return
         # if there is another SoftwareStore running bring it to front
         # and exit, otherwise install the dbus controller
