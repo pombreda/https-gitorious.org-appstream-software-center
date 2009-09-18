@@ -90,10 +90,7 @@ class AppDetailsView(WebkitWidget):
         self.window_main_xid = None
         # data
         self.appname = None
-        # setup missing icon
-        iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, 
-                                          self.APP_ICON_SIZE, 0)
-        self.MISSING_ICON_PATH = iconinfo.get_filename()
+
         
     def _show(self, widget):
         if not self.appname:
@@ -138,7 +135,15 @@ class AppDetailsView(WebkitWidget):
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
-
+    
+    def get_icon(self, iconname, iconsize)
+        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
+        if iconinfo:
+            return iconinfo.get_filename()
+        else:
+            self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+            return iconinfo.get_filename()
+            
     def clear(self):
         " clear the current view "
         self.load_string("","text/plain","ascii","file:/")
@@ -182,12 +187,7 @@ class AppDetailsView(WebkitWidget):
         return self.IMAGE_LOADING
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
-        iconinfo = self.icons.lookup_icon(self.iconname, 
-                                          self.APP_ICON_SIZE, 0)
-        if iconinfo:
-            iconpath = iconinfo.get_filename()
-        else:
-            iconpath = self.MISSING_ICON_PATH
+        iconpath = self.get_icon(self.iconname, self.APP_ICON_SIZE)
         # *meh* if not png -> convert
         # FIXME: make webkit understand xpm files instead
         if iconpath.endswith(".xpm"):
@@ -317,24 +317,37 @@ class AppDetailsView(WebkitWidget):
         self._run_transaction(trans)
 
     def on_button_remove_clicked(self):
-        # generic removal text
-        primary=_("%s depends on other software on the system. ") % self.appname
-        secondary = _("Uninstalling it means that the following "
-                      "additional software needs to be removed.")
+        # generic removal text 
+        primary = _("To remove %s, these items must be removed as well:" 
+                        % self.appname)
+        button_text = _("Remove All")
+        
+        # FIXME: Make the m.section bit work
         # alter it if a meta-package is affected
+        #for m in self.installed_rdeps:
+        #    if m.section == "metapackages":
+        #        primary = _("If you uninstall %s, future updates will not "
+        #                      "include new items in the %s set."
+        #                      "Are you sure you want to continue?") % self.appname
+        #        button_text = _("Remove Anyway")
+        #        break
+        
+        # alter it if an important meta-package is affected
         for m in self.IMPORTANT_METAPACKAGES:
             if m in self.installed_rdeps:
-                primary=_("%s is a core component") % self.appname
-                secondary = _("%s is a core application in Ubuntu. "
+                primary = _("%s is a core application in Ubuntu. "
                               "Uninstalling it may cause future upgrades "
                               "to be incomplete. Are you sure you want to "
                               "continue?") % self.appname
+                button_text = _("Remove Anyway")
                 break
+                
+        iconpath = self.get_icon(self.iconname, self.APP_ICON_SIZE)
+        
         # ask for confirmation if we have rdepends
         if len(self.installed_rdeps):
-            if not dialogs.confirm_remove(None, primary, secondary, 
-                                          self.cache,
-                                          list(self.installed_rdeps)):
+            if not dialogs.confirm_remove(None, primary, self.cache,
+                                        list(self.installed_rdeps), button_text, iconpath):
                 return
         # do it (no rdepends or user confirmed)
         trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],

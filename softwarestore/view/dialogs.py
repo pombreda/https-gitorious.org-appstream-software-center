@@ -58,24 +58,25 @@ def messagedialog(parent,
     return result
 
 
-def confirm_remove(parent, primary, secondary, cache, depends=[]):
+def confirm_remove(parent, primary, cache, depends=[], button_text, pkgicon):
     """Confirm removing of the given app with the given depends"""
     dialog = gtk.MessageDialog(parent=parent, flags=0, 
                                type=gtk.MESSAGE_QUESTION, 
                                message_format=primary)
     dialog.set_resizable(True)
-    dialog.format_secondary_markup(secondary)
     dialog.add_button(_("Cancel"), gtk.RESPONSE_CANCEL)
-    dialog.add_button(_("Remove"), gtk.RESPONSE_ACCEPT)
+    dialog.add_button(button_text, gtk.RESPONSE_ACCEPT)
+    dialog.set_icon(gtk.image_new_from_file(pkgicon))
     # add the dependencies
     if depends:
         vbox = dialog.get_content_area()
         # FIXME: make this a generic pkgview widget
         model = gtk.ListStore(str)
         view = PkgNamesView(_("Dependencies"), cache, depends)
+        view.set_headers_visible(False)
         scrolled = gtk.ScrolledWindow()
         scrolled.set_size_request(-1, 200)
-        scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         scrolled.add(view)
         scrolled.show_all()
         vbox.pack_start(scrolled)
