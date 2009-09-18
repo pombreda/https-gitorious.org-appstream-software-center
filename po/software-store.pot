@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-18 10:09+0200\n"
+"POT-Creation-Date: 2009-09-18 14:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../softwarestore/app.py:331 ../softwarestore/view/appdetailsview.py:363
+#: ../softwarestore/app.py:339 ../softwarestore/view/appdetailsview.py:371
 msgid "ERROR"
 msgstr ""
 
-#: ../softwarestore/app.py:390
+#: ../softwarestore/app.py:398
 #, python-format
 msgid "%s item available"
 msgid_plural "%s items available"
@@ -78,94 +78,94 @@ msgstr ""
 msgid "Application %s has a unkown maintenance status."
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:87
+#: ../softwarestore/view/appdetailsview.py:92
 msgid "Description"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:168
-#: ../softwarestore/view/appdetailsview.py:173
+#: ../softwarestore/view/appdetailsview.py:176
+#: ../softwarestore/view/appdetailsview.py:181
 msgid "Not available in the current data"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:171
+#: ../softwarestore/view/appdetailsview.py:179
 msgid "Not available for your hardware architecture."
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:227
+#: ../softwarestore/view/appdetailsview.py:235
 #, python-format
 msgid "Version: %s (%s)"
 msgstr ""
 
 #. generic message
-#: ../softwarestore/view/appdetailsview.py:245
+#: ../softwarestore/view/appdetailsview.py:253
 #, python-format
 msgid "%s is installed on this computer."
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:257
+#: ../softwarestore/view/appdetailsview.py:265
 #, python-format
 msgid "It is used by %s piece of installed software."
 msgid_plural "It is used by %s pieces of installed software."
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarestore/view/appdetailsview.py:262
+#: ../softwarestore/view/appdetailsview.py:270
 msgid "Website"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:265
+#: ../softwarestore/view/appdetailsview.py:273
 #, python-format
 msgid "Price: %s"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:265
+#: ../softwarestore/view/appdetailsview.py:273
 msgid "Free"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:305
+#: ../softwarestore/view/appdetailsview.py:313
 #, python-format
 msgid "%s - Screenshot"
 msgstr ""
 
 #. generic removal text
-#: ../softwarestore/view/appdetailsview.py:321
+#: ../softwarestore/view/appdetailsview.py:329
 #, python-format
 msgid "%s depends on other software on the system. "
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:322
+#: ../softwarestore/view/appdetailsview.py:330
 msgid ""
 "Uninstalling it means that the following additional software needs to be "
 "removed."
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:327
+#: ../softwarestore/view/appdetailsview.py:335
 #, python-format
 msgid "%s is a core component"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:328
+#: ../softwarestore/view/appdetailsview.py:336
 #, python-format
 msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:386
+#: ../softwarestore/view/appdetailsview.py:394
 msgid "Upgrade"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:389
+#: ../softwarestore/view/appdetailsview.py:397
 #: ../softwarestore/view/dialogs.py:69
 msgid "Remove"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:392
+#: ../softwarestore/view/appdetailsview.py:400
 msgid "Install"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarestore/view/appdetailsview.py:401
+#: ../softwarestore/view/appdetailsview.py:409
 msgid "Enable channel"
 msgstr ""
 

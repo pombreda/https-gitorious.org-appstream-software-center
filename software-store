@@ -24,13 +24,14 @@ import logging
 import os
 
 from softwarestore.enums import *
+from softwarestore.version import *
 
 from optparse import OptionParser
 
 if __name__ == "__main__":
 
     parser = OptionParser("usage: %prog [options] package", 
-                          version="%prog 0.3.4")
+                          version="%prog "+VERSION)
     parser.add_option("--debug", dest="debug", action="store_true",
                       help="enable debug mode", default=False)
     (options, args) = parser.parse_args()

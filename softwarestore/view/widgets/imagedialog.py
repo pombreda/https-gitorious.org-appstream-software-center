@@ -6,9 +6,11 @@ import time
 import threading
 import urllib
 
+from softwarestore.enums import *
+
 class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
-    def __init__(self):
+    def __init__(self, user_agent=USER_AGENT):
         proxies = {}
         import gconf
         client = gconf.client_get_default()
@@ -17,6 +19,7 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
             port = client.get_int("/system/http_proxy/port")
             proxies = { "http" : "http://%s:%s/" %  (host, port) }
         urllib.FancyURLopener.__init__(self, proxies)
+        self.version = user_agent
 
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """

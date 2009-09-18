@@ -35,6 +35,7 @@ import xapian
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
 from softwarestore.enums import *
+from softwarestore.version import *
 from softwarestore.db.database import StoreDatabase
 
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
@@ -305,6 +306,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.window_main.set_sensitive(True)
 
     def on_menuitem_about_activate(self, widget):
+        self.aboutdialog.set_version(VERSION)
         self.aboutdialog.run()
         self.aboutdialog.hide()
 

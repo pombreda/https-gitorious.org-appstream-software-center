@@ -47,6 +47,7 @@ import dialogs
 if os.path.exists("./softwarestore/enums.py"):
     sys.path.insert(0, ".")
 from softwarestore.enums import *
+from softwarestore.version import *
 from softwarestore.db.database import StoreDatabase
 
 class AppDetailsView(WebkitWidget):
@@ -72,8 +73,7 @@ class AppDetailsView(WebkitWidget):
                                 gobject.TYPE_NONE,
                                 (str,str, ))
                     }
-
-
+    
     def __init__(self, xapiandb, icons, cache, datadir):
         super(AppDetailsView, self).__init__(datadir)
         self.xapiandb = xapiandb
@@ -94,6 +94,9 @@ class AppDetailsView(WebkitWidget):
         iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, 
                                           self.APP_ICON_SIZE, 0)
         self.MISSING_ICON_PATH = iconinfo.get_filename()
+        # setup user-agent
+        settings = self.get_settings()
+        settings.set_property("user-agent", USER_AGENT)
         
     def _show(self, widget):
         if not self.appname:

@@ -2,10 +2,29 @@
 
 from distutils.core import setup
 from DistUtilsExtra.command import *
+
+import re
 import glob
 import os
+from subprocess import Popen, PIPE
+import sys
 
-setup(name="software-store", version='0.2',
+# update version.py
+line = open("debian/changelog").readline()
+m = re.match("^[\w-]+ \(([\w\.]+)\) (\w+);", line)
+VERSION = m.group(1)
+CODENAME = m.group(2)
+DISTRO = Popen(["lsb_release", "-s", "-i"], stdout=PIPE).communicate()[0].strip()
+RELEASE = Popen(["lsb_release", "-s", "-r"], stdout=PIPE).communicate()[0].strip()
+open("softwarestore/version.py","w").write("""
+VERSION='%s'
+CODENAME='%s'
+DISTRO='%s'
+RELEASE='%s'
+""" % (VERSION, CODENAME, DISTRO, RELEASE))
+
+
+setup(name="software-store", version=VERSION,
       scripts=["software-store",
                "utils/update-software-store",
                ],
