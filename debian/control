@@ -27,6 +27,7 @@ Depends: ${python:Depends},
 	 policykit-1-gnome | policykit-1-qt,
          python-gtk2,
 	 python-webkit,
+	 python-sexy,
 	 aptdaemon
 Recommends: lsb-release
 XB-Python-Version: ${python:Versions}
