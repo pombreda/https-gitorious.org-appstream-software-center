@@ -206,7 +206,10 @@ class PendingView(gtk.TreeView):
         # get tid
         tid = model[path][PendingStore.COL_TID]
         trans = aptdaemon.client.get_transaction(tid)
-        trans.cancel()
+        try:
+            trans.cancel()
+        except dbus.exceptions.DBusException, e:
+            logging.exception("transaction cancel failed")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
