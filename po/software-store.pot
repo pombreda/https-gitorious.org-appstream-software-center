@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-18 09:26+0200\n"
+"POT-Creation-Date: 2009-09-18 10:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../softwarestore/app.py:330 ../softwarestore/view/appdetailsview.py:363
+#: ../softwarestore/app.py:331 ../softwarestore/view/appdetailsview.py:363
 msgid "ERROR"
 msgstr ""
 
-#: ../softwarestore/app.py:389
+#: ../softwarestore/app.py:390
 #, python-format
 msgid "%s item available"
 msgid_plural "%s items available"

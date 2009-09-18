@@ -72,6 +72,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareStore.ui", 
                                      "software-store")
+        gettext.bindtextdomain("software-store", "/usr/share/locale")
+        gettext.textdomain("software-store")
 
         # setup dbus and exit if there is another instance already
         # running
