@@ -101,7 +101,8 @@ class BasePane(gtk.VBox):
         vadj = self.scroll_app_list.get_vadjustment()
         self.refresh_apps()
         # needed otherwise we jump back to the beginning of the table
-        vadj.value_changed()
+        if vadj:
+            vadj.value_changed()
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):
