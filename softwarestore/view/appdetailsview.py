@@ -136,12 +136,12 @@ class AppDetailsView(WebkitWidget):
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
     
-    def get_icon(self, iconname, iconsize)
+    def get_icon(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if iconinfo:
             return iconinfo.get_filename()
         else:
-            self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
             return iconinfo.get_filename()
             
     def clear(self):
@@ -322,20 +322,20 @@ class AppDetailsView(WebkitWidget):
                         % self.appname)
         button_text = _("Remove All")
         
-        # FIXME: Make the m.section bit work
-        # alter it if a meta-package is affected
-        #for m in self.installed_rdeps:
-        #    if m.section == "metapackages":
-        #        primary = _("If you uninstall %s, future updates will not "
-        #                      "include new items in the %s set."
-        #                      "Are you sure you want to continue?") % self.appname
-        #        button_text = _("Remove Anyway")
-        #        break
+        #FIXME: Make the m.section bit work
+        #alter it if a meta-package is affected
+        for m in self.installed_rdeps:
+            if self.cache[m].section == "metapackages":
+                primary = _("If you uninstall %s, future updates will not "
+                              "include new items in <b>%s</b> set. "
+                              "Are you sure you want to continue?") % (self.appname, self.cache[m].installed.summary)
+                button_text = _("Remove Anyway")
+                break
         
         # alter it if an important meta-package is affected
         for m in self.IMPORTANT_METAPACKAGES:
             if m in self.installed_rdeps:
-                primary = _("%s is a core application in Ubuntu. "
+                primary = _("%s is a <b>core application in Ubuntu</b>. "
                               "Uninstalling it may cause future upgrades "
                               "to be incomplete. Are you sure you want to "
                               "continue?") % self.appname
@@ -347,7 +347,7 @@ class AppDetailsView(WebkitWidget):
         # ask for confirmation if we have rdepends
         if len(self.installed_rdeps):
             if not dialogs.confirm_remove(None, primary, self.cache,
-                                        list(self.installed_rdeps), button_text, iconpath):
+                                        button_text, iconpath, list(self.installed_rdeps)):
                 return
         # do it (no rdepends or user confirmed)
         trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],
