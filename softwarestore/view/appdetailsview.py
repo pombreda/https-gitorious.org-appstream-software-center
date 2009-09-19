@@ -324,6 +324,8 @@ class AppDetailsView(WebkitWidget):
                         % self.appname)
         button_text = _("Remove All")
         
+        depends = list(self.installed_rdeps)
+        
         # alter it if a meta-package is affected
         for m in self.installed_rdeps:
             if self.cache[m].section == "metapackages":
@@ -331,8 +333,9 @@ class AppDetailsView(WebkitWidget):
                               "include new items in <b>%s</b> set. "
                               "Are you sure you want to continue?") % (self.appname, self.cache[m].installed.summary)
                 button_text = _("Remove Anyway")
+                depends = None
                 break
-        
+
         # alter it if an important meta-package is affected
         for m in self.IMPORTANT_METAPACKAGES:
             if m in self.installed_rdeps:
@@ -341,6 +344,7 @@ class AppDetailsView(WebkitWidget):
                               "to be incomplete. Are you sure you want to "
                               "continue?") % self.appname
                 button_text = _("Remove Anyway")
+                depends = None
                 break
                 
         iconpath = self.get_icon(self.iconname, self.APP_ICON_SIZE)
@@ -348,7 +352,7 @@ class AppDetailsView(WebkitWidget):
         # ask for confirmation if we have rdepends
         if len(self.installed_rdeps):
             if not dialogs.confirm_remove(None, primary, self.cache,
-                                        button_text, iconpath, list(self.installed_rdeps)):
+                                        button_text, iconpath, depends):
                 return
         # do it (no rdepends or user confirmed)
         trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],

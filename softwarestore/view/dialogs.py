@@ -72,7 +72,7 @@ def confirm_remove(parent, primary, cache, button_text, icon_path, depends=[]):
     if depends:
         vbox = dialog.get_content_area()
         # FIXME: make this a generic pkgview widget
-        view = PkgNamesView(_("Dependencies"), cache, depends)
+        view = PkgNamesView(_("Dependency"), cache, depends)
         view.set_headers_visible(False)
         scrolled = gtk.ScrolledWindow()
         scrolled.set_size_request(-1, 200)

@@ -29,7 +29,7 @@ class PkgNamesView(gtk.TreeView):
         model = gtk.ListStore(gtk.gdk.Pixbuf, str)
         self.set_model(model)
         tp = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("icon", tp, pixbuf=0)
+        column = gtk.TreeViewColumn("Icon", tp, pixbuf=0)
         self.append_column(column)
         tr = gtk.CellRendererText()
         column = gtk.TreeViewColumn(header, tr, markup=1)
