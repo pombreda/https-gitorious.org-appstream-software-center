@@ -26,14 +26,17 @@ class PkgNamesView(gtk.TreeView):
     """ show a bunch of pkgnames with description """
     def __init__(self, header, cache, pkgnames):
         super(PkgNamesView, self).__init__()
-        model = gtk.ListStore(str)
+        model = gtk.ListStore(gtk.gdk.Pixbuf, str)
         self.set_model(model)
-        #self.set_headers_visible(False)
+        tp = gtk.CellRendererPixbuf()
+        column = gtk.TreeViewColumn("icon", tp, pixbuf=0)
+        self.append_column(column)
         tr = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(header, tr, text=0)
+        column = gtk.TreeViewColumn(header, tr, markup=1)
         self.append_column(column)
         for pkg in sorted(pkgnames):
-            s = "%s <br> <x-small>%s</x-small>" % (cache[pkg].installed.summary, pkg)
-            model.append([s])
+            s = "%s \n<small>%s</small>" % (cache[pkg].installed.summary, pkg)
+            pix = gtk.gdk.pixbuf_new_from_file("/usr/share/icons/gnome/scalable/categories/applications-other.svg")
+            model.append([pix, s])
 
 

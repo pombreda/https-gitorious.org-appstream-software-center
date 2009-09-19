@@ -199,6 +199,8 @@ class AppDetailsView(WebkitWidget):
     def wksub_screenshot_thumbnail_url(self):
         url = self.SCREENSHOT_THUMB_URL % self.pkgname
         return url
+    def wksub_screenshot_alt(self):
+        return _("Application Screenshot")
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
     def wksub_icon_width(self):
@@ -322,8 +324,7 @@ class AppDetailsView(WebkitWidget):
                         % self.appname)
         button_text = _("Remove All")
         
-        #FIXME: Make the m.section bit work
-        #alter it if a meta-package is affected
+        # alter it if a meta-package is affected
         for m in self.installed_rdeps:
             if self.cache[m].section == "metapackages":
                 primary = _("If you uninstall %s, future updates will not "
