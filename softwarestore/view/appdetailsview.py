@@ -138,11 +138,9 @@ class AppDetailsView(WebkitWidget):
     
     def get_icon(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
-        if iconinfo:
-            return iconinfo.get_filename()
-        else:
+        if not iconinfo:
             iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
-            return iconinfo.get_filename()
+        return iconinfo.get_filename()
             
     def clear(self):
         " clear the current view "

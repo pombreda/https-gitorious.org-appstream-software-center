@@ -19,8 +19,12 @@
 
 
 import gtk
+import pango
 
 from gettext import gettext as _
+
+ICON_SIZE = 24
+MISSING_APP_ICON = "/usr/share/icons/gnome/scalable/categories/applications-other.svg"
 
 class PkgNamesView(gtk.TreeView):
     """ show a bunch of pkgnames with description """
@@ -32,11 +36,10 @@ class PkgNamesView(gtk.TreeView):
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=0)
         self.append_column(column)
         tr = gtk.CellRendererText()
+        tr.set_property("ellipsize", pango.ELLIPSIZE_END)
         column = gtk.TreeViewColumn(header, tr, markup=1)
         self.append_column(column)
         for pkg in sorted(pkgnames):
-            s = "%s \n<small>%s</small>" % (cache[pkg].installed.summary, pkg)
-            pix = gtk.gdk.pixbuf_new_from_file("/usr/share/icons/gnome/scalable/categories/applications-other.svg")
-            model.append([pix, s])
-
-
+            s = "%s \n<small>%s</small>" % (cache[pkg].installed.summary.capitalize(), pkg)
+            pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
+            row = model.append([pix, s])

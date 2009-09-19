@@ -76,9 +76,11 @@ def confirm_remove(parent, primary, cache, button_text, icon_path, depends=[]):
         view.set_headers_visible(False)
         scrolled = gtk.ScrolledWindow()
         scrolled.set_size_request(-1, 200)
-        scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+        scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         scrolled.add(view)
         scrolled.show_all()
+        # FIXME: this needs padding on the left side so 
+        # it lines up with the text
         vbox.pack_start(scrolled)
     result = dialog.run()
     dialog.hide()
