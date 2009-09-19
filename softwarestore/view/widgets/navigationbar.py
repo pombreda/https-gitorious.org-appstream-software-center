@@ -36,6 +36,7 @@ class NavigationBarHBox(gtk.HBox):
 
     def __init__(self, group=None):
         super(NavigationBarHBox, self).__init__()
+        self.set_size_request(35, -1)
         self.id_to_widget = {}
         self.id_to_callback = {}
         if not group:
