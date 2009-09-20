@@ -86,7 +86,7 @@ class PkgHistory():
 class HistoryView(gtk.TreeView):
     """Treeview based view component that takes a parsed history file and displays it"""
 
-    """__gsignals__ = {
+    __gsignals__ = {
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
                                    (str, str, ),
@@ -95,7 +95,7 @@ class HistoryView(gtk.TreeView):
                                    gobject.TYPE_NONE, 
                                    (str, str, ),
                                   ),
-    }"""
+    }
 
     def __init__(self, store=None):
         gtk.TreeView.__init__(self)
@@ -129,50 +129,12 @@ class HistoryView(gtk.TreeView):
         
         # custom cursor
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
-        # our own "activate" handler
-        self.connect("row-activated", self._on_row_activated)
-        # button and motion are "special" 
-        self.connect("button-press-event", self._on_button_press_event)
-        self.connect("motion-notify-event", self._on_motion_notify_event)
-        self.connect("cursor-changed", self._on_cursor_changed)
-        
-    def _on_row_activated(self, treeview, path, column):
-        (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
-        self.emit("application-activated", name, pkgname)
-    def _on_cursor_changed(self, treeview):
-        selection = treeview.get_selection()
-        (model, iter) = selection.get_selected()
-        if iter is None:
-            return
-        (name, text, icon, overlay, pkgname) = model[iter]
-        self.emit("application-selected", name, pkgname)
-    def _on_motion_notify_event(self, widget, event):
-        (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
-        if width - event.x <= ICON_SIZE:
-            self.window.set_cursor(self._cursor_hand)
-        else:
-            self.window.set_cursor(None)
-    def _on_button_press_event(self, widget, event):
-        if event.button != 1:
-            return
-        res = self.get_path_at_pos(int(event.x), int(event.y))
-        if not res:
-            return
-        (path, column, wx, wy) = res
-        if path is None:
-            return
-        # only act when the selection is already there 
-        selection = widget.get_selection()
-        if not selection.path_is_selected(path):
-            return
-        # get the size of gdk window
-        (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
-        # the last pixels of the view are reserved for the arrow icon
-        if width - event.x <= ICON_SIZE:
-            self.emit("row-activated", path, column)
+
     def on_day_selected(self, calendar):
         (year, month, day) = calendar.get_date()
     def on_month_changed(self, calendar):
+        self.update_highlighted(calendar)
+    def update_highlighted(self, calendar):
         for r in range(31):
             calendar.unmark_day(int(r))
         (calendar_day, calendar_month, calendar_year) = calendar.get_date()
@@ -200,8 +162,6 @@ if __name__ == "__main__":
     scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
     view = HistoryView()
 
-    entry = gtk.Entry()
-    #entry.connect("changed", on_entry_changed, (cache, db, view))
     calendar = gtk.Calendar()
     calendar.connect("day-selected", view.on_day_selected)
     calendar.connect("month-changed", view.on_month_changed)
@@ -209,7 +169,6 @@ if __name__ == "__main__":
     vpane = gtk.VPaned()
     
     box = gtk.VBox()
-    box.pack_start(entry, expand=False)
     box.pack_start(vpane)
     vpane.add1(scroll)
     vpane.add2(calendar)
@@ -221,6 +180,7 @@ if __name__ == "__main__":
     win.set_size_request(400,400)
     win.show_all()
     win.connect('delete-event', lambda *x: gtk.main_quit())
+    view.update_highlighted(calendar)
 
     gtk.main()
 
