@@ -24,6 +24,8 @@ import datetime
 import logging
 import pango
 
+from gettext import gettext as _
+
 from random import *
 import xml.etree.ElementTree as ET
 
@@ -47,20 +49,22 @@ class PkgHistory():
             tree = ET.ElementTree(history)
             tree.write(HISTORY_FILE)
             tree = ET.parse(HISTORY_FILE)
-    
         self.history_root = tree.getroot()
     
     def add_event(self, type, package_name):
+        self.open()
         events = self.history_root.find("events")
         new_event = ET.SubElement(events, "event")
         event_id = str(round(uniform(1, 100000000)))[:-2]
         new_event.set("id", event_id)
-        new_event.set("time", str(datetime.date.today()))
+        new_event.set("date", str(datetime.date.today()))
         new_event.set("type", type)
         new_event.set("package_name", package_name)
+        self.write()
         return event_id
         
     def add_action(self, event_id, type, package_name):
+        self.open()
         events = self.history_root.find("events")
         for e in events.getchildren():
             if e.get("id") == event_id:
@@ -68,8 +72,10 @@ class PkgHistory():
         new_action = ET.SubElement(event, "action")
         new_action.set("type", type)
         new_action.set("package_name", package_name)
+        self.write()
         
     def list_events(self):
+        self.open()
         events = self.history_root.find("events")
         return events.getchildren()
         
@@ -112,7 +118,12 @@ class HistoryView(gtk.TreeView):
         
         events = history.list_events()
         for event in events:
-            s = event.get("package_name")
+            if event.get("type") == "install":
+                type = _("installed")
+            elif event.get("type") == "uninstall":
+                type = _("uninstalled")
+            #FIXME: Yuck
+            s = "%s\n<small>" % event.get("package_name") + _("Was %s on") % type + " %s</small>" % event.get("date")
             pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
             self.store.append([pix, s])
         
@@ -159,12 +170,24 @@ class HistoryView(gtk.TreeView):
         # the last pixels of the view are reserved for the arrow icon
         if width - event.x <= ICON_SIZE:
             self.emit("row-activated", path, column)
-
-
+    def on_day_selected(self, calendar):
+        (year, month, day) = calendar.get_date()
+    def on_month_changed(self, calendar):
+        for r in range(31):
+            calendar.unmark_day(int(r))
+        (calendar_day, calendar_month, calendar_year) = calendar.get_date()
+        calendar_month+=1
+        events = history.list_events()
+        for event in events:
+            month = str(event.get("date"))[5:-3]
+            day = str(event.get("date"))[-2:]
+            if len(str(calendar_month)) == 1:
+                calendar_month = "0" + str(calendar_month)
+            if str(calendar_month) == month:
+                calendar.mark_day(int(day))
 
 if __name__ == "__main__":
     history = PkgHistory()
-    history.open()
     event_id = history.add_event("install", "gnome-games")
     history.add_action(event_id, "install", "gnome-games")
     history.add_action(event_id, "install", "gnome-chess")
@@ -174,14 +197,22 @@ if __name__ == "__main__":
 
     # gui
     scroll = gtk.ScrolledWindow()
+    scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
     view = HistoryView()
 
     entry = gtk.Entry()
     #entry.connect("changed", on_entry_changed, (cache, db, view))
+    calendar = gtk.Calendar()
+    calendar.connect("day-selected", view.on_day_selected)
+    calendar.connect("month-changed", view.on_month_changed)
 
+    vpane = gtk.VPaned()
+    
     box = gtk.VBox()
     box.pack_start(entry, expand=False)
-    box.pack_start(scroll)
+    box.pack_start(vpane)
+    vpane.add1(scroll)
+    vpane.add2(calendar)
 
     win = gtk.Window()
     
@@ -189,6 +220,7 @@ if __name__ == "__main__":
     win.add(box)
     win.set_size_request(400,400)
     win.show_all()
+    win.connect('delete-event', lambda *x: gtk.main_quit())
 
     gtk.main()
 
