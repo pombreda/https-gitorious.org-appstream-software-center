@@ -114,24 +114,20 @@ class HistoryView(gtk.TreeView):
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         self.store = gtk.ListStore(gtk.gdk.Pixbuf, str)
-        self.set_model(self.store)
-        
-        events = history.list_events()
-        for event in events:
-            if event.get("type") == "install":
-                type = _("installed")
-            elif event.get("type") == "uninstall":
-                type = _("uninstalled")
-            #FIXME: Yuck
-            s = "%s\n<small>" % event.get("package_name") + _("Was %s on") % type + " %s</small>" % event.get("date")
-            pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
-            self.store.append([pix, s])
         
         # custom cursor
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
 
     def on_day_selected(self, calendar):
         (year, month, day) = calendar.get_date()
+        if len(str(month)) == 1:
+            month = "0" + str(month+1)
+        else:
+            month=+1
+        if len(str(day)) == 1:
+            day = "0" + str(day)
+        date = str(year) + "-" + str(month) + "-" + str(day)
+        self.populate(date_filter=date)
     def on_month_changed(self, calendar):
         self.update_highlighted(calendar)
     def update_highlighted(self, calendar):
@@ -147,6 +143,32 @@ class HistoryView(gtk.TreeView):
                 calendar_month = "0" + str(calendar_month)
             if str(calendar_month) == month:
                 calendar.mark_day(int(day))
+    def populate(self, widget=None, date_filter=None):
+        self.store.clear()
+        self.set_model(self.store)
+        events = history.list_events()
+        #FIXME: Yuck
+        if date_filter:
+            for event in events:
+                if event.get("type") == "install":
+                    type = _("installed")
+                elif event.get("type") == "uninstall":
+                    type = _("uninstalled")
+                #FIXME: Yuck
+                if date_filter == event.get("date"):
+                    s = "%s\n<small>" % event.get("package_name") + _("Was %s on") % type + " %s</small>" % event.get("date")
+                    pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
+                    self.store.append([pix, s])
+        else:
+            for event in events:
+                if event.get("type") == "install":
+                    type = _("installed")
+                elif event.get("type") == "uninstall":
+                    type = _("uninstalled")
+                
+                s = "%s\n<small>" % event.get("package_name") + _("Was %s on") % type + " %s</small>" % event.get("date")
+                pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
+                self.store.append([pix, s])
 
 if __name__ == "__main__":
     history = PkgHistory()
@@ -155,12 +177,12 @@ if __name__ == "__main__":
     history.add_action(event_id, "install", "gnome-chess")
     history.write()
 
-    view = HistoryView()
-
     # gui
     scroll = gtk.ScrolledWindow()
     scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
     view = HistoryView()
+    
+    view.populate()
 
     calendar = gtk.Calendar()
     calendar.connect("day-selected", view.on_day_selected)
