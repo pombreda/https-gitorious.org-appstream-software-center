@@ -8,6 +8,7 @@ software-store (0.3.6.2) UNRELEASED; urgency=low
     István Nyitrai LP: #425876
   * fix crash when clicking "Install" (LP: #432645)
   * add border around navigation pane (LP: #433520)
+  * do not raise if entering the password takes too long (LP: #432704)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 20:34:02 +0200
 

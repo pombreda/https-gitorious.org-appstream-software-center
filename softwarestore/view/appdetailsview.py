@@ -426,7 +426,8 @@ class AppDetailsView(WebkitWidget):
         except dbus.exceptions.DBusException, e:
             # re-enable the action button again if anything went wrong
             self._set_action_button_sensitive(True)
-            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+            if (e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized" or 
+                e._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
                 pass
             else:
                 raise

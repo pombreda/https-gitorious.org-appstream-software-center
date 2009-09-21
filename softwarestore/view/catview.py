@@ -68,6 +68,8 @@ class CategoriesView(WebkitWidget):
         icons - a gtk.IconTheme
         """
         super(CategoriesView, self).__init__(datadir)
+        atk_desc = self.get_accessible()
+        atk_desc.set_name(_("Departments"))
         self.icons = icons
         self.categories = self.parse_applications_menu(desktopdir)
         self.connect("load-finished", self._on_load_finished)
