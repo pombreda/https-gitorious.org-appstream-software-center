@@ -8,6 +8,9 @@ software-store (0.3.6.1) karmic; urgency=low
 
   * debian/control:
     - add missing build-depend to lsb-release
+  * code cleanup
+  * show different status bar label based on if it is a search
+    or a not (LP: #426252) - thanks to István Nyitrai
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 18:00:54 +0200
 

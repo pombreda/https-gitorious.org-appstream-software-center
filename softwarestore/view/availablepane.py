@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import gettext
 import glib
 import gobject
 import gtk
@@ -43,9 +44,9 @@ from widgets.searchentry import SearchEntry
 from appview import AppView, AppStore, AppViewFilter
 from catview import CategoriesView
 
-from basepane import BasePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
-class AvailablePane(BasePane):
+class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-store
        It contains a search entry and navigation buttons
     """
@@ -58,7 +59,7 @@ class AvailablePane(BasePane):
 
     def __init__(self, cache, db, icons, datadir):
         # parent
-        BasePane.__init__(self, cache, db, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, icons, datadir)
         # state
         self.apps_category_query = None
         self.apps_search_query = None
@@ -67,6 +68,8 @@ class AvailablePane(BasePane):
         self.apps_filter = AppViewFilter(cache)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
+        self._status_text = ""
+        self.connect("app-list-changed", self._on_app_list_changed)
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -142,7 +145,25 @@ class AvailablePane(BasePane):
         if self.apps_category_query:
             cat =  self.apps_category_query.name
             self.navigation_bar.add_with_id(cat, self.on_navigation_list, "list")
-        
+   
+    # status text woo
+    def get_status_text(self):
+        """return user readable status text suitable for a status bar"""
+        return self._status_text
+    
+    def _on_app_list_changed(self, pane, length):
+        """internal helper that keeps the status text up-to-date by
+           keeping track of the app-list-changed signals
+        """
+        if len(self.searchentry.get_text()) > 0:
+            self._status_text = gettext.ngettext("%s matching item",
+                                                 "%s matching items",
+                                                 length) % length
+        else:
+            self._status_text = gettext.ngettext("%s item available",
+                                                 "%s items available",
+                                                 length) % length
+     
     # callbacks
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""

@@ -51,7 +51,7 @@ def wait_for_apt_cache_ready(f):
     return wrapper
             
 
-class BasePane(gtk.VBox):
+class SoftwarePane(gtk.VBox):
     """ Common base class for InstalledPane and AvailablePane """
 
     __gsignals__ = {

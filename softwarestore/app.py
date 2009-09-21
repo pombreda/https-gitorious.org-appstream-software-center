@@ -395,12 +395,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def update_status_bar(self):
         "Helper that updates the status bar"
         page = self.notebook_view.get_current_page()
-        try:
-            new_len = self._available_items_for_page[page]
-            s = gettext.ngettext("%s item available",
-                                 "%s items available",
-                                 new_len) % new_len
-        except KeyError, e:
+        if self.active_pane:
+            s = self.active_pane.get_status_text()
+        else:
+            # FIXME: deal with the pending view status
             s = ""
         self.label_status.set_text(s)
 
