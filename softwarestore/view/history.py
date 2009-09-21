@@ -33,13 +33,13 @@ ICON_SIZE = 24
 MISSING_APP_ICON = "/usr/share/icons/gnome/scalable/categories/applications-other.svg"
 HISTORY_FILE = "/tmp/history.xml"
 
-class PkgHistory():
+class History():
     """ reads/writes software-store's history """
     def __init__(self):
         self.history_root = None
     
-    def open(self):
-        """ open the history file for reading """
+    def _open(self):
+        """ open the history file for reading/create if neccessary/corrupted """
         try:
             tree = ET.parse(HISTORY_FILE)
         except Exception, e:
@@ -52,7 +52,7 @@ class PkgHistory():
         self.history_root = tree.getroot()
     
     def add_event(self, type, package_name):
-        self.open()
+        self._open()
         events = self.history_root.find("events")
         new_event = ET.SubElement(events, "event")
         event_id = str(round(uniform(1, 100000000)))[:-2]
@@ -60,11 +60,11 @@ class PkgHistory():
         new_event.set("date", str(datetime.date.today()))
         new_event.set("type", type)
         new_event.set("package_name", package_name)
-        self.write()
+        self._write()
         return event_id
         
     def add_action(self, event_id, type, package_name):
-        self.open()
+        self._open()
         events = self.history_root.find("events")
         for e in events.getchildren():
             if e.get("id") == event_id:
@@ -72,14 +72,14 @@ class PkgHistory():
         new_action = ET.SubElement(event, "action")
         new_action.set("type", type)
         new_action.set("package_name", package_name)
-        self.write()
+        self._write()
         
     def list_events(self):
-        self.open()
+        self._open()
         events = self.history_root.find("events")
         return events.getchildren()
         
-    def write(self):
+    def _write(self):
         ET.ElementTree(self.history_root).write(HISTORY_FILE)
         
 
@@ -147,35 +147,21 @@ class HistoryView(gtk.TreeView):
         self.store.clear()
         self.set_model(self.store)
         events = history.list_events()
-        #FIXME: Yuck
-        if date_filter:
-            for event in events:
-                if event.get("type") == "install":
-                    type = _("installed")
-                elif event.get("type") == "uninstall":
-                    type = _("uninstalled")
-                #FIXME: Yuck
-                if date_filter == event.get("date"):
-                    s = "%s\n<small>" % event.get("package_name") + _("Was %s on") % type + " %s</small>" % event.get("date")
-                    pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
-                    self.store.append([pix, s])
-        else:
-            for event in events:
-                if event.get("type") == "install":
-                    type = _("installed")
-                elif event.get("type") == "uninstall":
-                    type = _("uninstalled")
-                
+        for event in events:
+            if event.get("type") == "install":
+                type = _("installed")
+            elif event.get("type") == "uninstall":
+                type = _("uninstalled")
+            if (date_filter and date_filter == event.get("date")) or not date_filter:
                 s = "%s\n<small>" % event.get("package_name") + _("Was %s on") % type + " %s</small>" % event.get("date")
                 pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
                 self.store.append([pix, s])
 
 if __name__ == "__main__":
-    history = PkgHistory()
+    history = History()
     event_id = history.add_event("install", "gnome-games")
     history.add_action(event_id, "install", "gnome-games")
     history.add_action(event_id, "install", "gnome-chess")
-    history.write()
 
     # gui
     scroll = gtk.ScrolledWindow()
