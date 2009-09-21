@@ -40,7 +40,7 @@ class ViewSwitcher(gtk.TreeView):
         "view-changed" : (gobject.SIGNAL_RUN_LAST,
                           gobject.TYPE_NONE, 
                           (int, ),
-                         )
+                         ),
     }
 
 
@@ -50,6 +50,10 @@ class ViewSwitcher(gtk.TreeView):
         self.icons = icons
         if not store:
             store = ViewSwitcherList(datadir, icons)
+            # FIXME: this is just set here for app.py, make the
+            #        transactions-changed signal part of the view api
+            #        instead of the model
+            self.model = store
             self.set_model(store)
         gtk.TreeView.__init__(self)
         tp = CellRendererAnimatedImage()
@@ -104,10 +108,17 @@ class ViewSwitcherList(gtk.ListStore):
 
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarestore-progress-*.png"
 
+    __gsignals__ = {'transactions-changed' : (gobject.SIGNAL_RUN_LAST,
+                                              gobject.TYPE_NONE,
+                                              (int, )),
+                     }
+
     def __init__(self, datadir, icons):
         gtk.ListStore.__init__(self, AnimatedImage, str, int)
         self.icons = icons
         self.datadir = datadir
+        # pending transactions
+        self._pending = 0
         # setup the normal stuff
         try:
             icon = AnimatedImage(self.icons.load_icon("softwarestore", self.ICON_SIZE, 0))
@@ -158,6 +169,10 @@ class ViewSwitcherList(gtk.ListStore):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
+        # emit signal
+        if pending != self._pending:
+            self.emit("transactions-changed", pending)
+            self._pending = pending
         return True
 
 if __name__ == "__main__":

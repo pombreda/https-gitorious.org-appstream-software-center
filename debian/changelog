@@ -11,8 +11,10 @@ software-store (0.3.6.2) UNRELEASED; urgency=low
   * do not raise if entering the password takes too long (LP: #432704)
   * softwarestore/view/appview.py:
     - fix bug in on_iter_nth_child()
+  * when a transaction is triggered and there is no other transaction
+    already queued, jump to the "in progress" view (LP: #426257)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 20:34:02 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Sep 2009 17:50:10 +0200
 
 software-store (0.3.6.1) karmic; urgency=low
 

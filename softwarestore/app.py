@@ -116,6 +116,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.cache = AptCache()
 
         # misc state
+        self._pending_transactions = 0
         self._block_menuitem_view = False
         self._available_items_for_page = {}
         # FIXME: make this all part of a application object
@@ -160,6 +161,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
+        self.view_switcher.model.connect("transactions-changed", 
+                                   self.on_view_switcher_transactions_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
@@ -194,6 +197,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def on_window_main_delete_event(self, widget, event):
         gtk.main_quit()
         
+    def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
+        if pending_nr > 0 and self._pending_transactions == 0:
+            self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_PENDING)
+        self._pending_transactions = pending_nr
+
     def on_view_switcher_changed(self, view_switcher, action):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
