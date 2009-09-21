@@ -89,7 +89,9 @@ class AppDetailsView(WebkitWidget):
         self.aptd_client = client.AptClient()
         self.window_main_xid = None
         # data
-        self.appname = None
+        self.appname = ""
+        self.pkgname = ""
+        self.iconname = ""
         # setup missing icon
         iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, 
                                           self.APP_ICON_SIZE, 0)

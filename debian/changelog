@@ -6,6 +6,7 @@ software-store (0.3.6.2) UNRELEASED; urgency=low
     or a not (LP: #426252) - thanks to István Nyitrai
   * Show empty status bar on viewing details, thanks to 
     István Nyitrai LP: #425876
+  * fix crash when clicking "Install" (LP: #432645)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 20:34:02 +0200
 
