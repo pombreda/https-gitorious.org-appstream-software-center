@@ -104,6 +104,10 @@ class SoftwarePane(gtk.VBox):
         if vadj:
             vadj.value_changed()
 
+    def get_status_text(self):
+        """return user readable status text suitable for a status bar"""
+        raise Exception, "Not implemented"
+
     @wait_for_apt_cache_ready
     def refresh_apps(self):
         " stub implementation "

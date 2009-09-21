@@ -1,6 +1,11 @@
 software-store (0.3.6.2) UNRELEASED; urgency=low
 
   * i18n fixes, thanks to Istvan Nyitrai 
+  * code cleanup
+  * show different status bar label based on if it is a search
+    or a not (LP: #426252) - thanks to István Nyitrai
+  * Show empty status bar on viewing details, thanks to 
+    István Nyitrai LP: #425876
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 20:34:02 +0200
 
@@ -8,9 +13,6 @@ software-store (0.3.6.1) karmic; urgency=low
 
   * debian/control:
     - add missing build-depend to lsb-release
-  * code cleanup
-  * show different status bar label based on if it is a search
-    or a not (LP: #426252) - thanks to István Nyitrai
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 18:00:54 +0200
 

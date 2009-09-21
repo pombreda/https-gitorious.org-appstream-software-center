@@ -117,11 +117,11 @@ class InstalledPane(SoftwarePane):
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
-        self.app_details.show_app(name, pkgname)
         self.navigation_bar.add_with_id(name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.app_details.show_app(name, pkgname)
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
@@ -131,6 +131,7 @@ class InstalledPane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
+        self.emit("app-list-changed", len(self.app_view.get_model()))
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
@@ -139,6 +140,10 @@ class InstalledPane(SoftwarePane):
         self.searchentry.hide()
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
+        # no status text in the details page
+        if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
+            return ""
+        # otherwise, show status based on search or not
         length = len(self.app_view.get_model())
         if len(self.searchentry.get_text()) > 0:
             return gettext.ngettext("%s matching item",

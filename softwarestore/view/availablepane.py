@@ -149,6 +149,9 @@ class AvailablePane(SoftwarePane):
     # status text woo
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
+        # no status text in the details page
+        if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
+            return ""
         return self._status_text
     
     def _on_app_list_changed(self, pane, length):
@@ -196,11 +199,11 @@ class AvailablePane(SoftwarePane):
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
-        self.app_details.show_app(name, pkgname)
         self.navigation_bar.add_with_id(name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.app_details.show_app(name, pkgname)
     def on_navigation_category(self, button):
         """callback when the navigation button with id 'category' is clicked"""
         if not button.get_active():

@@ -175,11 +175,11 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     # callbacks
     def on_app_details_changed(self, widget, appname, pkgname, page):
-        #print widget, appname, pkg, page
         self._selected_pkgname_for_page[page] = pkgname
         self._selected_appname_for_page[page] = appname
         self.update_app_status_menu()
-        
+        self.update_status_bar()
+
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.notebook_view.get_current_page() == page:
@@ -190,7 +190,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self._selected_pkgname_for_page[page] = pkgname
         self.menuitem_copy.set_sensitive(True)
         self.menuitem_copy_web_link.set_sensitive(True)
-    
+
     def on_window_main_delete_event(self, widget, event):
         gtk.main_quit()
         
