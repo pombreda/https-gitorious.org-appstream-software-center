@@ -48,7 +48,7 @@ if os.path.exists("./softwarestore/enums.py"):
     sys.path.insert(0, ".")
 from softwarestore.enums import *
 from softwarestore.db.database import StoreDatabase
-from History import History
+from history import History
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -356,11 +356,11 @@ class AppDetailsView(WebkitWidget):
                 
         # add to history
         history = History()
-        event_id = history.add_event("remove", self.pkgname)
-        history.add_action(event_id, "remove", self.pkgname)
+        event_id = history.add_event("uninstall", self.pkgname)
+        history.add_action(event_id, "uninstall", self.pkgname)
         if len(self.installed_rdeps):
             for p in self.installed_rdeps:
-                history.add_action(event_id, "remove", p)
+                history.add_action(event_id, "uninstall", p)
         
         # do it (no rdepends or user confirmed)
         trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],
@@ -372,6 +372,7 @@ class AppDetailsView(WebkitWidget):
         history = History()
         event_id = history.add_event("install", self.pkgname)
         history.add_action(event_id, "install", self.pkgname)
+        apt.package.Version()
         
         trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
