@@ -1,4 +1,4 @@
-software-store (0.3.6.2) UNRELEASED; urgency=low
+software-store (0.3.7) karmic; urgency=low
 
   * i18n fixes, thanks to Istvan Nyitrai 
   * code cleanup
@@ -13,6 +13,7 @@ software-store (0.3.6.2) UNRELEASED; urgency=low
     - fix bug in on_iter_nth_child()
   * when a transaction is triggered and there is no other transaction
     already queued, jump to the "in progress" view (LP: #426257)
+  * Fix usage of "Pending" to "In progress" (LP: #434088)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Sep 2009 17:50:10 +0200
 
