@@ -1,3 +1,10 @@
+software-store (0.3.7.1) karmic; urgency=low
+
+  * data/ubuntu-software-store.desktop.in:
+    - drop NoDisplay (LP: #431882)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Sep 2009 18:47:42 +0200
+
 software-store (0.3.7) karmic; urgency=low
 
   * i18n fixes, thanks to Istvan Nyitrai 
