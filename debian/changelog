@@ -14,6 +14,9 @@ software-store (0.3.7) karmic; urgency=low
   * when a transaction is triggered and there is no other transaction
     already queued, jump to the "in progress" view (LP: #426257)
   * Fix usage of "Pending" to "In progress" (LP: #434088)
+  * softwarestore/view/appdetailsview.py:
+    - use aptdaemons {install,upgrade,remove}_packages instead
+      of commit_packages
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Sep 2009 17:50:10 +0200
 

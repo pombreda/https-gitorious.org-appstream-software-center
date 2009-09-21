@@ -319,7 +319,7 @@ class AppDetailsView(WebkitWidget):
         subprocess.call([cmd, self.homepage_url])
 
     def on_button_upgrade_clicked(self):
-        trans = self.aptd_client.commit_packages([], [], [], [], [self.pkgname], 
+        trans = self.aptd_client.upgrade_packages([self.pkgname], 
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
@@ -344,12 +344,12 @@ class AppDetailsView(WebkitWidget):
                                           list(self.installed_rdeps)):
                 return
         # do it (no rdepends or user confirmed)
-        trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],
+        trans = self.aptd_client.remove_packages([self.pkgname],
                                          exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
     def on_button_install_clicked(self):
-        trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
+        trans = self.aptd_client.install_packages([self.pkgname],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
