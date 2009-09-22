@@ -74,6 +74,10 @@
         default:
           category_delta = 0;
       } 
+      // HACK: the very first key-stroke should always focus the first element
+      if (currentCategory  == -1)
+         category_delta = 1;
+      // ensure that we go not over the borders				 
       if ((currentCategory + category_delta) > categoryCount ||
           (currentCategory + category_delta) < 0)
           category_delta = 0;
