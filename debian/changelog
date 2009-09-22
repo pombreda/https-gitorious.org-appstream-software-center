@@ -1,4 +1,4 @@
-software-store (0.3.8) UNRELEASEDkarmic; urgency=low
+software-store (0.3.8) karmic; urgency=low
 
   * softwarestore/db/update.py:
     - ensure that empty strings are not tried to be translated
@@ -16,7 +16,7 @@ software-store (0.3.8) UNRELEASEDkarmic; urgency=low
     - import pygst with pygst.require to ensure that it does not
       fail later (LP: #427621)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 08:45:41 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 13:51:23 +0200
 
 software-store (0.3.7.1) karmic; urgency=low
 
