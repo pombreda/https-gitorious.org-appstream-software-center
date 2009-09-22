@@ -27,12 +27,48 @@
     newTd.setAttribute('onclick', click_cb);
     key_cb = 'if (event.which == 13) { changeTitle("call:on_category_clicked:' + name + '"); };'
     newTd.setAttribute('onkeydown', key_cb);
+    newTd.id = "Category_"+ parseInt(categoryCount)
     newText.appendChild(document.createTextNode(name))
     newTd.appendChild(newTextAroundImg);
     newTd.appendChild(newText);
     newTr.appendChild(newTd);
     oT.appendChild(newTr);
+    categoryCount += 1;
+    console.log(categoryCount)
   }
+  function onKey(ev) {
+    if (ev) {
+      switch (ev.keyCode) {
+        // left
+        case 37:
+          currentCategory -= 1;
+          break;    
+        // up
+        case 38:
+          //console.log("up");
+          break;    
+        // right
+        case 39:
+          //console.log("right");
+          currentCategory += 1;
+          break;   
+        // down
+        case 40:
+          console.log("down");
+          break;   
+        // tab
+        case 9:
+          currentCategory += 1;
+          break;   
+      } 
+      document.getElementById("Category_"+parseInt(currentCategory)).focus();
+    }
+  }  
+  // global variables to keep track of the cursor
+  var categoryCount = 0;
+  var currentCategory = -1;
+  // global key handler for the arrow keys
+  document.onkeyup = onKey;
  </script>
   <style type="text/css">
     body {background-color:#b6bdc4; margin: 0; padding: 1em; color:#000;}

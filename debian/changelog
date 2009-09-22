@@ -5,6 +5,8 @@ software-store (0.3.9) UNRELEASED; urgency=low
   * softwarestore/app.py:
     - set default focus on the search entry and focus categories
       ("departments") on key-down (LP: #433828)
+  * data/templates/CategoriesView.html:
+    - basic arrow key navigation (left,right only for now) added
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 15:06:03 +0200
 
