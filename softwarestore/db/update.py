@@ -51,10 +51,11 @@ class DesktopConfigParser(RawConfigParser):
         # first try dgettext
         if self.has_option_desktop("X-Ubuntu-Gettext-Domain"):
             value = self.get(self.DE, key)
-            domain = self.get(self.DE, "X-Ubuntu-Gettext-Domain")
-            translated_value = gettext.dgettext(domain, value)
-            if value != translated_value:
-                return translated_value
+            if value:
+                domain = self.get(self.DE, "X-Ubuntu-Gettext-Domain")
+                translated_value = gettext.dgettext(domain, value)
+                if value != translated_value:
+                    return translated_value
         # then try the i18n version of the key (in [de_DE] or
         # [de]
         locale = getdefaultlocale()[0]

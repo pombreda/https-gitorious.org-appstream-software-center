@@ -1,3 +1,11 @@
+software-store (0.3.7.2) karmic; urgency=low
+
+  * softwarestore/db/update.py:
+    - ensure that empty strings are not tried to be translated
+      (LP: #432995)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 08:45:41 +0200
+
 software-store (0.3.7.1) karmic; urgency=low
 
   * data/ubuntu-software-store.desktop.in:
