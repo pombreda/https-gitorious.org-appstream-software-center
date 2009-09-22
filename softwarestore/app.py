@@ -40,6 +40,7 @@ from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.availablepane import AvailablePane
+from view.history import HistoryView
 
 from apt.aptcache import AptCache
 from gettext import gettext as _
@@ -195,7 +196,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
         elif action == self.NOTEBOOK_PAGE_HISTORY:
-            self.active_pane = self.history_view
+            self.active_pane = None
         elif action == self.NOTEBOOK_PAGE_PENDING:
             self.active_pane = None
         else:
