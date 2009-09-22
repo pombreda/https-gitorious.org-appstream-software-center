@@ -83,7 +83,7 @@ class History():
         ET.ElementTree(self.history_root).write(HISTORY_FILE)
         
 
-class HistoryView(gtk.TreeView):
+class HistoryStore(gtk.TreeView):
     """Treeview based view component that takes a parsed history file and displays it"""
 
     __gsignals__ = {
@@ -117,6 +117,7 @@ class HistoryView(gtk.TreeView):
         
         # custom cursor
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
+        self.show()
 
     def on_day_selected(self, calendar):
         (year, month, day) = calendar.get_date()
@@ -146,7 +147,7 @@ class HistoryView(gtk.TreeView):
     def populate(self, widget=None, date_filter=None):
         self.store.clear()
         self.set_model(self.store)
-        events = history.list_events()
+        events = History.list_events()
         for event in events:
             if event.get("type") == "install":
                 type = _("installed")
@@ -156,6 +157,33 @@ class HistoryView(gtk.TreeView):
                 s = "%s\n<small>" % event.get("package_name") + _("Was %s on") % type + " %s</small>" % event.get("date")
                 pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
                 self.store.append([pix, s])
+                
+class HistoryView(gtk.VPaned):
+    """Treeview based view component that takes a parsed history file and displays it"""
+
+    __gsignals__ = {
+        "application-activated" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE, 
+                                   (str, str, ),
+                                  ),
+        "application-selected" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE, 
+                                   (str, str, ),
+                                  ),
+    }
+
+    def __init__(self, HistoryStore):
+        gtk.TreeView.__init__(self)
+        
+        calendar = gtk.Calendar()
+        self.add1(HistoryStore)
+        self.add2(calendar)
+
+        win = gtk.Window()
+        
+        scroll.add(view)
+        self.show()
+
 
 if __name__ == "__main__":
     history = History()
