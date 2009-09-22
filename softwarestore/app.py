@@ -147,7 +147,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         
         # history view
         self.history_view = HistoryView()
-        self.scrolledwindow_transactions.add(self.history_view)
+        self.scrolledwindow_history.add(self.history_view)
 
         # view switcher
         self.view_switcher = ViewSwitcher(datadir, self.icons)
