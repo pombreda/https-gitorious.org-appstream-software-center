@@ -174,7 +174,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             logging.debug("launchpad integration error: '%s'" % e)
 
         # default focus
-        self.available_pane.cat_view.grab_focus()
+        self.available_pane.searchentry.grab_focus()
 
     # callbacks
     def on_app_details_changed(self, widget, appname, pkgname, page):
