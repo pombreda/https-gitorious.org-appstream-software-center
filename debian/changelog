@@ -12,6 +12,9 @@ software-store (0.3.8) UNRELEASEDkarmic; urgency=low
     - new DetailsMessageDialog class
   * softwarestore/view/widgets/wkwidget.py:
     - disable webkit plugins (can cause hangs from flash player)
+  * software-store:
+    - import pygst with pygst.require to ensure that it does not
+      fail later (LP: #427621)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 08:45:41 +0200
 

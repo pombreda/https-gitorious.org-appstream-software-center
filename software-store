@@ -18,15 +18,24 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+# don't change this, gst is later loaded by something and gets 
+# rather upset if pygst.require was not called
+#
+# thread init is also required otherwise both gst and webkit are unhappy
+# <magic>
 import pygtk
 pygtk.require ("2.0")
-
-# needed for webkit
 import gobject
 gobject.threads_init()
+try:
+    import pygst
+    pygst.require ("0.10")
+    import gst
+except:
+    pass
+# </magic>
 
 import gettext
-
 import logging
 import os
 
