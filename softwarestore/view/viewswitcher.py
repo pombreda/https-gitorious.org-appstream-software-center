@@ -98,8 +98,7 @@ class ViewSwitcherList(gtk.ListStore):
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
      ACTION_ITEM_INSTALLED,
-     ACTION_ITEM_HISTORY,
-     ACTION_ITEM_PENDING) = range(4)
+     ACTION_ITEM_PENDING) = range(3)
 
     ICON_SIZE = 24
 
@@ -119,8 +118,6 @@ class ViewSwitcherList(gtk.ListStore):
         self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
-        icon = AnimatedImage(self.icons.load_icon("appointment-soon", self.ICON_SIZE, 0))
-        self.append([icon, _("History"), self.ACTION_ITEM_HISTORY])
         # spacer - not working
         #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
         #                     self.ICON_SIZE/4.0, self.ICON_SIZE/4.0)

@@ -294,6 +294,7 @@
               <object class="GtkNotebook" id="notebook_view">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="show_tabs">False</property>
                 <child>
                   <object class="GtkAlignment" id="alignment_available">
                     <property name="visible">True</property>
@@ -333,8 +334,11 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkAlignment" id="alignment_history">
+                  <object class="GtkScrolledWindow" id="scrolledwindow_transactions">
                     <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
                     <child>
                       <placeholder/>
                     </child>
@@ -346,34 +350,10 @@
                 <child type="tab">
                   <object class="GtkLabel" id="label3">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">history</property>
-                  </object>
-                  <packing>
-                    <property name="position">2</property>
-                    <property name="tab_fill">False</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow_transactions">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="position">3</property>
-                  </packing>
-                </child>
-                <child type="tab">
-                  <object class="GtkLabel" id="label4">
-                    <property name="visible">True</property>
                     <property name="label" translatable="yes">pending</property>
                   </object>
                   <packing>
-                    <property name="position">3</property>
+                    <property name="position">2</property>
                     <property name="tab_fill">False</property>
                   </packing>
                 </child>
