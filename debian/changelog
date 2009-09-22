@@ -1,3 +1,10 @@
+software-store (0.3.9) UNRELEASED; urgency=low
+
+  * softwarestore/view/appdetailsview.py, data/templates/AppDetailsView.html:
+    - add basic license information to each package
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 15:06:03 +0200
+
 software-store (0.3.8) karmic; urgency=low
 
   * softwarestore/db/update.py:

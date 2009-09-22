@@ -269,6 +269,14 @@ class AppDetailsView(WebkitWidget):
     def wksub_homepage(self):
         s = _("Website")
         return s
+    def wksub_license(self):
+        li =  _("Unknown")
+        if self.component in ("main", "universe"):
+            li = _("Open Source")
+        elif self.component == "restricted":
+            li = _("Proprietary")
+        s = _("License: %s") % li
+        return s
     def wksub_price(self):
         s = _("Price: %s") % _("Free")
         return s
