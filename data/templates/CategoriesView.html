@@ -10,7 +10,7 @@
   }
   function addCategory(name, img) {
     oT = document.getElementsByTagName("table")[0];
-    newTr = document.getElementsByTagName("tr")[0];
+    Tr = document.getElementsByTagName("tr")[0];
     newTd = document.createElement("td");
     newTd.setAttribute("tabindex", 0)
     newTd.className = "category_td";
@@ -31,37 +31,58 @@
     newText.appendChild(document.createTextNode(name))
     newTd.appendChild(newTextAroundImg);
     newTd.appendChild(newText);
-    newTr.appendChild(newTd);
-    oT.appendChild(newTr);
+    Tr.appendChild(newTd);
     categoryCount += 1;
-    console.log(categoryCount)
   }
+  function currently_displayed_rows() {
+      var cat_inc_count = 1, current_offset_left = 0, check_offset_left;
+      while (true) {
+          check_offset_left = document.getElementById("Category_" + cat_inc_count).offsetLeft;
+          if (check_offset_left < current_offset_left) {
+              break;
+          } else {
+              current_offset_left = check_offset_left;
+              cat_inc_count += 1;
+          }
+      }
+      return cat_inc_count;
+  }
+  
   function onKey(ev) {
     if (ev) {
       switch (ev.keyCode) {
         // left
         case 37:
-          currentCategory -= 1;
+          category_delta = -1;
           break;    
         // up
         case 38:
-          //console.log("up");
+          category_delta = -currently_displayed_rows();
           break;    
         // right
         case 39:
-          //console.log("right");
-          currentCategory += 1;
+          category_delta = 1;
           break;   
         // down
         case 40:
-          console.log("down");
+          category_delta = currently_displayed_rows();
           break;   
         // tab
         case 9:
-          currentCategory += 1;
+          category_delta = 1;
           break;   
+        default:
+          category_delta = 0;
       } 
-      document.getElementById("Category_"+parseInt(currentCategory)).focus();
+      if ((currentCategory + category_delta) > categoryCount ||
+          (currentCategory + category_delta) < 0)
+          category_delta = 0;
+      var potential_new_category = "Category_" + (parseInt(currentCategory) + category_delta);
+      var potential_selected = document.getElementById(potential_new_category);
+      if (potential_selected) {
+          currentCategory += category_delta;
+          potential_selected.focus();
+      } 
     }
   }  
   // global variables to keep track of the cursor
