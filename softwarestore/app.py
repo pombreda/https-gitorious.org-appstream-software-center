@@ -64,7 +64,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     
     (NOTEBOOK_PAGE_AVAILABLE,
      NOTEBOOK_PAGE_INSTALLED,
-     NOTEBOOK_PAGE_PENDING) = range(3)
+     NOTEBOOK_PAGE_HISTORY,
+     NOTEBOOK_PAGE_PENDING) = range(4)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
@@ -142,6 +143,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # pending view
         self.pending_view = PendingView(self.icons)
         self.scrolledwindow_transactions.add(self.pending_view)
+        
+        # history view
+        self.history_view = HistoryView()
+        self.scrolledwindow_transactions.add(self.history_view)
 
         # view switcher
         self.view_switcher = ViewSwitcher(datadir, self.icons)
@@ -189,6 +194,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
+        elif action == self.NOTEBOOK_PAGE_HISTORY:
+            self.active_pane = self.history_view
         elif action == self.NOTEBOOK_PAGE_PENDING:
             self.active_pane = None
         else:
