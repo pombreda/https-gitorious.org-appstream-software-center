@@ -18,8 +18,15 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gettext
+import pygtk
+pygtk.require ("2.0")
+
+# needed for webkit
 import gobject
+gobject.threads_init()
+
+import gettext
+
 import logging
 import os
 
@@ -44,9 +51,6 @@ if __name__ == "__main__":
 
     #logging.basicConfig(level=logging.DEBUG)
     logging.basicConfig(level=logging.INFO)
-
-    # needed for webkit
-    gobject.threads_init()
 
     if os.path.exists("./data/ui/SoftwareStore.ui"):
         logging.info("Using data (UI, xapian) from current dir")
