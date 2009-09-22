@@ -1,8 +1,17 @@
-software-store (0.3.7.2) karmic; urgency=low
+software-store (0.3.8) UNRELEASEDkarmic; urgency=low
 
   * softwarestore/db/update.py:
     - ensure that empty strings are not tried to be translated
       (LP: #432995)
+  * softwarestore/view/appdetailsview.py:
+    - support config file prompts and media change requests
+  * debian/control:
+    - add dependency to python-aptdaemon-gtk for the media change
+      dialog
+  * softwarestore/view/dialogs.py:
+    - new DetailsMessageDialog class
+  * softwarestore/view/widgets/wkwidget.py:
+    - disable webkit plugins (can cause hangs from flash player)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 08:45:41 +0200
 
