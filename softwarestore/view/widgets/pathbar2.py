@@ -40,11 +40,11 @@ SHAPE_MID_ARROW = 2
 SHAPE_END_CAP = 3
 
 
-class PathBar(gtk.DrawingArea):
+class PathBar(gtk.DrawingArea, gobject.GObject):
 
-    def __init__(self, min_part_width=56, xpadding=10, ypadding=4,
+    def __init__(self, group=None, min_part_width=56, xpadding=10, ypadding=4,
         spacing=6, curvature=4, arrow_width=13):
-
+        gobject.GObject.__init__(self)
         gtk.DrawingArea.__init__(self)
         self.set_redraw_on_allocate(False)
 
@@ -55,6 +55,8 @@ class PathBar(gtk.DrawingArea):
             SHAPE_END_CAP : self.__shape_end_cap}
 
         self.__parts = []
+        self.id_to_part = {}
+        self.id_to_callback = {}
 
         self.__active_part = None
         self.__focal_part = None
@@ -126,6 +128,91 @@ class PathBar(gtk.DrawingArea):
         if i < 0:
             i = len(self.__parts)-1
         return self.__parts[i]
+
+    def add_part_with_id(self, label, callback, id):
+        """
+        Add a new button with the given label/callback
+        
+        If there is the same id already, replace the existing one
+        with the new one
+        """
+        # check if we have the button of that id or need a new one
+        if id in self.id_to_part:
+            part = self.id_to_part[id]
+            part.set_label(label)
+            part.disconnect(self.id_to_callback[id])
+            self.queue_draw_area(part.allocation)
+        else:
+            part = PathPart(label)
+            part.set_pathbar(self)
+            self.append(part)
+            self.id_to_part[id] = part
+
+        # common code
+        handler_id = part.connect("clicked", callback)
+        self.id_to_callback[id] = handler_id
+        return
+
+    def remove_part_by_id(self, id):
+
+        if not id in self.id_to_part:
+            return
+
+        try:
+            del self.id_to_callback[id]
+        except KeyError:
+            pass
+
+        old_w = self.__draw_width()
+        end_active = self.get_active_part() == self.__parts[-1]
+
+        if len(self.__parts)-1 < 1:
+            print WARNING + 'The first part is sacred ;)' + ENDC
+            return
+
+        del self.__parts[self.__parts.index(self.id_to_part[id])]
+        del self.id_to_part[id]
+        self.__compose_parts(self.__parts[-1], False)
+
+        if end_active:
+            self.set_active_part(self.__parts[-1])
+
+        if old_w >= self.allocation.width:
+            self.__grow_check(old_w, self.allocation)
+            self.queue_draw()
+
+        else:
+            a = self.__parts[-1].get_allocation()
+            new_w = self.__draw_width()
+            self.queue_draw_area(a.x, 0, a.width+old_w-new_w, self.allocation.height)
+        return
+
+    def remove_all(self):
+        """remove all elements"""
+        for id, part in self.id_to_part.iteritems():
+            self.remove_part_by_id(id)
+
+        self.__parts = []
+        self.id_to_part = {}
+        self.id_to_callback = {}
+        self.queue_draw()
+        return
+
+    def get_part_from_id(self, id):
+        """
+        return the button for the given id (or None)
+        """
+        if not id in self.id_to_part:
+            return None
+        return self.id_to_part[id]
+
+    def get_label(self, id):
+        """
+        Return the label of the navigation button with the given id
+        """
+        if not id in self.id_to_part:
+            return
+        return self.id_to_part[id].get_label()
 
     def append(self, part):
 
@@ -482,10 +569,10 @@ class PathBar(gtk.DrawingArea):
         # outer slight bevel or focal highlight
         shapes[shape](cr, 0, 0, w, h, r, aw, True)
         if not self.is_focus():
-            cr.set_source_rgba(0, 0, 0, 0.06)
+            cr.set_source_rgba(0, 0, 0, 0.055)
         else:
             sel = style.bg[gtk.STATE_SELECTED]
-            cr.set_source_rgba(sel.red_float, sel.green_float, sel.blue_float, 0.8)
+            cr.set_source_rgba(sel.red_float, sel.green_float, sel.blue_float, 0.65)
         cr.fill()
         cr.reset_clip()
 
@@ -539,7 +626,7 @@ class PathBar(gtk.DrawingArea):
         cr.new_sub_path()
 
         if focal_clip:
-            cr.rectangle(0, 0, w-aw, h+1)
+            cr.rectangle(0, 0, w-aw-1, h+1)
             cr.clip()
 
         cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
@@ -554,7 +641,7 @@ class PathBar(gtk.DrawingArea):
     def __shape_mid_arrow(self, cr, x, y, w, h, r, aw, focal_clip=False):
 
         if focal_clip:
-            cr.rectangle(0, 0, w-aw, h+1)
+            cr.rectangle(0, 0, w-aw-1, h+1)
             cr.clip()
 
         cr.move_to(-1, y)
@@ -642,7 +729,7 @@ class PathBar(gtk.DrawingArea):
         part = self.__part_at_xy(event.x, event.y)
         if part:
             self.grab_focus()
-            part.emit("clicked", event.copy())
+            part.emit("clicked", self)
             prev_active = self.set_active_part(part)
 
             self.queue_draw_area(*part.allocation)
@@ -734,7 +821,7 @@ class PathBar(gtk.DrawingArea):
 class PathPart(gobject.GObject):
 
     __gsignals__ = {
-        "clicked": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gtk.gdk.Event,))
+        "clicked": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (PathBar,))
         }
 
     def __init__(self, label=None):
@@ -796,6 +883,9 @@ class PathPart(gobject.GObject):
 
     def get_height(self):
         return self.allocation[3]
+
+    def get_label(self):
+        return self.label
 
     def get_allocation(self):
         return gtk.gdk.Rectangle(*self.allocation)
@@ -903,3 +993,4 @@ class Icon:
 
 # gobject registration
 gobject.type_register(PathPart)
+gobject.type_register(PathBar)

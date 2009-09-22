@@ -23,20 +23,19 @@ from pathbar2 import PathBar, PathPart
 class NavigationBarShinny(PathBar):
 
     def add_with_id(self, label, callback, id):
-        part = PathPart(label)
-        part.set_callback(callback)
-        self.append(part)
+        self.set_size_request(-1, 30)
+        self.add_part_with_id(label, callback, id)
+
     def remove_id(self, id):
         # FIXME: this is a fake, it does not remove ID but just
         # the last element 
-        self.shorten()
+        self.remove_part_by_id(id)
 
 class NavigationBarHBox(gtk.HBox):
     """A navigation bar using button (like nautilus)"""
 
     def __init__(self, group=None):
         super(NavigationBarHBox, self).__init__()
-        self.set_size_request(35, -1)
         self.id_to_widget = {}
         self.id_to_callback = {}
         if not group:

@@ -120,7 +120,7 @@ class InstalledPane(BasePane):
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-    def on_navigation_list(self, button):
+    def on_navigation_list(self, button, s):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
@@ -129,10 +129,10 @@ class InstalledPane(BasePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
-    def on_navigation_details(self, button):
+    def on_navigation_details(self, pathpart, pathbar):
         """callback when the navigation button with id 'details' is clicked"""
-        if not button.get_active():
-            return
+#        if not button.get_active():
+#            return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
 
