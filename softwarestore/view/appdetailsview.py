@@ -372,8 +372,9 @@ class AppDetailsView(WebkitWidget):
         history = History()
         event_id = history.add_event("install", self.pkgname)
         history.add_action(event_id, "install", self.pkgname)
-        apt.package.Version()
         
+        #TODO: depdencies
+                
         trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
