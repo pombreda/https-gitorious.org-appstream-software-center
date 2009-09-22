@@ -337,7 +337,7 @@ class AppDetailsView(WebkitWidget):
         # alter it if an important meta-package is affected
         for m in self.IMPORTANT_METAPACKAGES:
             if m in self.installed_rdeps:
-                primary = _("%s is a <b>core application in Ubuntu</b>. "
+                primary = _("%s is a core application in Ubuntu. "
                               "Uninstalling it may cause future upgrades "
                               "to be incomplete. Are you sure you want to "
                               "continue?") % self.appname
