@@ -40,7 +40,7 @@ from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.availablepane import AvailablePane
-from view.history import HistoryView, History
+from view.history import HistoryView, HistoryStore, History
 
 from apt.aptcache import AptCache
 from gettext import gettext as _
@@ -150,7 +150,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         history = History()
         self.history_store.populate()
         self.history_view = HistoryView(self.history_store)
-        self.scrolledwindow_history.add(self.history_view)
+        self.alignment_history.add(self.history_view)
 
         # view switcher
         self.view_switcher = ViewSwitcher(datadir, self.icons)

@@ -147,7 +147,8 @@ class HistoryStore(gtk.TreeView):
     def populate(self, widget=None, date_filter=None):
         self.store.clear()
         self.set_model(self.store)
-        events = History.list_events()
+        history = History()
+        events = history.list_events()
         for event in events:
             if event.get("type") == "install":
                 type = _("installed")
@@ -173,15 +174,11 @@ class HistoryView(gtk.VPaned):
     }
 
     def __init__(self, HistoryStore):
-        gtk.TreeView.__init__(self)
+        gtk.VPaned.__init__(self)
         
         calendar = gtk.Calendar()
         self.add1(HistoryStore)
         self.add2(calendar)
-
-        win = gtk.Window()
-        
-        scroll.add(view)
         self.show()
 
 
