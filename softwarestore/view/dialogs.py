@@ -22,41 +22,55 @@ import gtk
 from gettext import gettext as _
 from pkgview import PkgNamesView
 
+class DetailsMessageDialog(gtk.MessageDialog):
+    """Message dialog with optional details expander"""
+    def __init__(self,
+                 parent=None, 
+                 title="", 
+                 primary=None, 
+                 secondary=None, 
+                 details=None,
+                 buttons=gtk.BUTTONS_OK, 
+                 type=gtk.MESSAGE_INFO):
+        gtk.MessageDialog.__init__(self, parent, 0, type, buttons, primary)
+        self.set_title(title)
+        if secondary:
+            self.format_secondary_markup(secondary)
+        if details:
+            textview = gtk.TextView()
+            textview.set_size_request(500,300)
+            textview.get_buffer().set_text(details)
+            scroll = gtk.ScrolledWindow()
+            scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            scroll.add(textview)
+            expand = gtk.Expander(_("Details"))
+            expand.add(scroll)
+            expand.show_all()
+            self.get_content_area().pack_start(expand)
+
+def messagedialog(parent=None, 
+                  title="", 
+                  primary=None, 
+                  secondary=None, 
+                  details=None,
+                  buttons=gtk.BUTTONS_OK, 
+                  type=gtk.MESSAGE_INFO):
+    """ run a dialog """
+    dialog = DetailsMessageDialog(parent=parent, title=title,
+                                  primary=primary, secondary=secondary,
+                                  details=details, type=type, 
+                                  buttons=buttons)
+    result = dialog.run()
+    dialog.destroy()
+    return result
+
 def error(parent, primary, secondary, details=None):
     """ show a untitled error dialog """
     return messagedialog(parent=parent,
                          primary=primary, 
                          secondary=secondary,
                          details=details,
-                         dialogtype=gtk.MESSAGE_ERROR)
-
-def messagedialog(parent, 
-                  title="", 
-                  primary=None, 
-                  secondary=None, 
-                  details=None,
-                  dialogbuttons=gtk.BUTTONS_OK, 
-                  dialogtype=gtk.MESSAGE_INFO):
-    """ run a dialog """
-    dialog = gtk.MessageDialog(parent=None, flags=0, type=dialogtype, 
-                               buttons=dialogbuttons, message_format=primary)
-    dialog.set_title(title)
-    if secondary:
-        dialog.format_secondary_markup(secondary)
-    if details:
-        textview = gtk.TextView()
-        textview.get_buffer().set_text(details)
-        scroll = gtk.ScrolledWindow()
-        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll.add(textview)
-        expand = gtk.Expander(_("Details"))
-        expand.add(scroll)
-        expand.show_all()
-        dialog.get_content_area().pack_start(expand)
-    result = dialog.run()
-    dialog.hide()
-    return result
-
+                         type=gtk.MESSAGE_ERROR)
 
 def confirm_remove(parent, primary, cache, button_text, icon_path, depends=[]):
     """Confirm removing of the given app with the given depends"""
@@ -87,4 +101,10 @@ def confirm_remove(parent, primary, cache, button_text, icon_path, depends=[]):
     if result == gtk.RESPONSE_ACCEPT:
         return True
     return False
+    
+
+if __name__ == "__main__":
+    messagedialog(None, primary="first, no second")
+    error(None, "first", "second")
+    error(None, "first", "second", "details ......")
     

@@ -51,7 +51,7 @@ def wait_for_apt_cache_ready(f):
     return wrapper
             
 
-class BasePane(gtk.VBox):
+class SoftwarePane(gtk.VBox):
     """ Common base class for InstalledPane and AvailablePane """
 
     __gsignals__ = {
@@ -101,7 +101,12 @@ class BasePane(gtk.VBox):
         vadj = self.scroll_app_list.get_vadjustment()
         self.refresh_apps()
         # needed otherwise we jump back to the beginning of the table
-        vadj.value_changed()
+        if vadj:
+            vadj.value_changed()
+
+    def get_status_text(self):
+        """return user readable status text suitable for a status bar"""
+        raise Exception, "Not implemented"
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):

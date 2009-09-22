@@ -62,7 +62,10 @@ class WebkitWidget(webkit.WebView):
         # callbacks
         self.connect('title-changed', self._on_title_changed)
         self.connect("show", self._show)
-        
+        # global settings
+        settings = self.get_settings()
+        settings.set_property("enable-plugins", False)
+
     # internal helpers
     def _show(self, widget):
         """Load and render when show is called"""

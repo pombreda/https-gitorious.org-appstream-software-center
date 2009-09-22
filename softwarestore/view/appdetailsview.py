@@ -37,17 +37,19 @@ import urllib
 from aptdaemon import policykit1
 from aptdaemon import client
 from aptdaemon import enums
+from aptdaemon.gtkwidgets import AptMediumRequiredDialog
  
 from gettext import gettext as _
-
-from widgets.wkwidget import WebkitWidget
-from widgets.imagedialog import ShowImageDialog
-import dialogs
 
 if os.path.exists("./softwarestore/enums.py"):
     sys.path.insert(0, ".")
 from softwarestore.enums import *
+from softwarestore.version import *
 from softwarestore.db.database import StoreDatabase
+
+from widgets.wkwidget import WebkitWidget
+from widgets.imagedialog import ShowImageDialog
+import dialogs
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -72,8 +74,7 @@ class AppDetailsView(WebkitWidget):
                                 gobject.TYPE_NONE,
                                 (str,str, ))
                     }
-
-
+    
     def __init__(self, xapiandb, icons, cache, datadir):
         super(AppDetailsView, self).__init__(datadir)
         self.xapiandb = xapiandb
@@ -89,8 +90,12 @@ class AppDetailsView(WebkitWidget):
         self.aptd_client = client.AptClient()
         self.window_main_xid = None
         # data
-        self.appname = None
-
+        self.appname = ""
+        self.pkgname = ""
+        self.iconname = ""
+        # setup user-agent
+        settings = self.get_settings()
+        settings.set_property("user-agent", USER_AGENT)
         
     def _show(self, widget):
         if not self.appname:
@@ -201,6 +206,8 @@ class AppDetailsView(WebkitWidget):
         return _("Application Screenshot")
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
+    def wksub_screenshot_alt(self):
+        return _("Application Screenshot")
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):
@@ -261,6 +268,14 @@ class AppDetailsView(WebkitWidget):
     def wksub_homepage(self):
         s = _("Website")
         return s
+    def wksub_license(self):
+        li =  _("Unknown")
+        if self.component in ("main", "universe"):
+            li = _("Open Source")
+        elif self.component == "restricted":
+            li = _("Proprietary")
+        s = _("License: %s") % li
+        return s
     def wksub_price(self):
         s = _("Price: %s") % _("Free")
         return s
@@ -312,7 +327,7 @@ class AppDetailsView(WebkitWidget):
         subprocess.call([cmd, self.homepage_url])
 
     def on_button_upgrade_clicked(self):
-        trans = self.aptd_client.commit_packages([], [], [], [], [self.pkgname], 
+        trans = self.aptd_client.upgrade_packages([self.pkgname], 
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
@@ -353,12 +368,12 @@ class AppDetailsView(WebkitWidget):
                                         button_text, iconpath, depends):
                 return
         # do it (no rdepends or user confirmed)
-        trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],
+        trans = self.aptd_client.remove_packages([self.pkgname],
                                          exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
     def on_button_install_clicked(self):
-        trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
+        trans = self.aptd_client.install_packages([self.pkgname],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
@@ -423,19 +438,64 @@ class AppDetailsView(WebkitWidget):
             self.execute_script("enable_action_button();")
         else:
             self.execute_script("disable_action_button();")
+            
+    # FIXME: move this to a better place
+    def _get_diff(self, old, new):
+        if not os.path.exists("/usr/bin/diff"):
+            return ""
+        diff = subprocess.Popen(["/usr/bin/diff", 
+                                 "-u",
+                                 old, new], 
+                                stdout=subprocess.PIPE).communicate()[0]
+        return diff
+
+    # FIXME: move this into aptdaemon/use the aptdaemon one
+    def _config_file_prompt(self, transaction, old, new):
+        diff = self._get_diff(old, new)
+        d = dialogs.DetailsMessageDialog(None, 
+                                         details=diff,
+                                         type=gtk.MESSAGE_INFO, 
+                                         buttons=gtk.BUTTONS_NONE)
+        d.add_buttons(_("_Keep"), gtk.RESPONSE_NO,
+                      _("_Replace"), gtk.RESPONSE_YES)
+        d.set_default_response(gtk.RESPONSE_NO)
+        text = _("Configuration file '%s' changed") % old
+        desc = _("Do you want to use the new version?")
+        d.set_markup("<big><b>%s</b></big>\n\n%s" % (text, desc))
+        res = d.run()
+        d.destroy()
+        # send result to the daemon
+        if res == gtk.RESPONSE_YES:
+            transaction.config_file_prompt_answer(old, "replace")
+        else:
+            transaction.config_file_prompt_answer(old, "keep")
+
+    def _medium_required(self, transaction, label, drive):
+        dialog = AptMediumRequiredDialog(medium, drive)
+        res = dialog.run()
+        dialog.hide()
+        if res == gtk.RESPONSE_OK:
+            transaction.provide_medium(medium)
+        else:
+            transaction.cancel()
 
     def _run_transaction(self, trans):
+        # set object data
         trans.set_data("appname", self.appname)
         trans.set_data("iconname", self.iconname)
         trans.set_data("pkgname", self.pkgname)
+        # we support debconf
         trans.set_debconf_frontend("gnome")
+        trans.connect("config-file-prompt", self._config_file_prompt)
+        trans.connect("medium-required", self._medium_required)
         self._set_action_button_sensitive(False)
         try:
             trans.run()
         except dbus.exceptions.DBusException, e:
             # re-enable the action button again if anything went wrong
             self._set_action_button_sensitive(True)
-            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+            if (e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized" or 
+                e._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
                 pass
             else:
                 raise
@@ -480,7 +540,7 @@ if __name__ == "__main__":
     #view.show_app("AMOR")
     view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")
-    #view.show_app("ACE")
+    #view.show_app("ACE", "test-package")
     #view.show_app("Artha")
     #view.show_app("cournol")
     #view.show_app("Qlix")
@@ -490,5 +550,7 @@ if __name__ == "__main__":
     win.add(scroll)
     win.set_size_request(600,400)
     win.show_all()
+
+    #view._config_file_prompt(None, "/etc/fstab", "/tmp/lala")
 
     gtk.main()

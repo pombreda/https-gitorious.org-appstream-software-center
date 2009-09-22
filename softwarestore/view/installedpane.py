@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import gettext
 import glib
 import gobject
 import gtk
@@ -42,9 +43,9 @@ from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter
 
-from basepane import BasePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
-class InstalledPane(BasePane):
+class InstalledPane(SoftwarePane):
     """Widget that represents the installed panel in software-store
        It contains a search entry and navigation buttons
     """
@@ -54,7 +55,7 @@ class InstalledPane(BasePane):
 
     def __init__(self, cache, db, icons, datadir):
         # parent
-        BasePane.__init__(self, cache, db, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, icons, datadir)
         # state
         self.apps_filter = AppViewFilter(cache)
         self.apps_filter.set_installed_only(True)
@@ -116,11 +117,11 @@ class InstalledPane(BasePane):
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
-        self.app_details.show_app(name, pkgname)
         self.navigation_bar.add_with_id(name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.app_details.show_app(name, pkgname)
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
@@ -130,12 +131,28 @@ class InstalledPane(BasePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
+        self.emit("app-list-changed", len(self.app_view.get_model()))
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+    def get_status_text(self):
+        """return user readable status text suitable for a status bar"""
+        # no status text in the details page
+        if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
+            return ""
+        # otherwise, show status based on search or not
+        length = len(self.app_view.get_model())
+        if len(self.searchentry.get_text()) > 0:
+            return gettext.ngettext("%s matching item",
+                                    "%s matching items",
+                                    length) % length
+        else:
+            return gettext.ngettext("%s installed item",
+                                    "%s installed items",
+                                    length) % length
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

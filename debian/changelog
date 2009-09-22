@@ -1,9 +1,100 @@
-software-store (0.3.5) UNRELEASED; urgency=low
+software-store (0.3.9) UNRELEASED; urgency=low
 
+  * softwarestore/view/appdetailsview.py, data/templates/AppDetailsView.html:
+    - add basic license information to each package
+  * softwarestore/app.py:
+    - set default focus on the search entry and focus categories
+      ("departments") on key-down (LP: #433828)
+  * data/templates/CategoriesView.html:
+    - arrow key navigation added (thanks to Stuart Langridge)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 15:06:03 +0200
+
+software-store (0.3.8) karmic; urgency=low
+
+  * softwarestore/db/update.py:
+    - ensure that empty strings are not tried to be translated
+      (LP: #432995)
+  * softwarestore/view/appdetailsview.py:
+    - support config file prompts and media change requests
+  * debian/control:
+    - add dependency to python-aptdaemon-gtk for the media change
+      dialog
+  * softwarestore/view/dialogs.py:
+    - new DetailsMessageDialog class
+  * softwarestore/view/widgets/wkwidget.py:
+    - disable webkit plugins (can cause hangs from flash player)
+  * software-store:
+    - import pygst with pygst.require to ensure that it does not
+      fail later (LP: #427621)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 13:51:23 +0200
+
+software-store (0.3.7.1) karmic; urgency=low
+
+  * data/ubuntu-software-store.desktop.in:
+    - drop NoDisplay (LP: #431882)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Sep 2009 18:47:42 +0200
+
+software-store (0.3.7) karmic; urgency=low
+
+  * i18n fixes, thanks to Istvan Nyitrai 
+  * code cleanup
+  * show different status bar label based on if it is a search
+    or a not (LP: #426252) - thanks to István Nyitrai
+  * Show empty status bar on viewing details, thanks to 
+    István Nyitrai LP: #425876
+  * fix crash when clicking "Install" (LP: #432645)
+  * add border around navigation pane (LP: #433520)
+  * do not raise if entering the password takes too long (LP: #432704)
+  * softwarestore/view/appview.py:
+    - fix bug in on_iter_nth_child()
+  * when a transaction is triggered and there is no other transaction
+    already queued, jump to the "in progress" view (LP: #426257)
+  * Fix usage of "Pending" to "In progress" (LP: #434088)
+  * softwarestore/view/appdetailsview.py:
+    - use aptdaemons {install,upgrade,remove}_packages instead
+      of commit_packages
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Sep 2009 17:50:10 +0200
+
+software-store (0.3.6.1) karmic; urgency=low
+
+  * debian/control:
+    - add missing build-depend to lsb-release
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 18:00:54 +0200
+
+software-store (0.3.6) karmic; urgency=low
+
+  [ Michael Vogt ]
   * data/ui/SoftwareStore.ui
     - use &#xA9; instead (c) (LP: #431298)
+  * softwarestore/SimpleGtkbuilderApp.py, softwarestore/app.py:
+    - fix gettext domain in gtkbuilder (thanks to sianis)
+  * po/hu.po:
+    - new translation, thanks to Gabor Kelemen 
+  * softwarestore/view/basepane.py:
+    - fix crash when no adjustment is available (LP: #432126)
+  * setup.py:
+    - auto-generate softwarestore/version.py on build to ensure
+      version information is always valid 
+  * softwarestore/view/appdetailsview.py:
+    - set user-agent string to software-store
+  * softwarestore/view/pendingview.py:
+    - do not crash if a transaction can not be canceled, but log
+      a error instead
+  * implement dbus service that informs the GUI if the database
+    is rebuild in the background and make the UI insensitive 
+    while a rebuild is in progress
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Sep 2009 14:11:06 +0200
+  [ Andrew Higginson ]
+  * debian/control:
+    - better description
+    - add depedency to python-sexy (LP: #432173)
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Sep 2009 17:16:46 +0200
 
 software-store (0.3.4) karmic; urgency=low
 

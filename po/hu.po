@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-store\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2009-09-02 13:52+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-09-18 11:45+0200\n"
 "PO-Revision-Date: 2009-08-28 12:33+0000\n"
 "Last-Translator: Gabor Kelemen <kelemeng@gnome.hu>\n"
 "Language-Team: Hungarian <hu@li.org>\n"
@@ -18,126 +18,301 @@ msgstr ""
 "X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../softwarestore/app.py:223
-msgid "All"
-msgstr "Összes"
+#: ../softwarestore/app.py:331 ../softwarestore/view/appdetailsview.py:363
+msgid "ERROR"
+msgstr "HIBA"
 
-#: ../softwarestore/app.py:224
+#: ../softwarestore/app.py:390
+#, fuzzy, python-format
+msgid "%s item available"
+msgid_plural "%s items available"
+msgstr[0] "%s elem érhető el"
+msgstr[1] "%s elem érhető el"
+
+#: ../softwarestore/apt/aptcache.py:174 ../softwarestore/apt/aptcache.py:186
 #, python-format
-msgid "Search in %s"
-msgstr "Keresés ebben: %s"
+msgid ""
+"Canonical does no longer provide updates for %s in Ubuntu %s. Updates may be "
+"available in a newer version of Ubuntu."
+msgstr ""
 
-#: ../softwarestore/app.py:333
+#: ../softwarestore/apt/aptcache.py:179
 #, python-format
-msgid "%s items available"
-msgstr "%s elem érhető el"
+msgid ""
+"Canonical provides critical updates for %(appname)s until %"
+"(support_end_month_str)s %(support_end_year)s."
+msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:77
+#: ../softwarestore/apt/aptcache.py:191
+#, python-format
+msgid ""
+"Canonical provides critical updates supplied by the developers of %(appname)"
+"s until %(support_end_month_str)s %(support_end_year)s."
+msgstr ""
+
+#: ../softwarestore/apt/aptcache.py:201
+#, python-format
+msgid ""
+"Canonical does not provide updates for %s. Some updates may be provided by "
+"the third party vendor."
+msgstr ""
+
+#: ../softwarestore/apt/aptcache.py:205
+#, python-format
+msgid "Canonical provides critical updates for %s."
+msgstr ""
+
+#: ../softwarestore/apt/aptcache.py:207
+#, python-format
+msgid "Canonical provides critical updates supplied by the developers of %s."
+msgstr ""
+
+#: ../softwarestore/apt/aptcache.py:210
+#, python-format
+msgid ""
+"Canonical does not provide updates for %s. Some updates may be provided by "
+"the Ubuntu community."
+msgstr ""
+
+#: ../softwarestore/apt/aptcache.py:213
+#, python-format
+msgid "Application %s has a unkown maintenance status."
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:87
 msgid "Description"
 msgstr "Leírás"
 
-#: ../softwarestore/view/appdetailsview.py:147
+#: ../softwarestore/view/appdetailsview.py:168
+#: ../softwarestore/view/appdetailsview.py:173
 msgid "Not available in the current data"
 msgstr "Nem érhető el a jelenlegi adatok közt"
 
-#: ../softwarestore/view/appdetailsview.py:176
+#: ../softwarestore/view/appdetailsview.py:171
+msgid "Not available for your hardware architecture."
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:227
 #, python-format
 msgid "Version: %s (%s)"
 msgstr "Verzió: %s (%s)"
 
 #. generic message
-#: ../softwarestore/view/appdetailsview.py:194
+#: ../softwarestore/view/appdetailsview.py:245
 #, python-format
 msgid "%s is installed on this computer."
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:206
+#: ../softwarestore/view/appdetailsview.py:257
 #, python-format
 msgid "It is used by %s piece of installed software."
 msgid_plural "It is used by %s pieces of installed software."
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarestore/view/appdetailsview.py:211
+#: ../softwarestore/view/appdetailsview.py:262
+msgid "Website"
+msgstr ""
+
+#: ../softwarestore/view/appdetailsview.py:265
 #, python-format
 msgid "Price: %s"
 msgstr "Ár: %s"
 
-#: ../softwarestore/view/appdetailsview.py:211
+#: ../softwarestore/view/appdetailsview.py:265
 msgid "Free"
 msgstr "Szabad"
 
+#: ../softwarestore/view/appdetailsview.py:305
+#, python-format
+msgid "%s - Screenshot"
+msgstr ""
+
 #. generic removal text
-#: ../softwarestore/view/appdetailsview.py:257
+#: ../softwarestore/view/appdetailsview.py:321
 #, python-format
 msgid "%s depends on other software on the system. "
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:258
+#: ../softwarestore/view/appdetailsview.py:322
 msgid ""
 "Uninstalling it means that the following additional software needs to be "
 "removed."
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:263
+#: ../softwarestore/view/appdetailsview.py:327
 #, python-format
 msgid "%s is a core component"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:264
+#: ../softwarestore/view/appdetailsview.py:328
 #, python-format
 msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
 
-#: ../softwarestore/view/appdetailsview.py:293
-msgid "ERROR"
-msgstr "HIBA"
-
-#: ../softwarestore/view/appdetailsview.py:309
+#: ../softwarestore/view/appdetailsview.py:386
 msgid "Upgrade"
 msgstr "Frissítés"
 
-#: ../softwarestore/view/appdetailsview.py:312
+#: ../softwarestore/view/appdetailsview.py:389
+#: ../softwarestore/view/dialogs.py:69
 msgid "Remove"
 msgstr "Eltávolítás"
 
-#: ../softwarestore/view/appdetailsview.py:315
+#: ../softwarestore/view/appdetailsview.py:392
 msgid "Install"
 msgstr "Telepítés"
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarestore/view/appdetailsview.py:324
+#: ../softwarestore/view/appdetailsview.py:401
 msgid "Enable channel"
 msgstr ""
 
-#: ../softwarestore/view/viewswitcher.py:95
-msgid "Get Free software"
+#. home button
+#: ../softwarestore/view/availablepane.py:101
+#: ../softwarestore/view/viewswitcher.py:118
+#, fuzzy
+msgid "Get Free Software"
 msgstr "Szabad szoftverek letöltése"
 
-#: ../softwarestore/view/viewswitcher.py:97
-msgid "Installed software"
+#: ../softwarestore/view/dialogs.py:52
+msgid "Details"
+msgstr ""
+
+#: ../softwarestore/view/dialogs.py:68
+msgid "Cancel"
+msgstr ""
+
+#: ../softwarestore/view/dialogs.py:75
+msgid "Dependencies"
+msgstr ""
+
+#: ../softwarestore/view/installedpane.py:98
+#: ../softwarestore/view/viewswitcher.py:120
+msgid "Installed Software"
 msgstr "Telepített szoftverek"
 
-#: ../softwarestore/view/viewswitcher.py:127
+#: ../softwarestore/view/viewswitcher.py:150
 #, python-format
 msgid "In Progress (%i)"
 msgstr "Folyamatban (%i)"
 
-#: ../softwarestore/view/viewswitcher.py:132
+#: ../softwarestore/view/viewswitcher.py:155
 #, python-format
 msgid "Pending (%i)"
 msgstr "Függőben (%i)"
 
+#: ../data/ui/GBTestWidget.ui.h:1
+msgid "Click me"
+msgstr ""
+
+#: ../data/ui/GBTestWidget.ui.h:2
+msgid "button"
+msgstr ""
+
+#: ../data/ui/GBTestWidget.ui.h:3
+msgid "label"
+msgstr ""
+
+#: ../data/ui/GBTestWidget.ui.h:4
+msgid "page 1"
+msgstr ""
+
+#: ../data/ui/GBTestWidget.ui.h:5
+msgid "page 2"
+msgstr ""
+
+#: ../data/ui/GBTestWidget.ui.h:6
+msgid "page 3"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:1
+msgid "&#xA9;2009 Canonical"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:2
+msgid "All Applications"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:3
+msgid "Canonical-Maintained Applications"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:4
+msgid "Copy _Web Link"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:5
+msgid ""
+"Lets you choose from thousands of free applications available for Ubuntu."
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:6
+msgid "Search..."
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:7
+#, fuzzy
+msgid "Software Store _Help"
+msgstr "Szoftveráruház"
+
+#: ../data/ui/SoftwareStore.ui.h:8
+#: ../data/ubuntu-software-store.desktop.in.h:3
+msgid "Ubuntu Software Store"
+msgstr "Ubuntu szoftveráruház"
+
+#: ../data/ui/SoftwareStore.ui.h:9
+msgid "View"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:10
+msgid "_Edit"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:11
+msgid "_File"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:12
+msgid "_Help"
+msgstr ""
+
+#: ../data/ui/SoftwareStore.ui.h:13
+#, fuzzy
+msgid "_Software Sources&#x2026;"
+msgstr "Szoftveráruház"
+
+#: ../data/ui/SoftwareStore.ui.h:14
+#, fuzzy
+msgid "available"
+msgstr "%s elem érhető el"
+
+#: ../data/ui/SoftwareStore.ui.h:15
+#, fuzzy
+msgid "installed"
+msgstr "Telepítés"
+
+#: ../data/ui/SoftwareStore.ui.h:16
+#, fuzzy
+msgid "pending"
+msgstr "Függőben (%i)"
+
 #: ../data/ubuntu-software-store.desktop.in.h:1
-msgid "Install and remove software"
-msgstr "Szoftverek telepítése és eltávolítása"
+msgid ""
+"Lets you choose from thousands of free applications available for Ubuntu"
+msgstr ""
 
 #: ../data/ubuntu-software-store.desktop.in.h:2
 msgid "Software Store"
 msgstr "Szoftveráruház"
 
-#: ../data/ubuntu-software-store.desktop.in.h:3
-msgid "Ubuntu Software Store"
-msgstr "Ubuntu szoftveráruház"
+#~ msgid "All"
+#~ msgstr "Összes"
+
+#~ msgid "Search in %s"
+#~ msgstr "Keresés ebben: %s"
+
+#~ msgid "Install and remove software"
+#~ msgstr "Szoftverek telepítése és eltávolítása"

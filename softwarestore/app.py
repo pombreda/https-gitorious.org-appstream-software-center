@@ -23,6 +23,7 @@ import locale
 import dbus
 import dbus.service
 import gettext
+import locale
 import logging
 import glib
 import gtk
@@ -34,6 +35,7 @@ import xapian
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
 from softwarestore.enums import *
+from softwarestore.version import *
 from softwarestore.db.database import StoreDatabase
 
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
@@ -69,11 +71,20 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
     def __init__(self, datadir, xapian_base_path):
-        SimpleGtkbuilderApp.__init__(self, datadir+"/ui/SoftwareStore.ui")
+        SimpleGtkbuilderApp.__init__(self, 
+                                     datadir+"/ui/SoftwareStore.ui", 
+                                     "software-store")
+        gettext.bindtextdomain("software-store", "/usr/share/locale")
+        gettext.textdomain("software-store")
+        try:
+            locale.setlocale(locale.LC_ALL, "")
+        except:
+            logging.exception("setlocale failed")
 
         # setup dbus and exit if there is another instance already
         # running
         self.setup_dbus_or_bring_other_instance_to_front()
+        self.setup_database_rebuilding_listener()
         
         try:
             locale.setlocale(locale.LC_ALL, "")
@@ -105,6 +116,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.cache = AptCache()
 
         # misc state
+        self._pending_transactions = 0
         self._block_menuitem_view = False
         self._available_items_for_page = {}
         # FIXME: make this all part of a application object
@@ -149,6 +161,8 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
+        self.view_switcher.model.connect("transactions-changed", 
+                                   self.on_view_switcher_transactions_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
@@ -160,15 +174,15 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             logging.debug("launchpad integration error: '%s'" % e)
 
         # default focus
-        self.available_pane.cat_view.grab_focus()
+        self.available_pane.searchentry.grab_focus()
 
     # callbacks
     def on_app_details_changed(self, widget, appname, pkgname, page):
-        #print widget, appname, pkg, page
         self._selected_pkgname_for_page[page] = pkgname
         self._selected_appname_for_page[page] = appname
         self.update_app_status_menu()
-        
+        self.update_status_bar()
+
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.notebook_view.get_current_page() == page:
@@ -179,10 +193,15 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self._selected_pkgname_for_page[page] = pkgname
         self.menuitem_copy.set_sensitive(True)
         self.menuitem_copy_web_link.set_sensitive(True)
-    
+
     def on_window_main_delete_event(self, widget, event):
         gtk.main_quit()
         
+    def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
+        if pending_nr > 0 and self._pending_transactions == 0:
+            self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_PENDING)
+        self._pending_transactions = pending_nr
+
     def on_view_switcher_changed(self, view_switcher, action):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
@@ -296,6 +315,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.window_main.set_sensitive(True)
 
     def on_menuitem_about_activate(self, widget):
+        self.aboutdialog.set_version(VERSION)
         self.aboutdialog.run()
         self.aboutdialog.hide()
 
@@ -383,14 +403,53 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
     def update_status_bar(self):
         "Helper that updates the status bar"
         page = self.notebook_view.get_current_page()
-        try:
-            new_len = self._available_items_for_page[page]
-            s = gettext.ngettext("%s matching item",
-                                 "%s matching items",
-                                 new_len) % new_len
-        except KeyError, e:
+        if self.active_pane:
+            s = self.active_pane.get_status_text()
+        else:
+            # FIXME: deal with the pending view status
             s = ""
         self.label_status.set_text(s)
+
+    def _on_database_rebuilding_handler(self, is_rebuilding):
+        logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
+        self._database_is_rebuilding = is_rebuilding
+        self.window_rebuilding.set_transient_for(self.window_main)
+        self.window_rebuilding.set_title("")
+        self.window_main.set_sensitive(not is_rebuilding)
+        # show dialog about the rebuilding status
+        if is_rebuilding:
+            self.window_rebuilding.show()
+        else:
+            # we need to reopen when the database finished updating
+            self.xapiandb.reopen()
+            self.window_rebuilding.hide()
+
+    def setup_database_rebuilding_listener(self):
+        """
+        Setup system bus listener for database rebuilding
+        """
+        self._database_is_rebuilding = False
+        # get dbus
+        try:
+            bus = dbus.SystemBus()
+        except:
+            logging.exception("could not get system bus")
+            return
+        # check if its currently rebuilding (most likely not, so we
+        # just ignore errors from dbus because the interface
+        try:
+            proxy_obj = bus.get_object("com.ubuntu.SoftwareStore",
+                                       "/com/ubuntu/SoftwareStore")
+            iface = dbus.Interface(proxy_obj, "com.ubuntu.SoftwareStore")
+            res = iface.IsRebuilding()
+            self._on_database_rebuilding_handler(res)
+        except Exception ,e:
+            logging.debug("query for the update-database exception '%s' (probably ok)" % e)
+
+        # add signal handler
+        bus.add_signal_receiver(self._on_database_rebuilding_handler,
+                                "DatabaseRebuilding",
+                                "com.ubuntu.SoftwareStore")
 
     def setup_dbus_or_bring_other_instance_to_front(self):
         """ 
@@ -399,7 +458,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         try:
             bus = dbus.SessionBus()
         except:
-            logging.warn("could not initiate dbus")
+            logging.exception("could not initiate dbus")
             return
         # if there is another SoftwareStore running bring it to front
         # and exit, otherwise install the dbus controller

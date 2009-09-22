@@ -183,13 +183,12 @@ class AppStore(gtk.GenericTreeModel):
             return 0
         return len(self.apps)
     def on_iter_nth_child(self, parent, n):
-        #logging.debug("on_iter_nth_child: %s %i" % (parent, n))
+        logging.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
-        try:
-            return self.apps[n]
-        except IndexError, e:
+        if n >= len(self.apps):
             return None
+        return n
     def on_iter_parent(self, child):
         return None
 

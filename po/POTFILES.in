@@ -13,7 +13,7 @@ softwarestore/view/dialogs.py
 softwarestore/view/installed_view.py
 softwarestore/view/installedpane.py
 softwarestore/view/pendingview.py
+softwarestore/view/softwarepane.py
 softwarestore/view/viewswitcher.py
-[type: gettext/glade] data/ui/GBTestWidget.ui
 [type: gettext/glade] data/ui/SoftwareStore.ui
 data/ubuntu-software-store.desktop.in

@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import glib
 import locale
 import logging
 import os
@@ -50,10 +51,11 @@ class DesktopConfigParser(RawConfigParser):
         # first try dgettext
         if self.has_option_desktop("X-Ubuntu-Gettext-Domain"):
             value = self.get(self.DE, key)
-            domain = self.get(self.DE, "X-Ubuntu-Gettext-Domain")
-            translated_value = gettext.dgettext(domain, value)
-            if value != translated_value:
-                return translated_value
+            if value:
+                domain = self.get(self.DE, "X-Ubuntu-Gettext-Domain")
+                translated_value = gettext.dgettext(domain, value)
+                if value != translated_value:
+                    return translated_value
         # then try the i18n version of the key (in [de_DE] or
         # [de]
         locale = getdefaultlocale()[0]
@@ -84,8 +86,12 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
     " index the desktop files in $datadir/desktop/*.desktop "
     term_generator = xapian.TermGenerator()
     seen = set()
+    context = glib.main_context_default()
     for desktopf in glob(datadir+"/desktop/*.desktop"):
         logging.debug("processing %s" % desktopf)
+        # process events
+        while context.pending():
+            context.iteration()
         parser = DesktopConfigParser()
         doc = xapian.Document()
         term_generator.set_document(doc)

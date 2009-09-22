@@ -42,4 +42,4 @@ class StoreDatabase(xapian.Database):
 
     def __len__(self):
         """return the doc count of the database"""
-        return self.xapiandb.get_doccount()
+        return self.get_doccount()
