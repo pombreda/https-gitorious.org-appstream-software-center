@@ -150,8 +150,8 @@ class InstalledPane(SoftwarePane):
                                     "%s matching items",
                                     length) % length
         else:
-            return gettext.ngettext("%s installed item",
-                                    "%s installed items",
+            return gettext.ngettext("%s application installed",
+                                    "%s applications installed",
                                     length) % length
 
 if __name__ == "__main__":

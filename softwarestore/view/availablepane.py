@@ -163,8 +163,8 @@ class AvailablePane(SoftwarePane):
                                                  "%s matching items",
                                                  length) % length
         else:
-            self._status_text = gettext.ngettext("%s item available",
-                                                 "%s items available",
+            self._status_text = gettext.ngettext("%s application available",
+                                                 "%s applications available",
                                                  length) % length
      
     # callbacks

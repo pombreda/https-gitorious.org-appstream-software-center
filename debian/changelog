@@ -7,6 +7,11 @@ software-store (0.3.9) UNRELEASED; urgency=low
       ("departments") on key-down (LP: #433828)
   * data/templates/CategoriesView.html:
     - arrow key navigation added (thanks to Stuart Langridge)
+  
+  [ Andrew Higginson ]
+  * softwarestore/view
+    - update dependency dialogs to conform with spec
+    - update status bar text to conform with spec
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 15:06:03 +0200
 
