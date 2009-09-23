@@ -98,7 +98,8 @@ class InstalledPane(BasePane):
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
                                         self.on_navigation_list,
-                                        "list")
+                                        "list",
+                                        icon="computer")
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.xapiandb, 

@@ -26,8 +26,6 @@ import re
 
 import gtk
 
-from view.widgets.contentview import ContentView
-
 # based on SimpleGladeApp
 class SimpleGtkbuilderApp:
 

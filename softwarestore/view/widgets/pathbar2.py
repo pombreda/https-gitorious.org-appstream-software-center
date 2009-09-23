@@ -1009,13 +1009,33 @@ class Icon:
 
         style = gtk.Style()
         icon_set = style.lookup_icon_set(self.name)
-        self.pixbuf = icon_set.render_icon(
-            style,
-            gtk.TEXT_DIR_NONE,
-            gtk.STATE_NORMAL,
-            self.size or gtk.ICON_SIZE_BUTTON,
-            gtk.Image(),
-            None)
+
+        if not icon_set:
+            t = gtk.icon_theme_get_default()
+            self.pixbuf = t.lookup_icon(self.name, self.size, 0).load_icon()
+        else:
+            icon_set = style.lookup_icon_set(self.name)
+
+            self.pixbuf = icon_set.render_icon(
+                style,
+                gtk.TEXT_DIR_NONE,
+                gtk.STATE_NORMAL,
+                self.size or gtk.ICON_SIZE_BUTTON,
+                gtk.Image(),
+                None)
+
+        if not self.pixbuf:
+            print FAIL + 'Error: No name failed to match any installed icon set.' + ENDC
+            self.name = gtk.STOCK_MISSING_IMAGE
+            icon_set = style.lookup_icon_set(self.name)
+
+            self.pixbuf = icon_set.render_icon(
+                style,
+                gtk.TEXT_DIR_NONE,
+                gtk.STATE_NORMAL,
+                self.size or gtk.ICON_SIZE_SMALL_TOOLBAR,
+                gtk.Image(),
+                None)
         return
 
 
