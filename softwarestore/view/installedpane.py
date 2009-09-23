@@ -90,10 +90,7 @@ class InstalledPane(SoftwarePane):
            navigation bar
         """
         if self.search_terms:
-            # FIXME: move this into generic code? 
-            #        something like "build_query_from_search_terms()"
-            query = self.xapian_parser.parse_query(self.search_terms, 
-                                              xapian.QueryParser.FLAG_PARTIAL)
+            query = self.xapiandb.get_query_from_search_entry(self.search_terms)
         else:
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 

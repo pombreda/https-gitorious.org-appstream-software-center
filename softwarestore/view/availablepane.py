@@ -132,14 +132,6 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(new_model))
         return False
 
-    # helper FIXME: move to more generic code?
-    def get_query_from_search_entry(self, search_term):
-        """ get xapian.Query from a search term string """
-        query = self.xapian_parser.parse_query(search_term, 
-                                               xapian.QueryParser.FLAG_PARTIAL)
-        # FIXME: expand to add "AA" and "AP" before each search term?
-        return query
-
     def update_navigation_button(self):
         """Update the navigation button"""
         if self.apps_category_query:
@@ -189,7 +181,7 @@ class AvailablePane(SoftwarePane):
             self.apps_sorted = True
             self.apps_search_query = None
         else:
-            self.apps_search_query = self.get_query_from_search_entry(new_text)
+            self.apps_search_query = self.xapiandb.get_query_from_search_entry(new_text)
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
         self.update_navigation_button()

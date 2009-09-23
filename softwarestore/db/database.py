@@ -27,6 +27,15 @@ class StoreDatabase(xapian.Database):
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self)
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.xapian_parser.set_default_op(xapian.Query.OP_AND)
+
+    def get_query_from_search_entry(self, search_term):
+        """ get xapian.Query from a search term string """
+        query = self.xapian_parser.parse_query(search_term, 
+                                               xapian.QueryParser.FLAG_PARTIAL|
+                                               xapian.QueryParser.FLAG_BOOLEAN)
+        # FIXME: expand to add "AA" and "AP" before each search term?
+        return query
 
     def get_xapian_document(self, appname, pkgname):
         """ Get the machting xapian document for appname, pkgname
