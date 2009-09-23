@@ -22,9 +22,6 @@ import glib
 import gobject
 import gtk
 import logging
-import os
-import sys
-import string
 import xapian
 
 from appview import AppView, AppStore, AppViewFilter

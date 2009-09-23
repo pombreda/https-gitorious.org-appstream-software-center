@@ -151,7 +151,7 @@ class AppStore(gtk.GenericTreeModel):
                 icon_name = doc.get_value(XAPIAN_VALUE_ICON)
                 if icon_name:
                     icon_name = os.path.splitext(icon_name)[0]
-                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE,0)
+                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
                     return icon
             except glib.GError, e:
                 logging.debug("get_icon returned '%s'" % e)
@@ -444,7 +444,6 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
-    import apt
     cache = apt.Cache(apt.progress.OpTextProgress())
     filter = AppViewFilter(cache)
     filter.set_supported_only(True)
@@ -465,7 +464,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll.add(view)
     win.add(box)
-    win.set_size_request(400,400)
+    win.set_size_request(400, 400)
     win.show_all()
 
     gtk.main()
