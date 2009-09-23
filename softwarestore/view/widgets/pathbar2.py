@@ -164,13 +164,8 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
     def remove_id(self, id):
 
         if not id in self.id_to_part:
-            print 'id not in pathbar'
+            print 'id %s not in pathbar' % id
             return
-
-        try:
-            del self.id_to_callback[id]
-        except KeyError:
-            print self.id_to_callback.keys()
 
         old_w = self.__draw_width()
         end_active = self.get_active_part() == self.__parts[-1]
@@ -179,14 +174,26 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             print WARNING + 'The first part is sacred ;)' + ENDC
             return
 
-        del self.__parts[self.__parts.index(self.id_to_part[id])]
+        try:
+            del self.id_to_callback[id]
+        except KeyError:
+            print self.id_to_callback.keys()
+
+        pos = self.__parts.index(self.id_to_part[id])
+        del self.__parts[pos]
         del self.id_to_part[id]
         self.__compose_parts(self.__parts[-1], False)
 
         if end_active:
             self.set_active_part(self.__parts[-1])
 
+        if pos != len(self.__parts):
+            x, y, w, h = self.__parts[pos-1].allocation
+            self.queue_draw_area(*self.__parts[pos].allocation)
+            self.__parts[pos].set_x(x+w-self.arrow_width)
+
         if old_w >= self.allocation.width:
+            print 'grow check'
             self.__grow_check(old_w, self.allocation)
             self.queue_draw()
 
@@ -862,7 +869,7 @@ class PathPart(gobject.GObject):
         self.label = label
         return
 
-    def set_icon(self, stock_icon, size=gtk.ICON_SIZE_BUTTON):
+    def set_icon(self, stock_icon, size=gtk.ICON_SIZE_SMALL_TOOLBAR):
         self.icon.specify(stock_icon, size)
         self.icon.load_pixbuf()
         return

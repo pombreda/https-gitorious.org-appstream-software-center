@@ -122,8 +122,6 @@ class InstalledPane(BasePane):
                 "Searching: %s" % terms,
                 self.on_navigation_search,
                 "search")
-        else:
-            self.navigation_bar.remove_id("search")
 
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
@@ -152,7 +150,11 @@ class InstalledPane(BasePane):
         self.searchentry.hide()
 
     def on_navigation_search(self, pathpart, pathbar):
-        print 'stub'
+        print 'nav_search_stub'
+        pathbar.remove_id("details")
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.emit("app-list-changed", len(self.app_view.get_model()))
+        self.searchentry.show()
         return
 
 if __name__ == "__main__":

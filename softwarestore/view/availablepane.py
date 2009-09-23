@@ -186,8 +186,6 @@ class AvailablePane(BasePane):
                 "Search for: %s" % new_text,
                 self.on_navigation_search,
                 "search")
-        else:
-            self.navigation_bar.remove_id("search")
 
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
@@ -225,6 +223,7 @@ class AvailablePane(BasePane):
 
     def on_navigation_search(self, pathpart, pathbar):
         print 'nav_search_stub'
+        pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
