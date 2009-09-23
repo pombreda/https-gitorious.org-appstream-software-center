@@ -408,9 +408,10 @@ class AppDetailsView(WebkitWidget):
         action_button_value = ""
         if self.pkg:
             pkg = self.pkg
-            if pkg.installed and pkg.isUpgradable:
-                action_button_label = _("Upgrade")
-                action_button_value = "upgrade"
+            # Don't handle upgrades yet
+            #if pkg.installed and pkg.isUpgradable:
+            #    action_button_label = _("Upgrade")
+            #    action_button_value = "upgrade"
             elif pkg.installed:
                 action_button_label = _("Remove")
                 action_button_value = "remove"
