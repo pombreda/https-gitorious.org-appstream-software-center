@@ -21,8 +21,6 @@
 import gtk
 import pango
 
-from gettext import gettext as _
-
 ICON_SIZE = 24
 MISSING_APP_ICON = "/usr/share/icons/gnome/scalable/categories/applications-other.svg"
 
@@ -42,4 +40,4 @@ class PkgNamesView(gtk.TreeView):
         for pkg in sorted(pkgnames):
             s = "%s \n<small>%s</small>" % (cache[pkg].installed.summary.capitalize(), pkg)
             pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, ICON_SIZE, ICON_SIZE)
-            row = model.append([pix, s])
+            model.append([pix, s])

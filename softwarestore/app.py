@@ -23,7 +23,6 @@ import locale
 import dbus
 import dbus.service
 import gettext
-import locale
 import logging
 import glib
 import gtk
@@ -203,7 +202,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self._pending_transactions = pending_nr
 
     def on_view_switcher_changed(self, view_switcher, action):
-        logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
+        logging.debug("view_switcher_activated: %s %s" % (view_switcher, action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
@@ -321,7 +320,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     def on_menuitem_help_activate(self, menuitem):
         # run yelp
-        p = subprocess.Popen(["yelp","ghelp:software-store"])
+        p = subprocess.Popen(["yelp", "ghelp:software-store"])
         # collect the exit status (otherwise we leave zombies)
         glib.timeout_add(1000, lambda p: p.poll() == None, p)
 

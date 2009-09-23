@@ -23,15 +23,13 @@ import gtk
 import gobject
 import apt
 import os
-import xapian
-import time
 import sys
 
 import aptdaemon.client
 from aptdaemon.enums import *
 
 try:
-    from appcenter.enums import *
+    from softwarestore.enums import *
 except ImportError:
     # support running from the dir too
     d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))

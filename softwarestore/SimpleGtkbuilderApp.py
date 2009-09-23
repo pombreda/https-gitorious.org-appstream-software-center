@@ -20,10 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-import os
 import sys
-import re
-
 import gtk
 
 # based on SimpleGladeApp
@@ -39,7 +36,7 @@ class SimpleGtkbuilderApp:
                 name = gtk.Buildable.get_name(o)
                 setattr(self, name, o)
             else:
-                print >>sys.stderr, "WARNING: can not get name for '%s'" % o
+                print >> sys.stderr, "WARNING: can not get name for '%s'" % o
 
     def run(self):
         """

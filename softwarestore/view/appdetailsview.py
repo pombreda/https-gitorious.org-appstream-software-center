@@ -23,16 +23,12 @@ import logging
 import gettext
 import gtk
 import gobject
-import apt
 import os
-import pango
 import string
 import subprocess
 import sys
 import tempfile
-import time
 import xapian
-import urllib
 
 from aptdaemon import policykit1
 from aptdaemon import client
@@ -82,7 +78,7 @@ class AppDetailsView(WebkitWidget):
         self.cache = cache
         self.datadir = datadir
         self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
-                                     stdout=subprocess.PIPE).communicate()[0]
+                                      stdout=subprocess.PIPE).communicate()[0]
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
@@ -149,7 +145,7 @@ class AppDetailsView(WebkitWidget):
             
     def clear(self):
         " clear the current view "
-        self.load_string("","text/plain","ascii","file:/")
+        self.load_string("", "text/plain", "ascii", "file:/")
         while gtk.events_pending(): 
             gtk.main_iteration()
 
@@ -179,9 +175,10 @@ class AppDetailsView(WebkitWidget):
                     details = _("Not available for your hardware architecture.")
             else:
                 details = _("Not available in the current data")
-        description = details.replace("*","</p><p>*")
-        description = description.replace("\n-","</p><p>-")
-        description = description.replace("\n\n","</p><p>")
+        # FIXME: Use regular expression
+        description = details.replace("*", "</p><p>*")
+        description = description.replace("\n-", "</p><p>-")
+        description = description.replace("\n\n", "</p><p>")
         return description
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and 
@@ -202,8 +199,6 @@ class AppDetailsView(WebkitWidget):
     def wksub_screenshot_thumbnail_url(self):
         url = self.SCREENSHOT_THUMB_URL % self.pkgname
         return url
-    def wksub_screenshot_alt(self):
-        return _("Application Screenshot")
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
     def wksub_screenshot_alt(self):
@@ -514,8 +509,6 @@ class AppDetailsView(WebkitWidget):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-
-    import sys
 
     if len(sys.argv) > 1:
         datadir = sys.argv[1]

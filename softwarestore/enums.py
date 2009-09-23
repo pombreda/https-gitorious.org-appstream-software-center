@@ -43,7 +43,7 @@ XAPIAN_VALUE_DESKTOP_FILE = 179
 
 
 from version import *
-USER_AGENT="Software Store/%s (N;) %s/%s (%s)" % (VERSION, 
+USER_AGENT = "Software Store/%s (N;) %s/%s (%s)" % (VERSION, 
                                                   DISTRO, 
                                                   RELEASE,
                                                   CODENAME)
