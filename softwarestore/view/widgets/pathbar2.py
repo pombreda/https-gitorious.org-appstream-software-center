@@ -137,6 +137,11 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         If there is the same id already, replace the existing one
         with the new one
         """
+
+        def idle_append_cb(part):
+            self.append(part)
+            return False
+
         # check if we have the button of that id or need a new one
         if id in self.id_to_part:
             part = self.id_to_part[id]
@@ -146,7 +151,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         else:
             part = PathPart(label)
             part.set_pathbar(self)
-            self.append(part)
+            gobject.idle_add(idle_append_cb, part)
             self.id_to_part[id] = part
 
         # common code

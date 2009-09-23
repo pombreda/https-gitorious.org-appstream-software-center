@@ -129,10 +129,6 @@ class InstalledPane(BasePane):
 #        if not button.get_active():
 #            return
         # remove the details and clear the search
-#        self.searchentry.clear()
-#        self.navigation_bar.remove_id("details")
-#        self.notebook.set_current_page(self.PAGE_APPLIST)
-#        self.searchentry.show()
         self.searchentry.clear()
         pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
