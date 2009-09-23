@@ -115,6 +115,15 @@ class InstalledPane(BasePane):
         self.search_terms = terms
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
+        if terms != "":
+            self.navigation_bar.remove_id("details")
+            self.navigation_bar.remove_id("search")
+            self.navigation_bar.add_with_id(
+                "Searching: %s" % terms,
+                self.on_navigation_search,
+                "search")
+        else:
+            self.navigation_bar.remove_id("search")
 
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
@@ -141,6 +150,10 @@ class InstalledPane(BasePane):
 #            return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+
+    def on_navigation_search(self, pathpart, pathbar):
+        print 'stub'
+        return
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

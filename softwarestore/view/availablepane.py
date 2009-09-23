@@ -104,7 +104,8 @@ class AvailablePane(BasePane):
         # home button
         self.navigation_bar.add_with_id(_("Get Free Software"),
                                         self.on_navigation_category,
-                                        "category")
+                                        "category",
+                                        icon=gtk.STOCK_HOME)
     @wait_for_apt_cache_ready
 
     def refresh_apps(self):
@@ -157,7 +158,8 @@ class AvailablePane(BasePane):
         # wants this to return to the category screen *if*
         # we are searching but we are not in a any category
         if not self.apps_category_query and not new_text:
-            self.navigation_bar.get_button_from_id("category").activate()
+            part = self.navigation_bar.get_part_from_id("category")
+            self.navigation_bar.set_active_part(part)
 
         # if the user searches in the category page, reset the specific
         # category query (to ensure all apps are searched)
@@ -177,6 +179,16 @@ class AvailablePane(BasePane):
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
+        if new_text != "":
+            self.navigation_bar.remove_id("details")
+            self.navigation_bar.remove_id("search")
+            self.navigation_bar.add_with_id(
+                "Search for: %s" % new_text,
+                self.on_navigation_search,
+                "search")
+        else:
+            self.navigation_bar.remove_id("search")
+
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
@@ -187,9 +199,10 @@ class AvailablePane(BasePane):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
 
     def on_navigation_category(self, pathpart, pathbar):
+        print 'nav_category'
         """callback when the navigation button with id 'category' is clicked"""
-        if not pathbar.get_active_part():
-            return
+#        if not pathbar.get_active_part():
+#            return
         # yeah for special cases - as discussed on irc, mpt
         # wants this to behave differently *if* we are not
         # in a sub-category *and* there is a search going on
@@ -203,22 +216,34 @@ class AvailablePane(BasePane):
         self.apps_search_query = None
         # remove navigation bar elements
         pathbar.remove_id("list")
+        pathbar.remove_id("search")
         pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_CATEGORY)
         # emit signal here to ensure to show count of all available items
         self.emit("app-list-changed", self.xapiandb.get_doccount())
         self.searchentry.show()
 
+    def on_navigation_search(self, pathpart, pathbar):
+        print 'nav_search_stub'
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.emit("app-list-changed", len(self.app_view.get_model()))
+        self.searchentry.show()
+        return
+
     def on_navigation_list(self, pathpart, pathbar):
+        print 'nav_list'
         """callback when the navigation button with id 'list' is clicked"""
 #        if not button.get_active():
 #            return
+        self.searchentry.clear()
+        pathbar.remove_id("search")
         pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
 
     def on_navigation_details(self, pathpart, pathbar):
+        print 'nav_details'
         """callback when the navigation button with id 'details' is clicked"""
 #        if not button.get_active():
 #            return
@@ -226,6 +251,7 @@ class AvailablePane(BasePane):
         self.searchentry.hide()
 
     def on_category_activated(self, cat_view, name, query):
+        print 'category_activated'
         #print cat_view, name, query
         # FIXME: integrate this at a lower level, e.g. by sending a
         #        full Category class with the signal

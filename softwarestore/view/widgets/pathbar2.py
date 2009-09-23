@@ -130,7 +130,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             i = len(self.__parts)-1
         return self.__parts[i]
 
-    def add_with_id(self, label, callback, id):
+    def add_with_id(self, label, callback, id, icon=None):
         """
         Add a new button with the given label/callback
         
@@ -154,6 +154,8 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             gobject.idle_add(idle_append_cb, part)
             self.id_to_part[id] = part
 
+        if icon: part.set_icon(icon)
+
         # common code
         handler_id = part.connect("clicked", callback)
         self.id_to_callback[id] = handler_id
@@ -168,7 +170,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         try:
             del self.id_to_callback[id]
         except KeyError:
-            pass
+            print self.id_to_callback.keys()
 
         old_w = self.__draw_width()
         end_active = self.get_active_part() == self.__parts[-1]
@@ -860,7 +862,7 @@ class PathPart(gobject.GObject):
         self.label = label
         return
 
-    def set_icon(self, stock_icon, size):
+    def set_icon(self, stock_icon, size=gtk.ICON_SIZE_BUTTON):
         self.icon.specify(stock_icon, size)
         self.icon.load_pixbuf()
         return
