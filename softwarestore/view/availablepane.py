@@ -70,6 +70,7 @@ class AvailablePane(BasePane):
         #self.apps_filter.set_not_installed_only(True)
         # UI
         self._build_ui()
+
     def _build_ui(self):
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()
@@ -103,6 +104,7 @@ class AvailablePane(BasePane):
                                         self.on_navigation_category,
                                         "category")
     @wait_for_apt_cache_ready
+
     def refresh_apps(self):
         """refresh the applist after search changes and update the
            navigation bar

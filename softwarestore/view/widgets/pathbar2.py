@@ -353,6 +353,9 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
 
     def __grow_check(self, old_width, allocation):
         parts = self.__parts
+        if len(parts) == 0:
+            return
+
         growth = old_width - self.__draw_width()
         parts.reverse()
 

@@ -59,6 +59,7 @@ class InstalledPane(BasePane):
         self.apps_filter.set_installed_only(True)
         # UI
         self._build_ui()
+
     def _build_ui(self):
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()
@@ -106,12 +107,14 @@ class InstalledPane(BasePane):
         self.app_view.set_model(new_model)
         self.emit("app-list-changed", len(new_model))
         return False
+
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
         self.search_terms = terms
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
+
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
@@ -120,6 +123,7 @@ class InstalledPane(BasePane):
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+
     def on_navigation_list(self, pathpart, pathbar):
         """callback when the navigation button with id 'list' is clicked"""
 #        if not button.get_active():
@@ -133,6 +137,7 @@ class InstalledPane(BasePane):
         pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
+
     def on_navigation_details(self, pathpart, pathbar):
         """callback when the navigation button with id 'details' is clicked"""
 #        if not button.get_active():
