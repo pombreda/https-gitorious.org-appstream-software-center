@@ -77,7 +77,7 @@ class BasePane(gtk.VBox):
         # list
         self.app_view = AppView()
         self.scroll_app_list = gtk.ScrolledWindow()
-        self.scroll_app_list.set_shadow_type(gtk.SHADOW_IN)
+#        self.scroll_app_list.set_shadow_type(gtk.SHADOW_IN)
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
         self.scroll_app_list.add(self.app_view)
