@@ -12,7 +12,6 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
     def __init__(self, user_agent=USER_AGENT):
         proxies = {}
-        import gconf
         client = gconf.client_get_default()
         if client.get_bool("/system/http_proxy/use_http_proxy"):
             host = client.get_string("/system/http_proxy/host")
