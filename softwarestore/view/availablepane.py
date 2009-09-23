@@ -176,16 +176,21 @@ class AvailablePane(BasePane):
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
         self.update_navigation_button()
-        self.refresh_apps()
-        self.notebook.set_current_page(self.PAGE_APPLIST)
 
         if new_text != "":
             self.navigation_bar.remove_id("details")
             self.navigation_bar.remove_id("search")
             self.navigation_bar.add_with_id(
-                "Search for: %s" % new_text,
+                "Search for: <i>%s</i>" % new_text,
                 self.on_navigation_search,
                 "search")
+        else:
+            self.navigation_bar.remove_id("details")
+            self.navigation_bar.remove_id("search")
+
+        self.refresh_apps()
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+
 
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""

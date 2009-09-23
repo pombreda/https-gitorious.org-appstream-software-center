@@ -960,6 +960,8 @@ class PathPart(gobject.GObject):
     def __layout_text(self, text, pango_context):
         # escape special characters
         text = gobject.markup_escape_text(text.strip())
+        # some hackery to preserve italics markup
+        text = text.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
         layout = pango.Layout(pango_context)
         layout.set_markup('<b>%s</b>' % text)
         layout.set_ellipsize(pango.ELLIPSIZE_END)
