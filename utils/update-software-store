@@ -80,7 +80,7 @@ if __name__ == "__main__":
         dbus_controller = UpdateSoftwareStoreDbus(bus_name)
         dbus_controller.DatabaseRebuilding(True)
     except:
-        logging.exception("dbus failure")
+        logging.exception("dbus failure (ignoring")
 
     # rebuild and send signal when done
     try:

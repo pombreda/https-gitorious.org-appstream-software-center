@@ -1,4 +1,4 @@
-software-store (0.3.9) UNRELEASED; urgency=low
+software-store (0.3.9) karmic; urgency=low
 
   [ Michael Vogt ]
   * softwarestore/view/appdetailsview.py, data/templates/AppDetailsView.html:
@@ -14,6 +14,8 @@ software-store (0.3.9) UNRELEASED; urgency=low
     - support boolean expressions in the search terms (AND, OR, NOT)
   * disable warning if a package gets removed that another package
     recommends (its not part of the spec how to handle this)
+  * softwarestore/db/update.py:
+    - do not fail if no locale is defined (LP: #434699)
 
   [ Andrew Higginson ]
   * debian/control:
@@ -22,7 +24,7 @@ software-store (0.3.9) UNRELEASED; urgency=low
   * softwarestore/view/appdetailsview.py, softwarestore/view/dialogs.py:
     - make the remove dialog conform to the spec
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 15:06:03 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Sep 2009 12:07:31 +0200
 
 software-store (0.3.8) karmic; urgency=low
 

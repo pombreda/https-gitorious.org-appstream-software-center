@@ -59,12 +59,13 @@ class DesktopConfigParser(RawConfigParser):
         # then try the i18n version of the key (in [de_DE] or
         # [de]
         locale = getdefaultlocale()[0]
-        if self.has_option_desktop("%s[%s]" % (key, locale)):
-            return self.get(self.DE, "%s[%s]" % (key, locale))
-        if "_" in locale:
-            locale_short = locale.split("_")[0]
-            if self.has_option_desktop("%s[%s]" % (key, locale_short)):
-                return self.get(self.DE, "%s[%s]" % (key, locale_short))
+        if locale:
+            if self.has_option_desktop("%s[%s]" % (key, locale)):
+                return self.get(self.DE, "%s[%s]" % (key, locale))
+            if "_" in locale:
+                locale_short = locale.split("_")[0]
+                if self.has_option_desktop("%s[%s]" % (key, locale_short)):
+                    return self.get(self.DE, "%s[%s]" % (key, locale_short))
         # and then the untranslated field
         return self.get(self.DE, key)
     def has_option_desktop(self, key):
@@ -184,7 +185,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             #        desktop file
             # FIXME3: add X-AppInstall-Section
         except Exception, e:
-            logging.warn("error processing: %s %s" % (desktopf, e))
+            logging.exception("error processing: %s %s" % (desktopf, e))
             continue
         # now add it
         db.add_document(doc)
