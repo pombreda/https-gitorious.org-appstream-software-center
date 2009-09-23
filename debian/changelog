@@ -12,6 +12,8 @@ software-store (0.3.9) UNRELEASED; urgency=low
     - move query parser code into a proper place and default to
       AND for multiple search terms (LP: #432978)
     - support boolean expressions in the search terms (AND, OR, NOT)
+  * disable warning if a package gets removed that another package
+    recommends (its not part of the spec how to handle this)
 
   [ Andrew Higginson ]
   * debian/control:

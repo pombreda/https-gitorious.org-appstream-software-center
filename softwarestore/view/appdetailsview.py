@@ -59,7 +59,9 @@ class AppDetailsView(WebkitWidget):
     APP_ICON_PADDING = 8
 
     # dependency types we are about
-    DEPENDENCY_TYPES = ("PreDepends", "Depends", "Recommends")
+    # FIXME: we do not support warning about removal of stuff that is
+    #        recommended because its not speced
+    DEPENDENCY_TYPES = ("PreDepends", "Depends"( #, "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
     SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
