@@ -38,6 +38,7 @@ except ImportError:
     from enums import *
 
 from widgets.pathbar2 import PathBar as NavigationBar
+from widgets.contentview import ContentView
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter
@@ -70,8 +71,8 @@ class InstalledPane(BasePane):
         top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(top_hbox, expand=False, padding=self.PADDING)
         # a notebook below
-        self.notebook = gtk.Notebook()
-        self.notebook.set_show_tabs(False)
+        self.notebook = ContentView()
+        #self.notebook.set_show_tabs(False)
         self.pack_start(self.notebook)
         # appview and details into the notebook in the bottom
         self.app_view.connect("application-activated", 

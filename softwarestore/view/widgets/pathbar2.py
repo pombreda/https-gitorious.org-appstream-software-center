@@ -469,6 +469,8 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         return None
 
     def __draw_hscroll(self, cr):
+        if len(self.__parts) < 2:
+            return
         # draw the last two parts
         prev, last = self.__parts[-2:]
 

@@ -38,6 +38,7 @@ except ImportError:
     from enums import *
 
 from widgets.pathbar2 import PathBar as NavigationBar
+from widgets.contentview import ContentView
 
 from widgets.searchentry import SearchEntry
 
@@ -81,14 +82,15 @@ class AvailablePane(BasePane):
         top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(top_hbox, expand=False, padding=self.PADDING)
         # a notebook below
-        self.notebook = gtk.Notebook()
-        self.notebook.set_show_tabs(False)
+        self.notebook = ContentView()
+        #self.notebook.set_show_tabs(False)
         self.pack_start(self.notebook)
         # categories, appview and details into the notebook in the bottom
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
                                        self.xapiandb,
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
+#        scroll_categories.set_shadow_type(gtk.SHADOW_IN)
         scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_categories.add(self.cat_view)
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
