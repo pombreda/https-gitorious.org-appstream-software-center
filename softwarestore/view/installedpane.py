@@ -37,7 +37,7 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
-from widgets.navigationbar import NavigationBarShinny as NavigationBar
+from widgets.pathbar2 import PathBar as NavigationBar
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter
@@ -120,13 +120,17 @@ class InstalledPane(BasePane):
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-    def on_navigation_list(self, button, s):
+    def on_navigation_list(self, pathpart, pathbar):
         """callback when the navigation button with id 'list' is clicked"""
-        if not button.get_active():
-            return
+#        if not button.get_active():
+#            return
         # remove the details and clear the search
+#        self.searchentry.clear()
+#        self.navigation_bar.remove_id("details")
+#        self.notebook.set_current_page(self.PAGE_APPLIST)
+#        self.searchentry.show()
         self.searchentry.clear()
-        self.navigation_bar.remove_id("details")
+        pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
     def on_navigation_details(self, pathpart, pathbar):

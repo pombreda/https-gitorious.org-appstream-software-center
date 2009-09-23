@@ -37,7 +37,7 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
-from widgets.navigationbar import NavigationBarShinny as NavigationBar
+from widgets.pathbar2 import PathBar as NavigationBar
 
 from widgets.searchentry import SearchEntry
 
@@ -84,7 +84,7 @@ class AvailablePane(BasePane):
         self.notebook.set_show_tabs(False)
         self.pack_start(self.notebook)
         # categories, appview and details into the notebook in the bottom
-        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH, 
+        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
                                        self.xapiandb,
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
@@ -93,23 +93,23 @@ class AvailablePane(BasePane):
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
         # app list
         self.cat_view.connect("category-selected", self.on_category_activated)
-        self.app_view.connect("application-activated", 
+        self.app_view.connect("application-activated",
                               self.on_application_activated)
         self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # home button
-        self.navigation_bar.add_with_id(_("Get Free Software"), 
+        self.navigation_bar.add_with_id(_("Get Free Software"),
                                         self.on_navigation_category,
                                         "category")
     @wait_for_apt_cache_ready
     def refresh_apps(self):
-        """refresh the applist after search changes and update the 
+        """refresh the applist after search changes and update the
            navigation bar
         """
         # build query
         if self.apps_category_query and self.apps_search_query:
-            query = xapian.Query(xapian.Query.OP_AND, 
+            query = xapian.Query(xapian.Query.OP_AND,
                                  self.apps_category_query,
                                  self.apps_search_query)
         elif self.apps_category_query:
@@ -120,9 +120,9 @@ class AvailablePane(BasePane):
             query = None
         # create new model and attach it
         new_model = AppStore(self.cache,
-                             self.xapiandb, 
-                             self.icons, 
-                             query, 
+                             self.xapiandb,
+                             self.icons,
+                             query,
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
                              filter=self.apps_filter)
@@ -133,7 +133,7 @@ class AvailablePane(BasePane):
     # helper FIXME: move to more generic code?
     def get_query_from_search_entry(self, search_term):
         """ get xapian.Query from a search term string """
-        query = self.xapian_parser.parse_query(search_term, 
+        query = self.xapian_parser.parse_query(search_term,
                                                xapian.QueryParser.FLAG_PARTIAL)
         # FIXME: expand to add "AA" and "AP" before each search term?
         return query
@@ -143,7 +143,7 @@ class AvailablePane(BasePane):
         if self.apps_category_query:
             cat =  self.apps_category_query.name
             self.navigation_bar.add_with_id(cat, self.on_navigation_list, "list")
-        
+
     # callbacks
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
@@ -181,6 +181,7 @@ class AvailablePane(BasePane):
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+
     def on_navigation_category(self, pathpart, pathbar):
         """callback when the navigation button with id 'category' is clicked"""
         if not pathbar.get_active_part():
@@ -197,29 +198,32 @@ class AvailablePane(BasePane):
         self.apps_sorted = True
         self.apps_search_query = None
         # remove navigation bar elements
-        self.navigation_bar.remove_id("list")
-        self.navigation_bar.remove_id("details")
+        pathbar.remove_id("list")
+        pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_CATEGORY)
         # emit signal here to ensure to show count of all available items
         self.emit("app-list-changed", self.xapiandb.get_doccount())
         self.searchentry.show()
+
     def on_navigation_list(self, pathpart, pathbar):
         """callback when the navigation button with id 'list' is clicked"""
 #        if not button.get_active():
 #            return
-        self.navigation_bar.remove_id("details")
+        pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
+
     def on_navigation_details(self, pathpart, pathbar):
         """callback when the navigation button with id 'details' is clicked"""
 #        if not button.get_active():
 #            return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+
     def on_category_activated(self, cat_view, name, query):
         #print cat_view, name, query
-        # FIXME: integrate this at a lower level, e.g. by sending a 
+        # FIXME: integrate this at a lower level, e.g. by sending a
         #        full Category class with the signal
         query.name = name
         self.apps_category_query = query

@@ -47,6 +47,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         gobject.GObject.__init__(self)
         gtk.DrawingArea.__init__(self)
         self.set_redraw_on_allocate(False)
+        self.set_size_request(-1, 30)
 
         self.__shapes = {
             SHAPE_RECTANGLE : self.__shape_rect,
@@ -129,7 +130,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             i = len(self.__parts)-1
         return self.__parts[i]
 
-    def add_part_with_id(self, label, callback, id):
+    def add_with_id(self, label, callback, id):
         """
         Add a new button with the given label/callback
         
@@ -141,7 +142,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             part = self.id_to_part[id]
             part.set_label(label)
             part.disconnect(self.id_to_callback[id])
-            self.queue_draw_area(part.allocation)
+            self.queue_draw_area(*part.allocation)
         else:
             part = PathPart(label)
             part.set_pathbar(self)
@@ -153,9 +154,10 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         self.id_to_callback[id] = handler_id
         return
 
-    def remove_part_by_id(self, id):
+    def remove_id(self, id):
 
         if not id in self.id_to_part:
+            print 'id not in pathbar'
             return
 
         try:
