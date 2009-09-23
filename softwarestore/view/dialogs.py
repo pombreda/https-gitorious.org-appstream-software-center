@@ -72,26 +72,29 @@ def error(parent, primary, secondary, details=None):
                          details=details,
                          type=gtk.MESSAGE_ERROR)
 
-def confirm_remove(parent, primary, secondary, cache, depends=[]):
+def confirm_remove(parent, primary, cache, button_text, icon_path, depends=[]):
     """Confirm removing of the given app with the given depends"""
     dialog = gtk.MessageDialog(parent=parent, flags=0, 
                                type=gtk.MESSAGE_QUESTION, 
-                               message_format=primary)
+                               message_format=None)
     dialog.set_resizable(True)
-    dialog.format_secondary_markup(secondary)
     dialog.add_button(_("Cancel"), gtk.RESPONSE_CANCEL)
-    dialog.add_button(_("Remove"), gtk.RESPONSE_ACCEPT)
+    dialog.add_button(button_text, gtk.RESPONSE_ACCEPT)
+    dialog.get_image().set_from_file(icon_path)
+    dialog.set_markup(primary)
     # add the dependencies
     if depends:
         vbox = dialog.get_content_area()
         # FIXME: make this a generic pkgview widget
-        model = gtk.ListStore(str)
-        view = PkgNamesView(_("Dependencies"), cache, depends)
+        view = PkgNamesView(_("Dependency"), cache, depends)
+        view.set_headers_visible(False)
         scrolled = gtk.ScrolledWindow()
         scrolled.set_size_request(-1, 200)
-        scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         scrolled.add(view)
         scrolled.show_all()
+        # FIXME: this needs padding on the left side so 
+        # it lines up with the text
         vbox.pack_start(scrolled)
     result = dialog.run()
     dialog.hide()

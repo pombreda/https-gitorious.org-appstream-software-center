@@ -144,7 +144,13 @@ class AppDetailsView(WebkitWidget):
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
-
+    
+    def get_icon_filename(self, iconname, iconsize):
+        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
+        if not iconinfo:
+            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+        return iconinfo.get_filename()
+            
     def clear(self):
         " clear the current view "
         self.load_string("","text/plain","ascii","file:/")
@@ -188,12 +194,7 @@ class AppDetailsView(WebkitWidget):
         return self.IMAGE_LOADING
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
-        iconinfo = self.icons.lookup_icon(self.iconname, 
-                                          self.APP_ICON_SIZE, 0)
-        if iconinfo:
-            iconpath = iconinfo.get_filename()
-        else:
-            iconpath = self.MISSING_ICON_PATH
+        iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
         # *meh* if not png -> convert
         # FIXME: make webkit understand xpm files instead
         if iconpath.endswith(".xpm"):
@@ -205,6 +206,8 @@ class AppDetailsView(WebkitWidget):
     def wksub_screenshot_thumbnail_url(self):
         url = self.SCREENSHOT_THUMB_URL % self.pkgname
         return url
+    def wksub_screenshot_alt(self):
+        return _("Application Screenshot")
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
     def wksub_screenshot_alt(self):
@@ -333,25 +336,44 @@ class AppDetailsView(WebkitWidget):
         self._run_transaction(trans)
 
     def on_button_remove_clicked(self):
-        # generic removal text
-        primary=_("%s depends on other software on the system. ") % self.appname
-        secondary = _("Uninstalling it means that the following "
-                      "additional software needs to be removed.")
+        # generic removal text 
+        # FIXME: this text is not accurate, we look at recommends as
+        #        well as part of the rdepends, but those do not need to
+        #        be removed, they just may be limited in functionatlity
+        primary = _("To remove %s, these items must be removed "
+                    "as well:" % self.appname)
+        button_text = _("Remove All")
+        depends = list(self.installed_rdeps)
+        
         # alter it if a meta-package is affected
+        for m in self.installed_rdeps:
+            if self.cache[m].section == "metapackages":
+                primary = _("If you uninstall %s, future updates will not "
+                              "include new items in <b>%s</b> set. "
+                              "Are you sure you want to continue?") % (self.appname, self.cache[m].installed.summary)
+                button_text = _("Remove Anyway")
+                depends = None
+                break
+
+        # alter it if an important meta-package is affected
         for m in self.IMPORTANT_METAPACKAGES:
             if m in self.installed_rdeps:
-                primary=_("%s is a core component") % self.appname
-                secondary = _("%s is a core application in Ubuntu. "
+                primary = _("%s is a core application in Ubuntu. "
                               "Uninstalling it may cause future upgrades "
                               "to be incomplete. Are you sure you want to "
                               "continue?") % self.appname
+                button_text = _("Remove Anyway")
+                depends = None
                 break
+                
         # ask for confirmation if we have rdepends
         if len(self.installed_rdeps):
-            if not dialogs.confirm_remove(None, primary, secondary, 
-                                          self.cache,
-                                          list(self.installed_rdeps)):
+            iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
+            if not dialogs.confirm_remove(None, primary, self.cache,
+                                        button_text, iconpath, depends):
+                self._set_action_button_sensitive(True)
                 return
+
         # do it (no rdepends or user confirmed)
         trans = self.aptd_client.remove_packages([self.pkgname],
                                          exit_handler=self._on_trans_finished)
@@ -380,7 +402,7 @@ class AppDetailsView(WebkitWidget):
                    enums.get_error_string_from_enum(excep.code),
                    enums.get_error_description_from_enum(excep.code),
                    excep.details)
-            logging.error(msg)
+            logging.error("error in _on_trans_finished '%s'" % msg)
             # show dialog to the user and exit (no need to reopen
             # the cache)
             dialogs.error(None, 

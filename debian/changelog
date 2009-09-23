@@ -1,5 +1,6 @@
 software-store (0.3.9) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarestore/view/appdetailsview.py, data/templates/AppDetailsView.html:
     - add basic license information to each package
   * softwarestore/app.py:
@@ -7,6 +8,13 @@ software-store (0.3.9) UNRELEASED; urgency=low
       ("departments") on key-down (LP: #433828)
   * data/templates/CategoriesView.html:
     - arrow key navigation added (thanks to Stuart Langridge)
+
+  [ Andrew Higginson ]
+  * debian/control:
+    - add python-gconf dependencies (needed in the image fetch code to
+      get the proxy from gconf)
+  * softwarestore/view/appdetailsview.py, softwarestore/view/dialogs.py:
+    - make the remove dialog conform to the spec
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 15:06:03 +0200
 
