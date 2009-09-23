@@ -73,6 +73,7 @@ class InstalledPane(SoftwarePane):
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
+        self.notebook.set_show_border(False)
         self.pack_start(self.notebook)
         # appview and details into the notebook in the bottom
         self.app_view.connect("application-activated", 
