@@ -407,7 +407,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         else:
             # FIXME: deal with the pending view status
             s = ""
-        self.statusbar.push("items", s)
+        self.statusbar.push(1, s)
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
