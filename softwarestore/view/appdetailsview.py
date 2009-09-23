@@ -61,7 +61,7 @@ class AppDetailsView(WebkitWidget):
     # dependency types we are about
     # FIXME: we do not support warning about removal of stuff that is
     #        recommended because its not speced
-    DEPENDENCY_TYPES = ("PreDepends", "Depends"( #, "Recommends")
+    DEPENDENCY_TYPES = ("PreDepends", "Depends") #, "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
     SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
