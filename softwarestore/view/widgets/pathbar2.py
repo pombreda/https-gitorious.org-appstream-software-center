@@ -187,10 +187,15 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         if end_active:
             self.set_active_part(self.__parts[-1])
 
-        if pos != len(self.__parts):
-            x, y, w, h = self.__parts[pos-1].allocation
-            self.queue_draw_area(*self.__parts[pos].allocation)
-            self.__parts[pos].set_x(x+w-self.arrow_width)
+        # this code handles circumstances where the part removed is not the
+        # tail part.  code is not robust, but kinda works in situations where
+        # the pathbar is three parts long and the middle part is removed.
+        # shouldn't be hard to make robust; calc a left shift then in a for loop
+        # subtract left shift from each-part-after-the-removed-parts' x position.
+#        if pos != len(self.__parts):
+#            x, y, w, h = self.__parts[pos-1].allocation
+#            self.queue_draw_area(*self.__parts[pos].allocation)
+#            self.__parts[pos].set_x(x+w-self.arrow_width)
 
         if old_w >= self.allocation.width:
             print 'grow check'
