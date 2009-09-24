@@ -62,7 +62,7 @@ class SoftwarePane(gtk.VBox):
                               (int, ),
                              )
     }
-    TOP_PADDING = 6
+    PADDING = 6
 
     def __init__(self, cache, db, icons, datadir):
         gtk.VBox.__init__(self)
@@ -101,9 +101,9 @@ class SoftwarePane(gtk.VBox):
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigation_bar)
-        top_hbox.pack_start(self.searchentry, expand=False)
-        self.pack_start(top_hbox, expand=False, padding=self.TOP_PADDING)
+        top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
+        top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
+        self.pack_start(top_hbox, expand=False, padding=self.PADDING)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)

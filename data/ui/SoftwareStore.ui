@@ -301,7 +301,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="show_tabs">False</property>
-                <property name="show_border">False</property>
+                <property name="show_border">True</property>
                 <child>
                   <object class="GtkAlignment" id="alignment_available">
                     <property name="visible">True</property>

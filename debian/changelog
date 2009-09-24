@@ -10,9 +10,7 @@ software-store (0.3.10) UNRELEASED; urgency=low
   * data/templates/AppDetailsView.html:
     - simplify the html, disable DnD (LP: #434236), thanks to
       Istvan Nyitrai
-  * adjust alignment (LP: #435727)
-  * move common code into softwarepane.py and align switcher and panes 
-    correctly with the navigation buttons
+  * move common code into softwarepane.py
   * update license to GPLv3
   * update translators comment for "Ubuntu Software Store"
 

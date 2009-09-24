@@ -165,10 +165,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_transactions_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
-        # set alignments
-        self.alignment_view_switcher.set_padding(SoftwarePane.TOP_PADDING,0,0,0)
-        self.alignment_transactions.set_padding(SoftwarePane.TOP_PADDING,0,0,0)
-
         # launchpad integration help, its ok if that fails
         try:
             import LaunchpadIntegration
