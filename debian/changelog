@@ -1,6 +1,8 @@
 software-store (0.3.10) UNRELEASED; urgency=low
 
   * disable borders around the (internal) notebook widgets
+  * softwarestore/view/installedpane.py:
+    - fix crash when now app_model is available yet (LP: #435464)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Sep 2009 14:37:45 +0200
 

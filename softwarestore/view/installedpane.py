@@ -129,7 +129,10 @@ class InstalledPane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
-        self.emit("app-list-changed", len(self.app_view.get_model()))
+        # only emit something if the model is there
+        model = self.app_view.get_model()
+        if model:
+            self.emit("app-list-changed", len(model))
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
