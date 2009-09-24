@@ -55,7 +55,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         gobject.GObject.__init__(self)
         gtk.DrawingArea.__init__(self)
         self.set_redraw_on_allocate(False)
-        self.set_size_request(-1, 30)
+        self.set_size_request(-1, 28)
 
         self.__shapes = {
             SHAPE_RECTANGLE : self.__shape_rect,
@@ -561,7 +561,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             cr.set_source_pixbuf(
                 icon_pb,
                 self.xpadding-sxO,
-                (alloc.height - icon_pb.get_height())/2)
+                (alloc.height - icon_pb.get_height())/2+1)
             cr.paint()
             margin += icon_pb.get_width() + self.spacing
 
@@ -710,8 +710,6 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         # callback allows the tooltip position to be updated as pointer moves
         # accross different parts
         self.set_has_tooltip(True)
-        
-        text = text.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
         self.set_tooltip_markup(text)
         return False
 
@@ -884,7 +882,7 @@ class PathPart(gobject.GObject):
         self.label = label
         return
 
-    def set_icon(self, stock_icon, size=gtk.ICON_SIZE_SMALL_TOOLBAR):
+    def set_icon(self, stock_icon, size=gtk.ICON_SIZE_BUTTON):
         self.icon.specify(stock_icon, size)
         self.icon.load_pixbuf()
         return
