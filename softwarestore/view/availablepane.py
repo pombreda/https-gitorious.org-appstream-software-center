@@ -92,6 +92,7 @@ class AvailablePane(SoftwarePane):
                                        self.xapiandb,
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
+        scroll_categories.set_shadow_type(gtk.SHADOW_IN)
         scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_categories.add(self.cat_view)
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))

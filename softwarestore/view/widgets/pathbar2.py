@@ -565,12 +565,12 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             layout = part.get_layout()
             dst_x = alloc.x + margin - int(sxO)
             dst_y = (self.allocation.height - layout.get_pixel_size()[1])/2 + 1
-
+            w, h = layout.get_pixel_size()
             style.paint_layout(
                 self.window,
                 state,
                 False,
-                (dst_x, dst_y) + layout.get_pixel_size(),   # clip area
+                (dst_x, dst_y, w+4, h),   # clip area
                 self,
                 None,
                 dst_x,
