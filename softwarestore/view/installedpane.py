@@ -158,7 +158,6 @@ class InstalledPane(SoftwarePane):
 
     def on_navigation_search(self, pathpart, pathbar):
         pathbar.remove_id("details")
-        pathbar.remove_id("search")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
