@@ -177,7 +177,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         try:
             del self.id_to_callback[id]
         except KeyError:
-            print self.id_to_callback.keys()
+            pass
 
         pos = self.__parts.index(self.id_to_part[id])
         del self.__parts[pos]
@@ -198,7 +198,6 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
 #            self.__parts[pos].set_x(x+w-self.arrow_width)
 
         if old_w >= self.allocation.width:
-            print 'grow check'
             self.__grow_check(old_w, self.allocation)
             self.queue_draw()
 
@@ -581,23 +580,16 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         return
 
     def __draw_part_bg(self, cr, w, h, state, shape, style, r, aw, shapes):
-
         light = style.light[state]
         mid = style.mid[state]
         dark = style.dark[state]
-
-        # make an active part look pressed in
-        if state != gtk.STATE_ACTIVE:
-            bevel = light
-        else:
-            bevel = mid
+        sel = style.bg[gtk.STATE_SELECTED]
 
         # outer slight bevel or focal highlight
         shapes[shape](cr, 0, 0, w, h, r, aw, True)
         if not self.is_focus():
             cr.set_source_rgba(0, 0, 0, 0.055)
         else:
-            sel = style.bg[gtk.STATE_SELECTED]
             cr.set_source_rgba(sel.red_float, sel.green_float, sel.blue_float, 0.65)
         cr.fill()
         cr.reset_clip()
@@ -628,12 +620,11 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         # inner bevel/highlight
         shapes[shape](cr, 2, 2, w-3, h-3, r, aw)
         cr.set_source_rgba(
-            bevel.red_float,
-            bevel.green_float,
-            bevel.blue_float,
+            light.red_float,
+            light.green_float,
+            light.blue_float,
             0.65)
         cr.stroke()
-
         cr.restore()
         return
 
@@ -709,7 +700,9 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         # callback allows the tooltip position to be updated as pointer moves
         # accross different parts
         self.set_has_tooltip(True)
-        self.set_tooltip_text(text)
+        
+        text = text.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
+        self.set_tooltip_markup(text)
         return False
 
     def __motion_notify_cb(self, widget, event):
@@ -862,7 +855,7 @@ class PathPart(gobject.GObject):
         self.shape = SHAPE_RECTANGLE
 
         self.callback = None
-        self.label = label or ''
+        self.set_label(label or "")
         self.icon = Icon()
         return
 
@@ -871,6 +864,10 @@ class PathPart(gobject.GObject):
         return
 
     def set_label(self, label):
+        # escape special characters
+        label = gobject.markup_escape_text(label.strip())
+        # some hackery to preserve italics markup
+        label = label.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
         self.label = label
         return
 
@@ -958,12 +955,8 @@ class PathPart(gobject.GObject):
         return w, h
 
     def __layout_text(self, text, pango_context):
-        # escape special characters
-        text = gobject.markup_escape_text(text.strip())
-        # some hackery to preserve italics markup
-        text = text.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
         layout = pango.Layout(pango_context)
-        layout.set_markup('<b>%s</b>' % text)
+        layout.set_markup('%s' % text)
         layout.set_ellipsize(pango.ELLIPSIZE_END)
         return layout
 
