@@ -3,7 +3,7 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="window_main">
-    <property name="title" translatable="yes">Ubuntu Software Store</property>
+    <property name="title" translatable="yes" context="This is the window title of the application" comments="From the spec: &quot;This name should be localized, and the code should advise translators to Translate 'store' with the meaning of 'shop' rather than 'repository', if there is no common term covering both.&quot;">Ubuntu Software Store</property>
     <property name="window_position">center</property>
     <property name="default_width">850</property>
     <property name="default_height">500</property>
