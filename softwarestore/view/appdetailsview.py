@@ -37,20 +37,19 @@ import urllib
 from aptdaemon import policykit1
 from aptdaemon import client
 from aptdaemon import enums
+from aptdaemon.gtkwidgets import AptMediumRequiredDialog
  
 from gettext import gettext as _
+
+if os.path.exists("./softwarestore/enums.py"):
+    sys.path.insert(0, ".")
+from softwarestore.enums import *
+from softwarestore.version import *
+from softwarestore.db.database import StoreDatabase
 
 from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog
 import dialogs
-
-try:
-    from appcenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from enums import *
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -60,7 +59,9 @@ class AppDetailsView(WebkitWidget):
     APP_ICON_PADDING = 8
 
     # dependency types we are about
-    DEPENDENCY_TYPES = ("PreDepends", "Depends", "Recommends")
+    # FIXME: we do not support warning about removal of stuff that is
+    #        recommended because its not speced
+    DEPENDENCY_TYPES = ("PreDepends", "Depends") #, "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
     SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
@@ -75,8 +76,7 @@ class AppDetailsView(WebkitWidget):
                                 gobject.TYPE_NONE,
                                 (str,str, ))
                     }
-
-
+    
     def __init__(self, xapiandb, icons, cache, datadir):
         super(AppDetailsView, self).__init__(datadir)
         self.xapiandb = xapiandb
@@ -92,11 +92,16 @@ class AppDetailsView(WebkitWidget):
         self.aptd_client = client.AptClient()
         self.window_main_xid = None
         # data
-        self.appname = None
+        self.appname = ""
+        self.pkgname = ""
+        self.iconname = ""
         # setup missing icon
         iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, 
                                           self.APP_ICON_SIZE, 0)
         self.MISSING_ICON_PATH = iconinfo.get_filename()
+        # setup user-agent
+        settings = self.get_settings()
+        settings.set_property("user-agent", USER_AGENT)
         
     def _show(self, widget):
         if not self.appname:
@@ -119,11 +124,7 @@ class AppDetailsView(WebkitWidget):
         self.doc = None
 
         # get xapian document
-        for m in self.xapiandb.postlist("AA"+appname):
-            doc = self.xapiandb.get_document(m.docid)
-            if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
-                self.doc = doc
-                break
+        self.doc = self.xapiandb.get_xapian_document(appname, pkgname)
         if not self.doc:
             raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
 
@@ -145,7 +146,13 @@ class AppDetailsView(WebkitWidget):
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
-
+    
+    def get_icon_filename(self, iconname, iconsize):
+        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
+        if not iconinfo:
+            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+        return iconinfo.get_filename()
+            
     def clear(self):
         " clear the current view "
         self.load_string("","text/plain","ascii","file:/")
@@ -189,12 +196,7 @@ class AppDetailsView(WebkitWidget):
         return self.IMAGE_LOADING
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
-        iconinfo = self.icons.lookup_icon(self.iconname, 
-                                          self.APP_ICON_SIZE, 0)
-        if iconinfo:
-            iconpath = iconinfo.get_filename()
-        else:
-            iconpath = self.MISSING_ICON_PATH
+        iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
         # *meh* if not png -> convert
         # FIXME: make webkit understand xpm files instead
         if iconpath.endswith(".xpm"):
@@ -206,8 +208,12 @@ class AppDetailsView(WebkitWidget):
     def wksub_screenshot_thumbnail_url(self):
         url = self.SCREENSHOT_THUMB_URL % self.pkgname
         return url
+    def wksub_screenshot_alt(self):
+        return _("Application Screenshot")
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
+    def wksub_screenshot_alt(self):
+        return _("Application Screenshot")
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):
@@ -268,6 +274,14 @@ class AppDetailsView(WebkitWidget):
     def wksub_homepage(self):
         s = _("Website")
         return s
+    def wksub_license(self):
+        li =  _("Unknown")
+        if self.component in ("main", "universe"):
+            li = _("Open Source")
+        elif self.component == "restricted":
+            li = _("Proprietary")
+        s = _("License: %s") % li
+        return s
     def wksub_price(self):
         s = _("Price: %s") % _("Free")
         return s
@@ -319,37 +333,56 @@ class AppDetailsView(WebkitWidget):
         subprocess.call([cmd, self.homepage_url])
 
     def on_button_upgrade_clicked(self):
-        trans = self.aptd_client.commit_packages([], [], [], [], [self.pkgname], 
+        trans = self.aptd_client.upgrade_packages([self.pkgname], 
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
     def on_button_remove_clicked(self):
-        # generic removal text
-        primary=_("%s depends on other software on the system. ") % self.appname
-        secondary = _("Uninstalling it means that the following "
-                      "additional software needs to be removed.")
+        # generic removal text 
+        # FIXME: this text is not accurate, we look at recommends as
+        #        well as part of the rdepends, but those do not need to
+        #        be removed, they just may be limited in functionatlity
+        primary = _("To remove %s, these items must be removed "
+                    "as well:" % self.appname)
+        button_text = _("Remove All")
+        depends = list(self.installed_rdeps)
+        
         # alter it if a meta-package is affected
+        for m in self.installed_rdeps:
+            if self.cache[m].section == "metapackages":
+                primary = _("If you uninstall %s, future updates will not "
+                              "include new items in <b>%s</b> set. "
+                              "Are you sure you want to continue?") % (self.appname, self.cache[m].installed.summary)
+                button_text = _("Remove Anyway")
+                depends = None
+                break
+
+        # alter it if an important meta-package is affected
         for m in self.IMPORTANT_METAPACKAGES:
             if m in self.installed_rdeps:
-                primary=_("%s is a core component") % self.appname
-                secondary = _("%s is a core application in Ubuntu. "
+                primary = _("%s is a core application in Ubuntu. "
                               "Uninstalling it may cause future upgrades "
                               "to be incomplete. Are you sure you want to "
                               "continue?") % self.appname
+                button_text = _("Remove Anyway")
+                depends = None
                 break
+                
         # ask for confirmation if we have rdepends
         if len(self.installed_rdeps):
-            if not dialogs.confirm_remove(None, primary, secondary, 
-                                          self.cache,
-                                          list(self.installed_rdeps)):
+            iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
+            if not dialogs.confirm_remove(None, primary, self.cache,
+                                        button_text, iconpath, depends):
+                self._set_action_button_sensitive(True)
                 return
+
         # do it (no rdepends or user confirmed)
-        trans = self.aptd_client.commit_packages([], [], [self.pkgname], [], [],
+        trans = self.aptd_client.remove_packages([self.pkgname],
                                          exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
     def on_button_install_clicked(self):
-        trans = self.aptd_client.commit_packages([self.pkgname], [], [], [], [],
+        trans = self.aptd_client.install_packages([self.pkgname],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
@@ -364,8 +397,6 @@ class AppDetailsView(WebkitWidget):
     # internal callback
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
-        #print "finish: ", trans, enum
-        # FIXME: do something useful here
         if enum == enums.EXIT_FAILED:
             excep = trans.get_error()
             msg = "%s: %s\n%s\n\n%s" % (
@@ -373,10 +404,17 @@ class AppDetailsView(WebkitWidget):
                    enums.get_error_string_from_enum(excep.code),
                    enums.get_error_description_from_enum(excep.code),
                    excep.details)
-            print msg
+            logging.error("error in _on_trans_finished '%s'" % msg)
+            # show dialog to the user and exit (no need to reopen
+            # the cache)
+            dialogs.error(None, 
+                          enums.get_error_string_from_enum(excep.code),
+                          enums.get_error_description_from_enum(excep.code),
+                          excep.details)
+            return
         # re-open cache and refresh app display
         self.cache.open()
-        self.show_app(self.appname)
+        self.show_app(self.appname, self.pkgname)
 
     # internal helpers
     def _get_action_button_label_and_value(self):
@@ -409,19 +447,64 @@ class AppDetailsView(WebkitWidget):
             self.execute_script("enable_action_button();")
         else:
             self.execute_script("disable_action_button();")
+            
+    # FIXME: move this to a better place
+    def _get_diff(self, old, new):
+        if not os.path.exists("/usr/bin/diff"):
+            return ""
+        diff = subprocess.Popen(["/usr/bin/diff", 
+                                 "-u",
+                                 old, new], 
+                                stdout=subprocess.PIPE).communicate()[0]
+        return diff
+
+    # FIXME: move this into aptdaemon/use the aptdaemon one
+    def _config_file_prompt(self, transaction, old, new):
+        diff = self._get_diff(old, new)
+        d = dialogs.DetailsMessageDialog(None, 
+                                         details=diff,
+                                         type=gtk.MESSAGE_INFO, 
+                                         buttons=gtk.BUTTONS_NONE)
+        d.add_buttons(_("_Keep"), gtk.RESPONSE_NO,
+                      _("_Replace"), gtk.RESPONSE_YES)
+        d.set_default_response(gtk.RESPONSE_NO)
+        text = _("Configuration file '%s' changed") % old
+        desc = _("Do you want to use the new version?")
+        d.set_markup("<big><b>%s</b></big>\n\n%s" % (text, desc))
+        res = d.run()
+        d.destroy()
+        # send result to the daemon
+        if res == gtk.RESPONSE_YES:
+            transaction.config_file_prompt_answer(old, "replace")
+        else:
+            transaction.config_file_prompt_answer(old, "keep")
+
+    def _medium_required(self, transaction, label, drive):
+        dialog = AptMediumRequiredDialog(medium, drive)
+        res = dialog.run()
+        dialog.hide()
+        if res == gtk.RESPONSE_OK:
+            transaction.provide_medium(medium)
+        else:
+            transaction.cancel()
 
     def _run_transaction(self, trans):
+        # set object data
         trans.set_data("appname", self.appname)
         trans.set_data("iconname", self.iconname)
         trans.set_data("pkgname", self.pkgname)
+        # we support debconf
         trans.set_debconf_frontend("gnome")
+        trans.connect("config-file-prompt", self._config_file_prompt)
+        trans.connect("medium-required", self._medium_required)
         self._set_action_button_sensitive(False)
         try:
             trans.run()
         except dbus.exceptions.DBusException, e:
             # re-enable the action button again if anything went wrong
             self._set_action_button_sensitive(True)
-            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+            if (e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized" or 
+                e._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
                 pass
             else:
                 raise
@@ -452,20 +535,21 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-store"
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = xapian.Database(pathname)
+    db = StoreDatabase(pathname)
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
     
-    cache = apt.Cache()
+    from softwarestore.apt.aptcache import AptCache
+    cache = AptCache()
 
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache, datadir)
     #view.show_app("AMOR")
-    view.show_app("3D Chess")
+    view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")
-    #view.show_app("ACE")
+    #view.show_app("ACE", "test-package")
     #view.show_app("Artha")
     #view.show_app("cournol")
     #view.show_app("Qlix")
@@ -475,5 +559,7 @@ if __name__ == "__main__":
     win.add(scroll)
     win.set_size_request(600,400)
     win.show_all()
+
+    #view._config_file_prompt(None, "/etc/fstab", "/tmp/lala")
 
     gtk.main()

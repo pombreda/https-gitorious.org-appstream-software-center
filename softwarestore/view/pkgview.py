@@ -19,21 +19,34 @@
 
 
 import gtk
+import pango
 
 from gettext import gettext as _
 
+ICON_SIZE = 24
+MISSING_APP_ICON = "/usr/share/icons/gnome/scalable/categories/applications-other.svg"
+
 class PkgNamesView(gtk.TreeView):
     """ show a bunch of pkgnames with description """
+
+    (COL_ICON,
+     COL_TEXT) = range(2)
+
     def __init__(self, header, cache, pkgnames):
         super(PkgNamesView, self).__init__()
-        model = gtk.ListStore(str)
+        model = gtk.ListStore(gtk.gdk.Pixbuf, str)
         self.set_model(model)
-        #self.set_headers_visible(False)
-        tr = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(header, tr, text=0)
+        tp = gtk.CellRendererPixbuf()
+        column = gtk.TreeViewColumn("Icon", tp, pixbuf=self.COL_ICON)
         self.append_column(column)
-        for pkg in sorted(pkgnames):
-            s = "%s - %s" % (pkg, cache[pkg].installed.summary)
-            model.append([s])
-
-
+        tr = gtk.CellRendererText()
+        tr.set_property("ellipsize", pango.ELLIPSIZE_END)
+        column = gtk.TreeViewColumn(header, tr, markup=self.COL_TEXT)
+        self.append_column(column)
+        for pkgname in sorted(pkgnames):
+            s = "%s \n<small>%s</small>" % (
+                cache[pkgname].installed.summary.capitalize(), pkgname)
+            # FIXME: use xapian query here to find a matching icon
+            pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, 
+                                                       ICON_SIZE, ICON_SIZE)
+            row = model.append([pix, s])

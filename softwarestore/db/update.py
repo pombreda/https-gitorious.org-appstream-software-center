@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import glib
 import locale
 import logging
 import os
@@ -50,19 +51,21 @@ class DesktopConfigParser(RawConfigParser):
         # first try dgettext
         if self.has_option_desktop("X-Ubuntu-Gettext-Domain"):
             value = self.get(self.DE, key)
-            domain = self.get(self.DE, "X-Ubuntu-Gettext-Domain")
-            translated_value = gettext.dgettext(domain, value)
-            if value != translated_value:
-                return translated_value
+            if value:
+                domain = self.get(self.DE, "X-Ubuntu-Gettext-Domain")
+                translated_value = gettext.dgettext(domain, value)
+                if value != translated_value:
+                    return translated_value
         # then try the i18n version of the key (in [de_DE] or
         # [de]
         locale = getdefaultlocale()[0]
-        if self.has_option_desktop("%s[%s]" % (key, locale)):
-            return self.get(self.DE, "%s[%s]" % (key, locale))
-        if "_" in locale:
-            locale_short = locale.split("_")[0]
-            if self.has_option_desktop("%s[%s]" % (key, locale_short)):
-                return self.get(self.DE, "%s[%s]" % (key, locale_short))
+        if locale:
+            if self.has_option_desktop("%s[%s]" % (key, locale)):
+                return self.get(self.DE, "%s[%s]" % (key, locale))
+            if "_" in locale:
+                locale_short = locale.split("_")[0]
+                if self.has_option_desktop("%s[%s]" % (key, locale_short)):
+                    return self.get(self.DE, "%s[%s]" % (key, locale_short))
         # and then the untranslated field
         return self.get(self.DE, key)
     def has_option_desktop(self, key):
@@ -84,8 +87,12 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
     " index the desktop files in $datadir/desktop/*.desktop "
     term_generator = xapian.TermGenerator()
     seen = set()
+    context = glib.main_context_default()
     for desktopf in glob(datadir+"/desktop/*.desktop"):
         logging.debug("processing %s" % desktopf)
+        # process events
+        while context.pending():
+            context.iteration()
         parser = DesktopConfigParser()
         doc = xapian.Document()
         term_generator.set_document(doc)
@@ -178,7 +185,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             #        desktop file
             # FIXME3: add X-AppInstall-Section
         except Exception, e:
-            logging.warn("error processing: %s %s" % (desktopf, e))
+            logging.exception("error processing: %s %s" % (desktopf, e))
             continue
         # now add it
         db.add_document(doc)

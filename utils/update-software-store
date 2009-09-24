@@ -20,11 +20,17 @@
 
 
 import apt
+import dbus
+import dbus.service
+import glib
+import gobject
 import locale
 import logging
 import os
 import sys
 import xapian
+from dbus.mainloop.glib import DBusGMainLoop
+
 
 try:
     from softwarestore.enums import *
@@ -42,20 +48,54 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from softwarestore.db.update import update
 
+class UpdateSoftwareStoreDbus(dbus.service.Object):
+    """ 
+    This is a helper to provide the UpdateSoftwareStoreIFace
+    """
+    def __init__(self, bus_name,
+                 object_path='/com/ubuntu/SoftwareStore'):
+        dbus.service.Object.__init__(self, bus_name, object_path)
+
+    @dbus.service.method('com.ubuntu.SoftwareStore')
+    def IsRebuilding(self):
+        return True
+    @dbus.service.signal(dbus_interface='com.ubuntu.SoftwareStore',
+                         signature='b')
+    def DatabaseRebuilding(self, isRebuilding):
+        logging.debug("Sending DatabaseRebuilding signal '%s'" % isRebuilding)
+
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
-
     try:
         locale.setlocale(locale.LC_ALL, "")
     except Exception, e:
         logging.exception("setlocale failed")
 
-    xapian_base_path = XAPIAN_BASE_PATH
-    
-    # set locale so that apt-ddtp stuff works
-    locale.setlocale(locale.LC_ALL, "")
+    # setup dbus
+    dbus_controller = None
+    try:
+        DBusGMainLoop(set_as_default=True)
+        bus = dbus.SystemBus()
+        bus_name = dbus.service.BusName('com.ubuntu.SoftwareStore', bus)
+        dbus_controller = UpdateSoftwareStoreDbus(bus_name)
+        dbus_controller.DatabaseRebuilding(True)
+    except:
+        logging.exception("dbus failure (ignoring")
 
-    pathname = os.path.join(xapian_base_path, "xapian")
-    if not os.path.exists(pathname):
-        os.makedirs(pathname)
-    rebuild_database(pathname)
+    # rebuild and send signal when done
+    try:
+        # setup path
+        pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
+        if not os.path.exists(pathname):
+            os.makedirs(pathname)
+        # rebuild the database, the default context is run to ensure
+        # dbus querries are processed
+        rebuild_database(pathname)
+    finally:
+        # signal that the xapian db is valid again
+        if dbus_controller:
+            dbus_controller.DatabaseRebuilding(False)
+            context = glib.main_context_default()
+            while context.pending():
+                context.iteration()
+    

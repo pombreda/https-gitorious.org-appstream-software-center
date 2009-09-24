@@ -146,3 +146,22 @@ msgstr "Software Store"
 #: ../data/ubuntu-software-store.desktop.in.h:3
 msgid "Ubuntu Software Store"
 msgstr "Ubuntu Software Store"
+
+#: ../data/ui/SoftwareStore.ui.h:11
+msgid "_File"
+msgstr "_Datei"
+
+#. home button
+#: ../softwarestore/view/availablepane.py:101
+#: ../softwarestore/view/viewswitcher.py:118
+msgid "Get Free Software"
+msgstr "Freie Software bekommen"
+
+#: ../data/ui/SoftwareStore.ui.h:3
+msgid "Canonical-Maintained Applications"
+msgstr "Von Canonical Betreute Anwendungen"
+
+#: ../softwarestore/view/installedpane.py:98
+#: ../softwarestore/view/viewswitcher.py:120
+msgid "Installed Software"
+msgstr "Installierte Anwendungen"

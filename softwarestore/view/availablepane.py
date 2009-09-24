@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import gettext
 import glib
 import gobject
 import gtk
@@ -38,16 +39,14 @@ except ImportError:
     from enums import *
 
 from widgets.pathbar2 import PathBar as NavigationBar
-#from widgets.contentview import ContentView
-
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter
 from catview import CategoriesView
 
-from basepane import BasePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
-class AvailablePane(BasePane):
+class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-store
        It contains a search entry and navigation buttons
     """
@@ -60,7 +59,7 @@ class AvailablePane(BasePane):
 
     def __init__(self, cache, db, icons, datadir):
         # parent
-        BasePane.__init__(self, cache, db, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, icons, datadir)
         # state
         self.apps_category_query = None
         self.apps_search_query = None
@@ -69,6 +68,8 @@ class AvailablePane(BasePane):
         self.apps_filter = AppViewFilter(cache)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
+        self._status_text = ""
+        self.connect("app-list-changed", self._on_app_list_changed)
         # UI
         self._build_ui()
 
@@ -84,37 +85,36 @@ class AvailablePane(BasePane):
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
+        self.notebook.set_show_border(False)
         self.pack_start(self.notebook)
         # categories, appview and details into the notebook in the bottom
-        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
+        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH, 
                                        self.xapiandb,
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
-#        scroll_categories.set_shadow_type(gtk.SHADOW_IN)
         scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_categories.add(self.cat_view)
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
         # app list
         self.cat_view.connect("category-selected", self.on_category_activated)
-        self.app_view.connect("application-activated",
+        self.app_view.connect("application-activated", 
                               self.on_application_activated)
         self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # home button
-        self.navigation_bar.add_with_id(_("Get Free Software"),
+        self.navigation_bar.add_with_id(_("Get Free Software"), 
                                         self.on_navigation_category,
-                                        "category",
-                                        icon=gtk.STOCK_HOME)
+                                        "category")
     @wait_for_apt_cache_ready
 
     def refresh_apps(self):
-        """refresh the applist after search changes and update the
+        """refresh the applist after search changes and update the 
            navigation bar
         """
         # build query
         if self.apps_category_query and self.apps_search_query:
-            query = xapian.Query(xapian.Query.OP_AND,
+            query = xapian.Query(xapian.Query.OP_AND, 
                                  self.apps_category_query,
                                  self.apps_search_query)
         elif self.apps_category_query:
@@ -125,9 +125,9 @@ class AvailablePane(BasePane):
             query = None
         # create new model and attach it
         new_model = AppStore(self.cache,
-                             self.xapiandb,
-                             self.icons,
-                             query,
+                             self.xapiandb, 
+                             self.icons, 
+                             query, 
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
                              filter=self.apps_filter)
@@ -135,20 +135,33 @@ class AvailablePane(BasePane):
         self.emit("app-list-changed", len(new_model))
         return False
 
-    # helper FIXME: move to more generic code?
-    def get_query_from_search_entry(self, search_term):
-        """ get xapian.Query from a search term string """
-        query = self.xapian_parser.parse_query(search_term,
-                                               xapian.QueryParser.FLAG_PARTIAL)
-        # FIXME: expand to add "AA" and "AP" before each search term?
-        return query
-
     def update_navigation_button(self):
         """Update the navigation button"""
         if self.apps_category_query:
             cat =  self.apps_category_query.name
             self.navigation_bar.add_with_id(cat, self.on_navigation_list, "list")
-
+   
+    # status text woo
+    def get_status_text(self):
+        """return user readable status text suitable for a status bar"""
+        # no status text in the details page
+        if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
+            return ""
+        return self._status_text
+    
+    def _on_app_list_changed(self, pane, length):
+        """internal helper that keeps the status text up-to-date by
+           keeping track of the app-list-changed signals
+        """
+        if len(self.searchentry.get_text()) > 0:
+            self._status_text = gettext.ngettext("%s matching item",
+                                                 "%s matching items",
+                                                 length) % length
+        else:
+            self._status_text = gettext.ngettext("%s item available",
+                                                 "%s items available",
+                                                 length) % length
+     
     # callbacks
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
@@ -157,9 +170,8 @@ class AvailablePane(BasePane):
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*
         # we are searching but we are not in a any category
-        if not self.apps_category_query and not new_text:
-            part = self.navigation_bar.get_part_from_id("category")
-            self.navigation_bar.set_active_part(part)
+#        if not self.apps_category_query and not new_text:
+#            self.navigation_bar.get_button_from_id("category").activate()
 
         # if the user searches in the category page, reset the specific
         # category query (to ensure all apps are searched)
@@ -172,7 +184,7 @@ class AvailablePane(BasePane):
             self.apps_sorted = True
             self.apps_search_query = None
         else:
-            self.apps_search_query = self.get_query_from_search_entry(new_text)
+            self.apps_search_query = self.xapiandb.get_query_from_search_entry(new_text)
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
         self.update_navigation_button()
@@ -191,26 +203,24 @@ class AvailablePane(BasePane):
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
-
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
-        self.app_details.show_app(name, pkgname)
         self.navigation_bar.add_with_id(name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.app_details.show_app(name, pkgname)
 
     def on_navigation_category(self, pathpart, pathbar):
-        print 'nav_category'
         """callback when the navigation button with id 'category' is clicked"""
-#        if not pathbar.get_active_part():
-#            return
+        if not pathbar.get_active_part():
+            return
         # yeah for special cases - as discussed on irc, mpt
         # wants this to behave differently *if* we are not
         # in a sub-category *and* there is a search going on
         if not self.apps_category_query and self.apps_search_query:
-            self.on_navigation_list(pathpart, pathbar)
+            self.on_navigation_list(button)
             return
         # clear the search
         self.searchentry.clear_with_no_signal()
@@ -219,45 +229,40 @@ class AvailablePane(BasePane):
         self.apps_search_query = None
         # remove navigation bar elements
         pathbar.remove_id("list")
-        pathbar.remove_id("search")
         pathbar.remove_id("details")
+        pathbar.remove_id("search")
         self.notebook.set_current_page(self.PAGE_CATEGORY)
         # emit signal here to ensure to show count of all available items
         self.emit("app-list-changed", self.xapiandb.get_doccount())
         self.searchentry.show()
 
+    def on_navigation_list(self, pathpart, pathbar):
+        """callback when the navigation button with id 'list' is clicked"""
+        if not pathbar.get_active_part():
+            return
+        pathbar.remove_id("details")
+        pathbar.remove_id("search")
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.emit("app-list-changed", len(self.app_view.get_model()))
+        self.searchentry.show()
+
+    def on_navigation_details(self, pathbar, pathpart):
+        """callback when the navigation button with id 'details' is clicked"""
+        if not pathbar.get_active_part():
+            return
+        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.searchentry.hide()
+
     def on_navigation_search(self, pathpart, pathbar):
-        print 'nav_search_stub'
         pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
         return
 
-    def on_navigation_list(self, pathpart, pathbar):
-        print 'nav_list'
-        """callback when the navigation button with id 'list' is clicked"""
-#        if not button.get_active():
-#            return
-        self.searchentry.clear()
-        pathbar.remove_id("search")
-        pathbar.remove_id("details")
-        self.notebook.set_current_page(self.PAGE_APPLIST)
-        self.emit("app-list-changed", len(self.app_view.get_model()))
-        self.searchentry.show()
-
-    def on_navigation_details(self, pathpart, pathbar):
-        print 'nav_details'
-        """callback when the navigation button with id 'details' is clicked"""
-#        if not button.get_active():
-#            return
-        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.searchentry.hide()
-
     def on_category_activated(self, cat_view, name, query):
-        print 'category_activated'
         #print cat_view, name, query
-        # FIXME: integrate this at a lower level, e.g. by sending a
+        # FIXME: integrate this at a lower level, e.g. by sending a 
         #        full Category class with the signal
         query.name = name
         self.apps_category_query = query

@@ -119,6 +119,9 @@
     #maintainance_time { 
       font-size:70%; 
     }
+    #license { 
+      font-size:70%; 
+    }
     #price { 
       font-size:70%; 
     }
@@ -146,11 +149,12 @@
    <div id='screenshot_thumbnail_loading'>
         <div id='$screenshot_installed'>
             <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">
-            <img id="screenshot_thumbnail_img" alt="Application Screenshot"/>
+            <img id="screenshot_thumbnail_img" alt="${screenshot_alt}"/>
             </a>
         </div>
    </div>
    <div id="description">$description</div>
+   <p id="license">$license</p>
    <p id="price">$price</p>
    <p id="action_button_description">$action_button_description</p>
    <input type="button" id="button_${action_button_value}" 

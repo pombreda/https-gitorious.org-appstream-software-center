@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import gettext
 import glib
 import gobject
 import gtk
@@ -38,13 +39,13 @@ except ImportError:
     from enums import *
 
 from widgets.pathbar2 import PathBar as NavigationBar
-#from widgets.contentview import ContentView
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter
-from basepane import BasePane, wait_for_apt_cache_ready
 
-class InstalledPane(BasePane):
+from softwarepane import SoftwarePane, wait_for_apt_cache_ready
+
+class InstalledPane(SoftwarePane):
     """Widget that represents the installed panel in software-store
        It contains a search entry and navigation buttons
     """
@@ -54,7 +55,7 @@ class InstalledPane(BasePane):
 
     def __init__(self, cache, db, icons, datadir):
         # parent
-        BasePane.__init__(self, cache, db, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, icons, datadir)
         # state
         self.apps_filter = AppViewFilter(cache)
         self.apps_filter.set_installed_only(True)
@@ -73,6 +74,7 @@ class InstalledPane(BasePane):
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
+        self.notebook.set_show_border(False)
         self.pack_start(self.notebook)
         # appview and details into the notebook in the bottom
         self.app_view.connect("application-activated", 
@@ -90,16 +92,12 @@ class InstalledPane(BasePane):
            navigation bar
         """
         if self.search_terms:
-            # FIXME: move this into generic code? 
-            #        something like "build_query_from_search_terms()"
-            query = self.xapian_parser.parse_query(self.search_terms, 
-                                              xapian.QueryParser.FLAG_PARTIAL)
+            query = self.xapiandb.get_query_from_search_entry(self.search_terms)
         else:
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
                                         self.on_navigation_list,
-                                        "list",
-                                        icon="computer")
+                                        "list")
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.xapiandb, 
@@ -114,52 +112,72 @@ class InstalledPane(BasePane):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
         self.search_terms = terms
-        self.refresh_apps()
-        self.notebook.set_current_page(self.PAGE_APPLIST)
+
         if terms != "":
             self.navigation_bar.remove_id("details")
             self.navigation_bar.remove_id("search")
             self.navigation_bar.add_with_id(
-                "Searching: %s" % terms,
+                "Search for: <i>%s</i>" % terms,
                 self.on_navigation_search,
                 "search")
         else:
-            self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+            self.navigation_bar.remove_id("details")
+            self.navigation_bar.remove_id("search")
+
+        self.refresh_apps()
+        self.notebook.set_current_page(self.PAGE_APPLIST)
 
     def on_application_activated(self, appview, name, pkgname):
         """callback when a app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
-        self.app_details.show_app(name, pkgname)
         self.navigation_bar.add_with_id(name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.app_details.show_app(name, pkgname)
 
     def on_navigation_list(self, pathpart, pathbar):
         """callback when the navigation button with id 'list' is clicked"""
-#        if not button.get_active():
-#            return
+        if not pathbar.get_active_part():
+            return
         # remove the details and clear the search
         self.searchentry.clear()
         pathbar.remove_id("details")
         pathbar.remove_id("search")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
+        self.emit("app-list-changed", len(self.app_view.get_model()))
 
     def on_navigation_details(self, pathpart, pathbar):
         """callback when the navigation button with id 'details' is clicked"""
-#        if not button.get_active():
-#            return
+        if not pathbar.get_active_part():
+            return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
 
     def on_navigation_search(self, pathpart, pathbar):
-        print 'nav_search_stub'
         pathbar.remove_id("details")
+        pathbar.remove_id("search")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
         return
+
+    def get_status_text(self):
+        """return user readable status text suitable for a status bar"""
+        # no status text in the details page
+        if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
+            return ""
+        # otherwise, show status based on search or not
+        length = len(self.app_view.get_model())
+        if len(self.searchentry.get_text()) > 0:
+            return gettext.ngettext("%s matching item",
+                                    "%s matching items",
+                                    length) % length
+        else:
+            return gettext.ngettext("%s installed item",
+                                    "%s installed items",
+                                    length) % length
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

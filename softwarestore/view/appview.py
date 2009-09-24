@@ -30,38 +30,10 @@ import sys
 import time
 import xapian
 
-try:
-    from appcenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from enums import *
-
-class ExecutionTime(object):
-    """
-    Helper that can be used in with statements to have a simple
-    measure of the timming of a particular block of code, e.g.
-    with ExecutinTime("db flush"):
-        db.flush()
-    """
-    def __init__(self, info=""):
-        self.info = info
-    def __enter__(self):
-        self.now = time.time()
-    def __exit__(self, type, value, stack):
-        print "%s: %s" % (self.info, time.time() - self.now)
-
-class Application(object):
-    __slots__ = ["appname", "pkgname"]
-    def __init__(self, appname, pkgname):
-        self.appname = appname
-        self.pkgname = pkgname
-
-# sort(key=locale.strxfrm) would be more efficient, but its
-# currently broken, see http://bugs.python.org/issue2481
-def apps_cmp(x, y):
-    return locale.strcoll(x.appname, y.appname)
+if os.path.exists("./softwarestore/enums.py"):
+    sys.path.insert(0, ".")
+from softwarestore.enums import *
+from softwarestore.db.database import StoreDatabase, Application
 
 class AppStore(gtk.GenericTreeModel):
     """ 
@@ -117,7 +89,7 @@ class AppStore(gtk.GenericTreeModel):
                 appname = doc.get_data()
                 pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
                 self.apps.append(Application(appname, pkgname))
-            self.apps.sort(cmp=apps_cmp)
+            self.apps.sort(cmp=Application.apps_cmp)
         else:
             enquire = xapian.Enquire(db)
             enquire.set_query(search_query)
@@ -140,7 +112,7 @@ class AppStore(gtk.GenericTreeModel):
                     continue
                 self.apps.append(Application(appname, pkgname))
             if sort:
-                self.apps.sort(cmp=apps_cmp)
+                self.apps.sort(cmp=Application.apps_cmp)
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
@@ -165,14 +137,7 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
         app = self.apps[rowref]
-        # get the right xapian document
-        for post in self.xapiandb.postlist("AA"+app.appname):
-            doc = self.xapiandb.get_document(post.docid)
-            pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-            if pkgname == app.pkgname:
-                break
-        else:
-            raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
+        doc = self.xapiandb.get_xapian_document(app.appname, app.pkgname)
         if column == self.COL_APP_NAME:
             return app.appname
         elif column == self.COL_TEXT:
@@ -218,13 +183,12 @@ class AppStore(gtk.GenericTreeModel):
             return 0
         return len(self.apps)
     def on_iter_nth_child(self, parent, n):
-        #logging.debug("on_iter_nth_child: %s %i" % (parent, n))
+        logging.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
-        try:
-            return self.apps[n]
-        except IndexError, e:
+        if n >= len(self.apps):
             return None
+        return n
     def on_iter_parent(self, child):
         return None
 
@@ -427,7 +391,7 @@ class AppViewFilter(object):
         #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
-            if (self.cache.has_key(pkgname) and 
+            if (not self.cache.has_key(pkgname) or
                 not self.cache[pkgname].isInstalled):
                 return False
         if self.not_installed_only:
@@ -467,7 +431,7 @@ if __name__ == "__main__":
 
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = xapian.Database(pathname)
+    db = StoreDatabase(pathname)
 
     # add the apt-xapian-database for here (we don't do this
     # for now as we do not have a good way to integrate non-apps

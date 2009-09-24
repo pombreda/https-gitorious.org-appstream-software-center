@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+
 # system pathes
 XAPIAN_BASE_PATH = "/var/cache/software-store"
 APP_INSTALL_PATH = "/usr/share/app-install"
@@ -39,3 +40,11 @@ XAPIAN_VALUE_POPCON = 176
 XAPIAN_VALUE_SUMMARY = 177
 XAPIAN_VALUE_ARCHIVE_CHANNEL = 178
 XAPIAN_VALUE_DESKTOP_FILE = 179
+
+
+from version import *
+USER_AGENT="Software Store/%s (N;) %s/%s (%s)" % (VERSION, 
+                                                  DISTRO, 
+                                                  RELEASE,
+                                                  CODENAME)
+
