@@ -1007,6 +1007,16 @@ class Icon:
         if not self.size:
             print WARNING + 'Note: No icon size specified.' + ENDC
 
+        def render_icon(icon_set, name, size):
+            self.pixbuf = icon_set.render_icon(
+                style,
+                gtk.TEXT_DIR_NONE,
+                gtk.STATE_NORMAL,
+                self.size or gtk.ICON_SIZE_BUTTON,
+                gtk.Image(),
+                None)
+            return
+
         style = gtk.Style()
         icon_set = style.lookup_icon_set(self.name)
 
@@ -1015,27 +1025,13 @@ class Icon:
             self.pixbuf = t.lookup_icon(self.name, self.size, 0).load_icon()
         else:
             icon_set = style.lookup_icon_set(self.name)
-
-            self.pixbuf = icon_set.render_icon(
-                style,
-                gtk.TEXT_DIR_NONE,
-                gtk.STATE_NORMAL,
-                self.size or gtk.ICON_SIZE_BUTTON,
-                gtk.Image(),
-                None)
+            render_icon(icon_set, self.name, self.size)
 
         if not self.pixbuf:
             print FAIL + 'Error: No name failed to match any installed icon set.' + ENDC
             self.name = gtk.STOCK_MISSING_IMAGE
             icon_set = style.lookup_icon_set(self.name)
-
-            self.pixbuf = icon_set.render_icon(
-                style,
-                gtk.TEXT_DIR_NONE,
-                gtk.STATE_NORMAL,
-                self.size or gtk.ICON_SIZE_SMALL_TOOLBAR,
-                gtk.Image(),
-                None)
+            render_icon(icon_set, self.name, self.size)
         return
 
 

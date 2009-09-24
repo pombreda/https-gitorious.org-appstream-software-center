@@ -105,7 +105,8 @@ class AvailablePane(SoftwarePane):
         # home button
         self.navigation_bar.add_with_id(_("Get Free Software"), 
                                         self.on_navigation_category,
-                                        "category")
+                                        "category",
+                                        gtk.STOCK_HOME)
     @wait_for_apt_cache_ready
 
     def refresh_apps(self):
