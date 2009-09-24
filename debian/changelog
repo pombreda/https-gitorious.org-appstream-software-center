@@ -5,6 +5,8 @@ software-store (0.3.10) UNRELEASED; urgency=low
     - fix crash when now app_model is available yet (LP: #435464)
   * softwarestore/view/pendingview.py:
     - fix crash in cancel handling (LP: #435454)
+  * softwarestore/view/appdetailsview.py:
+    - add translator comment for the price (LP: #435405)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Sep 2009 14:37:45 +0200
 

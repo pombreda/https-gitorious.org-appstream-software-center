@@ -283,7 +283,9 @@ class AppDetailsView(WebkitWidget):
         s = _("License: %s") % li
         return s
     def wksub_price(self):
-        s = _("Price: %s") % _("Free")
+	#TRANSLATORS: This text will be showed as price of the software
+        price = _("Free")
+	s = _("Price: %s") % price
         return s
     def wksub_installed(self):
         if self.pkg and self.pkg.installed:
