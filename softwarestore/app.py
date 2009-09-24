@@ -157,7 +157,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # view switcher
-        self.alignment_view_switcher.set_padding(SoftwarePane.TOP_PADDING,0,0,0)
         self.view_switcher = ViewSwitcher(datadir, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
@@ -166,6 +165,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.view_switcher.model.connect("transactions-changed", 
                                    self.on_view_switcher_transactions_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
+
+        # set alignments
+        self.alignment_view_switcher.set_padding(SoftwarePane.TOP_PADDING,0,0,0)
+        self.alignment_transactions.set_padding(SoftwarePane.TOP_PADDING,0,0,0)
 
         # launchpad integration help, its ok if that fails
         try:
