@@ -10,6 +10,7 @@ software-store (0.3.10) UNRELEASED; urgency=low
   * data/templates/AppDetailsView.html:
     - simplify the html, disable DnD (LP: #434236), thanks to
       Istvan Nyitrai
+  * adjust alignment (LP: #435727)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Sep 2009 14:37:45 +0200
 
