@@ -7,6 +7,9 @@ software-store (0.3.10) UNRELEASED; urgency=low
     - fix crash in cancel handling (LP: #435454)
   * softwarestore/view/appdetailsview.py:
     - add translator comment for the price (LP: #435405)
+  * data/templates/AppDetailsView.html:
+    - simplify the html, disable DnD (LP: #434236), thanks to
+      Istvan Nyitrai
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Sep 2009 14:37:45 +0200
 
