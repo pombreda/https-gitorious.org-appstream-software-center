@@ -13,6 +13,7 @@ software-store (0.3.10) UNRELEASED; urgency=low
   * adjust alignment (LP: #435727)
   * move common code into softwarepane.py and align switcher and panes 
     correctly with the navigation buttons
+  * update license to GPLv3
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Sep 2009 14:37:45 +0200
 
