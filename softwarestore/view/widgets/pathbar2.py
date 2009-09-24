@@ -40,6 +40,14 @@ SHAPE_MID_ARROW = 2
 SHAPE_END_CAP = 3
 
 
+def parse_colour_scheme(colour_scheme_str):
+    scheme_dict = {}
+    for ln in colour_scheme_str.splitlines():
+        k, v = ln.split(':')
+        scheme_dict[k.strip()] = gtk.gdk.color_parse(v.strip())
+    return scheme_dict
+
+
 class PathBar(gtk.DrawingArea, gobject.GObject):
 
     def __init__(self, group=None, min_part_width=56, xpadding=10, ypadding=4,
@@ -68,6 +76,8 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         # global gtk settings we are interested in
         settings = gtk.settings_get_default()
         self.animate = settings.get_property("gtk-enable-animations")
+        # why is bg_color not the default colour of a gtk.DrawingArea()?
+        scheme = parse_colour_scheme(settings.get_property("gtk-color-scheme"))
 
         # custom widget specific settings
         self.min_part_width = min_part_width
@@ -92,7 +102,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         self.connect("button-release-event", self.__button_release_cb)
         self.connect("key-release-event", self.__key_release_cb)
 
-        self.connect("expose-event", self.__expose_cb)
+        self.connect("expose-event", self.__expose_cb, scheme['bg_color'])
         self.connect("style-set", self.__style_change_cb)
         self.connect("size-allocate", self.__allocation_change_cb)
         return
@@ -151,7 +161,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         else:
             part = PathPart(label)
             part.set_pathbar(self)
-            gobject.idle_add(idle_append_cb, part)
+            gobject.timeout_add(50, idle_append_cb, part)
             self.id_to_part[id] = part
 
         if icon: part.set_icon(icon)
@@ -778,11 +788,14 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         part.emit("clicked", event.copy())
         return
 
-    def __expose_cb(self, widget, event):
+    def __expose_cb(self, widget, event, bg):
         #t = gobject.get_current_time()
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
-        cr.clip()
+        cr.clip_preserve()
+
+        cr.set_source_rgb(bg.red_float, bg.green_float, bg.blue_float)
+        cr.fill()
 
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
