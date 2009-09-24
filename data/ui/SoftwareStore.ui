@@ -275,7 +275,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkAlignment" id="alignment2">
+              <object class="GtkAlignment" id="alignment_view_switcher">
                 <property name="visible">True</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow_viewswitcher">

@@ -38,9 +38,6 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
-from widgets.navigationbar import NavigationBar
-from widgets.searchentry import SearchEntry
-
 from appview import AppView, AppStore, AppViewFilter
 from catview import CategoriesView
 
@@ -73,19 +70,6 @@ class AvailablePane(SoftwarePane):
         # UI
         self._build_ui()
     def _build_ui(self):
-        # navigation bar and search on top in a hbox
-        self.navigation_bar = NavigationBar()
-        self.searchentry = SearchEntry()
-        self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigation_bar)
-        top_hbox.pack_start(self.searchentry, expand=False)
-        self.pack_start(top_hbox, expand=False, padding=self.PADDING)
-        # a notebook below
-        self.notebook = gtk.Notebook()
-        self.notebook.set_show_tabs(False)
-        self.notebook.set_show_border(False)
-        self.pack_start(self.notebook)
         # categories, appview and details into the notebook in the bottom
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH, 
                                        self.xapiandb,

@@ -42,6 +42,7 @@ from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.availablepane import AvailablePane
+from view.softwarepane import SoftwarePane
 
 from apt.aptcache import AptCache
 from gettext import gettext as _
@@ -156,6 +157,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # view switcher
+        self.alignment_view_switcher.set_padding(SoftwarePane.TOP_PADDING,0,0,0)
         self.view_switcher = ViewSwitcher(datadir, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()

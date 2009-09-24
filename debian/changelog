@@ -11,6 +11,8 @@ software-store (0.3.10) UNRELEASED; urgency=low
     - simplify the html, disable DnD (LP: #434236), thanks to
       Istvan Nyitrai
   * adjust alignment (LP: #435727)
+  * move common code into softwarepane.py and align correctly with
+    the navigation buttons
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Sep 2009 14:37:45 +0200
 

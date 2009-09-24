@@ -27,6 +27,9 @@ import sys
 import string
 import xapian
 
+from widgets.navigationbar import NavigationBar
+from widgets.searchentry import SearchEntry
+
 from appview import AppView, AppStore, AppViewFilter
 from appdetailsview import AppDetailsView
 
@@ -60,7 +63,7 @@ class SoftwarePane(gtk.VBox):
                               (int, ),
                              )
     }
-    PADDING = 6
+    TOP_PADDING = 6
 
     def __init__(self, cache, db, icons, datadir):
         gtk.VBox.__init__(self)
@@ -93,6 +96,20 @@ class SoftwarePane(gtk.VBox):
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
+        # COMMON UI elements
+        # navigation bar and search on top in a hbox
+        self.navigation_bar = NavigationBar()
+        self.searchentry = SearchEntry()
+        self.searchentry.connect("terms-changed", self.on_search_terms_changed)
+        top_hbox = gtk.HBox()
+        top_hbox.pack_start(self.navigation_bar)
+        top_hbox.pack_start(self.searchentry, expand=False)
+        self.pack_start(top_hbox, expand=False, padding=self.TOP_PADDING)
+        # a notebook below
+        self.notebook = gtk.Notebook()
+        self.notebook.set_show_tabs(False)
+        self.notebook.set_show_border(False)
+        self.pack_start(self.notebook)
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
@@ -110,5 +127,9 @@ class SoftwarePane(gtk.VBox):
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):
+        " stub implementation "
+        pass
+    
+    def on_search_terms_changed(self, terms):
         " stub implementation "
         pass
