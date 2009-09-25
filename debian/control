@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 7.0.50),
 	       python-setuptools
 Standards-Version: 3.8.3
 XS-Python-Version: current
-Vcs-Bzr: http://code.launchpad.net/~software-store-developers/software-store/trunk
+Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-store/trunk
 
 Package: software-store
 Architecture: all
