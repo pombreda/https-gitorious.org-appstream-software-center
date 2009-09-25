@@ -161,7 +161,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         else:
             part = PathPart(label)
             part.set_pathbar(self)
-            gobject.timeout_add(50, idle_append_cb, part)
+            gobject.idle_add(idle_append_cb, part)
             self.id_to_part[id] = part
 
         if icon: part.set_icon(icon)

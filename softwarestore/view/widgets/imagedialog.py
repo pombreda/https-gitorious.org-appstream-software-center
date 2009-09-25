@@ -7,6 +7,7 @@ import threading
 import urllib
 
 from softwarestore.enums import *
+from fancyimage import FancyImage
 
 class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
@@ -26,23 +27,36 @@ class ShowImageDialog(gtk.Dialog):
 
     def __init__(self, title, url, loading_img, parent=None):
         gtk.Dialog.__init__(self)
+
         # find parent window for the dialog
         if not parent:
             parent = self.get_parent()
             while parent:
                 parent = w.get_parent()
+
         # image
-        self.img = gtk.Image()
+        self.img = FancyImage()
         self.img.set_from_file(loading_img)
-        self.img.show()
+
+        # firefox like status bar
         # progress
         self.progress = gtk.ProgressBar()
-        self.progress.show()
+        self.progress.set_size_request(108, 14)
+
+        # label
+        label = gtk.Label("Downloading screenshot...")
+
+        # hbox
+        self.hbox = gtk.HBox()
+        self.hbox.pack_start(label, False)
+        self.hbox.pack_end(self.progress, False)
+
         # box
         vbox = gtk.VBox()
         vbox.pack_start(self.img)
-        vbox.pack_start(self.progress, expand=False)
-        vbox.show()
+        vbox.pack_start(self.hbox, expand=False, padding=4)
+        vbox.show_all()
+
         # dialog
         self.set_transient_for(parent)
         self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
@@ -62,7 +76,6 @@ class ShowImageDialog(gtk.Dialog):
         
     def run(self):
         self.show()
-        self.progress.show()
         self.progress.set_fraction(0.0)
         # thread
         self._finished = False
@@ -80,8 +93,10 @@ class ShowImageDialog(gtk.Dialog):
         # aborted
         if self._abort:
             return gtk.RESPONSE_CLOSE
+
         # load into icon
-        self.progress.hide()
+        self.set_has_separator(False)
+        self.hbox.hide()
         self.img.set_from_file(self.location.name)
         # and run the real thing
         gtk.Dialog.run(self)
@@ -103,6 +118,7 @@ class ShowImageDialog(gtk.Dialog):
         self._fetched += block
         # ensure we do not go over 100%
         self._percent = min(self._fetched/total, 1.0)
+
 
 if __name__ == "__main__":
     pkgname = "synaptic"
