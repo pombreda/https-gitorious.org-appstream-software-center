@@ -8,7 +8,7 @@ software-center (0.4.0) unstable; urgency=low
     Categories.
   * Use https instead of http in Vcs-Bzr URL.
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 16:36:56 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 17:34:34 +0200
 
 software-store (0.3.10) karmic; urgency=low
 
