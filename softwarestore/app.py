@@ -158,7 +158,6 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # view switcher
         self.view_switcher = ViewSwitcher(datadir, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
-#        self.scrolledwindow_viewswitcher.set_shadow_type(gtk.SHADOW_IN)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)

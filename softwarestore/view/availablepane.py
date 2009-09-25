@@ -92,7 +92,6 @@ class AvailablePane(SoftwarePane):
                                        self.xapiandb,
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
-        scroll_categories.set_shadow_type(gtk.SHADOW_IN)
         scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_categories.add(self.cat_view)
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
@@ -222,7 +221,7 @@ class AvailablePane(SoftwarePane):
         # wants this to behave differently *if* we are not
         # in a sub-category *and* there is a search going on
         if not self.apps_category_query and self.apps_search_query:
-            self.on_navigation_list(button)
+            self.on_navigation_list(pathbar)
             return
         # clear the search
         self.searchentry.clear_with_no_signal()
@@ -255,7 +254,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
 
-    def on_navigation_search(self, pathpart, pathbar):
+    def on_navigation_search(self, pathbar):
         pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))

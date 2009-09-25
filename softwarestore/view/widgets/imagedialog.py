@@ -6,6 +6,8 @@ import time
 import threading
 import urllib
 
+from gettext import gettext as _
+
 from softwarestore.enums import *
 from fancyimage import FancyImage
 
@@ -44,7 +46,7 @@ class ShowImageDialog(gtk.Dialog):
         self.progress.set_size_request(108, 14)
 
         # label
-        label = gtk.Label("Downloading screenshot...")
+        label = gtk.Label(_("Downloading screenshot..."))
 
         # hbox
         self.hbox = gtk.HBox()
