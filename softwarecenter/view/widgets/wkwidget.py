@@ -145,7 +145,7 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-store"
+        datadir = "/usr/share/software-center"
 
 
     subs = {

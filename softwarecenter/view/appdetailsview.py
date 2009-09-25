@@ -40,11 +40,11 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog
  
 from gettext import gettext as _
 
-if os.path.exists("./softwarestore/enums.py"):
+if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
-from softwarestore.enums import *
-from softwarestore.version import *
-from softwarestore.db.database import StoreDatabase
+from softwarecenter.enums import *
+from softwarecenter.version import *
+from softwarecenter.db.database import StoreDatabase
 
 from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog
@@ -67,9 +67,9 @@ class AppDetailsView(WebkitWidget):
     SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%s"
 
     # FIXME: use relative path here
-    INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-store-installed.png"
-    IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading.gif"
-    IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading-installed.gif"
+    INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-center-installed.png"
+    IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
+    IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
     
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
@@ -314,7 +314,7 @@ class AppDetailsView(WebkitWidget):
             try:
                 self.aptd_client.add_repository(
                     entry.type, entry.uri, entry.dist, entry.comps, 
-                    "Added by software-store", sourcepart)
+                    "Added by software-center", sourcepart)
             except dbus.exceptions.DBusException, e:
                 if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                     return
@@ -532,16 +532,16 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-store"
+        datadir = "/usr/share/software-center"
 
-    xapian_base_path = "/var/cache/software-store"
+    xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname)
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
     
-    from softwarestore.apt.aptcache import AptCache
+    from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
 
     # gui

@@ -38,7 +38,7 @@ class InstalledFilter(object):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    xapian_base_path = "/var/cache/software-store"
+    xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = xapian.Database(pathname)
 

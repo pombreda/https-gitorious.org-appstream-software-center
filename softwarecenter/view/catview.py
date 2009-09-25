@@ -206,7 +206,7 @@ if __name__ == "__main__":
     appdir = "/usr/share/app-install"
     datadir = "./data"
 
-    xapian_base_path = "/var/cache/software-store"
+    xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = xapian.Database(pathname)
 

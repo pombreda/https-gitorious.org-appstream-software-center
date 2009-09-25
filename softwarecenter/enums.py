@@ -18,7 +18,7 @@
 
 
 # system pathes
-XAPIAN_BASE_PATH = "/var/cache/software-store"
+XAPIAN_BASE_PATH = "/var/cache/software-center"
 APP_INSTALL_PATH = "/usr/share/app-install"
 APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
@@ -42,8 +42,8 @@ XAPIAN_VALUE_DESKTOP_FILE = 179
 
 
 from version import *
-USER_AGENT="Software Store/%s (N;) %s/%s (%s)" % (VERSION, 
-                                                  DISTRO, 
-                                                  RELEASE,
-                                                  CODENAME)
+USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 
+                                                   DISTRO, 
+                                                   RELEASE,
+                                                   CODENAME)
 

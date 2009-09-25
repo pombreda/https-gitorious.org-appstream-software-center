@@ -33,9 +33,9 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-from softwarestore.enums import *
-from softwarestore.version import *
-from softwarestore.db.database import StoreDatabase
+from softwarecenter.enums import *
+from softwarecenter.version import *
+from softwarecenter.db.database import StoreDatabase
 
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.pendingview import PendingView
@@ -46,23 +46,23 @@ from view.softwarepane import SoftwarePane
 from apt.aptcache import AptCache
 from gettext import gettext as _
 
-class SoftwareStoreDbusController(dbus.service.Object):
+class SoftwarecenterDbusController(dbus.service.Object):
     """ 
-    This is a helper to provide the SoftwareStoreIFace
+    This is a helper to provide the SoftwarecenterIFace
     
     It provides 
     """
     def __init__(self, parent, bus_name,
-                 object_path='/com/ubuntu/SoftwareStore'):
+                 object_path='/com/ubuntu/Softwarecenter'):
         dbus.service.Object.__init__(self, bus_name, object_path)
         self.parent = parent
 
-    @dbus.service.method('com.ubuntu.SoftwareStoreIFace')
+    @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
     def bringToFront(self):
         self.parent.window_main.present()
         return True
 
-class SoftwareStoreApp(SimpleGtkbuilderApp):
+class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     (NOTEBOOK_PAGE_AVAILABLE,
      NOTEBOOK_PAGE_INSTALLED,
@@ -72,10 +72,10 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     def __init__(self, datadir, xapian_base_path):
         SimpleGtkbuilderApp.__init__(self, 
-                                     datadir+"/ui/SoftwareStore.ui", 
-                                     "software-store")
-        gettext.bindtextdomain("software-store", "/usr/share/locale")
-        gettext.textdomain("software-store")
+                                     datadir+"/ui/SoftwareCenter.ui", 
+                                     "software-center")
+        gettext.bindtextdomain("software-center", "/usr/share/locale")
+        gettext.textdomain("software-center")
         try:
             locale.setlocale(locale.LC_ALL, "")
         except:
@@ -101,7 +101,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
             #   folder is empty. If the folder is empty, and we can find the
             # script that does population, populate a database in it.
             if os.path.isdir(pathname) and not os.listdir(pathname):
-                from softwarestore.db.update import rebuild_database
+                from softwarecenter.db.update import rebuild_database
                 logging.info("building local database")
                 rebuild_database(pathname)
                 self.xapiandb = StoreDatabase(pathname)
@@ -168,7 +168,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # launchpad integration help, its ok if that fails
         try:
             import LaunchpadIntegration
-            LaunchpadIntegration.set_sourcepackagename("software-store")
+            LaunchpadIntegration.set_sourcepackagename("software-center")
             LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
         except Exception, e:
             logging.debug("launchpad integration error: '%s'" % e)
@@ -321,7 +321,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
 
     def on_menuitem_help_activate(self, menuitem):
         # run yelp
-        p = subprocess.Popen(["yelp","ghelp:software-store"])
+        p = subprocess.Popen(["yelp","ghelp:software-center"])
         # collect the exit status (otherwise we leave zombies)
         glib.timeout_add(1000, lambda p: p.poll() == None, p)
 
@@ -438,9 +438,9 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # check if its currently rebuilding (most likely not, so we
         # just ignore errors from dbus because the interface
         try:
-            proxy_obj = bus.get_object("com.ubuntu.SoftwareStore",
-                                       "/com/ubuntu/SoftwareStore")
-            iface = dbus.Interface(proxy_obj, "com.ubuntu.SoftwareStore")
+            proxy_obj = bus.get_object("com.ubuntu.Softwarecenter",
+                                       "/com/ubuntu/Softwarecenter")
+            iface = dbus.Interface(proxy_obj, "com.ubuntu.Softwarecenter")
             res = iface.IsRebuilding()
             self._on_database_rebuilding_handler(res)
         except Exception ,e:
@@ -449,7 +449,7 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         # add signal handler
         bus.add_signal_receiver(self._on_database_rebuilding_handler,
                                 "DatabaseRebuilding",
-                                "com.ubuntu.SoftwareStore")
+                                "com.ubuntu.Softwarecenter")
 
     def setup_dbus_or_bring_other_instance_to_front(self):
         """ 
@@ -460,17 +460,17 @@ class SoftwareStoreApp(SimpleGtkbuilderApp):
         except:
             logging.exception("could not initiate dbus")
             return
-        # if there is another SoftwareStore running bring it to front
+        # if there is another Softwarecenter running bring it to front
         # and exit, otherwise install the dbus controller
         try:
-            proxy_obj = bus.get_object('com.ubuntu.SoftwareStore', 
-                                       '/com/ubuntu/SoftwareStore')
-            iface = dbus.Interface(proxy_obj, 'com.ubuntu.SoftwareStoreIFace')
+            proxy_obj = bus.get_object('com.ubuntu.Softwarecenter', 
+                                       '/com/ubuntu/Softwarecenter')
+            iface = dbus.Interface(proxy_obj, 'com.ubuntu.SoftwarecenterIFace')
             iface.bringToFront()
             sys.exit()
         except dbus.DBusException, e:
-            bus_name = dbus.service.BusName('com.ubuntu.SoftwareStore',bus)
-            self.dbusControler = SoftwareStoreDbusController(self, bus_name)
+            bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter',bus)
+            self.dbusControler = SoftwarecenterDbusController(self, bus_name)
 
     def run(self):
         self.window_main.show_all()

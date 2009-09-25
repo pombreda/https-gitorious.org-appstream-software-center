@@ -29,10 +29,10 @@ import sys
 import time
 import xapian
 
-if os.path.exists("./softwarestore/enums.py"):
+if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
-from softwarestore.enums import *
-from softwarestore.db.database import StoreDatabase, Application
+from softwarecenter.enums import *
+from softwarecenter.db.database import StoreDatabase, Application
 
 class AppStore(gtk.GenericTreeModel):
     """ 
@@ -209,7 +209,7 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
         icons = gtk.icon_theme_get_default()
         self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
         try:
-            self._forward = icons.load_icon("software-store-arrow-button", 
+            self._forward = icons.load_icon("software-center-arrow-button", 
                                             AppStore.ICON_SIZE, 0)
         except glib.GError:
             # icon not present in theme, probably because running uninstalled
@@ -306,7 +306,7 @@ class AppView(gtk.TreeView):
         gtk.TreeView.__init__(self)
         self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
-        tp = CellRendererPixbufWithOverlay("software-store-installed")
+        tp = CellRendererPixbufWithOverlay("software-center-installed")
         column = gtk.TreeViewColumn("Icon", tp, 
                                     pixbuf=AppStore.COL_ICON,
                                     overlay=AppStore.COL_INSTALLED_OVERLAY)

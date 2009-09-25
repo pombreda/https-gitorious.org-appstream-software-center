@@ -1,4 +1,4 @@
-Source: software-store
+Source: software-center
 Section: gnome
 Priority: optional
 Maintainer: Michael Vogt <mvo@ubuntu.com>
@@ -12,9 +12,9 @@ Build-Depends: debhelper (>= 7.0.50),
 	       python-setuptools
 Standards-Version: 3.8.3
 XS-Python-Version: current
-Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-store/trunk
+Vcs-Bzr: https://code.launchpad.net/~software-center-developers/software-center/trunk
 
-Package: software-store
+Package: software-center
 Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
@@ -34,13 +34,16 @@ Depends: ${python:Depends},
 	 python-gconf,
 	 aptdaemon
 Recommends: lsb-release
+Conflicts: software-store
+Replaces: software-store
+Provides: software-store
 XB-Python-Version: ${python:Versions}
 Description: Utility for browsing, installing, and removing applications
- The Ubuntu Software Store lets you browse and install thousands of 
+ The Ubuntu Software Center lets you browse and install thousands of 
  free applications available for Ubuntu. You can view available 
  applications by category, or search quickly by name or description. 
  You can also examine the applications already installed, and remove
  those you no longer need.
  .
- To install or remove software using the Store, you need administrator
+ To install or remove software using the Center, you need administrator
  access on the computer.

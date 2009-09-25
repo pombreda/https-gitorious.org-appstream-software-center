@@ -114,13 +114,13 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-store"
+        datadir = "/usr/share/software-center"
 
-    image = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-*.png")
-    image1 = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-*.png")
+    image = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-*.png")
+    image1 = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-*.png")
     image1.start()
-    image2 = AnimatedImage(datadir+"/icons/32x32/status/software-store-progress-01.png")
-    pixbuf = gtk.gdk.pixbuf_new_from_file(datadir+"/icons/32x32/status/software-store-progress-07.png")
+    image2 = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-01.png")
+    pixbuf = gtk.gdk.pixbuf_new_from_file(datadir+"/icons/32x32/status/software-center-progress-07.png")
     image3 = AnimatedImage(pixbuf)
     image3.show()
 

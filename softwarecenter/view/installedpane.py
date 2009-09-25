@@ -29,20 +29,14 @@ import xapian
 
 from gettext import gettext as _
 
-try:
-    from appcenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from enums import *
+from softwarecenter.enums import *
 
 from appview import AppView, AppStore, AppViewFilter
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
 class InstalledPane(SoftwarePane):
-    """Widget that represents the installed panel in software-store
+    """Widget that represents the installed panel in software-center
        It contains a search entry and navigation buttons
     """
 
@@ -148,7 +142,7 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-store"
+        datadir = "/usr/share/software-center"
 
     db = xapian.Database(pathname)
     icons = gtk.icon_theme_get_default()

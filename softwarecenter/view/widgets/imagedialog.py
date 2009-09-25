@@ -24,7 +24,7 @@ import time
 import threading
 import urllib
 
-from softwarestore.enums import *
+from softwarecenter.enums import *
 
 class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
@@ -125,6 +125,6 @@ class ShowImageDialog(gtk.Dialog):
 if __name__ == "__main__":
     pkgname = "synaptic"
     url = "http://screenshots.debian.net/screenshot/synaptic"
-    loading = "/usr/share/icons/hicolor/32x32/animations/softwarestore-loading-installed.gif"
+    loading = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
     d = ShowImageDialog("Synaptic Screenshot", url, pkgname)
     d.run()

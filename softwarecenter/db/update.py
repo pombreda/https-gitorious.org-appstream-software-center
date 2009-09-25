@@ -28,7 +28,7 @@ import xapian
 from ConfigParser import RawConfigParser, NoOptionError
 from glob import glob
 
-from softwarestore.enums import *
+from softwarecenter.enums import *
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10

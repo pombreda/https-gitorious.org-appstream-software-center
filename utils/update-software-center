@@ -32,33 +32,33 @@ from dbus.mainloop.glib import DBusGMainLoop
 
 
 try:
-    from softwarestore.enums import *
+    from softwarecenter.enums import *
 except ImportError:
     # support running from the dir too
     d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
     sys.path.insert(0, os.path.split(d)[0])
-    from softwarestore.enums import *
+    from softwarecenter.enums import *
 
 try:
-    from softwarestore.db.update import rebuild_database
+    from softwarecenter.db.update import rebuild_database
 except ImportError:
     # support running from the dir too
     d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
     sys.path.insert(0, os.path.split(d)[0])
-    from softwarestore.db.update import update
+    from softwarecenter.db.update import update
 
-class UpdateSoftwareStoreDbus(dbus.service.Object):
+class UpdateSoftwarecenterDbus(dbus.service.Object):
     """ 
-    This is a helper to provide the UpdateSoftwareStoreIFace
+    This is a helper to provide the UpdateSoftwarecenterIFace
     """
     def __init__(self, bus_name,
-                 object_path='/com/ubuntu/SoftwareStore'):
+                 object_path='/com/ubuntu/Softwarecenter'):
         dbus.service.Object.__init__(self, bus_name, object_path)
 
-    @dbus.service.method('com.ubuntu.SoftwareStore')
+    @dbus.service.method('com.ubuntu.Softwarecenter')
     def IsRebuilding(self):
         return True
-    @dbus.service.signal(dbus_interface='com.ubuntu.SoftwareStore',
+    @dbus.service.signal(dbus_interface='com.ubuntu.Softwarecenter',
                          signature='b')
     def DatabaseRebuilding(self, isRebuilding):
         logging.debug("Sending DatabaseRebuilding signal '%s'" % isRebuilding)
@@ -75,8 +75,8 @@ if __name__ == "__main__":
     try:
         DBusGMainLoop(set_as_default=True)
         bus = dbus.SystemBus()
-        bus_name = dbus.service.BusName('com.ubuntu.SoftwareStore', bus)
-        dbus_controller = UpdateSoftwareStoreDbus(bus_name)
+        bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter', bus)
+        dbus_controller = UpdateSoftwarecenterDbus(bus_name)
         dbus_controller.DatabaseRebuilding(True)
     except:
         logging.exception("dbus failure (ignoring")

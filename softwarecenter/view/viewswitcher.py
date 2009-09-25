@@ -105,7 +105,7 @@ class ViewSwitcherList(gtk.ListStore):
 
     ICON_SIZE = 24
 
-    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarestore-progress-*.png"
+    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress-*.png"
 
     __gsignals__ = {'transactions-changed' : (gobject.SIGNAL_RUN_LAST,
                                               gobject.TYPE_NONE,
@@ -120,7 +120,7 @@ class ViewSwitcherList(gtk.ListStore):
         self._pending = 0
         # setup the normal stuff
         try:
-            icon = AnimatedImage(self.icons.load_icon("softwarestore", self.ICON_SIZE, 0))
+            icon = AnimatedImage(self.icons.load_icon("softwarecenter", self.ICON_SIZE, 0))
         except glib.GError:
             # icon not present in theme, probably because running uninstalled
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-store"
+        datadir = "/usr/share/software-center"
 
     scroll = gtk.ScrolledWindow()
     icons = gtk.icon_theme_get_default()

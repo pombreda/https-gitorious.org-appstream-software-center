@@ -18,7 +18,7 @@
 
 import locale
 import xapian
-from softwarestore.enums import *
+from softwarecenter.enums import *
 
 
 class Application(object):

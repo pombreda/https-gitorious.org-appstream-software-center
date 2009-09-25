@@ -3,11 +3,11 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="window_main">
-    <property name="title" translatable="yes" context="This is the window title of the application" comments="From the spec: &quot;This name should be localized, and the code should advise translators to Translate 'store' with the meaning of 'shop' rather than 'repository', if there is no common term covering both.&quot;">Ubuntu Software Store</property>
+    <property name="title" translatable="yes">Ubuntu Software Center</property>
     <property name="window_position">center</property>
     <property name="default_width">850</property>
     <property name="default_height">500</property>
-    <property name="icon_name">softwarestore</property>
+    <property name="icon_name">softwarecenter</property>
     <signal name="delete_event" handler="on_window_main_delete_event"/>
     <child>
       <object class="GtkVBox" id="vbox1">
@@ -238,7 +238,7 @@
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_help">
-                        <property name="label" translatable="yes">Software Store _Help</property>
+                        <property name="label" translatable="yes">Software Center _Help</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="image">image1</property>
@@ -401,13 +401,13 @@
     <property name="border_width">5</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
-    <property name="program_name">Ubuntu Software Store</property>
+    <property name="program_name">Ubuntu Software Center</property>
     <property name="version">0.3.4</property>
     <property name="copyright" translatable="yes">&#xA9;2009 Canonical</property>
     <property name="comments" translatable="yes">Lets you choose from thousands of free applications available for Ubuntu.</property>
-    <property name="website">http://launchpad.net/software-store</property>
+    <property name="website">http://launchpad.net/software-center</property>
     <property name="authors">Michael Vogt</property>
-    <property name="logo_icon_name">softwarestore</property>
+    <property name="logo_icon_name">softwarecenter</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>

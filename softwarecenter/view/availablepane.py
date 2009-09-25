@@ -43,7 +43,7 @@ from catview import CategoriesView
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
 class AvailablePane(SoftwarePane):
-    """Widget that represents the available panel in software-store
+    """Widget that represents the available panel in software-center
        It contains a search entry and navigation buttons
     """
 
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-store"
+        datadir = "/usr/share/software-center"
 
     db = xapian.Database(pathname)
     icons = gtk.icon_theme_get_default()
