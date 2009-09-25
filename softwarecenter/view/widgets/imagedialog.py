@@ -33,9 +33,12 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
         import gconf
         client = gconf.client_get_default()
         if client.get_bool("/system/http_proxy/use_http_proxy"):
-            host = client.get_string("/system/http_proxy/host")
-            port = client.get_int("/system/http_proxy/port")
-            proxies = { "http" : "http://%s:%s/" %  (host, port) }
+            try:
+                host = client.get_string("/system/http_proxy/host")
+                port = client.get_int("/system/http_proxy/port")
+                proxies = { "http" : "http://%s:%s/" %  (host, port) }
+            except GError, e:
+                pass
         urllib.FancyURLopener.__init__(self, proxies)
         self.version = user_agent
 
