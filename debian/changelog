@@ -1,8 +1,9 @@
-software-center (0.4.1) karmic; urgency=low
+software-center (0.4.1) UNRELEASEDkarmic; urgency=low
 
   * softwarecenter/view/widgets/imagedialog.py:
     - ignore gconf errors when trying to read the proxy settings
       (LP: #436129)
+  * fix some leftovers from the rename
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 19:56:55 +0200
 
