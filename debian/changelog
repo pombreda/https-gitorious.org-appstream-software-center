@@ -1,3 +1,10 @@
+software-store (0.3.11) UNRELEASED; urgency=low
+
+  * data/ubuntu-software-store.desktop.in: add missing semi-colon at end of
+    Categories.
+
+ -- Loïc Minier <loic.minier@ubuntu.com>  Fri, 25 Sep 2009 11:28:56 +0200
+
 software-store (0.3.10) karmic; urgency=low
 
   * disable borders around the (internal) notebook widgets
