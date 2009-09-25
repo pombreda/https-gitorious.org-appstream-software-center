@@ -137,9 +137,9 @@ class InstalledPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(name, pkgname)
 
-    def on_navigation_list(self, pathpart, pathbar):
+    def on_navigation_list(self, pathbar):
         """callback when the navigation button with id 'list' is clicked"""
-        if not pathbar.get_active_part():
+        if not pathbar.get_active():
             return
         # remove the details and clear the search
         self.searchentry.clear()
@@ -149,14 +149,14 @@ class InstalledPane(SoftwarePane):
         self.searchentry.show()
         self.emit("app-list-changed", len(self.app_view.get_model()))
 
-    def on_navigation_details(self, pathpart, pathbar):
+    def on_navigation_details(self, pathbar):
         """callback when the navigation button with id 'details' is clicked"""
-        if not pathbar.get_active_part():
+        if not pathbar.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
 
-    def on_navigation_search(self, pathpart, pathbar):
+    def on_navigation_search(self, pathbar):
         pathbar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))

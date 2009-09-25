@@ -50,6 +50,10 @@ def parse_colour_scheme(colour_scheme_str):
 
 class PathBar(gtk.DrawingArea, gobject.GObject):
 
+    __gsignals__ = {
+        "clicked": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ())
+        }
+
     def __init__(self, group=None, min_part_width=56, xpadding=10, ypadding=4,
         spacing=6, curvature=4, arrow_width=13):
         gobject.GObject.__init__(self)
@@ -65,7 +69,6 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
 
         self.__parts = []
         self.id_to_part = {}
-        self.id_to_callback = {}
 
         self.__active_part = None
         self.__focal_part = None
@@ -100,14 +103,14 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         self.connect("leave-notify-event", self.__leave_notify_cb)
         self.connect("button-press-event", self.__button_press_cb)
         self.connect("button-release-event", self.__button_release_cb)
-        self.connect("key-release-event", self.__key_release_cb)
+#        self.connect("key-release-event", self.__key_release_cb)
 
         self.connect("expose-event", self.__expose_cb, scheme['bg_color'])
         self.connect("style-set", self.__style_change_cb)
         self.connect("size-allocate", self.__allocation_change_cb)
         return
 
-    def set_active_part(self, part):
+    def set_active(self, part):
         prev_active = self.__active_part
 
         if prev_active and prev_active != part:
@@ -117,28 +120,28 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         self.__active_part = part
         return prev_active
 
-    def get_active_part(self):
+    def get_active(self):
         return self.__active_part
 
-    def get_left_part(self):
-        active = self.get_active_part()
-        if not active:
-            return self.__parts[0]
+#    def get_left_part(self):
+#        active = self.get_active()
+#        if not active:
+#            return self.__parts[0]
 
-        i = self.__parts.index(active)+1
-        if i > len(self.__parts)-1:
-            i = 0
-        return self.__parts[i]
+#        i = self.__parts.index(active)+1
+#        if i > len(self.__parts)-1:
+#            i = 0
+#        return self.__parts[i]
 
-    def get_right_part(self):
-        active = self.get_active_part()
-        if not active:
-            return self.__parts[0]
+#    def get_right_part(self):
+#        active = self.get_active()
+#        if not active:
+#            return self.__parts[0]
 
-        i = self.__parts.index(active)-1
-        if i < 0:
-            i = len(self.__parts)-1
-        return self.__parts[i]
+#        i = self.__parts.index(active)-1
+#        if i < 0:
+#            i = len(self.__parts)-1
+#        return self.__parts[i]
 
     def add_with_id(self, label, callback, id, icon=None):
         """
@@ -155,20 +158,16 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         # check if we have the button of that id or need a new one
         if id in self.id_to_part:
             part = self.id_to_part[id]
-            part.set_label(label)
-            part.disconnect(self.id_to_callback[id])
+            part.set_label(label, callback, id)
+            del self.id_to_callback[id]
             self.queue_draw_area(*part.allocation)
         else:
-            part = PathPart(label)
+            part = PathPart(label, callback)
             part.set_pathbar(self)
-            gobject.idle_add(idle_append_cb, part)
             self.id_to_part[id] = part
+            gobject.idle_add(idle_append_cb, part)
 
         if icon: part.set_icon(icon)
-
-        # common code
-        handler_id = part.connect("clicked", callback)
-        self.id_to_callback[id] = handler_id
         return
 
     def remove_id(self, id):
@@ -178,16 +177,11 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             return
 
         old_w = self.__draw_width()
-        end_active = self.get_active_part() == self.__parts[-1]
+        end_active = self.get_active() == self.__parts[-1]
 
         if len(self.__parts)-1 < 1:
             print WARNING + 'The first part is sacred ;)' + ENDC
             return
-
-        try:
-            del self.id_to_callback[id]
-        except KeyError:
-            pass
 
         pos = self.__parts.index(self.id_to_part[id])
         del self.__parts[pos]
@@ -195,7 +189,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         self.__compose_parts(self.__parts[-1], False)
 
         if end_active:
-            self.set_active_part(self.__parts[-1])
+            self.set_active(self.__parts[-1])
 
         # this code handles circumstances where the part removed is not the
         # tail part.  code is not robust, but kinda works in situations where
@@ -224,7 +218,6 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
 
         self.__parts = []
         self.id_to_part = {}
-        self.id_to_callback = {}
         self.queue_draw()
         return
 
@@ -312,7 +305,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         self.__parts.append(part)
         part.set_pathbar(self)
 
-        prev_active = self.set_active_part(part)
+        prev_active = self.set_active(part)
         if prev_active and prev_active != part:
             self.queue_draw_area(*prev_active.allocation)
 
@@ -333,7 +326,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
     def __shorten(self, n):
         n = int(n)
         old_w = self.__draw_width()
-        end_active = self.get_active_part() == self.__parts[-1]
+        end_active = self.get_active() == self.__parts[-1]
 
         if len(self.__parts)-n < 1:
             print WARNING + 'The first part is sacred ;)' + ENDC
@@ -343,7 +336,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         self.__compose_parts(self.__parts[-1], False)
 
         if end_active:
-            self.set_active_part(self.__parts[-1])
+            self.set_active(self.__parts[-1])
 
         if old_w >= self.allocation.width:
             self.__grow_check(old_w, self.allocation)
@@ -755,36 +748,35 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
     def __button_release_cb(self, widget, event):
         part = self.__part_at_xy(event.x, event.y)
         if part:
+            if part.callback: part.callback(self)
             self.grab_focus()
-            part.emit("clicked", self)
-            prev_active = self.set_active_part(part)
+            prev_active = self.set_active(part)
 
             self.queue_draw_area(*part.allocation)
             if prev_active:
                 self.queue_draw_area(*prev_active.allocation)
-
         return
 
-    def __key_release_cb(self, widget, event):
-        part = None
+#    def __key_release_cb(self, widget, event):
+#        part = None
 
-        # left key pressed
-        if event.keyval == 65363:
-            part = self.get_left_part()
+#        # left key pressed
+#        if event.keyval == 65363:
+#            part = self.get_left_part()
 
-        # right key pressed
-        elif event.keyval == 65361:
-            part = self.get_right_part()
+#        # right key pressed
+#        elif event.keyval == 65361:
+#            part = self.get_right_part()
 
-        if not part: return
+#        if not part: return
 
-        prev_active = self.set_active_part(part)
-        self.queue_draw_area(*part.allocation)
-        if prev_active:
-            self.queue_draw_area(*prev_active.allocation)
+#        prev_active = self.set_active(part)
+#        self.queue_draw_area(*part.allocation)
+#        if prev_active:
+#            self.queue_draw_area(*prev_active.allocation)
 
-        part.emit("clicked", event.copy())
-        return
+#        part.emit("clicked", event.copy())
+#        return
 
     def __expose_cb(self, widget, event, bg):
         #t = gobject.get_current_time()
@@ -848,15 +840,9 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         return
 
 
-class PathPart(gobject.GObject):
+class PathPart:
 
-    __gsignals__ = {
-        "clicked": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (PathBar,))
-        }
-
-    def __init__(self, label=None):
-        gobject.GObject.__init__(self)
-
+    def __init__(self, label=None, callback=None):
         self.__best_fit = (0,0)
         self.__layout = None
         self.__pbar = None
@@ -865,7 +851,7 @@ class PathPart(gobject.GObject):
         self.state = gtk.STATE_NORMAL
         self.shape = SHAPE_RECTANGLE
 
-        self.callback = None
+        self.callback = callback
         self.set_label(label or "")
         self.icon = Icon()
         return
@@ -1040,5 +1026,4 @@ class Icon:
 
 
 # gobject registration
-gobject.type_register(PathPart)
 gobject.type_register(PathBar)

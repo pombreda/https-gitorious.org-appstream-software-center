@@ -214,9 +214,9 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(name, pkgname)
 
-    def on_navigation_category(self, pathpart, pathbar):
+    def on_navigation_category(self, pathbar):
         """callback when the navigation button with id 'category' is clicked"""
-        if not pathbar.get_active_part():
+        if not pathbar.get_active():
             return
         # yeah for special cases - as discussed on irc, mpt
         # wants this to behave differently *if* we are not
@@ -238,9 +238,9 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", self.xapiandb.get_doccount())
         self.searchentry.show()
 
-    def on_navigation_list(self, pathpart, pathbar):
+    def on_navigation_list(self, pathbar):
         """callback when the navigation button with id 'list' is clicked"""
-        if not pathbar.get_active_part():
+        if not pathbar.get_active():
             return
         pathbar.remove_id("details")
         pathbar.remove_id("search")
@@ -248,9 +248,9 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
 
-    def on_navigation_details(self, pathbar, pathpart):
+    def on_navigation_details(self, pathpart):
         """callback when the navigation button with id 'details' is clicked"""
-        if not pathbar.get_active_part():
+        if not pathbar.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
