@@ -589,10 +589,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
 
         # outer slight bevel or focal highlight
         shapes[shape](cr, 0, 0, w, h, r, aw, True)
-        if not self.is_focus():
-            cr.set_source_rgba(0, 0, 0, 0.055)
-        else:
-            cr.set_source_rgba(sel.red_float, sel.green_float, sel.blue_float, 0.65)
+        cr.set_source_rgba(0, 0, 0, 0.055)
         cr.fill()
         cr.reset_clip()
 

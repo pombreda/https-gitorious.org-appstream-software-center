@@ -9,7 +9,7 @@ import urllib
 from gettext import gettext as _
 
 from softwarestore.enums import *
-from fancyimage import FancyImage
+from fancyimage import FancyImage, FancyProgress
 
 class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
@@ -38,26 +38,28 @@ class ShowImageDialog(gtk.Dialog):
 
         # image
         self.img = FancyImage()
-        self.img.set_from_file(loading_img)
+#        self.img.set_from_file(loading_img)
 
         # firefox like status bar
         # progress
-        self.progress = gtk.ProgressBar()
-        self.progress.set_size_request(108, 14)
+        self.progress = FancyProgress()
+        self.progress.set_text("Downloading screenshot...")
+        self.progress.show()
 
-        # label
-        label = gtk.Label(_("Downloading screenshot..."))
+#        # label
+#        label = gtk.Label(_("Downloading screenshot..."))
 
-        # hbox
-        self.hbox = gtk.HBox()
-        self.hbox.pack_start(label, False)
-        self.hbox.pack_end(self.progress, False)
+#        # hbox
+#        self.hbox = gtk.HBox()
+#        self.hbox.pack_start(label, False)
+#        self.hbox.pack_end(self.progress, False)
 
         # box
         vbox = gtk.VBox()
+        vbox.pack_start(self.progress)
         vbox.pack_start(self.img)
-        vbox.pack_start(self.hbox, expand=False, padding=4)
-        vbox.show_all()
+#        vbox.pack_start(self.hbox, expand=False, padding=4)
+        vbox.show()
 
         # dialog
         self.set_transient_for(parent)
@@ -97,8 +99,9 @@ class ShowImageDialog(gtk.Dialog):
             return gtk.RESPONSE_CLOSE
 
         # load into icon
-        self.hbox.hide()
+        self.progress.hide()
         self.img.set_from_file(self.location.name)
+        self.img.show()
         # and run the real thing
         gtk.Dialog.run(self)
 

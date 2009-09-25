@@ -8,6 +8,112 @@ M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
 
+def rounded_rect(cr, x, y, w, h, r):
+    global M_PI, PI_OVER_180
+    cr.new_sub_path()
+    cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
+    cr.arc(w-r+x, r+y, r, 270*PI_OVER_180, 0)
+    cr.arc(w-r+x, h-r+y, r, 0, 90*PI_OVER_180)
+    cr.arc(r+x, h-r+y, r, 90*PI_OVER_180, M_PI)
+    cr.close_path()
+    return
+
+
+class FancyProgress(gtk.DrawingArea):
+
+    def __init__(self):
+        gtk.DrawingArea.__init__(self)
+
+        self.fraction = 0.5
+        self.text = None
+        self.frame = gtk.gdk.pixbuf_new_from_file('data/misc/progress-shad.png')
+        self.connect('expose-event', self.on_expose_cb)
+        return
+
+    def set_text(self, text):
+        self.text = text
+        self.queue_draw()
+        return
+
+    def set_fraction(self, fraction):
+        self.fraction = fraction
+        self.queue_draw()
+        return
+
+    def on_expose_cb(self, widget, event):
+        alloc = widget.get_allocation()
+        aw, ah = alloc.width, alloc.height
+        if not (aw > 1 and ah > 1): return
+
+        cr = widget.window.cairo_create()
+        cr.rectangle(event.area)
+        cr.clip()
+
+        # bg
+        lin = cairo.LinearGradient(0, 0, 0, ah)
+        lin.add_color_stop_rgb(1, 0.2235, 0.2392, 0.2941)
+        lin.add_color_stop_rgb(0, 0.2863, 0.3176, 0.3843)
+        cr.set_source(lin)
+        rounded_rect(cr, 0, 0, aw, ah, 3)
+        cr.fill()
+
+        w, h = self.frame.get_width(), self.frame.get_height()
+        x = (aw - w)/2
+        y = (ah - h)/2
+
+        # slight highlight
+        cr.save()
+        cr.translate(0.5,0.5)
+        cr.set_line_width(1)
+        rounded_rect(cr, x-1, y-1, w+1, h+1, 5)
+        cr.set_source_rgba(1,1,1, 0.05)
+        cr.stroke()
+        cr.restore()
+
+        cr.rectangle(x,y,w*self.fraction, h)
+        cr.clip()
+
+        rounded_rect(cr, x, y, w, h, 5)
+
+        c = gtk.gdk.color_parse("#FFA500")
+        cr.set_source_rgb(c.red_float, c.green_float, c.blue_float)
+        cr.fill()
+
+        cr.reset_clip()
+
+        cr.set_source_pixbuf(self.frame, x, y)
+        cr.paint()
+
+        # draw text
+        if not self.text:
+            del cr
+            return
+
+        import pango
+        layout = pango.Layout(self.get_pango_context())
+        layout.set_text(self.text)
+        layout.set_ellipsize(pango.ELLIPSIZE_END)
+        layout.set_width(w*pango.SCALE)
+
+        dst_x = (aw - layout.get_pixel_size()[0])/2
+        dst_y = int(y - 2.5*h)
+        w, h = layout.get_pixel_size()
+        self.style.paint_layout(
+            self.window,
+            gtk.STATE_SELECTED,
+            False,
+            (dst_x, dst_y, w+4, h),   # clip area
+            self,
+            None,
+            dst_x,
+            dst_y,
+            layout)
+
+        del cr
+        return
+
+
+
 class FancyImage(gtk.DrawingArea):
 
     BORDER_WIDTH = 25
@@ -150,15 +256,7 @@ class FancyImage(gtk.DrawingArea):
         lin.add_color_stop_rgb(1, 0.2235, 0.2392, 0.2941)
         lin.add_color_stop_rgb(0, 0.2863, 0.3176, 0.3843)
         cr.set_source(lin)
-
-        global M_PI, PI_OVER_180
-        x, y, w, h, r = 0, 0, aw, ah, 3
-        cr.new_sub_path()
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
-        cr.close_path()
+        rounded_rect(cr, 0, 0, aw, ah, 3)
         cr.fill()
 
         if aw > 1 and ah > 1 and self.pixbuf:
