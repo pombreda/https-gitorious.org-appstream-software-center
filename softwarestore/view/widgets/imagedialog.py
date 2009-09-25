@@ -95,7 +95,6 @@ class ShowImageDialog(gtk.Dialog):
             return gtk.RESPONSE_CLOSE
 
         # load into icon
-        self.set_has_separator(False)
         self.hbox.hide()
         self.img.set_from_file(self.location.name)
         # and run the real thing
