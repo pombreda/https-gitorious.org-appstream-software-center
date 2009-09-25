@@ -1,4 +1,4 @@
-software-center (0.4.0) unstable; urgency=low
+software-center (0.4.0) karmic; urgency=low
 
   [ Michael Vogt ]
   * renamed to "Ubuntu Software Center" and software-center (LP: #436648)
