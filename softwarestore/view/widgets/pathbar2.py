@@ -152,7 +152,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         """
 
         def idle_append_cb(part):
-            self.append(part)
+            gobject.timeout_add(50, self.append, part)
             return False
 
         # check if we have the button of that id or need a new one
@@ -241,7 +241,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         prev, did_shrink = self.__append(part)
 
         if not self.get_property("visible"):
-            return
+            return False
 
         if self.animate:
             aw = self.arrow_width
@@ -275,7 +275,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
                 )
         else:
             self.queue_draw()
-        return
+        return False
 
     def shorten(self, n=1):
 
@@ -585,7 +585,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         light = style.light[state]
         mid = style.mid[state]
         dark = style.dark[state]
-        sel = style.bg[gtk.STATE_SELECTED]
+#        sel = style.bg[gtk.STATE_SELECTED]
 
         # outer slight bevel or focal highlight
         shapes[shape](cr, 0, 0, w, h, r, aw, True)
@@ -597,10 +597,16 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         shapes[shape](cr, 1, 1, w-1, h-1, r, aw)
 
         lin = cairo.LinearGradient(0, 0, 0, h-1)
-        lin.add_color_stop_rgb(0, *rgb.lighten(mid, 0.18))
+        lin.add_color_stop_rgb(0, *rgb.lighten(mid, 0.2))
         lin.add_color_stop_rgb(1.0, mid.red_float, mid.green_float, mid.blue_float)
         cr.set_source(lin)
-        cr.fill()
+
+        if state != gtk.STATE_PRELIGHT:
+            cr.fill()
+        else:
+            cr.fill_preserve()
+            cr.set_source_rgba(1,1,1,0.4)
+            cr.fill()
 
         # translate x,y by 0.5 so 1px lines are crisp
         cr.save()

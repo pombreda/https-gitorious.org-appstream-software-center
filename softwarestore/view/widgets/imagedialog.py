@@ -43,7 +43,7 @@ class ShowImageDialog(gtk.Dialog):
         # firefox like status bar
         # progress
         self.progress = FancyProgress()
-        self.progress.set_text("Downloading screenshot...")
+        self.progress.set_text( _("Downloading screenshot...") )
         self.progress.show()
 
 #        # label

@@ -42,30 +42,12 @@ class SearchEntry(sexy.IconEntry):
         and uses a different background colour when the search is active
         """
         sexy.IconEntry.__init__(self)
-        if not icon_theme:
-            icon_theme = gtk.icon_theme_get_default()
         self._handler_changed = self.connect_after("changed",
                                                    self._on_changed)
         self.connect("icon-pressed", self._on_icon_pressed)
         # Does not work - known bug in libsexy
         # image = gtk.image_new_from_icon_name(gtk.STOCK_CLEAR,
         #                                      gtk.ICON_SIZE_MENU)
-        # primary
-        image_find = gtk.Image()
-        pixbuf = icon_theme.load_icon(gtk.STOCK_FIND,
-                                      gtk.ICON_SIZE_MENU,
-                                      0)
-        image_find.set_from_pixbuf(pixbuf)
-        self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
-
-        self.empty_image = gtk.Image()
-        self.clear_image = gtk.Image()
-        pixbuf = icon_theme.load_icon(gtk.STOCK_CLEAR,
-                                      gtk.ICON_SIZE_MENU,
-                                      0)
-        self.clear_image.set_from_pixbuf(pixbuf)
-        self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
-        self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
 
         # Do not draw a yellow bg if an a11y theme is used
         settings = gtk.settings_get_default()
@@ -76,6 +58,7 @@ class SearchEntry(sexy.IconEntry):
         self._timeout_id = 0
         self._undo_stack = [""]
         self._redo_stack = []
+        self.connect("realize", self._on_realize)
 
     def _on_icon_pressed(self, widget, icon, mouse_button):
         """
@@ -155,6 +138,34 @@ class SearchEntry(sexy.IconEntry):
             self.modify_base(gtk.STATE_NORMAL, None)
         else:
             self.modify_base(gtk.STATE_NORMAL, yellowish)
+
+    def _on_realize(self, widget):
+        icon = self.style.lookup_icon_set(gtk.STOCK_FIND)
+        pixbuf = icon.render_icon(self.style,
+                                  gtk.TEXT_DIR_NONE,
+                                  gtk.STATE_NORMAL,
+                                  gtk.ICON_SIZE_MENU,
+                                  widget,
+                                  None)
+
+        image_find = gtk.Image()
+        image_find.set_from_pixbuf(pixbuf)
+        self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
+
+        icon = self.style.lookup_icon_set(gtk.STOCK_CLEAR)
+        pixbuf = icon.render_icon(self.style,
+                                  gtk.TEXT_DIR_NONE,
+                                  gtk.STATE_NORMAL,
+                                  gtk.ICON_SIZE_MENU,
+                                  widget,
+                                  None)
+
+        self.empty_image = gtk.Image()
+        self.clear_image = gtk.Image()
+        self.clear_image.set_from_pixbuf(pixbuf)
+        self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
+        self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
+        self.set_icon_highlight(sexy.ICON_ENTRY_SECONDARY, True)
 
 def on_entry_changed(self, terms):
     print terms

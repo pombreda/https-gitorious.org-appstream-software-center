@@ -247,7 +247,7 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
 
-    def on_navigation_details(self, pathpart):
+    def on_navigation_details(self, pathbar):
         """callback when the navigation button with id 'details' is clicked"""
         if not pathbar.get_active():
             return
