@@ -19,7 +19,7 @@
   <!-- please do not change the id; for translations, change lang to -->
   <!-- appropriate code -->
   <bookinfo>
-    <title>Ubuntu Software Store</title>
+    <title>Ubuntu Software Center</title>
     <!-- translators: uncomment this:
 
   <copyright>
@@ -57,16 +57,16 @@
       </author>
     </authorgroup>
     <abstract>
-    	<para>This manual explains how to use <application>Software Store</application>.</para>
+    	<para>This manual explains how to use <application>Software Center</application>.</para>
     </abstract> 
   </bookinfo> 
   <!-- ============= Document Body ============================= -->
 
   <!-- ============= Introduction ============================== -->
   <chapter id="introduction">
-    <title>What is the Ubuntu Software Store?</title>
+    <title>What is the Ubuntu Software Center?</title>
     <para>
-      The Ubuntu Software Store is a virtual catalog of thousands of free
+      The Ubuntu Software Center is a virtual catalog of thousands of free
       applications available for Ubuntu &#8212;
       software to make your computer more useful.
     </para>
@@ -75,7 +75,7 @@
       and you can install an application with the click of a button.
     </para>
     <para>
-      The Store also lets you examine the applications installed on the
+      The Software Center also lets you examine the applications installed on the
       computer already,
       and remove those you no longer need.
     </para>
@@ -83,7 +83,7 @@
   <chapter id="installing">
     <title>Installing a program</title>
     <para>
-      To install a program from the Store,
+      To install a program from the Software Center,
       you need administrator access and a working Internet connection.
       (If you set up Ubuntu on this computer yourself,
       you have administrator access automatically.)
@@ -96,7 +96,7 @@
           If you already know its name, try typing the name in the search field.
           Or try searching for the type of program you want
           (like &#8220;spreadsheet&#8221;).
-          Otherwise, browse the Store departments to find the program.
+          Otherwise, browse the Software Center departments to find the program.
         </para>
       </listitem>
       <listitem>
@@ -119,7 +119,7 @@
     </para>
     <para>
       While a program is being installed,
-      it appears in the Store&#8217;s <guilabel>In Progress</guilabel> section.
+      it appears in the Software Center&#8217;s <guilabel>In Progress</guilabel> section.
       As soon as it disappears, the program is installed.
     </para>
     <itemizedlist>
@@ -133,7 +133,7 @@
     <para>
       Most installed applications appear
       in the <guimenu>Applications</guimenu> menu in the corner of the screen,
-      in the same category as they came from in the Store.
+      in the same category as they came from in the Software Center.
     </para>
     <para>
       For example, if you installed a program from the
@@ -201,7 +201,7 @@
     >Why is it asking me to remove several programs together?</title>
     <para>
       Sometimes if you try to remove one program,
-      the Store will warn you that other programs will be removed too.
+      the Software Center will warn you that other programs will be removed too.
       There are two main reasons this happens.
     </para>
     <itemizedlist>
@@ -216,7 +216,7 @@
           Multiple applications are sometimes provided as a single package.
           If any of them are installed, all of them are installed.
           And if any of them are removed, all of them are removed.
-          The Store cannot remove them individually,
+          The Software Center cannot remove them individually,
           because it has no instructions on how to separate them.
         </para>
       </listitem>
@@ -238,7 +238,7 @@
   <chapter id="canonical-maintained">
     <title>What does &#8220;Canonical-maintained&#8221; mean?</title>
     <para>
-      Some of the software available in the Ubuntu Software Store is
+      Some of the software available in the Ubuntu Software Center is
       maintained by Canonical.
       Canonical engineers ensure that security fixes and other critical updates
       are provided for these programs.
@@ -251,31 +251,31 @@
   <chapter id="why-free">
     <title id="why-free-title">Why are all the programs free?</title>
     <para>
-      Currently, all software in the Ubuntu Software Store is free of charge.
+      Currently, all software in the Ubuntu Software Center is free of charge.
     </para>
     <para>
       Most of this software is developed as <firstterm>open source</firstterm>,
       which means anyone is allowed to alter it and redistribute it for any
       price.
       Ubuntu developers, Debian developers, and others
-      package the software available in the Store,
+      package the software available in the Software Center,
       and make it available to you for free.
     </para>
     <para>
-      In a future version of Ubuntu, the Store will also allow software
+      In a future version of Ubuntu, the Software Center will also allow software
       purchases.
     </para>
   </chapter>
   <chapter id="missing">
     <title id="missing-title"
-    >What if a program I want isn&#8217;t in the Store?</title>
+    >What if a program I want isn&#8217;t in the Software Center?</title>
     <para>
       First, check that <menuchoice><guimenu>View</guimenu>
       <guimenuitem>All Applications</guimenuitem></menuchoice> is selected.
-      That ensures you can see all the software available in the Store.
+      That ensures you can see all the software available in the Software Center.
     </para>
     <para>
-      If a program isn&#8217;t in the Store,
+      If a program isn&#8217;t in the Software Center,
       but you know that it runs on Ubuntu,
       try contacting the original developers of the program
       to ask if they can help make it available.
@@ -290,7 +290,7 @@
     <title id="bugs-title"
     >What if a program doesn&#8217;t work?</title>
     <para>
-      With thousands of applications in the Store,
+      With thousands of applications in the Software Center,
       there&#8217;s always the chance that a few of them won&#8217;t work
       properly on your computer.
     </para>
@@ -301,7 +301,7 @@
       their <guimenu>Help</guimenu> menu.
     </para>
     <para>
-      Otherwise, look through the Store for another program to do what you want.
+      Otherwise, look through the Software Center for another program to do what you want.
     </para>
     <itemizedlist>
      <listitem><para><xref linkend="removing" endterm="removing-title"/></para></listitem>
