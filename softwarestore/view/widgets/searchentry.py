@@ -58,6 +58,8 @@ class SearchEntry(sexy.IconEntry):
         self._timeout_id = 0
         self._undo_stack = [""]
         self._redo_stack = []
+
+        self.connect("style-set", self._on_style_change)
         self.connect("realize", self._on_realize)
 
     def _on_icon_pressed(self, widget, icon, mouse_button):
@@ -139,7 +141,7 @@ class SearchEntry(sexy.IconEntry):
         else:
             self.modify_base(gtk.STATE_NORMAL, yellowish)
 
-    def _on_realize(self, widget):
+    def _load_stock_icons(self, widget):
         icon = self.style.lookup_icon_set(gtk.STOCK_FIND)
         pixbuf = icon.render_icon(self.style,
                                   gtk.TEXT_DIR_NONE,
@@ -159,10 +161,15 @@ class SearchEntry(sexy.IconEntry):
                                   gtk.ICON_SIZE_MENU,
                                   widget,
                                   None)
-
         self.empty_image = gtk.Image()
         self.clear_image = gtk.Image()
         self.clear_image.set_from_pixbuf(pixbuf)
+
+    def _on_style_change(self, widget, prev_style):
+        self._load_stock_icons(widget)
+
+    def _on_realize(self, widget):
+        self._load_stock_icons(widget)
         self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
         self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
         self.set_icon_highlight(sexy.ICON_ENTRY_SECONDARY, True)

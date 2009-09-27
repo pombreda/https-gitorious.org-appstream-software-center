@@ -553,7 +553,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
             cr.set_source_pixbuf(
                 icon_pb,
                 self.xpadding-sxO,
-                (alloc.height - icon_pb.get_height())/2+1)
+                (alloc.height - icon_pb.get_height())/2)
             cr.paint()
             margin += icon_pb.get_width() + self.spacing
 
@@ -809,7 +809,7 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
 
         # set height to 0 so that if part height has been reduced the widget will
         # shrink to an appropriate new height based on new font size
-        self.set_size_request(-1, 0)
+        self.set_size_request(-1, 28)
 
         parts = self.__parts
         self.__parts = []
