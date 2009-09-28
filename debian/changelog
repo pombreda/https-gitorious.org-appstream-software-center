@@ -1,15 +1,20 @@
 software-center (0.4.2) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/view/pendingview.py:
     - fix empty progress view when the daemon exited in between
       (LP: #437685)
   * softwarecenter/view/appdetailsview.py:
     - fix crash when no candidate for a package can be found
 
+ [ Loïc Minier ]
+  * Add .PHONY to rules.
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Sep 2009 11:51:53 +0200
 
 software-center (0.4.1) karmic; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/view/widgets/imagedialog.py:
     - ignore gconf errors when trying to read the proxy settings
       (LP: #436129)

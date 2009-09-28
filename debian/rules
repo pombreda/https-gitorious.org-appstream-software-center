@@ -15,3 +15,5 @@ override_dh_auto_install:
 	        $(share)/update-software-center usr/sbin/update-software-center
 	# Remove empty directories.
 	find debian/software-center/usr -type d -empty -delete
+
+.PHONY: binary binary-indep binary-arch build clean override_dh_auto_install
