@@ -1,5 +1,71 @@
-software-store (0.3.9) UNRELEASED; urgency=low
+software-center (0.4.2) karmic; urgency=low
 
+  [ Michael Vogt ]
+  * softwarecenter/view/pendingview.py:
+    - fix empty progress view when the daemon exited in between
+      (LP: #437685)
+  * softwarecenter/view/appdetailsview.py:
+    - fix crash when no candidate for a package can be found
+
+  [ Loïc Minier ]
+  * Add .PHONY to rules.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Sep 2009 17:05:20 +0200
+
+software-center (0.4.1) karmic; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/view/widgets/imagedialog.py:
+    - ignore gconf errors when trying to read the proxy settings
+      (LP: #436129)
+  * fix some leftovers from the rename
+  * softwarecenter/view/widgets/searchentry.py:
+    - fix search icon not being displayed (thanks to Marcus Carlson
+      and Matthew Joseph Mcgowan) LP: #437431
+  * remove po/software-store.pot, we use po/software-center.pot now
+  * softwarecenter/view/widgets/animatedimage.py:
+    - fix crash in animatediamge.py (LP: #437662)
+  * po/en_GB.po:
+    - fix  spelling in en_GB (LP: #437652)
+  * help/C/software-center-C.omf:
+    - fix help (LP: #437859)
+  * merged lp:~mdke/software-center/help-fixes (many thanks!)
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Sep 2009 11:04:22 +0200
+
+software-center (0.4.0) karmic; urgency=low
+
+  [ Michael Vogt ]
+  * renamed to "Ubuntu Software Center" and software-center (LP: #436648)
+  
+  [ Loïc Minier ]
+  * data/ubuntu-software-store.desktop.in: add missing semi-colon at end of
+    Categories.
+  * Use https instead of http in Vcs-Bzr URL.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 17:34:34 +0200
+
+software-store (0.3.10) karmic; urgency=low
+
+  * disable borders around the (internal) notebook widgets
+  * softwarestore/view/installedpane.py:
+    - fix crash when now app_model is available yet (LP: #435464)
+  * softwarestore/view/pendingview.py:
+    - fix crash in cancel handling (LP: #435454)
+  * softwarestore/view/appdetailsview.py:
+    - add translator comment for the price (LP: #435405)
+  * data/templates/AppDetailsView.html:
+    - simplify the html, disable DnD (LP: #434236), thanks to
+      Istvan Nyitrai
+  * move common code into softwarepane.py
+  * update license to GPLv3
+  * update translators comment for "Ubuntu Software Store"
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 24 Sep 2009 18:56:42 +0200
+
+software-store (0.3.9) karmic; urgency=low
+
+  [ Michael Vogt ]
   * softwarestore/view/appdetailsview.py, data/templates/AppDetailsView.html:
     - add basic license information to each package
   * softwarestore/app.py:
@@ -7,13 +73,23 @@ software-store (0.3.9) UNRELEASED; urgency=low
       ("departments") on key-down (LP: #433828)
   * data/templates/CategoriesView.html:
     - arrow key navigation added (thanks to Stuart Langridge)
-  
-  [ Andrew Higginson ]
-  * softwarestore/view
-    - update dependency dialogs to conform with spec
-    - update status bar text to conform with spec
+  * softwarestore/db/database.py:
+    - move query parser code into a proper place and default to
+      AND for multiple search terms (LP: #432978)
+    - support boolean expressions in the search terms (AND, OR, NOT)
+  * disable warning if a package gets removed that another package
+    recommends (its not part of the spec how to handle this)
+  * softwarestore/db/update.py:
+    - do not fail if no locale is defined (LP: #434699)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Sep 2009 15:06:03 +0200
+  [ Andrew Higginson ]
+  * debian/control:
+    - add python-gconf dependencies (needed in the image fetch code to
+      get the proxy from gconf)
+  * softwarestore/view/appdetailsview.py, softwarestore/view/dialogs.py:
+    - make the remove dialog conform to the spec
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Sep 2009 12:07:31 +0200
 
 software-store (0.3.8) karmic; urgency=low
 
