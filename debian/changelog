@@ -1,3 +1,15 @@
+software-center (0.4.2ubuntu1) karmic; urgency=low
+
+  [ Andrew Higginson ]
+  * data/icons/24x24/emblems:
+    - moved emblem icon to data/emblems so it 
+      doesn't go to /usr/share/icons/hicolor and
+      so doesn't show up in nautilus (LP: #437385)
+  * softwarecenter/view/appdetailsview.py:
+    - changed path to installed emblem accordingly
+
+ -- Andrew Higginson <rugby471@gmail.com>  Mon, 28 Sep 2009 18:04:06 +0100
+
 software-center (0.4.2) karmic; urgency=low
 
   [ Michael Vogt ]

@@ -64,7 +64,7 @@ class AppDetailsView(WebkitWidget):
     SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%s"
 
     # FIXME: use relative path here
-    INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-center-installed.png"
+    INSTALLED_ICON = "/usr/share/software-center/emblems/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
     
