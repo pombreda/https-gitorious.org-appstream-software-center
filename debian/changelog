@@ -8,6 +8,8 @@ software-center (0.4.1) UNRELEASEDkarmic; urgency=low
     - fix search icon not being displayed (thanks to Marcus Carlson
       and Matthew Joseph Mcgowan) LP: #437431
   * remove po/software-store.pot, we use po/software-center.pot now
+  * softwarecenter/view/widgets/animatedimage.py:
+    - fix crash in animatediamge.py (LP: #437662)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 19:56:55 +0200
 

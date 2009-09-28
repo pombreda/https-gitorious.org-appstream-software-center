@@ -91,7 +91,10 @@ class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
         return getattr(self, pspec.name)
     def _animation_helper(self, widget, image):
         #print time.time()
-        for row in widget.get_model():
+        model = widget.get_model()
+        if not model:
+            return
+        for row in model:
             cell_area = widget.get_cell_area(row.path, widget.get_column(0))
             widget.queue_draw_area(cell_area.x, cell_area.y, 
                                    cell_area.width, cell_area.height)
