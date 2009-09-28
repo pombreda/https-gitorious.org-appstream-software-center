@@ -5,7 +5,7 @@
      mvo@ubuntu.com
     </creator>
     <title>
-     Software Store
+     Software Center
     </title>
     <date>
      2009-09-07
@@ -20,7 +20,7 @@
      user's guide
     </type>
     <format mime="text/xml" dtd="-//OASIS//DTD DocBook XML V4.1.2//EN"/>
-    <identifier url="file:/usr/share/gnome/help/software-store/C/software-store.xml"/>
+    <identifier url="file:/usr/share/gnome/help/software-center/C/software-center.xml"/>
     <language code="C"/>
     <relation seriesid="09f8bcc4-9246-f537-be7d-a823fbbcfc78c0"/>
     <rights type="GNU FDL" license.version="1.1"

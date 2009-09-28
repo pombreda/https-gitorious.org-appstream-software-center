@@ -12,6 +12,8 @@ software-center (0.4.1) UNRELEASEDkarmic; urgency=low
     - fix crash in animatediamge.py (LP: #437662)
   * po/en_GB.po:
     - fix  spelling in en_GB (LP: #437652)
+  * help/C/software-center-C.omf:
+    - fix help (LP: #437859)
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 19:56:55 +0200
 
