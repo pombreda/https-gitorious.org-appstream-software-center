@@ -7,6 +7,7 @@ software-center (0.4.1) UNRELEASEDkarmic; urgency=low
   * softwarecenter/view/widgets/searchentry.py:
     - fix search icon not being displayed (thanks to Marcus Carlson
       and Matthew Joseph Mcgowan) LP: #437431
+  * remove po/software-store.pot, we use po/software-center.pot now
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 19:56:55 +0200
 
