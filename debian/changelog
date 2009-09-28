@@ -1,4 +1,4 @@
-software-center (0.4.2) UNRELEASED; urgency=low
+software-center (0.4.2) karmic; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/pendingview.py:
@@ -7,10 +7,10 @@ software-center (0.4.2) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - fix crash when no candidate for a package can be found
 
- [ Loïc Minier ]
+  [ Loïc Minier ]
   * Add .PHONY to rules.
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Sep 2009 11:51:53 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Sep 2009 17:05:20 +0200
 
 software-center (0.4.1) karmic; urgency=low
 
