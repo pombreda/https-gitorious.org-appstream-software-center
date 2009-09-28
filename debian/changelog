@@ -1,3 +1,11 @@
+software-center (0.4.2) UNRELEASED; urgency=low
+
+  * softwarecenter/view/pendingview.py:
+    - fix empty progress view when the daemon exited in between
+      (LP: #437685)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Sep 2009 11:51:53 +0200
+
 software-center (0.4.1) karmic; urgency=low
 
   * softwarecenter/view/widgets/imagedialog.py:
