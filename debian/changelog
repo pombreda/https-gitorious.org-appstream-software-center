@@ -1,4 +1,4 @@
-software-center (0.4.1) UNRELEASEDkarmic; urgency=low
+software-center (0.4.1) karmic; urgency=low
 
   * softwarecenter/view/widgets/imagedialog.py:
     - ignore gconf errors when trying to read the proxy settings
@@ -14,8 +14,9 @@ software-center (0.4.1) UNRELEASEDkarmic; urgency=low
     - fix  spelling in en_GB (LP: #437652)
   * help/C/software-center-C.omf:
     - fix help (LP: #437859)
+  * merged lp:~mdke/software-center/help-fixes (many thanks!)
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 19:56:55 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Sep 2009 11:04:22 +0200
 
 software-center (0.4.0) karmic; urgency=low
 
