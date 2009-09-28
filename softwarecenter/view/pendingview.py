@@ -29,15 +29,10 @@ import sys
 import aptdaemon.client
 from aptdaemon.enums import *
 
-try:
-    from appcenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from enums import *
+from softwarecenter.enums import *
+from transactionswatcher import TransactionsWatcher
 
-class PendingStore(gtk.ListStore):
+class PendingStore(gtk.ListStore, TransactionsWatcher):
 
     # column names
     (COL_TID,
@@ -56,22 +51,12 @@ class PendingStore(gtk.ListStore):
     def __init__(self, icons):
         # icon, status, progress
         gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, str, str, float, str)
+        TransactionsWatcher.__init__(self)
         # data
         self.icons = icons
         # the apt-daemon stuff
         self.apt_client = aptdaemon.client.AptClient()
         self._signals = []
-        # watch the daemon exit and (re)register the signal
-        bus = dbus.SystemBus()
-        self._owner_watcher = bus.watch_name_owner(
-            "org.debian.apt", self._register_active_transactions_watch)
-
-    def _register_active_transactions_watch(self, connection):
-        self.apt_daemon = aptdaemon.client.get_aptdaemon()
-        self.apt_daemon.connect_to_signal("ActiveTransactionsChanged",
-                                          self.on_transactions_changed)
-        current, queued = self.apt_daemon.GetActiveTransactions()
-        self.on_transactions_changed(current, queued)
 
     def clear(self):
         super(PendingStore, self).clear()

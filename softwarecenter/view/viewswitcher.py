@@ -31,6 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
+from transactionswatcher import TransactionsWatcher
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
 class ViewSwitcher(gtk.TreeView):
@@ -91,7 +92,7 @@ class ViewSwitcher(gtk.TreeView):
         action = model[path][ViewSwitcherList.COL_ACTION]
         self.emit("view-changed", action)
 
-class ViewSwitcherList(gtk.ListStore):
+class ViewSwitcherList(gtk.ListStore, TransactionsWatcher):
     
     # columns
     (COL_ICON,
@@ -114,6 +115,7 @@ class ViewSwitcherList(gtk.ListStore):
 
     def __init__(self, datadir, icons):
         gtk.ListStore.__init__(self, AnimatedImage, str, int)
+        TransactionsWatcher.__init__(self)
         self.icons = icons
         self.datadir = datadir
         # pending transactions
@@ -135,19 +137,7 @@ class ViewSwitcherList(gtk.ListStore):
         #self.append([icon, '<span size="xx-small"></span>', 
         #             self.ACTION_ITEM_NONE])
 
-        # watch the daemon exit and (re)register the signal
-        bus = dbus.SystemBus()
-        self._owner_watcher = bus.watch_name_owner(
-            "org.debian.apt", self._register_active_transactions_watch)
-
-    def _register_active_transactions_watch(self, connection):
-        #print "_register_active_transactions_watch", connection
-        self.aptd = aptdaemon.client.get_aptdaemon()
-        self.aptd.connect_to_signal("ActiveTransactionsChanged", self.check_pending)
-        current, queued = self.aptd.GetActiveTransactions()
-        self.check_pending(current, queued)
-
-    def check_pending(self, current, queue):
+    def on_transactions_changed(self, current, queue):
         #print "check_pending"
         pending = 0
         if current or len(queue) > 0:
