@@ -137,7 +137,8 @@ class AppDetailsView(WebkitWidget):
         self.pkgname = self.doc.get_value(XAPIAN_VALUE_PKGNAME)
         self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.pkg = None
-        if self.cache.has_key(self.pkgname):
+        if (self.cache.has_key(self.pkgname) and 
+            self.cache[self.pkgname].candidate):
             self.pkg = self.cache[self.pkgname]
         if self.pkg:
             self.homepage_url = self.pkg.candidate.homepage
