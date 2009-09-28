@@ -46,23 +46,13 @@ class SearchEntry(sexy.IconEntry):
         self._handler_changed = self.connect_after("changed",
                                                    self._on_changed)
         self.connect("icon-pressed", self._on_icon_pressed)
-        # Does not work - known bug in libsexy
-        # image = gtk.image_new_from_icon_name(gtk.STOCK_CLEAR,
-        #                                      gtk.ICON_SIZE_MENU)
-        # primary
-        image_find = gtk.Image()
-        pixbuf = icon_theme.load_icon(gtk.STOCK_FIND,
-                                      gtk.ICON_SIZE_MENU,
-                                      0)
-        image_find.set_from_pixbuf(pixbuf)
+        image_find = gtk.image_new_from_stock(gtk.STOCK_FIND, 
+                                              gtk.ICON_SIZE_MENU)
         self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
 
         self.empty_image = gtk.Image()
-        self.clear_image = gtk.Image()
-        pixbuf = icon_theme.load_icon(gtk.STOCK_CLEAR,
-                                      gtk.ICON_SIZE_MENU,
-                                      0)
-        self.clear_image.set_from_pixbuf(pixbuf)
+        self.clear_image = gtk.image_new_from_stock(gtk.STOCK_CLEAR, 
+                                                    gtk.ICON_SIZE_MENU)
         self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
         self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
 

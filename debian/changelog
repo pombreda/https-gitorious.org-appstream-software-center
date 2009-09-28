@@ -4,6 +4,9 @@ software-center (0.4.1) UNRELEASEDkarmic; urgency=low
     - ignore gconf errors when trying to read the proxy settings
       (LP: #436129)
   * fix some leftovers from the rename
+  * softwarecenter/view/widgets/searchentry.py:
+    - fix search icon not being displayed (thanks to Marcus Carlson
+      and Matthew Joseph Mcgowan) LP: #437431
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Sep 2009 19:56:55 +0200
 
