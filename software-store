@@ -50,6 +50,8 @@ if __name__ == "__main__":
                           version="%prog "+VERSION)
     parser.add_option("--debug", dest="debug", action="store_true",
                       help="enable debug mode", default=False)
+    parser.add_option("--rtl", dest="debug", action="store_false",
+                      help="force text direction to rtl", default=False)
     (options, args) = parser.parse_args()
 
     if options.debug:
