@@ -2,7 +2,7 @@
 share:=usr/share/software-center
 
 %:
-	dh $@
+	dh --with=python-central $@
 
 # Install the modules in a private directory, as our applications are the
 # only ones using them.
