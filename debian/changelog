@@ -1,3 +1,11 @@
+software-center (0.4.4) UNRELEASED; urgency=low
+
+  * debian/rules:
+    - cleanup, we do not need python-central, all the python code is
+      in a private dir
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Sep 2009 11:10:54 +0200
+
 software-center (0.4.3) karmic; urgency=low
 
   * debian/rules:
