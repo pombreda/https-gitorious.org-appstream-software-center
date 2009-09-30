@@ -140,9 +140,12 @@ class AppStore(gtk.GenericTreeModel):
         if column == self.COL_APP_NAME:
             return app.appname
         elif column == self.COL_TEXT:
+            appname = app.appname
             summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
+            if self.xapiandb.is_appname_duplicated(appname):
+                appname = "%s (%s)" % (appname, app.pkgname) 
             s = "%s\n<small>%s</small>" % (
-                gobject.markup_escape_text(app.appname),
+                gobject.markup_escape_text(appname),
                 gobject.markup_escape_text(summary))
             return s
         elif column == self.COL_ICON:

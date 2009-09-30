@@ -66,6 +66,15 @@ class StoreDatabase(xapian.Database):
         # no matching document found
         raise IndexError("No app '%s' for '%s' in database" % (appname,pkgname))
 
+    def is_appname_duplicated(self, appname):
+        """Check if the given appname is stored multiple times in the db
+           This can happen for generic names like "Terminal"
+        """
+        for (i, m) in enumerate(self.postlist("AA"+appname)):
+            if i > 0:
+                return True
+        return False
+
     def __len__(self):
         """return the doc count of the database"""
         return self.get_doccount()

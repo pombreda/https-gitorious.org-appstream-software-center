@@ -3,6 +3,10 @@ software-center (0.4.4) UNRELEASED; urgency=low
   * debian/rules:
     - cleanup, we do not need python-central, all the python code is
       in a private dir
+  * softwarecenter/view/appview.py:
+    - display the package name in parenthesis if the application name
+      appears multiple times in the database (e.g. for a generic name
+      like "Terminal") LP: #434625
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Sep 2009 11:10:54 +0200
 

@@ -103,6 +103,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 logging.debug("duplicated name '%s' (%s)" % (name, desktopf))
             seen.add(name)
             doc.set_data(name)
+            doc.add_value(XAPIAN_VALUE_APPNAME, name)
             doc.add_term("AA"+name)
             # package name
             pkgname = parser.get_desktop("X-AppInstall-Package")
