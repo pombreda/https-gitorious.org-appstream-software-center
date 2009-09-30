@@ -198,7 +198,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         gtk.main_quit()
         
     def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
-        if pending_nr > 0 and self._pending_transactions == 0:
+        # if the pending number drops to zero check if we should switch
+        # to the previous view
+        if pending_nr == 0 and self._view_before_pending_switch is not None:
+            if self.view_switcher.get_view() is None:
+                self.view_switcher.set_view(self._view_before_pending_switch)
+            self._view_before_pending_switch = None
+        # the spec says that on the first transaction it should auto-switch
+        # to the progress view
+        elif pending_nr > 0 and self._pending_transactions == 0:
+            self._view_before_pending_switch = self.view_switcher.get_view()
             self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_PENDING)
         self._pending_transactions = pending_nr
 

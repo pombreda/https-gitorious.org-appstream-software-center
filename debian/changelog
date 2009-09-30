@@ -7,6 +7,10 @@ software-center (0.4.4) UNRELEASED; urgency=low
     - display the package name in parenthesis if the application name
       appears multiple times in the database (e.g. for a generic name
       like "Terminal") LP: #434625
+  * softwarecenter/app.py, softwarecenter/view/viewswitcher.py:
+    - automatically switch back to the previous view if the progress
+      view is empty and the user has not navigated away manually
+      (LP: #431907)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Sep 2009 11:10:54 +0200
 
