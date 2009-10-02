@@ -5,8 +5,7 @@
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 3 of the License, or (at your option) any later
-# version.
+# Foundation; version 3.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -38,16 +37,13 @@ except ImportError:
     sys.path.insert(0, os.path.split(d)[0])
     from enums import *
 
-from widgets.navigationbar import NavigationBarHBox
-from widgets.searchentry import SearchEntry
-
 from appview import AppView, AppStore, AppViewFilter
 from catview import CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
 class AvailablePane(SoftwarePane):
-    """Widget that represents the available panel in software-store
+    """Widget that represents the available panel in software-center
        It contains a search entry and navigation buttons
     """
 
@@ -73,19 +69,6 @@ class AvailablePane(SoftwarePane):
         # UI
         self._build_ui()
     def _build_ui(self):
-        # navigation bar and search on top in a hbox
-        self.navigation_bar = NavigationBarHBox()
-        self.searchentry = SearchEntry()
-        self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
-        top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
-        self.pack_start(top_hbox, expand=False, padding=self.PADDING)
-        # a notebook below
-        self.notebook = gtk.Notebook()
-        self.notebook.set_show_tabs(False)
-        self.notebook.set_show_border(False)
-        self.pack_start(self.notebook)
         # categories, appview and details into the notebook in the bottom
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH, 
                                        self.xapiandb,
@@ -197,6 +180,8 @@ class AvailablePane(SoftwarePane):
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(name, pkgname)
+#        self.searchentry.hide()
+
     def on_navigation_category(self, button):
         """callback when the navigation button with id 'category' is clicked"""
         if not button.get_active():
@@ -219,6 +204,7 @@ class AvailablePane(SoftwarePane):
         # emit signal here to ensure to show count of all available items
         self.emit("app-list-changed", self.xapiandb.get_doccount())
         self.searchentry.show()
+
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
@@ -227,12 +213,14 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
+
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+
     def on_category_activated(self, cat_view, name, query):
         #print cat_view, name, query
         # FIXME: integrate this at a lower level, e.g. by sending a 
@@ -254,7 +242,7 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-store"
+        datadir = "/usr/share/software-center"
 
     db = xapian.Database(pathname)
     icons = gtk.icon_theme_get_default()

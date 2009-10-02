@@ -5,8 +5,7 @@
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 3 of the License, or (at your option) any later
-# version.
+# Foundation; version 3.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -30,24 +29,14 @@ import xapian
 
 from gettext import gettext as _
 
-try:
-    from appcenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from enums import *
-
-#from widget.pathbar2 import
-from widgets.navigationbar import NavigationBarHBox
-from widgets.searchentry import SearchEntry
+from softwarecenter.enums import *
 
 from appview import AppView, AppStore, AppViewFilter
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
 class InstalledPane(SoftwarePane):
-    """Widget that represents the installed panel in software-store
+    """Widget that represents the installed panel in software-center
        It contains a search entry and navigation buttons
     """
 
@@ -63,19 +52,6 @@ class InstalledPane(SoftwarePane):
         # UI
         self._build_ui()
     def _build_ui(self):
-        # navigation bar and search on top in a hbox
-        self.navigation_bar = NavigationBar()
-        self.searchentry = SearchEntry()
-        self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
-        top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
-        self.pack_start(top_hbox, expand=False, padding=self.PADDING)
-        # a notebook below
-        self.notebook = gtk.Notebook()
-        self.notebook.set_show_tabs(False)
-        self.notebook.set_show_border(False)
-        self.pack_start(self.notebook)
         # appview and details into the notebook in the bottom
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
@@ -130,7 +106,10 @@ class InstalledPane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
-        self.emit("app-list-changed", len(self.app_view.get_model()))
+        # only emit something if the model is there
+        model = self.app_view.get_model()
+        if model:
+            self.emit("app-list-changed", len(model))
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
@@ -163,7 +142,7 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-store"
+        datadir = "/usr/share/software-center"
 
     db = xapian.Database(pathname)
     icons = gtk.icon_theme_get_default()

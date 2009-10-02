@@ -26,7 +26,7 @@ import sys
 import string
 import xapian
 
-from widgets.navigationbar import NavigationBarHBox
+from widgets.navigationbar import NavigationBar
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter
