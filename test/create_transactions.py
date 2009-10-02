@@ -15,10 +15,7 @@ def exit_handler(trans, enum):
     return True
 
 if __name__ == "__main__":
-    debconf_log = logging.getLogger("AptClient.DebconfProxy")
-    logging.basicConfig(level=logging.DEBUG)
-    print debconf_log
-    debconf_log.setLevel(logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
 
     context = glib.main_context_default()
     c = AptClient()
@@ -26,13 +23,17 @@ if __name__ == "__main__":
         logging.debug("loop: nr: %s active: %s" % (i, active))
         
         t = c.install_packages(["3dchess"], exit_handler=exit_handler)
+        t.set_debconf_frontend("gnome")
         t.run(block=False)
         active += 1
+
         t = c.install_packages(["2vcard"], exit_handler=exit_handler)
+        t.set_debconf_frontend("gnome")
         t.run(block=False)
         active += 1
         
         t = c.remove_packages(["3dchess","2vcard"], exit_handler=exit_handler)
+        t.set_debconf_frontend("gnome")
         t.run(block=False)
         active += 1
 
