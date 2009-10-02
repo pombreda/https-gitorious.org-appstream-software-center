@@ -48,11 +48,7 @@ SHAPE_END_CAP = 3
 #    return scheme_dict
 
 
-class PathBar(gtk.DrawingArea, gobject.GObject):
-
-    __gsignals__ = {
-        "clicked": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ())
-        }
+class PathBar(gtk.DrawingArea):
 
     # custom widget specific settings
     min_part_width = 56
@@ -63,17 +59,14 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
     arrow_width = 13
 
     def __init__(self, group=None):
-        gobject.GObject.__init__(self)
         gtk.DrawingArea.__init__(self)
         self.set_redraw_on_allocate(False)
         self.set_size_request(-1, 29)
 
-        # switches to override text direction for testing purposes
+        # override text direction for testing purposes
         import sys
         if "--rtl" in sys.argv:
             self.set_direction(gtk.TEXT_DIR_RTL)
-        elif "--ltr" in sys.argv:
-            self.set_direction(gtk.TEXT_DIR_LTR)
 
         if self.get_direction() in (gtk.TEXT_DIR_LTR, gtk.TEXT_DIR_NONE):
             self.__draw_part = self.__draw_part_ltr
@@ -91,8 +84,6 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
                 SHAPE_END_CAP : self.__shape_end_cap_rtl}
 
         self.__parts = []
-        self.id_to_part = {}
-
         self.__active_part = None
         self.__focal_part = None
 
@@ -123,14 +114,12 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         return
 
     def set_active(self, part):
-        prev_active = self.__active_part
-
-        if prev_active and prev_active != part:
-            prev_active.set_state(gtk.STATE_NORMAL)
-
         part.set_state(gtk.STATE_ACTIVE)
-        self.__active_part = part
-        return prev_active
+        prev, redraw = self.__set_active(part)
+        if redraw:
+            self.queue_draw_area(*prev.get_allocation_tuple())
+            self.queue_draw_area(*part.get_allocation_tuple())
+        return
 
     def get_active(self):
         return self.__active_part
@@ -154,89 +143,6 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
 #        if i < 0:
 #            i = len(self.__parts)-1
 #        return self.__parts[i]
-
-    def add_with_id(self, label, callback, id, icon=None):
-        """
-        Add a new button with the given label/callback
-        
-        If there is the same id already, replace the existing one
-        with the new one
-        """
-
-        def idle_append_cb(part):
-            gobject.timeout_add(50, self.append, part)
-            return False
-
-        # check if we have the button of that id or need a new one
-        if id in self.id_to_part:
-            part = self.id_to_part[id]
-            part.set_label(label)
-            self.queue_draw_area(*part.get_allocation_tuple())
-        else:
-            part = PathPart(label, callback)
-            part.set_pathbar(self)
-            self.id_to_part[id] = part
-            gobject.idle_add(idle_append_cb, part)
-
-        if icon: part.set_icon(icon)
-        return
-
-    def remove_id(self, id):
-
-        if not id in self.id_to_part:
-            print 'id %s not in pathbar' % id
-            return
-
-        old_w = self.__draw_width()
-        end_active = self.get_active() == self.__parts[-1]
-
-        if len(self.__parts)-1 < 1:
-            print WARNING + 'The first part is sacred ;)' + ENDC
-            return
-
-        pos = self.__parts.index(self.id_to_part[id])
-        del self.__parts[pos]
-        del self.id_to_part[id]
-        self.__compose_parts(self.__parts[-1], False)
-
-        if end_active:
-            self.set_active(self.__parts[-1])
-
-        if old_w >= self.allocation.width:
-            self.__grow_check(old_w, self.allocation)
-            self.queue_draw()
-
-        else:
-            a = self.__parts[-1].allocation
-            new_w = self.__draw_width()
-            self.queue_draw()
-        return
-
-    def remove_all(self):
-        """remove all elements"""
-        for id, part in self.id_to_part.iteritems():
-            self.remove_part_by_id(id)
-
-        self.__parts = []
-        self.id_to_part = {}
-        self.queue_draw()
-        return
-
-    def get_button_from_id(self, id):
-        """
-        return the button for the given id (or None)
-        """
-        if not id in self.id_to_part:
-            return None
-        return self.id_to_part[id]
-
-    def get_label(self, id):
-        """
-        Return the label of the navigation button with the given id
-        """
-        if not id in self.id_to_part:
-            return
-        return self.id_to_part[id].get_label()
 
     def append(self, part):
 
@@ -266,25 +172,43 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
                 gtk.gdk.Rectangle(x,y,w,h)
                 )
         else:
-            self.queue_draw()
+            self.queue_draw_area(*part.get_allocation_tuple())
         return False
 
-    def shorten(self, n=1):
+    def remove(self, part):
 
-        old_w, did_grow = self.__shorten(n)
-
-        if not self.get_property("visible"):
+        if len(self.__parts)-1 < 1:
+            print WARNING + 'The first part is sacred ;)' + ENDC
             return
 
-        if did_grow:
+        old_w = self.__draw_width()
+        end_active = self.get_active() == self.__parts[-1]
+
+        del self.__parts[self.__parts.index(part)]
+        self.__compose_parts(self.__parts[-1], False)
+
+        if end_active:
+            self.__set_active(self.__parts[-1])
+
+        if old_w >= self.allocation.width:
+            self.__grow_check(old_w, self.allocation)
             self.queue_draw()
 
         else:
-            self.queue_draw()
-#            x, y, w, h = self.__parts[-1].get_allocation_tuple_rtl(self.allocation)
-#            new_w = self.__draw_width()
-#            self.queue_draw_area(x)
+            self.queue_draw_area(*part.get_allocation_tuple())
+            self.queue_draw_area(*self.__parts[-1].get_allocation_tuple())
         return
+
+    def __set_active(self, part):
+        prev_active = self.__active_part
+        redraw = False
+
+        if prev_active and prev_active != part:
+            prev_active.set_state(gtk.STATE_NORMAL)
+            redraw = True
+
+        self.__active_part = part
+        return prev_active, redraw
 
     def __append(self, part):
         # clean up any exisitng scroll callbacks
@@ -298,8 +222,6 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         part.set_pathbar(self)
 
         prev_active = self.set_active(part)
-        if prev_active and prev_active != part:
-            self.queue_draw_area(*prev_active.get_allocation_tuple())
 
         # determin part shapes, and calc modified parts widths
         prev = self.__compose_parts(part, True)
@@ -314,26 +236,26 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
 
         return prev, False
 
-    def __shorten(self, n):
-        n = int(n)
-        old_w = self.__draw_width()
-        end_active = self.get_active() == self.__parts[-1]
+#    def __shorten(self, n):
+#        n = int(n)
+#        old_w = self.__draw_width()
+#        end_active = self.get_active() == self.__parts[-1]
 
-        if len(self.__parts)-n < 1:
-            print WARNING + 'The first part is sacred ;)' + ENDC
-            return old_w, False
+#        if len(self.__parts)-n < 1:
+#            print WARNING + 'The first part is sacred ;)' + ENDC
+#            return old_w, False
 
-        del self.__parts[-n:]
-        self.__compose_parts(self.__parts[-1], False)
+#        del self.__parts[-n:]
+#        self.__compose_parts(self.__parts[-1], False)
 
-        if end_active:
-            self.set_active(self.__parts[-1])
+#        if end_active:
+#            self.set_active(self.__parts[-1])
 
-        if old_w >= self.allocation.width:
-            self.__grow_check(old_w, self.allocation)
-            return old_w, True
+#        if old_w >= self.allocation.width:
+#            self.__grow_check(old_w, self.allocation)
+#            return old_w, True
 
-        return old_w, False
+#        return old_w, False
 
     def __shrink_check(self, allocation):
         path_w = self.__draw_width()
@@ -843,10 +765,11 @@ class PathBar(gtk.DrawingArea, gobject.GObject):
         if part:
             if part.callback: part.callback(self)
             self.grab_focus()
-            prev_active = self.set_active(part)
-
+            prev_active, redraw = self.__set_active(part)
+            part.set_state(gtk.STATE_PRELIGHT)
             self.queue_draw_area(*part.get_allocation_tuple())
-            if prev_active:
+
+            if redraw:
                 self.queue_draw_area(*prev_active.get_allocation_tuple())
         return
 
@@ -1018,8 +941,9 @@ class PathPart:
     def get_layout(self):
         return self.__layout
 
-    def is_truncated(self):
-        return self.__requisition[0] != self.allocation[2]
+    def activate(self):
+        self.__pbar.set_active(self)
+        return
 
     def calc_size_requisition(self):
         pbar = self.__pbar
@@ -1053,6 +977,9 @@ class PathPart:
         self.__requisition = (w,h)
         return w, h
 
+    def is_truncated(self):
+        return self.__requisition[0] != self.allocation[2]
+
     def __layout_text(self, text, pango_context):
         layout = pango.Layout(pango_context)
         layout.set_markup('%s' % text)
@@ -1077,6 +1004,73 @@ class PathPart:
         else:
             layout.set_width((w - 2*pbar.xpadding - icon_w)*pango.SCALE)
         return
+
+
+class NavigationBar(PathBar):
+    def __init__(self, group=None):
+        PathBar.__init__(self)
+        self.id_to_part = {}
+        return
+
+    def add_with_id(self, label, callback, id, icon=None):
+        """
+        Add a new button with the given label/callback
+        
+        If there is the same id already, replace the existing one
+        with the new one
+        """
+
+        def idle_append_cb(part):
+            gobject.timeout_add(50, self.append, part)
+            return False
+
+        # check if we have the button of that id or need a new one
+        if id in self.id_to_part:
+            part = self.id_to_part[id]
+            part.set_label(label)
+            self.queue_draw_area(*part.get_allocation_tuple())
+        else:
+            part = PathPart(label, callback)
+            part.set_pathbar(self)
+            self.id_to_part[id] = part
+            gobject.idle_add(idle_append_cb, part)
+
+        if icon: part.set_icon(icon)
+        return
+
+    def remove_id(self, id):
+
+        if not id in self.id_to_part:
+            print 'id %s not in pathbar' % id
+            return
+
+        part = self.id_to_part[id]
+        del self.id_to_part[id]
+        self.remove(part)
+        return
+
+    def remove_all(self):
+        """remove all elements"""
+        self.__parts = []
+        self.id_to_part = {}
+        self.queue_draw()
+        return
+
+    def get_button_from_id(self, id):
+        """
+        return the button for the given id (or None)
+        """
+        if not id in self.id_to_part:
+            return None
+        return self.id_to_part[id]
+
+    def get_label(self, id):
+        """
+        Return the label of the navigation button with the given id
+        """
+        if not id in self.id_to_part:
+            return
+        return self.id_to_part[id].get_label()
 
 
 class Icon:
@@ -1125,7 +1119,3 @@ class Icon:
             icon_set = style.lookup_icon_set(self.name)
             render_icon(icon_set, self.name, self.size)
         return
-
-
-# gobject registration
-gobject.type_register(PathBar)
