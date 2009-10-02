@@ -143,5 +143,5 @@ msgid "Software Store"
 msgstr "Software Store"
 
 #: ../data/ubuntu-software-store.desktop.in.h:3
-msgid "Ubuntu Software Store"
-msgstr "Ubuntu Software Store"
+msgid "Ubuntu Software Center"
+msgstr "Ubuntu Software Centre"

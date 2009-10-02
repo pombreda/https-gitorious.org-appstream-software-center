@@ -16,7 +16,7 @@ VERSION = m.group(1)
 CODENAME = m.group(2)
 DISTRO = Popen(["lsb_release", "-s", "-i"], stdout=PIPE).communicate()[0].strip()
 RELEASE = Popen(["lsb_release", "-s", "-r"], stdout=PIPE).communicate()[0].strip()
-open("softwarestore/version.py","w").write("""
+open("softwarecenter/version.py","w").write("""
 VERSION='%s'
 CODENAME='%s'
 DISTRO='%s'
@@ -24,23 +24,23 @@ RELEASE='%s'
 """ % (VERSION, CODENAME, DISTRO, RELEASE))
 
 
-setup(name="software-store", version=VERSION,
-      scripts=["software-store",
-               "utils/update-software-store",
+setup(name="software-center", version=VERSION,
+      scripts=["software-center",
+               "utils/update-software-center",
                ],
-      packages = ['softwarestore',
-                  'softwarestore.apt',
-                  'softwarestore.db',
-                  'softwarestore.view',
-                  'softwarestore.view.widgets',
+      packages = ['softwarecenter',
+                  'softwarecenter.apt',
+                  'softwarecenter.db',
+                  'softwarecenter.view',
+                  'softwarecenter.view.widgets',
                  ],
       data_files=[
-                  ('share/software-store/ui/',
+                  ('share/software-center/ui/',
                    glob.glob("data/ui/*.ui")),
-                  ('share/software-store/templates/',
+                  ('share/software-center/templates/',
                    glob.glob("data/templates/*.html")),
                   ('../etc/dbus-1/system.d/',
-                   ["data/com.ubuntu.SoftwareStore.conf"]),
+                   ["data/com.ubuntu.SoftwareCenter.conf"]),
                   ],
       cmdclass = { "build" : build_extra.build_extra,
                    "build_i18n" :  build_i18n.build_i18n,

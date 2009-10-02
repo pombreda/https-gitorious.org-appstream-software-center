@@ -72,30 +72,28 @@
       -webkit-background-origin: border-box;
       -webkit-background-size: ${icon_width}px ${icon_height}px;
     }
+
+    .screenshot_thumbnail {
+      width:160px; 
+      height:120px;
+      -khtml-user-drag:none;
+    }
     #screenshot_thumbnail_loading {
     background: url('file:$iconpath_loading') 50% 50% no-repeat;
       float:right;
-      height:120px;
       margin: 0 0 1em 1em;
-      width:160px;
     }
     #screenshot_thumbnail {
       visibility:hidden; 
       background-color:#b6bdc4;
-      width:160px; 
-      height:120px
     }
     #screenshot_thumbnail-installed {
       visibility:hidden; 
       background-color:#fff; 
-      width:160px; 
-      height:120px;
     }
     #screenshot_thumbnail_img {
       visibility:hidden; 
       background:url('${screenshot_thumbnail_url}') no-repeat;
-      width:160px; 
-      height:120px; 
       cursor: -webkit-zoom-in
     }
     #text {
@@ -146,10 +144,11 @@
  
  <div id="text">
    <h1>$appname</h1>
-   <div id='screenshot_thumbnail_loading'>
-        <div id='$screenshot_installed'>
+   <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail'>
+        <div id='$screenshot_installed' class='screenshot_thumbnail'>
             <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">
-            <img id="screenshot_thumbnail_img" alt="${screenshot_alt}"/>
+            <img id="screenshot_thumbnail_img" class="screenshot_thumbnail" 
+		 alt="${screenshot_alt}"/>
             </a>
         </div>
    </div>

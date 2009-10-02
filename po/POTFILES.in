@@ -1,19 +1,19 @@
-[type: python] software-store
-[type. python] utils/update-software-store
-softwarestore/app.py
-softwarestore/apt/aptcache.py
-softwarestore/__init__.py
-softwarestore/SimpleGtkbuilderApp.py
-softwarestore/view/__init__.py
-softwarestore/view/appdetailsview.py
-softwarestore/view/appview.py
-softwarestore/view/availablepane.py
-softwarestore/view/catview.py
-softwarestore/view/dialogs.py
-softwarestore/view/installed_view.py
-softwarestore/view/installedpane.py
-softwarestore/view/pendingview.py
-softwarestore/view/softwarepane.py
-softwarestore/view/viewswitcher.py
-[type: gettext/glade] data/ui/SoftwareStore.ui
-data/ubuntu-software-store.desktop.in
+[type: python] software-center
+[type. python] utils/update-software-center
+softwarecenter/app.py
+softwarecenter/apt/aptcache.py
+softwarecenter/__init__.py
+softwarecenter/SimpleGtkbuilderApp.py
+softwarecenter/view/__init__.py
+softwarecenter/view/appdetailsview.py
+softwarecenter/view/appview.py
+softwarecenter/view/availablepane.py
+softwarecenter/view/catview.py
+softwarecenter/view/dialogs.py
+softwarecenter/view/installed_view.py
+softwarecenter/view/installedpane.py
+softwarecenter/view/pendingview.py
+softwarecenter/view/softwarepane.py
+softwarecenter/view/viewswitcher.py
+[type: gettext/glade] data/ui/SoftwareCenter.ui
+data/ubuntu-software-center.desktop.in
