@@ -11,8 +11,10 @@ software-center (0.4.4) UNRELEASED; urgency=low
     - automatically switch back to the previous view if the progress
       view is empty and the user has not navigated away manually
       (LP: #431907)
+  * po/ro.po:
+    - added Romanian translation (thanks to Alex Eftimie)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Sep 2009 11:10:54 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 02 Oct 2009 16:47:56 +0200
 
 software-center (0.4.3) karmic; urgency=low
 

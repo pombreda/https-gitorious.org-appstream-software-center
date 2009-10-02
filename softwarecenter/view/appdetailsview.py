@@ -551,7 +551,7 @@ if __name__ == "__main__":
     #view.show_app("AMOR")
     view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")
-    #view.show_app("ACE", "test-package")
+    view.show_app("ACE", "unace")
     #view.show_app("Artha")
     #view.show_app("cournol")
     #view.show_app("Qlix")
