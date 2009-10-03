@@ -55,18 +55,14 @@ class PathBar(gtk.DrawingArea):
     xpadding = 10
     ypadding = 4
     spacing = 6
-    curvature = 4
+    curvature = 3.5
     arrow_width = 13
+    scroll_duration_ms = 150
+    scroll_fps = 60
 
     def __init__(self, group=None):
         gtk.DrawingArea.__init__(self)
         self.set_redraw_on_allocate(False)
-        self.set_size_request(-1, 29)
-
-        # override text direction for testing purposes
-        import sys
-        if "--rtl" in sys.argv:
-            self.set_direction(gtk.TEXT_DIR_RTL)
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             self.__draw_part = self.__draw_part_ltr
@@ -83,6 +79,7 @@ class PathBar(gtk.DrawingArea):
                 SHAPE_MID_ARROW : self.__shape_mid_arrow_rtl,
                 SHAPE_END_CAP : self.__shape_end_cap_rtl}
 
+        
         self.__parts = []
         self.__active_part = None
         self.__focal_part = None
@@ -90,7 +87,7 @@ class PathBar(gtk.DrawingArea):
         self.__scroller = None
         self.__scroll_xO = 0
 
-        # global gtk settings we are interested in
+        # any global gtk settings we are interested in
         self.animate = gtk.settings_get_default().get_property("gtk-enable-animations")
 
         # setup event handling
@@ -149,7 +146,7 @@ class PathBar(gtk.DrawingArea):
         if not self.get_property("visible"):
             return False
 
-        if self.animate:
+        if self.animate and len(self.__parts) > 1:
             aw = self.arrow_width
 
             # calc draw_area
@@ -159,7 +156,9 @@ class PathBar(gtk.DrawingArea):
             # begin scroll animation
             self.__hscroll_init(
                 part.get_width(),
-                gtk.gdk.Rectangle(x,y,w,h)
+                gtk.gdk.Rectangle(x,y,w,h),
+                self.scroll_duration_ms,
+                self.scroll_fps
                 )
         else:
             self.queue_draw_area(*part.get_allocation_tuple())
@@ -344,7 +343,7 @@ class PathBar(gtk.DrawingArea):
         a = self.__parts[-1].allocation
         return a[0] + a[2]
 
-    def __hscroll_init(self, distance, draw_area, duration=1500, fps=5):
+    def __hscroll_init(self, distance, draw_area, duration, fps):
         sec = duration*0.001
         interval = int(duration/(sec*fps))  # duration / n_frames
 
@@ -993,6 +992,7 @@ class PathPart:
 class NavigationBar(PathBar):
     def __init__(self, group=None):
         PathBar.__init__(self)
+        self.set_size_request(-1, 28)
         self.id_to_part = {}
         return
 

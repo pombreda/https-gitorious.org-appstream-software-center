@@ -91,6 +91,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         except Exception, e:
             logging.exception("setlocale failed")
 
+        # override text direction for testing purposes
+        if "--rtl" in sys.argv:
+            gtk.widget_set_default_direction(gtk.TEXT_DIR_RTL)
+
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
