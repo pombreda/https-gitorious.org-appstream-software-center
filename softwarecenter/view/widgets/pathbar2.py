@@ -68,7 +68,7 @@ class PathBar(gtk.DrawingArea):
         if "--rtl" in sys.argv:
             self.set_direction(gtk.TEXT_DIR_RTL)
 
-        if self.get_direction() in (gtk.TEXT_DIR_LTR, gtk.TEXT_DIR_NONE):
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
             self.__draw_part = self.__draw_part_ltr
             self.__shapes = {
                 SHAPE_RECTANGLE : self.__shape_rect,
@@ -145,22 +145,12 @@ class PathBar(gtk.DrawingArea):
 #        return self.__parts[i]
 
     def append(self, part):
-
         prev, did_shrink = self.__append(part)
-
         if not self.get_property("visible"):
             return False
 
         if self.animate:
             aw = self.arrow_width
-
-            if did_shrink:
-                # because much has likely changed...
-                # draw everything up to the tail of the prev part less arrow_width
-#                a = prev.get_allocation()
-                self.queue_draw()
-#                self.queue_draw_area(0, 0, a.x + a.width - aw,
-#                    self.allocation.height)
 
             # calc draw_area
             x,y,w,h = part.get_allocation_tuple()
@@ -176,7 +166,6 @@ class PathBar(gtk.DrawingArea):
         return False
 
     def remove(self, part):
-
         if len(self.__parts)-1 < 1:
             print WARNING + 'The first part is sacred ;)' + ENDC
             return
@@ -355,7 +344,7 @@ class PathBar(gtk.DrawingArea):
         a = self.__parts[-1].allocation
         return a[0] + a[2]
 
-    def __hscroll_init(self, distance, draw_area, duration=150, fps=60):
+    def __hscroll_init(self, distance, draw_area, duration=1500, fps=5):
         sec = duration*0.001
         interval = int(duration/(sec*fps))  # duration / n_frames
 
@@ -800,9 +789,6 @@ class PathBar(gtk.DrawingArea):
         cr.rectangle(event.area)
         cr.clip()
 
-#        cr.set_source_rgb(bg.red_float, bg.green_float, bg.blue_float)
-#        cr.fill()
-
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
         else:
@@ -924,12 +910,10 @@ class PathPart:
         return self.label
 
     def get_allocation(self):
-        if self.__pbar.get_direction() in (gtk.TEXT_DIR_LTR, gtk.TEXT_DIR_NONE):
-            return gtk.gdk.Rectangle(*self.allocation)
         return gtk.gdk.Rectangle(*self.get_allocation_tuple())
 
     def get_allocation_tuple(self):
-        if self.__pbar.get_direction() in (gtk.TEXT_DIR_LTR, gtk.TEXT_DIR_NONE):
+        if self.__pbar.get_direction() != gtk.TEXT_DIR_RTL:
             return self.allocation
         x, y, w, h = self.allocation
         x = self.__pbar.allocation[2]-x-w
