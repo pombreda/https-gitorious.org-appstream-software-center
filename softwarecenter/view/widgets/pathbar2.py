@@ -565,31 +565,22 @@ class PathBar(gtk.DrawingArea):
         lin.add_color_stop_rgb(1.0, mid.red_float, mid.green_float, mid.blue_float)
         cr.set_source(lin)
 
-        if state != gtk.STATE_PRELIGHT and state != gtk.STATE_ACTIVE:
-            cr.fill()
-        elif state == gtk.STATE_ACTIVE:
+        # state colourisation
+        if state == gtk.STATE_ACTIVE:
             cr.fill_preserve()
             cr.set_source_rgba(sel.red_float,sel.green_float,sel.blue_float,0.2)
-            cr.fill()
         elif state == gtk.STATE_PRELIGHT:
+            cr.fill_preserve()
+            cr.set_source_rgba(1,1,1,0.4)
             if part == self.__active_part:
                 cr.fill_preserve()
-                cr.set_source_rgba(1,1,1,0.3)
-                cr.fill_preserve()
                 cr.set_source_rgba(sel.red_float,sel.green_float,sel.blue_float,0.3)
-                cr.fill()
-            else:
-                cr.fill_preserve()
-                cr.set_source_rgba(1,1,1,0.4)
-                cr.fill()
 
-        # translate x,y by 0.5 so 1px lines are crisp
-        cr.save()
-        cr.translate(0.5, 0.5)
+        cr.fill()
+
         cr.set_line_width(1.0)
-
         # strong outline
-        shapes[shape](cr, 1, 1, w-2, h-2, r, aw)
+        shapes[shape](cr, 1.5, 1.5, w-1.5, h-1.5, r, aw)
         cr.set_source_rgb(
             dark.red_float,
             dark.green_float,
@@ -605,14 +596,13 @@ class PathBar(gtk.DrawingArea):
             alpha = 0.65
 
         # inner bevel/highlight
-        shapes[shape](cr, 2, 2, w-3, h-3, r, aw)
+        shapes[shape](cr, 2.5, 2.5, w-2.5, h-2.5, r, aw)
         cr.set_source_rgba(
             inner.red_float,
             inner.green_float,
             inner.blue_float,
             alpha)
         cr.stroke()
-        cr.restore()
         return
 
     def __shape_rect(self, cr, x, y, w, h, r, aw):
