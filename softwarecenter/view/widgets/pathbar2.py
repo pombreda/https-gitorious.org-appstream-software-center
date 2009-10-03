@@ -423,31 +423,21 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __draw_part_ltr(self, cr, part, style, r, aw, shapes, sxO=0):
-        alloc = part.get_allocation()
+        x, y, w, h = part.get_allocation()
         shape = part.shape
         state = part.state
         icon_pb = part.icon.pixbuf
 
         cr.save()
-        cr.translate(alloc.x-sxO, alloc.y)
+        cr.translate(x-sxO, y)
 
         # draw bg
-        self.__draw_part_bg(
-            cr,
-            part,
-            alloc.width,
-            alloc.height,
-            state,
-            shape,
-            style,
-            r,
-            aw,
-            shapes)
+        self.__draw_part_bg(cr, part, w, h, state, shape, style,r, aw, shapes)
 
         # determine left margin.  left margin depends on part shape
         # and whether there exists an icon or not
         if shape == SHAPE_MID_ARROW or shape == SHAPE_END_CAP:
-            margin = int(1.5*self.arrow_width)
+            margin = int(0.75*self.arrow_width + self.xpadding)
         else:
             margin = self.xpadding
 
@@ -456,25 +446,25 @@ class PathBar(gtk.DrawingArea):
             cr.set_source_pixbuf(
                 icon_pb,
                 self.xpadding-sxO,
-                (alloc.height - icon_pb.get_height())/2+1)
+                (alloc.height - icon_pb.get_height())/2)
             cr.paint()
             margin += icon_pb.get_width() + self.spacing
 
         # if space is limited and an icon is set, dont draw label
         # otherwise, draw label
-        if alloc.width == self.min_part_width and icon_pb:
+        if w == self.min_part_width and icon_pb:
             pass
 
         else:
             layout = part.get_layout()
-            dst_x = alloc.x + margin - int(sxO)
-            dst_y = (self.allocation.height - layout.get_pixel_size()[1])/2 + 1
-            w, h = layout.get_pixel_size()
+            lw, lh = layout.get_pixel_size()
+            dst_x = x + margin - int(sxO)
+            dst_y = (self.allocation.height - lh)/2+1
             style.paint_layout(
                 self.window,
                 state,
                 False,
-                (dst_x, dst_y, w+4, h),   # clip area
+                (dst_x, dst_y, lw+4, lh),   # clip area
                 self,
                 None,
                 dst_x,
@@ -485,31 +475,21 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __draw_part_rtl(self, cr, part, style, r, aw, shapes, sxO=0):
-        alloc = part.get_allocation()
+        x, y, w, h = part.get_allocation()
         shape = part.shape
         state = part.state
         icon_pb = part.icon.pixbuf
 
         cr.save()
-        cr.translate(alloc.x+sxO, alloc.y)
+        cr.translate(x+sxO, y)
 
         # draw bg
-        self.__draw_part_bg(
-            cr,
-            part,
-            alloc.width,
-            alloc.height,
-            state,
-            shape,
-            style,
-            r,
-            aw,
-            shapes)
+        self.__draw_part_bg(cr, part, w, h, state, shape, style,r, aw, shapes)
 
         # determine left margin.  left margin depends on part shape
         # and whether there exists an icon or not
         if shape == SHAPE_MID_ARROW or shape == SHAPE_END_CAP:
-            margin = int(1.5*self.arrow_width)
+            margin = self.arrow_width + self.xpadding
         else:
             margin = self.xpadding
 
@@ -518,8 +498,8 @@ class PathBar(gtk.DrawingArea):
             margin += icon_pb.get_width()
             cr.set_source_pixbuf(
                 icon_pb,
-                alloc.width - margin + sxO,
-                (alloc.height - icon_pb.get_height())/2)
+                w - margin + sxO,
+                (h - icon_pb.get_height())/2)
             cr.paint()
             margin += self.spacing
 
@@ -530,9 +510,9 @@ class PathBar(gtk.DrawingArea):
 
         else:
             layout = part.get_layout()
-            extents = layout.get_pixel_extents()
-            dst_x = alloc.x + part.get_width() - margin - extents[1][2] + int(sxO)
-            dst_y = (self.allocation.height - extents[1][3])/2 + 1
+            lw, lh = layout.get_pixel_size()
+            dst_x = x + part.get_width() - margin - lw + int(sxO)
+            dst_y = (self.allocation.height - lh)/2+1
             style.paint_layout(
                 self.window,
                 state,
@@ -565,7 +545,7 @@ class PathBar(gtk.DrawingArea):
         lin.add_color_stop_rgb(1.0, mid.red_float, mid.green_float, mid.blue_float)
         cr.set_source(lin)
 
-        # state colourisation
+        # state specific colourisation
         if state == gtk.STATE_ACTIVE:
             cr.fill_preserve()
             cr.set_source_rgba(sel.red_float,sel.green_float,sel.blue_float,0.2)
