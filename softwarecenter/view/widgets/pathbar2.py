@@ -40,14 +40,6 @@ SHAPE_MID_ARROW = 2
 SHAPE_END_CAP = 3
 
 
-#def parse_colour_scheme(colour_scheme_str):
-#    scheme_dict = {}
-#    for ln in colour_scheme_str.splitlines():
-#        k, v = ln.split(':')
-#        scheme_dict[k.strip()] = gtk.gdk.color_parse(v.strip())
-#    return scheme_dict
-
-
 class PathBar(gtk.DrawingArea):
 
     # custom widget specific settings
@@ -62,24 +54,9 @@ class PathBar(gtk.DrawingArea):
 
     def __init__(self, group=None):
         gtk.DrawingArea.__init__(self)
+        self.__init_drawing()
         self.set_redraw_on_allocate(False)
 
-        if self.get_direction() != gtk.TEXT_DIR_RTL:
-            self.__draw_part = self.__draw_part_ltr
-            self.__shapes = {
-                SHAPE_RECTANGLE : self.__shape_rect,
-                SHAPE_START_ARROW : self.__shape_start_arrow_ltr,
-                SHAPE_MID_ARROW : self.__shape_mid_arrow_ltr,
-                SHAPE_END_CAP : self.__shape_end_cap_ltr}
-        else:
-            self.__draw_part = self.__draw_part_rtl
-            self.__shapes = {
-                SHAPE_RECTANGLE : self.__shape_rect,
-                SHAPE_START_ARROW : self.__shape_start_arrow_rtl,
-                SHAPE_MID_ARROW : self.__shape_mid_arrow_rtl,
-                SHAPE_END_CAP : self.__shape_end_cap_rtl}
-
-        
         self.__parts = []
         self.__active_part = None
         self.__focal_part = None
@@ -346,7 +323,6 @@ class PathBar(gtk.DrawingArea):
     def __hscroll_init(self, distance, draw_area, duration, fps):
         sec = duration*0.001
         interval = int(duration/(sec*fps))  # duration / n_frames
-
         self.__scroller = gobject.timeout_add(
             interval,
             self.__hscroll_cb,
@@ -363,7 +339,6 @@ class PathBar(gtk.DrawingArea):
     def __hscroll_cb(self, sec, sec_inv, distance, end_t, x, y, w, h):
         cur_t = gobject.get_current_time()
         xO = distance*(sec - (end_t - cur_t))*sec_inv
-
         if xO < distance:
             self.__scroll_xO = xO
             self.queue_draw_area(x, y, w, h)
@@ -372,18 +347,15 @@ class PathBar(gtk.DrawingArea):
             self.queue_draw_area(x, y, w, h)
             self.__scroller = None
             return False
-
         return True
 
     def __part_at_xy(self, x, y):
-
         for part in self.__parts:
             a = part.get_allocation()
             region = gtk.gdk.region_rectangle(a)
 
             if region.point_in(int(x), int(y)):
                 return part
-
         return None
 
     def __draw_hscroll(self, cr):
@@ -505,7 +477,7 @@ class PathBar(gtk.DrawingArea):
 
         # if space is limited and an icon is set, dont draw label
         # otherwise, draw label
-        if alloc.width == self.min_part_width and icon_pb:
+        if w == self.min_part_width and icon_pb:
             pass
 
         else:
@@ -600,9 +572,9 @@ class PathBar(gtk.DrawingArea):
         cr.new_sub_path()
         cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
         # arrow head
-        cr.line_to(w-aw, y)
+        cr.line_to(w-aw+1, y)
         cr.line_to(w, (h+y)*0.5)
-        cr.line_to(w-aw, h)
+        cr.line_to(w-aw+1, h)
         cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
         cr.close_path()
         return
@@ -610,9 +582,9 @@ class PathBar(gtk.DrawingArea):
     def __shape_mid_arrow_ltr(self, cr, x, y, w, h, r, aw):
         cr.move_to(-1, y)
         # arrow head
-        cr.line_to(w-aw, y)
+        cr.line_to(w-aw+1, y)
         cr.line_to(w, (h+y)*0.5)
-        cr.line_to(w-aw, h)
+        cr.line_to(w-aw+1, h)
         cr.line_to(-1, h)
         cr.close_path()
         return
@@ -630,19 +602,19 @@ class PathBar(gtk.DrawingArea):
         global M_PI, PI_OVER_180
         cr.new_sub_path()
         cr.move_to(x, (h+y)*0.5)
-        cr.line_to(aw, y)
+        cr.line_to(aw-1, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(aw, h)
+        cr.line_to(aw-1, h)
         cr.close_path()
         return
 
     def __shape_mid_arrow_rtl(self, cr, x, y, w, h, r, aw):
         cr.move_to(x, (h+y)*0.5)
-        cr.line_to(aw, y)
+        cr.line_to(aw-1, y)
         cr.line_to(w+1, y)
         cr.line_to(w+1, h)
-        cr.line_to(aw, h)
+        cr.line_to(aw-1, h)
         cr.close_path()
         return
 
@@ -678,6 +650,23 @@ class PathBar(gtk.DrawingArea):
         self.set_has_tooltip(True)
         self.set_tooltip_markup(text)
         return False
+
+    def __init_drawing(self):
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
+            self.__draw_part = self.__draw_part_ltr
+            self.__shapes = {
+                SHAPE_RECTANGLE : self.__shape_rect,
+                SHAPE_START_ARROW : self.__shape_start_arrow_ltr,
+                SHAPE_MID_ARROW : self.__shape_mid_arrow_ltr,
+                SHAPE_END_CAP : self.__shape_end_cap_ltr}
+        else:
+            self.__draw_part = self.__draw_part_rtl
+            self.__shapes = {
+                SHAPE_RECTANGLE : self.__shape_rect,
+                SHAPE_START_ARROW : self.__shape_start_arrow_rtl,
+                SHAPE_MID_ARROW : self.__shape_mid_arrow_rtl,
+                SHAPE_END_CAP : self.__shape_end_cap_rtl}
+        return
 
     def __motion_notify_cb(self, widget, event):
         if self.__scroll_xO > 0:
@@ -755,14 +744,10 @@ class PathBar(gtk.DrawingArea):
     def __expose_cb(self, widget, event):
         #t = gobject.get_current_time()
         cr = widget.window.cairo_create()
-        cr.rectangle(event.area)
-        cr.clip()
-
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
         else:
             self.__draw_all(cr, event.area)
-
         del cr
         #print 'Exposure fps: %s' % (1 / (gobject.get_current_time() - t))
         return
