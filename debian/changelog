@@ -18,6 +18,8 @@ software-center (0.4.5) UNRELEASED; urgency=low
     - fix crash when no icon can be found (LP: #442040)
   * softwarecenter/view/catview.py:
     - do not crash if no icon can be found (LP: #441171)
+  * data/templates/CategoriesView.html:
+    - disable drag-n-drop (LP: #440446)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 05 Oct 2009 16:38:48 +0200
 
