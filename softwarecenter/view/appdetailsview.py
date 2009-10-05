@@ -216,7 +216,7 @@ class AppDetailsView(WebkitWidget):
         iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
         # *meh* if not png -> convert
         # FIXME: make webkit understand xpm files instead
-        if iconpath.endswith(".xpm"):
+        if os.path.exists(iconpath) and iconpath.endswith(".xpm"):
             self.tf = tempfile.NamedTemporaryFile()
             pix = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
             pix.save(self.tf.name, "png")
