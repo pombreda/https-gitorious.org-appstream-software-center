@@ -397,6 +397,21 @@ class AppDetailsView(WebkitWidget):
         self.on_button_upgrade_clicked()
 
     # internal callback
+    def _on_trans_reply(self):
+        # dummy callback for now, but its required, otherwise the aptdaemon
+        # client blocks the UI and keeps gtk from refreshing
+        logging.debug("_on_trans_reply")
+
+    def _on_trans_error(self, error):
+        logging.warn("_on_trans_error: %s" % error)
+        # re-enable the action button again if anything went wrong
+        self._set_action_button_sensitive(True)
+        if (error._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized" or 
+            error._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
+            pass
+        else:
+            raise
+    
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
         if enum == enums.EXIT_FAILED:
@@ -500,16 +515,8 @@ class AppDetailsView(WebkitWidget):
         trans.connect("config-file-prompt", self._config_file_prompt)
         trans.connect("medium-required", self._medium_required)
         self._set_action_button_sensitive(False)
-        try:
-            trans.run()
-        except dbus.exceptions.DBusException, e:
-            # re-enable the action button again if anything went wrong
-            self._set_action_button_sensitive(True)
-            if (e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized" or 
-                e._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
-                pass
-            else:
-                raise
+        trans.run(error_handler=self._on_trans_error,
+                  reply_handler=self._on_trans_reply)
 
     def _url_launch_app(self):
         """return the most suitable program for opening a url"""

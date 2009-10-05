@@ -1,3 +1,11 @@
+software-center (0.4.5) UNRELEASED; urgency=low
+
+  * softwarecenter/view/appdetailsview.py:
+    - avoid blocking if the authentication dialog comes up 
+      (LP: #436413)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 05 Oct 2009 10:27:46 +0200
+
 software-center (0.4.4) karmic; urgency=low
 
   * debian/rules:
