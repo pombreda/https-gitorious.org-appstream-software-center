@@ -101,10 +101,6 @@ class AppDetailsView(WebkitWidget):
         self.appname = ""
         self.pkgname = ""
         self.iconname = ""
-        # setup missing icon
-        iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, 
-                                          self.APP_ICON_SIZE, 0)
-        self.MISSING_ICON_PATH = iconinfo.get_filename()
         # setup user-agent
         settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)
