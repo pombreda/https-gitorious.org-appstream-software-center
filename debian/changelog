@@ -1,4 +1,4 @@
-software-center (0.4.5) UNRELEASED; urgency=low
+software-center (0.4.5) karmic; urgency=low
 
   * softwarecenter/view/appdetailsview.py:
     - avoid blocking if the authentication dialog comes up 
@@ -21,7 +21,7 @@ software-center (0.4.5) UNRELEASED; urgency=low
   * data/templates/CategoriesView.html:
     - disable drag-n-drop (LP: #440446)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 05 Oct 2009 16:38:48 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 05 Oct 2009 18:23:27 +0200
 
 software-center (0.4.4) karmic; urgency=low
 
