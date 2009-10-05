@@ -233,7 +233,11 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
             xpad = self.get_property('xpad')
             ypad = self.get_property('ypad')
 
-            dst_x = cell_area.x+cell_area.width-cell_area.height
+            if widget.get_direction() != gtk.TEXT_DIR_RTL:
+                dst_x = cell_area.x+cell_area.width-cell_area.height
+            else:
+                dst_x = cell_area.x
+
             dst_y = cell_area.y+ypad
             width = height = cell_area.height-2*ypad
 
