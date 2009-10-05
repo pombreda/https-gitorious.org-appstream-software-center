@@ -56,6 +56,7 @@ class AppStore(gtk.GenericTreeModel):
                    str)
 
     ICON_SIZE = 24
+    ARROW_SIZE = 32
 
     def __init__(self, cache, db, icons, search_query=None, limit=200, 
                  sort=False, filter=None):
@@ -198,17 +199,27 @@ class AppStore(gtk.GenericTreeModel):
 
 
 # custom renderer for the arrow thing that mpt wants
-class CellRendererTextWithActivateArrow(gtk.CellRendererText):
+class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
     """ 
     a custom cell renderer that renders a arrow at the very right
     of the text and that emits a "row-activated" signal when the 
     arrow is clicked
     """
+
+    __gproperties__ = {
+        'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
+        gobject.PARAM_READWRITE)
+        }
+
     # padding around the arrow at the end
     ARROW_PADDING = 4
+    XPAD = 2
+    YPAD = 2
 
     def __init__(self):
-        gtk.CellRendererText.__init__(self)
+        self.__gobject_init__()
+        self.markup = None
+        self._height = None
 #        icons = gtk.icon_theme_get_default()
 #        self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
 #        try:
@@ -219,20 +230,55 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
 #            self._forward = icons.load_icon("gtk-go-forward-ltr",
 #                                            AppStore.ICON_SIZE, 0)
 
+    def do_set_property(self, pspec, value):
+        setattr(self, pspec.name, value)
+
+    def do_get_property(self, pspec):
+        return getattr(self, pspec.name)
+
+    def on_get_size(self, widget, cell_area):
+        x, y, w, h, d = widget.window.get_geometry()
+        if not self._height:
+            pc = widget.get_pango_context()
+            layout = pango.Layout(pc)
+            layout.set_markup(self.markup)
+            self._height = max(layout.get_pixel_size()[1]+2*self.YPAD, 32)
+        return x, y, w, self._height
+
     # FIXME: what about right-to-left languages? we need to 
     #        render the button differently there
     def do_render(self, window, widget, background_area, cell_area, 
                   expose_area, flags):
+
+        xpad = self.XPAD
+        ypad = self.YPAD
+
+        pc = widget.get_pango_context()
+        layout = pango.Layout(pc)
+        layout.set_markup(self.markup)
         # reserve space at the end for the arrow
-        gtk.CellRendererText.do_render(self, window, widget, background_area, 
-                                       cell_area, expose_area, flags)
+        lw = cell_area.width-AppStore.ARROW_SIZE-self.ARROW_PADDING
+        layout.set_width(lw*pango.SCALE)
+        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+
+        dst_x = cell_area.x+xpad
+        if widget.get_direction() == gtk.TEXT_DIR_RTL:
+            dst_x += +AppStore.ARROW_SIZE-self.ARROW_PADDING
+        dst_y = cell_area.y+(cell_area.height-layout.get_pixel_size()[1])/2
+
+        widget.style.paint_layout(window,
+                               flags,
+                               True,
+                               cell_area,
+                               widget,
+                               None,
+                               dst_x,
+                               dst_y,
+                               layout)
 
         # now render the arrow if its selected
         # FIXME: should we show the arrow on gtk.CELL_RENDERER_PRELIT too?
         if gtk.CELL_RENDERER_SELECTED & flags:
-            xpad = self.get_property('xpad')
-            ypad = self.get_property('ypad')
-
             if widget.get_direction() != gtk.TEXT_DIR_RTL:
                 dst_x = cell_area.x+cell_area.width-cell_area.height+xpad
             else:
@@ -243,7 +289,7 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
 
             widget.style.paint_box(window,
                                    gtk.STATE_NORMAL,
-                                   gtk.SHADOW_IN,
+                                   gtk.SHADOW_ETCHED_OUT,
                                    cell_area,
                                    widget,
                                    "button",
@@ -360,7 +406,7 @@ class AppView(gtk.TreeView):
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
         tr = CellRendererTextWithActivateArrow()
-        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
+#        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
         column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
@@ -416,10 +462,10 @@ class AppView(gtk.TreeView):
     def _xy_is_over_arrow(self, x, y):
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             (relx, rely, w, h, depth) = self.window.get_geometry()
-            if w-x <= AppStore.ICON_SIZE:
+            if w-x <= AppStore.ARROW_SIZE:
                 return True
         else:
-            if x <= AppStore.ICON_SIZE:
+            if x <= AppStore.ARROW_SIZE:
                 self.window.set_cursor(self._cursor_hand)
                 return True
         return False
