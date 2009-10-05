@@ -20,6 +20,7 @@ import apt
 import dbus
 import logging
 import gettext
+import glib
 import gtk
 import gobject
 import apt
@@ -30,6 +31,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import threading
 import xapian
 import urllib
 
@@ -47,7 +49,7 @@ from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 
 from widgets.wkwidget import WebkitWidget
-from widgets.imagedialog import ShowImageDialog
+from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 import dialogs
 
 class AppDetailsView(WebkitWidget):
@@ -63,14 +65,19 @@ class AppDetailsView(WebkitWidget):
     DEPENDENCY_TYPES = ("PreDepends", "Depends") #, "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
-    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%s"
+    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail-404/%s"
+    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot-404/%s"
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
     
+    # missing thumbnail
+    IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
+    IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
+
+
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (str,str, ))
@@ -101,7 +108,7 @@ class AppDetailsView(WebkitWidget):
         # setup user-agent
         settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)
-        
+
     def _show(self, widget):
         if not self.appname:
             return
@@ -146,7 +153,17 @@ class AppDetailsView(WebkitWidget):
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
-    
+        # FIXME: this 404 checking code is all ugly and should be 
+        #        factored out
+        # check for thumbnail (does a http HEAD so needs to run in 
+        # a extra thread to avoid blocking on connect)
+        self._thumbnail_is_missing = False
+        self._thumbnail_checking_thread_running = True
+        threading.Thread(target=self._check_thumb_available).start()
+        # also start a gtimeout handler to check when the thread finished
+        # (multiple GUI access is something that gtk does not like)
+        glib.timeout_add(200, self._check_thumb_gtk)
+
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
@@ -296,6 +313,8 @@ class AppDetailsView(WebkitWidget):
             self.cache[self.pkgname].isInstalled):
             return "screenshot_thumbnail-installed"
         return "screenshot_thumbnail"
+    def wksub_screenshot_thumbnail_missing(self):
+        return self.IMAGE_THUMBNAIL_MISSING
         
     # callbacks
     def on_button_enable_channel_clicked(self):
@@ -326,7 +345,9 @@ class AppDetailsView(WebkitWidget):
     def on_screenshot_thumbnail_clicked(self):
         url = self.SCREENSHOT_LARGE_URL % self.pkgname
         title = _("%s - Screenshot") % self.appname
-        d = ShowImageDialog(title, url, self.IMAGE_LOADING_INSTALLED)
+        d = ShowImageDialog(title, url, 
+                            self.IMAGE_LOADING_INSTALLED,
+                            self.IMAGE_FULL_MISSING)
         d.run()
         d.destroy()
 
@@ -434,6 +455,33 @@ class AppDetailsView(WebkitWidget):
         self.show_app(self.appname, self.pkgname)
 
     # internal helpers
+    def _check_thumb_gtk(self):
+        logging.debug("_check_thumb_gtk")
+        # wait until its ready for JS injection
+        # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
+        if self.get_property("load-status") != 2:
+            return True
+        if self._thumbnail_is_missing:
+            self.execute_script("thumbMissing();")
+        return self._thumbnail_checking_thread_running
+    def _check_thumb_available(self):
+        """ check if the thumbnail image is available on the server 
+            and alter the html if not
+        """
+        # we have to do the checking here and can not do it directly
+        # inside the html (e.g. via xmlhttp) because the security
+        # boundaries will not allow us to request a http:// uri
+        # from a file:// html page
+        logging.debug("_check_thumb_available")
+        # check if we can get the thumbnail or just a 404
+        urllib._urlopener = GnomeProxyURLopener()
+        try:
+            f = urllib.urlopen(self.SCREENSHOT_THUMB_URL % self.pkgname)
+        except Url404Error:
+            logging.debug("no thumbnail image")
+            self._thumbnail_is_missing = True
+        self._thumbnail_checking_thread_running = False
+
     def _get_action_button_label_and_value(self):
         action_button_label = ""
         action_button_value = ""
@@ -556,7 +604,7 @@ if __name__ == "__main__":
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, icons, cache, datadir)
     #view.show_app("AMOR")
-    view.show_app("3D Chess", "3dchess")
+    #view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")
     view.show_app("ACE", "unace")
     #view.show_app("Artha")

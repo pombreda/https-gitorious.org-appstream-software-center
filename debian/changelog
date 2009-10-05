@@ -3,8 +3,15 @@ software-center (0.4.5) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - avoid blocking if the authentication dialog comes up 
       (LP: #436413)
+  * softwarecenter/view/appdetailsview.py:
+    - switch to use urls that return 404 if a package has no
+      screenshot
+  * softwarecenter/view/widgets/imagedialog.py,
+    softwarecenter/view/appdetailsview.py:
+    - merge lp:~mvo/software-center/ubuntu-404 that implements 404 
+      handling and show ubuntu branded dummy image (LP: #425874)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 05 Oct 2009 10:27:46 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 05 Oct 2009 16:38:48 +0200
 
 software-center (0.4.4) karmic; urgency=low
 
