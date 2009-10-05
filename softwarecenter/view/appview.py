@@ -218,27 +218,66 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
             # icon not present in theme, probably because running uninstalled
             self._forward = icons.load_icon("gtk-go-forward-ltr",
                                             AppStore.ICON_SIZE, 0)
-    # FIMXE: what about right-to-left languages? we need to 
+
+    # FIXME: what about right-to-left languages? we need to 
     #        render the button differently there
     def do_render(self, window, widget, background_area, cell_area, 
                   expose_area, flags):
         # reserve space at the end for the arrow
-        cell_area.width -= self._arrow_space
         gtk.CellRendererText.do_render(self, window, widget, background_area, 
                                        cell_area, expose_area, flags)
+
         # now render the arrow if its selected
         # FIXME: should we show the arrow on gtk.CELL_RENDERER_PRELIT too?
         if gtk.CELL_RENDERER_SELECTED & flags:
-            (x, y, width, height, depth) = window.get_geometry()
-            dest_x = cell_area.x + cell_area.width
-            dest_y = (cell_area.y + 
-                      int(((cell_area.height - AppStore.ICON_SIZE)/2.0)))
-            window.draw_pixbuf(None, 
-                               self._forward,   # icon
-                               0, 0,            # src pixbuf
-                               dest_x, dest_y,  # dest in window
-                               -1, -1,          # size
-                               0, 0, 0)         # dither
+            xpad = self.get_property('xpad')
+            ypad = self.get_property('ypad')
+
+            dst_x = cell_area.x+cell_area.width-cell_area.height
+            dst_y = cell_area.y+ypad
+            width = height = cell_area.height-2*ypad
+
+            widget.style.paint_box(window,
+                                   gtk.STATE_NORMAL,
+                                   gtk.SHADOW_IN,
+                                   cell_area,
+                                   widget,
+                                   "button",
+                                   dst_x,
+                                   dst_y,
+                                   width,
+                                   height)
+
+            icon = widget.style.lookup_icon_set(gtk.STOCK_GO_FORWARD)
+            pixbuf = icon.render_icon(widget.style,
+                                      widget.get_direction(),
+                                      gtk.STATE_NORMAL,
+                                      gtk.ICON_SIZE_MENU,
+                                      widget,
+                                      detail=None)
+
+            dst_x = dst_x + (width - pixbuf.get_width())/2
+            dst_y = dst_y + (height - pixbuf.get_height())/2
+
+            window.draw_pixbuf(None,
+                               pixbuf,
+                               0,
+                               0,
+                               dst_x,
+                               dst_y,
+                               width=-1,
+                               height=-1,
+                               dither=gtk.gdk.RGB_DITHER_NORMAL,
+                               x_dither=0,
+                               y_dither=0)
+#            (x, y, width, height, depth) = window.get_geometry()
+
+#            window.draw_pixbuf(None, 
+#                               self._forward,   # icon
+#                               0, 0,            # src pixbuf
+#                               dest_x, dest_y,  # dest in window
+#                               -1, -1,          # size
+#                               0, 0, 0)         # dither
 gobject.type_register(CellRendererTextWithActivateArrow)
 
 
