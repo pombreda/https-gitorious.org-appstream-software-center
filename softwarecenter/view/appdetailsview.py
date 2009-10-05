@@ -153,13 +153,15 @@ class AppDetailsView(WebkitWidget):
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
+        # FIXME: this 404 checking code is all ugly and should be 
+        #        factored out
         # check for thumbnail (does a http HEAD so needs to run in 
         # a extra thread to avoid blocking on connect)
-        self._thumbnail_missing = False
-        self._thumbnail_checking = True
-        t=threading.Thread(target=self._check_thumb_available)
-        t.start()
-        #self._check_thumb_available()
+        self._thumbnail_is_missing = False
+        self._thumbnail_checking_thread_running = True
+        threading.Thread(target=self._check_thumb_available).start()
+        # also start a gtimeout handler to check when the thread finished
+        # (multiple GUI access is something that gtk does not like)
         glib.timeout_add(200, self._check_thumb_gtk)
 
     def get_icon_filename(self, iconname, iconsize):
@@ -459,9 +461,9 @@ class AppDetailsView(WebkitWidget):
         # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
         if self.get_property("load-status") != 2:
             return True
-        if self._thumbnail_missing:
+        if self._thumbnail_is_missing:
             self.execute_script("thumbMissing();")
-        return self._thumbnail_checking
+        return self._thumbnail_checking_thread_running
     def _check_thumb_available(self):
         """ check if the thumbnail image is available on the server 
             and alter the html if not
@@ -477,8 +479,8 @@ class AppDetailsView(WebkitWidget):
             f = urllib.urlopen(self.SCREENSHOT_THUMB_URL % self.pkgname)
         except Url404Error:
             logging.debug("no thumbnail image")
-            self._thumbnail_missing = True
-        self._thumbnail_checking = False
+            self._thumbnail_is_missing = True
+        self._thumbnail_checking_thread_running = False
 
     def _get_action_button_label_and_value(self):
         action_button_label = ""
