@@ -19,6 +19,11 @@
       }
     }
   }
+  function thumbMissing() {
+    obj=document.getElementById("screenshot_thumbnail_img"); 
+    obj.style.background= 'url("file:$screenshot_thumbnail_missing")';
+    obj.style.visibility = 'visible';
+  }
   function setOpacity(obj, opacity) {
     opacity = (opacity == 100)?99.999:opacity;
     obj.style.opacity = opacity/100;
