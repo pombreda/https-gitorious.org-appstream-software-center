@@ -209,15 +209,15 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
 
     def __init__(self):
         gtk.CellRendererText.__init__(self)
-        icons = gtk.icon_theme_get_default()
-        self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
-        try:
-            self._forward = icons.load_icon("software-center-arrow-button", 
-                                            AppStore.ICON_SIZE, 0)
-        except glib.GError:
-            # icon not present in theme, probably because running uninstalled
-            self._forward = icons.load_icon("gtk-go-forward-ltr",
-                                            AppStore.ICON_SIZE, 0)
+#        icons = gtk.icon_theme_get_default()
+#        self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
+#        try:
+#            self._forward = icons.load_icon("software-center-arrow-button", 
+#                                            AppStore.ICON_SIZE, 0)
+#        except glib.GError:
+#            # icon not present in theme, probably because running uninstalled
+#            self._forward = icons.load_icon("gtk-go-forward-ltr",
+#                                            AppStore.ICON_SIZE, 0)
 
     # FIXME: what about right-to-left languages? we need to 
     #        render the button differently there
@@ -234,9 +234,9 @@ class CellRendererTextWithActivateArrow(gtk.CellRendererText):
             ypad = self.get_property('ypad')
 
             if widget.get_direction() != gtk.TEXT_DIR_RTL:
-                dst_x = cell_area.x+cell_area.width-cell_area.height
+                dst_x = cell_area.x+cell_area.width-cell_area.height+xpad
             else:
-                dst_x = cell_area.x
+                dst_x = cell_area.x+xpad
 
             dst_y = cell_area.y+ypad
             width = height = cell_area.height-2*ypad
@@ -373,12 +373,15 @@ class AppView(gtk.TreeView):
         # our own "activate" handler
         self.connect("row-activated", self._on_row_activated)
         # button and motion are "special" 
+
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("motion-notify-event", self._on_motion_notify_event)
         self.connect("cursor-changed", self._on_cursor_changed)
+
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
         self.emit("application-activated", name, pkgname)
+
     def _on_cursor_changed(self, treeview):
         selection = treeview.get_selection()
         (model, iter) = selection.get_selected()
@@ -386,12 +389,13 @@ class AppView(gtk.TreeView):
             return
         (name, text, icon, overlay, pkgname) = model[iter]
         self.emit("application-selected", name, pkgname)
+
     def _on_motion_notify_event(self, widget, event):
-        (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
-        if width - event.x <= AppStore.ICON_SIZE:
+        if self._xy_is_over_arrow(int(event.x), (event.y)):
             self.window.set_cursor(self._cursor_hand)
-        else:
-            self.window.set_cursor(None)
+            return
+        self.window.set_cursor(None)
+
     def _on_button_press_event(self, widget, event):
         if event.button != 1:
             return
@@ -405,11 +409,20 @@ class AppView(gtk.TreeView):
         selection = widget.get_selection()
         if not selection.path_is_selected(path):
             return
-        # get the size of gdk window
-        (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
         # the last pixels of the view are reserved for the arrow icon
-        if width - event.x <= AppStore.ICON_SIZE:
+        if self._xy_is_over_arrow(int(event.x), int(event.y)):
             self.emit("row-activated", path, column)
+
+    def _xy_is_over_arrow(self, x, y):
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
+            (relx, rely, w, h, depth) = self.window.get_geometry()
+            if w-x <= AppStore.ICON_SIZE:
+                return True
+        else:
+            if x <= AppStore.ICON_SIZE:
+                self.window.set_cursor(self._cursor_hand)
+                return True
+        return False
 
 # XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):
