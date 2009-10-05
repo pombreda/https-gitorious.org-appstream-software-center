@@ -15,7 +15,9 @@ software-center (0.4.5) UNRELEASED; urgency=low
       SOFTWARE_CENTER_SEARCHES_SORT_MODE={popcon,alphabetic,xapian}
       (to be able to test the different mode quickly)
   * softwarecenter/view/appdetailsview.py:
-    - fix crash when no icon can be found (#442040)
+    - fix crash when no icon can be found (LP: #442040)
+  * softwarecenter/view/catview.py:
+    - do not crash if no icon can be found (LP: #441171)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 05 Oct 2009 16:38:48 +0200
 
