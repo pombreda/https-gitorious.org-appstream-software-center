@@ -220,6 +220,7 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
         self.__gobject_init__()
         self.markup = None
         self._height = None
+        self._pixbuf = None
 #        icons = gtk.icon_theme_get_default()
 #        self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
 #        try:
@@ -255,11 +256,12 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
 
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
-        layout.set_markup(self.markup)
+        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+
         # reserve space at the end for the arrow
         lw = cell_area.width-AppStore.ARROW_SIZE-self.ARROW_PADDING
         layout.set_width(lw*pango.SCALE)
-        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+        layout.set_markup(self.markup)
 
         dst_x = cell_area.x+xpad
         if widget.get_direction() == gtk.TEXT_DIR_RTL:
@@ -298,14 +300,17 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                    width,
                                    height)
 
-            icon = widget.style.lookup_icon_set(gtk.STOCK_GO_FORWARD)
-            pixbuf = icon.render_icon(widget.style,
-                                      widget.get_direction(),
-                                      gtk.STATE_NORMAL,
-                                      gtk.ICON_SIZE_MENU,
-                                      widget,
-                                      detail=None)
+            if not self._pixbuf:
+                # cache icon pixbuf
+                icon = widget.style.lookup_icon_set(gtk.STOCK_GO_FORWARD)
+                self._pixbuf = icon.render_icon(widget.style,
+                                          widget.get_direction(),
+                                          gtk.STATE_NORMAL,
+                                          gtk.ICON_SIZE_MENU,
+                                          widget,
+                                          detail=None)
 
+            pixbuf = self._pixbuf
             dst_x = dst_x + (width - pixbuf.get_width())/2
             dst_y = dst_y + (height - pixbuf.get_height())/2
 
@@ -320,14 +325,11 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                dither=gtk.gdk.RGB_DITHER_NORMAL,
                                x_dither=0,
                                y_dither=0)
-#            (x, y, width, height, depth) = window.get_geometry()
 
-#            window.draw_pixbuf(None, 
-#                               self._forward,   # icon
-#                               0, 0,            # src pixbuf
-#                               dest_x, dest_y,  # dest in window
-#                               -1, -1,          # size
-#                               0, 0, 0)         # dither
+    def on_style_change(self, widget, old_style):
+        # stub: on style change reload icon pixbuf
+        return
+
 gobject.type_register(CellRendererTextWithActivateArrow)
 
 
