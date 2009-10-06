@@ -9,6 +9,12 @@ software-center (0.4.6) UNRELEASEDkarmic; urgency=low
       software-center (LP: #444254)
   * softwarecenter/app.py:
     - do not crah on corrupted database
+  * utils/update-software-center:
+    - ignore if dbus can not be imported (e.g. because we are in 
+      the middle of a upgrade and python packages are unavailable)
+      LP: #443177)
+    - do not show full stacktrace if dbus is not available 
+      (LP: #444089)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 09:18:26 +0200
 
