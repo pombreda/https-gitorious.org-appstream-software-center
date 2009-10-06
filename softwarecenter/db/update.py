@@ -57,7 +57,7 @@ class DesktopConfigParser(RawConfigParser):
                     return translated_value
         # then try the i18n version of the key (in [de_DE] or
         # [de]
-        locale = getdefaultlocale()[0]
+        locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
         if locale:
             if self.has_option_desktop("%s[%s]" % (key, locale)):
                 return self.get(self.DE, "%s[%s]" % (key, locale))

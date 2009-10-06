@@ -1,4 +1,13 @@
-software-center (0.4.6) UNRELEASEDkarmic; urgency=low
+software-center (0.4.7) UNRELEASED; urgency=low
+
+  * softwarecenter/db/update.py:
+    - when using getdefaultlocale() change the order of the environment
+      variable that are checked to 'LANGUAGE','LANG','LC_CTYPE','LC_ALL'
+      LP: #444316
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 13:17:13 +0200
+
+software-center (0.4.6) karmic; urgency=low
 
   * debian/control:
     - add versionized dependency to aptdaemon (needs some of the
@@ -18,7 +27,7 @@ software-center (0.4.6) UNRELEASEDkarmic; urgency=low
     - add a small delay between dubs rebuild signal and actual rebuild
       (LP: #438639)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 09:18:26 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 11:27:09 +0200
 
 software-center (0.4.5) karmic; urgency=low
 
