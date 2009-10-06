@@ -34,6 +34,8 @@ if os.path.exists("./softwarecenter/enums.py"):
 from softwarecenter.enums import *
 from softwarecenter.db.database import StoreDatabase, Application
 
+from gettext import gettext as _
+
 class AppStore(gtk.GenericTreeModel):
     """ 
     A subclass GenericTreeModel that reads its data from a xapian
@@ -217,8 +219,6 @@ class AppStore(gtk.GenericTreeModel):
         return n
     def on_iter_parent(self, child):
         return None
-
-
 
 
 # custom renderer for the arrow thing that mpt wants
@@ -462,10 +462,20 @@ class AppView(gtk.TreeView):
         self.emit("application-selected", name, pkgname)
 
     def _on_motion_notify_event(self, widget, event):
+        self.set_has_tooltip(False)
         if self._xy_is_over_arrow(int(event.x), (event.y)):
+            tip = _("Click to view application details")
+            gobject.timeout_add(50, self._set_tooltip_cb, tip)
             self.window.set_cursor(self._cursor_hand)
             return
         self.window.set_cursor(None)
+
+    def _set_tooltip_cb(self, text):
+        # callback allows the tooltip position to be updated as pointer moves
+        # accross different button regions
+        self.set_has_tooltip(True)
+        self.set_tooltip_markup(text)
+        return False
 
     def _on_button_press_event(self, widget, event):
         if event.button != 1:
