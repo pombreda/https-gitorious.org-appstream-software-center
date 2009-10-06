@@ -141,7 +141,11 @@ class CategoriesView(WebkitWidget):
                             gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
                         except:
                             gettext_domain = None
-                        icon = cp.get("Desktop Entry","Icon")
+                        # sometimes there is no icon?
+                        try:
+                            icon = cp.get("Desktop Entry","Icon")
+                        except Exception, e:
+                            icon = "applications-other"
                         untranslated_name = cp.get("Desktop Entry","Name")
                         if gettext_domain:
                             name = gettext.dgettext(gettext_domain, untranslated_name)

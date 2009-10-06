@@ -1,3 +1,28 @@
+software-center (0.4.5) karmic; urgency=low
+
+  * softwarecenter/view/appdetailsview.py:
+    - avoid blocking if the authentication dialog comes up 
+      (LP: #436413)
+  * softwarecenter/view/appdetailsview.py:
+    - switch to use urls that return 404 if a package has no
+      screenshot
+  * softwarecenter/view/widgets/imagedialog.py,
+    softwarecenter/view/appdetailsview.py:
+    - merge lp:~mvo/software-center/ubuntu-404 that implements 404 
+      handling and show ubuntu branded dummy image (LP: #425874)
+  * softwarecenter/view/appview.py:
+    - support environment to switch sorting for searches:
+      SOFTWARE_CENTER_SEARCHES_SORT_MODE={popcon,alphabetic,xapian}
+      (to be able to test the different mode quickly)
+  * softwarecenter/view/appdetailsview.py:
+    - fix crash when no icon can be found (LP: #442040, LP: #440306)
+  * softwarecenter/view/catview.py:
+    - do not crash if no icon can be found (LP: #441171)
+  * data/templates/CategoriesView.html:
+    - disable drag-n-drop (LP: #440446)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 05 Oct 2009 18:23:27 +0200
+
 software-center (0.4.4) karmic; urgency=low
 
   * debian/rules:

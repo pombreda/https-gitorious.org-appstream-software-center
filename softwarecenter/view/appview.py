@@ -58,6 +58,10 @@ class AppStore(gtk.GenericTreeModel):
     ICON_SIZE = 24
     ARROW_SIZE = 32
 
+    (SEARCHES_SORTED_BY_POPCON,
+     SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
+     SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
+     
     def __init__(self, cache, db, icons, search_query=None, limit=200, 
                  sort=False, filter=None):
         """
@@ -80,6 +84,7 @@ class AppStore(gtk.GenericTreeModel):
         self.icons = icons
         self.apps = []
         self.filter = filter
+        self._searches_sort_mode = self._get_searches_sort_mode()
         if not search_query:
             # limit to applications
             for m in db.postlist("ATapplication"):
@@ -93,7 +98,13 @@ class AppStore(gtk.GenericTreeModel):
         else:
             enquire = xapian.Enquire(db)
             enquire.set_query(search_query)
-            enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+            # set search order mode
+            if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
+                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+            elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
+                sort=True
+            # SEARCHES_SORTED_BY_XAPIAN_RELEVANCE: is default in xapian
+            # no need to explicitely srt
             if limit == 0:
                 matches = enquire.get_mset(0, db.get_doccount())
             else:
@@ -117,6 +128,18 @@ class AppStore(gtk.GenericTreeModel):
         """ apply filter and return True if the package is filtered out """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         return not filter.filter(doc, pkgname)
+    # internal helper
+    def _get_searches_sort_mode(self):
+        mode = self.SEARCHES_SORTED_BY_POPCON
+        if "SOFTWARE_CENTER_SEARCHES_SORT_MODE" in os.environ:
+            k = os.environ["SOFTWARE_CENTER_SEARCHES_SORT_MODE"].strip().lower()
+            if k == "popcon":
+                mode = self.SEARCHES_SORTED_BY_POPCON
+            elif k == "alphabetic":
+                mode = self.SEARCHES_SORTED_BY_ALPHABETIC
+            elif k == "xapian":
+                mode = self.SEARCHES_SORTED_BY_XAPIAN_RELEVANCE
+        return mode
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
