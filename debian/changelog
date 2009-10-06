@@ -7,6 +7,8 @@ software-center (0.4.6) UNRELEASEDkarmic; urgency=low
     - display the operation (Install Packages, Remove Packages,
       Applying Changes) for operations that come from outside 
       software-center (LP: #444254)
+  * softwarecenter/app.py:
+    - do not crah on corrupted database
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 09:18:26 +0200
 
