@@ -15,6 +15,8 @@ software-center (0.4.6) UNRELEASEDkarmic; urgency=low
       LP: #443177)
     - do not show full stacktrace if dbus is not available 
       (LP: #444089)
+    - add a small delay between dubs rebuild signal and actual rebuild
+      (LP: #438639)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 09:18:26 +0200
 
