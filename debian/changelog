@@ -1,3 +1,15 @@
+software-center (0.4.6) UNRELEASEDkarmic; urgency=low
+
+  * debian/control:
+    - add versionized dependency to aptdaemon (needs some of the
+      latest API for the async calls) LP: #444218
+  * softwarecenter/view/pendingview.py:
+    - display the operation (Install Packages, Remove Packages,
+      Applying Changes) for operations that come from outside 
+      software-center (LP: #444254)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 09:18:26 +0200
+
 software-center (0.4.5) karmic; urgency=low
 
   * softwarecenter/view/appdetailsview.py:
