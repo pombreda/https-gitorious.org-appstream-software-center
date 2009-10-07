@@ -127,6 +127,7 @@ class WebkitWidget(webkit.WebView):
             # now we need to reset the title
             self.execute_script('document.title = "nop"')
 
+
 class WKTestWidget(WebkitWidget):
 
     def func1(self, arg1, arg2):

@@ -4,6 +4,7 @@ software-center (0.9.0) UNRELEASED; urgency=low
     - when using getdefaultlocale() change the order of the environment
       variable that are checked to 'LANGUAGE','LANG','LC_CTYPE','LC_ALL'
       LP: #444316
+  * add support RTL in the webkit widgets
   * Merged from Matthew McGowan:
     - better integration of the arrow button with the used theme
     - update arrow button when style changes (supports high contrast
