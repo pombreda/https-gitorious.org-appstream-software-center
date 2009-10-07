@@ -1,9 +1,15 @@
-software-center (0.4.7) UNRELEASED; urgency=low
+software-center (0.9.0) UNRELEASED; urgency=low
 
   * softwarecenter/db/update.py:
     - when using getdefaultlocale() change the order of the environment
       variable that are checked to 'LANGUAGE','LANG','LC_CTYPE','LC_ALL'
       LP: #444316
+  * Merged from Matthew McGowan:
+    - better integration of the arrow button with the used theme
+    - update arrow button when style changes
+    - support RTL langauges with the arrow button
+    - new pathbar can be activated via SOFTWARE_CENTER_NEW_PATHBAR=1
+      in the environment (not used by default)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 13:17:13 +0200
 

@@ -39,7 +39,7 @@ from aptdaemon import policykit1
 from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog
- 
+
 from gettext import gettext as _
 
 if os.path.exists("./softwarecenter/enums.py"):
@@ -72,7 +72,7 @@ class AppDetailsView(WebkitWidget):
     INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
-    
+
     # missing thumbnail
     IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
     IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
@@ -82,14 +82,14 @@ class AppDetailsView(WebkitWidget):
                                 gobject.TYPE_NONE,
                                 (str,str, ))
                     }
-    
+
     def __init__(self, xapiandb, icons, cache, datadir):
         super(AppDetailsView, self).__init__(datadir)
         self.xapiandb = xapiandb
         self.icons = icons
         self.cache = cache
         self.datadir = datadir
-        self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
+        self.arch = subprocess.Popen(["dpkg","--print-architecture"],
                                      stdout=subprocess.PIPE).communicate()[0]
         # atk
         atk_desc = self.get_accessible()
@@ -113,9 +113,9 @@ class AppDetailsView(WebkitWidget):
     # public API
     def show_app(self, appname, pkgname):
         logging.debug("AppDetailsView.show_app '%s'" % appname)
-        
+
         # clear first to avoid showing the old app details for
-        # some milliseconds before switching to the new app 
+        # some milliseconds before switching to the new app
         self.clear()
 
         # init app specific data
@@ -140,7 +140,7 @@ class AppDetailsView(WebkitWidget):
         self.pkgname = self.doc.get_value(XAPIAN_VALUE_PKGNAME)
         self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.pkg = None
-        if (self.cache.has_key(self.pkgname) and 
+        if (self.cache.has_key(self.pkgname) and
             self.cache[self.pkgname].candidate):
             self.pkg = self.cache[self.pkgname]
         if self.pkg:
@@ -149,9 +149,9 @@ class AppDetailsView(WebkitWidget):
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
-        # FIXME: this 404 checking code is all ugly and should be 
+        # FIXME: this 404 checking code is all ugly and should be
         #        factored out
-        # check for thumbnail (does a http HEAD so needs to run in 
+        # check for thumbnail (does a http HEAD so needs to run in
         # a extra thread to avoid blocking on connect)
         self._thumbnail_is_missing = False
         self._thumbnail_checking_thread_running = True
@@ -165,11 +165,11 @@ class AppDetailsView(WebkitWidget):
         if not iconinfo:
             iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
         return iconinfo.get_filename()
-            
+
     def clear(self):
         " clear the current view "
         self.load_string("","text/plain","ascii","file:/")
-        while gtk.events_pending(): 
+        while gtk.events_pending():
             gtk.main_iteration()
 
     # substitute functions called during page display
@@ -203,7 +203,7 @@ class AppDetailsView(WebkitWidget):
         description = description.replace("\n\n","</p><p>")
         return description
     def wksub_iconpath_loading(self):
-        if (self.cache.has_key(self.pkgname) and 
+        if (self.cache.has_key(self.pkgname) and
             self.cache[self.pkgname].isInstalled):
             return self.IMAGE_LOADING_INSTALLED
         return self.IMAGE_LOADING
@@ -311,7 +311,7 @@ class AppDetailsView(WebkitWidget):
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):
         return self.IMAGE_THUMBNAIL_MISSING
-        
+
     # callbacks
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
@@ -329,7 +329,7 @@ class AppDetailsView(WebkitWidget):
             sourcepart = os.path.basename(self.channelfile)
             try:
                 self.aptd_client.add_repository(
-                    entry.type, entry.uri, entry.dist, entry.comps, 
+                    entry.type, entry.uri, entry.dist, entry.comps,
                     "Added by software-center", sourcepart)
             except dbus.exceptions.DBusException, e:
                 if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
@@ -341,7 +341,7 @@ class AppDetailsView(WebkitWidget):
     def on_screenshot_thumbnail_clicked(self):
         url = self.SCREENSHOT_LARGE_URL % self.pkgname
         title = _("%s - Screenshot") % self.appname
-        d = ShowImageDialog(title, url, 
+        d = ShowImageDialog(title, url,
                             self.IMAGE_LOADING_INSTALLED,
                             self.IMAGE_FULL_MISSING)
         d.run()
@@ -352,12 +352,12 @@ class AppDetailsView(WebkitWidget):
         subprocess.call([cmd, self.homepage_url])
 
     def on_button_upgrade_clicked(self):
-        trans = self.aptd_client.upgrade_packages([self.pkgname], 
+        trans = self.aptd_client.upgrade_packages([self.pkgname],
                                           exit_handler=self._on_trans_finished)
         self._run_transaction(trans)
 
     def on_button_remove_clicked(self):
-        # generic removal text 
+        # generic removal text
         # FIXME: this text is not accurate, we look at recommends as
         #        well as part of the rdepends, but those do not need to
         #        be removed, they just may be limited in functionatlity
@@ -365,7 +365,7 @@ class AppDetailsView(WebkitWidget):
                     "as well:" % self.appname)
         button_text = _("Remove All")
         depends = list(self.installed_rdeps)
-        
+
         # alter it if a meta-package is affected
         for m in self.installed_rdeps:
             if self.cache[m].section == "metapackages":
@@ -386,7 +386,7 @@ class AppDetailsView(WebkitWidget):
                 button_text = _("Remove Anyway")
                 depends = None
                 break
-                
+
         # ask for confirmation if we have rdepends
         if len(self.installed_rdeps):
             iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
@@ -423,12 +423,12 @@ class AppDetailsView(WebkitWidget):
         logging.warn("_on_trans_error: %s" % error)
         # re-enable the action button again if anything went wrong
         self._set_action_button_sensitive(True)
-        if (error._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized" or 
+        if (error._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized" or
             error._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
             pass
         else:
             raise
-    
+
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
         if enum == enums.EXIT_FAILED:
@@ -441,7 +441,7 @@ class AppDetailsView(WebkitWidget):
             logging.error("error in _on_trans_finished '%s'" % msg)
             # show dialog to the user and exit (no need to reopen
             # the cache)
-            dialogs.error(None, 
+            dialogs.error(None,
                           enums.get_error_string_from_enum(excep.code),
                           enums.get_error_description_from_enum(excep.code),
                           excep.details)
@@ -461,7 +461,7 @@ class AppDetailsView(WebkitWidget):
             self.execute_script("thumbMissing();")
         return self._thumbnail_checking_thread_running
     def _check_thumb_available(self):
-        """ check if the thumbnail image is available on the server 
+        """ check if the thumbnail image is available on the server
             and alter the html if not
         """
         # we have to do the checking here and can not do it directly
@@ -508,23 +508,23 @@ class AppDetailsView(WebkitWidget):
             self.execute_script("enable_action_button();")
         else:
             self.execute_script("disable_action_button();")
-            
+
     # FIXME: move this to a better place
     def _get_diff(self, old, new):
         if not os.path.exists("/usr/bin/diff"):
             return ""
-        diff = subprocess.Popen(["/usr/bin/diff", 
+        diff = subprocess.Popen(["/usr/bin/diff",
                                  "-u",
-                                 old, new], 
+                                 old, new],
                                 stdout=subprocess.PIPE).communicate()[0]
         return diff
 
     # FIXME: move this into aptdaemon/use the aptdaemon one
     def _config_file_prompt(self, transaction, old, new):
         diff = self._get_diff(old, new)
-        d = dialogs.DetailsMessageDialog(None, 
+        d = dialogs.DetailsMessageDialog(None,
                                          details=diff,
-                                         type=gtk.MESSAGE_INFO, 
+                                         type=gtk.MESSAGE_INFO,
                                          buttons=gtk.BUTTONS_NONE)
         d.add_buttons(_("_Keep"), gtk.RESPONSE_NO,
                       _("_Replace"), gtk.RESPONSE_YES)
@@ -592,7 +592,7 @@ if __name__ == "__main__":
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
-    
+
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
 
