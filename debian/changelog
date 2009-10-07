@@ -6,7 +6,8 @@ software-center (0.9.0) UNRELEASED; urgency=low
       LP: #444316
   * Merged from Matthew McGowan:
     - better integration of the arrow button with the used theme
-    - update arrow button when style changes
+    - update arrow button when style changes (supports high contrast
+      themes and somesuch now too)
     - support RTL langauges with the arrow button
     - new pathbar can be activated via SOFTWARE_CENTER_NEW_PATHBAR=1
       in the environment (not used by default)

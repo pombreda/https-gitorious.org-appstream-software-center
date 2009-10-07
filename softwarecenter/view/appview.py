@@ -281,19 +281,18 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
         dst_y = cell_area.y+(cell_area.height-layout.get_pixel_size()[1])/2
 
         state = gtk.STATE_NORMAL
-        if gtk.CELL_RENDERER_SELECTED == flags or \
-            gtk.CELL_RENDERER_SELECTED | gtk.CELL_RENDERER_PRELIT == flags:
+        if gtk.CELL_RENDERER_SELECTED & flags:
             state = gtk.STATE_SELECTED
 
         widget.style.paint_layout(window,
-                               state,
-                               True,
-                               cell_area,
-                               widget,
-                               None,
-                               dst_x,
-                               dst_y,
-                               layout)
+                                  state,
+                                  True,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  dst_x,
+                                  dst_y,
+                                  layout)
 
         # now render the arrow if its selected
         if gtk.CELL_RENDERER_SELECTED & flags:
