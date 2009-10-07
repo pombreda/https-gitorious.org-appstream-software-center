@@ -261,13 +261,13 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
         return getattr(self, pspec.name)
 
     def on_get_size(self, widget, cell_area):
-        x, y, w, h, d = widget.window.get_geometry()
+        a = widget.get_allocation()
         if not self._height:
             pc = widget.get_pango_context()
             layout = pango.Layout(pc)
             layout.set_markup(self.markup)
             self._height = max(layout.get_pixel_size()[1]+2*self.YPAD, 32)
-        return x, y, w, self._height
+        return a.x, a.y, a.width, self._height
 
     # FIXME: what about right-to-left languages? we need to 
     #        render the button differently there
@@ -324,14 +324,9 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                    height)
 
             if not self._pixbuf:
+                widget.connect("style-set", self._on_style_change)
                 # cache icon pixbuf
-                icon = widget.style.lookup_icon_set(gtk.STOCK_GO_FORWARD)
-                self._pixbuf = icon.render_icon(widget.style,
-                                          widget.get_direction(),
-                                          gtk.STATE_NORMAL,
-                                          gtk.ICON_SIZE_MENU,
-                                          widget,
-                                          detail=None)
+                self._pixbuf = self._load_icon_pixbuf(widget)
 
             pixbuf = self._pixbuf
             dst_x = dst_x + (width - pixbuf.get_width())/2
@@ -348,10 +343,23 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                dither=gtk.gdk.RGB_DITHER_NORMAL,
                                x_dither=0,
                                y_dither=0)
-
-    def on_style_change(self, widget, old_style):
-        # stub: on style change reload icon pixbuf
         return
+
+    def _on_style_change(self, widget, old_style):
+        # on style change reload icon pixbuf and recalc height
+        self._pixbuf = self._load_icon_pixbuf(widget)
+        self._height = max(self._pixbuf.get_height()+2*self.YPAD, self._height)
+        return
+
+    def _load_icon_pixbuf(self, widget, stock_id=gtk.STOCK_GO_FORWARD):
+        icon = widget.style.lookup_icon_set(stock_id)
+        return icon.render_icon(widget.style,
+                                widget.get_direction(),
+                                gtk.STATE_NORMAL,
+                                gtk.ICON_SIZE_MENU,
+                                widget,
+                                detail=None)
+
 
 gobject.type_register(CellRendererTextWithActivateArrow)
 
