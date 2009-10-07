@@ -291,8 +291,13 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
             dst_x += +AppStore.ARROW_SIZE-self.ARROW_PADDING
         dst_y = cell_area.y+(cell_area.height-layout.get_pixel_size()[1])/2
 
+        state = gtk.STATE_NORMAL
+        if gtk.CELL_RENDERER_SELECTED == flags or \
+            gtk.CELL_RENDERER_SELECTED | gtk.CELL_RENDERER_PRELIT == flags:
+            state = gtk.STATE_SELECTED
+
         widget.style.paint_layout(window,
-                               flags,
+                               state,
                                True,
                                cell_area,
                                widget,
