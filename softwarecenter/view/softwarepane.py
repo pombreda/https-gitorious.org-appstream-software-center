@@ -26,8 +26,12 @@ import sys
 import string
 import xapian
 
-#from widgets.navigationbar import NavigationBar
-from widgets.pathbar2 import NavigationBar
+# magic environment to get new pathbar
+if "SOFTWARE_CENTER_NEW_PATHBAR" in os.environ:
+    from widgets.pathbar2 import NavigationBar
+else:
+    from widgets.navigationbar import NavigationBar
+
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter

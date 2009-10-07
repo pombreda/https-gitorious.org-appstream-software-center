@@ -231,7 +231,7 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
 
     __gproperties__ = {
         'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
-        gobject.PARAM_READWRITE)
+                   gobject.PARAM_READWRITE)
         }
 
     # padding around the arrow at the end
@@ -244,15 +244,6 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
         self.markup = None
         self._height = None
         self._pixbuf = None
-#        icons = gtk.icon_theme_get_default()
-#        self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
-#        try:
-#            self._forward = icons.load_icon("software-center-arrow-button", 
-#                                            AppStore.ICON_SIZE, 0)
-#        except glib.GError:
-#            # icon not present in theme, probably because running uninstalled
-#            self._forward = icons.load_icon("gtk-go-forward-ltr",
-#                                            AppStore.ICON_SIZE, 0)
 
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
@@ -269,8 +260,6 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
             self._height = max(layout.get_pixel_size()[1]+2*self.YPAD, 32)
         return a.x, a.y, a.width, self._height
 
-    # FIXME: what about right-to-left languages? we need to 
-    #        render the button differently there
     def do_render(self, window, widget, background_area, cell_area, 
                   expose_area, flags):
 
@@ -307,7 +296,6 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                layout)
 
         # now render the arrow if its selected
-        # FIXME: should we show the arrow on gtk.CELL_RENDERER_PRELIT too?
         if gtk.CELL_RENDERER_SELECTED & flags:
             if widget.get_direction() != gtk.TEXT_DIR_RTL:
                 dst_x = cell_area.x+cell_area.width-cell_area.height+xpad
@@ -329,8 +317,9 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                    height)
 
             if not self._pixbuf:
+                # we connect here because in init we do not have
+                # a parent widget yet
                 widget.connect("style-set", self._on_style_change)
-                # cache icon pixbuf
                 self._pixbuf = self._load_icon_pixbuf(widget)
 
             pixbuf = self._pixbuf
@@ -443,6 +432,7 @@ class AppView(gtk.TreeView):
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
+        # FIXME: add "ellipize" property to CellRendererTextWithActivateArrow
         tr = CellRendererTextWithActivateArrow()
 #        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
         column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
@@ -474,14 +464,16 @@ class AppView(gtk.TreeView):
         (name, text, icon, overlay, pkgname) = model[iter]
         self.emit("application-selected", name, pkgname)
 
+    # FIXME: move the tooltip, motion_notify etc to the render/TreeViewColumn?
     def _on_motion_notify_event(self, widget, event):
-        self.set_has_tooltip(False)
+        #self.set_has_tooltip(False)
         if self._xy_is_over_arrow(int(event.x), (event.y)):
-            tip = _("Click to view application details")
-            gobject.timeout_add(50, self._set_tooltip_cb, tip)
+            # FIXME: deactivated for karmic (because we are in string freeze
+            #tip = _("Click to view application details")
+            #gobject.timeout_add(50, self._set_tooltip_cb, tip)
             self.window.set_cursor(self._cursor_hand)
-            return
-        self.window.set_cursor(None)
+        else:
+            self.window.set_cursor(None)
 
     def _set_tooltip_cb(self, text):
         # callback allows the tooltip position to be updated as pointer moves

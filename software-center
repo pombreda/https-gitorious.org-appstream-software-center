@@ -26,6 +26,7 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 gobject.threads_init()
+import gtk
 try:
     import pygst
     pygst.require ("0.10")
@@ -49,15 +50,19 @@ if __name__ == "__main__":
                           version="%prog "+VERSION)
     parser.add_option("--debug", dest="debug", action="store_true",
                       help="enable debug mode", default=False)
-    parser.add_option("--rtl", dest="debug", action="store_false",
-                      help="force rtl mode upon the navigationbar", default=False)
+    parser.add_option("--force-rtl", action="store_true",
+                      help="force rtl mode (useful for debugging)", 
+                      default=False)
     (options, args) = parser.parse_args()
 
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-
+    
+    # override text direction for testing purposes
+    if options.force_rtl:
+        gtk.widget_set_default_direction(gtk.TEXT_DIR_RTL)
 
     #logging.basicConfig(level=logging.DEBUG)
     logging.basicConfig(level=logging.INFO)

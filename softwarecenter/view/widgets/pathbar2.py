@@ -676,7 +676,10 @@ class PathBar(gtk.DrawingArea):
         part = self.__part_at_xy(event.x, event.y)
         prev_focal = self.__focal_part
 
-        if self.__button_down and part == prev_focal:
+        if self.__button_down:
+            if prev_focal and part != prev_focal:
+                prev_focal.set_state(self.__state(prev_focal))
+                self.queue_draw_area(*prev_focal.get_allocation_tuple())
             return
 
         self.__button_down = False
@@ -716,7 +719,9 @@ class PathBar(gtk.DrawingArea):
 
     def __button_release_cb(self, widget, event):
         part = self.__part_at_xy(event.x, event.y)
-        if part and self.__button_down:
+        if self.__focal_part and self.__focal_part != part:
+            pass
+        elif part and self.__button_down:
             if part.callback: part.callback(self)
             self.grab_focus()
             prev_active, redraw = self.__set_active(part)
