@@ -60,6 +60,7 @@ class PathBar(gtk.DrawingArea):
         self.__parts = []
         self.__active_part = None
         self.__focal_part = None
+        self.__button_down = False
 
         self.__scroller = None
         self.__scroll_xO = 0
@@ -675,9 +676,15 @@ class PathBar(gtk.DrawingArea):
         part = self.__part_at_xy(event.x, event.y)
         prev_focal = self.__focal_part
 
+        if self.__button_down and part == prev_focal:
+            return
+
         if part and part.state != gtk.STATE_PRELIGHT:
             self.__tooltip_check(part)
-            part.set_state(gtk.STATE_PRELIGHT)
+            if not self.__button_down:
+                part.set_state(gtk.STATE_PRELIGHT)
+            else:
+                part.set_state(gtk.STATE_SELECTED)
 
             if prev_focal:
                 prev_focal.set_state(self.__state(prev_focal))
@@ -703,6 +710,7 @@ class PathBar(gtk.DrawingArea):
     def __button_press_cb(self, widget, event):
         part = self.__part_at_xy(event.x, event.y)
         if part:
+            self.__button_down = True
             part.set_state(gtk.STATE_SELECTED)
             self.queue_draw_area(*part.get_allocation_tuple())
         return
@@ -710,6 +718,7 @@ class PathBar(gtk.DrawingArea):
     def __button_release_cb(self, widget, event):
         part = self.__part_at_xy(event.x, event.y)
         if part:
+            self.__button_down = False
             if part.callback: part.callback(self)
             self.grab_focus()
             prev_active, redraw = self.__set_active(part)
