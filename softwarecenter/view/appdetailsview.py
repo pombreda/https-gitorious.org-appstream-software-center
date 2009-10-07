@@ -311,6 +311,12 @@ class AppDetailsView(WebkitWidget):
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):
         return self.IMAGE_THUMBNAIL_MISSING
+    def wksub_text_direction(self):
+        direction = gtk.widget_get_default_direction()
+        if direction ==  gtk.TEXT_DIR_RTL:
+            return 'DIR="RTL"'
+        elif direction ==  gtk.TEXT_DIR_LTR:
+            return 'DIR="LTR"'
 
     # callbacks
     def on_button_enable_channel_clicked(self):

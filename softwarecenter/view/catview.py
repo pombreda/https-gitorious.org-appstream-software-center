@@ -105,6 +105,13 @@ class CategoriesView(WebkitWidget):
     def wksub_header(self):
         return _("Departments")
 
+    def wksub_text_direction(self):
+        direction = gtk.widget_get_default_direction()
+        if direction ==  gtk.TEXT_DIR_RTL:
+            return 'DIR="RTL"'
+        elif direction ==  gtk.TEXT_DIR_LTR:
+            return 'DIR="LTR"'
+
     # helper code for menu parsing etc
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
