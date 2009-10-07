@@ -1,3 +1,34 @@
+software-center (0.4.7) UNRELEASED; urgency=low
+
+  * softwarecenter/db/update.py:
+    - when using getdefaultlocale() change the order of the environment
+      variable that are checked to 'LANGUAGE','LANG','LC_CTYPE','LC_ALL'
+      LP: #444316
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 13:17:13 +0200
+
+software-center (0.4.6) karmic; urgency=low
+
+  * debian/control:
+    - add versionized dependency to aptdaemon (needs some of the
+      latest API for the async calls) LP: #444218
+  * softwarecenter/view/pendingview.py:
+    - display the operation (Install Packages, Remove Packages,
+      Applying Changes) for operations that come from outside 
+      software-center (LP: #444254)
+  * softwarecenter/app.py:
+    - do not crah on corrupted database
+  * utils/update-software-center:
+    - ignore if dbus can not be imported (e.g. because we are in 
+      the middle of a upgrade and python packages are unavailable)
+      LP: #443177)
+    - do not show full stacktrace if dbus is not available 
+      (LP: #444089)
+    - add a small delay between dubs rebuild signal and actual rebuild
+      (LP: #438639)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Oct 2009 11:27:09 +0200
+
 software-center (0.4.5) karmic; urgency=low
 
   * softwarecenter/view/appdetailsview.py:

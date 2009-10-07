@@ -37,6 +37,7 @@ from softwarecenter.enums import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 
+import view.dialogs
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.pendingview import PendingView
 from view.installedpane import InstalledPane
@@ -109,6 +110,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 logging.info("building local database")
                 rebuild_database(pathname)
                 self.xapiandb = StoreDatabase(pathname)
+        except xapian.DatabaseCorruptError, e:
+            logging.exception("xapian open failed")
+            view.dialogs.error(None, 
+                               _("Sorry, can not open the software database"),
+                               _("Please re-install the 'software-center' "
+                                 "package."))
+            # FIXME: force rebuild by providing a dbus service for this
+            sys.exit(1)
     
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()

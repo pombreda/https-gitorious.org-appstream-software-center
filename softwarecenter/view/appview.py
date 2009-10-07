@@ -348,7 +348,7 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
     def _on_style_change(self, widget, old_style):
         # on style change reload icon pixbuf and recalc height
         self._pixbuf = self._load_icon_pixbuf(widget)
-        self._height = max(self._pixbuf.get_height()+2*self.YPAD, self._height)
+        self._height = None
         return
 
     def _load_icon_pixbuf(self, widget, stock_id=gtk.STOCK_GO_FORWARD):
