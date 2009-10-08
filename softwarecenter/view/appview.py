@@ -58,7 +58,6 @@ class AppStore(gtk.GenericTreeModel):
                    str)
 
     ICON_SIZE = 24
-    ARROW_SIZE = 32
 
     (SEARCHES_SORTED_BY_POPCON,
      SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
@@ -231,7 +230,8 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
 
     __gproperties__ = {
         'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
-                   gobject.PARAM_READWRITE)
+                   gobject.PARAM_READWRITE),
+        'ellipsize'
         }
 
     # padding around the arrow at the end
@@ -271,13 +271,13 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
         layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
 
         # reserve space at the end for the arrow
-        lw = cell_area.width-AppStore.ARROW_SIZE-self.ARROW_PADDING
+        lw = cell_area.width-self._height-self.ARROW_PADDING
         layout.set_width(lw*pango.SCALE)
         layout.set_markup(self.markup)
 
         dst_x = cell_area.x+xpad
         if widget.get_direction() == gtk.TEXT_DIR_RTL:
-            dst_x += +AppStore.ARROW_SIZE-self.ARROW_PADDING
+            dst_x += +self._height-self.ARROW_PADDING
         dst_y = cell_area.y+(cell_area.height-layout.get_pixel_size()[1])/2
 
         state = gtk.STATE_NORMAL
@@ -337,6 +337,9 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                x_dither=0,
                                y_dither=0)
         return
+
+    def get_arrow_width(self):
+        return self._height
 
     def _on_style_change(self, widget, old_style):
         # on style change reload icon pixbuf and recalc height
@@ -447,8 +450,8 @@ class AppView(gtk.TreeView):
         self.connect("row-activated", self._on_row_activated)
         # button and motion are "special" 
 
-        self.connect("button-press-event", self._on_button_press_event)
-        self.connect("motion-notify-event", self._on_motion_notify_event)
+        self.connect("button-press-event", self._on_button_press_event, tr)
+        self.connect("motion-notify-event", self._on_motion_notify_event, tr)
         self.connect("cursor-changed", self._on_cursor_changed)
 
     def _on_row_activated(self, treeview, path, column):
@@ -464,9 +467,9 @@ class AppView(gtk.TreeView):
         self.emit("application-selected", name, pkgname)
 
     # FIXME: move the tooltip, motion_notify etc to the render/TreeViewColumn?
-    def _on_motion_notify_event(self, widget, event):
+    def _on_motion_notify_event(self, widget, event, tr):
         #self.set_has_tooltip(False)
-        if self._xy_is_over_arrow(int(event.x), (event.y)):
+        if self._xy_is_over_arrow(int(event.x), (event.y), tr):
             # FIXME: deactivated for karmic (because we are in string freeze
             #tip = _("Click to view application details")
             #gobject.timeout_add(50, self._set_tooltip_cb, tip)
@@ -481,7 +484,7 @@ class AppView(gtk.TreeView):
         self.set_tooltip_markup(text)
         return False
 
-    def _on_button_press_event(self, widget, event):
+    def _on_button_press_event(self, widget, event, tr):
         if event.button != 1:
             return
         res = self.get_path_at_pos(int(event.x), int(event.y))
@@ -495,16 +498,16 @@ class AppView(gtk.TreeView):
         if not selection.path_is_selected(path):
             return
         # the last pixels of the view are reserved for the arrow icon
-        if self._xy_is_over_arrow(int(event.x), int(event.y)):
+        if self._xy_is_over_arrow(int(event.x), int(event.y), tr):
             self.emit("row-activated", path, column)
 
-    def _xy_is_over_arrow(self, x, y):
+    def _xy_is_over_arrow(self, x, y, tr):
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             (relx, rely, w, h, depth) = self.window.get_geometry()
-            if w-x <= AppStore.ARROW_SIZE:
+            if w-x <= tr.get_arrow_width():
                 return True
         else:
-            if x <= AppStore.ARROW_SIZE:
+            if x <= tr.get_arrow_width():
                 self.window.set_cursor(self._cursor_hand)
                 return True
         return False

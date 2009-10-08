@@ -479,6 +479,7 @@ class PathBar(gtk.DrawingArea):
             pass
 
         else:
+            if state == gtk.STATE_SELECTED: state = gtk.STATE_ACTIVE
             layout = part.get_layout()
             lw, lh = layout.get_pixel_size()
             dst_x = x + part.get_width() - margin - lw + int(sxO)
