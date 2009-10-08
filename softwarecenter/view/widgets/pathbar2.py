@@ -148,13 +148,9 @@ class PathBar(gtk.DrawingArea):
             return
 
         old_w = self.__draw_width()
-        end_active = self.get_active() == self.__parts[-1]
 
         del self.__parts[self.__parts.index(part)]
         self.__compose_parts(self.__parts[-1], False)
-
-        if end_active:
-            self.__set_active(self.__parts[-1])
 
         if old_w >= self.allocation.width:
             self.__grow_check(old_w, self.allocation)
@@ -429,6 +425,7 @@ class PathBar(gtk.DrawingArea):
             pass
 
         else:
+            if state == gtk.STATE_SELECTED: state = gtk.STATE_ACTIVE
             layout = part.get_layout()
             lw, lh = layout.get_pixel_size()
             dst_x = x + margin - int(sxO)
@@ -501,9 +498,12 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __draw_part_bg(self, cr, part, w, h, state, shape, style, r, aw, shapes):
-        mid = style.mid[state]
-        dark = style.dark[state]
-        sel = style.bg[gtk.STATE_SELECTED]
+        if state != gtk.STATE_SELECTED:
+            mid = style.mid[state]
+            dark = style.dark[state]
+        else:
+            mid = style.mid[gtk.STATE_ACTIVE]
+            dark = style.dark[gtk.STATE_ACTIVE]
 
         # outer slight bevel or focal highlight
         shapes[shape](cr, 0, 0, w, h, r, aw)
@@ -512,23 +512,25 @@ class PathBar(gtk.DrawingArea):
 
         # bg linear vertical gradient
         shapes[shape](cr, 1, 1, w-1, h-1, r, aw)
-
         lin = cairo.LinearGradient(0, 0, 0, h-1)
-        lin.add_color_stop_rgb(0, *rgb.lighten(mid, 0.2))
-        lin.add_color_stop_rgb(1.0, mid.red_float, mid.green_float, mid.blue_float)
-        cr.set_source(lin)
-
-        # state specific colourisation
         if state == gtk.STATE_ACTIVE:
-            cr.fill_preserve()
-            cr.set_source_rgba(sel.red_float,sel.green_float,sel.blue_float,0.2)
+            lin.add_color_stop_rgb(0, *rgb.lighten(mid, 0.15))
+            lin.add_color_stop_rgb(1.0, *rgb.darken(mid, 0.05))
         elif state == gtk.STATE_PRELIGHT:
-            cr.fill_preserve()
-            cr.set_source_rgba(1,1,1,0.4)
-            if part == self.__active_part:
-                cr.fill_preserve()
-                cr.set_source_rgba(sel.red_float,sel.green_float,sel.blue_float,0.3)
+            if part != self.__active_part:
+                lin.add_color_stop_rgb(0, *rgb.lighten(mid, 0.25))
+                lin.add_color_stop_rgb(1.0, *rgb.lighten(mid, 0.1))
+            else:
+                lin.add_color_stop_rgb(0, *rgb.lighten(mid, 0.175))
+                lin.add_color_stop_rgb(1.0, *rgb.darken(mid, 0.025))
+        elif state == gtk.STATE_SELECTED:
+            mid = style.mid[gtk.STATE_ACTIVE]
+            lin.add_color_stop_rgb(0, mid.red_float, mid.green_float, mid.blue_float)
+        else:
+            lin.add_color_stop_rgb(0, *rgb.lighten(mid, 0.2))
+            lin.add_color_stop_rgb(1.0, mid.red_float, mid.green_float, mid.blue_float)
 
+        cr.set_source(lin)
         cr.fill()
 
         cr.set_line_width(1.0)
@@ -541,21 +543,20 @@ class PathBar(gtk.DrawingArea):
             )
         cr.stroke()
 
-        if state == gtk.STATE_SELECTED:
-            inner = mid
-            alpha = 0.3
-        else:
+        if state != gtk.STATE_SELECTED:
             inner = style.light[state]
-            alpha = 0.65
-
-        # inner bevel/highlight
-        shapes[shape](cr, 2.5, 2.5, w-2.5, h-2.5, r, aw)
-        cr.set_source_rgba(
-            inner.red_float,
-            inner.green_float,
-            inner.blue_float,
-            alpha)
-        cr.stroke()
+            if state == gtk.STATE_ACTIVE:
+                alpha = 0.35
+            else:
+                alpha = 0.65
+            # inner bevel/highlight
+            shapes[shape](cr, 2.5, 2.5, w-2.5, h-2.5, r, aw)
+            cr.set_source_rgba(
+                inner.red_float,
+                inner.green_float,
+                inner.blue_float,
+                alpha)
+            cr.stroke()
         return
 
     def __shape_rect(self, cr, x, y, w, h, r, aw):
@@ -967,7 +968,7 @@ class NavigationBar(PathBar):
     def add_with_id(self, label, callback, id, icon=None):
         """
         Add a new button with the given label/callback
-        
+
         If there is the same id already, replace the existing one
         with the new one
         """
