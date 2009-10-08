@@ -230,8 +230,10 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
 
     __gproperties__ = {
         'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
-                   gobject.PARAM_READWRITE),
-        'ellipsize'
+            gobject.PARAM_READWRITE),
+
+        'ellipsize': (pango.EllipsizeMode, 'Ellipsize', 'Ellipsize mode', 0,
+            gobject.PARAM_READWRITE)
         }
 
     # padding around the arrow at the end
@@ -241,6 +243,8 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
 
     def __init__(self):
         self.__gobject_init__()
+        self.ellipsize = pango.ELLIPSIZE_NONE
+        print type(self.ellipsize)
         self.markup = None
         self._height = None
         self._pixbuf = None
@@ -268,7 +272,7 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
 
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
-        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+        layout.set_ellipsize(self.ellipsize)
 
         # reserve space at the end for the arrow
         lw = cell_area.width-self._height-self.ARROW_PADDING
@@ -407,8 +411,6 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
 gobject.type_register(CellRendererPixbufWithOverlay)
 
 
-
-
 class AppView(gtk.TreeView):
     """Treeview based view component that takes a AppStore and displays it"""
 
@@ -434,9 +436,8 @@ class AppView(gtk.TreeView):
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
-        # FIXME: add "ellipize" property to CellRendererTextWithActivateArrow
         tr = CellRendererTextWithActivateArrow()
-#        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
+        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
         column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
