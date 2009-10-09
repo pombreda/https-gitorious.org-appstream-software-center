@@ -3,6 +3,9 @@ software-center (0.5.1) karmic; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - add support for http proxies (LP: #446069)
     - fix crash in cdrom handling (LP: #446269)
+  * softwarecenter/view/widgets/imagedialog.py:
+    - change default window size to match the default image
+      size from screenshots.debian.net (LP: #445938)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Oct 2009 10:33:17 +0200
 

@@ -83,7 +83,7 @@ class ShowImageDialog(gtk.Dialog):
         self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
         self.get_content_area().add(vbox)
         self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-        self.set_default_size(400,400)
+        self.set_default_size(800,600)
         self.set_title(title)
         self.connect("response", self._response)
         # install urlopener
