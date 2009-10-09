@@ -1,4 +1,4 @@
-software-center (0.5.1) UNRELEASED; urgency=low
+software-center (0.5.1) karmic; urgency=low
 
   * softwarecenter/view/appdetailsview.py:
     - add support for http proxies (LP: #446069)
