@@ -546,7 +546,7 @@ class AppDetailsView(WebkitWidget):
         else:
             transaction.config_file_prompt_answer(old, "keep")
 
-    def _medium_required(self, transaction, label, drive):
+    def _medium_required(self, transaction, medium, drive):
         dialog = AptMediumRequiredDialog(medium, drive)
         res = dialog.run()
         dialog.hide()
