@@ -247,6 +247,7 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
         self.markup = None
         self._height = None
         self._pixbuf = None
+        self._layout = None
 
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
@@ -257,10 +258,8 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
     def on_get_size(self, widget, cell_area):
         a = widget.get_allocation()
         if not self._height:
-            pc = widget.get_pango_context()
-            layout = pango.Layout(pc)
-            layout.set_markup(self.markup)
-            self._height = max(layout.get_pixel_size()[1]+2*self.YPAD, 32)
+            self._layout = self._load_layout(widget)
+            self._height = max(self._layout.get_pixel_size()[1]+2*self.YPAD, 32)
         return a.x, a.y, a.width, self._height
 
     def do_render(self, window, widget, background_area, cell_area, 
@@ -269,24 +268,20 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
         xpad = self.XPAD
         ypad = self.YPAD
 
-        pc = widget.get_pango_context()
-        layout = pango.Layout(pc)
-        layout.set_ellipsize(self.ellipsize)
-
         # reserve space at the end for the arrow
-        lw = cell_area.width-self._height-self.ARROW_PADDING
-        layout.set_width(lw*pango.SCALE)
-        layout.set_markup(self.markup)
+        self._layout.set_markup(self.markup)
 
         dst_x = cell_area.x+xpad
         if widget.get_direction() == gtk.TEXT_DIR_RTL:
             dst_x += +self._height-self.ARROW_PADDING
-        dst_y = cell_area.y+(cell_area.height-layout.get_pixel_size()[1])/2
+        dst_y = cell_area.y+(cell_area.height-self._layout.get_pixel_size()[1])/2
 
         state = gtk.STATE_NORMAL
         if gtk.CELL_RENDERER_SELECTED & flags:
             state = gtk.STATE_SELECTED
 
+        lw = cell_area.width-self._height-self.ARROW_PADDING
+        self._layout.set_width(lw*pango.SCALE)
         widget.style.paint_layout(window,
                                   state,
                                   True,
@@ -295,7 +290,7 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                   None,
                                   dst_x,
                                   dst_y,
-                                  layout)
+                                  self._layout)
 
         # now render the arrow if its selected
         if gtk.CELL_RENDERER_SELECTED & flags:
@@ -307,8 +302,12 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
             dst_y = cell_area.y+ypad
             width = height = cell_area.height-2*ypad
 
+            state = gtk.STATE_NORMAL
+            if gtk.CELL_RENDERER_PRELIT & flags:
+                state = gtk.STATE_PRELIGHT
+
             widget.style.paint_box(window,
-                                   gtk.STATE_NORMAL,
+                                   state,
                                    gtk.SHADOW_ETCHED_OUT,
                                    cell_area,
                                    widget,
@@ -347,8 +346,16 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
     def _on_style_change(self, widget, old_style):
         # on style change reload icon pixbuf and recalc height
         self._pixbuf = self._load_icon_pixbuf(widget)
+        self._layout = self._load_layout(widget)
         self._height = None
         return
+
+    def _load_layout(self, widget):
+        pc = widget.get_pango_context()
+        layout = pango.Layout(pc)
+        layout.set_markup(self.markup)
+        layout.set_ellipsize(self.ellipsize)
+        return layout
 
     def _load_icon_pixbuf(self, widget, stock_id=gtk.STOCK_GO_FORWARD):
         icon = widget.style.lookup_icon_set(stock_id)
