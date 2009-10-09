@@ -546,7 +546,7 @@ class AppDetailsView(WebkitWidget):
         else:
             transaction.config_file_prompt_answer(old, "keep")
 
-    def _medium_required(self, transaction, label, drive):
+    def _medium_required(self, transaction, medium, drive):
         dialog = AptMediumRequiredDialog(medium, drive)
         res = dialog.run()
         dialog.hide()
@@ -555,11 +555,26 @@ class AppDetailsView(WebkitWidget):
         else:
             transaction.cancel()
 
+    # FIXME: use the setup_http_proxy method from aptdaemon.gtkwidgets
+    #        instead
+    def _setup_http_proxy(self, transaction):
+        try:
+            import gconf
+        except ImportError:
+            return
+        client = gconf.client_get_default()
+        if client.get_bool("/system/http_proxy/use_http_proxy"):
+            host = client.get_string("/system/http_proxy/host")
+            port = client.get_int("/system/http_proxy/port")
+            transaction.set_http_proxy("http://%s:%s/" % (host, port))
+
     def _run_transaction(self, trans):
         # set object data
         trans.set_data("appname", self.appname)
         trans.set_data("iconname", self.iconname)
         trans.set_data("pkgname", self.pkgname)
+        # setup http proxy
+        self._setup_http_proxy(trans)
         # we support debconf
         trans.set_debconf_frontend("gnome")
         trans.connect("config-file-prompt", self._config_file_prompt)
