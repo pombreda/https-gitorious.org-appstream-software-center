@@ -244,7 +244,6 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
     def __init__(self):
         self.__gobject_init__()
         self.ellipsize = pango.ELLIPSIZE_NONE
-        print type(self.ellipsize)
         self.markup = None
         self._height = None
         self._pixbuf = None
@@ -375,7 +374,7 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
     OVERLAY_SIZE = 16
     
     __gproperties__ = {
-        'overlay' : (bool, 'overlay', 'show a overlay icon', False,
+        'overlay' : (bool, 'overlay', 'show an overlay icon', False,
                      gobject.PARAM_READWRITE),
    }
 

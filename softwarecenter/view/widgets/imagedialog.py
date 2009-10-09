@@ -25,6 +25,7 @@ import threading
 import urllib
 
 from softwarecenter.enums import *
+from fancyimage import FancyProgress
 
 class Url404Error(IOError):
     pass
@@ -68,16 +69,19 @@ class ShowImageDialog(gtk.Dialog):
         self._missing_img = missing_img
         # image
         self.img = gtk.Image()
-        self.img.set_from_file(loading_img)
-        self.img.show()
+#        self.img.set_from_file(loading_img)
+#        self.img.show()
         # progress
-        self.progress = gtk.ProgressBar()
+        self.progress = FancyProgress()
         self.progress.show()
         # box
         vbox = gtk.VBox()
-        vbox.pack_start(self.img)
-        vbox.pack_start(self.progress, expand=False)
         vbox.show()
+        vbox.pack_start(self.progress)
+        vbox.pack_start(self.img)
+#        vbox.pack_start(self.img)
+#        vbox.pack_start(self.progress, expand=False)
+#        vbox.show()
         # dialog
         self.set_transient_for(parent)
         self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
@@ -118,6 +122,7 @@ class ShowImageDialog(gtk.Dialog):
         # load into icon
         self.progress.hide()
         self.img.set_from_file(self.image_filename)
+        self.img.show()
         # and run the real thing
         gtk.Dialog.run(self)
 
