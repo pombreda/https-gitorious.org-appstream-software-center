@@ -516,7 +516,7 @@ class PathBar(gtk.DrawingArea):
         cr.stroke()
 
         # inner bevel/highlight
-        if state != gtk.STATE_SELECTED:
+        if self.theme.light_line_colors[state]:
             shapes[shape](cr, 2.5, 2.5, w-2.5, h-2.5, r, aw)
             r, g, b = inner[state]
             cr.set_source_rgba(r, g, b, 0.6)
@@ -622,7 +622,7 @@ class PathBar(gtk.DrawingArea):
         themes = PathBarThemes.DICT
         if themes.has_key(name):
             return themes[name]()
-        print name
+        print "No styling hints for %s are available" % name
         return PathBarThemeHuman()
 
     def __init_drawing(self):
@@ -734,6 +734,9 @@ class PathBar(gtk.DrawingArea):
     def __expose_cb(self, widget, event):
         #t = gobject.get_current_time()
         cr = widget.window.cairo_create()
+        if self.theme.base_hack:
+            cr.set_source_rgb(*self.theme.base_hack)
+            cr.paint()
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
         else:
@@ -1036,7 +1039,66 @@ class PathBarThemeHuman:
         self.light_line_colors = {
             gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
             gtk.STATE_ACTIVE: f(light[gtk.STATE_ACTIVE]),
-            gtk.STATE_SELECTED: f(light[gtk.STATE_SELECTED]),
+            gtk.STATE_SELECTED: None,
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            }
+
+        self.text_state = {
+            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
+            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
+            gtk.STATE_SELECTED: gtk.STATE_ACTIVE,
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            }
+
+        self.base_hack = None
+        return
+
+
+class PathBarThemeHumanClearlooks(PathBarThemeHuman):
+
+    def __init__(self):
+        PathBarThemeHuman.__init__(self)
+        return
+
+    def __init__(self):
+        return
+
+    def load(self, style):
+        mid = style.mid
+        dark = style.dark
+        light = style.light
+        text = style.text
+        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
+                               mid[gtk.STATE_SELECTED], 0.25)
+
+        self.bg_colors = {
+            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.20)),
+                                f(rgb.shade(mid[gtk.STATE_NORMAL], 1.05))),
+
+            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.20)),
+                               f(rgb.shade(active, 1.05))),
+
+            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_ACTIVE], 1.15)),
+                                f(mid[gtk.STATE_ACTIVE])),
+
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.35)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+
+            self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.35)),
+                                 f(rgb.shade(active, 1.15)))
+            }
+
+        self.dark_line_colors = {
+            gtk.STATE_NORMAL: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.975)),
+            gtk.STATE_ACTIVE: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.975)),
+            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            }
+
+        self.light_line_colors = {
+            gtk.STATE_NORMAL: None,
+            gtk.STATE_ACTIVE: None,
+            gtk.STATE_SELECTED: f(mid[gtk.STATE_ACTIVE]),
             gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
             }
 
@@ -1046,8 +1108,123 @@ class PathBarThemeHuman:
             gtk.STATE_SELECTED: gtk.STATE_NORMAL,
             gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
             }
+
+        self.base_hack = None
         return
 
+
+class PathBarThemeDust(PathBarThemeHuman):
+
+    def __init__(self):
+        PathBarThemeHuman.__init__(self)
+        return
+
+    def load(self, style):
+        mid = style.mid
+        dark = style.dark
+        light = style.light
+        text = style.text
+        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
+                               light[gtk.STATE_SELECTED], 0.3)
+
+        self.bg_colors = {
+            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.3)),
+                                f(mid[gtk.STATE_NORMAL])),
+
+            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.3)),
+                               f(active)),
+
+            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95))),
+
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.35)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+
+            self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.35)),
+                                 f(rgb.shade(active, 1.15)))
+            }
+
+        self.dark_line_colors = {
+            gtk.STATE_NORMAL: f(dark[gtk.STATE_ACTIVE]),
+            gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
+            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            }
+
+        self.light_line_colors = {
+            gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
+            gtk.STATE_ACTIVE: f(light[gtk.STATE_NORMAL]),
+            gtk.STATE_SELECTED: None,
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            }
+
+        self.text_state = {
+            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
+            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
+            gtk.STATE_SELECTED: gtk.STATE_NORMAL,
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            }
+
+        self.base_hack = None
+        return
+
+
+class PathBarThemeNewWave(PathBarThemeHuman):
+
+    curvature = 1.5
+
+    def __init__(self):
+        PathBarThemeHuman.__init__(self)
+        return
+
+    def load(self, style):
+        mid = style.mid
+        dark = style.dark
+        light = style.light
+        text = style.text
+        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
+                               light[gtk.STATE_SELECTED], 0.5)
+
+        self.bg_colors = {
+            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.01)),
+                                f(mid[gtk.STATE_NORMAL])),
+
+            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.01)),
+                               f(active)),
+
+            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95))),
+
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.2)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+
+            self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.2)),
+                                 f(rgb.shade(active, 1.15)))
+            }
+
+        self.dark_line_colors = {
+            gtk.STATE_NORMAL: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_ACTIVE: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            }
+
+        self.light_line_colors = {
+            gtk.STATE_NORMAL: f(rgb.shade(light[gtk.STATE_NORMAL], 1.2)),
+            gtk.STATE_ACTIVE: f(rgb.shade(light[gtk.STATE_NORMAL], 1.2)),
+            gtk.STATE_SELECTED: None,
+            gtk.STATE_PRELIGHT: f(rgb.shade(light[gtk.STATE_PRELIGHT], 1.2))
+            }
+
+        self.text_state = {
+            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
+            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
+            gtk.STATE_SELECTED: gtk.STATE_NORMAL,
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            }
+
+        self.base_hack = f(gtk.gdk.color_parse("#F2F2F2"))
+        return
 
 class PathBarThemeHicolor:
 
@@ -1100,7 +1277,7 @@ class PathBarThemeHicolor:
         self.light_line_colors = {
             gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
             gtk.STATE_ACTIVE: f(light[gtk.STATE_ACTIVE]),
-            gtk.STATE_SELECTED: f(light[gtk.STATE_SELECTED]),
+            gtk.STATE_SELECTED: None,
             gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
             }
 
@@ -1110,6 +1287,8 @@ class PathBarThemeHicolor:
             gtk.STATE_SELECTED: gtk.STATE_SELECTED,
             gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
             }
+
+        self.base_hack = None
         return
 
 
@@ -1117,8 +1296,12 @@ class PathBarThemes:
 
     DICT = {
         "Human": PathBarThemeHuman,
+        "Human-Clearlooks": PathBarThemeHumanClearlooks,
         "HighContrastInverse": PathBarThemeHicolor,
-        "HighContrastLargePrintInverse": PathBarThemeHicolor
+        "HighContrastLargePrintInverse": PathBarThemeHicolor,
+        "Dust": PathBarThemeDust,
+        "Dust Sand": PathBarThemeDust,
+        "New Wave": PathBarThemeNewWave
         }
 
 

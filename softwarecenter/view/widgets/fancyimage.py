@@ -9,33 +9,61 @@ PI_DIV_180 = M_PI/180.0
 
 class FancyProgress(gtk.DrawingArea):
 
+    RADIUS = 36
+
     def __init__(self):
         gtk.DrawingArea.__init__(self)
-        self.fraction = 0.0
-        self.connect('expose-event', self.on_expose_cb)
+        self._fraction = 0.0
+        self._animator = None
+        self.connect('expose-event', self._on_expose)
         return
 
     def set_fraction(self, fraction):
-        self.fraction = float(fraction)
-        self.queue_draw()
+        self.fraction = fraction
+        self._animate_progress()
         return
 
-    def on_expose_cb(self, widget, event):
+    def _animate_progress(self):
+        a = self.allocation
+        if not a:
+            return
+
+        r = self.RADIUS
+        xc, yc = a.width/2, a.height/2
+        da = (xc-r, yc-r, 2*r, 2*r)
+
+        self._step = (self.fraction-self._fraction)*0.25
+        if not self._animator:
+            self._animator = gobject.timeout_add(20, self._animate_progress_cb, da)
+
+        if self.fraction >= 1.0:
+            self._fraction = 1.0
+            gobject.source_remove(self._animator)
+            self._animator = None
+            self.queue_draw_area(*da)
+        return
+
+    def _animate_progress_cb(self, da):
+        self._fraction += self._step
+        self.queue_draw_area(*da)
+        return True
+
+    def _on_expose(self, widget, event):
         a = widget.allocation
         cr = widget.window.cairo_create()
 
         # pie
         xc, yc = a.width/2, a.height/2
-        angle2 = 360*self.fraction*PI_DIV_180
+        angle2 = 360*self._fraction*PI_DIV_180
         cr.move_to(xc, yc)
-        cr.line_to(xc, yc-36)
+        cr.line_to(xc, yc-self.RADIUS)
         cr.new_sub_path()
-        cr.arc(xc, yc, 36, 0, angle2)
+        cr.arc(xc, yc, self.RADIUS, 0, angle2)
         cr.line_to(xc, yc)
         cr.set_source_rgb(1,0,1)
         cr.fill()
 
-        cr.arc(xc, yc, 36, 0, 360*PI_DIV_180)
+        cr.arc(xc, yc, self.RADIUS, 0, 360*PI_DIV_180)
         cr.stroke()
         del cr
         return
