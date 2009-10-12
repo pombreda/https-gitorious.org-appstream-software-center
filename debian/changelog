@@ -1,4 +1,4 @@
-software-center (0.5.1) UNRELEASED; urgency=low
+software-center (0.5.1) karmic; urgency=low
 
   * icon updates from Kenneth Wimer 
   * softwarecenter/db/update.py: 
@@ -17,7 +17,7 @@ software-center (0.5.1) UNRELEASED; urgency=low
   * debian/control:
     - depend on the latest aptdaemon for working proxy support
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 12 Oct 2009 16:23:01 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 12 Oct 2009 18:25:10 +0200
 
 software-center (0.5.0) karmic; urgency=low
 
