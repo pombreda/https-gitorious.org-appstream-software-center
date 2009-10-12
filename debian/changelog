@@ -3,6 +3,7 @@ software-center (0.5.2) UNRELEASED; urgency=low
   * icon updates from Kenneth Wimer 
   * softwarecenter/db/update.py: 
     - fix index bug in pkgname handling
+  * make screenshots scrollable (LP: #439420)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Oct 2009 17:22:47 +0200
 
