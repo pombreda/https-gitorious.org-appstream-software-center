@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import gobject
 import locale
 import xapian
 from softwarecenter.enums import *
@@ -36,10 +37,15 @@ class Application(object):
         # currently broken, see http://bugs.python.org/issue2481
         return locale.strcoll(x.appname, y.appname)
 
-class StoreDatabase(object):
+class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
+    __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                ()),
+                    }
     def __init__(self, pathname):
+        gobject.GObject.__init__(self)
         self._db_pathname = pathname
         self.reopen()
 
@@ -49,6 +55,7 @@ class StoreDatabase(object):
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
+        self.emit("reopen")
 
     def get_query_from_search_entry(self, search_term):
         """ get xapian.Query from a search term string """

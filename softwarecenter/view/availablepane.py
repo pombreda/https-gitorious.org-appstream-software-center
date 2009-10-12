@@ -142,6 +142,14 @@ class AvailablePane(SoftwarePane):
             self._status_text = gettext.ngettext("%s item available",
                                                  "%s items available",
                                                  length) % length
+
+    def _show_category_overview(self):
+        " helper that shows the category overview "
+        self.navigation_bar.remove_id("list")
+        self.navigation_bar.remove_id("details")
+        self.notebook.set_current_page(self.PAGE_CATEGORY)
+        self.emit("app-list-changed", len(self.db))
+        self.searchentry.show()
      
     # callbacks
     def on_search_terms_changed(self, widget, new_text):
@@ -180,6 +188,10 @@ class AvailablePane(SoftwarePane):
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(name, pkgname)
+    def on_db_reopen(self, db):
+        " called when the database is reopened"
+        self.refresh_apps()
+        self._show_category_overview()
     def on_navigation_category(self, button):
         """callback when the navigation button with id 'category' is clicked"""
         if not button.get_active():
@@ -195,13 +207,7 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_sorted = True
         self.apps_search_query = None
-        # remove navigation bar elements
-        self.navigation_bar.remove_id("list")
-        self.navigation_bar.remove_id("details")
-        self.notebook.set_current_page(self.PAGE_CATEGORY)
-        # emit signal here to ensure to show count of all available items
-        self.emit("app-list-changed", len(self.db))
-        self.searchentry.show()
+        self._show_category_overview()
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():

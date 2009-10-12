@@ -74,6 +74,7 @@ class SoftwarePane(gtk.VBox):
         # other classes we need
         self.cache = cache
         self.db = db
+        self.db.connect("reopen", self.on_db_reopen)
         self.icons = icons
         self.datadir = datadir
         # common UI elements (applist and appdetails) 
@@ -132,5 +133,9 @@ class SoftwarePane(gtk.VBox):
         pass
     
     def on_search_terms_changed(self, terms):
+        " stub implementation "
+        pass
+
+    def on_db_reopen(self):
         " stub implementation "
         pass

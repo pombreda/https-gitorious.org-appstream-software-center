@@ -440,13 +440,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             # we need to reopen when the database finished updating
             self.db.reopen()
-            # FIXME: move this into a better place, like a handler
-            #        for db changes in each pane and make the 
-            #        database emit a changed signal
-            self.installed_pane.notebook.set_page(0)
-            self.installed_pane.refresh_apps()
-            self.available_pane.notebook.set_page(0)
-            self.available_pane.refresh_apps()
             self.window_rebuilding.hide()
 
     def setup_database_rebuilding_listener(self):
