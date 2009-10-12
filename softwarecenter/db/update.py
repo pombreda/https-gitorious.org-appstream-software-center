@@ -161,6 +161,9 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 s = cache[pkgname].candidate.summary
                 doc.add_value(XAPIAN_VALUE_SUMMARY, s)
 
+            # add packagename as meta-data too
+            term_generator.index_text_without_positions(pkgname, WEIGHT_DESKTOP_NAME)
+
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
                 if not parser.has_option_desktop(key):
