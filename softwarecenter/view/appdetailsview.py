@@ -83,9 +83,9 @@ class AppDetailsView(WebkitWidget):
                                 (str,str, ))
                     }
 
-    def __init__(self, xapiandb, icons, cache, datadir):
+    def __init__(self, db, icons, cache, datadir):
         super(AppDetailsView, self).__init__(datadir)
-        self.xapiandb = xapiandb
+        self.db = db
         self.icons = icons
         self.cache = cache
         self.datadir = datadir
@@ -126,7 +126,7 @@ class AppDetailsView(WebkitWidget):
         self.doc = None
 
         # get xapian document
-        self.doc = self.xapiandb.get_xapian_document(appname, pkgname)
+        self.doc = self.db.get_xapian_document(appname, pkgname)
         if not self.doc:
             raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
 

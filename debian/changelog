@@ -1,14 +1,11 @@
-software-center (0.5.2) UNRELEASED; urgency=low
+software-center (0.5.1) UNRELEASED; urgency=low
 
   * icon updates from Kenneth Wimer 
   * softwarecenter/db/update.py: 
     - fix index bug in pkgname handling
   * make screenshots scrollable (LP: #439420)
-
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Oct 2009 17:22:47 +0200
-
-software-center (0.5.1) karmic; urgency=low
-
+  * fix reopen() handling by not using xapian.Database.reopen()
+    but instead do a full open of the db (LP: #430603)
   * softwarecenter/view/appdetailsview.py:
     - add support for http proxies (LP: #446069)
     - fix crash in cdrom handling (LP: #446269)
@@ -18,7 +15,7 @@ software-center (0.5.1) karmic; urgency=low
   * debian/control:
     - depend on the latest aptdaemon for working proxy support
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Oct 2009 11:47:15 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 12 Oct 2009 16:23:01 +0200
 
 software-center (0.5.0) karmic; urgency=low
 

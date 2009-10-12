@@ -71,7 +71,7 @@ class AvailablePane(SoftwarePane):
     def _build_ui(self):
         # categories, appview and details into the notebook in the bottom
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH, 
-                                       self.xapiandb,
+                                       self.db,
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
         scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -106,7 +106,7 @@ class AvailablePane(SoftwarePane):
             query = None
         # create new model and attach it
         new_model = AppStore(self.cache,
-                             self.xapiandb, 
+                             self.db, 
                              self.icons, 
                              query, 
                              limit=self.apps_limit,
@@ -165,7 +165,7 @@ class AvailablePane(SoftwarePane):
             self.apps_sorted = True
             self.apps_search_query = None
         else:
-            self.apps_search_query = self.xapiandb.get_query_from_search_entry(new_text)
+            self.apps_search_query = self.db.get_query_from_search_entry(new_text)
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
         self.update_navigation_button()
@@ -200,7 +200,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_CATEGORY)
         # emit signal here to ensure to show count of all available items
-        self.emit("app-list-changed", self.xapiandb.get_doccount())
+        self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""

@@ -68,7 +68,7 @@ class InstalledPane(SoftwarePane):
            navigation bar
         """
         if self.search_terms:
-            query = self.xapiandb.get_query_from_search_entry(self.search_terms)
+            query = self.db.get_query_from_search_entry(self.search_terms)
         else:
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
@@ -76,7 +76,7 @@ class InstalledPane(SoftwarePane):
                                         "list")
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
-                             self.xapiandb, 
+                             self.db, 
                              self.icons, 
                              query, 
                              filter=self.apps_filter)

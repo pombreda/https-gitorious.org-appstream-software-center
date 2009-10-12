@@ -36,13 +36,17 @@ class Application(object):
         # currently broken, see http://bugs.python.org/issue2481
         return locale.strcoll(x.appname, y.appname)
 
-class StoreDatabase(xapian.Database):
+class StoreDatabase(object):
     """thin abstraction for the xapian database with convenient functions"""
 
     def __init__(self, pathname):
-        xapian.Database.__init__(self, pathname)
+        self._db_pathname = pathname
+        self.reopen()
+
+    def reopen(self):
+        self.xapiandb = xapian.Database(self._db_pathname)
         self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self)
+        self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
 
@@ -59,8 +63,8 @@ class StoreDatabase(xapian.Database):
         
         If no document is found, raise a IndexError
         """
-        for m in self.postlist("AA"+appname):
-            doc = self.get_document(m.docid)
+        for m in self.xapiandb.postlist("AA"+appname):
+            doc = self.xapiandb.get_document(m.docid)
             if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
                 return doc
         # no matching document found
@@ -70,11 +74,13 @@ class StoreDatabase(xapian.Database):
         """Check if the given appname is stored multiple times in the db
            This can happen for generic names like "Terminal"
         """
-        for (i, m) in enumerate(self.postlist("AA"+appname)):
+        for (i, m) in enumerate(self.xapiandb.postlist("AA"+appname)):
             if i > 0:
                 return True
         return False
 
     def __len__(self):
         """return the doc count of the database"""
-        return self.get_doccount()
+        return self.xapiandb.get_doccount()
+
+

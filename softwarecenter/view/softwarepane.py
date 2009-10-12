@@ -73,10 +73,7 @@ class SoftwarePane(gtk.VBox):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
-        self.xapiandb = db
-        self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.db = db
         self.icons = icons
         self.datadir = datadir
         # common UI elements (applist and appdetails) 
@@ -88,7 +85,7 @@ class SoftwarePane(gtk.VBox):
                                         gtk.POLICY_AUTOMATIC)
         self.scroll_app_list.add(self.app_view)
         # details
-        self.app_details = AppDetailsView(self.xapiandb, 
+        self.app_details = AppDetailsView(self.db, 
                                           self.icons, 
                                           self.cache, 
                                           self.datadir)

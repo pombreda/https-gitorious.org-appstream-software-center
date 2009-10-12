@@ -82,15 +82,15 @@ class AppStore(gtk.GenericTreeModel):
         """
         gtk.GenericTreeModel.__init__(self)
         self.cache = cache
-        self.xapiandb = db
+        self.db = db
         self.icons = icons
         self.apps = []
         self.filter = filter
         self._searches_sort_mode = self._get_searches_sort_mode()
         if not search_query:
             # limit to applications
-            for m in db.postlist("ATapplication"):
-                doc = db.get_document(m.docid)
+            for m in db.xapiandb.postlist("ATapplication"):
+                doc = db.xapiandb.get_document(m.docid)
                 if filter and self.is_filtered_out(filter, doc):
                     continue
                 appname = doc.get_data()
@@ -98,7 +98,7 @@ class AppStore(gtk.GenericTreeModel):
                 self.apps.append(Application(appname, pkgname))
             self.apps.sort(cmp=Application.apps_cmp)
         else:
-            enquire = xapian.Enquire(db)
+            enquire = xapian.Enquire(db.xapiandb)
             enquire.set_query(search_query)
             # set search order mode
             if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
@@ -108,7 +108,7 @@ class AppStore(gtk.GenericTreeModel):
             # SEARCHES_SORTED_BY_XAPIAN_RELEVANCE: is default in xapian
             # no need to explicitely srt
             if limit == 0:
-                matches = enquire.get_mset(0, db.get_doccount())
+                matches = enquire.get_mset(0, len(db))
             else:
                 matches = enquire.get_mset(0, limit)
             logging.debug("found ~%i matches" % matches.get_matches_estimated())
@@ -162,13 +162,13 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
         app = self.apps[rowref]
-        doc = self.xapiandb.get_xapian_document(app.appname, app.pkgname)
+        doc = self.db.get_xapian_document(app.appname, app.pkgname)
         if column == self.COL_APP_NAME:
             return app.appname
         elif column == self.COL_TEXT:
             appname = app.appname
             summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
-            if self.xapiandb.is_appname_duplicated(appname):
+            if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname) 
             s = "%s\n<small>%s</small>" % (
                 gobject.markup_escape_text(appname),
