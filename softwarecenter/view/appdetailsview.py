@@ -441,8 +441,9 @@ class AppDetailsView(WebkitWidget):
             excep = trans.get_error()
             # daemon died are messages that result from broken
             # cancel handling in aptdaemon (LP: #440941)
+            # FIXME: this is not a proper fix, just a workaround
             if excep.code == enums.ERROR_DAEMON_DIED:
-                logging.debug("daemon dies, ignoring")
+                logging.warn("daemon dies, ignoring: %s" % excep)
                 return
             msg = "%s: %s\n%s\n\n%s" % (
                    _("ERROR"),
