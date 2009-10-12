@@ -439,6 +439,11 @@ class AppDetailsView(WebkitWidget):
         """callback when a aptdaemon transaction finished"""
         if enum == enums.EXIT_FAILED:
             excep = trans.get_error()
+            # daemon died are messages that result from broken
+            # cancel handling in aptdaemon (LP: #440941)
+            if excep.code == enums.ERROR_DAEMON_DIED:
+                logging.debug("daemon dies, ignoring")
+                return
             msg = "%s: %s\n%s\n\n%s" % (
                    _("ERROR"),
                    enums.get_error_string_from_enum(excep.code),

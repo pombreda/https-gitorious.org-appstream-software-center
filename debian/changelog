@@ -9,6 +9,8 @@ software-center (0.5.1) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - add support for http proxies (LP: #446069)
     - fix crash in cdrom handling (LP: #446269)
+    - do not show error when a transaction is cancelt 
+      (LP: #440941)
   * softwarecenter/view/widgets/imagedialog.py:
     - change default window size to match the default image
       size from screenshots.debian.net (LP: #445938)
