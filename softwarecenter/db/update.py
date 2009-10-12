@@ -36,6 +36,7 @@ WEIGHT_DESKTOP_KEYWORD = 5
 WEIGHT_DESKTOP_GENERICNAME = 3
 WEIGHT_DESKTOP_COMMENT = 1
 
+WEIGHT_APT_PKGNAME = 8
 WEIGHT_APT_SUMMARY = 5
 WEIGHT_APT_DESCRIPTION = 1
 
@@ -162,7 +163,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 doc.add_value(XAPIAN_VALUE_SUMMARY, s)
 
             # add packagename as meta-data too
-            term_generator.index_text_without_positions(pkgname, WEIGHT_DESKTOP_NAME)
+            term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)
 
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
