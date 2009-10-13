@@ -1,13 +1,20 @@
 software-center (0.5.2) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/view/appdetailsview.py:
     - deal with connection refused errors properly
     - use shorter default socket timeout to avoid hangs when
       the screenshot site is unavailable
   * softwarecenter/db/database.py:
     - require explicit open() to avoid possible race (LP: #449385)
+  * softwarecenter/view/widgets/imagedialog.py:
+    - fix crash when unknown error happend during screenshot download
+      (LP: #4479829)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 13 Oct 2009 11:17:13 +0200
+  [ Josh Holland ]
+  * Fixed up man page (LP: #448896)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 13 Oct 2009 13:10:45 +0200
 
 software-center (0.5.1) karmic; urgency=low
 

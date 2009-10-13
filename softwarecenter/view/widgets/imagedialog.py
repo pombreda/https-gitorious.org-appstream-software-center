@@ -66,6 +66,7 @@ class ShowImageDialog(gtk.Dialog):
                 parent = w.get_parent()
         # missing
         self._missing_img = missing_img
+        self.image_filename = self._missing_img
         # image
         self.img = gtk.Image()
         self.img.set_from_file(loading_img)
