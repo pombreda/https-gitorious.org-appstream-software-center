@@ -43,18 +43,28 @@ class StoreDatabase(gobject.GObject):
     __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 ()),
+                    "open" : (gobject.SIGNAL_RUN_FIRST,
+                              gobject.TYPE_NONE,
+                              (gobject.TYPE_STRING,)),
                     }
     def __init__(self, pathname):
         gobject.GObject.__init__(self)
         self._db_pathname = pathname
-        self.reopen()
 
-    def reopen(self):
+    def open(self, pathname=None):
+        " open the database "
+        if pathname:
+            self._db_pathname = pathname
         self.xapiandb = xapian.Database(self._db_pathname)
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
+        self.emit("open", self._db_pathname)
+
+    def reopen(self):
+        " reopen the database "
+        self.open()
         self.emit("reopen")
 
     def get_query_from_search_entry(self, search_term):

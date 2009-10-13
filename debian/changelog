@@ -4,6 +4,8 @@ software-center (0.5.2) UNRELEASED; urgency=low
     - deal with connection refused errors properly
     - use shorter default socket timeout to avoid hangs when
       the screenshot site is unavailable
+  * softwarecenter/db/database.py:
+    - require explicit open() to avoid possible race (LP: #449385)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 13 Oct 2009 11:17:13 +0200
 

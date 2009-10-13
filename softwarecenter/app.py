@@ -96,6 +96,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
             self.db = StoreDatabase(pathname)
+            self.db.open()
         except xapian.DatabaseOpeningError:
             # Couldn't use that folder as a database
             # This may be because we are in a bzr checkout and that
@@ -106,6 +107,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 logging.info("building local database")
                 rebuild_database(pathname)
                 self.db = StoreDatabase(pathname)
+                self.db.open()
         except xapian.DatabaseCorruptError, e:
             logging.exception("xapian open failed")
             view.dialogs.error(None, 
@@ -438,7 +440,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if is_rebuilding:
             self.window_rebuilding.show()
         else:
-            # we need to reopen when the database finished updating
+            # we need to re-open when the database finished updating
             self.db.reopen()
             self.window_rebuilding.hide()
 
