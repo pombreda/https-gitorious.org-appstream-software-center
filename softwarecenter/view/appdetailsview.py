@@ -26,6 +26,7 @@ import gobject
 import apt
 import os
 import pango
+import socket
 import string
 import subprocess
 import sys
@@ -51,6 +52,9 @@ from softwarecenter.db.database import StoreDatabase
 from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 import dialogs
+
+# default socket timeout to deal with unreachable screenshot site
+DEFAULT_SOCKET_TIMEOUT=4
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -482,12 +486,15 @@ class AppDetailsView(WebkitWidget):
         # from a file:// html page
         logging.debug("_check_thumb_available")
         # check if we can get the thumbnail or just a 404
+        timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(DEFAULT_SOCKET_TIMEOUT)
         urllib._urlopener = GnomeProxyURLopener()
         try:
             f = urllib.urlopen(self.SCREENSHOT_THUMB_URL % self.pkgname)
         except (Url404Error, IOError), e:
             logging.debug("no thumbnail image")
             self._thumbnail_is_missing = True
+        socket.setdefaulttimeout(timeout)
         self._thumbnail_checking_thread_running = False
 
     def _get_action_button_label_and_value(self):
