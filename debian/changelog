@@ -1,3 +1,10 @@
+software-center (0.5.2) UNRELEASED; urgency=low
+
+  * softwarecenter/view/appdetailsview.py:
+    - deal with connection refused errors properly
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 13 Oct 2009 11:17:13 +0200
+
 software-center (0.5.1) karmic; urgency=low
 
   * icon updates from Kenneth Wimer 

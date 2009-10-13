@@ -485,7 +485,7 @@ class AppDetailsView(WebkitWidget):
         urllib._urlopener = GnomeProxyURLopener()
         try:
             f = urllib.urlopen(self.SCREENSHOT_THUMB_URL % self.pkgname)
-        except Url404Error:
+        except (Url404Error, IOError), e:
             logging.debug("no thumbnail image")
             self._thumbnail_is_missing = True
         self._thumbnail_checking_thread_running = False
