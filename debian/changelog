@@ -23,6 +23,8 @@ software-center (0.5.2) UNRELEASED; urgency=low
   * utils/update-software-center:
     - do not crash if glib is not available (e.g. during a upgrade)
       (LP: #450793)
+  * install the softwarecenter-installed emblem into a private dir
+    to make not show up in the nautilus emblems folder (LP: #437385)
   
   [ Josh Holland ]
   * Fixed up man page (LP: #448896)
