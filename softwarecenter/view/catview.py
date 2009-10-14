@@ -143,7 +143,14 @@ class CategoriesView(WebkitWidget):
                         name = element.text
                     elif element.tag == "Directory":
                         cp = ConfigParser()
-                        cp.read("/usr/share/desktop-directories/%s" % element.text)
+                        fname = "/usr/share/desktop-directories/%s" % element.text
+                        logging.debug("reading '%s'" % fname)
+                        cp.read(fname)
+                        try:
+                            untranslated_name = cp.get("Desktop Entry","Name")
+                        except Exception, e:
+                            logging.warn("'%s' has no name" % fname)
+                            continue
                         try:
                             gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
                         except:
@@ -153,7 +160,6 @@ class CategoriesView(WebkitWidget):
                             icon = cp.get("Desktop Entry","Icon")
                         except Exception, e:
                             icon = "applications-other"
-                        untranslated_name = cp.get("Desktop Entry","Name")
                         if gettext_domain:
                             name = gettext.dgettext(gettext_domain, untranslated_name)
                     elif element.tag == "Include":
