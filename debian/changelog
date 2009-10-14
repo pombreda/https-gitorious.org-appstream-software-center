@@ -20,6 +20,9 @@ software-center (0.5.2) UNRELEASED; urgency=low
   * softwarecenter/view/catview.py
     - do not crash if a desktop-directory can not be foudn or is
       invalid (LP: #450842)
+  * utils/update-software-center:
+    - do not crash if glib is not available (e.g. during a upgrade)
+      (LP: #450793)
   
   [ Josh Holland ]
   * Fixed up man page (LP: #448896)
