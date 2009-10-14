@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: software-store\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-09-25 17:10+0200\n"
-"PO-Revision-Date: 2009-10-01 16:50+0000\n"
+"PO-Revision-Date: 2009-10-09 19:23+0000\n"
 "Last-Translator: Alex Eftimie <alexeftimie@gmail.com>\n"
 "Language-Team: Romanian <ro@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n == 1 ? 0: (((n % 100 > 19) || ((n % 100 "
 "== 0) && (n != 0))) ? 2: 1));\n"
-"X-Launchpad-Export-Date: 2009-10-02 06:38+0000\n"
+"X-Launchpad-Export-Date: 2009-10-10 08:15+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../softwarecenter/app.py:349 ../softwarecenter/view/appdetailsview.py:404
@@ -328,7 +328,7 @@ msgstr "Aplicațiile întreținute de _Canonical"
 
 #: ../data/ui/SoftwareCenter.ui.h:10
 msgid "_Edit"
-msgstr "_Modifică"
+msgstr "_Editare"
 
 #: ../data/ui/SoftwareCenter.ui.h:11
 msgid "_File"
@@ -348,7 +348,7 @@ msgstr "_Surse software&#x2026;"
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"
-msgstr "_Vizualizează"
+msgstr "_Afișare"
 
 #: ../data/ui/SoftwareCenter.ui.h:16
 msgid "available"

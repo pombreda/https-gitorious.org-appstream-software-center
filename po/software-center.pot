@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-25 17:10+0200\n"
+"POT-Creation-Date: 2009-10-14 10:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../softwarecenter/app.py:349 ../softwarecenter/view/appdetailsview.py:404
+#: ../softwarecenter/app.py:114
+msgid "Sorry, can not open the software database"
+msgstr ""
+
+#: ../softwarecenter/app.py:115
+msgid "Please re-install the 'software-center' package."
+msgstr ""
+
+#: ../softwarecenter/app.py:369 ../softwarecenter/view/appdetailsview.py:453
 msgid "ERROR"
 msgstr ""
 
@@ -71,74 +79,74 @@ msgstr ""
 msgid "Application %s has a unkown maintenance status."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:89
+#: ../softwarecenter/view/appdetailsview.py:100
 msgid "Description"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:181
-#: ../softwarecenter/view/appdetailsview.py:186
+#: ../softwarecenter/view/appdetailsview.py:199
+#: ../softwarecenter/view/appdetailsview.py:204
 msgid "Not available in the current data"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:184
+#: ../softwarecenter/view/appdetailsview.py:202
 msgid "Not available for your hardware architecture."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:211
-#: ../softwarecenter/view/appdetailsview.py:215
+#: ../softwarecenter/view/appdetailsview.py:229
+#: ../softwarecenter/view/appdetailsview.py:233
 msgid "Application Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:239
+#: ../softwarecenter/view/appdetailsview.py:257
 #, python-format
 msgid "Version: %s (%s)"
 msgstr ""
 
 #. generic message
-#: ../softwarecenter/view/appdetailsview.py:257
+#: ../softwarecenter/view/appdetailsview.py:275
 #, python-format
 msgid "%s is installed on this computer."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:269
+#: ../softwarecenter/view/appdetailsview.py:287
 #, python-format
 msgid "It is used by %s piece of installed software."
 msgid_plural "It is used by %s pieces of installed software."
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/appdetailsview.py:274
+#: ../softwarecenter/view/appdetailsview.py:292
 msgid "Website"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:277
+#: ../softwarecenter/view/appdetailsview.py:295
 msgid "Unknown"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:279
+#: ../softwarecenter/view/appdetailsview.py:297
 msgid "Open Source"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:281
+#: ../softwarecenter/view/appdetailsview.py:299
 msgid "Proprietary"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:282
+#: ../softwarecenter/view/appdetailsview.py:300
 #, python-format
 msgid "License: %s"
 msgstr ""
 
 #. TRANSLATORS: This text will be showed as price of the software
-#: ../softwarecenter/view/appdetailsview.py:286
+#: ../softwarecenter/view/appdetailsview.py:304
 msgid "Free"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:287
+#: ../softwarecenter/view/appdetailsview.py:305
 #, python-format
 msgid "Price: %s"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:327
+#: ../softwarecenter/view/appdetailsview.py:353
 #, python-format
 msgid "%s - Screenshot"
 msgstr ""
@@ -147,76 +155,76 @@ msgstr ""
 #. FIXME: this text is not accurate, we look at recommends as
 #. well as part of the rdepends, but those do not need to
 #. be removed, they just may be limited in functionatlity
-#: ../softwarecenter/view/appdetailsview.py:346
+#: ../softwarecenter/view/appdetailsview.py:374
 #, python-format
 msgid "To remove %s, these items must be removed as well:"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:348
+#: ../softwarecenter/view/appdetailsview.py:376
 msgid "Remove All"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:354
+#: ../softwarecenter/view/appdetailsview.py:382
 #, python-format
 msgid ""
 "If you uninstall %s, future updates will not include new items in <b>%s</b> "
 "set. Are you sure you want to continue?"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:357
-#: ../softwarecenter/view/appdetailsview.py:368
+#: ../softwarecenter/view/appdetailsview.py:385
+#: ../softwarecenter/view/appdetailsview.py:396
 msgid "Remove Anyway"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:364
+#: ../softwarecenter/view/appdetailsview.py:392
 #, python-format
 msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:427
+#: ../softwarecenter/view/appdetailsview.py:506
 msgid "Upgrade"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:430
+#: ../softwarecenter/view/appdetailsview.py:509
 msgid "Remove"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:433
+#: ../softwarecenter/view/appdetailsview.py:512
 msgid "Install"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarecenter/view/appdetailsview.py:442
+#: ../softwarecenter/view/appdetailsview.py:521
 msgid "Enable channel"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:469
+#: ../softwarecenter/view/appdetailsview.py:548
 msgid "_Keep"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:470
+#: ../softwarecenter/view/appdetailsview.py:549
 msgid "_Replace"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:472
+#: ../softwarecenter/view/appdetailsview.py:551
 #, python-format
 msgid "Configuration file '%s' changed"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:473
+#: ../softwarecenter/view/appdetailsview.py:552
 msgid "Do you want to use the new version?"
 msgstr ""
 
 #. home button
 #: ../softwarecenter/view/availablepane.py:88
-#: ../softwarecenter/view/viewswitcher.py:128
+#: ../softwarecenter/view/viewswitcher.py:143
 msgid "Get Free Software"
 msgstr ""
 
 #: ../softwarecenter/view/availablepane.py:138
-#: ../softwarecenter/view/installedpane.py:127
+#: ../softwarecenter/view/installedpane.py:134
 #, python-format
 msgid "%s matching item"
 msgid_plural "%s matching items"
@@ -247,20 +255,20 @@ msgstr ""
 msgid "Dependency"
 msgstr ""
 
-#: ../softwarecenter/view/installedpane.py:74
-#: ../softwarecenter/view/viewswitcher.py:130
+#: ../softwarecenter/view/installedpane.py:80
+#: ../softwarecenter/view/viewswitcher.py:145
 msgid "Installed Software"
 msgstr ""
 
-#: ../softwarecenter/view/installedpane.py:131
+#: ../softwarecenter/view/installedpane.py:138
 #, python-format
 msgid "%s installed item"
 msgid_plural "%s installed items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/viewswitcher.py:160
-#: ../softwarecenter/view/viewswitcher.py:165
+#: ../softwarecenter/view/viewswitcher.py:163
+#: ../softwarecenter/view/viewswitcher.py:168
 #, python-format
 msgid "In Progress (%i)"
 msgstr ""
@@ -279,11 +287,11 @@ msgid ""
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
+msgid "Rebuilding application catalog..."
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
+msgid "Search..."
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:6
@@ -320,7 +328,7 @@ msgid "_Install"
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
+msgid "_Software Sources..."
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:15
