@@ -10,6 +10,10 @@ software-center (0.5.2) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/imagedialog.py:
     - fix crash when unknown error happend during screenshot download
       (LP: #4479829)
+  * data/ui/SoftwareCenter.ui:
+    - change unicode "..." to three "." to work around bug in 
+      gtkbuilder/intltool that makes strings with them untranslatable
+      (https://bugzilla.gnome.org/show_bug.cgi?id=596205)
 
   [ Josh Holland ]
   * Fixed up man page (LP: #448896)
