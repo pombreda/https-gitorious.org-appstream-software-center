@@ -1,4 +1,4 @@
-software-center (0.5.2) UNRELEASED; urgency=low
+software-center (0.5.2) karmic; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/appdetailsview.py:
@@ -29,7 +29,7 @@ software-center (0.5.2) UNRELEASED; urgency=low
   [ Josh Holland ]
   * Fixed up man page (LP: #448896)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 13 Oct 2009 13:10:45 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 14 Oct 2009 11:51:26 +0200
 
 software-center (0.5.1) karmic; urgency=low
 
