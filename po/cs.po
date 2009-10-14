@@ -299,12 +299,12 @@ msgid ""
 msgstr "Vybírejte z tisíce svobodných aplikací dostupných pro Ubuntu."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
+msgid "Rebuilding application catalog..."
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Hledat&#x2026;"
+msgid "Search..."
+msgstr "Hledat..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -340,8 +340,8 @@ msgid "_Install"
 msgstr "Na_instalovat"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "Z_droje softwaru&#x2026;"
+msgid "_Software Sources..."
+msgstr "Z_droje softwaru..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

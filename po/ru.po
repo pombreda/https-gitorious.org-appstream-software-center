@@ -302,12 +302,12 @@ msgid ""
 msgstr "Предоставляет вам выбор из тысяч бесплатных программ для Ubuntu."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "Перестройка каталога приложений&#x2026;"
+msgid "Rebuilding application catalog..."
+msgstr "Перестройка каталога приложений..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Идет поиск&#x2026;"
+msgid "Search..."
+msgstr "Идет поиск..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -343,8 +343,8 @@ msgid "_Install"
 msgstr "_Установить"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "_Источники приложений&#x2026;"
+msgid "_Software Sources..."
+msgstr "_Источники приложений..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

@@ -298,12 +298,12 @@ msgstr ""
 "sovelluksista."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "Rakennetaan sovelluskatalogia uudelleen&#x2026;"
+msgid "Rebuilding application catalog..."
+msgstr "Rakennetaan sovelluskatalogia uudelleen..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Etsi&#x2026;"
+msgid "Search..."
+msgstr "Etsi..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -339,8 +339,8 @@ msgid "_Install"
 msgstr "_Asenna"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "_Ohjelmistolähteet&#x2026;"
+msgid "_Software Sources..."
+msgstr "_Ohjelmistolähteet..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

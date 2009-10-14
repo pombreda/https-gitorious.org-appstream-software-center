@@ -302,12 +302,12 @@ msgstr ""
 "pentru Ubuntu."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "Se reconstruiește catalogul&#x2026;"
+msgid "Rebuilding application catalog..."
+msgstr "Se reconstruiește catalogul..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Caută&#x2026;"
+msgid "Search..."
+msgstr "Caută..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -343,8 +343,8 @@ msgid "_Install"
 msgstr "_Instalează"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "_Surse software&#x2026;"
+msgid "_Software Sources..."
+msgstr "_Surse software..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

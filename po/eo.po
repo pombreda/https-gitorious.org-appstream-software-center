@@ -295,12 +295,12 @@ msgid ""
 msgstr "Lasas vin elekti milojn da senkostaj aplikaĵoj haveblaj por Ubuntu."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "Rekonstruas aplikaĵan katalogon&#x2026;"
+msgid "Rebuilding application catalog..."
+msgstr "Rekonstruas aplikaĵan katalogon..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Serĉi&#x2026;"
+msgid "Search..."
+msgstr "Serĉi..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -336,8 +336,8 @@ msgid "_Install"
 msgstr "_Instali"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "_Programaraj fontoj&#x2026;"
+msgid "_Software Sources..."
+msgstr "_Programaraj fontoj..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

@@ -294,12 +294,12 @@ msgstr ""
 "Leidžia jums pasirinkti iš tūkstančių Ubuntu prieinamų nemokamų programų."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
+msgid "Rebuilding application catalog..."
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Ieškoti&#x2026;"
+msgid "Search..."
+msgstr "Ieškoti..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -335,8 +335,8 @@ msgid "_Install"
 msgstr "Į_diegti"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "_Programinės įrangos saugyklos&#x2026;"
+msgid "_Software Sources..."
+msgstr "_Programinės įrangos saugyklos..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

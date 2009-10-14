@@ -309,12 +309,12 @@ msgid ""
 msgstr "يمكنك أن تختار من بين آلاف التطبيقات الحرّة المتوفرة في أوبونتو."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "يُعيد بناء دليل البرامج&#x2026;"
+msgid "Rebuilding application catalog..."
+msgstr "يُعيد بناء دليل البرامج..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "ابحث&#x2026;"
+msgid "Search..."
+msgstr "ابحث..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -350,8 +350,8 @@ msgid "_Install"
 msgstr "_ثبّت"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "_مصادر البرمجيات&#؛x2026"
+msgid "_Software Sources..."
+msgstr "_مصادر البرمجيات..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

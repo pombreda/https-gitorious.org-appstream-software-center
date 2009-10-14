@@ -298,12 +298,12 @@ msgstr ""
 "Le permite elegir entre miles de aplicaciones libres disponibles para Ubuntu."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "Reconstruyendo catálogo de aplicaciones&#x2026;"
+msgid "Rebuilding application catalog..."
+msgstr "Reconstruyendo catálogo de aplicaciones..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Buscar&#x2026;"
+msgid "Search..."
+msgstr "Buscar..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -339,8 +339,8 @@ msgid "_Install"
 msgstr "_Instalar"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "_Orígenes del software&#x2026;"
+msgid "_Software Sources..."
+msgstr "_Orígenes del software..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

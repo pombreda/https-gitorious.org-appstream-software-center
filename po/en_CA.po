@@ -282,11 +282,11 @@ msgid ""
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
+msgid "Rebuilding application catalog..."
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
+msgid "Search..."
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:6
@@ -323,7 +323,7 @@ msgid "_Install"
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
+msgid "_Software Sources..."
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:15

@@ -294,12 +294,12 @@ msgid ""
 msgstr "Laseb sul valida tuhandete tasuta rakenduste vahel Ubuntu jaoks."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "Rakenduste kataloogi taasloomine&#x2026;"
+msgid "Rebuilding application catalog..."
+msgstr "Rakenduste kataloogi taasloomine..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Otsimine&#x2026;"
+msgid "Search..."
+msgstr "Otsimine..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -335,8 +335,8 @@ msgid "_Install"
 msgstr "_Paigalda"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "_Tarkvaraallikad&#x2026;"
+msgid "_Software Sources..."
+msgstr "_Tarkvaraallikad..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

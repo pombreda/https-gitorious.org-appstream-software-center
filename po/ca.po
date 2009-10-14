@@ -298,11 +298,11 @@ msgstr ""
 "Trieu d'entre milers d'aplicacions gratuïtes disponibles per a l'Ubuntu."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
+msgid "Rebuilding application catalog..."
 msgstr "S'està reconstruint el catàleg d'aplicacions..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
+msgid "Search..."
 msgstr "Cerca..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
@@ -339,7 +339,7 @@ msgid "_Install"
 msgstr "_Instal·la"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
+msgid "_Software Sources..."
 msgstr "_Fonts de programari..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15

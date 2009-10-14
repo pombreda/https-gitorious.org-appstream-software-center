@@ -279,7 +279,7 @@ msgid "_Help"
 msgstr ""
 
 #: ../data/ui/SoftwareStore.ui.h:13
-msgid "_Software Sources&#x2026;"
+msgid "_Software Sources..."
 msgstr ""
 
 #: ../data/ui/SoftwareStore.ui.h:14

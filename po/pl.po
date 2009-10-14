@@ -302,12 +302,12 @@ msgstr ""
 "Pozwala wybierać spośród tysięcy otwartych programów dostępnych dla Ubuntu."
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "Przetwarzanie katalogu programów&#x2026;"
+msgid "Rebuilding application catalog..."
+msgstr "Przetwarzanie katalogu programów..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "Wyszukiwanie&#x2026;"
+msgid "Search..."
+msgstr "Wyszukiwanie..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -343,8 +343,8 @@ msgid "_Install"
 msgstr "_Zainstaluj"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "Źródła _oprogramowania&#x2026;"
+msgid "_Software Sources..."
+msgstr "Źródła _oprogramowania..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"

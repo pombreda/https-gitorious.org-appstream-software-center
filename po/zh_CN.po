@@ -280,12 +280,12 @@ msgid ""
 msgstr "让你从数千种适合 Ubuntu 使用的、自由的程序中，进行选择。"
 
 #: ../data/ui/SoftwareCenter.ui.h:4
-msgid "Rebuilding application catalog&#x2026;"
-msgstr "重建应用程序列表&#x2026；"
+msgid "Rebuilding application catalog..."
+msgstr "重建应用程序列表..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
-msgid "Search&#x2026;"
-msgstr "搜索&#x2026;"
+msgid "Search..."
+msgstr "搜索..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
@@ -321,8 +321,8 @@ msgid "_Install"
 msgstr "安装(_I)"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
-msgid "_Software Sources&#x2026;"
-msgstr "软件源(_S)&#x2026;"
+msgid "_Software Sources..."
+msgstr "软件源(_S)..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"
