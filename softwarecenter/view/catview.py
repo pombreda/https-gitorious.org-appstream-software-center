@@ -185,6 +185,9 @@ class CategoriesView(WebkitWidget):
                         categories[untranslated_name] = Category(untranslated_name, name, icon, query)
         # post processing for <OnlyUnallocated>
         for unalloc in only_unallocated:
+            if not unalloc in categories:
+                logging.debug("not category '%s' in the unalloced ones" % unalloc)
+                continue
             cat_unalloc = categories[unalloc]
             for key in categories:
                 if key != unalloc:
