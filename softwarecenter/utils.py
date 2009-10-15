@@ -36,3 +36,19 @@ class ExecutionTime(object):
 def encode_for_xml(unicode_data, encoding="ascii"):
     """ encode a given string for xml """
     return unicode_data.encode(encoding, 'xmlcharrefreplace')
+
+def decode_xml_char_reference(s):
+    """ takes a string like 
+        'Search&#x2026;' 
+        and converts it to
+        'Search...'
+    """
+    import re
+    p = re.compile("\&\#x(\d\d\d\d);")
+    return p.sub(r"\u\1", s).decode("unicode-escape")
+    
+if __name__ == "__main__":
+    s = decode_xml_char_reference('Search&#x2026;')
+    print s
+    print type(s)
+    print unicode(s)

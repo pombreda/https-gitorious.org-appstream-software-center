@@ -26,6 +26,7 @@ import gobject
 import apt
 import os
 import pango
+import socket
 import string
 import subprocess
 import sys
@@ -51,6 +52,9 @@ from softwarecenter.db.database import StoreDatabase
 from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 import dialogs
+
+# default socket timeout to deal with unreachable screenshot site
+DEFAULT_SOCKET_TIMEOUT=4
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -83,9 +87,9 @@ class AppDetailsView(WebkitWidget):
                                 (str,str, ))
                     }
 
-    def __init__(self, xapiandb, icons, cache, datadir):
+    def __init__(self, db, icons, cache, datadir):
         super(AppDetailsView, self).__init__(datadir)
-        self.xapiandb = xapiandb
+        self.db = db
         self.icons = icons
         self.cache = cache
         self.datadir = datadir
@@ -126,7 +130,7 @@ class AppDetailsView(WebkitWidget):
         self.doc = None
 
         # get xapian document
-        self.doc = self.xapiandb.get_xapian_document(appname, pkgname)
+        self.doc = self.db.get_xapian_document(appname, pkgname)
         if not self.doc:
             raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
 
@@ -439,6 +443,12 @@ class AppDetailsView(WebkitWidget):
         """callback when a aptdaemon transaction finished"""
         if enum == enums.EXIT_FAILED:
             excep = trans.get_error()
+            # daemon died are messages that result from broken
+            # cancel handling in aptdaemon (LP: #440941)
+            # FIXME: this is not a proper fix, just a workaround
+            if excep.code == enums.ERROR_DAEMON_DIED:
+                logging.warn("daemon dies, ignoring: %s" % excep)
+                return
             msg = "%s: %s\n%s\n\n%s" % (
                    _("ERROR"),
                    enums.get_error_string_from_enum(excep.code),
@@ -476,12 +486,15 @@ class AppDetailsView(WebkitWidget):
         # from a file:// html page
         logging.debug("_check_thumb_available")
         # check if we can get the thumbnail or just a 404
+        timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(DEFAULT_SOCKET_TIMEOUT)
         urllib._urlopener = GnomeProxyURLopener()
         try:
             f = urllib.urlopen(self.SCREENSHOT_THUMB_URL % self.pkgname)
-        except Url404Error:
+        except (Url404Error, IOError), e:
             logging.debug("no thumbnail image")
             self._thumbnail_is_missing = True
+        socket.setdefaulttimeout(timeout)
         self._thumbnail_checking_thread_running = False
 
     def _get_action_button_label_and_value(self):

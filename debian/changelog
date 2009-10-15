@@ -1,15 +1,56 @@
-software-center (0.5.1) UNRELEASED; urgency=low
+software-center (0.5.2) karmic; urgency=low
 
+  [ Michael Vogt ]
+  * softwarecenter/view/appdetailsview.py:
+    - deal with connection refused errors properly
+    - use shorter default socket timeout to avoid hangs when
+      the screenshot site is unavailable
+  * softwarecenter/db/database.py:
+    - require explicit open() to avoid possible race (LP: #449385)
+  * softwarecenter/view/widgets/imagedialog.py:
+    - fix crash when unknown error happend during screenshot download
+      (LP: #4479829)
+  * data/ui/SoftwareCenter.ui:
+    - change unicode "..." to three "." to work around bug in 
+      gtkbuilder/intltool that makes strings with them untranslatable
+      (https://bugzilla.gnome.org/show_bug.cgi?id=596205) (LP: #450600)
+  * po/*:
+    - sync from rosetta and unfuzzy the strings that move
+      from &#2026; to "..." (LP: #450600)
+  * softwarecenter/view/catview.py
+    - do not crash if a desktop-directory can not be foudn or is
+      invalid (LP: #450842)
+  * utils/update-software-center:
+    - do not crash if glib is not available (e.g. during a upgrade)
+      (LP: #450793)
+  * install the softwarecenter-installed emblem into a private dir
+    to make not show up in the nautilus emblems folder (LP: #437385)
+  
+  [ Josh Holland ]
+  * Fixed up man page (LP: #448896)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 14 Oct 2009 11:51:26 +0200
+
+software-center (0.5.1) karmic; urgency=low
+
+  * icon updates from Kenneth Wimer 
+  * softwarecenter/db/update.py: 
+    - fix index bug in pkgname handling
+  * make screenshots scrollable (LP: #439420)
+  * fix reopen() handling by not using xapian.Database.reopen()
+    but instead do a full open of the db (LP: #430603)
   * softwarecenter/view/appdetailsview.py:
     - add support for http proxies (LP: #446069)
     - fix crash in cdrom handling (LP: #446269)
+    - do not show error when a transaction is cancelt 
+      (LP: #440941)
   * softwarecenter/view/widgets/imagedialog.py:
     - change default window size to match the default image
       size from screenshots.debian.net (LP: #445938)
   * debian/control:
     - depend on the latest aptdaemon for working proxy support
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Oct 2009 11:47:15 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 12 Oct 2009 18:25:10 +0200
 
 software-center (0.5.0) karmic; urgency=low
 

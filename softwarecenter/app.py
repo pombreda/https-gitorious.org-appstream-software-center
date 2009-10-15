@@ -95,7 +95,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
-            self.xapiandb = StoreDatabase(pathname)
+            self.db = StoreDatabase(pathname)
+            self.db.open()
         except xapian.DatabaseOpeningError:
             # Couldn't use that folder as a database
             # This may be because we are in a bzr checkout and that
@@ -105,7 +106,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 from softwarecenter.db.update import rebuild_database
                 logging.info("building local database")
                 rebuild_database(pathname)
-                self.xapiandb = StoreDatabase(pathname)
+                self.db = StoreDatabase(pathname)
+                self.db.open()
         except xapian.DatabaseCorruptError, e:
             logging.exception("xapian open failed")
             view.dialogs.error(None, 
@@ -118,6 +120,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path(ICON_PATH)
+        self.icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
         # HACK: make it more friendly for local installs (for mpt)
         self.icons.append_search_path(datadir+"/icons/32x32/status")
         
@@ -133,7 +136,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._selected_appname_for_page = {}
 
         # available pane
-        self.available_pane = AvailablePane(self.cache, self.xapiandb,
+        self.available_pane = AvailablePane(self.cache, self.db,
                                             self.icons, datadir)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -147,7 +150,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_available.add(self.available_pane)
 
         # installed pane
-        self.installed_pane = InstalledPane(self.cache, self.xapiandb,
+        self.installed_pane = InstalledPane(self.cache, self.db,
                                             self.icons, datadir)
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -438,8 +441,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if is_rebuilding:
             self.window_rebuilding.show()
         else:
-            # we need to reopen when the database finished updating
-            self.xapiandb.reopen()
+            # we need to re-open when the database finished updating
+            self.db.reopen()
             self.window_rebuilding.hide()
 
     def setup_database_rebuilding_listener(self):

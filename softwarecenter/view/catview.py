@@ -58,12 +58,12 @@ class CategoriesView(WebkitWidget):
                               )
         }
 
-    def __init__(self, datadir, desktopdir, xapiandb, icons):
+    def __init__(self, datadir, desktopdir, db, icons):
         """ init the widget, takes
         
         datadir - the base directory of the app-store data
         desktopdir - the dir where the applications.menu file can be found
-        xapiandb - a xapian.Database object
+        db - a Database object
         icons - a gtk.IconTheme
         """
         super(CategoriesView, self).__init__(datadir)
@@ -143,7 +143,14 @@ class CategoriesView(WebkitWidget):
                         name = element.text
                     elif element.tag == "Directory":
                         cp = ConfigParser()
-                        cp.read("/usr/share/desktop-directories/%s" % element.text)
+                        fname = "/usr/share/desktop-directories/%s" % element.text
+                        logging.debug("reading '%s'" % fname)
+                        cp.read(fname)
+                        try:
+                            untranslated_name = cp.get("Desktop Entry","Name")
+                        except Exception, e:
+                            logging.warn("'%s' has no name" % fname)
+                            continue
                         try:
                             gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
                         except:
@@ -153,7 +160,6 @@ class CategoriesView(WebkitWidget):
                             icon = cp.get("Desktop Entry","Icon")
                         except Exception, e:
                             icon = "applications-other"
-                        untranslated_name = cp.get("Desktop Entry","Name")
                         if gettext_domain:
                             name = gettext.dgettext(gettext_domain, untranslated_name)
                     elif element.tag == "Include":
@@ -196,9 +202,9 @@ class CategoriesView(WebkitWidget):
 
 
 # test code
-def category_activated(iconview, name, query, xapiandb):
+def category_activated(iconview, name, query, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
-    enquire = xapian.Enquire(xapiandb)
+    enquire = xapian.Enquire(db)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
     for m in matches:

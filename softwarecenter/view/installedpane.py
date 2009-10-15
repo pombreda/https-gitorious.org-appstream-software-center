@@ -62,13 +62,19 @@ class InstalledPane(SoftwarePane):
         self.search_terms = ""
         self.refresh_apps()
 
+    def _show_installed_overview(self):
+        " helper that goes back to the overview page "
+        self.navigation_bar.remove_id("details")
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.searchentry.show()
+
     @wait_for_apt_cache_ready
     def refresh_apps(self):
         """refresh the applist after search changes and update the 
            navigation bar
         """
         if self.search_terms:
-            query = self.xapiandb.get_query_from_search_entry(self.search_terms)
+            query = self.db.get_query_from_search_entry(self.search_terms)
         else:
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
@@ -76,7 +82,7 @@ class InstalledPane(SoftwarePane):
                                         "list")
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
-                             self.xapiandb, 
+                             self.db, 
                              self.icons, 
                              query, 
                              filter=self.apps_filter)
@@ -97,15 +103,16 @@ class InstalledPane(SoftwarePane):
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(name, pkgname)
+    def on_db_reopen(self, db):
+        self.refresh_apps()
+        self._show_installed_overview()
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
         # remove the details and clear the search
         self.searchentry.clear()
-        self.navigation_bar.remove_id("details")
-        self.notebook.set_current_page(self.PAGE_APPLIST)
-        self.searchentry.show()
+        self._show_installed_overview()
         # only emit something if the model is there
         model = self.app_view.get_model()
         if model:

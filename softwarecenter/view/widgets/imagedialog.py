@@ -25,7 +25,6 @@ import threading
 import urllib
 
 from softwarecenter.enums import *
-from fancyimage import FancyProgress
 
 class Url404Error(IOError):
     pass
@@ -67,27 +66,33 @@ class ShowImageDialog(gtk.Dialog):
                 parent = w.get_parent()
         # missing
         self._missing_img = missing_img
+        self.image_filename = self._missing_img
         # image
         self.img = gtk.Image()
-#        self.img.set_from_file(loading_img)
-#        self.img.show()
+        self.img.set_from_file(loading_img)
+        self.img.show()
+
+        # view port
+        scroll = gtk.ScrolledWindow()
+        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scroll.add_with_viewport(self.img)
+        scroll.show() 
+
         # progress
-        self.progress = FancyProgress()
+        self.progress = gtk.ProgressBar()
         self.progress.show()
+
         # box
         vbox = gtk.VBox()
+        vbox.pack_start(scroll)
+        vbox.pack_start(self.progress, expand=False)
         vbox.show()
-        vbox.pack_start(self.progress)
-        vbox.pack_start(self.img)
-#        vbox.pack_start(self.img)
-#        vbox.pack_start(self.progress, expand=False)
-#        vbox.show()
         # dialog
         self.set_transient_for(parent)
         self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
         self.get_content_area().add(vbox)
         self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-        self.set_default_size(800,600)
+        self.set_default_size(850,650)
         self.set_title(title)
         self.connect("response", self._response)
         # install urlopener
@@ -122,7 +127,6 @@ class ShowImageDialog(gtk.Dialog):
         # load into icon
         self.progress.hide()
         self.img.set_from_file(self.image_filename)
-        self.img.show()
         # and run the real thing
         gtk.Dialog.run(self)
 
@@ -153,5 +157,5 @@ if __name__ == "__main__":
     pkgname = "synaptic"
     url = "http://screenshots.debian.net/screenshot/synaptic"
     loading = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
-    d = ShowImageDialog("Synaptic Screenshot", url, pkgname)
+    d = ShowImageDialog("Synaptic Screenshot", url, loading, pkgname)
     d.run()

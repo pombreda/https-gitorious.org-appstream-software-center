@@ -19,8 +19,6 @@
 
 
 import apt
-import glib
-import gobject
 import locale
 import logging
 import os
@@ -36,6 +34,8 @@ from softwarecenter.db.update import rebuild_database
 try:
     import dbus
     import dbus.service
+    import glib
+    import gobject # without gobject it will crash
     from dbus.mainloop.glib import DBusGMainLoop
 except ImportError:
     pass
