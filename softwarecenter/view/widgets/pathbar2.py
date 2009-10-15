@@ -1226,6 +1226,7 @@ class PathBarThemeNewWave(PathBarThemeHuman):
         self.base_hack = f(gtk.gdk.color_parse("#F2F2F2"))
         return
 
+
 class PathBarThemeHicolor:
 
     PRELIT_NORMAL = 10
