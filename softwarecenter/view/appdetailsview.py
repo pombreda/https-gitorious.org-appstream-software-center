@@ -69,8 +69,8 @@ class AppDetailsView(WebkitWidget):
     DEPENDENCY_TYPES = ("PreDepends", "Depends") #, "Recommends")
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
-    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail-404/%s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot-404/%s"
+    SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
+    SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-center-installed.png"

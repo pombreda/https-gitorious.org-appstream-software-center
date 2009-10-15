@@ -1,3 +1,10 @@
+software-center (1.0) UNRELEASEDkarmic; urgency=low
+
+  * softwarecenter/view/appdetailsview.py:
+    - use screenshots.ubuntu.com as screenshot url
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Oct 2009 18:04:42 +0200
+
 software-center (0.5.2) karmic; urgency=low
 
   [ Michael Vogt ]

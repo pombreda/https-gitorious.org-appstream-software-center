@@ -155,7 +155,7 @@ class ShowImageDialog(gtk.Dialog):
 
 if __name__ == "__main__":
     pkgname = "synaptic"
-    url = "http://screenshots.debian.net/screenshot/synaptic"
+    url = "http://screenshots.ubuntu.com/screenshot/synaptic"
     loading = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
     d = ShowImageDialog("Synaptic Screenshot", url, loading, pkgname)
     d.run()
