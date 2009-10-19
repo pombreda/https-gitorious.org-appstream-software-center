@@ -199,10 +199,14 @@ class AppDetailsView(WebkitWidget):
                     details = _("Not available for your hardware architecture.")
             else:
                 details = _("Not available in the current data")
-        # FIXME: Use regular expression
+        # FIXME: Use regular expressions
         description = details.replace("*", "</p><p>*")
         description = description.replace("\n-", "</p><p>-")
         description = description.replace("\n\n", "</p><p>")
+        
+        regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
+        description = re.sub(regx, r'<a href="\1">\1</a>', description)
+        
         return description
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and
