@@ -26,6 +26,12 @@ import urllib
 
 from softwarecenter.enums import *
 
+class Url404Error(IOError):
+    pass
+
+class Url403Error(IOError):
+    pass
+
 class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
     def __init__(self, user_agent=USER_AGENT):
@@ -40,27 +46,44 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
                 pass
         urllib.FancyURLopener.__init__(self, proxies)
         self.version = user_agent
+    def http_error_404(self, url, fp, errcode, errmsg, headers):
+        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
+        raise Url404Error, "404 %s" % url
+    def http_error_403(self, url, fp, errcode, errmsg, headers):
+        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
+        raise Url403Error, "403 %s" % url
 
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """
 
-    def __init__(self, title, url, loading_img, parent=None):
+    def __init__(self, title, url, loading_img, missing_img, parent=None):
         gtk.Dialog.__init__(self)
         # find parent window for the dialog
         if not parent:
             parent = self.get_parent()
             while parent:
                 parent = w.get_parent()
+        # missing
+        self._missing_img = missing_img
+        self.image_filename = self._missing_img
         # image
         self.img = gtk.Image()
         self.img.set_from_file(loading_img)
         self.img.show()
+
+        # view port
+        scroll = gtk.ScrolledWindow()
+        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scroll.add_with_viewport(self.img)
+        scroll.show() 
+
         # progress
         self.progress = gtk.ProgressBar()
         self.progress.show()
+
         # box
         vbox = gtk.VBox()
-        vbox.pack_start(self.img)
+        vbox.pack_start(scroll)
         vbox.pack_start(self.progress, expand=False)
         vbox.show()
         # dialog
@@ -68,7 +91,7 @@ class ShowImageDialog(gtk.Dialog):
         self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
         self.get_content_area().add(vbox)
         self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-        self.set_default_size(400,400)
+        self.set_default_size(850,650)
         self.set_title(title)
         self.connect("response", self._response)
         # install urlopener
@@ -102,23 +125,28 @@ class ShowImageDialog(gtk.Dialog):
             return gtk.RESPONSE_CLOSE
         # load into icon
         self.progress.hide()
-        self.img.set_from_file(self.location.name)
+        self.img.set_from_file(self.image_filename)
         # and run the real thing
         gtk.Dialog.run(self)
 
     def _fetch(self):
         "fetcher thread"
+        logging.debug("_fetch: %s" % self.url)
         self.location = tempfile.NamedTemporaryFile()
         try:
-            screenshot = urllib.urlretrieve(self.url, 
-                                            self.location.name, 
-                                            self._progress)
+            (screenshot, info) = urllib.urlretrieve(self.url, 
+                                                    self.location.name, 
+                                                    self._progress)
+            self.image_filename = self.location.name
+        except (Url403Error, Url404Error), e:
+            self.image_filename = self._missing_img
         except Exception, e:
             logging.exception("urlopen error")
         self._finished = True
 
     def _progress(self, count, block, total):
         "fetcher progress reporting"
+        logging.debug("_progress %s %s %s" % (count, block, total))
         #time.sleep(1)
         self._fetched += block
         # ensure we do not go over 100%
@@ -126,7 +154,7 @@ class ShowImageDialog(gtk.Dialog):
 
 if __name__ == "__main__":
     pkgname = "synaptic"
-    url = "http://screenshots.debian.net/screenshot/synaptic"
+    url = "http://screenshots.ubuntu.com/screenshot/synaptic"
     loading = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
-    d = ShowImageDialog("Synaptic Screenshot", url, pkgname)
+    d = ShowImageDialog("Synaptic Screenshot", url, loading, pkgname)
     d.run()

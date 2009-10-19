@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" $text_direction>
 <head>
  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
  <title></title>
@@ -18,9 +18,10 @@
     newTextAroundImg = document.createElement("p");
     newImg = document.createElement("img");
     newImg.src = img;
-    newImg.setAttribute("width", ${icon_size})
-    newImg.setAttribute("height", ${icon_size})
-    newTextAroundImg.appendChild(newImg)
+    newImg.setAttribute("width", ${icon_size});
+    newImg.setAttribute("height", ${icon_size});
+    newImg.className = "no_drag";
+    newTextAroundImg.appendChild(newImg);
     newText = document.createElement("p");
     newText.align = "center";
     click_cb = 'changeTitle("call:on_category_clicked:' + name + '");';
@@ -96,7 +97,12 @@
   document.onkeyup = onKey;
  </script>
   <style type="text/css">
-    body {background-color:#b6bdc4; margin: 0; padding: 1em; color:#000;}
+    body {
+      background-color:#b6bdc4; 
+      margin: 0; 
+      padding: 1em; 
+      color:#000;
+    }
     h2 {
       background-color: #7D91aa;
       border-style: solid;
@@ -121,10 +127,10 @@
       vertical-align: top;
       width: 8em !important;
     }
-    .category_td:hover {cursor: pointer;}
-    .category_td:active {background-color: #7D91aa;}
-
- .category_td p { font-size:90%; text-align:center; }
+    .category_td:hover {cursor: pointer; }
+    .category_td:active {background-color: #7D91aa; }
+    .category_td p { font-size:90%; text-align:center; }
+    .no_drag { -khtml-user-drag:none; }
  </style>
  </head>
 

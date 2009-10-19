@@ -1,7 +1,8 @@
 #!/usr/bin/make -f
 share:=usr/share/software-center
+
 %:
-	DH_PYCENTAL=include-links dh --with=python-central $@
+	dh --with=python-central $@
 
 # Install the modules in a private directory, as our applications are the
 # only ones using them.
@@ -16,4 +17,4 @@ override_dh_auto_install:
 	# Remove empty directories.
 	find debian/software-center/usr -type d -empty -delete
 
-.PHONY: binary binary-indep binary-arch build clean override_dh_auto_install
+.PHONY: override_dh_auto_install

@@ -58,12 +58,12 @@ class CategoriesView(WebkitWidget):
                               )
         }
 
-    def __init__(self, datadir, desktopdir, xapiandb, icons):
+    def __init__(self, datadir, desktopdir, db, icons):
         """ init the widget, takes
         
         datadir - the base directory of the app-store data
         desktopdir - the dir where the applications.menu file can be found
-        xapiandb - a xapian.Database object
+        db - a Database object
         icons - a gtk.IconTheme
         """
         super(CategoriesView, self).__init__(datadir)
@@ -105,6 +105,13 @@ class CategoriesView(WebkitWidget):
     def wksub_header(self):
         return _("Departments")
 
+    def wksub_text_direction(self):
+        direction = gtk.widget_get_default_direction()
+        if direction ==  gtk.TEXT_DIR_RTL:
+            return 'DIR="RTL"'
+        elif direction ==  gtk.TEXT_DIR_LTR:
+            return 'DIR="LTR"'
+
     # helper code for menu parsing etc
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
@@ -136,13 +143,23 @@ class CategoriesView(WebkitWidget):
                         name = element.text
                     elif element.tag == "Directory":
                         cp = ConfigParser()
-                        cp.read("/usr/share/desktop-directories/%s" % element.text)
+                        fname = "/usr/share/desktop-directories/%s" % element.text
+                        logging.debug("reading '%s'" % fname)
+                        cp.read(fname)
+                        try:
+                            untranslated_name = cp.get("Desktop Entry","Name")
+                        except Exception, e:
+                            logging.warn("'%s' has no name" % fname)
+                            continue
                         try:
                             gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
                         except:
                             gettext_domain = None
-                        icon = cp.get("Desktop Entry","Icon")
-                        untranslated_name = cp.get("Desktop Entry","Name")
+                        # sometimes there is no icon?
+                        try:
+                            icon = cp.get("Desktop Entry","Icon")
+                        except Exception, e:
+                            icon = "applications-other"
                         if gettext_domain:
                             name = gettext.dgettext(gettext_domain, untranslated_name)
                     elif element.tag == "Include":
@@ -168,6 +185,9 @@ class CategoriesView(WebkitWidget):
                         categories[untranslated_name] = Category(untranslated_name, name, icon, query)
         # post processing for <OnlyUnallocated>
         for unalloc in only_unallocated:
+            if not unalloc in categories:
+                logging.debug("not category '%s' in the unalloced ones" % unalloc)
+                continue
             cat_unalloc = categories[unalloc]
             for key in categories:
                 if key != unalloc:
@@ -185,9 +205,9 @@ class CategoriesView(WebkitWidget):
 
 
 # test code
-def category_activated(iconview, name, query, xapiandb):
+def category_activated(iconview, name, query, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
-    enquire = xapian.Enquire(xapiandb)
+    enquire = xapian.Enquire(db)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
     for m in matches:

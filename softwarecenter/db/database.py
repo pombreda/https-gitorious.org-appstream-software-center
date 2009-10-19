@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import gobject
 import locale
 import xapian
 from softwarecenter.enums import *
@@ -36,15 +37,35 @@ class Application(object):
         # currently broken, see http://bugs.python.org/issue2481
         return locale.strcoll(x.appname, y.appname)
 
-class StoreDatabase(xapian.Database):
+class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
+    __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                ()),
+                    "open" : (gobject.SIGNAL_RUN_FIRST,
+                              gobject.TYPE_NONE,
+                              (gobject.TYPE_STRING,)),
+                    }
     def __init__(self, pathname):
-        xapian.Database.__init__(self, pathname)
+        gobject.GObject.__init__(self)
+        self._db_pathname = pathname
+
+    def open(self, pathname=None):
+        " open the database "
+        if pathname:
+            self._db_pathname = pathname
+        self.xapiandb = xapian.Database(self._db_pathname)
         self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self)
+        self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
+        self.emit("open", self._db_pathname)
+
+    def reopen(self):
+        " reopen the database "
+        self.open()
+        self.emit("reopen")
 
     def get_query_from_search_entry(self, search_term):
         """ get xapian.Query from a search term string """
@@ -59,13 +80,24 @@ class StoreDatabase(xapian.Database):
         
         If no document is found, raise a IndexError
         """
-        for m in self.postlist("AA"+appname):
-            doc = self.get_document(m.docid)
+        for m in self.xapiandb.postlist("AA"+appname):
+            doc = self.xapiandb.get_document(m.docid)
             if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
                 return doc
         # no matching document found
         raise IndexError("No app '%s' for '%s' in database" % (appname,pkgname))
 
+    def is_appname_duplicated(self, appname):
+        """Check if the given appname is stored multiple times in the db
+           This can happen for generic names like "Terminal"
+        """
+        for (i, m) in enumerate(self.xapiandb.postlist("AA"+appname)):
+            if i > 0:
+                return True
+        return False
+
     def __len__(self):
         """return the doc count of the database"""
-        return self.get_doccount()
+        return self.xapiandb.get_doccount()
+
+

@@ -23,7 +23,12 @@ import gtk
 import logging
 import xapian
 
-from widgets.navigationbar import NavigationBar
+# magic environment to get new pathbar
+if "SOFTWARE_CENTER_NEW_PATHBAR" in os.environ:
+    from widgets.pathbar2 import NavigationBar
+else:
+    from widgets.navigationbar import NavigationBar
+
 from widgets.searchentry import SearchEntry
 
 from appview import AppView, AppStore, AppViewFilter
@@ -65,10 +70,8 @@ class SoftwarePane(gtk.VBox):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
-        self.xapiandb = db
-        self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.db = db
+        self.db.connect("reopen", self.on_db_reopen)
         self.icons = icons
         self.datadir = datadir
         # common UI elements (applist and appdetails) 
@@ -80,7 +83,7 @@ class SoftwarePane(gtk.VBox):
                                         gtk.POLICY_AUTOMATIC)
         self.scroll_app_list.add(self.app_view)
         # details
-        self.app_details = AppDetailsView(self.xapiandb, 
+        self.app_details = AppDetailsView(self.db, 
                                           self.icons, 
                                           self.cache, 
                                           self.datadir)
@@ -127,5 +130,9 @@ class SoftwarePane(gtk.VBox):
         pass
     
     def on_search_terms_changed(self, terms):
+        " stub implementation "
+        pass
+
+    def on_db_reopen(self):
         " stub implementation "
         pass

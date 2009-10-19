@@ -19,33 +19,31 @@
 
 
 import apt
-import dbus
-import dbus.service
-import glib
-import gobject
 import locale
 import logging
 import os
 import sys
+import time
 import xapian
-from dbus.mainloop.glib import DBusGMainLoop
 
+from softwarecenter.enums import *
+from softwarecenter.db.update import rebuild_database
 
+# dbus may not be available during a upgrade so we 
+# only set it up if its there
 try:
-    from softwarecenter.enums import *
+    import dbus
+    import dbus.service
+    import glib
+    import gobject # without gobject it will crash
+    from dbus.mainloop.glib import DBusGMainLoop
 except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from softwarecenter.enums import *
+    pass
 
-try:
-    from softwarecenter.db.update import rebuild_database
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from softwarecenter.db.update import update
+# add a bit of extra time between sending the "we-rebuild-the-db-now"
+# signal and the actual rebuilding to help the applications to shutdown
+# the DB access
+APP_CATCHUP_DELAY = 2
 
 class UpdateSoftwarecenterDbus(dbus.service.Object):
     """ 
@@ -63,6 +61,7 @@ class UpdateSoftwarecenterDbus(dbus.service.Object):
     def DatabaseRebuilding(self, isRebuilding):
         logging.debug("Sending DatabaseRebuilding signal '%s'" % isRebuilding)
 
+
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
     try:
@@ -78,8 +77,9 @@ if __name__ == "__main__":
         bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter', bus)
         dbus_controller = UpdateSoftwarecenterDbus(bus_name)
         dbus_controller.DatabaseRebuilding(True)
+        time.sleep(APP_CATCHUP_DELAY)
     except:
-        logging.exception("dbus failure (ignoring")
+        logging.warn("Failed to setup dbus (ignoring)")
 
     # rebuild and send signal when done
     try:
@@ -93,6 +93,7 @@ if __name__ == "__main__":
     finally:
         # signal that the xapian db is valid again
         if dbus_controller:
+            time.sleep(APP_CATCHUP_DELAY)
             dbus_controller.DatabaseRebuilding(False)
             context = glib.main_context_default()
             while context.pending():

@@ -168,7 +168,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_search">
-                        <property name="label" translatable="yes">Search&#x2026;</property>
+                        <property name="label" translatable="yes">Search...</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="image">image2</property>
@@ -184,7 +184,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_software_sources">
-                        <property name="label" translatable="yes">_Software Sources&#x2026;</property>
+                        <property name="label" translatable="yes">_Software Sources...</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="image">image4</property>
@@ -466,7 +466,7 @@
         <child>
           <object class="GtkLabel" id="label_rebuilding">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Rebuilding application catalog&#x2026;</property>
+            <property name="label" translatable="yes">Rebuilding application catalog...</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>

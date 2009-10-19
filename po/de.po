@@ -7,161 +7,416 @@ msgid ""
 msgstr ""
 "Project-Id-Version: software-store\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2009-09-02 13:52+0200\n"
-"PO-Revision-Date: 2009-09-05 18:05+0000\n"
-"Last-Translator: Baumkuchen <Unknown>\n"
+"POT-Creation-Date: 2009-09-25 17:10+0200\n"
+"PO-Revision-Date: 2009-09-29 17:05+0000\n"
+"Last-Translator: Matthias Klumpp <Unknown>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-09-09 07:16+0000\n"
+"X-Launchpad-Export-Date: 2009-09-30 06:47+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../softwarestore/app.py:223
-msgid "All"
-msgstr "Alles"
+#: ../softwarecenter/app.py:349 ../softwarecenter/view/appdetailsview.py:404
+msgid "ERROR"
+msgstr "Fehler"
 
-#: ../softwarestore/app.py:224
+#: ../softwarecenter/apt/aptcache.py:173 ../softwarecenter/apt/aptcache.py:185
 #, python-format
-msgid "Search in %s"
-msgstr "Suchen in %s"
+msgid ""
+"Canonical does no longer provide updates for %s in Ubuntu %s. Updates may be "
+"available in a newer version of Ubuntu."
+msgstr ""
+"Canonical stellt keine Aktualisierungen für %s in Ubuntu %s mehr zur "
+"Verfügung. Aktualisierungen könnten in einer neueren Version von Ubuntu "
+"verfügbar sein."
 
-#: ../softwarestore/app.py:333
+#: ../softwarecenter/apt/aptcache.py:178
 #, python-format
-msgid "%s items available"
-msgstr "%s Einträge verfügbar"
+msgid ""
+"Canonical provides critical updates for %(appname)s until "
+"%(support_end_month_str)s %(support_end_year)s."
+msgstr ""
+"Canonical stellt wichtige Aktualisierungen für %(appname)s bis "
+"einschließlich %(support_end_month_str)s %(support_end_year)s bereit."
 
-#: ../softwarestore/view/appdetailsview.py:77
+#: ../softwarecenter/apt/aptcache.py:190
+#, python-format
+msgid ""
+"Canonical provides critical updates supplied by the developers of "
+"%(appname)s until %(support_end_month_str)s %(support_end_year)s."
+msgstr ""
+"Canonical stellt wichtige Aktualisierungen, die von den Entwicklern zur "
+"Verfügung gestellt werden, für %(appname)s bis einschließlich "
+"%(support_end_month_str)s %(support_end_year)s bereit."
+
+#: ../softwarecenter/apt/aptcache.py:200
+#, python-format
+msgid ""
+"Canonical does not provide updates for %s. Some updates may be provided by "
+"the third party vendor."
+msgstr ""
+"Canonical stellt keine Aktualisierungen für %s bereit. Einige "
+"Aktualisierungen sind möglicherweise über Drittanbieter verfügbar."
+
+#: ../softwarecenter/apt/aptcache.py:204
+#, python-format
+msgid "Canonical provides critical updates for %s."
+msgstr "Canonical stellt wichtige Aktualisierungen für %s bereit."
+
+#: ../softwarecenter/apt/aptcache.py:206
+#, python-format
+msgid "Canonical provides critical updates supplied by the developers of %s."
+msgstr ""
+"Canonical stellt von den Entwicklern gelieferte wichtige Aktualisierungen "
+"für %s bereit."
+
+#: ../softwarecenter/apt/aptcache.py:209
+#, python-format
+msgid ""
+"Canonical does not provide updates for %s. Some updates may be provided by "
+"the Ubuntu community."
+msgstr ""
+"Canonical stellt keine Aktualisierungen für %s bereit. Einige "
+"Aktualisierungen sind möglicherweise über die Ubuntu-Gemeinschaft verfügbar."
+
+#: ../softwarecenter/apt/aptcache.py:212
+#, python-format
+msgid "Application %s has a unkown maintenance status."
+msgstr "Anwendung %s hat einen unbekannten Unterstützungsstatus."
+
+#: ../softwarecenter/view/appdetailsview.py:89
 msgid "Description"
 msgstr "Beschreibung"
 
-#: ../softwarestore/view/appdetailsview.py:147
+#: ../softwarecenter/view/appdetailsview.py:181
+#: ../softwarecenter/view/appdetailsview.py:186
 msgid "Not available in the current data"
 msgstr "Im aktuellen Datensatz nicht verfügbar"
 
-#: ../softwarestore/view/appdetailsview.py:176
+#: ../softwarecenter/view/appdetailsview.py:184
+msgid "Not available for your hardware architecture."
+msgstr "Für Ihre Hardwarearchitektur nicht verfügbar."
+
+#: ../softwarecenter/view/appdetailsview.py:211
+#: ../softwarecenter/view/appdetailsview.py:215
+msgid "Application Screenshot"
+msgstr "Bildschirmfoto der Anwendung"
+
+#: ../softwarecenter/view/appdetailsview.py:239
 #, python-format
 msgid "Version: %s (%s)"
 msgstr "Version: %s (%s)"
 
 #. generic message
-#: ../softwarestore/view/appdetailsview.py:194
+#: ../softwarecenter/view/appdetailsview.py:257
 #, python-format
 msgid "%s is installed on this computer."
-msgstr "%s ist auf diesem Computer installiert."
+msgstr "%s ist auf diesem Rechner installiert."
 
-#: ../softwarestore/view/appdetailsview.py:206
+#: ../softwarecenter/view/appdetailsview.py:269
 #, python-format
 msgid "It is used by %s piece of installed software."
 msgid_plural "It is used by %s pieces of installed software."
-msgstr[0] "Es ist von %s Teil bereits installierter Software in Benutzung."
-msgstr[1] "Es ist von %s Teilen bereits installierter Software in Benutzung."
+msgstr[0] ""
+"Es wird von %s Bestandteil der bereits installierten Software verwendet."
+msgstr[1] ""
+"Es wird von %s Bestandteilen der bereits installierten Software verwendet."
 
-#: ../softwarestore/view/appdetailsview.py:211
+#: ../softwarecenter/view/appdetailsview.py:274
+msgid "Website"
+msgstr "Webseite"
+
+#: ../softwarecenter/view/appdetailsview.py:277
+msgid "Unknown"
+msgstr "Unbekannt"
+
+#: ../softwarecenter/view/appdetailsview.py:279
+msgid "Open Source"
+msgstr "Open Source"
+
+#: ../softwarecenter/view/appdetailsview.py:281
+msgid "Proprietary"
+msgstr "Proprietär"
+
+#: ../softwarecenter/view/appdetailsview.py:282
+#, python-format
+msgid "License: %s"
+msgstr "Lizenz: %s"
+
+#. TRANSLATORS: This text will be showed as price of the software
+#: ../softwarecenter/view/appdetailsview.py:286
+msgid "Free"
+msgstr "Kostenlos"
+
+#: ../softwarecenter/view/appdetailsview.py:287
 #, python-format
 msgid "Price: %s"
 msgstr "Preis: %s"
 
-#: ../softwarestore/view/appdetailsview.py:211
-msgid "Free"
-msgstr "Frei"
+#: ../softwarecenter/view/appdetailsview.py:327
+#, python-format
+msgid "%s - Screenshot"
+msgstr "%s - Bildschirmfoto"
 
 #. generic removal text
-#: ../softwarestore/view/appdetailsview.py:257
+#. FIXME: this text is not accurate, we look at recommends as
+#. well as part of the rdepends, but those do not need to
+#. be removed, they just may be limited in functionatlity
+#: ../softwarecenter/view/appdetailsview.py:346
 #, python-format
-msgid "%s depends on other software on the system. "
-msgstr "%s ist von anderer Software dieses Systems abhängig. "
-
-#: ../softwarestore/view/appdetailsview.py:258
-msgid ""
-"Uninstalling it means that the following additional software needs to be "
-"removed."
+msgid "To remove %s, these items must be removed as well:"
 msgstr ""
-"Eine Deinstallation bedeutet, dass folgende zusätzliche Software entfernt "
-"wird."
+"Um %s zu entfernen, müssen folgende Software-Pakete ebenfalls entfernt "
+"werden:"
 
-#: ../softwarestore/view/appdetailsview.py:263
+#: ../softwarecenter/view/appdetailsview.py:348
+msgid "Remove All"
+msgstr "Alle entfernen"
+
+#: ../softwarecenter/view/appdetailsview.py:354
 #, python-format
-msgid "%s is a core component"
-msgstr "%s ist ein Kernkomponente."
+msgid ""
+"If you uninstall %s, future updates will not include new items in <b>%s</b> "
+"set. Are you sure you want to continue?"
+msgstr ""
+"Wenn Sie %s deinstallieren, werden zukünftige Aktualisierungen keine neuen "
+"Bestandteile aus der Gruppe <b>%s</b> beinhalten. Sind Sie sicher, dass Sie "
+"fortfahren möchten?"
 
-#: ../softwarestore/view/appdetailsview.py:264
+#: ../softwarecenter/view/appdetailsview.py:357
+#: ../softwarecenter/view/appdetailsview.py:368
+msgid "Remove Anyway"
+msgstr "Dennoch entfernen"
+
+#: ../softwarecenter/view/appdetailsview.py:364
 #, python-format
 msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
 "%s ist eine Kernanwendung in Ubuntu. Eine Deinstallation verursacht unter "
-"Umständen in Zukunft lückenhafte Aktualisierungen. Wollen Sie wirklich "
-"fortsetzen?"
+"Umständen in Zukunft lückenhafte Aktualisierungen. Sind Sie sicher, dass Sie "
+"fortfahren möchten?"
 
-#: ../softwarestore/view/appdetailsview.py:293
-msgid "ERROR"
-msgstr "FEHLER"
-
-#: ../softwarestore/view/appdetailsview.py:309
+#: ../softwarecenter/view/appdetailsview.py:427
 msgid "Upgrade"
 msgstr "Aktualisierung"
 
-#: ../softwarestore/view/appdetailsview.py:312
+#: ../softwarecenter/view/appdetailsview.py:430
 msgid "Remove"
 msgstr "Entfernen"
 
-#: ../softwarestore/view/appdetailsview.py:315
+#: ../softwarecenter/view/appdetailsview.py:433
 msgid "Install"
 msgstr "Installieren"
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarestore/view/appdetailsview.py:324
+#: ../softwarecenter/view/appdetailsview.py:442
 msgid "Enable channel"
 msgstr "Kanal aktivieren"
 
-#: ../softwarestore/view/viewswitcher.py:95
-msgid "Get Free software"
-msgstr "Freie Software installieren"
+#: ../softwarecenter/view/appdetailsview.py:469
+msgid "_Keep"
+msgstr "_Beibehalten"
 
-#: ../softwarestore/view/viewswitcher.py:97
-msgid "Installed software"
-msgstr "Installierte Software"
+#: ../softwarecenter/view/appdetailsview.py:470
+msgid "_Replace"
+msgstr "_Ersetzen"
 
-#: ../softwarestore/view/viewswitcher.py:127
+#: ../softwarecenter/view/appdetailsview.py:472
+#, python-format
+msgid "Configuration file '%s' changed"
+msgstr "Konfigurationsdatei »%s« wurde geändert"
+
+#: ../softwarecenter/view/appdetailsview.py:473
+msgid "Do you want to use the new version?"
+msgstr "Möchten Sie die neue Version benutzen?"
+
+#. home button
+#: ../softwarecenter/view/availablepane.py:88
+#: ../softwarecenter/view/viewswitcher.py:128
+msgid "Get Free Software"
+msgstr "Freie Software erhalten"
+
+#: ../softwarecenter/view/availablepane.py:138
+#: ../softwarecenter/view/installedpane.py:127
+#, python-format
+msgid "%s matching item"
+msgid_plural "%s matching items"
+msgstr[0] "%s entsprechendes Element"
+msgstr[1] "%s entsprechende Elemente"
+
+#: ../softwarecenter/view/availablepane.py:142
+#, python-format
+msgid "%s item available"
+msgid_plural "%s items available"
+msgstr[0] "%s Element verfügbar"
+msgstr[1] "%s Elemente verfügbar"
+
+#: ../softwarecenter/view/catview.py:71 ../softwarecenter/view/catview.py:106
+msgid "Departments"
+msgstr "Bereiche"
+
+#: ../softwarecenter/view/dialogs.py:45
+msgid "Details"
+msgstr "Details"
+
+#: ../softwarecenter/view/dialogs.py:80
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#. FIXME: make this a generic pkgview widget
+#: ../softwarecenter/view/dialogs.py:88
+msgid "Dependency"
+msgstr "Abhängigkeit"
+
+#: ../softwarecenter/view/installedpane.py:74
+#: ../softwarecenter/view/viewswitcher.py:130
+msgid "Installed Software"
+msgstr "Installierte Anwendungen"
+
+#: ../softwarecenter/view/installedpane.py:131
+#, python-format
+msgid "%s installed item"
+msgid_plural "%s installed items"
+msgstr[0] "%s installiertes Element"
+msgstr[1] "%s installierte Elemente"
+
+#: ../softwarecenter/view/viewswitcher.py:160
+#: ../softwarecenter/view/viewswitcher.py:165
 #, python-format
 msgid "In Progress (%i)"
 msgstr "In Bearbeitung (%i)"
 
-#: ../softwarestore/view/viewswitcher.py:132
-#, python-format
-msgid "Pending (%i)"
-msgstr "Anstehend (%i)"
+#: ../data/ui/SoftwareCenter.ui.h:1
+msgid "&#xA9;2009 Canonical"
+msgstr "&#xA9;2009 Canonical"
 
-#: ../data/ubuntu-software-store.desktop.in.h:1
-msgid "Install and remove software"
-msgstr "Software installieren und entfernen"
+#: ../data/ui/SoftwareCenter.ui.h:2
+msgid "Copy _Web Link"
+msgstr "_Web-Verknüpfung kopieren"
 
-#: ../data/ubuntu-software-store.desktop.in.h:2
-msgid "Software Store"
-msgstr "Software Store"
+#: ../data/ui/SoftwareCenter.ui.h:3
+msgid ""
+"Lets you choose from thousands of free applications available for Ubuntu."
+msgstr "Lässt Sie aus tausenden freien Anwendungen für Ubuntu auswählen."
 
-#: ../data/ubuntu-software-store.desktop.in.h:3
-msgid "Ubuntu Software Store"
-msgstr "Ubuntu Software Store"
+#: ../data/ui/SoftwareCenter.ui.h:4
+msgid "Rebuilding application catalog..."
+msgstr "Anwendungskatalog wird erstellt..."
 
-#: ../data/ui/SoftwareStore.ui.h:11
+#: ../data/ui/SoftwareCenter.ui.h:5
+msgid "Search..."
+msgstr "Suche..."
+
+#: ../data/ui/SoftwareCenter.ui.h:6
+msgid "Software Center _Help"
+msgstr "Software Center _Hilfe"
+
+#: ../data/ui/SoftwareCenter.ui.h:7
+#: ../data/ubuntu-software-center.desktop.in.h:3
+msgid "Ubuntu Software Center"
+msgstr "Software Center"
+
+#: ../data/ui/SoftwareCenter.ui.h:8
+msgid "_All Applications"
+msgstr "_Alle Anwendungen"
+
+#: ../data/ui/SoftwareCenter.ui.h:9
+msgid "_Canonical-Maintained Applications"
+msgstr "Von _Canonical betreute Anwendungen"
+
+#: ../data/ui/SoftwareCenter.ui.h:10
+msgid "_Edit"
+msgstr "_Bearbeiten"
+
+#: ../data/ui/SoftwareCenter.ui.h:11
 msgid "_File"
 msgstr "_Datei"
 
-#. home button
-#: ../softwarestore/view/availablepane.py:101
-#: ../softwarestore/view/viewswitcher.py:118
-msgid "Get Free Software"
-msgstr "Freie Software bekommen"
+#: ../data/ui/SoftwareCenter.ui.h:12
+msgid "_Help"
+msgstr "_Hilfe"
 
-#: ../data/ui/SoftwareStore.ui.h:3
-msgid "Canonical-Maintained Applications"
-msgstr "Von Canonical Betreute Anwendungen"
+#: ../data/ui/SoftwareCenter.ui.h:13
+msgid "_Install"
+msgstr "_Installieren"
 
-#: ../softwarestore/view/installedpane.py:98
-#: ../softwarestore/view/viewswitcher.py:120
-msgid "Installed Software"
-msgstr "Installierte Anwendungen"
+#: ../data/ui/SoftwareCenter.ui.h:14
+msgid "_Software Sources..."
+msgstr "_Software-Paketquellen..."
+
+#: ../data/ui/SoftwareCenter.ui.h:15
+msgid "_View"
+msgstr "_Ansicht"
+
+#: ../data/ui/SoftwareCenter.ui.h:16
+msgid "available"
+msgstr "verfügbar"
+
+#: ../data/ui/SoftwareCenter.ui.h:17
+msgid "installed"
+msgstr "installiert"
+
+#: ../data/ui/SoftwareCenter.ui.h:18
+msgid "pending"
+msgstr "ausstehend"
+
+#: ../data/ubuntu-software-center.desktop.in.h:1
+msgid ""
+"Lets you choose from thousands of free applications available for Ubuntu"
+msgstr "Lässt Sie aus tausenden freien Anwendungen für Ubuntu auswählen"
+
+#: ../data/ubuntu-software-center.desktop.in.h:2
+msgid "Software Center"
+msgstr "Software Center"
+
+#, python-format
+#~ msgid "%s items available"
+#~ msgstr "%s Einträge verfügbar"
+
+#~ msgid "All"
+#~ msgstr "Alles"
+
+#~ msgid "Install and remove software"
+#~ msgstr "Software installieren und entfernen"
+
+#~ msgid "Installed software"
+#~ msgstr "Installierte Software"
+
+#, python-format
+#~ msgid "Pending (%i)"
+#~ msgstr "Anstehend (%i)"
+
+#, python-format
+#~ msgid "Search in %s"
+#~ msgstr "Suchen in %s"
+
+#, python-format
+#~ msgid "%s depends on other software on the system. "
+#~ msgstr "%s ist von anderer Software dieses Systems abhängig. "
+
+#, python-format
+#~ msgid "%s is a core component"
+#~ msgstr "%s ist ein Kernkomponente."
+
+#~ msgid ""
+#~ "Uninstalling it means that the following additional software needs to be "
+#~ "removed."
+#~ msgstr ""
+#~ "Eine Deinstallation bedeutet, dass folgende zusätzliche Software entfernt "
+#~ "wird."
+
+#~ msgid "Software Store"
+#~ msgstr "Software Store"
+
+#~ msgid "Ubuntu Software Store"
+#~ msgstr "Ubuntu Software Store"
+
+#~ msgid "Get Free software"
+#~ msgstr "Freie Software installieren"
+
+#~ msgid "Canonical-Maintained Applications"
+#~ msgstr "Von Canonical Betreute Anwendungen"

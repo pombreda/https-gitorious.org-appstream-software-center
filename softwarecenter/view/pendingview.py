@@ -76,11 +76,11 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                 trans.connect("status", self._on_status_changed))
             self._signals.append(
                 trans.connect("allow-cancel", self._on_allow_cancel_changed))
-            #FIXME: role is always "Applying changes"
-            #self._signals.append(
-            #    trans.connect("role", self._on_role_changed))
             appname = trans.get_data("appname")
             iconname = trans.get_data("iconname")
+            if not appname:
+                self._signals.append(
+                    trans.connect("role", self._on_role_changed))
             if iconname:
                 try:
                     icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
@@ -101,7 +101,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                     row[self.COL_CANCEL] = self.PENDING_STORE_ICON_NO_CANCEL
 
     def _on_role_changed(self, trans, role):
-        #print "_on_progress_changed: ", trans, progress
+        #print "_on_progress_changed: ", trans, role
         for row in self:
             if row[self.COL_TID] == trans.tid:
                 row[self.COL_NAME] = get_role_localised_present_from_enum(role)

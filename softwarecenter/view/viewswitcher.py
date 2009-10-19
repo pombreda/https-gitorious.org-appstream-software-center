@@ -70,6 +70,19 @@ class ViewSwitcher(gtk.TreeView):
         self.set_model(store)
         self.set_headers_visible(False)
         self.connect("button-press-event", self.on_button_press_event)
+    def get_view(self):
+        """return the current activated view number or None if no
+           view is activated (this can happen when a pending view 
+           disappeared). Views are:
+           
+           ViewSwitcherList.ACTION_ITEM_AVAILABLE
+           ViewSwitcherList.ACTION_ITEM_INSTALLED
+           ViewSwitcherList.ACTION_ITEM_PENDIN
+        """
+        (path, column) = self.get_cursor()
+        if not path:
+            return None
+        return path[0]
     def set_view(self, action):
         self.set_cursor((action,))
         self.emit("view-changed", action)

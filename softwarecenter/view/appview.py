@@ -34,6 +34,8 @@ if os.path.exists("./softwarecenter/enums.py"):
 from softwarecenter.enums import *
 from softwarecenter.db.database import StoreDatabase, Application
 
+from gettext import gettext as _
+
 class AppStore(gtk.GenericTreeModel):
     """ 
     A subclass GenericTreeModel that reads its data from a xapian
@@ -56,7 +58,12 @@ class AppStore(gtk.GenericTreeModel):
                    str)
 
     ICON_SIZE = 24
+    ARROW_SIZE = 32
 
+    (SEARCHES_SORTED_BY_POPCON,
+     SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
+     SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
+     
     def __init__(self, cache, db, icons, search_query=None, limit=200, 
                  sort=False, filter=None):
         """
@@ -75,14 +82,15 @@ class AppStore(gtk.GenericTreeModel):
         """
         gtk.GenericTreeModel.__init__(self)
         self.cache = cache
-        self.xapiandb = db
+        self.db = db
         self.icons = icons
         self.apps = []
         self.filter = filter
+        self._searches_sort_mode = self._get_searches_sort_mode()
         if not search_query:
             # limit to applications
-            for m in db.postlist("ATapplication"):
-                doc = db.get_document(m.docid)
+            for m in db.xapiandb.postlist("ATapplication"):
+                doc = db.xapiandb.get_document(m.docid)
                 if filter and self.is_filtered_out(filter, doc):
                     continue
                 appname = doc.get_data()
@@ -90,11 +98,17 @@ class AppStore(gtk.GenericTreeModel):
                 self.apps.append(Application(appname, pkgname))
             self.apps.sort(cmp=Application.apps_cmp)
         else:
-            enquire = xapian.Enquire(db)
+            enquire = xapian.Enquire(db.xapiandb)
             enquire.set_query(search_query)
-            enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+            # set search order mode
+            if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
+                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+            elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
+                sort=True
+            # SEARCHES_SORTED_BY_XAPIAN_RELEVANCE: is default in xapian
+            # no need to explicitely srt
             if limit == 0:
-                matches = enquire.get_mset(0, db.get_doccount())
+                matches = enquire.get_mset(0, len(db))
             else:
                 matches = enquire.get_mset(0, limit)
             logging.debug("found ~%i matches" % matches.get_matches_estimated())
@@ -116,6 +130,18 @@ class AppStore(gtk.GenericTreeModel):
         """ apply filter and return True if the package is filtered out """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         return not filter.filter(doc, pkgname)
+    # internal helper
+    def _get_searches_sort_mode(self):
+        mode = self.SEARCHES_SORTED_BY_POPCON
+        if "SOFTWARE_CENTER_SEARCHES_SORT_MODE" in os.environ:
+            k = os.environ["SOFTWARE_CENTER_SEARCHES_SORT_MODE"].strip().lower()
+            if k == "popcon":
+                mode = self.SEARCHES_SORTED_BY_POPCON
+            elif k == "alphabetic":
+                mode = self.SEARCHES_SORTED_BY_ALPHABETIC
+            elif k == "xapian":
+                mode = self.SEARCHES_SORTED_BY_XAPIAN_RELEVANCE
+        return mode
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -136,13 +162,16 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
         app = self.apps[rowref]
-        doc = self.xapiandb.get_xapian_document(app.appname, app.pkgname)
+        doc = self.db.get_xapian_document(app.appname, app.pkgname)
         if column == self.COL_APP_NAME:
             return app.appname
         elif column == self.COL_TEXT:
+            appname = app.appname
             summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
+            if self.db.is_appname_duplicated(appname):
+                appname = "%s (%s)" % (appname, app.pkgname) 
             s = "%s\n<small>%s</small>" % (
-                gobject.markup_escape_text(app.appname),
+                gobject.markup_escape_text(appname),
                 gobject.markup_escape_text(summary))
             return s
         elif column == self.COL_ICON:
@@ -192,50 +221,139 @@ class AppStore(gtk.GenericTreeModel):
         return None
 
 
-
-
 # custom renderer for the arrow thing that mpt wants
-class CellRendererTextWithActivateArrow(gtk.CellRendererText):
+class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
     """ 
     a custom cell renderer that renders a arrow at the very right
     of the text and that emits a "row-activated" signal when the 
     arrow is clicked
     """
+
+    __gproperties__ = {
+        'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
+                   gobject.PARAM_READWRITE)
+        }
+
     # padding around the arrow at the end
     ARROW_PADDING = 4
+    XPAD = 2
+    YPAD = 2
 
     def __init__(self):
-        gtk.CellRendererText.__init__(self)
-        icons = gtk.icon_theme_get_default()
-        self._arrow_space = AppStore.ICON_SIZE + self.ARROW_PADDING
-        try:
-            self._forward = icons.load_icon("software-center-arrow-button", 
-                                            AppStore.ICON_SIZE, 0)
-        except glib.GError:
-            # icon not present in theme, probably because running uninstalled
-            self._forward = icons.load_icon("gtk-go-forward-ltr",
-                                            AppStore.ICON_SIZE, 0)
-    # FIMXE: what about right-to-left languages? we need to 
-    #        render the button differently there
+        self.__gobject_init__()
+        self.markup = None
+        self._height = None
+        self._pixbuf = None
+
+    def do_set_property(self, pspec, value):
+        setattr(self, pspec.name, value)
+
+    def do_get_property(self, pspec):
+        return getattr(self, pspec.name)
+
+    def on_get_size(self, widget, cell_area):
+        a = widget.get_allocation()
+        if not self._height:
+            pc = widget.get_pango_context()
+            layout = pango.Layout(pc)
+            layout.set_markup(self.markup)
+            self._height = max(layout.get_pixel_size()[1]+2*self.YPAD, 32)
+        return a.x, a.y, a.width, self._height
+
     def do_render(self, window, widget, background_area, cell_area, 
                   expose_area, flags):
+
+        xpad = self.XPAD
+        ypad = self.YPAD
+
+        pc = widget.get_pango_context()
+        layout = pango.Layout(pc)
+        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+
         # reserve space at the end for the arrow
-        cell_area.width -= self._arrow_space
-        gtk.CellRendererText.do_render(self, window, widget, background_area, 
-                                       cell_area, expose_area, flags)
-        # now render the arrow if its selected
-        # FIXME: should we show the arrow on gtk.CELL_RENDERER_PRELIT too?
+        lw = cell_area.width-AppStore.ARROW_SIZE-self.ARROW_PADDING
+        layout.set_width(lw*pango.SCALE)
+        layout.set_markup(self.markup)
+
+        dst_x = cell_area.x+xpad
+        if widget.get_direction() == gtk.TEXT_DIR_RTL:
+            dst_x += +AppStore.ARROW_SIZE-self.ARROW_PADDING
+        dst_y = cell_area.y+(cell_area.height-layout.get_pixel_size()[1])/2
+
+        state = gtk.STATE_NORMAL
         if gtk.CELL_RENDERER_SELECTED & flags:
-            (x, y, width, height, depth) = window.get_geometry()
-            dest_x = cell_area.x + cell_area.width
-            dest_y = (cell_area.y + 
-                      int(((cell_area.height - AppStore.ICON_SIZE)/2.0)))
-            window.draw_pixbuf(None, 
-                               self._forward,   # icon
-                               0, 0,            # src pixbuf
-                               dest_x, dest_y,  # dest in window
-                               -1, -1,          # size
-                               0, 0, 0)         # dither
+            state = gtk.STATE_SELECTED
+
+        widget.style.paint_layout(window,
+                                  state,
+                                  True,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  dst_x,
+                                  dst_y,
+                                  layout)
+
+        # now render the arrow if its selected
+        if gtk.CELL_RENDERER_SELECTED & flags:
+            if widget.get_direction() != gtk.TEXT_DIR_RTL:
+                dst_x = cell_area.x+cell_area.width-cell_area.height+xpad
+            else:
+                dst_x = cell_area.x+xpad
+
+            dst_y = cell_area.y+ypad
+            width = height = cell_area.height-2*ypad
+
+            widget.style.paint_box(window,
+                                   gtk.STATE_NORMAL,
+                                   gtk.SHADOW_ETCHED_OUT,
+                                   cell_area,
+                                   widget,
+                                   "button",
+                                   dst_x,
+                                   dst_y,
+                                   width,
+                                   height)
+
+            if not self._pixbuf:
+                # we connect here because in init we do not have
+                # a parent widget yet
+                widget.connect("style-set", self._on_style_change)
+                self._pixbuf = self._load_icon_pixbuf(widget)
+
+            pixbuf = self._pixbuf
+            dst_x = dst_x + (width - pixbuf.get_width())/2
+            dst_y = dst_y + (height - pixbuf.get_height())/2
+
+            window.draw_pixbuf(None,
+                               pixbuf,
+                               0,
+                               0,
+                               dst_x,
+                               dst_y,
+                               width=-1,
+                               height=-1,
+                               dither=gtk.gdk.RGB_DITHER_NORMAL,
+                               x_dither=0,
+                               y_dither=0)
+        return
+
+    def _on_style_change(self, widget, old_style):
+        # on style change reload icon pixbuf and recalc height
+        self._pixbuf = self._load_icon_pixbuf(widget)
+        self._height = None
+        return
+
+    def _load_icon_pixbuf(self, widget, stock_id=gtk.STOCK_GO_FORWARD):
+        icon = widget.style.lookup_icon_set(stock_id)
+        return icon.render_icon(widget.style,
+                                widget.get_direction(),
+                                gtk.STATE_NORMAL,
+                                gtk.ICON_SIZE_MENU,
+                                widget,
+                                detail=None)
+
+
 gobject.type_register(CellRendererTextWithActivateArrow)
 
 
@@ -313,8 +431,9 @@ class AppView(gtk.TreeView):
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
+        # FIXME: add "ellipize" property to CellRendererTextWithActivateArrow
         tr = CellRendererTextWithActivateArrow()
-        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
+#        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
         column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
@@ -327,12 +446,15 @@ class AppView(gtk.TreeView):
         # our own "activate" handler
         self.connect("row-activated", self._on_row_activated)
         # button and motion are "special" 
+
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("motion-notify-event", self._on_motion_notify_event)
         self.connect("cursor-changed", self._on_cursor_changed)
+
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
         self.emit("application-activated", name, pkgname)
+
     def _on_cursor_changed(self, treeview):
         selection = treeview.get_selection()
         (model, iter) = selection.get_selected()
@@ -340,12 +462,25 @@ class AppView(gtk.TreeView):
             return
         (name, text, icon, overlay, pkgname) = model[iter]
         self.emit("application-selected", name, pkgname)
+
+    # FIXME: move the tooltip, motion_notify etc to the render/TreeViewColumn?
     def _on_motion_notify_event(self, widget, event):
-        (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
-        if width - event.x <= AppStore.ICON_SIZE:
+        #self.set_has_tooltip(False)
+        if self._xy_is_over_arrow(int(event.x), (event.y)):
+            # FIXME: deactivated for karmic (because we are in string freeze
+            #tip = _("Click to view application details")
+            #gobject.timeout_add(50, self._set_tooltip_cb, tip)
             self.window.set_cursor(self._cursor_hand)
         else:
             self.window.set_cursor(None)
+
+    def _set_tooltip_cb(self, text):
+        # callback allows the tooltip position to be updated as pointer moves
+        # accross different button regions
+        self.set_has_tooltip(True)
+        self.set_tooltip_markup(text)
+        return False
+
     def _on_button_press_event(self, widget, event):
         if event.button != 1:
             return
@@ -359,11 +494,20 @@ class AppView(gtk.TreeView):
         selection = widget.get_selection()
         if not selection.path_is_selected(path):
             return
-        # get the size of gdk window
-        (rel_x, rel_y, width, height, depth) = widget.window.get_geometry()
         # the last pixels of the view are reserved for the arrow icon
-        if width - event.x <= AppStore.ICON_SIZE:
+        if self._xy_is_over_arrow(int(event.x), int(event.y)):
             self.emit("row-activated", path, column)
+
+    def _xy_is_over_arrow(self, x, y):
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
+            (relx, rely, w, h, depth) = self.window.get_geometry()
+            if w-x <= AppStore.ARROW_SIZE:
+                return True
+        else:
+            if x <= AppStore.ARROW_SIZE:
+                self.window.set_cursor(self._cursor_hand)
+                return True
+        return False
 
 # XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):

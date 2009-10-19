@@ -36,6 +36,7 @@ WEIGHT_DESKTOP_KEYWORD = 5
 WEIGHT_DESKTOP_GENERICNAME = 3
 WEIGHT_DESKTOP_COMMENT = 1
 
+WEIGHT_APT_PKGNAME = 8
 WEIGHT_APT_SUMMARY = 5
 WEIGHT_APT_DESCRIPTION = 1
 
@@ -57,7 +58,7 @@ class DesktopConfigParser(RawConfigParser):
                     return translated_value
         # then try the i18n version of the key (in [de_DE] or
         # [de]
-        locale = getdefaultlocale()[0]
+        locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
         if locale:
             if self.has_option_desktop("%s[%s]" % (key, locale)):
                 return self.get(self.DE, "%s[%s]" % (key, locale))
@@ -103,6 +104,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 logging.debug("duplicated name '%s' (%s)" % (name, desktopf))
             seen.add(name)
             doc.set_data(name)
+            doc.add_value(XAPIAN_VALUE_APPNAME, name)
             doc.add_term("AA"+name)
             # package name
             pkgname = parser.get_desktop("X-AppInstall-Package")
@@ -159,6 +161,9 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             elif pkgname in cache and cache[pkgname].candidate:
                 s = cache[pkgname].candidate.summary
                 doc.add_value(XAPIAN_VALUE_SUMMARY, s)
+
+            # add packagename as meta-data too
+            term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)
 
             # now add search data from the desktop file
             for key in ["Name","Generic Name","Comment"]:
