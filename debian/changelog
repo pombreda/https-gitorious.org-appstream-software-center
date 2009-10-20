@@ -1,7 +1,9 @@
-software-center (1.0.1) karmic; urgency=low
+software-center (1.0.1) UNRELEASEDkarmic; urgency=low
 
   * debian/control:
     - update vcs link to lp:~ubuntu-core-dev/software-center/karmic
+  * softwarecenter/view/dialogs.py:
+    - merge fix from Andrew Higginson for modal dialog bug (#455327)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:04:14 +0200
 
