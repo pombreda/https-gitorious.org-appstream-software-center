@@ -4,6 +4,8 @@ software-center (1.0.1) UNRELEASEDkarmic; urgency=low
     - update vcs link to lp:~ubuntu-core-dev/software-center/karmic
   * softwarecenter/view/dialogs.py:
     - merge fix from Andrew Higginson for modal dialog bug (#455327)
+  * softwarecenter/view/appdetailsview.py:
+    - do not crash if gconfd is not running (LP: #452559)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:04:14 +0200
 

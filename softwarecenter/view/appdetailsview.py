@@ -573,13 +573,13 @@ class AppDetailsView(WebkitWidget):
     def _setup_http_proxy(self, transaction):
         try:
             import gconf
-        except ImportError:
-            return
-        client = gconf.client_get_default()
-        if client.get_bool("/system/http_proxy/use_http_proxy"):
-            host = client.get_string("/system/http_proxy/host")
-            port = client.get_int("/system/http_proxy/port")
-            transaction.set_http_proxy("http://%s:%s/" % (host, port))
+            client = gconf.client_get_default()
+            if client.get_bool("/system/http_proxy/use_http_proxy"):
+                host = client.get_string("/system/http_proxy/host")
+                port = client.get_int("/system/http_proxy/port")
+                transaction.set_http_proxy("http://%s:%s/" % (host, port))
+        except:
+            logging.exception("gconf http proxy failed")
 
     def _run_transaction(self, trans):
         # set object data
