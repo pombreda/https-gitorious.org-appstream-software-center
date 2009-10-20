@@ -11,6 +11,17 @@ software-center (1.1) karmic; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 
+software-center (1.0.1) UNRELEASEDkarmic; urgency=low
+
+  * debian/control:
+    - update vcs link to lp:~ubuntu-core-dev/software-center/karmic
+  * softwarecenter/view/dialogs.py:
+    - merge fix from Andrew Higginson for modal dialog bug (#455327)
+  * softwarecenter/view/appdetailsview.py:
+    - do not crash if gconfd is not running (LP: #452559)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:04:14 +0200
+
 software-center (1.0) karmic; urgency=low
 
   * softwarecenter/view/appdetailsview.py:
