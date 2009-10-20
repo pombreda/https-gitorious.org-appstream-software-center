@@ -18,14 +18,14 @@
 
 import apt
 import dbus
-import logging
 import gettext
 import glib
-import gtk
 import gobject
-import apt
-import os
+import gtk
+import logging
 import pango
+import os
+import re
 import socket
 import string
 import subprocess
@@ -33,8 +33,8 @@ import sys
 import tempfile
 import time
 import threading
-import xapian
 import urllib
+import xapian
 
 from aptdaemon import policykit1
 from aptdaemon import client
@@ -108,6 +108,7 @@ class AppDetailsView(WebkitWidget):
         # setup user-agent
         settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)
+        self.connect("navigation-requested", self._on_navigation_requested)
 
     def _show(self, widget):
         if not self.appname:
@@ -187,25 +188,38 @@ class AppDetailsView(WebkitWidget):
             return "section-installed"
         return "section-get"
     def wksub_description(self):
-        if self.pkg:
-            details = self.pkg.candidate.description
-        else:
+        if not self.pkg:
             # if we have no pkg, check if its available for the given
             # architecture
             arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
             if arches:
                 for arch in map(string.strip, arches.split(",")):
                     if arch == self.arch:
-                        details = _("Not available in the current data")
-                        break
+                        return _("Not available in the current data")
                 else:
-                    details = _("Not available for your hardware architecture.")
+                    return _("Not available for your hardware architecture.")
             else:
-                details = _("Not available in the current data")
-        description = details.replace("*","</p><p>*")
-        description = description.replace("\n-","</p><p>-")
-        description = description.replace("\n\n","</p><p>")
+                return _("Not available in the current data")
+
+        # format for html
+        description = self.pkg.description
+        #bullets (*)
+        regx = re.compile("((\*) .*)")
+        description = re.sub(regx, r'<p>\1</p>', description)
+        
+        #bullets (-)
+        regx = re.compile("((\-) .*)")
+        description = re.sub(regx, r'<p>\1</p>', description)
+        
+        #line breaks
+        regx = re.compile("(\n\n)")
+        description = re.sub(regx, r'<p></p>', description)
+        
+        # urls
+        regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
+        description = re.sub(regx, r'<a href="\1">\1</a>', description)
         return description
+
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and
             self.cache[self.pkgname].isInstalled):
@@ -424,6 +438,20 @@ class AppDetailsView(WebkitWidget):
         self.on_button_upgrade_clicked()
 
     # internal callback
+    def _on_navigation_requested(self, view, frame, request):
+        logging.debug("_on_navigation_requested %s" % request.get_uri())
+        # not available in the python bindings yet
+        # typedef enum {
+        #  WEBKIT_NAVIGATION_RESPONSE_ACCEPT,
+        #  WEBKIT_NAVIGATION_RESPONSE_IGNORE,
+        #  WEBKIT_NAVIGATION_RESPONSE_DOWNLOAD
+        # } WebKitNavigationResponse;
+        uri = request.get_uri()
+        if uri.startswith("http:"):
+            subprocess.call(["gnome-open", uri])
+            return 1
+        return 0
+
     def _on_trans_reply(self):
         # dummy callback for now, but its required, otherwise the aptdaemon
         # client blocks the UI and keeps gtk from refreshing
@@ -623,6 +651,7 @@ if __name__ == "__main__":
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname)
+    db.open()
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
@@ -636,7 +665,8 @@ if __name__ == "__main__":
     #view.show_app("AMOR")
     #view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")
-    view.show_app("ACE", "unace")
+    #view.show_app("ACE", "unace")
+    view.show_app("Movie Player", "totem")
     #view.show_app("Artha")
     #view.show_app("cournol")
     #view.show_app("Qlix")

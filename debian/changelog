@@ -1,3 +1,16 @@
+software-center (1.1) karmic; urgency=low
+
+  * merged from Andrew Higginson, many thanks
+  * softwarecenter/view/appdetailsview.py:
+    - support uris in the app description (LP: #454246)
+    - fix in details view
+    - use regexp 
+    - fix test
+  * softwarecenter/view/dialogs.py:
+    - make removal dialog modal (LP: #455327)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
+
 software-center (1.0) karmic; urgency=low
 
   * softwarecenter/view/appdetailsview.py:
