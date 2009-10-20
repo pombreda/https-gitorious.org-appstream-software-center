@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 7.0.50),
 	       python-setuptools
 Standards-Version: 3.8.3
 XS-Python-Version: current
-Vcs-Bzr: https://code.launchpad.net/~software-center-developers/software-center/trunk
+Vcs-Bzr: https://code.launchpad.net/~software-center-developers/software-center/karmic
 
 Package: software-center
 Architecture: all
