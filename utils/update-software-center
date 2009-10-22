@@ -20,8 +20,10 @@
 
 import apt
 import locale
+import gettext
 import logging
 import os
+import os.path
 import sys
 import time
 import xapian
@@ -64,10 +66,30 @@ class UpdateSoftwarecenterDbus(dbus.service.Object):
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.INFO)
     try:
         locale.setlocale(locale.LC_ALL, "")
     except Exception, e:
         logging.exception("setlocale failed")
+
+    # check if dpkg triggered because of langpack change
+    if (len(sys.argv) > 2 and
+        sys.argv[1] == "--triggered" and 
+        sys.argv[2].endswith("app-install-data.mo")):
+        logging.info("triggered with '%s'" % sys.argv[2])
+        mofile = gettext.find("app-install-data")
+        if not mofile:
+            logging.info("no translation information in database needed")
+            sys.exit(0)
+        mo_time = os.path.getctime(mofile)
+        pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
+        if os.path.exists(pathname):
+            db = xapian.Database(pathname)
+            mo_db_time = db.get_metadata("app-install-mo-time")
+            logging.info("mo_time: %s db_mo_time: %s" % (mo_time, mo_db_time))
+            if str(mo_time) == mo_db_time:
+                logging.info("translation information in database is up-to-date")
+                sys.exit(0)
 
     # setup dbus
     dbus_controller = None

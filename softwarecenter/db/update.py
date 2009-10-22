@@ -206,6 +206,10 @@ def rebuild_database(pathname):
     # write it
     db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
     update(db, cache)
+    mofile = gettext.find("app-install-data")
+    if mofile:
+        mo_time = os.path.getctime(mofile)
+        db.set_metadata("app-install-mo-time", str(mo_time))
     db.flush()
     return True
 
