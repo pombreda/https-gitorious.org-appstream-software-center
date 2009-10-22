@@ -49,6 +49,9 @@ except ImportError:
 # the DB access
 APP_CATCHUP_DELAY = 2
 
+# the language pack directory that we need for the triggers checking
+LANGPACKDIR = "/usr/share/locale-langpack"
+
 class UpdateSoftwarecenterDbus(dbus.service.Object):
     """ 
     This is a helper to provide the UpdateSoftwarecenterIFace
@@ -80,14 +83,15 @@ if __name__ == "__main__":
                       help="show debug output")
     (options, args) = parser.parse_args()
 
+    #logging.basicConfig(level=logging.INFO)
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)
 
     # check if we are dpkg triggered because of langpack change
     # and avoid unneeded database rebuilds by checking the timestamp
     # of the app-install-data mo file
-    if options.triggered and options.triggered.endswith("app-install-data.mo"):
-        logging.info("triggered with '%s'" % options.triggered)
+    if options.triggered and options.triggered == LANGPACKDIR:
+        logging.debug("triggered with '%s'" % options.triggered)
         mofile = gettext.find("app-install-data")
         if not mofile:
             logging.info("no translation information in database needed")
@@ -97,7 +101,7 @@ if __name__ == "__main__":
         if os.path.exists(pathname):
             db = xapian.Database(pathname)
             mo_db_time = db.get_metadata("app-install-mo-time")
-            logging.info("mo_time: %s db_mo_time: %s" % (mo_time, mo_db_time))
+            logging.debug("mo_time: %s db_mo_time: %s" % (mo_time, mo_db_time))
             if str(mo_time) == mo_db_time:
                 logging.info("translation information in database is up-to-date")
                 sys.exit(0)
