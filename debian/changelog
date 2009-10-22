@@ -1,3 +1,12 @@
+software-center (1.0.2) UNRELEASED; urgency=low
+
+  * debian/triggers:
+    - trigger on language-pack updates to ensure we get updated
+      translations on app-install-data-ubuntu into the xapian
+      database  (LP: #456459)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 22 Oct 2009 11:46:54 +0200
+
 software-center (1.0.1) karmic; urgency=low
 
   * debian/control:

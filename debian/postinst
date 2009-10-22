@@ -6,7 +6,7 @@ set -e
 
 if [ "$1" = "triggered" ] || [ "$1" = "configure" ]; then
     # update the application data
-    update-software-center|| true
+    update-software-center || true
     exit 0
 fi
 
