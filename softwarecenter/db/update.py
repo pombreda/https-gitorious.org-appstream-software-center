@@ -206,6 +206,7 @@ def rebuild_database(pathname):
     # write it
     db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
     update(db, cache)
+    # update the mo file stamp for the langpack checks
     mofile = gettext.find("app-install-data")
     if mofile:
         mo_time = os.path.getctime(mofile)

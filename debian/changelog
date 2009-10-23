@@ -1,4 +1,4 @@
-software-center (1.0.2) UNRELEASED; urgency=low
+software-center (1.0.2) karmic; urgency=low
 
   * debian/triggers:
     - trigger on language-pack updates to ensure we get updated
@@ -8,7 +8,7 @@ software-center (1.0.2) UNRELEASED; urgency=low
     - when triggered from a langpack update compare mo file
       time in order to prevent unneeded updates
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 22 Oct 2009 11:46:54 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 23 Oct 2009 11:24:07 +0200
 
 software-center (1.0.1) karmic; urgency=low
 
