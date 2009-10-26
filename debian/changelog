@@ -8,6 +8,8 @@ software-center (1.1) UNRELEASED; urgency=low
     - fix test
   * softwarecenter/view/dialogs.py:
     - make removal dialog modal (LP: #455327)
+  * debian/control:
+    - add recommends on python-launchpad-integration
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 

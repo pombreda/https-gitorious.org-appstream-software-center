@@ -33,7 +33,7 @@ Depends: ${python:Depends},
 	 python-sexy,
 	 python-gconf,
 	 aptdaemon (>= 0.10+bzr259)
-Recommends: lsb-release
+Recommends: lsb-release, python-launchpad-integration
 Conflicts: software-store
 Replaces: software-store
 Provides: software-store
