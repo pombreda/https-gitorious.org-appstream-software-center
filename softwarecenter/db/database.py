@@ -18,6 +18,7 @@
 
 import gobject
 import locale
+import logging
 import xapian
 from softwarecenter.enums import *
 
@@ -56,6 +57,11 @@ class StoreDatabase(gobject.GObject):
         if pathname:
             self._db_pathname = pathname
         self.xapiandb = xapian.Database(self._db_pathname)
+        # add the apt-xapian-database for here (we don't do this
+        # for now as we do not have a good way to integrate non-apps
+        # with the UI)
+        axi = xapian.Database("/var/lib/apt-xapian-index/index")
+        self.xapiandb.add_database(axi)
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
@@ -75,15 +81,33 @@ class StoreDatabase(gobject.GObject):
         # FIXME: expand to add "AA" and "AP" before each search term?
         return query
 
+    def get_summary(self, doc):
+        summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
+        # FIXME: get summary from apt cache as fallback
+        return summary
+
+    def get_pkgname(self, doc):
+        """ Return a packagename from a xapian document """
+        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        if not pkgname:
+            pkgname = doc.get_data()
+        return pkgname
+
     def get_xapian_document(self, appname, pkgname):
         """ Get the machting xapian document for appname, pkgname
         
         If no document is found, raise a IndexError
         """
+        logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
+        # first search for appname
         for m in self.xapiandb.postlist("AA"+appname):
             doc = self.xapiandb.get_document(m.docid)
             if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
                 return doc
+        # now looks for matching packages from axi
+        for m in self.xapiandb.postlist("XP"+pkgname):
+            doc = self.xapiandb.get_document(m.docid)
+            return doc
         # no matching document found
         raise IndexError("No app '%s' for '%s' in database" % (appname,pkgname))
 

@@ -93,8 +93,8 @@ class AppStore(gtk.GenericTreeModel):
                 doc = db.xapiandb.get_document(m.docid)
                 if filter and self.is_filtered_out(filter, doc):
                     continue
-                appname = doc.get_data()
-                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+                pkgname = db.get_pkgname(doc)
                 self.apps.append(Application(appname, pkgname))
             self.apps.sort(cmp=Application.apps_cmp)
         else:
@@ -115,12 +115,12 @@ class AppStore(gtk.GenericTreeModel):
             for m in matches:
                 doc = m[xapian.MSET_DOCUMENT]
                 if "APPVIEW_DEBUG_TERMS" in os.environ:
-                    print doc.get_data()
+                    print doc.get_value(XAPIAN_VALUE_APPNAME)
                     for t in doc.termlist():
                         print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
                     print "\n"
-                appname = doc.get_data()
-                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+                pkgname = db.get_pkgname(doc)
                 if filter and self.is_filtered_out(filter, doc):
                     continue
                 self.apps.append(Application(appname, pkgname))
@@ -128,7 +128,7 @@ class AppStore(gtk.GenericTreeModel):
                 self.apps.sort(cmp=Application.apps_cmp)
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
-        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        pkgname = self.db.get_pkgname(doc)
         return not filter.filter(doc, pkgname)
     # internal helper
     def _get_searches_sort_mode(self):
@@ -167,7 +167,9 @@ class AppStore(gtk.GenericTreeModel):
             return app.appname
         elif column == self.COL_TEXT:
             appname = app.appname
-            summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
+            if not appname:
+                appname = app.pkgname
+            summary = self.db.get_summary(doc)
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname) 
             s = "%s\n<small>%s</small>" % (
@@ -185,12 +187,12 @@ class AppStore(gtk.GenericTreeModel):
                 logging.debug("get_icon returned '%s'" % e)
             return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         elif column == self.COL_INSTALLED_OVERLAY:
-            pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+            pkgname = self.db.get_pkgname(doc)
             if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
                 return True
             return False
         elif column == self.COL_PKGNAME:
-            pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+            pkgname = self.db.get_pkgname(doc)
             return pkgname
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
@@ -575,12 +577,6 @@ if __name__ == "__main__":
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname)
-
-    # add the apt-xapian-database for here (we don't do this
-    # for now as we do not have a good way to integrate non-apps
-    # with the UI)
-    #axi = xapian.Database("/var/lib/apt-xapian-index/index")
-    #db.add_database(axi)
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()
