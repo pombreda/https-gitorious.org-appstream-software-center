@@ -18,18 +18,20 @@
 
 import apt
 import dbus
-import logging
 import gettext
 import glib
-import gtk
 import gobject
+import gtk
+import logging
 import os
+import re
 import socket
 import string
 import subprocess
 import sys
 import tempfile
 import threading
+import urllib
 import xapian
 
 from aptdaemon import policykit1
@@ -105,6 +107,7 @@ class AppDetailsView(WebkitWidget):
         # setup user-agent
         settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)
+        self.connect("navigation-requested", self._on_navigation_requested)
 
     def _show(self, widget):
         if not self.appname:
@@ -184,27 +187,27 @@ class AppDetailsView(WebkitWidget):
             return "section-installed"
         return "section-get"
     def wksub_description(self):
-        if self.pkg:
-            details = self.pkg.candidate.description
-        else:
+        if not self.pkg:
             # if we have no pkg, check if its available for the given
             # architecture
             arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
             if arches:
                 for arch in map(string.strip, arches.split(",")):
                     if arch == self.arch:
-                        details = _("Not available in the current data")
-                        break
+                        return _("Not available in the current data")
                 else:
-                    details = _("Not available for your hardware architecture.")
+                    return _("Not available for your hardware architecture.")
             else:
-                details = _("Not available in the current data")
+                return _("Not available in the current data")
+
+        # format for html
+        description = self.pkg.description
         #bullets (*)
-        regx = re.compile("((\*) [a-zA-Z0-9 ]*)")
+        regx = re.compile("((\*) .*)")
         description = re.sub(regx, r'<p>\1</p>', description)
         
         #bullets (-)
-        regx = re.compile("((\-) [a-zA-Z0-9 ]*)")
+        regx = re.compile("((\-) .*)")
         description = re.sub(regx, r'<p>\1</p>', description)
         
         #line breaks
@@ -213,9 +216,9 @@ class AppDetailsView(WebkitWidget):
         
         # urls
         regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
-        description = re.sub(regx, r'<a href="\1">\1</a>', description)
         
-        return description
+        return re.sub(regx, r'<a href="\1">\1</a>', description)
+
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and
             self.cache[self.pkgname].isInstalled):
@@ -435,6 +438,20 @@ class AppDetailsView(WebkitWidget):
         self.on_button_upgrade_clicked()
 
     # internal callback
+    def _on_navigation_requested(self, view, frame, request):
+        logging.debug("_on_navigation_requested %s" % request.get_uri())
+        # not available in the python bindings yet
+        # typedef enum {
+        #  WEBKIT_NAVIGATION_RESPONSE_ACCEPT,
+        #  WEBKIT_NAVIGATION_RESPONSE_IGNORE,
+        #  WEBKIT_NAVIGATION_RESPONSE_DOWNLOAD
+        # } WebKitNavigationResponse;
+        uri = request.get_uri()
+        if uri.startswith("http:"):
+            subprocess.call(["gnome-open", uri])
+            return 1
+        return 0
+
     def _on_trans_reply(self):
         # dummy callback for now, but its required, otherwise the aptdaemon
         # client blocks the UI and keeps gtk from refreshing
@@ -585,13 +602,13 @@ class AppDetailsView(WebkitWidget):
     def _setup_http_proxy(self, transaction):
         try:
             import gconf
-        except ImportError:
-            return
-        client = gconf.client_get_default()
-        if client.get_bool("/system/http_proxy/use_http_proxy"):
-            host = client.get_string("/system/http_proxy/host")
-            port = client.get_int("/system/http_proxy/port")
-            transaction.set_http_proxy("http://%s:%s/" % (host, port))
+            client = gconf.client_get_default()
+            if client.get_bool("/system/http_proxy/use_http_proxy"):
+                host = client.get_string("/system/http_proxy/host")
+                port = client.get_int("/system/http_proxy/port")
+                transaction.set_http_proxy("http://%s:%s/" % (host, port))
+        except:
+            logging.exception("gconf http proxy failed")
 
     def _run_transaction(self, trans):
         # set object data
@@ -633,6 +650,7 @@ if __name__ == "__main__":
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname)
+    db.open()
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
@@ -646,7 +664,8 @@ if __name__ == "__main__":
     #view.show_app("AMOR")
     #view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")
-    view.show_app("ACE", "unace")
+    #view.show_app("ACE", "unace")
+    view.show_app("Movie Player", "totem")
     #view.show_app("Artha")
     #view.show_app("cournol")
     #view.show_app("Qlix")

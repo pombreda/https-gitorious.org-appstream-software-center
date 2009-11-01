@@ -1,3 +1,41 @@
+software-center (1.1) UNRELEASED; urgency=low
+
+  * merged from Andrew Higginson, many thanks
+  * softwarecenter/view/appdetailsview.py:
+    - support uris in the app description (LP: #454246)
+    - fix in details view
+    - use regexp 
+    - fix test
+  * softwarecenter/view/dialogs.py:
+    - make removal dialog modal (LP: #455327)
+  * debian/control:
+    - add recommends on python-launchpad-integration
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
+
+software-center (1.0.2) karmic; urgency=low
+
+  * debian/triggers:
+    - trigger on language-pack updates to ensure we get updated
+      translations on app-install-data-ubuntu into the xapian
+      database  (LP: #456459)
+  * utils/update-software-center:
+    - when triggered from a langpack update compare mo file
+      time in order to prevent unneeded updates
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 23 Oct 2009 11:24:07 +0200
+
+software-center (1.0.1) karmic; urgency=low
+
+  * debian/control:
+    - update vcs link to lp:~ubuntu-core-dev/software-center/karmic
+  * softwarecenter/view/dialogs.py:
+    - merge fix from Andrew Higginson for modal dialog bug (#455327)
+  * softwarecenter/view/appdetailsview.py:
+    - do not crash if gconfd is not running (LP: #452559)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:04:14 +0200
+
 software-center (1.0) karmic; urgency=low
 
   * softwarecenter/view/appdetailsview.py:
