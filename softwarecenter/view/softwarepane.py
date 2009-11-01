@@ -22,6 +22,7 @@ import gobject
 import gtk
 import logging
 import xapian
+import os
 
 # magic environment to get new pathbar
 if "SOFTWARE_CENTER_NEW_PATHBAR" in os.environ:

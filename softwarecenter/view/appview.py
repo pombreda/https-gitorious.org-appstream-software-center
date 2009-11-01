@@ -482,21 +482,22 @@ class AppView(gtk.TreeView):
         return False
 
     def _on_button_press_event(self, widget, event):
-        if event.button != 1:
-            return
         res = self.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
-        (path, column, wx, wy) = res
-        if path is None:
+        if event.button == 1:
+            (path, column, wx, wy) = res
+            if path is None:
+                return
+            # only act when the selection is already there 
+            selection = widget.get_selection()
+            if not selection.path_is_selected(path):
+                return
+            # the last pixels of the view are reserved for the arrow icon
+            if self._xy_is_over_arrow(int(event.x), int(event.y)):
+                self.emit("row-activated", path, column)
+        else:
             return
-        # only act when the selection is already there 
-        selection = widget.get_selection()
-        if not selection.path_is_selected(path):
-            return
-        # the last pixels of the view are reserved for the arrow icon
-        if self._xy_is_over_arrow(int(event.x), int(event.y)):
-            self.emit("row-activated", path, column)
 
     def _xy_is_over_arrow(self, x, y):
         if self.get_direction() != gtk.TEXT_DIR_RTL:
