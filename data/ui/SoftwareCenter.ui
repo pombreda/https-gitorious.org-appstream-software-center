@@ -190,6 +190,7 @@
                         <property name="image">image4</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="on_menuitem_software_sources_activate"/>
+                        <property name="always_show_image">True</property>
                       </object>
                     </child>
                   </object>
@@ -222,6 +223,11 @@
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
                         <signal name="activate" handler="on_menuitem_view_supported_only_activate"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="menuitem9">
+                        <property name="visible">True</property>
                       </object>
                     </child>
                     <child>
