@@ -334,6 +334,15 @@ class AppDetailsView(WebkitWidget):
             return 'DIR="RTL"'
         elif direction ==  gtk.TEXT_DIR_LTR:
             return 'DIR="LTR"'
+    def wksub_font_family(self):
+         return self._get_font_description_property("family")
+    def wksub_font_weight(self):
+         return self._get_font_description_property("weight").real
+    def wksub_font_style(self):
+         return self._get_font_description_property("style").value_nick
+    def wksub_font_size(self):
+         return self._get_font_description_property("size")/1024
+
 
     # callbacks
     def on_button_enable_channel_clicked(self):
@@ -636,6 +645,13 @@ class AppDetailsView(WebkitWidget):
                              self.APP_ICON_SIZE, self.APP_ICON_SIZE)
         pix.fill(0)
         return pix
+        
+    def _get_pango_font_description(self):
+        return gtk.Label("pango").get_pango_context().get_font_description()
+        
+    def _get_font_description_property(self, property):
+        description = self._get_pango_font_description()
+        return getattr(description, "get_%s" % property)()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
