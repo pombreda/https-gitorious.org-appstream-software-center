@@ -358,13 +358,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             return
         self.active_pane.apps_filter.set_supported_only(True)
         self.active_pane.refresh_apps()
-        
-    def on_menuitem_view_fullscreen_activate(self, widget):
-        if self.menuitem_view_fullscreen.active:
-            self.window_main.fullscreen()
-        else:
-            print "Unfullscreen"
-            
 
     # helper
 

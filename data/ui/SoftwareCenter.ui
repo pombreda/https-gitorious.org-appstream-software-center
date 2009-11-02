@@ -230,15 +230,6 @@
                         <property name="visible">True</property>
                       </object>
                     </child>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="menuitem_view_fullscreen">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Fullscreen</property>
-                        <property name="use_underline">True</property>
-                        <accelerator key="F11" signal="activate" />
-                        <signal name="activate" handler="on_menuitem_view_fullscreen_activate"/>
-                      </object>
-                    </child>
                   </object>
                 </child>
               </object>
@@ -464,11 +455,6 @@
   <object class="GtkImage" id="image5">
     <property name="visible">True</property>
     <property name="stock">gtk-network</property>
-    <property name="icon-size">1</property>
-  </object>
-    <object class="GtkImage" id="image6">
-    <property name="visible">True</property>
-    <property name="stock">gtk-add</property>
     <property name="icon-size">1</property>
   </object>
   <object class="GtkWindow" id="window_rebuilding">
