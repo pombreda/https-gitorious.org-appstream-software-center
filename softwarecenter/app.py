@@ -43,6 +43,7 @@ from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
+from distro import get_distro
 
 from apt.aptcache import AptCache
 from gettext import gettext as _
@@ -92,6 +93,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         except Exception, e:
             logging.exception("setlocale failed")
 
+        # distro specific stuff
+        self.distro = get_distro()
+
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
@@ -137,6 +141,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # available pane
         self.available_pane = AvailablePane(self.cache, self.db,
+                                            self.distro,
                                             self.icons, datadir)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -151,6 +156,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # installed pane
         self.installed_pane = InstalledPane(self.cache, self.db,
+                                            self.distro,
                                             self.icons, datadir)
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,

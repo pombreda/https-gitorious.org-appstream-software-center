@@ -53,9 +53,9 @@ class AvailablePane(SoftwarePane):
      PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(3)
 
-    def __init__(self, cache, db, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
         # state
         self.apps_category_query = None
         self.apps_search_query = None

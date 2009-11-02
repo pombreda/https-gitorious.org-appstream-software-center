@@ -67,29 +67,21 @@ class AppDetailsView(WebkitWidget):
     # FIXME: we do not support warning about removal of stuff that is
     #        recommended because its not speced
     DEPENDENCY_TYPES = ("PreDepends", "Depends") #, "Recommends")
-    IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
-
-    SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
-    # missing thumbnail
-    IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
-    IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
-
-
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (str,str, ))
                     }
 
-    def __init__(self, db, icons, cache, datadir):
+    def __init__(self, db, distro, icons, cache, datadir):
         super(AppDetailsView, self).__init__(datadir)
         self.db = db
+        self.distro = distro
         self.icons = icons
         self.cache = cache
         self.datadir = datadir
@@ -237,7 +229,7 @@ class AppDetailsView(WebkitWidget):
             iconpath = self.tf.name
         return iconpath
     def wksub_screenshot_thumbnail_url(self):
-        url = self.SCREENSHOT_THUMB_URL % self.pkgname
+        url = self.distro.SCREENSHOT_THUMB_URL % self.pkgname
         return url
     def wksub_screenshot_alt(self):
         return _("Application Screenshot")
@@ -328,7 +320,7 @@ class AppDetailsView(WebkitWidget):
             return "screenshot_thumbnail-installed"
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):
-        return self.IMAGE_THUMBNAIL_MISSING
+        return self.distro.IMAGE_THUMBNAIL_MISSING
     def wksub_text_direction(self):
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
@@ -363,7 +355,7 @@ class AppDetailsView(WebkitWidget):
         self._run_transaction(trans)
 
     def on_screenshot_thumbnail_clicked(self):
-        url = self.SCREENSHOT_LARGE_URL % self.pkgname
+        url = self.distro.SCREENSHOT_LARGE_URL % self.pkgname
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(title, url,
                             self.IMAGE_LOADING_INSTALLED,
@@ -518,7 +510,7 @@ class AppDetailsView(WebkitWidget):
         socket.setdefaulttimeout(DEFAULT_SOCKET_TIMEOUT)
         urllib._urlopener = GnomeProxyURLopener()
         try:
-            f = urllib.urlopen(self.SCREENSHOT_THUMB_URL % self.pkgname)
+            f = urllib.urlopen(self.distro.SCREENSHOT_THUMB_URL % self.pkgname)
         except (Url404Error, IOError), e:
             logging.debug("no thumbnail image")
             self._thumbnail_is_missing = True
@@ -659,9 +651,12 @@ if __name__ == "__main__":
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
 
+    import softwarecenter.distro
+    distro = softwarecenter.distro.get_distro()
+
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsView(db, icons, cache, datadir)
+    view = AppDetailsView(db, distro, icons, cache, datadir)
     #view.show_app("AMOR")
     #view.show_app("3D Chess", "3dchess")
     #view.show_app("Configuration Editor")

@@ -10,6 +10,10 @@ software-center (1.1) UNRELEASED; urgency=low
     - make removal dialog modal (LP: #455327)
   * debian/control:
     - add recommends on python-launchpad-integration
+  * softwarecenter/distro/Ubuntu.py:
+    - add distro backend class that dynamically detects what distro
+      to use and move distro specifc stuff (like screenshot url etc)
+      there
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 

@@ -43,9 +43,9 @@ class InstalledPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
 
-    def __init__(self, cache, db, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
         # state
         self.apps_filter = AppViewFilter(cache)
         self.apps_filter.set_installed_only(True)
