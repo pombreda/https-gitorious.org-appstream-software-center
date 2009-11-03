@@ -1,6 +1,8 @@
 software-center (1.1) UNRELEASED; urgency=low
 
   * merged from Andrew Higginson, many thanks
+    - fix hardcoded fonts (LP:#456604)
+    - changed paste menu item to be ctrl+V
   * softwarecenter/view/appdetailsview.py:
     - support uris in the app description (LP: #454246)
     - fix in details view

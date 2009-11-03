@@ -101,16 +101,22 @@ class CategoriesView(WebkitWidget):
     # substitute stuff
     def wksub_icon_size(self):
         return self.CATEGORY_ICON_SIZE
-
     def wksub_header(self):
         return _("Departments")
-
     def wksub_text_direction(self):
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
             return 'DIR="RTL"'
         elif direction ==  gtk.TEXT_DIR_LTR:
             return 'DIR="LTR"'
+    def wksub_font_family(self):
+         return self._get_font_description_property("family")
+    def wksub_font_weight(self):
+         return self._get_font_description_property("weight").real
+    def wksub_font_style(self):
+         return self._get_font_description_property("style").value_nick
+    def wksub_font_size(self):
+         return self._get_font_description_property("size")/1024
 
     # helper code for menu parsing etc
     def _cat_sort_cmp(self, a, b):
@@ -200,6 +206,12 @@ class CategoriesView(WebkitWidget):
             logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query.get_description()))
         return categories.values()
         
+    def _get_pango_font_description(self):
+        return gtk.Label("pango").get_pango_context().get_font_description()
+        
+    def _get_font_description_property(self, property):
+        description = self._get_pango_font_description()
+        return getattr(description, "get_%s" % property)()
 
 
 

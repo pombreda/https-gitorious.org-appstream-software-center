@@ -25,6 +25,7 @@ import os
 import sys
 import string
 import xapian
+import os
 
 # magic environment to get old pathbar
 if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
