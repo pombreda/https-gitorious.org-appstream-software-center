@@ -14,6 +14,8 @@ software-center (1.1) UNRELEASED; urgency=low
     - add distro backend class that dynamically detects what distro
       to use and move distro specifc stuff (like screenshot url etc)
       there
+  * softwarecenter/view/softwarepane.py:
+    - default to new pathbar
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 
