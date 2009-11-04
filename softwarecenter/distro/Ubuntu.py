@@ -61,6 +61,15 @@ class Ubuntu(Distro):
                 stdout=subprocess.PIPE).communicate()[0].strip()
        return self.codename
 
+    def get_license_text(self, component):
+        li =  _("Unknown")
+        if component in ("main", "universe"):
+            li = _("Open Source")
+        elif component == "restricted":
+            li = _("Proprietary")
+        s = _("License: %s") % li
+        return s
+
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
         # try to figure out the support dates of the release and make
         # sure to look only for stuff in "Ubuntu" and "distro_codename"

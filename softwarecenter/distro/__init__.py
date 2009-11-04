@@ -31,7 +31,11 @@ class Distro(object):
 
     def get_rdepends_text(self, pkg):
         raise UnimplementedError
+
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
+        raise UnimplementedError
+
+    def get_license_text(self, component):
         raise UnimplementedError
 
 def get_distro():
