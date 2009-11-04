@@ -190,6 +190,7 @@
                         <property name="image">image4</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="on_menuitem_software_sources_activate"/>
+                        <property name="always_show_image">True</property>
                       </object>
                     </child>
                   </object>
