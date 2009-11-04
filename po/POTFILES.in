@@ -15,5 +15,8 @@ softwarecenter/view/installedpane.py
 softwarecenter/view/pendingview.py
 softwarecenter/view/softwarepane.py
 softwarecenter/view/viewswitcher.py
+softwarecenter/distro/__init__.py
+softwarecenter/distro/aptutils.py
+softwarecenter/distro/Ubuntu.py
 [type: gettext/glade] data/ui/SoftwareCenter.ui
 data/ubuntu-software-center.desktop.in

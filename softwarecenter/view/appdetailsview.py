@@ -63,11 +63,6 @@ class AppDetailsView(WebkitWidget):
     APP_ICON_SIZE = 64
     APP_ICON_PADDING = 8
 
-    # dependency types we are about
-    # FIXME: we do not support warning about removal of stuff that is
-    #        recommended because its not speced
-    DEPENDENCY_TYPES = ("PreDepends", "Depends") #, "Recommends")
-
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
@@ -211,7 +206,6 @@ class AppDetailsView(WebkitWidget):
         regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
         description = re.sub(regx, r'<a href="\1">\1</a>', description)
         return description
-
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and
             self.cache[self.pkgname].isInstalled):
@@ -267,33 +261,13 @@ class AppDetailsView(WebkitWidget):
         return self.datadir
     def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
-        return self.cache.get_maintenance_status(
+        return self.distro.get_maintenance_status(self.cache,
             self.appname, self.pkgname, self.component, self.channelfile)
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
-        s = ""
         if not self.pkg:
-            return s
-        # its installed, tell about rdepends
-        pkg = self.pkg
-        if pkg.installed:
-            # generic message
-            s = _("%s is installed on this computer.") % self.appname
-            # show how many packages on the system depend on this
-            self.installed_rdeps = set()
-            for rdep in pkg._pkg.RevDependsList:
-                if rdep.DepType in self.DEPENDENCY_TYPES:
-                    rdep_name = rdep.ParentPkg.Name
-                    if (self.cache.has_key(rdep_name) and
-                        self.cache[rdep_name].isInstalled):
-                        self.installed_rdeps.add(rdep.ParentPkg.Name)
-            if len(self.installed_rdeps) > 0:
-                s += " "
-                s += gettext.ngettext(
-                    "It is used by %s piece of installed software.",
-                    "It is used by %s pieces of installed software.",
-                    len(self.installed_rdeps)) % len(self.installed_rdeps)
-        return s
+            return ""
+        return self.distro.get_rdepends_text(self.cache, self.pkg, self.appname)
     def wksub_homepage(self):
         s = _("Website")
         return s
