@@ -46,6 +46,7 @@ class AptCache(gobject.GObject):
     # dependency types we are about
     DEPENDENCY_TYPES = ("PreDepends", "Depends")
     RECOMMENDS_TYPES = ("Recommends")
+    SUGGESTS_TYPES = ("Suggests")
 
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
@@ -83,7 +84,7 @@ class AptCache(gobject.GObject):
     def _get_installed_rdepends_by_type(self, pkg, type):
         installed_rdeps = set()
         for rdep in pkg._pkg.RevDependsList:
-            if rdep.DepType in self.DEPENDENCY_TYPES:
+            if rdep.DepType in type:
                 rdep_name = rdep.ParentPkg.Name
                 if (self._cache.has_key(rdep_name) and
                     self._cache[rdep_name].isInstalled):
@@ -93,9 +94,13 @@ class AptCache(gobject.GObject):
         return self._get_installed_rdepends_by_type(pkg, self.DEPENDENCY_TYPES)
     def get_installed_rrecommends(self, pkg):
         return self._get_installed_rdepends_by_type(pkg, self.RECOMMENDS_TYPES)
+    def get_installed_rsuggests(self, pkg):
+        return self._get_installed_rdepends_by_type(pkg, self.SUGGESTS_TYPES)
 
 if __name__ == "__main__":
     c = AptCache()
     c.open()
-    print c.get_maintenance_status("synaptic app", "synaptic", "main", None)
-    print c.get_maintenance_status("3dchess app", "3dchess", "universe", None)
+    pkg = c["unace"]
+    print c.get_installed_rdepends(pkg)
+    print c.get_installed_rrecommends(pkg)
+    print c.get_installed_rsuggests(pkg)

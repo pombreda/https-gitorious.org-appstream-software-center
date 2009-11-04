@@ -32,6 +32,35 @@ class Ubuntu(Distro):
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
 
+    def get_removal_warning_text(self, cache, pkg, appname):
+        primary = _("To remove %s, these items must be removed "
+                    "as well:" % appname)
+        button_text = _("Remove All")
+
+        depends = list(cache.get_installed_rdepends(pkg))
+
+        # alter it if a meta-package is affected
+        for m in depends:
+            if cache[m].section == "metapackages":
+                primary = _("If you uninstall %s, future updates will not "
+                              "include new items in <b>%s</b> set. "
+                              "Are you sure you want to continue?") % (appname, cache[m].installed.summary)
+                button_text = _("Remove Anyway")
+                depends = []
+                break
+
+        # alter it if an important meta-package is affected
+        for m in self.IMPORTANT_METAPACKAGES:
+            if m in depends:
+                primary = _("%s is a core application in Ubuntu. "
+                              "Uninstalling it may cause future upgrades "
+                              "to be incomplete. Are you sure you want to "
+                              "continue?") % appname
+                button_text = _("Remove Anyway")
+                depends = None
+                break
+        return (primary, button_text)
+
     def get_rdepends_text(self, cache, pkg, appname):
         s = ""
         if pkg.installed:
@@ -40,6 +69,7 @@ class Ubuntu(Distro):
             # show how many packages on the system depend on this
             installed_rdeps = cache.get_installed_rdepends(pkg)
             installed_rrecommends = cache.get_installed_rrecommends(pkg)
+            installed_rsuggests = cache.get_installed_rsuggests(pkg)
             if len(installed_rdeps) > 0:
                 s += " "
                 s += gettext.ngettext(
@@ -49,8 +79,14 @@ class Ubuntu(Distro):
             elif len(installed_rrecommends) > 0:
                 s += " "
                 s += gettext.ngettext(
-                    "It recommended by %s piece of installed software.",
-                    "It recommended by %s pieces of installed software.",
+                    "It is recommended by %s piece of installed software.",
+                    "It is recommended by %s pieces of installed software.",
+                    len(installed_rrecommends)) % len(installed_rrecommends)
+            elif len(installed_rsuggests) > 0:
+                s += " "
+                s += gettext.ngettext(
+                    "It is suggested by %s piece of installed software.",
+                    "It is suggested by %s pieces of installed software.",
                     len(installed_rrecommends)) % len(installed_rrecommends)
         return s
 
@@ -139,3 +175,10 @@ class Ubuntu(Distro):
                      "Some updates may be provided by the "
                      "Ubuntu community.") % appname
         return _("Application %s has a unkown maintenance status.") % appname
+
+
+if __name__ == "__main__":
+    import apt
+    cache = apt.Cache()
+    print c.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None)
+    print c.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None)
