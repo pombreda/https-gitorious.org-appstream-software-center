@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt_pkg
+import os.path
 
 def get_maintenance_end_date(release_date, m_months):
     """
