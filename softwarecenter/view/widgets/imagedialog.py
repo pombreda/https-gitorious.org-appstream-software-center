@@ -40,9 +40,14 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
         client = gconf.client_get_default()
         if client.get_bool("/system/http_proxy/use_http_proxy"):
             try:
+                authentication = ""
+                if client.get_bool("/system/http_proxy/use_authentication"):
+                    user = client.get_string("/system/http_proxy/authentication_user")
+                    password = client.get_string("/system/http_proxy/authentication_password")
+                    authentication = "%s:%s@" % (user, password)
                 host = client.get_string("/system/http_proxy/host")
                 port = client.get_int("/system/http_proxy/port")
-                proxies = { "http" : "http://%s:%s/" %  (host, port) }
+                proxies = { "http" : "http://%s%s:%s/" %  (authentication, host, port) }
             except GError, e:
                 pass
         urllib.FancyURLopener.__init__(self, proxies)

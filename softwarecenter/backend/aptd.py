@@ -168,7 +168,12 @@ class AptdaemonBackend(gobject.GObject):
             if client.get_bool("/system/http_proxy/use_http_proxy"):
                 host = client.get_string("/system/http_proxy/host")
                 port = client.get_int("/system/http_proxy/port")
-                transaction.set_http_proxy("http://%s:%s/" % (host, port))
+                authentication = ""
+                if client.get_bool("/system/http_proxy/use_authentication"):
+                    user = client.get_string("/system/http_proxy/authentication_user")
+                    password = client.get_string("/system/http_proxy/authentication_password")
+                    authentication = "%s:%s@" % (user, password)
+                transaction.set_http_proxy("http://%s%s:%s/" % (authentication, host, port))
         except:
             logging.exception("gconf http proxy failed")
 
