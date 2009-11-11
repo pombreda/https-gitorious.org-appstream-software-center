@@ -116,6 +116,10 @@ class CategoriesView(WebkitWidget):
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
+        if a.untranslated_name == "Packages":
+            return 1
+        elif b.untranslated_name == "Packages":
+            return -1
         if a.untranslated_name == "Other":
             return 1
         elif b.untranslated_name == "Other":
@@ -194,6 +198,12 @@ class CategoriesView(WebkitWidget):
                     cat = categories[key]
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             categories[unalloc] = cat_unalloc
+
+        # add packages
+        query = xapian.Query(xapian.Query.OP_AND_NOT, xapian.Query(""), xapian.Query("ATapplication"))
+        pkg_category = Category("Packages", _("Packages"), "applications-other", query)
+        categories["Packages"] = pkg_category
+            
         # debug print
         for catname in categories:
             cat = categories[catname]

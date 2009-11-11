@@ -36,7 +36,10 @@ class Application(object):
         """ sort method for the applications """
         # sort(key=locale.strxfrm) would be more efficient, but its
         # currently broken, see http://bugs.python.org/issue2481
-        return locale.strcoll(x.appname, y.appname)
+        if x.appname and y.appname:
+            return locale.strcoll(x.appname, y.appname)
+        else:
+            return cmp(x.pkgname, y.pkgname)
 
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
