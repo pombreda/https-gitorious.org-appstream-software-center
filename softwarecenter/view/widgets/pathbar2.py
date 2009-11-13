@@ -23,34 +23,20 @@ import cairo
 import pango
 import gobject
 
-
-# print colours
-WARNING = "\033[93m"
-FAIL = "\033[91m"
-ENDC = "\033[0m"
+from rgb import to_float as f
 
 # pi constants
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
-# shape constants
-SHAPE_RECTANGLE = 0
-SHAPE_START_ARROW = 1
-SHAPE_MID_ARROW = 2
-SHAPE_END_CAP = 3
-
 
 class PathBar(gtk.DrawingArea):
 
-    # custom widget specific settings
-    min_part_width = 56
-    xpadding = 10
-    ypadding = 4
-    spacing = 6
-    curvature = 3.5
-    arrow_width = 13
-    scroll_duration_ms = 150
-    scroll_fps = 60
+    # shapes
+    SHAPE_RECTANGLE = 0
+    SHAPE_START_ARROW = 1
+    SHAPE_MID_ARROW = 2
+    SHAPE_END_CAP = 3
 
     def __init__(self, group=None):
         gtk.DrawingArea.__init__(self)
@@ -65,8 +51,7 @@ class PathBar(gtk.DrawingArea):
         self.__scroller = None
         self.__scroll_xO = 0
 
-        # any global gtk settings we are interested in
-        self.animate = gtk.settings_get_default().get_property("gtk-enable-animations")
+        self.theme = self.__pick_theme()
 
         # setup event handling
         self.set_flags(gtk.CAN_FOCUS)
@@ -83,6 +68,7 @@ class PathBar(gtk.DrawingArea):
         self.connect("button-release-event", self.__button_release_cb)
 #        self.connect("key-release-event", self.__key_release_cb)
 
+        self.connect("realize", self.__realize_cb)
         self.connect("expose-event", self.__expose_cb)
         self.connect("style-set", self.__style_change_cb)
         self.connect("size-allocate", self.__allocation_change_cb)
@@ -124,8 +110,8 @@ class PathBar(gtk.DrawingArea):
         if not self.get_property("visible"):
             return False
 
-        if self.animate and len(self.__parts) > 1:
-            aw = self.arrow_width
+        if self.theme.animate and len(self.__parts) > 1:
+            aw = self.theme.arrow_width
 
             # calc draw_area
             x,y,w,h = part.get_allocation_tuple()
@@ -135,8 +121,8 @@ class PathBar(gtk.DrawingArea):
             self.__hscroll_init(
                 part.get_width(),
                 gtk.gdk.Rectangle(x,y,w,h),
-                self.scroll_duration_ms,
-                self.scroll_fps
+                self.theme.scroll_duration_ms,
+                self.theme.scroll_fps
                 )
         else:
             self.queue_draw_area(*part.get_allocation_tuple())
@@ -144,17 +130,13 @@ class PathBar(gtk.DrawingArea):
 
     def remove(self, part):
         if len(self.__parts)-1 < 1:
-            print WARNING + 'The first part is sacred ;)' + ENDC
+            print 'The first part is sacred ;)'
             return
 
         old_w = self.__draw_width()
-        end_active = self.get_active() == self.__parts[-1]
 
         del self.__parts[self.__parts.index(part)]
         self.__compose_parts(self.__parts[-1], False)
-
-        if end_active:
-            self.__set_active(self.__parts[-1])
 
         if old_w >= self.allocation.width:
             self.__grow_check(old_w, self.allocation)
@@ -290,24 +272,24 @@ class PathBar(gtk.DrawingArea):
         parts = self.__parts
 
         if len(parts) == 1:
-            last.set_shape(SHAPE_RECTANGLE)
+            last.set_shape(self.SHAPE_RECTANGLE)
             last.set_size(*last.calc_size_requisition())
             prev = None
 
         elif len(parts) == 2:
             prev = parts[0]
-            prev.set_shape(SHAPE_START_ARROW)
+            prev.set_shape(self.SHAPE_START_ARROW)
             prev.calc_size_requisition()
 
-            last.set_shape(SHAPE_END_CAP)
+            last.set_shape(self.SHAPE_END_CAP)
             last.set_size(*last.calc_size_requisition())
 
         else:
             prev = parts[-2]
-            prev.set_shape(SHAPE_MID_ARROW)
+            prev.set_shape(self.SHAPE_MID_ARROW)
             prev.calc_size_requisition()
 
-            last.set_shape(SHAPE_END_CAP)
+            last.set_shape(self.SHAPE_END_CAP)
             last.set_size(*last.calc_size_requisition())
 
         if prev and prev_set_size:
@@ -365,18 +347,18 @@ class PathBar(gtk.DrawingArea):
         # draw the last two parts
         prev, last = self.__parts[-2:]
 
-        self.__draw_part(cr, last, self.style, self.curvature,
-            self.arrow_width, self.__shapes,
+        self.__draw_part(cr, last, self.style, self.theme.curvature,
+            self.theme.arrow_width, self.__shapes,
             last.get_width() - self.__scroll_xO)
 
-        self.__draw_part(cr, prev, self.style, self.curvature,
-            self.arrow_width, self.__shapes)
+        self.__draw_part(cr, prev, self.style, self.theme.curvature,
+            self.theme.arrow_width, self.__shapes)
         return
 
     def __draw_all(self, cr, event_area):
         style = self.style
-        r = self.curvature
-        aw = self.arrow_width
+        r = self.theme.curvature
+        aw = self.theme.arrow_width
         shapes = self.__shapes
         region = gtk.gdk.region_rectangle(event_area)
 
@@ -409,23 +391,23 @@ class PathBar(gtk.DrawingArea):
 
         # determine left margin.  left margin depends on part shape
         # and whether there exists an icon or not
-        if shape == SHAPE_MID_ARROW or shape == SHAPE_END_CAP:
-            margin = int(0.75*self.arrow_width + self.xpadding)
+        if shape == self.SHAPE_MID_ARROW or shape == self.SHAPE_END_CAP:
+            margin = int(0.75*self.theme.arrow_width + self.theme.xpadding)
         else:
-            margin = self.xpadding
+            margin = self.theme.xpadding
 
         # draw icon
         if icon_pb:
             cr.set_source_pixbuf(
                 icon_pb,
-                self.xpadding-sxO,
+                self.theme.xpadding-sxO,
                 (alloc.height - icon_pb.get_height())/2)
             cr.paint()
-            margin += icon_pb.get_width() + self.spacing
+            margin += icon_pb.get_width() + self.theme.spacing
 
         # if space is limited and an icon is set, dont draw label
         # otherwise, draw label
-        if w == self.min_part_width and icon_pb:
+        if w == self.theme.min_part_width and icon_pb:
             pass
 
         else:
@@ -435,7 +417,7 @@ class PathBar(gtk.DrawingArea):
             dst_y = (self.allocation.height - lh)/2+1
             style.paint_layout(
                 self.window,
-                state,
+                self.theme.text_state[state],
                 False,
                 (dst_x, dst_y, lw+4, lh),   # clip area
                 self,
@@ -461,10 +443,10 @@ class PathBar(gtk.DrawingArea):
 
         # determine left margin.  left margin depends on part shape
         # and whether there exists an icon or not
-        if shape == SHAPE_MID_ARROW or shape == SHAPE_END_CAP:
-            margin = self.arrow_width + self.xpadding
+        if shape == self.SHAPE_MID_ARROW or shape == self.SHAPE_END_CAP:
+            margin = self.theme.arrow_width + self.theme.xpadding
         else:
-            margin = self.xpadding
+            margin = self.theme.xpadding
 
         # draw icon
         if icon_pb:
@@ -478,7 +460,7 @@ class PathBar(gtk.DrawingArea):
 
         # if space is limited and an icon is set, dont draw label
         # otherwise, draw label
-        if w == self.min_part_width and icon_pb:
+        if w == self.theme.min_part_width and icon_pb:
             pass
 
         else:
@@ -488,7 +470,7 @@ class PathBar(gtk.DrawingArea):
             dst_y = (self.allocation.height - lh)/2+1
             style.paint_layout(
                 self.window,
-                state,
+                self.theme.text_state[state],
                 False,
                 None,
                 self,
@@ -501,61 +483,44 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __draw_part_bg(self, cr, part, w, h, state, shape, style, r, aw, shapes):
-        mid = style.mid[state]
-        dark = style.dark[state]
-        sel = style.bg[gtk.STATE_SELECTED]
-
         # outer slight bevel or focal highlight
         shapes[shape](cr, 0, 0, w, h, r, aw)
         cr.set_source_rgba(0, 0, 0, 0.055)
         cr.fill()
 
+        # colour scheme dicts
+        bg = self.theme.bg_colors
+        outer = self.theme.dark_line_colors
+        inner = self.theme.light_line_colors
+
         # bg linear vertical gradient
+        if state != gtk.STATE_PRELIGHT:
+            color1, color2 = bg[state]
+        else:
+            if part != self.get_active():
+                color1, color2 = bg[self.theme.PRELIT_NORMAL]
+            else:
+                color1, color2 = bg[self.theme.PRELIT_ACTIVE]
+
         shapes[shape](cr, 1, 1, w-1, h-1, r, aw)
-
         lin = cairo.LinearGradient(0, 0, 0, h-1)
-        lin.add_color_stop_rgb(0, *rgb.lighten(mid, 0.2))
-        lin.add_color_stop_rgb(1.0, mid.red_float, mid.green_float, mid.blue_float)
+        lin.add_color_stop_rgb(0.0, *color1)
+        lin.add_color_stop_rgb(1.0, *color2)
         cr.set_source(lin)
-
-        # state specific colourisation
-        if state == gtk.STATE_ACTIVE:
-            cr.fill_preserve()
-            cr.set_source_rgba(sel.red_float,sel.green_float,sel.blue_float,0.2)
-        elif state == gtk.STATE_PRELIGHT:
-            cr.fill_preserve()
-            cr.set_source_rgba(1,1,1,0.4)
-            if part == self.__active_part:
-                cr.fill_preserve()
-                cr.set_source_rgba(sel.red_float,sel.green_float,sel.blue_float,0.3)
-
         cr.fill()
 
         cr.set_line_width(1.0)
         # strong outline
         shapes[shape](cr, 1.5, 1.5, w-1.5, h-1.5, r, aw)
-        cr.set_source_rgb(
-            dark.red_float,
-            dark.green_float,
-            dark.blue_float
-            )
+        cr.set_source_rgb(*outer[state])
         cr.stroke()
-
-        if state == gtk.STATE_SELECTED:
-            inner = mid
-            alpha = 0.3
-        else:
-            inner = style.light[state]
-            alpha = 0.65
 
         # inner bevel/highlight
-        shapes[shape](cr, 2.5, 2.5, w-2.5, h-2.5, r, aw)
-        cr.set_source_rgba(
-            inner.red_float,
-            inner.green_float,
-            inner.blue_float,
-            alpha)
-        cr.stroke()
+        if self.theme.light_line_colors[state]:
+            shapes[shape](cr, 2.5, 2.5, w-2.5, h-2.5, r, aw)
+            r, g, b = inner[state]
+            cr.set_source_rgba(r, g, b, 0.6)
+            cr.stroke()
         return
 
     def __shape_rect(self, cr, x, y, w, h, r, aw):
@@ -652,21 +617,29 @@ class PathBar(gtk.DrawingArea):
         self.set_tooltip_markup(text)
         return False
 
+    def __pick_theme(self, name=None):
+        name = name or gtk.settings_get_default().get_property("gtk-theme-name")
+        themes = PathBarThemes.DICT
+        if themes.has_key(name):
+            return themes[name]()
+        print "No styling hints for %s are available" % name
+        return PathBarThemeHuman()
+
     def __init_drawing(self):
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             self.__draw_part = self.__draw_part_ltr
             self.__shapes = {
-                SHAPE_RECTANGLE : self.__shape_rect,
-                SHAPE_START_ARROW : self.__shape_start_arrow_ltr,
-                SHAPE_MID_ARROW : self.__shape_mid_arrow_ltr,
-                SHAPE_END_CAP : self.__shape_end_cap_ltr}
+                self.SHAPE_RECTANGLE : self.__shape_rect,
+                self.SHAPE_START_ARROW : self.__shape_start_arrow_ltr,
+                self.SHAPE_MID_ARROW : self.__shape_mid_arrow_ltr,
+                self.SHAPE_END_CAP : self.__shape_end_cap_ltr}
         else:
             self.__draw_part = self.__draw_part_rtl
             self.__shapes = {
-                SHAPE_RECTANGLE : self.__shape_rect,
-                SHAPE_START_ARROW : self.__shape_start_arrow_rtl,
-                SHAPE_MID_ARROW : self.__shape_mid_arrow_rtl,
-                SHAPE_END_CAP : self.__shape_end_cap_rtl}
+                self.SHAPE_RECTANGLE : self.__shape_rect,
+                self.SHAPE_START_ARROW : self.__shape_start_arrow_rtl,
+                self.SHAPE_MID_ARROW : self.__shape_mid_arrow_rtl,
+                self.SHAPE_END_CAP : self.__shape_end_cap_rtl}
         return
 
     def __motion_notify_cb(self, widget, event):
@@ -676,7 +649,10 @@ class PathBar(gtk.DrawingArea):
         part = self.__part_at_xy(event.x, event.y)
         prev_focal = self.__focal_part
 
-        if self.__button_down and part == prev_focal:
+        if self.__button_down:
+            if prev_focal and part != prev_focal:
+                prev_focal.set_state(self.__state(prev_focal))
+                self.queue_draw_area(*prev_focal.get_allocation_tuple())
             return
 
         self.__button_down = False
@@ -716,7 +692,9 @@ class PathBar(gtk.DrawingArea):
 
     def __button_release_cb(self, widget, event):
         part = self.__part_at_xy(event.x, event.y)
-        if part and self.__button_down:
+        if self.__focal_part and self.__focal_part != part:
+            pass
+        elif part and self.__button_down:
             if part.callback: part.callback(self)
             self.grab_focus()
             prev_active, redraw = self.__set_active(part)
@@ -749,9 +727,16 @@ class PathBar(gtk.DrawingArea):
 #        part.emit("clicked", event.copy())
 #        return
 
+    def __realize_cb(self, widget):
+        self.theme.load(widget.style)
+        return
+
     def __expose_cb(self, widget, event):
         #t = gobject.get_current_time()
         cr = widget.window.cairo_create()
+        if self.theme.base_hack:
+            cr.set_source_rgb(*self.theme.base_hack)
+            cr.paint()
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
         else:
@@ -766,9 +751,8 @@ class PathBar(gtk.DrawingArea):
         if self.allocation.width == 1:
             return
 
-        settings = gtk.settings_get_default()
-        self.animate = settings.get_property("gtk-enable-animations")
-
+        self.theme = self.__pick_theme()
+        self.theme.load(widget.style)
         # set height to 0 so that if part height has been reduced the widget will
         # shrink to an appropriate new height based on new font size
         self.set_size_request(-1, 28)
@@ -813,11 +797,11 @@ class PathPart:
 
         self.allocation = [0, 0, 0, 0]
         self.state = gtk.STATE_NORMAL
-        self.shape = SHAPE_RECTANGLE
+        self.shape = PathBar.SHAPE_RECTANGLE
 
         self.callback = callback
         self.set_label(label or "")
-        self.icon = Icon()
+        self.icon = PathBarIcon()
         return
 
     def set_callback(self, cb):
@@ -899,20 +883,21 @@ class PathPart:
         extents = self.__layout.get_pixel_extents()
 
         # calc text width + 2 * padding, text height + 2 * ypadding
-        w = extents[1][2] + 2*pbar.xpadding
-        h = max(extents[1][3] + 2*pbar.ypadding, pbar.get_size_request()[1])
+        w = extents[1][2] + 2*pbar.theme.xpadding
+        h = max(extents[1][3] + 2*pbar.theme.ypadding, pbar.get_size_request()[1])
 
         # if has icon add some more pixels on
         if self.icon.pixbuf:
-            w += self.icon.pixbuf.get_width() + pbar.spacing
-            h = max(self.icon.pixbuf.get_height() + 2*pbar.ypadding, h)
+            w += self.icon.pixbuf.get_width() + pbar.theme.spacing
+            h = max(self.icon.pixbuf.get_height() + 2*pbar.theme.ypadding, h)
 
         # extend width depending on part shape  ...
-        if self.shape == SHAPE_START_ARROW or self.shape == SHAPE_END_CAP:
-            w += pbar.arrow_width
+        if self.shape == PathBar.SHAPE_START_ARROW or \
+            self.shape == PathBar.SHAPE_END_CAP:
+            w += pbar.theme.arrow_width
 
-        elif self.shape == SHAPE_MID_ARROW:
-            w += 2*pbar.arrow_width
+        elif self.shape == PathBar.SHAPE_MID_ARROW:
+            w += 2*pbar.theme.arrow_width
 
         # if height greater than current height request,
         # reset height request to higher value
@@ -935,21 +920,390 @@ class PathPart:
     def __calc_layout_width(self, layout, shape, pbar):
         # set layout width
         if self.icon.pixbuf:
-            icon_w = self.icon.pixbuf.get_width() + pbar.spacing
+            icon_w = self.icon.pixbuf.get_width() + pbar.theme.spacing
         else:
             icon_w = 0
 
         w = self.allocation[2]
-        if shape == SHAPE_MID_ARROW:
-            layout.set_width((w - 2*pbar.arrow_width -
-                2*pbar.xpadding - icon_w)*pango.SCALE)
+        if shape == PathBar.SHAPE_MID_ARROW:
+            layout.set_width((w - 2*pbar.theme.arrow_width -
+                2*pbar.theme.xpadding - icon_w)*pango.SCALE)
 
-        elif shape == SHAPE_START_ARROW or shape == SHAPE_END_CAP:
-            layout.set_width((w - pbar.arrow_width - 2*pbar.xpadding -
+        elif shape == PathBar.SHAPE_START_ARROW or \
+            shape == PathBar.SHAPE_END_CAP:
+            layout.set_width((w - pbar.theme.arrow_width - 2*pbar.theme.xpadding -
                 icon_w)*pango.SCALE)
         else:
-            layout.set_width((w - 2*pbar.xpadding - icon_w)*pango.SCALE)
+            layout.set_width((w - 2*pbar.theme.xpadding - icon_w)*pango.SCALE)
         return
+
+
+class PathBarIcon:
+
+    def __init__(self, name=None, size=None):
+        self.name = name
+        self.size = size
+        self.pixbuf = None
+        return
+
+    def specify(self, name, size):
+        self.name = name
+        self.size = size
+        return
+
+    def load_pixbuf(self):
+        if not self.name:
+            print 'Error: No icon specified.'
+            return
+        if not self.size:
+            print 'Note: No icon size specified.'
+
+        def render_icon(icon_set, name, size):
+            self.pixbuf = icon_set.render_icon(
+                style,
+                gtk.TEXT_DIR_NONE,
+                gtk.STATE_NORMAL,
+                self.size or gtk.ICON_SIZE_BUTTON,
+                gtk.Image(),
+                None)
+            return
+
+        style = gtk.Style()
+        icon_set = style.lookup_icon_set(self.name)
+
+        if not icon_set:
+            t = gtk.icon_theme_get_default()
+            self.pixbuf = t.lookup_icon(self.name, self.size, 0).load_icon()
+        else:
+            icon_set = style.lookup_icon_set(self.name)
+            render_icon(icon_set, self.name, self.size)
+
+        if not self.pixbuf:
+            print FAIL + 'Error: No name failed to match any installed icon set.' + ENDC
+            self.name = gtk.STOCK_MISSING_IMAGE
+            icon_set = style.lookup_icon_set(self.name)
+            render_icon(icon_set, self.name, self.size)
+        return
+
+
+class PathBarThemeHuman:
+
+    PRELIT_NORMAL = 10
+    PRELIT_ACTIVE = 11
+
+    curvature = 2.5
+    min_part_width = 56
+    xpadding = 10
+    ypadding = 4
+    spacing = 6
+    arrow_width = 13
+    scroll_duration_ms = 150
+    scroll_fps = 60
+    animate = gtk.settings_get_default().get_property("gtk-enable-animations")
+
+    def __init__(self):
+        return
+
+    def load(self, style):
+        mid = style.mid
+        dark = style.dark
+        light = style.light
+        text = style.text
+        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
+                               mid[gtk.STATE_SELECTED], 0.25)
+
+        self.bg_colors = {
+            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.2)),
+                                f(mid[gtk.STATE_NORMAL])),
+
+            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.2)),
+                               f(active)),
+
+            gtk.STATE_SELECTED: (f(mid[gtk.STATE_ACTIVE]),
+                                 f(mid[gtk.STATE_ACTIVE])),
+
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.25)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.05))),
+
+            self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.25)),
+                                 f(rgb.shade(active, 1.05)))
+            }
+
+        self.dark_line_colors = {
+            gtk.STATE_NORMAL: f(dark[gtk.STATE_NORMAL]),
+            gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
+            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.9)),
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            }
+
+        self.light_line_colors = {
+            gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
+            gtk.STATE_ACTIVE: f(light[gtk.STATE_ACTIVE]),
+            gtk.STATE_SELECTED: None,
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            }
+
+        self.text_state = {
+            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
+            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
+            gtk.STATE_SELECTED: gtk.STATE_ACTIVE,
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            }
+
+        self.base_hack = None
+        return
+
+
+class PathBarThemeHumanClearlooks(PathBarThemeHuman):
+
+    def __init__(self):
+        PathBarThemeHuman.__init__(self)
+        return
+
+    def __init__(self):
+        return
+
+    def load(self, style):
+        mid = style.mid
+        dark = style.dark
+        light = style.light
+        text = style.text
+        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
+                               mid[gtk.STATE_SELECTED], 0.25)
+
+        self.bg_colors = {
+            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.20)),
+                                f(rgb.shade(mid[gtk.STATE_NORMAL], 1.05))),
+
+            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.20)),
+                               f(rgb.shade(active, 1.05))),
+
+            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_ACTIVE], 1.15)),
+                                f(mid[gtk.STATE_ACTIVE])),
+
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.35)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+
+            self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.35)),
+                                 f(rgb.shade(active, 1.15)))
+            }
+
+        self.dark_line_colors = {
+            gtk.STATE_NORMAL: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.975)),
+            gtk.STATE_ACTIVE: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.975)),
+            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            }
+
+        self.light_line_colors = {
+            gtk.STATE_NORMAL: None,
+            gtk.STATE_ACTIVE: None,
+            gtk.STATE_SELECTED: f(mid[gtk.STATE_ACTIVE]),
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            }
+
+        self.text_state = {
+            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
+            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
+            gtk.STATE_SELECTED: gtk.STATE_NORMAL,
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            }
+
+        self.base_hack = None
+        return
+
+
+class PathBarThemeDust(PathBarThemeHuman):
+
+    def __init__(self):
+        PathBarThemeHuman.__init__(self)
+        return
+
+    def load(self, style):
+        mid = style.mid
+        dark = style.dark
+        light = style.light
+        text = style.text
+        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
+                               light[gtk.STATE_SELECTED], 0.3)
+
+        self.bg_colors = {
+            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.3)),
+                                f(mid[gtk.STATE_NORMAL])),
+
+            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.3)),
+                               f(active)),
+
+            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95))),
+
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.35)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+
+            self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.35)),
+                                 f(rgb.shade(active, 1.15)))
+            }
+
+        self.dark_line_colors = {
+            gtk.STATE_NORMAL: f(dark[gtk.STATE_ACTIVE]),
+            gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
+            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            }
+
+        self.light_line_colors = {
+            gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
+            gtk.STATE_ACTIVE: f(light[gtk.STATE_NORMAL]),
+            gtk.STATE_SELECTED: None,
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            }
+
+        self.text_state = {
+            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
+            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
+            gtk.STATE_SELECTED: gtk.STATE_NORMAL,
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            }
+
+        self.base_hack = None
+        return
+
+
+class PathBarThemeNewWave(PathBarThemeHuman):
+
+    curvature = 1.5
+
+    def __init__(self):
+        PathBarThemeHuman.__init__(self)
+        return
+
+    def load(self, style):
+        mid = style.mid
+        dark = style.dark
+        light = style.light
+        text = style.text
+        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
+                               light[gtk.STATE_SELECTED], 0.5)
+
+        self.bg_colors = {
+            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.01)),
+                                f(mid[gtk.STATE_NORMAL])),
+
+            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.01)),
+                               f(active)),
+
+            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95))),
+
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.2)),
+                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+
+            self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.2)),
+                                 f(rgb.shade(active, 1.15)))
+            }
+
+        self.dark_line_colors = {
+            gtk.STATE_NORMAL: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_ACTIVE: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            }
+
+        self.light_line_colors = {
+            gtk.STATE_NORMAL: f(rgb.shade(light[gtk.STATE_NORMAL], 1.2)),
+            gtk.STATE_ACTIVE: f(rgb.shade(light[gtk.STATE_NORMAL], 1.2)),
+            gtk.STATE_SELECTED: None,
+            gtk.STATE_PRELIGHT: f(rgb.shade(light[gtk.STATE_PRELIGHT], 1.2))
+            }
+
+        self.text_state = {
+            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
+            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
+            gtk.STATE_SELECTED: gtk.STATE_NORMAL,
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            }
+
+        self.base_hack = f(gtk.gdk.color_parse("#F2F2F2"))
+        return
+
+
+class PathBarThemeHicolor:
+
+    PRELIT_NORMAL = 10
+    PRELIT_ACTIVE = 11
+
+    curvature = 0.5
+    min_part_width = 56
+    xpadding = 15
+    ypadding = 10
+    spacing = 10
+    arrow_width = 15
+    scroll_duration_ms = 150
+    scroll_fps = 60
+    animate = gtk.settings_get_default().get_property("gtk-enable-animations")
+
+    def __init__(self):
+        return
+
+    def load(self, style):
+        mid = style.mid
+        dark = style.dark
+        light = style.light
+        text = style.text
+
+        self.bg_colors = {
+            gtk.STATE_NORMAL: (f(mid[gtk.STATE_NORMAL]),
+                               f(mid[gtk.STATE_NORMAL])),
+
+            gtk.STATE_ACTIVE: (f(mid[gtk.STATE_ACTIVE]),
+                               f(mid[gtk.STATE_ACTIVE])),
+
+            gtk.STATE_SELECTED: (f(mid[gtk.STATE_SELECTED]),
+                                 f(mid[gtk.STATE_SELECTED])),
+
+            self.PRELIT_NORMAL: (f(mid[gtk.STATE_PRELIGHT]),
+                                 f(mid[gtk.STATE_PRELIGHT])),
+
+            self.PRELIT_ACTIVE: (f(mid[gtk.STATE_PRELIGHT]),
+                                 f(mid[gtk.STATE_PRELIGHT]))
+            }
+
+        self.dark_line_colors = {
+            gtk.STATE_NORMAL: f(dark[gtk.STATE_NORMAL]),
+            gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
+            gtk.STATE_SELECTED: f(dark[gtk.STATE_SELECTED]),
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            }
+
+        self.light_line_colors = {
+            gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
+            gtk.STATE_ACTIVE: f(light[gtk.STATE_ACTIVE]),
+            gtk.STATE_SELECTED: None,
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            }
+
+        self.text_state = {
+            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
+            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
+            gtk.STATE_SELECTED: gtk.STATE_SELECTED,
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            }
+
+        self.base_hack = None
+        return
+
+
+class PathBarThemes:
+
+    DICT = {
+        "Human": PathBarThemeHuman,
+        "Human-Clearlooks": PathBarThemeHumanClearlooks,
+        "HighContrastInverse": PathBarThemeHicolor,
+        "HighContrastLargePrintInverse": PathBarThemeHicolor,
+        "Dust": PathBarThemeDust,
+        "Dust Sand": PathBarThemeDust,
+        "New Wave": PathBarThemeNewWave
+        }
 
 
 class NavigationBar(PathBar):
@@ -962,7 +1316,7 @@ class NavigationBar(PathBar):
     def add_with_id(self, label, callback, id, icon=None):
         """
         Add a new button with the given label/callback
-        
+
         If there is the same id already, replace the existing one
         with the new one
         """
@@ -989,7 +1343,6 @@ class NavigationBar(PathBar):
     def remove_id(self, id):
 
         if not id in self.id_to_part:
-            print 'id %s not in pathbar' % id
             return
 
         part = self.id_to_part[id]
@@ -1019,51 +1372,3 @@ class NavigationBar(PathBar):
         if not id in self.id_to_part:
             return
         return self.id_to_part[id].get_label()
-
-
-class Icon:
-
-    def __init__(self, name=None, size=None):
-        self.name = name
-        self.size = size
-        self.pixbuf = None
-        return
-
-    def specify(self, name, size):
-        self.name = name
-        self.size = size
-        return
-
-    def load_pixbuf(self):
-        if not self.name:
-            print FAIL + 'Error: No icon specified.' + ENDC
-            return
-        if not self.size:
-            print WARNING + 'Note: No icon size specified.' + ENDC
-
-        def render_icon(icon_set, name, size):
-            self.pixbuf = icon_set.render_icon(
-                style,
-                gtk.TEXT_DIR_NONE,
-                gtk.STATE_NORMAL,
-                self.size or gtk.ICON_SIZE_BUTTON,
-                gtk.Image(),
-                None)
-            return
-
-        style = gtk.Style()
-        icon_set = style.lookup_icon_set(self.name)
-
-        if not icon_set:
-            t = gtk.icon_theme_get_default()
-            self.pixbuf = t.lookup_icon(self.name, self.size, 0).load_icon()
-        else:
-            icon_set = style.lookup_icon_set(self.name)
-            render_icon(icon_set, self.name, self.size)
-
-        if not self.pixbuf:
-            print FAIL + 'Error: No name failed to match any installed icon set.' + ENDC
-            self.name = gtk.STOCK_MISSING_IMAGE
-            icon_set = style.lookup_icon_set(self.name)
-            render_icon(icon_set, self.name, self.size)
-        return
