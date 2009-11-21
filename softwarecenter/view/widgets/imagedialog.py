@@ -27,6 +27,8 @@ import gobject
 
 from softwarecenter.enums import *
 
+ICON_EXCEPTIONS = ["gnome"]
+
 class Url404Error(IOError):
     pass
 
@@ -57,7 +59,7 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """
 
-    def __init__(self, title, url, loading_img, missing_img, parent=None):
+    def __init__(self, title, url, loading_img, loading_img_size, missing_img, parent=None):
         gtk.Dialog.__init__(self)
         # find parent window for the dialog
         if not parent:
@@ -69,17 +71,16 @@ class ShowImageDialog(gtk.Dialog):
         self.image_filename = self._missing_img
         # image
             # loading
-        self.x = 44
-        self.y = 0
         pixbuf_orig = gtk.gdk.pixbuf_new_from_file(loading_img)
+        self.x = self._get_loading_x_start(loading_img_size)
+        self.y = 0
         pixbuf_buffer = pixbuf_orig.copy()
-        pixbuf_buffer = pixbuf_orig.subpixbuf(22, 0, 22, 22)
-        
+        pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
         
         self.img = gtk.Image()
         self.img.set_from_file(loading_img)
         self.img.show()
-        gobject.timeout_add(50, self._update_loading, pixbuf_orig, pixbuf_buffer)
+        gobject.timeout_add(50, self._update_loading, pixbuf_orig, pixbuf_buffer, loading_img_size)
 
         # view port
         scroll = gtk.ScrolledWindow()
@@ -109,18 +110,26 @@ class ShowImageDialog(gtk.Dialog):
         # data
         self.url = url
 
-    def _update_loading(self, pixbuf_orig, pixbuf_buffer):
-        pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, 22, 22)
-        if self.x == 154:
-            self.x = 0
-            self.y += 22
-            if self.y == 88:
-                self.x = 22
-                self.y = 0
+    def _update_loading(self, pixbuf_orig, pixbuf_buffer, loading_img_size):
+        if not self._finished:
+            pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
+            if self.x == pixbuf_orig.get_width() - loading_img_size:
+                self.x = self._get_loading_x_start(loading_img_size)
+                self.y += loading_img_size
+                if self.y == pixbuf_orig.get_height():
+                    self.x = self._get_loading_x_start(loading_img_size)
+                    self.y = 0
+            else:
+                self.x += loading_img_size
+            self.img.set_from_pixbuf(pixbuf_buffer)
+            return True
+            
+    def _get_loading_x_start(self, loading_img_size):
+        if (gtk.settings_get_default().props.gtk_icon_theme_name or gtk.settings_get_default().props.gtk_fallback_icon_theme) in ICON_EXCEPTIONS:
+            return loading_img_size
         else:
-            self.x += 22
-        self.img.set_from_pixbuf(pixbuf_buffer)
-        return True
+            return 0
+            
 
     def _response(self, dialog, reponse_id):
         self._finished = True
