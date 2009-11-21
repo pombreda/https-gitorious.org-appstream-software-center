@@ -23,6 +23,7 @@ import tempfile
 import time
 import threading
 import urllib
+import gobject
 
 from softwarecenter.enums import *
 
@@ -67,9 +68,18 @@ class ShowImageDialog(gtk.Dialog):
         self._missing_img = missing_img
         self.image_filename = self._missing_img
         # image
+            # loading
+        self.x = 44
+        self.y = 0
+        pixbuf_orig = gtk.gdk.pixbuf_new_from_file(loading_img)
+        pixbuf_buffer = pixbuf_orig.copy()
+        pixbuf_buffer = pixbuf_orig.subpixbuf(22, 0, 22, 22)
+        
+        
         self.img = gtk.Image()
         self.img.set_from_file(loading_img)
         self.img.show()
+        gobject.timeout_add(50, self._update_loading, pixbuf_orig, pixbuf_buffer)
 
         # view port
         scroll = gtk.ScrolledWindow()
@@ -98,6 +108,19 @@ class ShowImageDialog(gtk.Dialog):
         urllib._urlopener = GnomeProxyURLopener()
         # data
         self.url = url
+
+    def _update_loading(self, pixbuf_orig, pixbuf_buffer):
+        pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, 22, 22)
+        if self.x == 154:
+            self.x = 0
+            self.y += 22
+            if self.y == 88:
+                self.x = 22
+                self.y = 0
+        else:
+            self.x += 22
+        self.img.set_from_pixbuf(pixbuf_buffer)
+        return True
 
     def _response(self, dialog, reponse_id):
         self._finished = True

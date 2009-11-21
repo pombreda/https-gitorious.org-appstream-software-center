@@ -75,6 +75,9 @@ class AppDetailsView(WebkitWidget):
     INSTALLED_ICON = "/usr/share/software-center/emblems/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
+    
+    # FIXME: use one from theme
+    THEME_IMAGE_LOADING = "/usr/share/icons/gnome/32x32/animations/process-working.png"
 
     # missing thumbnail
     IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
@@ -374,7 +377,7 @@ class AppDetailsView(WebkitWidget):
         url = self.SCREENSHOT_LARGE_URL % self.pkgname
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(title, url,
-                            self.IMAGE_LOADING_INSTALLED,
+                            self.THEME_IMAGE_LOADING,
                             self.IMAGE_FULL_MISSING)
         d.run()
         d.destroy()
