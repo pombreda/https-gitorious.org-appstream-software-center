@@ -153,7 +153,7 @@ class ShowImageDialog(gtk.Dialog):
         except:
             logging.debug("The image format couldn't be determined")
             pixbuf = gtk.gdk.pixbuf_new_from_file(self._missing_img)
-        self.img.set_from_file(self.image_filename)
+        self.img.set_from_pixbuf(pixbuf)
         # and run the real thing
         gtk.Dialog.run(self)
 
