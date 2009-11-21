@@ -88,14 +88,9 @@ class ShowImageDialog(gtk.Dialog):
         scroll.add_with_viewport(self.img)
         scroll.show() 
 
-        # progress
-        self.progress = gtk.ProgressBar()
-        self.progress.show()
-
         # box
         vbox = gtk.VBox()
         vbox.pack_start(scroll)
-        vbox.pack_start(self.progress, expand=False)
         vbox.show()
         # dialog
         self.set_transient_for(parent)
@@ -137,8 +132,6 @@ class ShowImageDialog(gtk.Dialog):
         
     def run(self):
         self.show()
-        self.progress.show()
-        self.progress.set_fraction(0.0)
         # thread
         self._finished = False
         self._abort = False
@@ -149,14 +142,17 @@ class ShowImageDialog(gtk.Dialog):
         # wait for download to finish or for abort
         while not self._finished:
             time.sleep(0.1)
-            self.progress.set_fraction(self._percent)
             while gtk.events_pending():
                 gtk.main_iteration()
         # aborted
         if self._abort:
             return gtk.RESPONSE_CLOSE
         # load into icon
-        self.progress.hide()
+        try:
+            pixbuf = gtk.gdk.pixbuf_new_from_file(self.image_filename)
+        except:
+            logging.debug("The image format couldn't be determined")
+            pixbuf = gtk.gdk.pixbuf_new_from_file(self._missing_img)
         self.img.set_from_file(self.image_filename)
         # and run the real thing
         gtk.Dialog.run(self)
