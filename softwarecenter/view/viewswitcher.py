@@ -119,7 +119,7 @@ class ViewSwitcherList(gtk.ListStore, TransactionsWatcher):
 
     ICON_SIZE = 24
 
-    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress-*.png"
+    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
     __gsignals__ = {'transactions-changed' : (gobject.SIGNAL_RUN_LAST,
                                               gobject.TYPE_NONE,
