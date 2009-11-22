@@ -58,7 +58,6 @@ class AppStore(gtk.GenericTreeModel):
                    str)
 
     ICON_SIZE = 24
-    ARROW_SIZE = 32
 
     (SEARCHES_SORTED_BY_POPCON,
      SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
@@ -231,7 +230,10 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
 
     __gproperties__ = {
         'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
-                   gobject.PARAM_READWRITE)
+            gobject.PARAM_READWRITE),
+
+        'ellipsize': (pango.EllipsizeMode, 'Ellipsize', 'Ellipsize mode', 0,
+            gobject.PARAM_READWRITE)
         }
 
     # padding around the arrow at the end
@@ -241,9 +243,11 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
 
     def __init__(self):
         self.__gobject_init__()
+        self.ellipsize = pango.ELLIPSIZE_NONE
         self.markup = None
         self._height = None
         self._pixbuf = None
+        self._layout = None
 
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
@@ -254,10 +258,8 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
     def on_get_size(self, widget, cell_area):
         a = widget.get_allocation()
         if not self._height:
-            pc = widget.get_pango_context()
-            layout = pango.Layout(pc)
-            layout.set_markup(self.markup)
-            self._height = max(layout.get_pixel_size()[1]+2*self.YPAD, 32)
+            self._layout = self._load_layout(widget)
+            self._height = max(self._layout.get_pixel_size()[1]+2*self.YPAD, 32)
         return a.x, a.y, a.width, self._height
 
     def do_render(self, window, widget, background_area, cell_area, 
@@ -266,24 +268,20 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
         xpad = self.XPAD
         ypad = self.YPAD
 
-        pc = widget.get_pango_context()
-        layout = pango.Layout(pc)
-        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-
         # reserve space at the end for the arrow
-        lw = cell_area.width-AppStore.ARROW_SIZE-self.ARROW_PADDING
-        layout.set_width(lw*pango.SCALE)
-        layout.set_markup(self.markup)
+        self._layout.set_markup(self.markup)
 
         dst_x = cell_area.x+xpad
         if widget.get_direction() == gtk.TEXT_DIR_RTL:
-            dst_x += +AppStore.ARROW_SIZE-self.ARROW_PADDING
-        dst_y = cell_area.y+(cell_area.height-layout.get_pixel_size()[1])/2
+            dst_x += +self._height-self.ARROW_PADDING
+        dst_y = cell_area.y+(cell_area.height-self._layout.get_pixel_size()[1])/2
 
         state = gtk.STATE_NORMAL
         if gtk.CELL_RENDERER_SELECTED & flags:
             state = gtk.STATE_SELECTED
 
+        lw = cell_area.width-self._height-self.ARROW_PADDING
+        self._layout.set_width(lw*pango.SCALE)
         widget.style.paint_layout(window,
                                   state,
                                   True,
@@ -292,7 +290,7 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                   None,
                                   dst_x,
                                   dst_y,
-                                  layout)
+                                  self._layout)
 
         # now render the arrow if its selected
         if gtk.CELL_RENDERER_SELECTED & flags:
@@ -304,8 +302,12 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
             dst_y = cell_area.y+ypad
             width = height = cell_area.height-2*ypad
 
+            state = gtk.STATE_NORMAL
+            if gtk.CELL_RENDERER_PRELIT & flags:
+                state = gtk.STATE_PRELIGHT
+
             widget.style.paint_box(window,
-                                   gtk.STATE_NORMAL,
+                                   state,
                                    gtk.SHADOW_ETCHED_OUT,
                                    cell_area,
                                    widget,
@@ -338,11 +340,22 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
                                y_dither=0)
         return
 
+    def get_arrow_width(self):
+        return self._height
+
     def _on_style_change(self, widget, old_style):
         # on style change reload icon pixbuf and recalc height
         self._pixbuf = self._load_icon_pixbuf(widget)
+        self._layout = self._load_layout(widget)
         self._height = None
         return
+
+    def _load_layout(self, widget):
+        pc = widget.get_pango_context()
+        layout = pango.Layout(pc)
+        layout.set_markup(self.markup)
+        layout.set_ellipsize(self.ellipsize)
+        return layout
 
     def _load_icon_pixbuf(self, widget, stock_id=gtk.STOCK_GO_FORWARD):
         icon = widget.style.lookup_icon_set(stock_id)
@@ -368,7 +381,7 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
     OVERLAY_SIZE = 16
     
     __gproperties__ = {
-        'overlay' : (bool, 'overlay', 'show a overlay icon', False,
+        'overlay' : (bool, 'overlay', 'show an overlay icon', False,
                      gobject.PARAM_READWRITE),
    }
 
@@ -404,8 +417,6 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
 gobject.type_register(CellRendererPixbufWithOverlay)
 
 
-
-
 class AppView(gtk.TreeView):
     """Treeview based view component that takes a AppStore and displays it"""
 
@@ -431,9 +442,8 @@ class AppView(gtk.TreeView):
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
-        # FIXME: add "ellipize" property to CellRendererTextWithActivateArrow
         tr = CellRendererTextWithActivateArrow()
-#        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
+        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
         column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
@@ -447,8 +457,8 @@ class AppView(gtk.TreeView):
         self.connect("row-activated", self._on_row_activated)
         # button and motion are "special" 
 
-        self.connect("button-press-event", self._on_button_press_event)
-        self.connect("motion-notify-event", self._on_motion_notify_event)
+        self.connect("button-press-event", self._on_button_press_event, tr)
+        self.connect("motion-notify-event", self._on_motion_notify_event, tr)
         self.connect("cursor-changed", self._on_cursor_changed)
 
     def _on_row_activated(self, treeview, path, column):
@@ -464,9 +474,9 @@ class AppView(gtk.TreeView):
         self.emit("application-selected", name, pkgname)
 
     # FIXME: move the tooltip, motion_notify etc to the render/TreeViewColumn?
-    def _on_motion_notify_event(self, widget, event):
+    def _on_motion_notify_event(self, widget, event, tr):
         #self.set_has_tooltip(False)
-        if self._xy_is_over_arrow(int(event.x), (event.y)):
+        if self._xy_is_over_arrow(int(event.x), (event.y), tr):
             # FIXME: deactivated for karmic (because we are in string freeze
             #tip = _("Click to view application details")
             #gobject.timeout_add(50, self._set_tooltip_cb, tip)
@@ -481,31 +491,30 @@ class AppView(gtk.TreeView):
         self.set_tooltip_markup(text)
         return False
 
-    def _on_button_press_event(self, widget, event):
+    def _on_button_press_event(self, widget, event, tr):
+        if event.button != 1:
+            return
         res = self.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
-        if event.button == 1:
-            (path, column, wx, wy) = res
-            if path is None:
-                return
-            # only act when the selection is already there 
-            selection = widget.get_selection()
-            if not selection.path_is_selected(path):
-                return
-            # the last pixels of the view are reserved for the arrow icon
-            if self._xy_is_over_arrow(int(event.x), int(event.y)):
-                self.emit("row-activated", path, column)
-        else:
+        (path, column, wx, wy) = res
+        if path is None:
             return
+        # only act when the selection is already there 
+        selection = widget.get_selection()
+        if not selection.path_is_selected(path):
+            return
+        # the last pixels of the view are reserved for the arrow icon
+        if self._xy_is_over_arrow(int(event.x), int(event.y), tr):
+            self.emit("row-activated", path, column)
 
-    def _xy_is_over_arrow(self, x, y):
+    def _xy_is_over_arrow(self, x, y, tr):
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             (relx, rely, w, h, depth) = self.window.get_geometry()
-            if w-x <= AppStore.ARROW_SIZE:
+            if w-x <= tr.get_arrow_width():
                 return True
         else:
-            if x <= AppStore.ARROW_SIZE:
+            if x <= tr.get_arrow_width():
                 self.window.set_cursor(self._cursor_hand)
                 return True
         return False

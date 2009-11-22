@@ -457,6 +457,11 @@
     <property name="stock">gtk-network</property>
     <property name="icon-size">1</property>
   </object>
+    <object class="GtkImage" id="image6">
+    <property name="visible">True</property>
+    <property name="stock">gtk-add</property>
+    <property name="icon-size">1</property>
+  </object>
   <object class="GtkWindow" id="window_rebuilding">
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>

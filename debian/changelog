@@ -1,6 +1,8 @@
 software-center (1.1) UNRELEASED; urgency=low
 
   * merged from Andrew Higginson, many thanks
+    - fix hardcoded fonts (LP:#456604)
+    - changed paste menu item to be ctrl+V
   * softwarecenter/view/appdetailsview.py:
     - support uris in the app description (LP: #454246)
     - fix in details view
@@ -10,6 +12,15 @@ software-center (1.1) UNRELEASED; urgency=low
     - make removal dialog modal (LP: #455327)
   * debian/control:
     - add recommends on python-launchpad-integration
+  * softwarecenter/distro/Ubuntu.py:
+    - add distro backend class that dynamically detects what distro
+      to use and move distro specifc stuff (like screenshot url etc)
+      there
+    - move maitainance end calculation here
+  * softwarecenter/view/softwarepane.py:
+    - default to new pathbar
+  * softwarecenter/backend/aptd.py:
+    - move the aptdaemon backend code here
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 

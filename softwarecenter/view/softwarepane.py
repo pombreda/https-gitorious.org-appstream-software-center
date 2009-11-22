@@ -24,11 +24,11 @@ import logging
 import xapian
 import os
 
-# magic environment to get new pathbar
-if "SOFTWARE_CENTER_NEW_PATHBAR" in os.environ:
-    from widgets.pathbar2 import NavigationBar
-else:
+# magic environment to get old pathbar
+if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
     from widgets.navigationbar import NavigationBar
+else:
+    from widgets.pathbar2 import NavigationBar
 
 from widgets.searchentry import SearchEntry
 
@@ -67,11 +67,12 @@ class SoftwarePane(gtk.VBox):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
         self.db = db
+        self.distro = distro
         self.db.connect("reopen", self.on_db_reopen)
         self.icons = icons
         self.datadir = datadir
@@ -85,6 +86,7 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list.add(self.app_view)
         # details
         self.app_details = AppDetailsView(self.db, 
+                                          self.distro,
                                           self.icons, 
                                           self.cache, 
                                           self.datadir)

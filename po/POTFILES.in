@@ -1,9 +1,15 @@
 [type: python] software-center
 [type. python] utils/update-software-center
-softwarecenter/app.py
-softwarecenter/apt/aptcache.py
+[type: gettext/glade] data/ui/SoftwareCenter.ui
+data/ubuntu-software-center.desktop.in
 softwarecenter/__init__.py
+softwarecenter/app.py
 softwarecenter/SimpleGtkbuilderApp.py
+softwarecenter/apt/aptcache.py
+softwarecenter/backend/aptd.py
+softwarecenter/distro/__init__.py
+softwarecenter/distro/aptutils.py
+softwarecenter/distro/Ubuntu.py
 softwarecenter/view/__init__.py
 softwarecenter/view/appdetailsview.py
 softwarecenter/view/appview.py
@@ -15,5 +21,3 @@ softwarecenter/view/installedpane.py
 softwarecenter/view/pendingview.py
 softwarecenter/view/softwarepane.py
 softwarecenter/view/viewswitcher.py
-[type: gettext/glade] data/ui/SoftwareCenter.ui
-data/ubuntu-software-center.desktop.in
