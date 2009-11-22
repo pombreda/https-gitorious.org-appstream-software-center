@@ -174,7 +174,7 @@ class PendingView(gtk.TreeView):
         #print "_on_clicked: ", event
         if event == None or event.button != 1:
             return
-        res = self.get_path_at_pos(event.x, event.y)
+        res = self.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
