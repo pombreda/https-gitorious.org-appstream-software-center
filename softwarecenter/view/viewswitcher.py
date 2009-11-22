@@ -70,6 +70,13 @@ class ViewSwitcher(gtk.TreeView):
         self.set_model(store)
         self.set_headers_visible(False)
         self.connect("button-press-event", self.on_button_press_event)
+        self.get_selection().set_select_function(self.on_treeview_selected)
+        
+    def on_treeview_selected(self, path):
+        if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
+            return False
+        return True    
+        
     def get_view(self):
         """return the current activated view number or None if no
            view is activated (this can happen when a pending view 
@@ -115,7 +122,8 @@ class ViewSwitcherList(gtk.ListStore, TransactionsWatcher):
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
      ACTION_ITEM_INSTALLED,
-     ACTION_ITEM_PENDING) = range(3)
+     ACTION_ITEM_SEPARATOR_1,
+     ACTION_ITEM_PENDING) = range(4)
 
     ICON_SIZE = 24
 
@@ -134,21 +142,20 @@ class ViewSwitcherList(gtk.ListStore, TransactionsWatcher):
         # pending transactions
         self._pending = 0
         # setup the normal stuff
-        try:
+        if self.icons.lookup_icon("softwarecenter", self.ICON_SIZE, 0):
             icon = AnimatedImage(self.icons.load_icon("softwarecenter", self.ICON_SIZE, 0))
-        except glib.GError:
+        else:
             # icon not present in theme, probably because running uninstalled
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
         self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
-        # spacer - not working
-        #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
-        #                     self.ICON_SIZE/4.0, self.ICON_SIZE/4.0)
-        #icon.fill(0)
-        #self.append([icon, '<span size="xx-small"></span>', 
-        #             self.ACTION_ITEM_NONE])
+        
+        pix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 1, 1)
+        pix.fill(0)
+        icon = AnimatedImage(pix)
+        self.append([icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1])
 
     def on_transactions_changed(self, current, queue):
         #print "check_pending"

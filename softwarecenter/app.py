@@ -68,7 +68,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     (NOTEBOOK_PAGE_AVAILABLE,
      NOTEBOOK_PAGE_INSTALLED,
-     NOTEBOOK_PAGE_PENDING) = range(3)
+     NOTEBOOK_PAGE_SEPARATOR_1,
+     NOTEBOOK_PAGE_PENDING) = range(4)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
@@ -231,13 +232,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._pending_transactions = pending_nr
 
     def on_view_switcher_changed(self, view_switcher, action):
-        logging.debug("view_switcher_activated: %s %s" % (view_switcher, action))
+        logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
+        change = True
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
         elif action == self.NOTEBOOK_PAGE_PENDING:
             self.active_pane = None
+        elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:
+			change = False
         else:
             assert False, "Not reached"
         # set menu sensitve
@@ -252,9 +256,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
         # switch to new page
-        self.notebook_view.set_current_page(action)
-        self.update_status_bar()
-        self.update_app_status_menu()
+        if change:
+			self.notebook_view.set_current_page(action)
+			self.update_status_bar()
+			self.update_app_status_menu()
 
     # Menu Items
 
@@ -436,7 +441,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             # FIXME: deal with the pending view status
             s = ""
-        self.statusbar.push(1, s)
+        self.label_status.set_text(s)
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
