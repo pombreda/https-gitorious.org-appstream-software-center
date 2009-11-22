@@ -74,13 +74,29 @@ class ShowImageDialog(gtk.Dialog):
         pixbuf_orig = gtk.gdk.pixbuf_new_from_file(loading_img)
         self.x = self._get_loading_x_start(loading_img_size)
         self.y = 0
+        self.pixbuf_count = 0
         pixbuf_buffer = pixbuf_orig.copy()
-        pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
+        
+        self.pixbuf_list = []
+                
+        for f in range((pixbuf_orig.get_width() / loading_img_size) * (pixbuf_orig.get_height() / loading_img_size)):
+            pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
+            self.pixbuf_list.append(pixbuf_buffer)
+            if self.x == pixbuf_orig.get_width() - loading_img_size:
+                self.x = self._get_loading_x_start(loading_img_size)
+                self.y += loading_img_size
+                if self.y == pixbuf_orig.get_height():
+                    self.x = self._get_loading_x_start(loading_img_size)
+                    self.y = 0
+            else:
+                self.x += loading_img_size
+        
+        
         
         self.img = gtk.Image()
         self.img.set_from_file(loading_img)
         self.img.show()
-        gobject.timeout_add(50, self._update_loading, pixbuf_orig, pixbuf_buffer, loading_img_size)
+        gobject.timeout_add(50, self._update_loading, pixbuf_orig, loading_img_size)
 
         # view port
         scroll = gtk.ScrolledWindow()
@@ -105,18 +121,13 @@ class ShowImageDialog(gtk.Dialog):
         # data
         self.url = url
 
-    def _update_loading(self, pixbuf_orig, pixbuf_buffer, loading_img_size):
+    def _update_loading(self, pixbuf_orig, loading_img_size):
         if not self._finished:
-            pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
-            if self.x == pixbuf_orig.get_width() - loading_img_size:
-                self.x = self._get_loading_x_start(loading_img_size)
-                self.y += loading_img_size
-                if self.y == pixbuf_orig.get_height():
-                    self.x = self._get_loading_x_start(loading_img_size)
-                    self.y = 0
+            self.img.set_from_pixbuf(self.pixbuf_list[self.pixbuf_count])
+            if self.pixbuf_count == (pixbuf_orig.get_width() / loading_img_size) * (pixbuf_orig.get_height() / loading_img_size) - 1:
+                self.pixbuf_count = 0
             else:
-                self.x += loading_img_size
-            self.img.set_from_pixbuf(pixbuf_buffer)
+                self.pixbuf_count += 1
             return True
             
     def _get_loading_x_start(self, loading_img_size):

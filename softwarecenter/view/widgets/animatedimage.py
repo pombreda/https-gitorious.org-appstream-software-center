@@ -27,7 +27,7 @@ class AnimatedImage(gtk.Image):
     
     FPS = 20.0
 
-    def __init__(self, globexp):
+    def __init__(self, icon):
         """ Animate a gtk.Image
     
         Keywords:
@@ -36,16 +36,32 @@ class AnimatedImage(gtk.Image):
         """
         super(AnimatedImage, self).__init__()
         self._progressN = 0
-        if isinstance(globexp, gtk.gdk.Pixbuf):
-            self.images = [globexp]
-            self.set_from_pixbuf(globexp)
-        elif isinstance(globexp, str):
-            self._imagefiles = sorted(glob.glob(globexp))
+        if isinstance(icon, gtk.gdk.Pixbuf):
+            self.images = [icon]
+            self.set_from_pixbuf(icon)
+        elif isinstance(icon, str):
+            self._imagefiles = icon
             self.images = []
             if not self._imagefiles:
-                raise IOError, "no images for the animation found in '%s'" % globexp
-            for f in self._imagefiles:
-                self.images.append(gtk.gdk.pixbuf_new_from_file(f))
+                raise IOError, "no images for the animation found in '%s'" % icon
+                
+            pixbuf_orig = gtk.gdk.pixbuf_new_from_file(icon)
+            x = 0
+            y = 0
+            pixbuf_buffer = pixbuf_orig.copy()
+
+            for f in range((pixbuf_orig.get_width() / 24) * (pixbuf_orig.get_height() / 24)):
+                pixbuf_buffer = pixbuf_orig.subpixbuf(x, y, 24, 24)
+                self.images.append(pixbuf_buffer)
+                if x == pixbuf_orig.get_width() - 24:
+                    x = 0
+                    y += 24
+                    if y == 72:
+                        x = 0
+                        y = 0
+                else:
+                    x += 24
+
             self.set_from_pixbuf(self.images[self._progressN])
             self.connect("show", self.start)
             self.connect("hide", self.stop)
@@ -117,13 +133,13 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-center"
+        datadir = "/usr/share/software-center/data"
 
-    image = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-*.png")
-    image1 = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-*.png")
+    image = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
+    image1 = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
     image1.start()
-    image2 = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-01.png")
-    pixbuf = gtk.gdk.pixbuf_new_from_file(datadir+"/icons/32x32/status/software-center-progress-07.png")
+    image2 = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
+    pixbuf = gtk.gdk.pixbuf_new_from_file(datadir+"/icons/24x24/status/softwarecenter-progress.png")
     image3 = AnimatedImage(pixbuf)
     image3.show()
 
