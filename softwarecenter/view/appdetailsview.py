@@ -187,11 +187,15 @@ class AppDetailsView(WebkitWidget):
         description = self.pkg.description
         #bullets (*)
         regx = re.compile("((\*) .*)")
-        description = re.sub(regx, r'<p>\1</p>', description)
+        description = re.sub(regx, r'<li>\1</li>', description)
+        description = self.add_ul_tags(description)
+        
+
         
         #bullets (-)
         regx = re.compile("((\-) .*)")
-        description = re.sub(regx, r'<p>\1</p>', description)
+        description = re.sub(regx, r'<li>\1</li>', description)
+        description = self.add_ul_tags(description)
         
         #line breaks
         regx = re.compile("(\n\n)")
@@ -201,6 +205,21 @@ class AppDetailsView(WebkitWidget):
         regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
         
         return re.sub(regx, r'<a href="\1">\1</a>', description)
+
+    def add_ul_tags(self, description):
+        n = description.find("<li>")
+        description[n:n+3].replace("<li>", "<ul><li>")
+        description = description[0:n] + description[n:n+3].replace("<li>", "<ul><li>") + description[n+3:]
+        description_list_tmp = []
+        len_description = range(len(description))
+        len_description.reverse()
+    
+        for letter in len_description:
+            description_list_tmp.append(description[letter])
+            
+        description_list_tmp = "".join(description_list_tmp)
+        n = len(description) - description_list_tmp.find(">il/<")
+        return description[0:n] + description[n-5:n].replace("</li>", "</li></ul>") + description[n:]
 
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and
