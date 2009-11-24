@@ -77,7 +77,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
-    def __init__(self, datadir, xapian_base_path):
+    def __init__(self, datadir, xapian_base_path, args):
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareCenter.ui", 
                                      "software-center")
@@ -196,6 +196,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
         except Exception, e:
             logging.debug("launchpad integration error: '%s'" % e)
+
+        if len(args) > 0:
+            app_name = args[0]
+            # FIXME: Need to make this work (the package_name is correct, but need to fetch the app_name)
+            self.available_pane.app_details.show_app(app_name, app_name)
 
         # default focus
         self.available_pane.searchentry.grab_focus()

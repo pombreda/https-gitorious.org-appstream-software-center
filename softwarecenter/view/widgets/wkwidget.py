@@ -83,7 +83,12 @@ class WebkitWidget(webkit.WebView):
 
     def _render(self):
         # FIXME: use self._html_path here as base_uri ?
-        self.load_html_string(self._html, "file:/") 
+        self.load_html_string(self._html, "file:/")
+        # If we are debugging, save us a copy of the substitued HTML
+        if logging.root.level == logging.DEBUG:
+            f = open("/tmp/software-center-render.html", "w")
+            f.write(self._html)
+            f.close()
 
     def _substitute(self, subs=None):
         """

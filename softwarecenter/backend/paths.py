@@ -17,12 +17,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+import logging
+
 from xdg import BaseDirectory as xdg
 
 class SoftwareCenterPaths(object):
     def __init__(self):
-        self.config = xdg.xdg_config_home
-        self.config_file = os.path.join(self.config, "softwarecenter", "softwarecenter.cfg")
+        self.config = os.path.join(xdg.xdg_config_home, "softwarecenter")
+        self.config_file = os.path.join(self.config, "softwarecenter.cfg")
         
 def get(variable):
     paths = SoftwareCenterPaths()
