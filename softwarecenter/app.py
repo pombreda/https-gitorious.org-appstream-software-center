@@ -43,6 +43,10 @@ from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
+
+import backend.config as config
+import backend.paths as paths
+
 from distro import get_distro
 
 from apt.aptcache import AptCache
@@ -195,6 +199,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # default focus
         self.available_pane.searchentry.grab_focus()
+        
+        #should we maximize?
+        self.window_state = config.get(paths.get("config_file"), "general", "maximized")
+        if self.window_state == "True":
+            self.window_main.maximize()
 
     # callbacks
     def on_app_details_changed(self, widget, appname, pkgname, page):
@@ -215,6 +224,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.menuitem_copy_web_link.set_sensitive(True)
 
     def on_window_main_delete_event(self, widget, event):
+        if self.window_state == ['GDK_WINDOW_STATE_MAXIMIZED']:
+            config.set(paths.get("config_file"), "general", "maximized", "True")
+        else:
+            config.set(paths.get("config_file"), "general", "maximized", "False")
         gtk.main_quit()
         
     def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
@@ -369,6 +382,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             return
         self.active_pane.apps_filter.set_supported_only(True)
         self.active_pane.refresh_apps()
+        
+    def on_window_main_window_state_event(self, widget, event):
+        self.window_state = event.new_window_state.value_names
 
     # helper
 
