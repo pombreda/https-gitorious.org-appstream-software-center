@@ -24,6 +24,10 @@ from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog
 
+import softwarecenter.view.dialogs as dialogs
+
+from gettext import gettext as _
+
 class AptdaemonBackend(gobject.GObject):
     """ software center specific code that interacts with aptdaemon """
 
