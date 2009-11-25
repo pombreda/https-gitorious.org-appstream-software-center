@@ -19,33 +19,7 @@
       }
     }
   }
-  function loadFrame(top, right, bottom, left) {
-    obj = document.getElementById("screenshot_thumbnail_loading");
-    obj.style.clip = 'rect('+top+'px,'+right+'px,'+bottom+'px,'+left+'px)';
-    obj.style.left = "-"+left+"px";
-    obj.style.top = ""+120-top+"px";
-    if (right == 144) {
-        if (bottom == 72) {
-            right = 36;
-            left = 0;
-            top = 0;
-            bottom = 36;
-            }
-        else {
-            right = 36;
-            left = 0;
-            top += 36;
-            bottom += 36;
-            }
-        }
-    else {
-        left += 36;
-        right += 36;
-    }
             
-    window.setTimeout("loadFrame("+top+","+right+","+bottom+","+left+")", 500);
-      
-  }
   function thumbMissing() {
     obj=document.getElementById("screenshot_thumbnail_img"); 
     obj.style.background= 'url("file:$screenshot_thumbnail_missing")';
@@ -73,8 +47,7 @@
   }
   window.onload = function() {
     initElement('screenshot_thumbnail_img');
-    initElement('$screenshot_installed');
-    window.setTimeout("loadFrame(0, 72, 36, 36)", 500);
+    initElement('$screenshot_installed')
   }
  </script>
 
@@ -115,11 +88,9 @@
       -khtml-user-drag:none;
     }
     #screenshot_thumbnail_loading {
-    background: url('file:$iconpath_loading');
-      position:absolute;
-      clip:rect(0px,36px,36px,0px);
-      left:0px;
-      top:120px;
+    background: url('file:$iconpath_loading') 50% 50% no-repeat;
+      float:right;
+      margin: 0 0 1em 1em;
     }
     #screenshot_thumbnail {
       visibility:hidden; 

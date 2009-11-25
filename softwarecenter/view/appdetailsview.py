@@ -60,7 +60,7 @@ class AppDetailsView(WebkitWidget):
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/software-center/emblems/software-center-installed.png"
-    IMAGE_LOADING = "/usr/share/icons/HighContrastLargePrintInverse/36x36/animations/process-working.png"
+    IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
