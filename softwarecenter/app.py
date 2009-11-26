@@ -492,9 +492,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # check if its currently rebuilding (most likely not, so we
         # just ignore errors from dbus because the interface
         try:
-            proxy_obj = bus.get_object("com.ubuntu.SoftwareStore",
-                                       "/com/ubuntu/SoftwareStore")
-            iface = dbus.Interface(proxy_obj, "com.ubuntu.SoftwareStore")
+            proxy_obj = bus.get_object("com.ubuntu.Softwarecenter",
+                                       "/com/ubuntu/Softwarecenter")
+            iface = dbus.Interface(proxy_obj, "com.ubuntu.Softwarecenter")
             res = iface.IsRebuilding()
             self._on_database_rebuilding_handler(res)
         except Exception ,e:
@@ -503,7 +503,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # add signal handler
         bus.add_signal_receiver(self._on_database_rebuilding_handler,
                                 "DatabaseRebuilding",
-                                "com.ubuntu.SoftwareStore")
+                                "com.ubuntu.Softwarecenter")
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
@@ -518,33 +518,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # we need to re-open when the database finished updating
             self.db.reopen()
             self.window_rebuilding.hide()
-
-    def setup_database_rebuilding_listener(self):
-        """
-        Setup system bus listener for database rebuilding
-        """
-        self._database_is_rebuilding = False
-        # get dbus
-        try:
-            bus = dbus.SystemBus()
-        except:
-            logging.exception("could not get system bus")
-            return
-        # check if its currently rebuilding (most likely not, so we
-        # just ignore errors from dbus because the interface
-        try:
-            proxy_obj = bus.get_object("com.ubuntu.Softwarecenter",
-                                       "/com/ubuntu/Softwarecenter")
-            iface = dbus.Interface(proxy_obj, "com.ubuntu.Softwarecenter")
-            res = iface.IsRebuilding()
-            self._on_database_rebuilding_handler(res)
-        except Exception ,e:
-            logging.debug("query for the update-database exception '%s' (probably ok)" % e)
-
-        # add signal handler
-        bus.add_signal_receiver(self._on_database_rebuilding_handler,
-                                "DatabaseRebuilding",
-                                "com.ubuntu.Softwarecenter")
 
     def setup_dbus_or_bring_other_instance_to_front(self):
         """ 
