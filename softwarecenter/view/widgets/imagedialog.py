@@ -83,10 +83,10 @@ class ShowImageDialog(gtk.Dialog):
             pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
             self.pixbuf_list.append(pixbuf_buffer)
             if self.x == pixbuf_orig.get_width() - loading_img_size:
-                self.x = self._get_loading_x_start(loading_img_size)
+                self.x = self.x = self._get_loading_x_start(loading_img_size)
                 self.y += loading_img_size
                 if self.y == pixbuf_orig.get_height():
-                    self.x = self._get_loading_x_start(loading_img_size)
+                    self.x = self.x = self._get_loading_x_start(loading_img_size)
                     self.y = 0
             else:
                 self.x += loading_img_size
@@ -131,7 +131,7 @@ class ShowImageDialog(gtk.Dialog):
             return True
             
     def _get_loading_x_start(self, loading_img_size):
-        if (gtk.settings_get_default().props.gtk_icon_theme_name or gtk.settings_get_default().props.gtk_fallback_icon_theme) in ICON_EXCEPTIONS:
+        if (gtk.settings_get_default().props.gtk_icon_theme_name in ICON_EXCEPTIONS) or (gtk.settings_get_default().props.gtk_fallback_icon_theme in ICON_EXCEPTIONS):
             return loading_img_size
         else:
             return 0
