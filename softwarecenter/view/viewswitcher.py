@@ -73,6 +73,8 @@ class ViewSwitcher(gtk.TreeView):
         self.get_selection().set_select_function(self.on_treeview_selected)
         # expand the first entry (get software)
         self.expand_to_path((0,))
+        self.set_level_indentation((24-self.get_level_indentation()))
+        self.set_enable_search(False)
         
     def on_treeview_selected(self, path):
         if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
