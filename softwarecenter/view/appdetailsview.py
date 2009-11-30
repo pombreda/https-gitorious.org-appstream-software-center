@@ -109,6 +109,10 @@ class AppDetailsView(WebkitWidget):
 
         # init app specific data
         self.appname = appname
+        # if we don't have a app, we use the pkgname as appname
+        if not appname:
+            self.appname = pkgname
+        # other data
         self.homepage_url = None
         self.channelfile = None
         self.doc = None
@@ -125,7 +129,7 @@ class AppDetailsView(WebkitWidget):
         self.iconname = os.path.splitext(self.iconname)[0]
 
         # get apt cache data
-        self.pkgname = self.doc.get_value(XAPIAN_VALUE_PKGNAME)
+        self.pkgname = self.db.get_pkgname(self.doc)
         self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.pkg = None
         if (self.cache.has_key(self.pkgname) and

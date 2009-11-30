@@ -96,10 +96,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # distro specific stuff
         self.distro = get_distro()
 
+        # a main iteration friendly apt cache
+        self.cache = AptCache()
+
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
-            self.db = StoreDatabase(pathname)
+            self.db = StoreDatabase(pathname, self.cache)
             self.db.open()
         except xapian.DatabaseOpeningError:
             # Couldn't use that folder as a database
@@ -110,7 +113,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 from softwarecenter.db.update import rebuild_database
                 logging.info("building local database")
                 rebuild_database(pathname)
-                self.db = StoreDatabase(pathname)
+                self.db = StoreDatabase(pathname, self.cache)
                 self.db.open()
         except xapian.DatabaseCorruptError, e:
             logging.exception("xapian open failed")
@@ -128,9 +131,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # HACK: make it more friendly for local installs (for mpt)
         self.icons.append_search_path(datadir+"/icons/32x32/status")
         
-        # a main iteration friendly apt cache
-        self.cache = AptCache()
-
         # misc state
         self._pending_transactions = 0
         self._block_menuitem_view = False

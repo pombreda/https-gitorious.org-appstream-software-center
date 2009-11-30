@@ -52,9 +52,6 @@ class InstalledPane(SoftwarePane):
         # UI
         self._build_ui()
     def _build_ui(self):
-        # appview and details into the notebook in the bottom
-        self.app_view.connect("application-activated", 
-                              self.on_application_activated)
         self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
@@ -95,14 +92,6 @@ class InstalledPane(SoftwarePane):
         self.search_terms = terms
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
-    def on_application_activated(self, appview, name, pkgname):
-        """callback when a app is clicked"""
-        logging.debug("on_application_activated: '%s'" % name)
-        self.navigation_bar.add_with_id(name,
-                                       self.on_navigation_details,
-                                       "details")
-        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.app_details.show_app(name, pkgname)
     def on_db_reopen(self, db):
         self.refresh_apps()
         self._show_installed_overview()

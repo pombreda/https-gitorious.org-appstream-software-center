@@ -87,6 +87,9 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
         self.scroll_app_list.add(self.app_view)
+        self.app_view.connect("application-activated", 
+                              self.on_application_activated)
+
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -125,6 +128,17 @@ class SoftwarePane(gtk.VBox):
         # needed otherwise we jump back to the beginning of the table
         if vadj:
             vadj.value_changed()
+
+    def on_application_activated(self, appview, name, pkgname):
+        """callback when a app is clicked"""
+        logging.debug("on_application_activated: '%s'" % name)
+        if not name:
+            name = pkgname
+        self.navigation_bar.add_with_id(name,
+                                       self.on_navigation_details,
+                                       "details")
+        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.app_details.show_app(name, pkgname)
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
