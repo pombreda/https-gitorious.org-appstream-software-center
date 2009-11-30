@@ -25,6 +25,10 @@ software-center (1.1) UNRELEASED; urgency=low
     - move the aptdaemon backend code here
   * softwarecenter/utils.py:
     - move proxy code into a generic utility function
+  * debian/control:
+    - add recommends to apt-xapian-index to enable support for
+      non-application packages
+  * merge the lp:~mvo/software-center/non-apps branch
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 

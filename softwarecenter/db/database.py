@@ -64,8 +64,11 @@ class StoreDatabase(gobject.GObject):
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
-        axi = xapian.Database("/var/lib/apt-xapian-index/index")
-        self.xapiandb.add_database(axi)
+        try:
+            axi = xapian.Database("/var/lib/apt-xapian-index/index")
+            self.xapiandb.add_database(axi)
+        except:
+            logging.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
