@@ -274,9 +274,9 @@ class AppDetailsView(WebkitWidget):
     def wksub_license(self):
         return self.distro.get_license_text(self.component)
     def wksub_price(self):
-	#TRANSLATORS: This text will be showed as price of the software
+        #TRANSLATORS: This text will be showed as price of the software
         price = _("Free")
-	s = _("Price: %s") % price
+        s = _("Price: %s") % price
         return s
     def wksub_installed(self):
         if self.pkg and self.pkg.installed:
@@ -296,16 +296,16 @@ class AppDetailsView(WebkitWidget):
         elif direction ==  gtk.TEXT_DIR_LTR:
             return 'DIR="LTR"'
     def wksub_font_family(self):
-         return self._get_font_description_property("family")
+        return self._get_font_description_property("family")
     def wksub_font_weight(self):
         try:
             return self._get_font_description_property("weight").real
         except:
             return int(self._get_font_description_property("weight"))
     def wksub_font_style(self):
-         return self._get_font_description_property("style").value_nick
+        return self._get_font_description_property("style").value_nick
     def wksub_font_size(self):
-         return self._get_font_description_property("size")/1024
+        return self._get_font_description_property("size")/1024
 
 
     # callbacks

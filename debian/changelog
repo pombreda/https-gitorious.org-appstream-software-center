@@ -37,6 +37,7 @@ software-center (1.1) UNRELEASED; urgency=low
   * softwarecenter/view/{catview.py,appdetailsview.py}:
     - return the int of self._get_font_description_property("weight")
       if it has no member named 'real'.
+  * Fix indentation in various files.
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 
