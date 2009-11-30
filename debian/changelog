@@ -1,5 +1,6 @@
 software-center (1.1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged from Andrew Higginson, many thanks
     - fix hardcoded fonts (LP:#456604)
     - changed paste menu item to be ctrl+V
@@ -29,6 +30,10 @@ software-center (1.1) UNRELEASED; urgency=low
     - add recommends to apt-xapian-index to enable support for
       non-application packages
   * merge the lp:~mvo/software-center/non-apps branch
+
+  [ Julian Andres Klode ]
+  * softwarecenter/distro/Debian.py:
+    - introduce the Debian version of Ubuntu.py.
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 
