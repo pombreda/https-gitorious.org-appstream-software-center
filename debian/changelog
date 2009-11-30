@@ -5,6 +5,8 @@ software-center (1.1debian1) unstable; urgency=low
     - Change maintainer to jak@debian.org
     - Point Vcs-Bzr to a debian branch
     - Remove references to Ubuntu from the description
+  * debian/copyright: Add Source field to header section, listing the
+    branches this package is derived from and the launchpad entry.
 
  -- Julian Andres Klode <jak@debian.org>  Mon, 30 Nov 2009 18:38:36 +0100
 

@@ -1,4 +1,7 @@
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?rev=59
+Source: https://edge.launchpad.net/software-center
+        http://bazaar.launchpad.net/~software-store-developers/software-center/trunk/
+        http://bazaar.launchpad.net/~juliank/software-center/jak/
 
 Files: *
 Copyright: © 2009 Canonical
