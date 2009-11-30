@@ -158,7 +158,9 @@ class AvailablePane(SoftwarePane):
         # wants this to return to the category screen *if*
         # we are searching but we are not in a any category
         if not self.apps_category_query and not new_text:
+            # category activate will clear search etc
             self.navigation_bar.get_button_from_id("category").activate()
+            return
 
         # if the user searches in the category page, reset the specific
         # category query (to ensure all apps are searched)
@@ -188,7 +190,7 @@ class AvailablePane(SoftwarePane):
         # yeah for special cases - as discussed on irc, mpt
         # wants this to behave differently *if* we are not
         # in a sub-category *and* there is a search going on
-        if not self.apps_category_query and self.apps_search_query:
+        if not self.apps_category_query and self.searchentry.get_text():
             self.on_navigation_list(button)
             return
         # clear the search

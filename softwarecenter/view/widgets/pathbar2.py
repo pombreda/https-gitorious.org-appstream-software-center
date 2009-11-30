@@ -150,7 +150,8 @@ class PathBar(gtk.DrawingArea):
     def __set_active(self, part):
         prev_active = self.__active_part
         redraw = False
-
+        if part.callback:
+            part.callback(self)
         if prev_active and prev_active != part:
             prev_active.set_state(gtk.STATE_NORMAL)
             redraw = True
@@ -695,7 +696,6 @@ class PathBar(gtk.DrawingArea):
         if self.__focal_part and self.__focal_part != part:
             pass
         elif part and self.__button_down:
-            if part.callback: part.callback(self)
             self.grab_focus()
             prev_active, redraw = self.__set_active(part)
             part.set_state(gtk.STATE_PRELIGHT)
