@@ -110,13 +110,18 @@ class CategoriesView(WebkitWidget):
         elif direction ==  gtk.TEXT_DIR_LTR:
             return 'DIR="LTR"'
     def wksub_font_family(self):
-         return self._get_font_description_property("family")
+        return self._get_font_description_property("family")
+        
     def wksub_font_weight(self):
-         return self._get_font_description_property("weight").real
+        try:
+            return self._get_font_description_property("weight").real
+        except AttributeError:
+            return int(self._get_font_description_property("weight"))
+             
     def wksub_font_style(self):
-         return self._get_font_description_property("style").value_nick
+        return self._get_font_description_property("style").value_nick
     def wksub_font_size(self):
-         return self._get_font_description_property("size")/1024
+        return self._get_font_description_property("size")/1024
 
     # helper code for menu parsing etc
     def _cat_sort_cmp(self, a, b):

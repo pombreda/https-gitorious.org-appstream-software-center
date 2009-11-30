@@ -93,11 +93,11 @@ class Ubuntu(Distro):
         return s
 
     def get_distro_codename(self):
-       if not hasattr(self ,"codename"):
+        if not hasattr(self ,"codename"):
             self.codename = subprocess.Popen(
                 ["lsb_release","-c","-s"],
                 stdout=subprocess.PIPE).communicate()[0].strip()
-       return self.codename
+        return self.codename
 
     def get_license_text(self, component):
         li =  _("Unknown")
