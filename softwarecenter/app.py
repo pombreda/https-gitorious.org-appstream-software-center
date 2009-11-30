@@ -475,7 +475,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.window_rebuilding.show()
         else:
             # we need to reopen when the database finished updating
-            self.xapiandb.reopen()
+            self.db.reopen()
             self.window_rebuilding.hide()
 
     def setup_database_rebuilding_listener(self):
@@ -504,20 +504,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         bus.add_signal_receiver(self._on_database_rebuilding_handler,
                                 "DatabaseRebuilding",
                                 "com.ubuntu.Softwarecenter")
-
-    def _on_database_rebuilding_handler(self, is_rebuilding):
-        logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
-        self._database_is_rebuilding = is_rebuilding
-        self.window_rebuilding.set_transient_for(self.window_main)
-        self.window_rebuilding.set_title("")
-        self.window_main.set_sensitive(not is_rebuilding)
-        # show dialog about the rebuilding status
-        if is_rebuilding:
-            self.window_rebuilding.show()
-        else:
-            # we need to re-open when the database finished updating
-            self.db.reopen()
-            self.window_rebuilding.hide()
 
     def setup_dbus_or_bring_other_instance_to_front(self):
         """ 
