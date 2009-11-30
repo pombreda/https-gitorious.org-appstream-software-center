@@ -25,6 +25,7 @@ import threading
 import urllib
 
 from softwarecenter.enums import *
+from softwarecenter.utils import get_http_proxy_string_from_gconf
 
 class Url404Error(IOError):
     pass
@@ -36,15 +37,9 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
     def __init__(self, user_agent=USER_AGENT):
         proxies = {}
-        import gconf
-        client = gconf.client_get_default()
-        if client.get_bool("/system/http_proxy/use_http_proxy"):
-            try:
-                host = client.get_string("/system/http_proxy/host")
-                port = client.get_int("/system/http_proxy/port")
-                proxies = { "http" : "http://%s:%s/" %  (host, port) }
-            except GError, e:
-                pass
+        http_proxy = get_http_proxy_string_from_gconf()
+        if http_proxy:
+            proxies = { "http" : http_proxy }
         urllib.FancyURLopener.__init__(self, proxies)
         self.version = user_agent
     def http_error_404(self, url, fp, errcode, errmsg, headers):

@@ -24,6 +24,8 @@ from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog
 
+from softwarecenter.utils import get_http_proxy_string_from_gconf
+
 class AptdaemonBackend(gobject.GObject):
     """ software center specific code that interacts with aptdaemon """
 
@@ -159,18 +161,10 @@ class AptdaemonBackend(gobject.GObject):
         else:
             transaction.cancel()
 
-    # FIXME: use the setup_http_proxy method from aptdaemon.gtkwidgets
-    #        instead
     def _setup_http_proxy(self, transaction):
-        try:
-            import gconf
-            client = gconf.client_get_default()
-            if client.get_bool("/system/http_proxy/use_http_proxy"):
-                host = client.get_string("/system/http_proxy/host")
-                port = client.get_int("/system/http_proxy/port")
-                transaction.set_http_proxy("http://%s:%s/" % (host, port))
-        except:
-            logging.exception("gconf http proxy failed")
+        http_proxy = get_http_proxy_string_from_gconf()
+        if http_proxy:
+            transaction.set_http_proxy(http_proxy)
 
     def _run_transaction(self, trans, pkgname, appname, iconname):
         # set object data

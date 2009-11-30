@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import logging
+import time
 
 class ExecutionTime(object):
     """
@@ -31,7 +33,27 @@ class ExecutionTime(object):
     def __exit__(self, type, value, stack):
         print "%s: %s" % (self.info, time.time() - self.now)
 
+def get_http_proxy_string_from_gconf():
+    """Helper that gets the http proxy from gconf
 
+    Returns: string with http://auth:pw@proxy:port/ or None
+    """
+    try:
+        import gconf, glib
+        client = gconf.client_get_default()
+        if client.get_bool("/system/http_proxy/use_http_proxy"):
+            authentication = ""
+            if client.get_bool("/system/http_proxy/use_authentication"):
+                user = client.get_string("/system/http_proxy/authentication_user")
+                password = client.get_string("/system/http_proxy/authentication_password")
+                authentication = "%s:%s@" % (user, password)
+            host = client.get_string("/system/http_proxy/host")
+            port = client.get_int("/system/http_proxy/port")
+            http_proxy = "http://%s%s:%s/" %  (authentication, host, port)
+            return http_proxy
+    except Exception:
+        logging.exception("failed to get proxy from gconf")
+    return None
 
 def encode_for_xml(unicode_data, encoding="ascii"):
     """ encode a given string for xml """

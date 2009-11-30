@@ -3,6 +3,8 @@ software-center (1.1) UNRELEASED; urgency=low
   * merged from Andrew Higginson, many thanks
     - fix hardcoded fonts (LP:#456604)
     - changed paste menu item to be ctrl+V
+  * merged from Luke Symes, many thanks:
+    - add suppoprt for authenticated proxies
   * softwarecenter/view/appdetailsview.py:
     - support uris in the app description (LP: #454246)
     - fix in details view
@@ -21,6 +23,8 @@ software-center (1.1) UNRELEASED; urgency=low
     - default to new pathbar
   * softwarecenter/backend/aptd.py:
     - move the aptdaemon backend code here
+  * softwarecenter/utils.py:
+    - move proxy code into a generic utility function
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Oct 2009 15:01:26 +0200
 
