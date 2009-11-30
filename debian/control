@@ -1,7 +1,7 @@
 Source: software-center
 Section: gnome
 Priority: optional
-Maintainer: Michael Vogt <mvo@ubuntu.com>
+Maintainer: Julian Andres Klode <jak@debian.org>
 Build-Depends: debhelper (>= 7.0.50),
 	       lsb-release,
                gettext,
@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 7.0.50),
 	       python-setuptools
 Standards-Version: 3.8.3
 XS-Python-Version: current
-Vcs-Bzr: https://code.launchpad.net/~software-center-developers/software-center/trunk
+Vcs-Bzr: http://bazaar.launchpad.net/~juliank/software-center/debian/
 
 Package: software-center
 Architecture: all
@@ -39,11 +39,10 @@ Replaces: software-store
 Provides: software-store
 XB-Python-Version: ${python:Versions}
 Description: Utility for browsing, installing, and removing applications
- The Ubuntu Software Center lets you browse and install thousands of 
- free applications available for Ubuntu. You can view available 
- applications by category, or search quickly by name or description. 
- You can also examine the applications already installed, and remove
- those you no longer need.
+ The Software Center lets you browse and install thousands of free
+ applications. You can view available applications by category, or
+ search quickly by name or description. You can also examine the
+ applications already installed, and remove those you no longer need.
  .
  To install or remove software using the Center, you need administrator
  access on the computer.

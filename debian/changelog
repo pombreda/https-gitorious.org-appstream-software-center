@@ -1,3 +1,13 @@
+software-center (1.1debian1) unstable; urgency=low
+
+  * Initial upload to Debian (Closes: #558692)
+  * debian/control:
+    - Change maintainer to jak@debian.org
+    - Point Vcs-Bzr to a debian branch
+    - Remove references to Ubuntu from the description
+
+ -- Julian Andres Klode <jak@debian.org>  Mon, 30 Nov 2009 18:38:36 +0100
+
 software-center (1.1) lucid; urgency=low
 
   [ Michael Vogt ]
