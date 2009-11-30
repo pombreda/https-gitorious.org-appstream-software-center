@@ -298,7 +298,10 @@ class AppDetailsView(WebkitWidget):
     def wksub_font_family(self):
          return self._get_font_description_property("family")
     def wksub_font_weight(self):
-         return self._get_font_description_property("weight").real
+        try:
+            return self._get_font_description_property("weight").real
+        except:
+            return int(self._get_font_description_property("weight"))
     def wksub_font_style(self):
          return self._get_font_description_property("style").value_nick
     def wksub_font_size(self):
