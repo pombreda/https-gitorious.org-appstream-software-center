@@ -82,6 +82,10 @@ class StoreDatabase(gobject.GObject):
 
     def get_query_from_search_entry(self, search_term):
         """ get xapian.Query from a search term string """
+        # we cheat and return a match-all query for single letter searches
+        if len(search_term) < 2:
+            return xapian.Query("")
+        # get a real query
         query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
