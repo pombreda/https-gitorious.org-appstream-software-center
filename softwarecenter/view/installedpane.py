@@ -47,7 +47,7 @@ class InstalledPane(SoftwarePane):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
         # state
-        self.apps_filter = AppViewFilter(cache)
+        self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_installed_only(True)
         # UI
         self._build_ui()

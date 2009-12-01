@@ -528,11 +528,13 @@ class AppViewFilter(object):
     are based around the package details that are not listed in xapian
     (like installed_only) or archive section
     """
-    def __init__(self, cache):
+    def __init__(self, db, cache):
+        self.db = db
         self.cache = cache
         self.supported_only = False
         self.installed_only = False
         self.not_installed_only = False
+        self.only_packages_without_applications = False
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
@@ -541,10 +543,24 @@ class AppViewFilter(object):
         self.not_installed_only = v
     def get_supported_only(self):
         return self.supported_only
+    def set_only_packages_without_applications(self, v):
+        """ 
+        only show packages that are not displayed as applications
+        
+        e.g. abiword (the package document) will not be displayed
+             because there is a abiword application already
+        """
+        self.only_packages_without_applications = v
+    def get_only_packages_without_applications(self, v):
+        return self.only_packages_without_applications
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
         #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
+        if self.only_packages_without_applications:
+            if not doc.get_value(XAPIAN_VALUE_PKGNAME):
+                for m in self.db.xapiandb.postlist("AP"+pkgname):
+                    return False
         if self.installed_only:
             if (not self.cache.has_key(pkgname) or
                 not self.cache[pkgname].isInstalled):
@@ -586,16 +602,18 @@ if __name__ == "__main__":
 
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = StoreDatabase(pathname)
+
+    # the store
+    cache = apt.Cache(apt.progress.OpTextProgress())
+    db = StoreDatabase(pathname, cache)
+    db.open()
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
     # now the store
-    import apt
-    cache = apt.Cache(apt.progress.OpTextProgress())
-    filter = AppViewFilter(cache)
+    filter = AppViewFilter(db, cache)
     filter.set_supported_only(True)
     filter.set_installed_only(True)
     store = AppStore(cache, db, icons, filter=filter)

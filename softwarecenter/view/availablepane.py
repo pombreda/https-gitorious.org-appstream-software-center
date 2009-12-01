@@ -61,7 +61,8 @@ class AvailablePane(SoftwarePane):
         self.apps_search_query = None
         self.apps_sorted = True
         self.apps_limit = 0
-        self.apps_filter = AppViewFilter(cache)
+        self.apps_filter = AppViewFilter(db, cache)
+        self.apps_filter.set_only_packages_without_applications(True)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
