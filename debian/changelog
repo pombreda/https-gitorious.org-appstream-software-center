@@ -1,3 +1,11 @@
+software-center (1.1.1) UNRELEASEDlucid; urgency=low
+
+  * Hide packages that are also part of a application. This
+    means that abiword will only show up once in the center
+    (as a application) and not as a package at all. 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Dec 2009 17:35:54 +0100
+
 software-center (1.1) lucid; urgency=low
 
   [ Michael Vogt ]

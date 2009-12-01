@@ -559,6 +559,8 @@ class AppViewFilter(object):
         #        self.supported_only, self.installed_only, pkgname))
         if self.only_packages_without_applications:
             if not doc.get_value(XAPIAN_VALUE_PKGNAME):
+                # "if not self.db.xapiandb.postlist("AP"+pkgname):"
+                # does not work for some reason
                 for m in self.db.xapiandb.postlist("AP"+pkgname):
                     return False
         if self.installed_only:
