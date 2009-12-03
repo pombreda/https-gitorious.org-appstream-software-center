@@ -29,13 +29,8 @@ import xapian
 
 from gettext import gettext as _
 
-try:
-    from appcenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from enums import *
+from softwarecenter.enums import *
+from softwarecenter.utils import *
 
 from appview import AppView, AppStore, AppViewFilter
 from catview import CategoriesView
