@@ -73,16 +73,17 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                 continue
             trans = aptdaemon.client.get_transaction(tid)
             self._signals.append(
-                trans.connect("progress", self._on_progress_changed))
+                trans.connect("progress-changed", self._on_progress_changed))
             self._signals.append(
-                trans.connect("status", self._on_status_changed))
+                trans.connect("status-changed", self._on_status_changed))
             self._signals.append(
-                trans.connect("allow-cancel", self._on_allow_cancel_changed))
+                trans.connect("cancellable-changed",
+                              self._on_cancellable_changed))
             appname = trans.get_data("appname")
             iconname = trans.get_data("iconname")
             if not appname:
                 self._signals.append(
-                    trans.connect("role", self._on_role_changed))
+                    trans.connect("role-changed", self._on_role_changed))
             if iconname:
                 try:
                     icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
@@ -93,11 +94,11 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             self.append([tid, icon, appname, "", 0.0, ""])
             del trans
 
-    def _on_allow_cancel_changed(self, trans, allow_cancel):
+    def _on_cancellable_changed(self, trans, cancellable):
         #print "_on_allow_cancel: ", trans, allow_cancel
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                if allow_cancel:
+                if cancellable:
                     row[self.COL_CANCEL] = self.PENDING_STORE_ICON_CANCEL
                 else:
                     row[self.COL_CANCEL] = self.PENDING_STORE_ICON_NO_CANCEL

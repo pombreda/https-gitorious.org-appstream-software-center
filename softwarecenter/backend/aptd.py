@@ -20,7 +20,6 @@ import gobject
 import os
 import logging
 
-from aptdaemon import policykit1
 from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog
@@ -44,19 +43,25 @@ class AptdaemonBackend(gobject.GObject):
 
     # public methods
     def upgrade(self, pkgname, appname, iconname):
-        trans = self.aptd_client.upgrade_packages([pkgname],
-                                          exit_handler=self._on_trans_finished)
-        self._run_transaction(trans, pkgname, appname, iconname)
+        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
+                                                            appname, iconname)
+        self.aptd_client.upgrade_packages([pkgname],
+                                          reply_handler=reply_handler,
+                                          error_handler=self._on_trans_error)
 
     def remove(self, pkgname, appname, iconname):
-        trans = self.aptd_client.remove_packages([pkgname],
-                                          exit_handler=self._on_trans_finished)
-        self._run_transaction(trans, pkgname, appname, iconname)
+        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
+                                                            appname, iconname)
+        self.aptd_client.remove_packages([pkgname], reply_handler=reply_handler,
+                                         error_handler=self._on_trans_error)
 
     def install(self, pkgname, appname, iconname):
-        trans = self.aptd_client.install_packages([pkgname],
-                                          exit_handler=self._on_trans_finished)
-        self._run_transaction(trans, pkgname, appname, iconname)
+        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
+                                                            appname, iconname)
+        self.aptd_client.install_packages([pkgname],
+                                          reply_handler=reply_handler,
+                                          error_handler=self._on_trans_error)
+
 
     def enable_channel(self, channelfile):
         import aptsources.sourceslist
