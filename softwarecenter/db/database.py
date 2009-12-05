@@ -44,6 +44,16 @@ class Application(object):
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
+     
+    # TRANSLATORS: Do not translate this list directly. Instead,
+    # provide a list of words in your language that people are likely
+    # to include in a search but that should normally be ignored in
+    # the search.
+
+    SEARCH_GREYLIST = ('app', 'application ', 'package',
+                       'program', 'programme', 'suite',
+                       'tool')
+                       
     __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 ()),
@@ -81,6 +91,21 @@ class StoreDatabase(gobject.GObject):
         self.emit("reopen")
 
     def get_query_from_search_entry(self, search_term):
+        # filter query by greylist
+
+        orig_search_term = search_term
+
+        for item in self.SEARCH_GREYLIST:
+            search_term = search_term.replace(item, ' ')
+            
+            
+        # strip leading and trailing whitespace
+        search_term = search_term.strip()
+
+        # restore query if it was just greylist words
+        if search_term == '':
+            search_term = orig_search_term
+		    
         """ get xapian.Query from a search term string """
         # we cheat and return a match-all query for single letter searches
         if len(search_term) < 2:
