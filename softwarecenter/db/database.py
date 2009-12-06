@@ -20,6 +20,7 @@ import gobject
 import locale
 import logging
 import xapian
+import re
 from softwarecenter.enums import *
 
 
@@ -96,7 +97,7 @@ class StoreDatabase(gobject.GObject):
         orig_search_term = search_term
 
         for item in self.SEARCH_GREYLIST:
-            search_term = search_term.replace(item, ' ')
+            search_term = re.sub(re.compile('\\b%s\\b' % item), '', search_term)
             
             
         # strip leading and trailing whitespace
@@ -104,8 +105,9 @@ class StoreDatabase(gobject.GObject):
 
         # restore query if it was just greylist words
         if search_term == '':
+            print 'restored'
             search_term = orig_search_term
-		    
+        
         """ get xapian.Query from a search term string """
         # we cheat and return a match-all query for single letter searches
         if len(search_term) < 2:
