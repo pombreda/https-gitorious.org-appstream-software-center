@@ -56,26 +56,37 @@ class ViewSwitcher(gtk.TreeView):
             self.model = store
             self.set_model(store)
         gtk.TreeView.__init__(self)
+        
         tp = CellRendererAnimatedImage()
-        column = gtk.TreeViewColumn("Icon", tp, image=store.COL_ICON)
-        #column.set_fixed_width(32)
-        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        self.append_column(column)
+        column = gtk.TreeViewColumn("Icon")
+        column.pack_start(tp, expand=False)
+        column.set_attributes(tp, image=store.COL_ICON)
         tr = gtk.CellRendererText()
         tr.set_property("ellipsize", pango.ELLIPSIZE_END)
-        column = gtk.TreeViewColumn("Name", tr, markup=store.COL_NAME)
-        #column.set_fixed_width(200)
-        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        column.pack_start(tr, expand=True)
+        column.set_attributes(tr, markup=store.COL_NAME)
         self.append_column(column)
+        
         self.set_model(store)
         self.set_headers_visible(False)
         self.connect("button-press-event", self.on_button_press_event)
         self.get_selection().set_select_function(self.on_treeview_selected)
         # expand the first entry (get software)
         self.expand_to_path((0,))
-        self.set_level_indentation((24-self.get_level_indentation()))
+        self.set_level_indentation(4)
         self.set_enable_search(False)
         
+        self.connect("row-expanded", self.on_treeview_row_expanded)
+        self.connect("row-collapsed", self.on_treeview_row_collapsed)
+        
+    def on_treeview_row_expanded(self, widget, iter, path):
+        #behaviour overrides
+        pass
+        
+    def on_treeview_row_collapsed(self, widget, iter, path):
+        #behaviour overrides
+        pass
+    
     def on_treeview_selected(self, path):
         if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
             return False
