@@ -82,9 +82,10 @@ class AptdaemonBackend(gobject.GObject):
             except dbus.exceptions.DBusException, e:
                 if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                     return
-        trans = self.aptd_client.update_cache(
-            exit_handler=self._on_trans_finished)
-        self._run_transaction(trans, None, None, None)
+        reply_handler = lambda trans: self._run_transaction(trans, None, None,
+                                                            None)
+        trans = self.aptd_client.update_cache(reply_handler=reply_handler,
+                                             error_handler=self._on_trans_error)
 
     # internal helpers
     def _on_trans_reply(self):
@@ -183,6 +184,7 @@ class AptdaemonBackend(gobject.GObject):
         trans.set_debconf_frontend("gnome")
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
+        trans.connect("finished", self._on_trans_finished)
         trans.run(error_handler=self._on_trans_error,
                   reply_handler=self._on_trans_reply)
 
