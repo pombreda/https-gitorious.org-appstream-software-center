@@ -19,9 +19,11 @@
 import gobject
 import locale
 import logging
+import re
 import xapian
-from softwarecenter.enums import *
 
+from softwarecenter.enums import *
+from gettext import gettext as _
 
 class Application(object):
     """ a simple data object that contains just appname, pkgname
@@ -44,6 +46,16 @@ class Application(object):
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
+    # TRANSLATORS: Do not translate this list directly. Instead,
+    # provide a list of words in your language that people are likely
+    # to include in a search but that should normally be ignored in
+    # the search.
+    SEARCH_GREYLIST = ( _('app'), _('application '), _('package'),
+                        _('program'), _('programme'), _('suite'),
+                        _('tool'),
+                      )
+
+    # signal emited
     __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 ()),
@@ -85,6 +97,17 @@ class StoreDatabase(gobject.GObject):
         # we cheat and return a match-all query for single letter searches
         if len(search_term) < 2:
             return xapian.Query("")
+
+        # filter query by greylist (to avoid overly generic search terms)
+        orig_search_term = search_term
+        for item in self.SEARCH_GREYLIST:
+            (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
+            if n: 
+                logging.debug("greylist changed search term: '%s'" % search_term)
+        # restore query if it was just greylist words
+        if search_term == '':
+            search_term = orig_search_term
+        
         # get a real query
         query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
@@ -118,7 +141,7 @@ class StoreDatabase(gobject.GObject):
         
         If no document is found, raise a IndexError
         """
-        logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
+        #logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA"+appname):
             doc = self.xapiandb.get_document(m.docid)
