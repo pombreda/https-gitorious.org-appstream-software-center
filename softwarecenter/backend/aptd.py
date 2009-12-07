@@ -19,6 +19,7 @@
 import gobject
 import os
 import logging
+import subprocess
 
 from aptdaemon import policykit1
 from aptdaemon import client
