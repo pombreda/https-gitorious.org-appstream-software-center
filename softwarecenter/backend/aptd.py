@@ -138,7 +138,7 @@ class AptdaemonBackend(gobject.GObject):
         return diff
 
     # FIXME: move this into aptdaemon/use the aptdaemon one
-    def _config_file_prompt(self, transaction, old, new):
+    def _config_file_conflict(self, transaction, old, new):
         diff = self._get_diff(old, new)
         d = dialogs.DetailsMessageDialog(None,
                                          details=diff,
@@ -154,9 +154,9 @@ class AptdaemonBackend(gobject.GObject):
         d.destroy()
         # send result to the daemon
         if res == gtk.RESPONSE_YES:
-            transaction.config_file_prompt_answer(old, "replace")
+            transaction.resolve_config_file_conflict(old, "replace")
         else:
-            transaction.config_file_prompt_answer(old, "keep")
+            transaction.resolve_config_file_conflict(old, "keep")
 
     def _medium_required(self, transaction, medium, drive):
         dialog = AptMediumRequiredDialog(medium, drive)
@@ -181,7 +181,7 @@ class AptdaemonBackend(gobject.GObject):
         self._setup_http_proxy(trans)
         # we support debconf
         trans.set_debconf_frontend("gnome")
-        trans.connect("config-file-prompt", self._config_file_prompt)
+        trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
         trans.run(error_handler=self._on_trans_error,
                   reply_handler=self._on_trans_reply)
