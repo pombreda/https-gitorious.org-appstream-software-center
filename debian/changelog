@@ -10,6 +10,8 @@ software-center (1.1.1) UNRELEASEDlucid; urgency=low
   * softwarecenter/db/database.py:
     - support comma expansion as in https://wiki.ubuntu.com/SoftwareCenter
       under "Searching for multiple package names"
+  * softwarecenter/distro/Ubuntu.py:
+    - string fixes (thanks to shane fagan), LP: #493618
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Dec 2009 17:35:54 +0100
 
