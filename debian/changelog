@@ -1,4 +1,4 @@
-software-center (1.1.1) UNRELEASEDlucid; urgency=low
+software-center (1.1.1) lucid; urgency=low
 
   * Hide packages that are also part of a application. This
     means that abiword will only show up once in the center
@@ -13,7 +13,7 @@ software-center (1.1.1) UNRELEASEDlucid; urgency=low
   * softwarecenter/distro/Ubuntu.py:
     - string fixes (thanks to shane fagan), LP: #493618
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Dec 2009 17:35:54 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Dec 2009 18:32:13 +0100
 
 software-center (1.1) lucid; urgency=low
 
