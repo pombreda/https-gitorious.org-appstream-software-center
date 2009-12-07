@@ -46,14 +46,13 @@ class Application(object):
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
-    # TRANSLATORS: Do not translate this list directly. Instead,
+    # TRANSLATORS: List of "grey-listed" words sperated with ";"
+    # Do not translate this list directly. Instead,
     # provide a list of words in your language that people are likely
     # to include in a search but that should normally be ignored in
     # the search.
-    SEARCH_GREYLIST = ( _('app'), _('application '), _('package'),
-                        _('program'), _('programme'), _('suite'),
-                        _('tool'),
-                      )
+    SEARCH_GREYLIST_STR = _("app;application;package;program;programme;"
+                            "suite;tool")
 
     # signal emited
     __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
@@ -100,7 +99,7 @@ class StoreDatabase(gobject.GObject):
 
         # filter query by greylist (to avoid overly generic search terms)
         orig_search_term = search_term
-        for item in self.SEARCH_GREYLIST:
+        for item in self.SEARCH_GREYLIST_STR.split(";"):
             (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
             if n: 
                 logging.debug("greylist changed search term: '%s'" % search_term)

@@ -7,6 +7,8 @@ softwarecenter/app.py
 softwarecenter/SimpleGtkbuilderApp.py
 softwarecenter/apt/aptcache.py
 softwarecenter/backend/aptd.py
+softwarecenter/db/database.py
+softwarecenter/db/update.py
 softwarecenter/distro/__init__.py
 softwarecenter/distro/aptutils.py
 softwarecenter/distro/Ubuntu.py
