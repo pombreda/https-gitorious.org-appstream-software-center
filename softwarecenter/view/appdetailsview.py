@@ -75,8 +75,8 @@ class AppDetailsView(WebkitWidget):
         self.icons = icons
         self.cache = cache
         self.datadir = datadir
-        self.arch = subprocess.Popen(["dpkg","--print-architecture"],
-                                     stdout=subprocess.PIPE).communicate()[0]
+        self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
+                                     stdout=subprocess.PIPE).communicate()[0].strip()
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
@@ -114,6 +114,7 @@ class AppDetailsView(WebkitWidget):
         # other data
         self.homepage_url = None
         self.channelfile = None
+        self.channelname = None
         self.doc = None
 
         # get xapian document
@@ -176,17 +177,18 @@ class AppDetailsView(WebkitWidget):
     def wksub_description(self):
         # if we do not have a package in our apt data explain why
         if not self.pkg:
-            if self.channelfile:
-                return _("Available in a software channel that needs "
-                         "to be enabled first.")
+            if self.channelname:
+                return _("This software is available from the '%s' source, "
+                         "which you are not currently using.") % self.channelname
             # if we have no pkg, check if its available for the given
             # architecture
             if self._available_for_our_arch():
-                return _("Sorry, this software is not available in the "
-                         "current data, please try to reload.")
+                return _("To show information about this item, "
+                         "the software catalog needs updating.")
             else:
-                return _("Sorry, this software is not available for "
-                         "your hardware architecture.")
+                return _("Sorry, '%s' is not available for "
+                         "this type of computer (%s).") % (
+                        self.appname, self.arch)
 
         # format for html
         description = self.pkg.description
@@ -465,12 +467,13 @@ class AppDetailsView(WebkitWidget):
             if channel:
                 path = APP_INSTALL_CHANNELS_PATH + channel +".list"
                 if os.path.exists(path):
+                    self.channelname = channel
                     self.channelfile = path
                     # FIXME: deal with the EULA stuff
-                    action_button_label = _("Enable channel")
+                    action_button_label = _("Use This Source")
                     action_button_value = "enable_channel"
             elif self._available_for_our_arch():
-                action_button_label = _("Reload package information")
+                action_button_label = _("Update Now")
                 action_button_value = "reload"
         return (action_button_label, action_button_value)
 
