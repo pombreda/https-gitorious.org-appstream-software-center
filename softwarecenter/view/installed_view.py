@@ -23,7 +23,6 @@ import gobject
 import apt
 import os
 import xapian
-import time
 
 from appview import *
 

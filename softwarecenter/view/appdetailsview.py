@@ -23,7 +23,6 @@ import glib
 import gobject
 import gtk
 import logging
-import pango
 import os
 import re
 import socket
@@ -31,7 +30,6 @@ import string
 import subprocess
 import sys
 import tempfile
-import time
 import threading
 import urllib
 import xapian
@@ -40,6 +38,7 @@ from gettext import gettext as _
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
+
 from softwarecenter.enums import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
@@ -60,7 +59,7 @@ class AppDetailsView(WebkitWidget):
     APP_ICON_PADDING = 8
 
     # FIXME: use relative path here
-    INSTALLED_ICON = "/usr/share/icons/hicolor/24x24/emblems/software-center-installed.png"
+    INSTALLED_ICON = "/usr/share/software-center/emblems/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
@@ -160,8 +159,8 @@ class AppDetailsView(WebkitWidget):
 
     def clear(self):
         " clear the current view "
-        self.load_string("","text/plain","ascii","file:/")
-        while gtk.events_pending():
+        self.load_string("", "text/plain", "ascii", "file:/")
+        while gtk.events_pending(): 
             gtk.main_iteration()
 
     # substitute functions called during page display
@@ -192,11 +191,13 @@ class AppDetailsView(WebkitWidget):
         description = self.pkg.description
         #bullets (*)
         regx = re.compile("((\*) .*)")
-        description = re.sub(regx, r'<p>\1</p>', description)
+        description = re.sub(regx, r'<li>\1</li>', description)
+        description = self.add_ul_tags(description)
         
         #bullets (-)
         regx = re.compile("((\-) .*)")
-        description = re.sub(regx, r'<p>\1</p>', description)
+        description = re.sub(regx, r'<li>\1</li>', description)
+        description = self.add_ul_tags(description)
         
         #line breaks
         regx = re.compile("(\n\n)")
@@ -204,8 +205,26 @@ class AppDetailsView(WebkitWidget):
         
         # urls
         regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
-        description = re.sub(regx, r'<a href="\1">\1</a>', description)
+        
+        return re.sub(regx, r'<a href="\1">\1</a>', description)
+
+    def add_ul_tags(self, description):
+        n = description.find("<li>")
+        if not n == -1:
+            description[n:n+3].replace("<li>", "<ul><li>")
+            description = description[0:n] + description[n:n+3].replace("<li>", "<ul><li>") + description[n+3:]
+            description_list_tmp = []
+            len_description = range(len(description))
+            len_description.reverse()
+        
+            for letter in len_description:
+                description_list_tmp.append(description[letter])
+                
+            description_list_tmp = "".join(description_list_tmp)
+            n = len(description) - description_list_tmp.find(">il/<")
+            return description[0:n] + description[n-5:n].replace("</li>", "</li></ul>") + description[n:]
         return description
+
     def wksub_iconpath_loading(self):
         if (self.cache.has_key(self.pkgname) and
             self.cache[self.pkgname].isInstalled):
@@ -319,7 +338,8 @@ class AppDetailsView(WebkitWidget):
         url = self.distro.SCREENSHOT_LARGE_URL % self.pkgname
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(title, url,
-                            self.IMAGE_LOADING_INSTALLED,
+                            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
+                            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
                             self.distro.IMAGE_FULL_MISSING)
         d.run()
         d.destroy()
@@ -342,6 +362,7 @@ class AppDetailsView(WebkitWidget):
         depends = self.cache.get_installed_rdepends(self.pkg)
         if depends:
             iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
+            
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
                 self._set_action_button_sensitive(True)
@@ -379,8 +400,8 @@ class AppDetailsView(WebkitWidget):
         #  WEBKIT_NAVIGATION_RESPONSE_DOWNLOAD
         # } WebKitNavigationResponse;
         uri = request.get_uri()
-        if uri.startswith("http:"):
-            subprocess.call(["gnome-open", uri])
+        if uri.startswith("http:") or uri.startswith("https:") or uri.startswith("www"):
+            subprocess.call(["xdg-open", uri])
             return 1
         return 0
 
@@ -421,10 +442,11 @@ class AppDetailsView(WebkitWidget):
         action_button_value = ""
         if self.pkg:
             pkg = self.pkg
-            if pkg.installed and pkg.isUpgradable:
-                action_button_label = _("Upgrade")
-                action_button_value = "upgrade"
-            elif pkg.installed:
+            # Don't handle upgrades yet
+            #if pkg.installed and pkg.isUpgradable:
+            #    action_button_label = _("Upgrade")
+            #    action_button_value = "upgrade"
+            if pkg.installed:
                 action_button_label = _("Remove")
                 action_button_value = "remove"
             else:
@@ -468,8 +490,6 @@ class AppDetailsView(WebkitWidget):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-
-    import sys
 
     if len(sys.argv) > 1:
         datadir = sys.argv[1]

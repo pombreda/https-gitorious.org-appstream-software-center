@@ -1,3 +1,10 @@
+software-center (1.1.2) UNRELEASEDlucid; urgency=low
+
+  * merge lp:~rugby471/software-center/software-store-andrew,
+    many thanks
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Dec 2009 09:58:41 +0100
+
 software-center (1.1.1) lucid; urgency=low
 
   * Hide packages that are also part of a application. This

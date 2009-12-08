@@ -26,31 +26,60 @@ import time
 class AnimatedImage(gtk.Image):
     
     FPS = 20.0
+    SIZE = 24
+    ROWS = 3
 
-    def __init__(self, globexp):
+    def __init__(self, icon):
         """ Animate a gtk.Image
     
         Keywords:
-        globexp: pass a glob expression that is used for the animated images
-                 (it can also be a gtk.gdk.Pixbuf if you require a static image)
+        icon: pass either:
+              - None - creates empty image with self.SIZE
+              - string - for a static icon
+              - string - for a image with multiple sub icons
+              - list of string pathes
+              - a gtk.gdk.Pixbuf if you require a static image
         """
         super(AnimatedImage, self).__init__()
         self._progressN = 0
-        if isinstance(globexp, gtk.gdk.Pixbuf):
-            self.images = [globexp]
-            self.set_from_pixbuf(globexp)
-        elif isinstance(globexp, str):
-            self._imagefiles = sorted(glob.glob(globexp))
+        if icon is None:
+            icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 1, 1)
+            icon.fill(0)
+        if isinstance(icon, list):
+            self.images = []
+            for f in icon:
+                self.images.append(gtk.gdk.pixbuf_new_from_file(f))
+        elif isinstance(icon, gtk.gdk.Pixbuf):
+            self.images = [icon]
+            self.set_from_pixbuf(icon)
+        elif isinstance(icon, str):
+            self._imagefiles = icon
             self.images = []
             if not self._imagefiles:
-                raise IOError, "no images for the animation found in '%s'" % globexp
-            for f in self._imagefiles:
-                self.images.append(gtk.gdk.pixbuf_new_from_file(f))
+                raise IOError, "no images for the animation found in '%s'" % icon
+            # construct self.images list
+            pixbuf_orig = gtk.gdk.pixbuf_new_from_file(icon)
+            pixbuf_buffer = pixbuf_orig.copy()
+            x = 0
+            y = 0
+            for f in range((pixbuf_orig.get_width() / self.SIZE) * 
+                           (pixbuf_orig.get_height() / self.SIZE)):
+                pixbuf_buffer = pixbuf_orig.subpixbuf(x, y, self.SIZE, self.SIZE)
+                self.images.append(pixbuf_buffer)
+                if x == pixbuf_orig.get_width() - self.SIZE:
+                    x = 0
+                    y += self.SIZE
+                    if y == self.ROWS*self.SIZE:
+                        x = 0
+                        y = 0
+                else:
+                    x += self.SIZE
+
             self.set_from_pixbuf(self.images[self._progressN])
             self.connect("show", self.start)
             self.connect("hide", self.stop)
         else:
-            raise IOError, "need a glob expression or a pixbuf"
+            raise IOError, "need a str, list or a pixbuf"
 
     def start(self, w=None):
         source_id = gobject.timeout_add(int(1000/self.FPS), 
@@ -117,15 +146,19 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-center"
+        datadir = "/usr/share/software-center/data"
 
-    image = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-*.png")
-    image1 = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-*.png")
+    image = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
+    image1 = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
     image1.start()
-    image2 = AnimatedImage(datadir+"/icons/32x32/status/software-center-progress-01.png")
-    pixbuf = gtk.gdk.pixbuf_new_from_file(datadir+"/icons/32x32/status/software-center-progress-07.png")
+    image2 = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
+    pixbuf = gtk.gdk.pixbuf_new_from_file(datadir+"/icons/24x24/status/softwarecenter-progress.png")
     image3 = AnimatedImage(pixbuf)
     image3.show()
+
+    image4 = AnimatedImage(glob.glob(datadir+"/icons/32x32/status/*"))
+    image4.start()
+    image4.show()
 
     model = gtk.ListStore(AnimatedImage)
     model.append([image1])
@@ -139,6 +172,7 @@ if __name__ == "__main__":
     box = gtk.VBox()
     box.pack_start(image)
     box.pack_start(image3)
+    box.pack_start(image4)
     box.pack_start(treeview)
     box.show()
     win = gtk.Window()

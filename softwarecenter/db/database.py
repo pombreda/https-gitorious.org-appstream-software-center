@@ -129,7 +129,7 @@ class StoreDatabase(gobject.GObject):
         # query
         query = self._comma_expansion(search_term)
         if query:
-            return qery
+            return query
 
         # get a real query
         query = self.xapian_parser.parse_query(search_term, 

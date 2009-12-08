@@ -37,7 +37,7 @@ class DetailsMessageDialog(gtk.MessageDialog):
             self.format_secondary_markup(secondary)
         if details:
             textview = gtk.TextView()
-            textview.set_size_request(500,300)
+            textview.set_size_request(500, 300)
             textview.get_buffer().set_text(details)
             scroll = gtk.ScrolledWindow()
             scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -47,7 +47,7 @@ class DetailsMessageDialog(gtk.MessageDialog):
             expand.show_all()
             self.get_content_area().pack_start(expand)
         if parent:
-            self.set_modal(True)
+            self.set_model(True)
             self.set_property("skip-taskbar-hint", True)
 
 def messagedialog(parent=None, 
@@ -74,7 +74,7 @@ def error(parent, primary, secondary, details=None):
                          details=details,
                          type=gtk.MESSAGE_ERROR)
 
-def confirm_remove(parent, primary, cache, button_text, icon_path, depends=[]):
+def confirm_remove(parent, primary, cache, button_text, icon_path, depends=None):
     """Confirm removing of the given app with the given depends"""
     dialog = gtk.MessageDialog(parent=parent, flags=0, 
                                type=gtk.MESSAGE_QUESTION, 
