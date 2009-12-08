@@ -66,12 +66,9 @@ class AnimatedImage(gtk.Image):
                            (pixbuf_orig.get_height() / self.SIZE)):
                 pixbuf_buffer = pixbuf_orig.subpixbuf(x, y, self.SIZE, self.SIZE)
                 self.images.append(pixbuf_buffer)
-                if x == pixbuf_orig.get_width() - self.SIZE:
+                if x == (pixbuf_orig.get_width() - self.SIZE):
                     x = 0
                     y += self.SIZE
-                    if y == self.ROWS*self.SIZE:
-                        x = 0
-                        y = 0
                 else:
                     x += self.SIZE
 
