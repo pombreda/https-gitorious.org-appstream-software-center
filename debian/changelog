@@ -1,4 +1,4 @@
-software-center (1.1.2) UNRELEASEDlucid; urgency=low
+software-center (1.1.2) lucid; urgency=low
 
   * merge lp:~rugby471/software-center/software-store-andrew,
     many thanks
@@ -10,7 +10,7 @@ software-center (1.1.2) UNRELEASEDlucid; urgency=low
     - fix description for not yet enabled channels (LP: #488060)
     - improve regexp that parses "*" and "-" lists (LP: #493679)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Dec 2009 09:58:41 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Dec 2009 15:30:41 +0100
 
 software-center (1.1.1) lucid; urgency=low
 
