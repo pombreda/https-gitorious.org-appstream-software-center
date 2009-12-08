@@ -27,7 +27,6 @@ class AnimatedImage(gtk.Image):
     
     FPS = 20.0
     SIZE = 24
-    ROWS = 3
 
     def __init__(self, icon):
         """ Animate a gtk.Image
