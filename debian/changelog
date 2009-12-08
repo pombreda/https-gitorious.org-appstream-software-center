@@ -8,6 +8,7 @@ software-center (1.1.2) UNRELEASEDlucid; urgency=low
     - if a package is available in the data but we do not have apt
       data for it offer a "reload" button (LP: #466321)
     - fix description for not yet enabled channels (LP: #488060)
+    - improve regexp that parses "*" and "-" lists (LP: #493679)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Dec 2009 09:58:41 +0100
 

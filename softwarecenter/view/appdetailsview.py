@@ -192,14 +192,11 @@ class AppDetailsView(WebkitWidget):
 
         # format for html
         description = self.pkg.description
-        #bullets (*)
-        regx = re.compile("((\*) .*)")
-        description = re.sub(regx, r'<li>\1</li>', description)
-        description = self.add_ul_tags(description)
-        
-        #bullets (-)
-        regx = re.compile("((\-) .*)")
-        description = re.sub(regx, r'<li>\1</li>', description)
+        #print description
+
+        # format bullets (*-) as lists
+        regx = re.compile("\n\s*([*-]+) (.*)")
+        description = re.sub(regx, r'<li>\2</li>', description)
         description = self.add_ul_tags(description)
         
         #line breaks
@@ -526,7 +523,8 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = StoreDatabase(pathname)
+    cache = apt.Cache()
+    db = StoreDatabase(pathname, cache)
     db.open()
 
     icons = gtk.icon_theme_get_default()
@@ -541,11 +539,12 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
-    #view.show_app("AMOR")
     #view.show_app("3D Chess", "3dchess")
-    #view.show_app("Configuration Editor")
-    #view.show_app("ACE", "unace")
     view.show_app("Movie Player", "totem")
+    #view.show_app("ACE", "unace")
+
+    #view.show_app("AMOR")
+    #view.show_app("Configuration Editor")
     #view.show_app("Artha")
     #view.show_app("cournol")
     #view.show_app("Qlix")
