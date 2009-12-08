@@ -2,6 +2,12 @@ software-center (1.1.2) UNRELEASEDlucid; urgency=low
 
   * merge lp:~rugby471/software-center/software-store-andrew,
     many thanks
+  * softwarecenter/backend/aptd.py:
+    - add "reload" function 
+  * softwarecenter/view/appdetailsview.py:
+    - if a package is available in the data but we do not have apt
+      data for it offer a "reload" button (LP: #466321)
+    - fix description for not yet enabled channels (LP: #488060)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Dec 2009 09:58:41 +0100
 

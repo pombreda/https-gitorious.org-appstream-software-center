@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import dbus
 import gobject
 import os
 import logging
@@ -66,6 +67,11 @@ class AptdaemonBackend(gobject.GObject):
                                           reply_handler=reply_handler,
                                           error_handler=self._on_trans_error)
 
+    def reload(self):
+        reply_handler = lambda trans: self._run_transaction(trans, None, None,
+                                                            None)
+        trans = self.aptd_client.update_cache(reply_handler=reply_handler,
+                                             error_handler=self._on_trans_error)
 
     def enable_channel(self, channelfile):
         import aptsources.sourceslist
@@ -86,10 +92,7 @@ class AptdaemonBackend(gobject.GObject):
             except dbus.exceptions.DBusException, e:
                 if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                     return
-        reply_handler = lambda trans: self._run_transaction(trans, None, None,
-                                                            None)
-        trans = self.aptd_client.update_cache(reply_handler=reply_handler,
-                                             error_handler=self._on_trans_error)
+        self.reload()
 
     # internal helpers
     def _on_trans_reply(self):

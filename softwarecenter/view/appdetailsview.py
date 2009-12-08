@@ -174,18 +174,19 @@ class AppDetailsView(WebkitWidget):
             return "section-installed"
         return "section-get"
     def wksub_description(self):
+        # if we do not have a package in our apt data explain why
         if not self.pkg:
+            if self.channelfile:
+                return _("Available in a software channel that needs "
+                         "to be enabled first.")
             # if we have no pkg, check if its available for the given
             # architecture
-            arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
-            if arches:
-                for arch in map(string.strip, arches.split(",")):
-                    if arch == self.arch:
-                        return _("Not available in the current data")
-                else:
-                    return _("Not available for your hardware architecture.")
+            if self._available_for_our_arch():
+                return _("Sorry, this software is not available in the "
+                         "current data, please try to reload.")
             else:
-                return _("Not available in the current data")
+                return _("Sorry, this software is not available for "
+                         "your hardware architecture.")
 
         # format for html
         description = self.pkg.description
@@ -261,7 +262,9 @@ class AppDetailsView(WebkitWidget):
         self.action_button_value = self._get_action_button_label_and_value()[1]
         return self.action_button_value
     def wksub_action_button_visible(self):
-        if not self.channelfile and not self.pkg:
+        if (not self.channelfile and 
+            not self.pkg and 
+            not self._available_for_our_arch()):
             return "hidden"
         return "visible"
     def wksub_homepage_button_visibility(self):
@@ -328,6 +331,10 @@ class AppDetailsView(WebkitWidget):
 
 
     # callbacks
+    def on_button_reload_clicked(self):
+        self.backend.reload()
+        self._set_action_button_sensitive(False)
+
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
         # FIXME: move this to utilities or something
@@ -337,10 +344,11 @@ class AppDetailsView(WebkitWidget):
     def on_screenshot_thumbnail_clicked(self):
         url = self.distro.SCREENSHOT_LARGE_URL % self.pkgname
         title = _("%s - Screenshot") % self.appname
-        d = ShowImageDialog(title, url,
-                            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
-                            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
-                            self.distro.IMAGE_FULL_MISSING)
+        d = ShowImageDialog(
+            title, url,
+            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
+            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
+            self.distro.IMAGE_FULL_MISSING)
         d.run()
         d.destroy()
 
@@ -461,8 +469,23 @@ class AppDetailsView(WebkitWidget):
                     # FIXME: deal with the EULA stuff
                     action_button_label = _("Enable channel")
                     action_button_value = "enable_channel"
+            elif self._available_for_our_arch():
+                action_button_label = _("Reload package information")
+                action_button_value = "reload"
         return (action_button_label, action_button_value)
 
+    def _available_for_our_arch(self):
+        """ check if the given package is available for our arch """
+        arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+        # if we don't have a arch entry in the document its available
+        # on all architectures we know about
+        if not arches:
+            return True
+        # check the arch field
+        for arch in map(string.strip, arches.split(",")):
+            if arch == self.arch:
+                return True
+        return False
     def _set_action_button_sensitive(self, enabled):
         if enabled:
             self.execute_script("enable_action_button();")
