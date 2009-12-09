@@ -202,8 +202,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
         #should we maximize?
         self.config = get_config()
-        self.window_state = self.config.getboolean("general", "maximized")
-        if self.window_state == "True":
+        if self.config.has_option("general", "maximized"):
+            self.window_state = self.config.getboolean("general", "maximized")
+        else:
+            self.window_state = False
+        if self.window_state:
             self.window_main.maximize()
 
     # callbacks
