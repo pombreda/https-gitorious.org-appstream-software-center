@@ -1321,10 +1321,6 @@ class NavigationBar(PathBar):
         with the new one
         """
 
-        def idle_append_cb(part):
-            gobject.timeout_add(50, self.append, part)
-            return False
-
         # check if we have the button of that id or need a new one
         if id in self.id_to_part:
             part = self.id_to_part[id]
@@ -1335,7 +1331,7 @@ class NavigationBar(PathBar):
             part.callback(self)
             part.set_pathbar(self)
             self.id_to_part[id] = part
-            gobject.idle_add(idle_append_cb, part)
+            gobject.timeout_add(50, self.append, part)
 
         if icon: part.set_icon(icon)
         return
