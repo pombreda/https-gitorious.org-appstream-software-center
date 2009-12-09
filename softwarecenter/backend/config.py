@@ -25,7 +25,7 @@ class SoftwareCenterConfig(ConfigParser.SafeConfigParser):
     def __init__(self, config):
         ConfigParser.SafeConfigParser.__init__(self)
         if not os.path.exists(os.path.dirname(config)):
-            os.path.makedirs(os.path.dirname(config))
+            os.makedirs(os.path.dirname(config))
         self.configfile = config
         self.read(self.configfile)
     def write(self):
