@@ -106,6 +106,13 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             doc.set_data(name)
             doc.add_value(XAPIAN_VALUE_APPNAME, name)
             doc.add_term("AA"+name)
+            # check if we should ignore this file
+            if parser.has_option_desktop("X-AppInstall-Ignore"):
+                ignore = parser.get_desktop("X-AppInstall-Ignore")
+                if ignore.strip().lower() == "true":
+                    logging.debug(
+                        "X-AppInstall-Ignore found for '%s'" % desktopf)
+                    continue
             # package name
             pkgname = parser.get_desktop("X-AppInstall-Package")
             doc.add_term("AP"+pkgname)

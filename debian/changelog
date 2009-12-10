@@ -1,3 +1,10 @@
+software-center (1.1.4) UNRELEASED; urgency=low
+
+  * softwarecenter/db/update.py:
+    - honor X-AppInstall-Ignore=true
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Dec 2009 09:50:58 +0100
+
 software-center (1.1.3) lucid; urgency=low
 
   * merge from lp:~robert-ancell/software-center/trunk,
