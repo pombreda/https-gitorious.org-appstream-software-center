@@ -20,8 +20,7 @@
 import gtk
 import pango
 
-from gettext import gettext as _
-
+#FIXME: These need to come from the main app
 ICON_SIZE = 24
 MISSING_APP_ICON = "/usr/share/icons/gnome/scalable/categories/applications-other.svg"
 

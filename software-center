@@ -78,5 +78,5 @@ if __name__ == "__main__":
     from softwarecenter.app import SoftwareCenterApp
     
     app = SoftwareCenterApp(datadir, xapian_base_path)
-    app.run()
+    app.run(args)
 

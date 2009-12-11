@@ -18,13 +18,10 @@
 
 import apt
 import gettext
-import glib
-import gobject
 import gtk
 import logging
 import os
 import sys
-import string
 import xapian
 
 from gettext import gettext as _
@@ -106,6 +103,7 @@ class InstalledPane(SoftwarePane):
         model = self.app_view.get_model()
         if model:
             self.emit("app-list-changed", len(model))
+
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
@@ -124,8 +122,8 @@ class InstalledPane(SoftwarePane):
                                     "%s matching items",
                                     length) % length
         else:
-            return gettext.ngettext("%s installed item",
-                                    "%s installed items",
+            return gettext.ngettext("%s application installed",
+                                    "%s applications installed",
                                     length) % length
 
 if __name__ == "__main__":
@@ -151,7 +149,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(w)
-    win.set_size_request(400,600)
+    win.set_size_request(400, 600)
     win.show_all()
 
     gtk.main()

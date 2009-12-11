@@ -56,20 +56,42 @@ class ViewSwitcher(gtk.TreeView):
             self.model = store
             self.set_model(store)
         gtk.TreeView.__init__(self)
+        
         tp = CellRendererAnimatedImage()
-        column = gtk.TreeViewColumn("Icon", tp, image=store.COL_ICON)
-        #column.set_fixed_width(32)
-        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        self.append_column(column)
+        column = gtk.TreeViewColumn("Icon")
+        column.pack_start(tp, expand=False)
+        column.set_attributes(tp, image=store.COL_ICON)
         tr = gtk.CellRendererText()
         tr.set_property("ellipsize", pango.ELLIPSIZE_END)
-        column = gtk.TreeViewColumn("Name", tr, markup=store.COL_NAME)
-        #column.set_fixed_width(200)
-        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        column.pack_start(tr, expand=True)
+        column.set_attributes(tr, markup=store.COL_NAME)
         self.append_column(column)
+        
         self.set_model(store)
         self.set_headers_visible(False)
         self.connect("button-press-event", self.on_button_press_event)
+        self.get_selection().set_select_function(self.on_treeview_selected)
+        # expand the first entry (get software)
+        self.expand_to_path((0,))
+        self.set_level_indentation(4)
+        self.set_enable_search(False)
+        
+        self.connect("row-expanded", self.on_treeview_row_expanded)
+        self.connect("row-collapsed", self.on_treeview_row_collapsed)
+        
+    def on_treeview_row_expanded(self, widget, iter, path):
+        #behaviour overrides
+        pass
+        
+    def on_treeview_row_collapsed(self, widget, iter, path):
+        #behaviour overrides
+        pass
+    
+    def on_treeview_selected(self, path):
+        if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
+            return False
+        return True    
+        
     def get_view(self):
         """return the current activated view number or None if no
            view is activated (this can happen when a pending view 
@@ -105,7 +127,7 @@ class ViewSwitcher(gtk.TreeView):
         action = model[path][ViewSwitcherList.COL_ACTION]
         self.emit("view-changed", action)
 
-class ViewSwitcherList(gtk.ListStore, TransactionsWatcher):
+class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
     
     # columns
     (COL_ICON,
@@ -115,11 +137,12 @@ class ViewSwitcherList(gtk.ListStore, TransactionsWatcher):
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
      ACTION_ITEM_INSTALLED,
-     ACTION_ITEM_PENDING) = range(3)
+     ACTION_ITEM_SEPARATOR_1,
+     ACTION_ITEM_PENDING) = range(4)
 
     ICON_SIZE = 24
 
-    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress-*.png"
+    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
     __gsignals__ = {'transactions-changed' : (gobject.SIGNAL_RUN_LAST,
                                               gobject.TYPE_NONE,
@@ -127,28 +150,32 @@ class ViewSwitcherList(gtk.ListStore, TransactionsWatcher):
                      }
 
     def __init__(self, datadir, icons):
-        gtk.ListStore.__init__(self, AnimatedImage, str, int)
+        gtk.TreeStore.__init__(self, AnimatedImage, str, int)
         TransactionsWatcher.__init__(self)
         self.icons = icons
         self.datadir = datadir
         # pending transactions
         self._pending = 0
         # setup the normal stuff
-        try:
+        if self.icons.lookup_icon("softwarecenter", self.ICON_SIZE, 0):
             icon = AnimatedImage(self.icons.load_icon("softwarecenter", self.ICON_SIZE, 0))
-        except glib.GError:
+        else:
+            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
+                                                      self.ICON_SIZE, 0))
+        piter = self.append(None, [icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE])
+        
+        if self.icons.lookup_icon("distributor-logo", self.ICON_SIZE, 0):
+            icon = AnimatedImage(self.icons.load_icon("distributor-logo", self.ICON_SIZE, 0))
+        else:
             # icon not present in theme, probably because running uninstalled
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
-        self.append([icon, _("Get Free Software"), self.ACTION_ITEM_AVAILABLE])
+        self.append(piter, [icon, _("Free Software"), self.ACTION_ITEM_AVAILABLE])
+        
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.append([icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
-        # spacer - not working
-        #icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
-        #                     self.ICON_SIZE/4.0, self.ICON_SIZE/4.0)
-        #icon.fill(0)
-        #self.append([icon, '<span size="xx-small"></span>', 
-        #             self.ACTION_ITEM_NONE])
+        self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
+        icon = AnimatedImage(None)
+        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1])
 
     def on_transactions_changed(self, current, queue):
         #print "check_pending"
@@ -165,7 +192,7 @@ class ViewSwitcherList(gtk.ListStore, TransactionsWatcher):
             else:
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
-                self.append([icon, _("In Progress (%i)") % pending, 
+                self.append(None, [icon, _("In Progress (%i)") % pending, 
                              self.ACTION_ITEM_PENDING])
         else:
             for (i, row) in enumerate(self):

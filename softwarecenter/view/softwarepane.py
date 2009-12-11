@@ -21,9 +21,6 @@ import glib
 import gobject
 import gtk
 import logging
-import os
-import sys
-import string
 import xapian
 import os
 

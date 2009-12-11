@@ -19,9 +19,11 @@
 import gobject
 import locale
 import logging
+import re
 import xapian
-from softwarecenter.enums import *
 
+from softwarecenter.enums import *
+from gettext import gettext as _
 
 class Application(object):
     """ a simple data object that contains just appname, pkgname
@@ -44,6 +46,15 @@ class Application(object):
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
+    # TRANSLATORS: List of "grey-listed" words sperated with ";"
+    # Do not translate this list directly. Instead,
+    # provide a list of words in your language that people are likely
+    # to include in a search but that should normally be ignored in
+    # the search.
+    SEARCH_GREYLIST_STR = _("app;application;package;program;programme;"
+                            "suite;tool")
+
+    # signal emited
     __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 ()),
@@ -80,11 +91,46 @@ class StoreDatabase(gobject.GObject):
         self.open()
         self.emit("reopen")
 
+    def _comma_expansion(self, search_term):
+        """do expansion of "," in a search term, see
+        https://wiki.ubuntu.com/SoftwareCenter?action=show&redirect=SoftwareStore#Searching%20for%20multiple%20package%20names
+        """
+        # expand "," to APpkgname AND
+        if "," in search_term:
+            query = xapian.Query()
+            for pkgname in search_term.split(","):
+                # not a pkgname
+                if not re.match("[0-9a-z\.\-]+", pkgname):
+                    return None
+                if pkgname:
+                    query = xapian.Query(xapian.Query.OP_OR, query, 
+                                         xapian.Query("XP"+pkgname))
+            return query
+        return None
+
     def get_query_from_search_entry(self, search_term):
         """ get xapian.Query from a search term string """
         # we cheat and return a match-all query for single letter searches
         if len(search_term) < 2:
             return xapian.Query("")
+
+        # filter query by greylist (to avoid overly generic search terms)
+        orig_search_term = search_term
+        for item in self.SEARCH_GREYLIST_STR.split(";"):
+            (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
+            if n: 
+                logging.debug("greylist changed search term: '%s'" % search_term)
+        # restore query if it was just greylist words
+        if search_term == '':
+            logging.debug("grey-list replaced all terms, restoring")
+            search_term = orig_search_term
+        
+        # check if we need to do comma expansion instead of a regular
+        # query
+        query = self._comma_expansion(search_term)
+        if query:
+            return query
+
         # get a real query
         query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
@@ -118,7 +164,7 @@ class StoreDatabase(gobject.GObject):
         
         If no document is found, raise a IndexError
         """
-        logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
+        #logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA"+appname):
             doc = self.xapiandb.get_document(m.docid)
@@ -145,3 +191,21 @@ class StoreDatabase(gobject.GObject):
         return self.xapiandb.get_doccount()
 
 
+if __name__ == "__main__":
+    import apt
+    import sys
+
+    db = StoreDatabase("/var/cache/software-center/xapian", apt.Cache())
+    db.open()
+    if len(sys.argv) < 2:
+        search = "apt,apport"
+    else:
+        search = sys.argv[1]
+    query = db.get_query_from_search_entry(search)
+    print query
+    enquire = xapian.Enquire(db.xapiandb)
+    enquire.set_query(query)
+    matches = enquire.get_mset(0, len(db))
+    for m in matches:
+        doc = m[xapian.MSET_DOCUMENT]
+        print doc.get_data()

@@ -18,6 +18,7 @@
 
 import apt
 import aptdaemon
+import atexit
 import locale
 import dbus
 import dbus.service
@@ -43,6 +44,9 @@ from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
+
+from backend.config import get_config
+
 from distro import get_distro
 
 from apt.aptcache import AptCache
@@ -68,7 +72,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     (NOTEBOOK_PAGE_AVAILABLE,
      NOTEBOOK_PAGE_INSTALLED,
-     NOTEBOOK_PAGE_PENDING) = range(3)
+     NOTEBOOK_PAGE_SEPARATOR_1,
+     NOTEBOOK_PAGE_PENDING) = range(4)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
@@ -78,6 +83,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                      "software-center")
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")
+
         try:
             locale.setlocale(locale.LC_ALL, "")
         except:
@@ -193,6 +199,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # default focus
         self.available_pane.searchentry.grab_focus()
+        
+        #should we maximize?
+        self.config = get_config()
+        if self.config.has_option("general", "maximized"):
+            self.window_state = self.config.getboolean("general", "maximized")
+        else:
+            self.window_state = False
+        if self.window_state:
+            self.window_main.maximize()
 
     # callbacks
     def on_app_details_changed(self, widget, appname, pkgname, page):
@@ -237,6 +252,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane = self.installed_pane
         elif action == self.NOTEBOOK_PAGE_PENDING:
             self.active_pane = None
+        elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:
+            # do nothing
+            return
         else:
             assert False, "Not reached"
         # set menu sensitve
@@ -256,7 +274,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_app_status_menu()
 
     # Menu Items
-
     def on_menuitem_install_activate(self, menuitem):
         self.active_pane.app_details.install()
 
@@ -363,6 +380,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             return
         self.active_pane.apps_filter.set_supported_only(True)
         self.active_pane.refresh_apps()
+        
+    def on_window_main_window_state_event(self, widget, event):
+        self.window_state = event.new_window_state.value_names
 
     # helper
 
@@ -447,7 +467,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if is_rebuilding:
             self.window_rebuilding.show()
         else:
-            # we need to re-open when the database finished updating
+            # we need to reopen when the database finished updating
             self.db.reopen()
             self.window_rebuilding.hide()
 
@@ -499,8 +519,40 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter',bus)
             self.dbusControler = SoftwarecenterDbusController(self, bus_name)
 
-    def run(self):
+    def show_available_packages(self, packages):
+        """ Show packages given as arguments in the available_pane
+            If the list of packages is only one element long show that,
+            otherwise turn it into a comma seperated search
+        """
+        if len(packages) == 1:
+            # show a single package
+            pkg_name = packages[0]
+            # FIXME: this currently only works with pkg names for apps
+            #        it needs to perform a search because a App name
+            #        is (in general) not unique
+            self.available_pane.app_details.show_app("", pkg_name)
+            self.available_pane.notebook.set_current_page(
+                self.available_pane.PAGE_APP_DETAILS)
+        if len(packages) > 1:
+            # turn multiple packages into a search with ","
+            # turn off de-duplication
+            self.available_pane.apps_filter.set_only_packages_without_applications(False)
+            self.available_pane.searchentry.set_text(",".join(packages))
+            self.available_pane.notebook.set_current_page(
+                self.available_pane.PAGE_APPLIST)
+
+    def save_state(self):
+        logging.debug("save_state")
+        if self.window_state == ['GDK_WINDOW_STATE_MAXIMIZED']:
+            self.config.set("general", "maximized", "True")
+        else:
+            self.config.set("general", "maximized", "False")
+        self.config.write()
+
+    def run(self, args):
         self.window_main.show_all()
+        self.show_available_packages(args)
+        atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
 
 
