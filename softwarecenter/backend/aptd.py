@@ -175,25 +175,23 @@ class AptdaemonBackend(gobject.GObject):
         else:
             transaction.cancel()
 
-    def _setup_http_proxy(self, transaction):
-        http_proxy = get_http_proxy_string_from_gconf()
-        if http_proxy:
-            transaction.set_http_proxy(http_proxy)
-
     def _run_transaction(self, trans, pkgname, appname, iconname):
-        # set object data
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
-        trans.set_data("pkgname", pkgname)
-        # setup http proxy
-        self._setup_http_proxy(trans)
-        # we support debconf
-        trans.set_debconf_frontend("gnome")
+        def set_debconf(trans):
+            trans.set_debconf_frontend("gnome", reply_handler=set_http_proxy,
+                                       error_handler=self._on_trans_error)
+        def set_http_proxy(trans):
+            http_proxy = get_http_proxy_string_from_gconf()
+            if http_proxy:
+                trans.set_http_proxy(http_proxy, reply_handler=run,
+                                     error_handler=self._on_trans_error)
+            else:
+                run(trans)
+        def run(trans):
+            trans.run(error_handler=self._on_trans_error,
+                      reply_handler=self._on_trans_reply)
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
-        trans.run(error_handler=self._on_trans_error,
-                  reply_handler=self._on_trans_reply)
-
-
-
+        trans.set_meta_data(sc_appname=appname, sc_iconname=iconname,
+                            reply_handler=set_debconf,
+                            error_handler=self._on_trans_error)
