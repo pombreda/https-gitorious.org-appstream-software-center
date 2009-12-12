@@ -24,7 +24,9 @@ import subprocess
 
 from aptdaemon import client
 from aptdaemon import enums
-from aptdaemon.gtkwidgets import AptMediumRequiredDialog
+from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
+                                 AptConfigFileConflictDialog
+import gtk
 
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.view import dialogs
@@ -135,31 +137,11 @@ class AptdaemonBackend(gobject.GObject):
         # send finished signal
         self.emit("transaction-finished", enum != enums.EXIT_FAILED)
 
-    # FIXME: move this to a better place
-    def _get_diff(self, old, new):
-        if not os.path.exists("/usr/bin/diff"):
-            return ""
-        diff = subprocess.Popen(["/usr/bin/diff",
-                                 "-u",
-                                 old, new],
-                                stdout=subprocess.PIPE).communicate()[0]
-        return diff
-
-    # FIXME: move this into aptdaemon/use the aptdaemon one
     def _config_file_conflict(self, transaction, old, new):
-        diff = self._get_diff(old, new)
-        d = dialogs.DetailsMessageDialog(None,
-                                         details=diff,
-                                         type=gtk.MESSAGE_INFO,
-                                         buttons=gtk.BUTTONS_NONE)
-        d.add_buttons(_("_Keep"), gtk.RESPONSE_NO,
-                      _("_Replace"), gtk.RESPONSE_YES)
-        d.set_default_response(gtk.RESPONSE_NO)
-        text = _("Configuration file '%s' changed") % old
-        desc = _("Do you want to use the new version?")
-        d.set_markup("<big><b>%s</b></big>\n\n%s" % (text, desc))
-        res = d.run()
-        d.destroy()
+        dia = AptConfigFileConflictDialog(old, new)
+        res = dia.run()
+        dia.hide()
+        dia.destroy()
         # send result to the daemon
         if res == gtk.RESPONSE_YES:
             transaction.resolve_config_file_conflict(old, "replace")
