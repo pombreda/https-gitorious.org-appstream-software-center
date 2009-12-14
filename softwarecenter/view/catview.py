@@ -40,12 +40,12 @@ def encode_for_xml(unicode_data, encoding="ascii"):
 
 class Category(object):
     """represents a menu category"""
-    def __init__(self, untranslated_name, name, iconname, query):
+    def __init__(self, untranslated_name, name, iconname, query, subcategories):
         self.name = name
         self.untranslated_name = untranslated_name
         self.iconname = iconname
         self.query = query
-
+        self.subcategories = subcategories
 
 class CategoriesView(WebkitWidget):
 
@@ -58,19 +58,25 @@ class CategoriesView(WebkitWidget):
                               )
         }
 
-    def __init__(self, datadir, desktopdir, db, icons):
+    def __init__(self, datadir, desktopdir, db, icons, root_category=None):
         """ init the widget, takes
         
         datadir - the base directory of the app-store data
         desktopdir - the dir where the applications.menu file can be found
         db - a Database object
         icons - a gtk.IconTheme
+        root_category - a Category class with subcategories or None
         """
         super(CategoriesView, self).__init__(datadir)
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Departments"))
         self.icons = icons
-        self.categories = self.parse_applications_menu(desktopdir)
+        if not root_category:
+            self.header = _("Departments")
+            self.categories = self.parse_applications_menu(desktopdir)
+        else:
+            self.header = root_category.name
+            self.categories = root_category.subcategories
         self.connect("load-finished", self._on_load_finished)
 
     def on_category_clicked(self, name):
@@ -102,7 +108,7 @@ class CategoriesView(WebkitWidget):
     def wksub_icon_size(self):
         return self.CATEGORY_ICON_SIZE
     def wksub_header(self):
-        return _("Departments")
+        return self.header
     def wksub_text_direction(self):
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
@@ -163,40 +169,54 @@ class CategoriesView(WebkitWidget):
                 name = gettext.dgettext(gettext_domain, untranslated_name)
         return (untranslated_name, name, gettext_domain, icon)
 
+    def _parse_include_tag(self, element):
+        query = xapian.Query("")
+        for include in element.getchildren():
+            if include.tag == "And":
+                for and_elem in include.getchildren():
+                    if and_elem.tag == "Not":
+                        for not_elem in and_elem.getchildren():
+                            if not_elem.tag == "Category":
+                                q = xapian.Query("AC"+not_elem.text.lower())
+                                query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
+                                                
+                    elif and_elem.tag == "Category":
+                        logging.debug("adding: %s" % and_elem.text)
+                        q = xapian.Query("AC"+and_elem.text.lower())
+                        query = xapian.Query(xapian.Query.OP_AND, query, q)
+                    else: 
+                        print "UNHANDLED: ", and_elem.tag, and_elem.text
+            # without "and" tag we take the first entry
+            elif include.tag == "Category":
+                return xapian.Query("AC"+include.text.lower())
+            else:
+                logging.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
+        return query
+
     def _parse_menu_tag(self, item, only_unallocated):
         name = None
         untranslated_name = None
         query = None
         icon = None
+        subcategories = []
         for element in item.getchildren():
             if element.tag == "Name":
                 name = element.text
             elif element.tag == "Directory":
                 (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
             elif element.tag == "Include":
-                query = xapian.Query("")
-                for include in element.getchildren():
-                    if include.tag == "And":
-                        for and_elem in include.getchildren():
-                            if and_elem.tag == "Not":
-                                for not_elem in and_elem.getchildren():
-                                    if not_elem.tag == "Category":
-                                        q = xapian.Query("AC"+not_elem.text.lower())
-                                        query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
-                                                
-                            elif and_elem.tag == "Category":
-                                logging.debug("adding: %s" % and_elem.text)
-                                q = xapian.Query("AC"+and_elem.text.lower())
-                                query = xapian.Query(xapian.Query.OP_AND, query, q)
-                            else: 
-                                print "UNHANDLED: ", and_elem.tag, and_elem.text
+                query = self._parse_include_tag(element)
             elif element.tag == "OnlyUnallocated":
                  only_unallocated.add(untranslated_name)
+            elif element.tag == "Menu":
+                subcat = self._parse_menu_tag(element, only_unallocated)
+                if subcat:
+                    subcategories.append(subcat)
             else:
                 print "UNHANDLED tag in _parse_menu_tag: ", element.tag
                 
         if untranslated_name and query:
-            return Category(untranslated_name, name, icon, query)
+            return Category(untranslated_name, name, icon, query, subcategories)
         return None
 
     def parse_applications_menu(self, datadir):
@@ -226,7 +246,7 @@ class CategoriesView(WebkitWidget):
 
         # add packages
         query = xapian.Query(xapian.Query.OP_AND_NOT, xapian.Query(""), xapian.Query("ATapplication"))
-        pkg_category = Category("Packages", _("System Packages"), "applications-other", query)
+        pkg_category = Category("Packages", _("System Packages"), "applications-other", query, [])
         categories["Packages"] = pkg_category
             
         # debug print
@@ -275,19 +295,30 @@ if __name__ == "__main__":
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
-    # now the store
+    # now the category view
     view = CategoriesView(datadir, appdir, db, icons)
-    #view = CategoriesView(datadir, db, icons)
     view.connect("category-selected", category_activated, db)
-
-    # gui
     scroll = gtk.ScrolledWindow()
     scroll.add(view)
 
+    # now a sub-category view
+    for cat in view.categories:
+        if cat.untranslated_name == "Games":
+            games_category = cat
+    subview = CategoriesView(datadir, appdir, db, icons, games_category)
+    subview.connect("category-selected", category_activated, db)
+    scroll2 = gtk.ScrolledWindow()
+    scroll2.add(subview)
+
+    # pack and show
+    vbox = gtk.VBox()
+    vbox.pack_start(scroll, padding=6)
+    vbox.pack_start(scroll2, padding=6)
+
     win = gtk.Window()
-    win.add(scroll)
+    win.add(vbox)
     view.grab_focus()
-    win.set_size_request(500,200)
+    win.set_size_request(700,600)
     win.show_all()
 
     gtk.main()
