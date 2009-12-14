@@ -141,6 +141,64 @@ class CategoriesView(WebkitWidget):
             return -1
         return cmp(a.name, b.name)
 
+    def _parse_directory_tag(self, element):
+        cp = ConfigParser()
+        fname = "/usr/share/desktop-directories/%s" % element.text
+        logging.debug("reading '%s'" % fname)
+        cp.read(fname)
+        try:
+            untranslated_name = name = cp.get("Desktop Entry","Name")
+        except Exception, e:
+            logging.warn("'%s' has no name" % fname)
+            return None
+        try:
+            gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
+        except:
+            gettext_domain = None
+        try:
+            icon = cp.get("Desktop Entry","Icon")
+        except Exception, e:
+            icon = "applications-other"
+            if gettext_domain:
+                name = gettext.dgettext(gettext_domain, untranslated_name)
+        return (untranslated_name, name, gettext_domain, icon)
+
+    def _parse_menu_tag(self, item, only_unallocated):
+        name = None
+        untranslated_name = None
+        query = None
+        icon = None
+        for element in item.getchildren():
+            if element.tag == "Name":
+                name = element.text
+            elif element.tag == "Directory":
+                (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
+            elif element.tag == "Include":
+                query = xapian.Query("")
+                for include in element.getchildren():
+                    if include.tag == "And":
+                        for and_elem in include.getchildren():
+                            if and_elem.tag == "Not":
+                                for not_elem in and_elem.getchildren():
+                                    if not_elem.tag == "Category":
+                                        q = xapian.Query("AC"+not_elem.text.lower())
+                                        query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
+                                                
+                            elif and_elem.tag == "Category":
+                                logging.debug("adding: %s" % and_elem.text)
+                                q = xapian.Query("AC"+and_elem.text.lower())
+                                query = xapian.Query(xapian.Query.OP_AND, query, q)
+                            else: 
+                                print "UNHANDLED: ", and_elem.tag, and_elem.text
+            elif element.tag == "OnlyUnallocated":
+                 only_unallocated.add(untranslated_name)
+            else:
+                print "UNHANDLED tag in _parse_menu_tag: ", element.tag
+                
+        if untranslated_name and query:
+            return Category(untranslated_name, name, icon, query)
+        return None
+
     def parse_applications_menu(self, datadir):
         " parse a application menu and return a list of Category objects"""
         tree = ET.parse(datadir+"/desktop/applications.menu")
@@ -148,56 +206,12 @@ class CategoriesView(WebkitWidget):
         only_unallocated = set()
         root = tree.getroot()
         for child in root.getchildren():
+            category = None
             if child.tag == "Menu":
-                name = None
-                untranslated_name = None
-                query = None
-                icon = None
-                for element in child.getchildren():
-                    if element.tag == "Name":
-                        name = element.text
-                    elif element.tag == "Directory":
-                        cp = ConfigParser()
-                        fname = "/usr/share/desktop-directories/%s" % element.text
-                        logging.debug("reading '%s'" % fname)
-                        cp.read(fname)
-                        try:
-                            untranslated_name = cp.get("Desktop Entry","Name")
-                        except Exception, e:
-                            logging.warn("'%s' has no name" % fname)
-                            continue
-                        try:
-                            gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
-                        except:
-                            gettext_domain = None
-                        # sometimes there is no icon?
-                        try:
-                            icon = cp.get("Desktop Entry","Icon")
-                        except Exception, e:
-                            icon = "applications-other"
-                        if gettext_domain:
-                            name = gettext.dgettext(gettext_domain, untranslated_name)
-                    elif element.tag == "Include":
-                        query = xapian.Query("")
-                        for include in element.getchildren():
-                            if include.tag == "And":
-                                for and_elem in include.getchildren():
-                                    if and_elem.tag == "Not":
-                                        for not_elem in and_elem.getchildren():
-                                            if not_elem.tag == "Category":
-                                                q = xapian.Query("AC"+not_elem.text.lower())
-                                                query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
-                                                
-                                    elif and_elem.tag == "Category":
-                                        logging.debug("adding: %s" % and_elem.text)
-                                        q = xapian.Query("AC"+and_elem.text.lower())
-                                        query = xapian.Query(xapian.Query.OP_AND, query, q)
-                                    else: 
-                                        print "UNHANDLED: ", and_elem.tag, and_elem.text
-                    elif element.tag == "OnlyUnallocated":
-                        only_unallocated.add(untranslated_name)
-                    if untranslated_name and query:
-                        categories[untranslated_name] = Category(untranslated_name, name, icon, query)
+                category = self._parse_menu_tag(child, only_unallocated)
+            if category:
+                categories[category.untranslated_name] = category
+
         # post processing for <OnlyUnallocated>
         for unalloc in only_unallocated:
             if not unalloc in categories:
@@ -247,8 +261,8 @@ def category_activated(iconview, name, query, db):
     print len(matches)
 
 if __name__ == "__main__":
-
-    logging.basicConfig(level=logging.DEBUG)
+    from softwarecenter.enums import *
+    #logging.basicConfig(level=logging.DEBUG)
 
     appdir = "/usr/share/app-install"
     datadir = "./data"
