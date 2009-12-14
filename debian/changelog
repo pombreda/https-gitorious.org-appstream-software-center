@@ -2,6 +2,10 @@ software-center (1.1.4) UNRELEASED; urgency=low
 
   * softwarecenter/db/update.py:
     - honor X-AppInstall-Ignore=true
+  * merge from lp:~glatzor/software-center/glatzor, many thanks
+  * fixes missing icons/appnames in the progress pane (LP: #493775)
+  * debian/control:
+    - update aptdaemon dependency
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Dec 2009 09:50:58 +0100
 

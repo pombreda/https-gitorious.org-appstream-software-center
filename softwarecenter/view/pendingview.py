@@ -66,40 +66,57 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
     def on_transactions_changed(self, current_tid, pending_tids):
         #print "on_transaction_changed", current_tid, len(pending_tids)
         self.clear()
-        for tid in [current_tid]+pending_tids:
+        for tid in [current_tid] + pending_tids:
             if not tid:
                 continue
-            trans = aptdaemon.client.get_transaction(tid)
+            trans = aptdaemon.client.get_transaction(tid,
+                                         reply_handler=self._append_transaction,
+                                         error_handler=lambda x: True)
+
+    def _append_transaction(self, trans):
+        """Extract information about the transaction and append it to the
+        store.
+        """
+        self._signals.append(
+            trans.connect("progress-changed", self._on_progress_changed))
+        self._signals.append(
+            trans.connect("status-changed", self._on_status_changed))
+        self._signals.append(
+            trans.connect("cancellable-changed",
+                          self._on_cancellable_changed))
+        try:
+            appname = trans.meta_data["sc_appname"]
+        except KeyError:
+            #FIXME: Extract information from packages property
+            appname = get_role_localised_present_from_enum(role)
             self._signals.append(
-                trans.connect("progress-changed", self._on_progress_changed))
-            self._signals.append(
-                trans.connect("status-changed", self._on_status_changed))
-            self._signals.append(
-                trans.connect("cancellable-changed",
-                              self._on_cancellable_changed))
-            appname = trans.get_data("appname")
-            iconname = trans.get_data("iconname")
-            if not appname:
-                self._signals.append(
-                    trans.connect("role-changed", self._on_role_changed))
-            if iconname:
-                try:
-                    icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
-                except Exception, e:
-                    icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
-            else:
-                icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
-            self.append([tid, icon, appname, "", 0.0, ""])
-            del trans
+                trans.connect("role-changed", self._on_role_changed))
+        try:
+            iconname = trans.meta_data["sc_iconname"]
+        except KeyError:
+            icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+        else:
+            try:
+                icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
+            except Exception:
+                icon = self.icons.load_icon(MISSING_APP_ICON,
+                                            self.ICON_SIZE, 0)
+        status_text = self._render_status_text(appname, trans.status)
+        cancel_icon = self._get_cancel_icon(trans.cancellable)
+        self.append([trans.tid, icon, appname, status_text, trans.progress,
+                    cancel_icon])
 
     def _on_cancellable_changed(self, trans, cancellable):
         #print "_on_allow_cancel: ", trans, allow_cancel
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                if cancellable:
-                    row[self.COL_CANCEL] = self.PENDING_STORE_ICON_CANCEL
-                else:
-                    row[self.COL_CANCEL] = self.PENDING_STORE_ICON_NO_CANCEL
+                row[self.COL_CANCEL] = self._get_cancel_icon(cancellable)
+
+    def _get_cancel_icon(self, cancellable):
+        if cancellable:
+            return self.PENDING_STORE_ICON_CANCEL
+        else:
+            return self.PENDING_STORE_ICON_NO_CANCEL
 
     def _on_role_changed(self, trans, role):
         #print "_on_progress_changed: ", trans, role
@@ -120,11 +137,13 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                 # FIXME: the spaces around %s are poor mans padding because
                 #        setting xpad on the cell-renderer seems to not work
                 name = row[self.COL_NAME]
-                if not name:
-                    name = ""
-                s = "%s\n<small>%s</small>" % (
-                    name, get_status_string_from_enum(status))
-                row[self.COL_STATUS] = s
+                row[self.COL_STATUS] = self._render_status_text(name, status)
+
+    def _render_status_text(self, name, status):
+        if not name:
+            name = ""
+        return "%s\n<small>%s</small>" % (name,
+                                          get_status_string_from_enum(status))
 
 
 class PendingView(gtk.TreeView):

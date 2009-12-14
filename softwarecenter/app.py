@@ -136,7 +136,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
         # HACK: make it more friendly for local installs (for mpt)
         self.icons.append_search_path(datadir+"/icons/32x32/status")
-        
+        gtk.window_set_default_icon_name("softwarecenter")
+
         # misc state
         self._pending_transactions = 0
         self._block_menuitem_view = False

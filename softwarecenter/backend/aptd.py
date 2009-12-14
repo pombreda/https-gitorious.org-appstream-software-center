@@ -24,7 +24,9 @@ import subprocess
 
 from aptdaemon import client
 from aptdaemon import enums
-from aptdaemon.gtkwidgets import AptMediumRequiredDialog
+from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
+                                 AptConfigFileConflictDialog
+import gtk
 
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.view import dialogs
@@ -107,7 +109,7 @@ class AptdaemonBackend(gobject.GObject):
             error._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
             pass
         else:
-            raise
+            raise error
         self.emit("transaction-stopped")
 
     def _on_trans_finished(self, trans, enum):
@@ -135,31 +137,11 @@ class AptdaemonBackend(gobject.GObject):
         # send finished signal
         self.emit("transaction-finished", enum != enums.EXIT_FAILED)
 
-    # FIXME: move this to a better place
-    def _get_diff(self, old, new):
-        if not os.path.exists("/usr/bin/diff"):
-            return ""
-        diff = subprocess.Popen(["/usr/bin/diff",
-                                 "-u",
-                                 old, new],
-                                stdout=subprocess.PIPE).communicate()[0]
-        return diff
-
-    # FIXME: move this into aptdaemon/use the aptdaemon one
     def _config_file_conflict(self, transaction, old, new):
-        diff = self._get_diff(old, new)
-        d = dialogs.DetailsMessageDialog(None,
-                                         details=diff,
-                                         type=gtk.MESSAGE_INFO,
-                                         buttons=gtk.BUTTONS_NONE)
-        d.add_buttons(_("_Keep"), gtk.RESPONSE_NO,
-                      _("_Replace"), gtk.RESPONSE_YES)
-        d.set_default_response(gtk.RESPONSE_NO)
-        text = _("Configuration file '%s' changed") % old
-        desc = _("Do you want to use the new version?")
-        d.set_markup("<big><b>%s</b></big>\n\n%s" % (text, desc))
-        res = d.run()
-        d.destroy()
+        dia = AptConfigFileConflictDialog(old, new)
+        res = dia.run()
+        dia.hide()
+        dia.destroy()
         # send result to the daemon
         if res == gtk.RESPONSE_YES:
             transaction.resolve_config_file_conflict(old, "replace")
@@ -175,25 +157,23 @@ class AptdaemonBackend(gobject.GObject):
         else:
             transaction.cancel()
 
-    def _setup_http_proxy(self, transaction):
-        http_proxy = get_http_proxy_string_from_gconf()
-        if http_proxy:
-            transaction.set_http_proxy(http_proxy)
-
     def _run_transaction(self, trans, pkgname, appname, iconname):
-        # set object data
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
-        trans.set_data("pkgname", pkgname)
-        # setup http proxy
-        self._setup_http_proxy(trans)
-        # we support debconf
-        trans.set_debconf_frontend("gnome")
+        def set_debconf(trans):
+            trans.set_debconf_frontend("gnome", reply_handler=set_http_proxy,
+                                       error_handler=self._on_trans_error)
+        def set_http_proxy(trans):
+            http_proxy = get_http_proxy_string_from_gconf()
+            if http_proxy:
+                trans.set_http_proxy(http_proxy, reply_handler=run,
+                                     error_handler=self._on_trans_error)
+            else:
+                run(trans)
+        def run(trans):
+            trans.run(error_handler=self._on_trans_error,
+                      reply_handler=self._on_trans_reply)
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
-        trans.run(error_handler=self._on_trans_error,
-                  reply_handler=self._on_trans_reply)
-
-
-
+        trans.set_meta_data(sc_appname=appname, sc_iconname=iconname,
+                            reply_handler=set_debconf,
+                            error_handler=self._on_trans_error)
