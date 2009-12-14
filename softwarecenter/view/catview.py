@@ -54,7 +54,8 @@ class CategoriesView(WebkitWidget):
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
                                gobject.TYPE_NONE, 
-                               (str, gobject.TYPE_PYOBJECT),
+                               (gobject.TYPE_PYOBJECT,
+                               ),
                               )
         }
 
@@ -75,16 +76,20 @@ class CategoriesView(WebkitWidget):
             self.header = _("Departments")
             self.categories = self.parse_applications_menu(desktopdir)
         else:
-            self.header = root_category.name
-            self.categories = root_category.subcategories
+            self.set_subcategory(root_category)
         self.connect("load-finished", self._on_load_finished)
+
+    def set_subcategory(self, root_category):
+        self.header = root_category.name
+        self.categories = root_category.subcategories
+        self.refresh_html()
 
     def on_category_clicked(self, name):
         """emit the category-selected signal when a category was clicked"""
         logging.debug("on_category_changed: %s" % name)
-        for n in self.categories:
-            if n.name == name:
-                self.emit("category-selected", name, n.query)
+        for cat in self.categories:
+            if cat.name == name:
+                self.emit("category-selected", cat)
 
     # run javascript inside the html
     def _on_load_finished(self, view, frame):
@@ -266,8 +271,10 @@ class CategoriesView(WebkitWidget):
 
 
 # test code
-def category_activated(iconview, name, query, db):
+def category_activated(iconview, category, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
+    name = category.name
+    query = category.query
     enquire = xapian.Enquire(db)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)

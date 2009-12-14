@@ -70,9 +70,25 @@ class AvailablePane(SoftwarePane):
         scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll_categories.add(self.cat_view)
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
+        # sub-categories view
+        self.subcategories_view = CategoriesView(self.datadir, 
+                                                 APP_INSTALL_PATH, 
+                                                 self.db,
+                                                 self.icons,
+                                                 self.cat_view.categories[0])
+        #self.subcategories_view.connect(
+        #    "category-selected", self.on_subcategory_activated)
+        self.scroll_subcategories = gtk.ScrolledWindow()
+        self.scroll_subcategories.set_policy(
+            gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.scroll_subcategories.add(self.subcategories_view)
+        # now a vbox for subcategories and applist 
+        apps_vbox = gtk.VPaned()
+        apps_vbox.pack1(self.scroll_subcategories, resize=True)
+        apps_vbox.pack2(self.scroll_app_list)
         # app list
         self.cat_view.connect("category-selected", self.on_category_activated)
-        self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
+        self.notebook.append_page(apps_vbox, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # home button
@@ -206,14 +222,22 @@ class AvailablePane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
-    def on_category_activated(self, cat_view, name, query):
+
+    def on_category_activated(self, cat_view, category):
         #print cat_view, name, query
-        # FIXME: integrate this at a lower level, e.g. by sending a 
-        #        full Category class with the signal
-        logging.debug( "on_category_activated: %s %s" % (name, query))
-        query.name = name
-        self.apps_category_query = query
-        # show new category
+        logging.debug("on_category_activated: %s %s" % (
+                category.name, category))
+        self.apps_category_query = category.query
+        self._set_category(category)
+
+    def _set_category(self, category):
+        query = category.query
+        query.name = category.name
+        if category.subcategories:
+            self.subcategories_view.set_subcategory(category)
+            self.scroll_subcategories.show()
+        else:
+            self.scroll_subcategories.hide()
         self.update_navigation_button()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)

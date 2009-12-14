@@ -70,6 +70,9 @@ class WebkitWidget(webkit.WebView):
                 tempfile.mkdtemp(), "software-center-render.html")
             logging.info("writing html output to '%s'" % self.debug_html_path)
 
+    def refresh_html(self):
+        self._show(None)
+
     # internal helpers
     def _show(self, widget):
         """Load and render when show is called"""
