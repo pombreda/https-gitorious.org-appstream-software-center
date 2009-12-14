@@ -1,4 +1,4 @@
-software-center (1.1.4) UNRELEASED; urgency=low
+software-center (1.1.4) lucid; urgency=low
 
   * softwarecenter/db/update.py:
     - honor X-AppInstall-Ignore=true
@@ -7,7 +7,7 @@ software-center (1.1.4) UNRELEASED; urgency=low
   * debian/control:
     - update aptdaemon dependency
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Dec 2009 09:50:58 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 14 Dec 2009 11:38:05 +0100
 
 software-center (1.1.3) lucid; urgency=low
 
