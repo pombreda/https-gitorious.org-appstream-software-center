@@ -18,6 +18,9 @@ software-center (1.1.5) UNRELEASED; urgency=low
     - support extra tags "SCIcon"
     - support gettext without directory in .menu file
     - support additional software-center.menu file
+  * softwarecenter/view/catview.py:
+    - fix incompatibility with the development version of xapian
+      (thanks to Richard Boulton)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Dec 2009 09:51:44 +0100
 

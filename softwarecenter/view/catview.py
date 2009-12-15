@@ -275,7 +275,7 @@ class CategoriesView(WebkitWidget):
 
         # debug print
         for cat in categories:
-            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query.get_description()))
+            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
         return categories
         
     def _get_pango_font_description(self):
