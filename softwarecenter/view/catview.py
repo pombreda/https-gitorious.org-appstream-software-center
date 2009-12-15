@@ -40,11 +40,12 @@ def encode_for_xml(unicode_data, encoding="ascii"):
 
 class Category(object):
     """represents a menu category"""
-    def __init__(self, untranslated_name, name, iconname, query, subcategories):
+    def __init__(self, untranslated_name, name, iconname, query, only_unallocated, subcategories):
         self.name = name
         self.untranslated_name = untranslated_name
         self.iconname = iconname
         self.query = query
+        self.only_unallocated = only_unallocated
         self.subcategories = subcategories
 
 class CategoriesView(WebkitWidget):
@@ -209,11 +210,12 @@ class CategoriesView(WebkitWidget):
         # null query if nothing should be included
         return xapian.Query()
 
-    def _parse_menu_tag(self, item, only_unallocated):
+    def _parse_menu_tag(self, item):
         name = None
         untranslated_name = None
         query = None
         icon = None
+        only_unallocated = False
         subcategories = []
         for element in item.getchildren():
             if element.tag == "Name":
@@ -226,24 +228,32 @@ class CategoriesView(WebkitWidget):
             elif element.tag == "Include":
                 query = self._parse_include_tag(element)
             elif element.tag == "OnlyUnallocated":
-                only_unallocated.add(untranslated_name)
+                only_unallocated = True
             elif element.tag == "Menu":
-                subcat = self._parse_menu_tag(element, only_unallocated)
+                subcat = self._parse_menu_tag(element)
                 if subcat:
                     subcategories.append(subcat)
             else:
                 print "UNHANDLED tag in _parse_menu_tag: ", element.tag
                 
         if untranslated_name and query:
-            return Category(untranslated_name, name, icon, query, subcategories)
+            return Category(untranslated_name, name, icon, query,  only_unallocated, subcategories)
         else:
             print "UNHANDLED entry: ", name, untranslated_name, icon, query
         return None
 
+    def _build_unallocated_queries(self, categories):
+        for cat_unalloc in categories:
+            if not cat_unalloc.only_unallocated:
+                continue
+            for cat in categories:
+                if cat.name != cat_unalloc.name:
+                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
+            print cat_unalloc.name, cat_unalloc.query
+
     def parse_applications_menu(self, datadir):
         " parse a application menu and return a list of Category objects"""
-        categories = {}
-        only_unallocated = set()
+        categories = []
         for f in [datadir+"/desktop/applications.menu",
                   datadir+"/desktop/software-center.menu"]:                  
             tree = ET.parse(f)
@@ -251,27 +261,22 @@ class CategoriesView(WebkitWidget):
             for child in root.getchildren():
                 category = None
                 if child.tag == "Menu":
-                    category = self._parse_menu_tag(child, only_unallocated)
+                    category = self._parse_menu_tag(child)
                 if category:
-                    categories[category.untranslated_name] = category
-
+                    categories.append(category)
         # post processing for <OnlyUnallocated>
-        for unalloc in only_unallocated:
-            if not unalloc in categories:
-                logging.debug("not category '%s' in the unalloced ones" % unalloc)
-                continue
-            cat_unalloc = categories[unalloc]
-            for key in categories:
-                if key != unalloc:
-                    cat = categories[key]
-                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
-            categories[unalloc] = cat_unalloc
+        # now build the unallocated queries, once for top-level,
+        # and for the subcategories. this means that subcategories
+        # can have a "OnlyUnallocated/" that applies only to 
+        # unallocated entries in their sublevel
+        for cat in categories:
+            self._build_unallocated_queries(cat.subcategories)
+        self._build_unallocated_queries(categories)
 
         # debug print
-        for catname in categories:
-            cat = categories[catname]
+        for cat in categories:
             logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query.get_description()))
-        return categories.values()
+        return categories
         
     def _get_pango_font_description(self):
         return gtk.Label("pango").get_pango_context().get_font_description()

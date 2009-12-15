@@ -286,6 +286,7 @@ class AvailablePane(SoftwarePane):
         #print cat_view, name, query
         logging.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
+        print category.query
         self.apps_subcategory = category
         self._set_category(category)
         self.navigation_bar.add_with_id(
