@@ -175,13 +175,11 @@ class CategoriesView(WebkitWidget):
                 name = gettext.dgettext(gettext_domain, untranslated_name)
         return (untranslated_name, name, gettext_domain, icon)
 
-    def _parse_and_or_tag(self, element, query, xapian_op):
+    def _parse_and_or_not_tag(self, element, query, xapian_op):
+        """parse a <And>, <Or>, <Not> tag """
         for and_elem in element.getchildren():
             if and_elem.tag == "Not":
-                for not_elem in and_elem.getchildren():
-                    if not_elem.tag == "Category":
-                        q = xapian.Query("AC"+not_elem.text.lower())
-                        query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
+                query = self._parse_and_or_not_tag(and_elem, query, xapian.Query.OP_AND_NOT)
             elif and_elem.tag == "Category":
                 logging.debug("adding: %s" % and_elem.text)
                 q = xapian.Query("AC"+and_elem.text.lower())
@@ -189,6 +187,10 @@ class CategoriesView(WebkitWidget):
             elif and_elem.tag == "SCSection":
                 logging.debug("adding section: %s" % and_elem.text)
                 q = xapian.Query("XS"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCType":
+                logging.debug("adding type: %s" % and_elem.text)
+                q = xapian.Query("AT"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
             else: 
                 print "UNHANDLED: ", and_elem.tag, and_elem.text
@@ -198,10 +200,10 @@ class CategoriesView(WebkitWidget):
         for include in element.getchildren():
             if include.tag == "Or":
                 query = xapian.Query()
-                return self._parse_and_or_tag(include, query, xapian.Query.OP_OR)
+                return self._parse_and_or_not_tag(include, query, xapian.Query.OP_OR)
             if include.tag == "And":
                 query = xapian.Query("")
-                return self._parse_and_or_tag(include, query, xapian.Query.OP_AND)
+                return self._parse_and_or_not_tag(include, query, xapian.Query.OP_AND)
             # without "and" tag we take the first entry
             elif include.tag == "Category":
                 return xapian.Query("AC"+include.text.lower())
@@ -249,7 +251,7 @@ class CategoriesView(WebkitWidget):
             for cat in categories:
                 if cat.name != cat_unalloc.name:
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
-            print cat_unalloc.name, cat_unalloc.query
+            #print cat_unalloc.name, cat_unalloc.query
 
     def parse_applications_menu(self, datadir):
         " parse a application menu and return a list of Category objects"""

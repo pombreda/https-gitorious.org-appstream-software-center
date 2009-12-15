@@ -606,7 +606,7 @@
       <SCIcon>applications-other</SCIcon>
       <Include>
         <And>
-          <Not><Category>Application</Category></Not>
+          <Not><SCType>application</SCType></Not>
         </And>
       </Include>
       <OnlyUnallocated/>

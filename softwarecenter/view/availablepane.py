@@ -198,6 +198,10 @@ class AvailablePane(SoftwarePane):
 
     def _show_category_overview(self):
         " helper that shows the category overview "
+        # reset category query
+        self.apps_category = None
+        self.apps_subcategory = None
+        # remove pathbar stuff
         self.navigation_bar.remove_id("list")
         self.navigation_bar.remove_id("sublist")
         self.navigation_bar.remove_id("details")
@@ -222,6 +226,7 @@ class AvailablePane(SoftwarePane):
         # category query (to ensure all apps are searched)
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
             self.apps_category = None
+            self.apps_subcategory = None
 
         # DTRT if the search is reseted
         if not new_text:
@@ -286,7 +291,6 @@ class AvailablePane(SoftwarePane):
         #print cat_view, name, query
         logging.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
-        print category.query
         self.apps_subcategory = category
         self._set_category(category)
         self.navigation_bar.add_with_id(
