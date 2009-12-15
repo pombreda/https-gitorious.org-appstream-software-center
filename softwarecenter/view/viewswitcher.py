@@ -99,7 +99,7 @@ class ViewSwitcher(gtk.TreeView):
            
            ViewSwitcherList.ACTION_ITEM_AVAILABLE
            ViewSwitcherList.ACTION_ITEM_INSTALLED
-           ViewSwitcherList.ACTION_ITEM_PENDIN
+           ViewSwitcherList.ACTION_ITEM_PENDING
         """
         (path, column) = self.get_cursor()
         if not path:

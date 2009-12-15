@@ -99,13 +99,8 @@ class AppDetailsView(WebkitWidget):
         super(AppDetailsView, self)._show(widget)
 
     # public API
-    def show_app(self, appname, pkgname):
-        logging.debug("AppDetailsView.show_app '%s'" % appname)
-
-        # clear first to avoid showing the old app details for
-        # some milliseconds before switching to the new app
-        self.clear()
-
+    def init_app(self, appname, pkgname):
+        logging.debug("AppDetailsView.init_app '%s'" % appname)
         # init app specific data
         self.appname = appname
         # if we don't have a app, we use the pkgname as appname
@@ -137,7 +132,17 @@ class AppDetailsView(WebkitWidget):
             self.pkg = self.cache[self.pkgname]
         if self.pkg:
             self.homepage_url = self.pkg.candidate.homepage
+    
+    def show_app(self, appname, pkgname):
+        logging.debug("AppDetailsView.show_app '%s'" % appname)
 
+        # clear first to avoid showing the old app details for
+        # some milliseconds before switching to the new app
+        self.clear()
+        
+        # initialize the app
+        self.init_app(appname, pkgname)
+        
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
