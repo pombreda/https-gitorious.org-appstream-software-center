@@ -23,6 +23,7 @@ import logging
 import os
 import sys
 import xapian
+import gobject
 
 from gettext import gettext as _
 
@@ -44,6 +45,13 @@ class AvailablePane(SoftwarePane):
     (PAGE_CATEGORY,
      PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(3)
+     
+    __gsignals__ = {
+        "category-view-selected" : (gobject.SIGNAL_RUN_LAST,
+                                    gobject.TYPE_NONE,
+                                    ()
+                                   )
+        }
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -191,6 +199,7 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_sorted = True
         self.apps_search_query = None
+        self.emit("category-view-selected")
         self._show_category_overview()
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""

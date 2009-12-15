@@ -156,6 +156,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected,
                                              self.NOTEBOOK_PAGE_AVAILABLE)
+        self.available_pane.connect("category-view-selected",
+                                    self.on_category_view_selected)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -220,13 +222,21 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.notebook_view.get_current_page() == page:
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
+            self.menuitem_copy_web_link.set_sensitive(False)
             self.update_status_bar()
 
     def on_app_selected(self, widget, appname, pkgname, page):
         self._selected_appname_for_page[page] = appname
         self._selected_pkgname_for_page[page] = pkgname
+        self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
-        self.menuitem_copy_web_link.set_sensitive(True)
+
+    def on_category_view_selected(self, widget):
+        self.menuitem_install.set_sensitive(False)
+        self.menuitem_remove.set_sensitive(False)
+        self.menuitem_copy_web_link.set_sensitive(False)
 
     def on_window_main_delete_event(self, widget, event):
         gtk.main_quit()
@@ -276,9 +286,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # Menu Items
     def on_menuitem_install_activate(self, menuitem):
+        page = self.notebook_view.get_current_page()
+        appname = self._selected_appname_for_page[page]
+        pkgname = self._selected_pkgname_for_page[page]
+        self.active_pane.app_details.init_app(appname, pkgname)
         self.active_pane.app_details.install()
 
     def on_menuitem_remove_activate(self, menuitem):
+        page = self.notebook_view.get_current_page()
+        appname = self._selected_appname_for_page[page]
+        pkgname = self._selected_pkgname_for_page[page]
+        self.active_pane.app_details.init_app(appname, pkgname)
         self.active_pane.app_details.remove()
         
     def on_menuitem_close_activate(self, widget):
@@ -442,9 +460,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             installed = bool(pkg.installed)
             self.menuitem_install.set_sensitive(not installed)
             self.menuitem_remove.set_sensitive(installed)
+            self.menuitem_copy_web_link.set_sensitive(True)
         else:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
+            self.menuitem_copy_web_link.set_sensitive(False)
         # return False to ensure that a possible glib.timeout_add ends
         return False
 
