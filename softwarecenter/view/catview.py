@@ -138,9 +138,9 @@ class CategoriesView(WebkitWidget):
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
-        if a.untranslated_name == "Packages":
+        if a.untranslated_name == "System Packages":
             return 1
-        elif b.untranslated_name == "Packages":
+        elif b.untranslated_name == "System Packages":
             return -1
         if a.untranslated_name == "Other":
             return 1
@@ -174,29 +174,40 @@ class CategoriesView(WebkitWidget):
                 name = gettext.dgettext(gettext_domain, untranslated_name)
         return (untranslated_name, name, gettext_domain, icon)
 
+    def _parse_and_or_tag(self, element, query, xapian_op):
+        for and_elem in element.getchildren():
+            if and_elem.tag == "Not":
+                for not_elem in and_elem.getchildren():
+                    if not_elem.tag == "Category":
+                        q = xapian.Query("AC"+not_elem.text.lower())
+                        query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
+            elif and_elem.tag == "Category":
+                logging.debug("adding: %s" % and_elem.text)
+                q = xapian.Query("AC"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCSection":
+                logging.debug("adding section: %s" % and_elem.text)
+                q = xapian.Query("XS"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            else: 
+                print "UNHANDLED: ", and_elem.tag, and_elem.text
+        return query
+
     def _parse_include_tag(self, element):
-        query = xapian.Query("")
         for include in element.getchildren():
+            if include.tag == "Or":
+                query = xapian.Query()
+                return self._parse_and_or_tag(include, query, xapian.Query.OP_OR)
             if include.tag == "And":
-                for and_elem in include.getchildren():
-                    if and_elem.tag == "Not":
-                        for not_elem in and_elem.getchildren():
-                            if not_elem.tag == "Category":
-                                q = xapian.Query("AC"+not_elem.text.lower())
-                                query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
-                                                
-                    elif and_elem.tag == "Category":
-                        logging.debug("adding: %s" % and_elem.text)
-                        q = xapian.Query("AC"+and_elem.text.lower())
-                        query = xapian.Query(xapian.Query.OP_AND, query, q)
-                    else: 
-                        print "UNHANDLED: ", and_elem.tag, and_elem.text
+                query = xapian.Query("")
+                return self._parse_and_or_tag(include, query, xapian.Query.OP_AND)
             # without "and" tag we take the first entry
             elif include.tag == "Category":
                 return xapian.Query("AC"+include.text.lower())
             else:
                 logging.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
-        return query
+        # null query if nothing should be included
+        return xapian.Query()
 
     def _parse_menu_tag(self, item, only_unallocated):
         name = None
@@ -206,13 +217,16 @@ class CategoriesView(WebkitWidget):
         subcategories = []
         for element in item.getchildren():
             if element.tag == "Name":
-                name = element.text
+                untranslated_name = element.text
+                name = gettext.gettext(untranslated_name)
+            elif element.tag == "SCIcon":
+                icon = element.text
             elif element.tag == "Directory":
                 (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
             elif element.tag == "Include":
                 query = self._parse_include_tag(element)
             elif element.tag == "OnlyUnallocated":
-                 only_unallocated.add(untranslated_name)
+                only_unallocated.add(untranslated_name)
             elif element.tag == "Menu":
                 subcat = self._parse_menu_tag(element, only_unallocated)
                 if subcat:
@@ -222,20 +236,24 @@ class CategoriesView(WebkitWidget):
                 
         if untranslated_name and query:
             return Category(untranslated_name, name, icon, query, subcategories)
+        else:
+            print "UNHANDLED entry: ", name, untranslated_name, icon, query
         return None
 
     def parse_applications_menu(self, datadir):
         " parse a application menu and return a list of Category objects"""
-        tree = ET.parse(datadir+"/desktop/applications.menu")
         categories = {}
         only_unallocated = set()
-        root = tree.getroot()
-        for child in root.getchildren():
-            category = None
-            if child.tag == "Menu":
-                category = self._parse_menu_tag(child, only_unallocated)
-            if category:
-                categories[category.untranslated_name] = category
+        for f in [datadir+"/desktop/applications.menu",
+                  datadir+"/desktop/software-center.menu"]:                  
+            tree = ET.parse(f)
+            root = tree.getroot()
+            for child in root.getchildren():
+                category = None
+                if child.tag == "Menu":
+                    category = self._parse_menu_tag(child, only_unallocated)
+                if category:
+                    categories[category.untranslated_name] = category
 
         # post processing for <OnlyUnallocated>
         for unalloc in only_unallocated:
@@ -249,11 +267,6 @@ class CategoriesView(WebkitWidget):
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             categories[unalloc] = cat_unalloc
 
-        # add packages
-        query = xapian.Query(xapian.Query.OP_AND_NOT, xapian.Query(""), xapian.Query("ATapplication"))
-        pkg_category = Category("Packages", _("System Packages"), "applications-other", query, [])
-        categories["Packages"] = pkg_category
-            
         # debug print
         for catname in categories:
             cat = categories[catname]

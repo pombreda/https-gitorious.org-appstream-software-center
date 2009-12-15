@@ -107,11 +107,9 @@ class AvailablePane(SoftwarePane):
     def _get_query(self):
         """helper that gets the query for the current category/search mode"""
         query = None
-        # build category/subcategory query
+        # if we have a subquery, that one wins
         if self.apps_category and self.apps_subcategory:
-            query = xapian.Query(xapian.Query.OP_AND,
-                             self.apps_category.query,
-                             self.apps_subcategory.query)
+            query = self.apps_subcategory.query
         elif self.apps_category:
             query = self.apps_category.query
         # build search query
@@ -123,13 +121,9 @@ class AvailablePane(SoftwarePane):
             query = self.apps_search_query
         return query
 
-        
-    @wait_for_apt_cache_ready
-    def refresh_apps(self):
-        """refresh the applist after search changes and update the 
-           navigation bar
-        """
-        # check if we show subcategoriy
+    def _show_hide_subcategories(self):
+        # check if have subcategories and are not in a subcategory
+        # view - if so, show it
         if (self.apps_category and 
             self.apps_category.subcategories and
             not self.apps_subcategory):
@@ -137,6 +131,27 @@ class AvailablePane(SoftwarePane):
             self.scroll_subcategories.show()
         else:
             self.scroll_subcategories.hide()
+
+    def _show_hide_applist(self):
+        # now check if the apps_category view has entries and if
+        # not hide it
+        if (len(self.app_view.get_model()) ==0 and 
+            self.apps_category and
+            self.apps_category.subcategories and 
+            not self.apps_subcategory):
+            self.scroll_app_list.hide()
+        else:
+            self.scroll_app_list.show()
+
+    def refresh_apps(self):
+        """refresh the applist after search changes and update the 
+           navigation bar
+        """
+        self._show_hide_subcategories()
+        self._refresh_apps_with_apt_cache()
+
+    @wait_for_apt_cache_ready
+    def _refresh_apps_with_apt_cache(self):
         # build query
         query = self._get_query()
         # create new model and attach it
@@ -148,6 +163,8 @@ class AvailablePane(SoftwarePane):
                              sort=self.apps_sorted,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        # check if we show subcategoriy
+        self._show_hide_applist()
         self.emit("app-list-changed", len(new_model))
         return False
 

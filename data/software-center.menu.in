@@ -1,0 +1,24 @@
+<Menu>
+ <!-- Packages -->
+  <Menu>
+    <_Name>System Packages</_Name>
+    <SCIcon>applications-other</SCIcon>
+    <Include>
+    </Include>
+
+    <Menu>
+      <_Name>Network</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+        <Or>
+          <SCSection>net</SCSection>
+          <SCSection>restricted/net</SCSection>
+          <SCSection>universe/net</SCSection>
+          <SCSection>multiverse/net</SCSection>
+        </Or>
+      </Include>
+    </Menu>
+
+  </Menu> <!-- End Packages -->
+
+</Menu>
