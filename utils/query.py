@@ -20,6 +20,10 @@ def run_query(parser, search_term):
         for m in mset:
             doc = m[xapian.MSET_DOCUMENT]
             print doc, doc.get_data()
+            for t in doc.termlist():
+                print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
+            print "\n"
+ 
 
 if __name__ == "__main__":
 
@@ -30,4 +34,5 @@ if __name__ == "__main__":
     db.add_database(axi)
 
     parser = xapian.QueryParser()
+    parser.set_database(db)
     run_query(parser, sys.argv[1])
