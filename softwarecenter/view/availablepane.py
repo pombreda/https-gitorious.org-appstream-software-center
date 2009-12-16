@@ -119,7 +119,20 @@ class AvailablePane(SoftwarePane):
                                  self.apps_search_query)
         elif self.apps_search_query:
             query = self.apps_search_query
+
+        # SPECIAL CASE for the DontDisplay categories that have 
+        #              subcategories
+        if self._in_no_display_category():
+            return xapian.Query()
+
         return query
+
+    def _in_no_display_category(self):
+        """return True if we are in a category with NoDisplay set in the XML"""
+        return (self.apps_category and
+                self.apps_category.dont_display and
+                not self.apps_subcategory and
+                not self.apps_search_query)
 
     def _show_hide_subcategories(self):
         # check if have subcategories and are not in a subcategory
@@ -179,7 +192,8 @@ class AvailablePane(SoftwarePane):
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         # no status text in the details page
-        if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
+        if (self.notebook.get_current_page() == self.PAGE_APP_DETAILS or
+            self._in_no_display_category()):
             return ""
         return self._status_text
     

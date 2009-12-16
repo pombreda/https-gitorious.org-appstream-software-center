@@ -40,13 +40,15 @@ def encode_for_xml(unicode_data, encoding="ascii"):
 
 class Category(object):
     """represents a menu category"""
-    def __init__(self, untranslated_name, name, iconname, query, only_unallocated, subcategories):
+    def __init__(self, untranslated_name, name, iconname, query,
+                 only_unallocated, dont_display, subcategories):
         self.name = name
         self.untranslated_name = untranslated_name
         self.iconname = iconname
         self.query = query
         self.only_unallocated = only_unallocated
         self.subcategories = subcategories
+        self.dont_display = dont_display
 
 class CategoriesView(WebkitWidget):
 
@@ -218,6 +220,7 @@ class CategoriesView(WebkitWidget):
         query = None
         icon = None
         only_unallocated = False
+        dont_display = False
         subcategories = []
         for element in item.getchildren():
             if element.tag == "Name":
@@ -231,6 +234,8 @@ class CategoriesView(WebkitWidget):
                 query = self._parse_include_tag(element)
             elif element.tag == "OnlyUnallocated":
                 only_unallocated = True
+            elif element.tag == "SCDontDisplay":
+                dont_display = True
             elif element.tag == "Menu":
                 subcat = self._parse_menu_tag(element)
                 if subcat:
@@ -239,7 +244,7 @@ class CategoriesView(WebkitWidget):
                 print "UNHANDLED tag in _parse_menu_tag: ", element.tag
                 
         if untranslated_name and query:
-            return Category(untranslated_name, name, icon, query,  only_unallocated, subcategories)
+            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, subcategories)
         else:
             print "UNHANDLED entry: ", name, untranslated_name, icon, query
         return None

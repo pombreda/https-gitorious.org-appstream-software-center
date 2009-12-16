@@ -12,12 +12,13 @@ software-center (1.1.5) UNRELEASED; urgency=low
       application view
     - make subqueries more flexible
     - reset subcategories if a search is reset
+    - support "SCNoDisplay" tag in categories
   * softwarecenter/view/catview.py:
     - move "System Packages" from hardcoded Section into a XML
       file
     - add <Or> support for <Include>
     - support empty queries in .menu
-    - support extra tags "SCIcon"
+    - support extra tags "SCIcon", "SCNoDisplay"
     - support gettext without directory in .menu file
     - support additional software-center.menu file
   * softwarecenter/view/catview.py:

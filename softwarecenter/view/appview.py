@@ -32,6 +32,7 @@ import xapian
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 from softwarecenter.enums import *
+from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
 
 from gettext import gettext as _
