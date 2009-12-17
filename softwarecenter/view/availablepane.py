@@ -156,15 +156,15 @@ class AvailablePane(SoftwarePane):
         else:
             self.scroll_app_list.show()
 
-    def refresh_apps(self):
+    def refresh_apps(self, set_model=True):
         """refresh the applist after search changes and update the 
            navigation bar
         """
         self._show_hide_subcategories()
-        self._refresh_apps_with_apt_cache()
+        self._refresh_apps_with_apt_cache(set_model)
 
     @wait_for_apt_cache_ready
-    def _refresh_apps_with_apt_cache(self):
+    def _refresh_apps_with_apt_cache(self, set_model):
         # build query
         query = self._get_query()
         # create new model and attach it
@@ -175,7 +175,8 @@ class AvailablePane(SoftwarePane):
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
                              filter=self.apps_filter)
-        self.app_view.set_model(new_model)
+        if set_model:
+            self.app_view.set_model(new_model)
         # check if we show subcategoriy
         self._show_hide_applist()
         self.emit("app-list-changed", len(new_model))
@@ -220,7 +221,9 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("sublist")
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_CATEGORY)
-        self.emit("app-list-changed", len(self.db))
+        # we only refresh here to update the "apps" count for the
+        # status bar, this is why we not actually set the model
+        self.refresh_apps(set_model=False)
         self.searchentry.show()
      
     # callbacks

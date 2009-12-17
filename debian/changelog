@@ -1,3 +1,12 @@
+software-center (1.1.6) UNRELEASED; urgency=low
+
+  * softwarecenter/view/pendingview.py:
+    - fix race in _append_transaction()
+  * softwarecenter/view/availablepane.py:
+    - fix count of available applications in the status bar
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Dec 2009 15:53:28 +0100
+
 software-center (1.1.5) lucid; urgency=low
 
   * merged from lp:~gary-lasker/software-center/menu-install-remove-fix,
