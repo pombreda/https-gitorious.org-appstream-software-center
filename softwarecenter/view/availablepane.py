@@ -273,12 +273,6 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'category' is clicked"""
         if not button.get_active():
             return
-        # yeah for special cases - as discussed on irc, mpt
-        # wants this to behave differently *if* we are not
-        # in a sub-category *and* there is a search going on
-        if not self.apps_category and self.searchentry.get_text():
-            self.on_navigation_list(button)
-            return
         # clear the search
         self._clear_search()
         self.emit("category-view-selected")
