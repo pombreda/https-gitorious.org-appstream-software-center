@@ -148,7 +148,9 @@ class AvailablePane(SoftwarePane):
     def _show_hide_applist(self):
         # now check if the apps_category view has entries and if
         # not hide it
-        if (len(self.app_view.get_model()) ==0 and 
+        model = self.app_view.get_model()
+        if (model and
+            len(model) == 0 and 
             self.apps_category and
             self.apps_category.subcategories and 
             not self.apps_subcategory):
@@ -156,15 +158,16 @@ class AvailablePane(SoftwarePane):
         else:
             self.scroll_app_list.show()
 
-    def refresh_apps(self, set_model=True):
+    def refresh_apps(self):
         """refresh the applist after search changes and update the 
            navigation bar
         """
+        logging.debug("refresh_apps")
         self._show_hide_subcategories()
-        self._refresh_apps_with_apt_cache(set_model)
+        self._refresh_apps_with_apt_cache()
 
     @wait_for_apt_cache_ready
-    def _refresh_apps_with_apt_cache(self, set_model):
+    def _refresh_apps_with_apt_cache(self):
         # build query
         query = self._get_query()
         # create new model and attach it
@@ -175,8 +178,7 @@ class AvailablePane(SoftwarePane):
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
                              filter=self.apps_filter)
-        if set_model:
-            self.app_view.set_model(new_model)
+        self.app_view.set_model(new_model)
         # check if we show subcategoriy
         self._show_hide_applist()
         self.emit("app-list-changed", len(new_model))
@@ -206,6 +208,10 @@ class AvailablePane(SoftwarePane):
         """internal helper that keeps the status text up-to-date by
            keeping track of the app-list-changed signals
         """
+        # SPECIAL CASE: in category page show all items in the DB
+        if self.notebook.get_current_page() == self.PAGE_CATEGORY:
+            length = len(self.db)
+
         if len(self.searchentry.get_text()) > 0:
             self._status_text = gettext.ngettext("%s matching item",
                                                  "%s matching items",
