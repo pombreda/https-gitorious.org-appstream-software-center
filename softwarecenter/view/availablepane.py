@@ -184,11 +184,15 @@ class AvailablePane(SoftwarePane):
 
     def update_navigation_button(self):
         """Update the navigation button"""
-        if self.apps_category:
+        if self.apps_category and not self.apps_search_query:
             cat =  self.apps_category.name
             self.navigation_bar.add_with_id(
                 cat, self.on_navigation_list, "list")
-   
+        elif self.apps_search_query:
+            self.navigation_bar.add_with_id(_("Search"),
+                                            self.on_navigation_search, 
+                                            "search")
+
     # status text woo
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -218,14 +222,20 @@ class AvailablePane(SoftwarePane):
         self.apps_subcategory = None
         # remove pathbar stuff
         self.navigation_bar.remove_id("list")
+        self.navigation_bar.remove_id("search")
         self.navigation_bar.remove_id("sublist")
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_CATEGORY)
-        # we only refresh here to update the "apps" count for the
-        # status bar, this is why we not actually set the model
-        self.refresh_apps(set_model=False)
+        self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
-     
+
+    def _clear_search(self):
+        self.searchentry.clear_with_no_signal()
+        self.apps_limit = 0
+        self.apps_sorted = True
+        self.apps_search_query = None
+        self.navigation_bar.remove_id("search")
+
     # callbacks
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
@@ -247,9 +257,7 @@ class AvailablePane(SoftwarePane):
 
         # DTRT if the search is reseted
         if not new_text:
-            self.apps_limit = 0
-            self.apps_sorted = True
-            self.apps_search_query = None
+            self._clear_search()
         else:
             self.apps_search_query = self.db.get_query_from_search_entry(new_text)
             self.apps_sorted = False
@@ -272,12 +280,15 @@ class AvailablePane(SoftwarePane):
             self.on_navigation_list(button)
             return
         # clear the search
-        self.searchentry.clear_with_no_signal()
-        self.apps_limit = 0
-        self.apps_sorted = True
-        self.apps_search_query = None
+        self._clear_search()
         self.emit("category-view-selected")
         self._show_category_overview()
+    def on_navigation_search(self, button):
+        """ callback when the navigation button with id 'search' is clicked"""
+        self.navigation_bar.remove_id("details")
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.emit("app-list-changed", len(self.app_view.get_model()))
+        self.searchentry.show()
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
@@ -287,12 +298,19 @@ class AvailablePane(SoftwarePane):
         if self.apps_subcategory:
             self.apps_subcategory = None
             self._set_category(self.apps_category)
+        if self.apps_search_query:
+            self._clear_search()
+            self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        self.emit("app-list-changed", len(self.app_view.get_model()))
+        model = self.app_view.get_model()
+        self.emit("app-list-changed", len(model))
         self.searchentry.show()
     def on_navigation_list_subcategory(self, button):
         if not button.get_active():
             return
+        if self.apps_search_query:
+            self._clear_search()
+            self.refresh_apps()
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
