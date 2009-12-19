@@ -1,10 +1,15 @@
 software-center (1.1.6) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/view/pendingview.py:
     - fix race in _append_transaction()
   * softwarecenter/view/availablepane.py:
     - fix count of available applications in the status bar
     - append a pathbar element if a search is performed
+
+  [ Jonathan Thomas ]
+  * Correct dependency on the KDE PolicyKit 1 frontend (policykit-1-qt ->
+    policykit-1-kde)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Dec 2009 15:53:28 +0100
 
