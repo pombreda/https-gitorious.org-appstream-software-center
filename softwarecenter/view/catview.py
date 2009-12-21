@@ -40,12 +40,15 @@ def encode_for_xml(unicode_data, encoding="ascii"):
 
 class Category(object):
     """represents a menu category"""
-    def __init__(self, untranslated_name, name, iconname, query, subcategories):
+    def __init__(self, untranslated_name, name, iconname, query,
+                 only_unallocated, dont_display, subcategories):
         self.name = name
         self.untranslated_name = untranslated_name
         self.iconname = iconname
         self.query = query
+        self.only_unallocated = only_unallocated
         self.subcategories = subcategories
+        self.dont_display = dont_display
 
 class CategoriesView(WebkitWidget):
 
@@ -54,7 +57,8 @@ class CategoriesView(WebkitWidget):
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
                                gobject.TYPE_NONE, 
-                               (str, gobject.TYPE_PYOBJECT),
+                               (gobject.TYPE_PYOBJECT,
+                               ),
                               )
         }
 
@@ -75,16 +79,20 @@ class CategoriesView(WebkitWidget):
             self.header = _("Departments")
             self.categories = self.parse_applications_menu(desktopdir)
         else:
-            self.header = root_category.name
-            self.categories = root_category.subcategories
+            self.set_subcategory(root_category)
         self.connect("load-finished", self._on_load_finished)
+
+    def set_subcategory(self, root_category):
+        self.header = root_category.name
+        self.categories = root_category.subcategories
+        self.refresh_html()
 
     def on_category_clicked(self, name):
         """emit the category-selected signal when a category was clicked"""
         logging.debug("on_category_changed: %s" % name)
-        for n in self.categories:
-            if n.name == name:
-                self.emit("category-selected", name, n.query)
+        for cat in self.categories:
+            if cat.name == name:
+                self.emit("category-selected", cat)
 
     # run javascript inside the html
     def _on_load_finished(self, view, frame):
@@ -133,9 +141,9 @@ class CategoriesView(WebkitWidget):
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
-        if a.untranslated_name == "Packages":
+        if a.untranslated_name == "System Packages":
             return 1
-        elif b.untranslated_name == "Packages":
+        elif b.untranslated_name == "System Packages":
             return -1
         if a.untranslated_name == "Other":
             return 1
@@ -169,91 +177,113 @@ class CategoriesView(WebkitWidget):
                 name = gettext.dgettext(gettext_domain, untranslated_name)
         return (untranslated_name, name, gettext_domain, icon)
 
+    def _parse_and_or_not_tag(self, element, query, xapian_op):
+        """parse a <And>, <Or>, <Not> tag """
+        for and_elem in element.getchildren():
+            if and_elem.tag == "Not":
+                query = self._parse_and_or_not_tag(and_elem, query, xapian.Query.OP_AND_NOT)
+            elif and_elem.tag == "Category":
+                logging.debug("adding: %s" % and_elem.text)
+                q = xapian.Query("AC"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCSection":
+                logging.debug("adding section: %s" % and_elem.text)
+                q = xapian.Query("XS"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCType":
+                logging.debug("adding type: %s" % and_elem.text)
+                q = xapian.Query("AT"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            else: 
+                print "UNHANDLED: ", and_elem.tag, and_elem.text
+        return query
+
     def _parse_include_tag(self, element):
-        query = xapian.Query("")
         for include in element.getchildren():
+            if include.tag == "Or":
+                query = xapian.Query()
+                return self._parse_and_or_not_tag(include, query, xapian.Query.OP_OR)
             if include.tag == "And":
-                for and_elem in include.getchildren():
-                    if and_elem.tag == "Not":
-                        for not_elem in and_elem.getchildren():
-                            if not_elem.tag == "Category":
-                                q = xapian.Query("AC"+not_elem.text.lower())
-                                query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
-                                                
-                    elif and_elem.tag == "Category":
-                        logging.debug("adding: %s" % and_elem.text)
-                        q = xapian.Query("AC"+and_elem.text.lower())
-                        query = xapian.Query(xapian.Query.OP_AND, query, q)
-                    else: 
-                        print "UNHANDLED: ", and_elem.tag, and_elem.text
+                query = xapian.Query("")
+                return self._parse_and_or_not_tag(include, query, xapian.Query.OP_AND)
             # without "and" tag we take the first entry
             elif include.tag == "Category":
                 return xapian.Query("AC"+include.text.lower())
             else:
                 logging.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
-        return query
+        # null query if nothing should be included
+        return xapian.Query()
 
-    def _parse_menu_tag(self, item, only_unallocated):
+    def _parse_menu_tag(self, item):
         name = None
         untranslated_name = None
         query = None
         icon = None
+        only_unallocated = False
+        dont_display = False
         subcategories = []
         for element in item.getchildren():
             if element.tag == "Name":
-                name = element.text
+                untranslated_name = element.text
+                name = gettext.gettext(untranslated_name)
+            elif element.tag == "SCIcon":
+                icon = element.text
             elif element.tag == "Directory":
                 (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
             elif element.tag == "Include":
                 query = self._parse_include_tag(element)
             elif element.tag == "OnlyUnallocated":
-                 only_unallocated.add(untranslated_name)
+                only_unallocated = True
+            elif element.tag == "SCDontDisplay":
+                dont_display = True
             elif element.tag == "Menu":
-                subcat = self._parse_menu_tag(element, only_unallocated)
+                subcat = self._parse_menu_tag(element)
                 if subcat:
                     subcategories.append(subcat)
             else:
                 print "UNHANDLED tag in _parse_menu_tag: ", element.tag
                 
         if untranslated_name and query:
-            return Category(untranslated_name, name, icon, query, subcategories)
+            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, subcategories)
+        else:
+            print "UNHANDLED entry: ", name, untranslated_name, icon, query
         return None
+
+    def _build_unallocated_queries(self, categories):
+        for cat_unalloc in categories:
+            if not cat_unalloc.only_unallocated:
+                continue
+            for cat in categories:
+                if cat.name != cat_unalloc.name:
+                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
+            #print cat_unalloc.name, cat_unalloc.query
 
     def parse_applications_menu(self, datadir):
         " parse a application menu and return a list of Category objects"""
-        tree = ET.parse(datadir+"/desktop/applications.menu")
-        categories = {}
-        only_unallocated = set()
-        root = tree.getroot()
-        for child in root.getchildren():
-            category = None
-            if child.tag == "Menu":
-                category = self._parse_menu_tag(child, only_unallocated)
-            if category:
-                categories[category.untranslated_name] = category
-
+        categories = []
+        for f in [datadir+"/desktop/applications.menu",
+                  datadir+"/desktop/software-center.menu"]:                  
+            tree = ET.parse(f)
+            root = tree.getroot()
+            for child in root.getchildren():
+                category = None
+                if child.tag == "Menu":
+                    category = self._parse_menu_tag(child)
+                if category:
+                    categories.append(category)
         # post processing for <OnlyUnallocated>
-        for unalloc in only_unallocated:
-            if not unalloc in categories:
-                logging.debug("not category '%s' in the unalloced ones" % unalloc)
-                continue
-            cat_unalloc = categories[unalloc]
-            for key in categories:
-                if key != unalloc:
-                    cat = categories[key]
-                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
-            categories[unalloc] = cat_unalloc
+        # now build the unallocated queries, once for top-level,
+        # and for the subcategories. this means that subcategories
+        # can have a "OnlyUnallocated/" that applies only to 
+        # unallocated entries in their sublevel
+        for cat in categories:
+            self._build_unallocated_queries(cat.subcategories)
+        self._build_unallocated_queries(categories)
 
-        # add packages
-        query = xapian.Query(xapian.Query.OP_AND_NOT, xapian.Query(""), xapian.Query("ATapplication"))
-        pkg_category = Category("Packages", _("System Packages"), "applications-other", query, [])
-        categories["Packages"] = pkg_category
-            
         # debug print
-        for catname in categories:
-            cat = categories[catname]
-            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query.get_description()))
-        return categories.values()
+        for cat in categories:
+            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
+        return categories
         
     def _get_pango_font_description(self):
         return gtk.Label("pango").get_pango_context().get_font_description()
@@ -266,8 +296,10 @@ class CategoriesView(WebkitWidget):
 
 
 # test code
-def category_activated(iconview, name, query, db):
+def category_activated(iconview, category, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
+    name = category.name
+    query = category.query
     enquire = xapian.Enquire(db)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)

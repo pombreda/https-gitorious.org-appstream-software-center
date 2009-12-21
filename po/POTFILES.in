@@ -2,6 +2,7 @@
 [type. python] utils/update-software-center
 [type: gettext/glade] data/ui/SoftwareCenter.ui
 data/ubuntu-software-center.desktop.in
+[type: gettext/xml] data/software-center.menu.in
 softwarecenter/__init__.py
 softwarecenter/app.py
 softwarecenter/SimpleGtkbuilderApp.py

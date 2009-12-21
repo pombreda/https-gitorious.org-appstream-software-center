@@ -64,19 +64,25 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         self._signals = []
 
     def on_transactions_changed(self, current_tid, pending_tids):
-        #print "on_transaction_changed", current_tid, len(pending_tids)
+        logging.debug("on_transaction_changed %s (%s)" % (current_tid, len(pending_tids)))
         self.clear()
         for tid in [current_tid] + pending_tids:
             if not tid:
                 continue
+            # we do this synchronous (it used to be a reply_handler)
+            # otherwise we run into a race that
+            # when we get two on_transaction_changed closely after each
+            # other clear() is run before the "_append_transaction" handler
+            # is run and we end up with two (or more) _append_transactions
             trans = aptdaemon.client.get_transaction(tid,
-                                         reply_handler=self._append_transaction,
                                          error_handler=lambda x: True)
+            self._append_transaction(trans)
 
     def _append_transaction(self, trans):
         """Extract information about the transaction and append it to the
         store.
         """
+        logging.debug("_append_transaction %s (%s)" % (trans.tid, trans))
         self._signals.append(
             trans.connect("progress-changed", self._on_progress_changed))
         self._signals.append(

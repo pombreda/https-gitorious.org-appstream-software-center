@@ -61,3 +61,27 @@ if __name__ == "__main__":
     run_query(parser, "a")
     run_query(parser, "ab")
     run_query(parser, "abc")
+
+    print "query for all !ATapplication"
+    search_query = xapian.Query(xapian.Query.OP_AND_NOT, 
+                                xapian.Query(""), 
+                                xapian.Query("ATapplication"))
+    enquire = xapian.Enquire(db)
+    enquire.set_query(search_query)
+    with ExecutionTime("enquire"):
+        mset = enquire.get_mset(0, db.get_doccount())
+        print "len mset: ", len(mset)
+
+    print "look at all !ATapplication"
+    search_query = xapian.Query(xapian.Query.OP_AND_NOT, 
+                                xapian.Query(""), 
+                                xapian.Query("ATapplication"))
+    enquire = xapian.Enquire(db)
+    enquire.set_query(search_query)
+    with ExecutionTime("enquire"):
+        mset = enquire.get_mset(0, db.get_doccount())
+        print "len mset: ", len(mset)
+        for m in mset:
+            doc = m[xapian.MSET_DOCUMENT]
+            appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+            pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)

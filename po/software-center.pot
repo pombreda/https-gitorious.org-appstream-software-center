@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-08 14:04+0100\n"
+"POT-Creation-Date: 2009-12-15 16:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -104,6 +104,186 @@ msgstr ""
 msgid "Software Center"
 msgstr ""
 
+#: ../data/software-center.menu.in.h:1
+msgid "Admin"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:2
+msgid "Base"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:3
+msgid "CLI Mono"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:4
+msgid "Databases"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:5
+msgid "Debug"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:6
+msgid "Development"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:7
+msgid "Documentation"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:8
+msgid "Editors"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:9
+msgid "Embedded"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:10
+msgid "Fonts"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:11
+msgid "Games"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:12
+msgid "Gnome"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:13
+msgid "Graphics"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:14
+msgid "Hamradio"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:15
+msgid "Interpreters"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:16
+msgid "Java"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:17
+msgid "KDE"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:18
+msgid "Kernel"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:19
+msgid "Libraries"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:20
+msgid "Mail"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:21
+msgid "Mathematics"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:22
+msgid "Network"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:23
+msgid "Other Packages"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:24
+msgid "Perl"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:25
+msgid "Python"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:26
+msgid "Ruby"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:27
+msgid "Science"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:28
+msgid "Shells"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:29
+msgid "Sound"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:30
+msgid "System Packages"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:31
+msgid "Tex"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:32
+msgid "Text"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:33
+msgid "Translations"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:34
+msgid "Utils"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:35
+msgid "Version Control Systems"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:36
+msgid "Video"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:37
+msgid "Web"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:38
+msgid "Web servers"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:39
+msgid "X11"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:40
+msgid "libdevel"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:41
+msgid "localization"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:42
+msgid "metapackages"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:43
+msgid "misc"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:44
+msgid "oldlibs"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:45
+msgid "otherosfs"
+msgstr ""
+
 #: ../softwarecenter/app.py:127
 msgid "Sorry, can not open the software database"
 msgstr ""
@@ -112,29 +292,12 @@ msgstr ""
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/app.py:393
+#: ../softwarecenter/app.py:415
 msgid "ERROR"
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:123
+#: ../softwarecenter/backend/aptd.py:125
 msgid "Error"
-msgstr ""
-
-#: ../softwarecenter/backend/aptd.py:155
-msgid "_Keep"
-msgstr ""
-
-#: ../softwarecenter/backend/aptd.py:156
-msgid "_Replace"
-msgstr ""
-
-#: ../softwarecenter/backend/aptd.py:158
-#, python-format
-msgid "Configuration file '%s' changed"
-msgstr ""
-
-#: ../softwarecenter/backend/aptd.py:159
-msgid "Do you want to use the new version?"
 msgstr ""
 
 #. TRANSLATORS: List of "grey-listed" words sperated with ";"
@@ -272,75 +435,75 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:181
+#: ../softwarecenter/view/appdetailsview.py:186
 #, python-format
 msgid ""
 "This software is available from the '%s' source, which you are not currently "
 "using."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:186
+#: ../softwarecenter/view/appdetailsview.py:191
 msgid ""
 "To show information about this item, the software catalog needs updating."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:189
+#: ../softwarecenter/view/appdetailsview.py:194
 #, python-format
 msgid "Sorry, '%s' is not available for this type of computer (%s)."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:251
-#: ../softwarecenter/view/appdetailsview.py:255
+#: ../softwarecenter/view/appdetailsview.py:253
+#: ../softwarecenter/view/appdetailsview.py:257
 msgid "Application Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:281
+#: ../softwarecenter/view/appdetailsview.py:283
 #, python-format
 msgid "Version: %s (%s)"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:296
+#: ../softwarecenter/view/appdetailsview.py:298
 msgid "Website"
 msgstr ""
 
 #. TRANSLATORS: This text will be showed as price of the software
-#: ../softwarecenter/view/appdetailsview.py:302
+#: ../softwarecenter/view/appdetailsview.py:304
 msgid "Free"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:303
+#: ../softwarecenter/view/appdetailsview.py:305
 #, python-format
 msgid "Price: %s"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:348
+#: ../softwarecenter/view/appdetailsview.py:350
 #, python-format
 msgid "%s - Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:460
+#: ../softwarecenter/view/appdetailsview.py:462
 msgid "Remove"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:463
+#: ../softwarecenter/view/appdetailsview.py:465
 msgid "Install"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarecenter/view/appdetailsview.py:473
+#: ../softwarecenter/view/appdetailsview.py:475
 msgid "Use This Source"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:476
+#: ../softwarecenter/view/appdetailsview.py:478
 msgid "Update Now"
 msgstr ""
 
 #. home button
-#: ../softwarecenter/view/availablepane.py:79
+#: ../softwarecenter/view/availablepane.py:104
 msgid "Get Free Software"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:129
+#: ../softwarecenter/view/availablepane.py:191
 #: ../softwarecenter/view/installedpane.py:121
 #, python-format
 msgid "%s matching item"
@@ -348,19 +511,15 @@ msgid_plural "%s matching items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:133
+#: ../softwarecenter/view/availablepane.py:195
 #, python-format
 msgid "%s application available"
 msgid_plural "%s applications available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/catview.py:71 ../softwarecenter/view/catview.py:105
+#: ../softwarecenter/view/catview.py:74 ../softwarecenter/view/catview.py:77
 msgid "Departments"
-msgstr ""
-
-#: ../softwarecenter/view/catview.py:215
-msgid "System Packages"
 msgstr ""
 
 #: ../softwarecenter/view/dialogs.py:45
