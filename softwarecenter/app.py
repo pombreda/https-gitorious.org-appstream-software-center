@@ -222,12 +222,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.notebook_view.get_current_page() == page:
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
-            self.menuitem_copy_web_link.set_sensitive(False)
+#            self.menuitem_install.set_sensitive(False)
+#            self.menuitem_remove.set_sensitive(False)
+#            self.menuitem_copy_web_link.set_sensitive(False)
+            self.update_app_status_menu()
             self.update_status_bar()
+            self.update_app_view(pane, page)
 
     def on_app_selected(self, widget, appname, pkgname, page):
+        print ">> called on_app_selected with appname: %s" % (appname)
         self._selected_appname_for_page[page] = appname
         self._selected_pkgname_for_page[page] = pkgname
         self.update_app_status_menu()
@@ -286,7 +289,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # Menu Items
     def on_menuitem_install_activate(self, menuitem):
-        page = self.notebook_view.get_current_page()
+        page = self.notebook_view.get_current_page() #### do this on a select in the table!
         appname = self._selected_appname_for_page[page]
         pkgname = self._selected_pkgname_for_page[page]
         self.active_pane.app_details.init_app(appname, pkgname)
@@ -477,6 +480,29 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # FIXME: deal with the pending view status
             s = ""
         self.label_status.set_text(s)
+        
+    def update_app_view(self, pane, page):
+        """Helper that updates the appview list after its model has been
+           refreshed.  The previously selected application, if still
+           included in the list, is selected.  If the previously selected
+           application is no longer included, then we select the first
+           application instead. 
+        """
+        print ">>called update_app_view with pane=%s, page=%s" % (pane, page)
+        # reselect the current app in the appview
+        app_path = 0
+        if self._selected_appname_for_page.has_key(page):
+            appname = self._selected_appname_for_page[page]
+            pkgname = self._selected_pkgname_for_page[page]
+            print "...and we have appname=%s, pkgname=%s" % (appname, pkgname)
+            print "search query result for pkgname: "
+            print self.db.get_query_from_search_entry(pkgname)
+            if True: 
+                app_path = 20
+        selection = pane.app_view.get_selection()
+        pane.app_view.scroll_to_cell(app_path, use_align=True, row_align=0.3)
+        selection.select_path(app_path)
+        #on_app_selected(this, appname, pkgname, page):
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
