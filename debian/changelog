@@ -9,6 +9,8 @@ software-center (1.1.6) UNRELEASED; urgency=low
   * softwarecenter/apt/apthistory.py:
     - add inteface to new /var/log/apt/history.log file
     - add find_terminal_log() that gives the matching terminal output
+  * softwarecenter/db/database.py, softwarecenter/view/appview.py:
+    - add higher ranks for exact package name matches
 
   [ Jonathan Thomas ]
   * Correct dependency on the KDE PolicyKit 1 frontend (policykit-1-qt ->

@@ -131,30 +131,18 @@ class StoreDatabase(gobject.GObject):
         if query:
             return query
 
-        # get a real query
+        # get a pkg query
+        pkg_query = xapian.Query()
+        for term in search_term.split():
+            pkg_query = xapian.Query(xapian.Query.OP_OR,
+                                     xapian.Query("XP"+term),
+                                     pkg_query)
+
+        # get a search query
         query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
-        query = self._favor_package_names(query, search_term)
-        query = self._favor_applications(query)
-        #print query
-        return query
-
-    def _favor_applications(self, query, scale=20):
-        return xapian.Query(xapian.Query.OP_OR,
-                            xapian.Query(xapian.Query.OP_SCALE_WEIGHT, 
-                                         xapian.Query("ATapplication"),
-                                         scale),
-                            query)
-
-    def _favor_package_names(self, query, search_term, scale=10):
-        for term in search_term.split():
-            query =  xapian.Query(xapian.Query.OP_OR,
-                                  xapian.Query(xapian.Query.OP_SCALE_WEIGHT, 
-                                               xapian.Query("XP"+term),
-                                               scale),
-                                  query)
-        return query
+        return [pkg_query,query]
 
     def get_summary(self, doc):
         """ get human readable summary of the given document """

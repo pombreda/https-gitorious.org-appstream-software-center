@@ -98,32 +98,35 @@ class AppStore(gtk.GenericTreeModel):
                 self.apps.append(Application(appname, pkgname))
             self.apps.sort(cmp=Application.apps_cmp)
         else:
-            enquire = xapian.Enquire(db.xapiandb)
-            enquire.set_query(search_query)
-            # set search order mode
-            if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
-                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
-            elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
-                sort=True
-            # SEARCHES_SORTED_BY_XAPIAN_RELEVANCE: is default in xapian
-            # no need to explicitely srt
-            if limit == 0:
-                matches = enquire.get_mset(0, len(db))
-            else:
-                matches = enquire.get_mset(0, limit)
-            logging.debug("found ~%i matches" % matches.get_matches_estimated())
-            for m in matches:
-                doc = m[xapian.MSET_DOCUMENT]
-                if "APPVIEW_DEBUG_TERMS" in os.environ:
-                    print doc.get_value(XAPIAN_VALUE_APPNAME)
-                    for t in doc.termlist():
-                        print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
-                    print "\n"
-                appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-                pkgname = db.get_pkgname(doc)
-                if filter and self.is_filtered_out(filter, doc):
-                    continue
-                self.apps.append(Application(appname, pkgname))
+            # we support str and list search_queries, 
+            # if list we append them one by one
+            if isinstance(search_query, str):
+                search_query = [search_query]
+            for q in search_query:
+                enquire = xapian.Enquire(db.xapiandb)
+                enquire.set_query(q)
+                # set search order mode
+                if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
+                    enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+                elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
+                    sort=True
+                if limit == 0:
+                    matches = enquire.get_mset(0, len(db))
+                else:
+                    matches = enquire.get_mset(0, limit)
+                logging.debug("found ~%i matches" % matches.get_matches_estimated())
+                for m in matches:
+                    doc = m[xapian.MSET_DOCUMENT]
+                    if "APPVIEW_DEBUG_TERMS" in os.environ:
+                        print doc.get_value(XAPIAN_VALUE_APPNAME)
+                        for t in doc.termlist():
+                            print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
+                            print "\n"
+                    appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+                    pkgname = db.get_pkgname(doc)
+                    if filter and self.is_filtered_out(filter, doc):
+                        continue
+                    self.apps.append(Application(appname, pkgname))
             if sort:
                 self.apps.sort(cmp=Application.apps_cmp)
     def is_filtered_out(self, filter, doc):
