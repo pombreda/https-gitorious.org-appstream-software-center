@@ -63,3 +63,7 @@ class AptHistory(object):
     @property
     def older_parts(self):
         return glob.glob(self.history_file+".*.gz")
+
+    # TODO:
+    #  def find_terminal_log(self, date)
+    #  def rescan(self, scan_all_parts=True)
