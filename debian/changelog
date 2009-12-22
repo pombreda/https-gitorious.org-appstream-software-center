@@ -5,6 +5,8 @@ software-center (1.1.6) UNRELEASED; urgency=low
   * softwarecenter/view/availablepane.py:
     - fix count of available applications in the status bar
     - append a pathbar element if a search is performed
+  * softwarecenter/apt/apthistory.py:
+    - add inteface to new /var/log/apt/history.log file
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Dec 2009 15:53:28 +0100
 
