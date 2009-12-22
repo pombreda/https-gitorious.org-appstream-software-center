@@ -82,7 +82,7 @@ class StoreDatabase(gobject.GObject):
             logging.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.xapian_parser.add_boolean_prefix("pkg", "XP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
 
@@ -135,7 +135,25 @@ class StoreDatabase(gobject.GObject):
         query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
-        # FIXME: expand to add "AA" and "AP" before each search term?
+        query = self._favor_package_names(query, search_term)
+        query = self._favor_applications(query)
+        #print query
+        return query
+
+    def _favor_applications(self, query, scale=20):
+        return xapian.Query(xapian.Query.OP_OR,
+                            xapian.Query(xapian.Query.OP_SCALE_WEIGHT, 
+                                         xapian.Query("ATapplication"),
+                                         scale),
+                            query)
+
+    def _favor_package_names(self, query, search_term, scale=10):
+        for term in search_term.split():
+            query =  xapian.Query(xapian.Query.OP_OR,
+                                  xapian.Query(xapian.Query.OP_SCALE_WEIGHT, 
+                                               xapian.Query("XP"+term),
+                                               scale),
+                                  query)
         return query
 
     def get_summary(self, doc):
