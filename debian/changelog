@@ -8,6 +8,7 @@ software-center (1.1.6) UNRELEASED; urgency=low
     - append a pathbar element if a search is performed
   * softwarecenter/apt/apthistory.py:
     - add inteface to new /var/log/apt/history.log file
+    - add find_terminal_log() that gives the matching terminal output
 
   [ Jonathan Thomas ]
   * Correct dependency on the KDE PolicyKit 1 frontend (policykit-1-qt ->

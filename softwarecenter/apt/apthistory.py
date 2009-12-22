@@ -64,6 +64,33 @@ class AptHistory(object):
     def older_parts(self):
         return glob.glob(self.history_file+".*.gz")
 
+    def _find_in_terminal_log(self, date, term_file):
+        found = False
+        term_lines = []
+        for line in term_file:
+            if line.startswith("Log started: %s" % date):
+                found = True
+            elif line.endswith("Log ended") or line.startswith("Log started"):
+                found = False
+            if found:
+                term_lines.append(line)
+        return term_lines
+
+    def find_terminal_log(self, date):
+        """Find the terminal log part for the given transaction
+           (this can be rather slow)
+        """
+        # FIXME: try to be more clever here with date/file timestamps
+        term = apt_pkg.Config.FindFile("Dir::Log::Terminal")
+        term_lines = self._find_in_terminal_log(date, open(term))
+        # now search the older history
+        if not term_lines:
+            for f in glob.glob(term+".*.gz"):
+                term_lines = self._find_in_terminal_log(date, gzip.open(f))
+                if term_lines:
+                    return term_lines
+        return term_lines
+
     # TODO:
     #  def find_terminal_log(self, date)
     #  def rescan(self, scan_all_parts=True)
