@@ -121,7 +121,7 @@ class AppStore(gtk.GenericTreeModel):
                         print doc.get_value(XAPIAN_VALUE_APPNAME)
                         for t in doc.termlist():
                             print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
-                            print "\n"
+                        print "\n"
                     appname = doc.get_value(XAPIAN_VALUE_APPNAME)
                     pkgname = db.get_pkgname(doc)
                     if filter and self.is_filtered_out(filter, doc):
