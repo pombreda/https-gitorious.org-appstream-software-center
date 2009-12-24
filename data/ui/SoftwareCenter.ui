@@ -352,7 +352,7 @@
                 <child type="tab">
                   <object class="GtkLabel" id="label3">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">separator_1</property>
+                    <property name="label">separator_1</property>
                   </object>
                   <packing>
                     <property name="position">2</property>
