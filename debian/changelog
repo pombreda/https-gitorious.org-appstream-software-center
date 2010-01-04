@@ -1,4 +1,4 @@
-software-center (1.1.6) UNRELEASEDlucid; urgency=low
+software-center (1.1.6) lucid; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/pendingview.py:
@@ -25,7 +25,7 @@ software-center (1.1.6) UNRELEASEDlucid; urgency=low
   * Correct dependency on the KDE PolicyKit 1 frontend (policykit-1-qt ->
     policykit-1-kde)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jan 2010 13:11:30 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jan 2010 13:40:15 +0100
 
 software-center (1.1.5) lucid; urgency=low
 
