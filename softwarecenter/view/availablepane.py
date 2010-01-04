@@ -106,17 +106,25 @@ class AvailablePane(SoftwarePane):
                                         "category")
     def _get_query(self):
         """helper that gets the query for the current category/search mode"""
-        query = None
         # if we have a subquery, that one wins
         if self.apps_category and self.apps_subcategory:
             query = self.apps_subcategory.query
         elif self.apps_category:
             query = self.apps_category.query
+        else:
+            query = xapian.Query("")
         # build search query
         if self.apps_category and self.apps_search_query:
+            # FIXME: abstract this away so that a search
+            #        query is not a xapian query (or a list)
+            #        but always a proper object with 
+            #          SearchQuery.exact_pkgname_match
+            #          SearchQuery.fuzzy_search
+            current_search_query = self.apps_search_query
+            if isinstance(current_search_query, list):
+                current_search_query = current_search_query[1]
             query = xapian.Query(xapian.Query.OP_AND, 
-                                 query,
-                                 self.apps_search_query)
+                                 query, current_search_query)
         elif self.apps_search_query:
             query = self.apps_search_query
 
@@ -139,7 +147,7 @@ class AvailablePane(SoftwarePane):
         # view - if so, show it
         if (self.apps_category and 
             self.apps_category.subcategories and
-            not self.apps_subcategory):
+            not (self.apps_search_query or self.apps_subcategory)):
             self.subcategories_view.set_subcategory(self.apps_category)
             self.scroll_subcategories.show()
         else:

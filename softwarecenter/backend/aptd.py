@@ -59,7 +59,9 @@ class AptdaemonBackend(gobject.GObject):
     def remove(self, pkgname, appname, iconname):
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
-        self.aptd_client.remove_packages([pkgname], reply_handler=reply_handler,
+        self.aptd_client.remove_packages([pkgname], wait=False, 
+                                         remove_unused_dependencies=True,
+                                         reply_handler=reply_handler,
                                          error_handler=self._on_trans_error)
 
     def install(self, pkgname, appname, iconname):
@@ -177,3 +179,8 @@ class AptdaemonBackend(gobject.GObject):
         trans.set_meta_data(sc_appname=appname, sc_iconname=iconname,
                             reply_handler=set_debconf,
                             error_handler=self._on_trans_error)
+
+if __name__ == "__main__":
+    c = client.AptClient()
+    c.remove_packages(["4g8"], remove_unused_dependencies=True)
+

@@ -3,7 +3,11 @@
   <Menu>
     <_Name>System Packages</_Name>
     <SCIcon>applications-other</SCIcon>
+    <SCDontDisplay />
     <Include>
+      <And>
+        <Not><SCType>application</SCType></Not>
+      </And>
     </Include>
 
     <Menu>

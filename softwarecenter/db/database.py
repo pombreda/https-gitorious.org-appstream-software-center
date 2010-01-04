@@ -82,7 +82,7 @@ class StoreDatabase(gobject.GObject):
             logging.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.xapian_parser.add_boolean_prefix("pkg", "XP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
 
@@ -131,12 +131,18 @@ class StoreDatabase(gobject.GObject):
         if query:
             return query
 
-        # get a real query
+        # get a pkg query
+        pkg_query = xapian.Query()
+        for term in search_term.split():
+            pkg_query = xapian.Query(xapian.Query.OP_OR,
+                                     xapian.Query("XP"+term),
+                                     pkg_query)
+
+        # get a search query
         query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
-        # FIXME: expand to add "AA" and "AP" before each search term?
-        return query
+        return [pkg_query,query]
 
     def get_summary(self, doc):
         """ get human readable summary of the given document """
