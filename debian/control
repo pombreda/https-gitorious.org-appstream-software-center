@@ -32,7 +32,7 @@ Depends: ${python:Depends},
 	 python-webkit,
 	 python-sexy,
 	 python-gconf,
-	 aptdaemon (>= 0.10+bzr259)
+	 aptdaemon (>= 0.11+bzr322)
 Recommends: lsb-release, python-launchpad-integration, apt-xapian-index
 Conflicts: software-store
 Replaces: software-store

@@ -1,4 +1,4 @@
-software-center (1.1.6) UNRELEASED; urgency=low
+software-center (1.1.6) UNRELEASEDlucid; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/pendingview.py:
@@ -16,12 +16,14 @@ software-center (1.1.6) UNRELEASED; urgency=low
   * softwarecenter/apt/aptcache.py:
     - add get_installed_automatic_depends_for_pkg() for better
       support for automatic removal
+  * softwarecenter/backend/aptd.py:
+    - remove no longer used dependencies on removal (LP: #467539)
 
   [ Jonathan Thomas ]
   * Correct dependency on the KDE PolicyKit 1 frontend (policykit-1-qt ->
     policykit-1-kde)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Dec 2009 15:53:28 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jan 2010 13:11:30 +0100
 
 software-center (1.1.5) lucid; urgency=low
 
