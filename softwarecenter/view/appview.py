@@ -73,7 +73,7 @@ class AppStore(gtk.GenericTreeModel):
         - `cache`: apt cache (for stuff like the overlay icon)
         - `db`: a xapian.Database that contians the applications
         - `icons`: a gtk.IconTheme that contains the icons
-        - `search_query`: a search as a xapian.Query 
+        - `search_query`: a single search as a xapian.Query or a list
         - `limit`: how many items the search should return (0 == unlimited)
         - `sort`: sort alphabetically after a search
                    (default is to use relevance sort)
@@ -98,11 +98,12 @@ class AppStore(gtk.GenericTreeModel):
                 self.apps.append(Application(appname, pkgname))
             self.apps.sort(cmp=Application.apps_cmp)
         else:
-            # we support str and list search_queries, 
+            # we support single and list search_queries, 
             # if list we append them one by one
-            if isinstance(search_query, str):
+            if isinstance(search_query, xapian.Query):
                 search_query = [search_query]
             for q in search_query:
+                print "query: ", q, type(q)
                 enquire = xapian.Enquire(db.xapiandb)
                 enquire.set_query(q)
                 # set search order mode
