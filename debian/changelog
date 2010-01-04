@@ -1,3 +1,13 @@
+software-center (1.1.7) UNRELEASED; urgency=low
+
+  * softwarecenter/view/availablepane.py:
+    - fixes in the search when in a category with sub-categories
+  * data/software-center.menu.in:
+    - use SCDontDisplay and SCType in System Packages menu to
+      allow searching in all system packages again
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jan 2010 16:38:31 +0100
+
 software-center (1.1.6) lucid; urgency=low
 
   [ Michael Vogt ]
@@ -41,13 +51,13 @@ software-center (1.1.5) lucid; urgency=low
       application view
     - make subqueries more flexible
     - reset subcategories if a search is reset
-    - support "SCNoDisplay" tag in categories
+    - support "SCDontDisplay" tag in categories
   * softwarecenter/view/catview.py:
     - move "System Packages" from hardcoded Section into a XML
       file
     - add <Or> support for <Include>
     - support empty queries in .menu
-    - support extra tags "SCIcon", "SCNoDisplay"
+    - support extra tags "SCIcon", "SCDontDisplay"
     - support gettext without directory in .menu file
     - support additional software-center.menu file
   * softwarecenter/view/catview.py:

@@ -147,7 +147,7 @@ class AvailablePane(SoftwarePane):
         # view - if so, show it
         if (self.apps_category and 
             self.apps_category.subcategories and
-            not self.apps_subcategory):
+            not (self.apps_search_query or self.apps_subcategory)):
             self.subcategories_view.set_subcategory(self.apps_category)
             self.scroll_subcategories.show()
         else:
