@@ -209,7 +209,7 @@ class PathBar(gtk.DrawingArea):
     def __shrink_check(self, allocation):
         path_w = self.__draw_width()
         shrinkage = path_w - allocation.width
-        mpw = self.min_part_width
+        mpw = self.theme.min_part_width
         xO = 0
 
         for part in self.__parts[:-1]:
