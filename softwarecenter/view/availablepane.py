@@ -46,12 +46,12 @@ class AvailablePane(SoftwarePane):
      PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(3)
      
-    __gsignals__ = {
-        "category-view-selected" : (gobject.SIGNAL_RUN_LAST,
-                                    gobject.TYPE_NONE,
-                                    ()
-                                   )
-        }
+#    __gsignals__ = {
+#        "category-view-selected" : (gobject.SIGNAL_RUN_LAST,
+#                                    gobject.TYPE_NONE,
+#                                    ()
+#                                   )
+#        }
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -281,7 +281,7 @@ class AvailablePane(SoftwarePane):
             return
         # clear the search
         self._clear_search()
-        self.emit("category-view-selected")
+#        self.emit("category-view-selected")
         self._show_category_overview()
     def on_navigation_search(self, button):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -313,6 +313,7 @@ class AvailablePane(SoftwarePane):
             self.refresh_apps()
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
+#        self.emit("category-view-selected")
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
     def on_navigation_details(self, button):
@@ -337,6 +338,29 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_category = category
         self._set_category(category)
+        
+    def update_view(self):
+        """
+        Update the app_view list.  If no application is selected,
+        the first application in the list is selected, else, the selection
+        is unchanged.
+        """
+        selection = self.app_view.get_selection()
+        (model, iter) = selection.get_selected()
+        if iter is not None and model.get_iter_root() is None:   # <<<<< TODO:  Is this needed?
+            print ">> No application is selected, so select the first app in the list"
+            # TODO: Reselect the previous selection?
+            self.app_view.scroll_to_cell(0)
+            selection.select_path(0)
+            # TODO:  is the following needed, since we are selecting the path already above?
+            #        if it is, why isn't the event getting fired for this?
+            (model, iter) = selection.get_selected()
+            (appname, text, icon, overlay, pkgname) = model[iter]
+            self.on_app_selected(self.app_view, appname, pkgname, page)
+        
+    def is_category_view_showing(self):
+        return self.notebook.get_current_page() == self.PAGE_CATEGORY
+        ####################### TODO:  FINISH THIS FOR THE SUBCATEGORY CASE
 
     def _set_category(self, category):
         query = category.query

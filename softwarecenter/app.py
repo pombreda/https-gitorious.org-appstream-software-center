@@ -156,8 +156,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected,
                                              self.NOTEBOOK_PAGE_AVAILABLE)
-        self.available_pane.connect("category-view-selected",
-                                    self.on_category_view_selected)
+#        self.available_pane.connect("category-view-selected",
+#                                    self.on_category_view_selected)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -225,9 +225,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 #            self.menuitem_install.set_sensitive(False)
 #            self.menuitem_remove.set_sensitive(False)
 #            self.menuitem_copy_web_link.set_sensitive(False)
+            self.update_app_view()
             self.update_app_status_menu()
             self.update_status_bar()
-            self.update_app_view(pane, page)
 
     def on_app_selected(self, widget, appname, pkgname, page):
         print ">> called on_app_selected with appname: %s" % (appname)
@@ -236,10 +236,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
 
-    def on_category_view_selected(self, widget):
-        self.menuitem_install.set_sensitive(False)
-        self.menuitem_remove.set_sensitive(False)
-        self.menuitem_copy_web_link.set_sensitive(False)
+#    def on_category_view_selected(self, widget):
+#        self.menuitem_install.set_sensitive(False)
+#        self.menuitem_remove.set_sensitive(False)
+#        self.menuitem_copy_web_link.set_sensitive(False)
 
     def on_window_main_delete_event(self, widget, event):
         gtk.main_quit()
@@ -284,6 +284,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._block_menuitem_view = False
         # switch to new page
         self.notebook_view.set_current_page(action)
+        self.update_app_view()
         self.update_status_bar()
         self.update_app_status_menu()
 
@@ -458,13 +459,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
         # update File menu status
-        if self.cache.has_key(pkgname):
+        print ">> self.active_pane.is_category_view_showing()):"
+        print self.active_pane.is_category_view_showing()
+        if not self.active_pane.is_category_view_showing() and self.cache.has_key(pkgname):
             pkg = self.cache[pkgname]
             installed = bool(pkg.installed)
             self.menuitem_install.set_sensitive(not installed)
             self.menuitem_remove.set_sensitive(installed)
             self.menuitem_copy_web_link.set_sensitive(True)
         else:
+            print ">> Category view is showing so reset the menu items"
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
@@ -481,28 +485,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             s = ""
         self.label_status.set_text(s)
         
-    def update_app_view(self, pane, page):
-        """Helper that updates the appview list after its model has been
-           refreshed.  The previously selected application, if still
-           included in the list, is selected.  If the previously selected
-           application is no longer included, then we select the first
-           application instead. 
+    def update_app_view(self):
+        """Helper that updates the appview list.  If no application is selected,
+           the first application in the list is selected, else, the selection
+           is unchanged.
         """
-        print ">>called update_app_view with pane=%s, page=%s" % (pane, page)
-        # reselect the current app in the appview
-        app_path = 0
-        if self._selected_appname_for_page.has_key(page):
-            appname = self._selected_appname_for_page[page]
-            pkgname = self._selected_pkgname_for_page[page]
-            print "...and we have appname=%s, pkgname=%s" % (appname, pkgname)
-            print "search query result for pkgname: "
-            print self.db.get_query_from_search_entry(pkgname)
-            if True: 
-                app_path = 20
-        selection = pane.app_view.get_selection()
-        pane.app_view.scroll_to_cell(app_path, use_align=True, row_align=0.3)
-        selection.select_path(app_path)
-        #on_app_selected(this, appname, pkgname, page):
+        print ">>called update_app_view()"
+        if self.active_pane is not None and not self.active_pane.is_category_view_showing():
+            self.active_pane.update_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)

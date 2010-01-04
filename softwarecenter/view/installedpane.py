@@ -125,6 +125,14 @@ class InstalledPane(SoftwarePane):
             return gettext.ngettext("%s application installed",
                                     "%s applications installed",
                                     length) % length
+                                    
+    def update_view(self):
+        # TODO: Implement!!
+        pass
+        
+    def is_category_view_showing(self):
+        # there is no category view in the installed pane
+        return False
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

@@ -153,3 +153,11 @@ class SoftwarePane(gtk.VBox):
     def on_db_reopen(self):
         " stub implementation "
         pass
+        
+    def update_view(self):
+        " stub implementation "
+        pass
+        
+    def is_category_view_showing(self):
+        " stub implementation "
+        pass
