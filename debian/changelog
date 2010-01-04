@@ -11,6 +11,8 @@ software-center (1.1.6) UNRELEASED; urgency=low
     - add find_terminal_log() that gives the matching terminal output
   * softwarecenter/db/database.py, softwarecenter/view/appview.py:
     - add higher ranks for exact package name matches
+  * merged from lp:~lucian.grijincu/software-center/lucian 
+    (many thanks)
 
   [ Jonathan Thomas ]
   * Correct dependency on the KDE PolicyKit 1 frontend (policykit-1-qt ->
