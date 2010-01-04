@@ -45,8 +45,8 @@ class AptCache(gobject.GObject):
 
     # dependency types we are about
     DEPENDENCY_TYPES = ("PreDepends", "Depends")
-    RECOMMENDS_TYPES = ("Recommends")
-    SUGGESTS_TYPES = ("Suggests")
+    RECOMMENDS_TYPES = ("Recommends",)
+    SUGGESTS_TYPES = ("Suggests",)
 
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
@@ -90,6 +90,42 @@ class AptCache(gobject.GObject):
                     self._cache[rdep_name].isInstalled):
                     installed_rdeps.add(rdep.ParentPkg.Name)
         return installed_rdeps
+    def _installed_dependencies(self, pkg_name, all_deps=None):
+        """ recursively return all installed dependencies of a given pkg """
+        #print "_installed_dependencies", pkg_name, all_deps
+        if not all_deps:
+            all_deps = set()
+        if not self._cache.has_key(pkg_name):
+            return all_deps
+        cur = self._cache[pkg_name]._pkg.CurrentVer
+        if not cur:
+            return all_deps
+        for t in self.DEPENDENCY_TYPES+self.RECOMMENDS_TYPES:
+            try:
+                for dep in cur.DependsList[t]:
+                    dep_name = dep[0].TargetPkg.Name
+                    if not dep_name in all_deps:
+                        all_deps.add(dep_name)
+                        all_deps |= self._installed_dependencies(dep_name, all_deps)
+            except KeyError:
+                pass
+        return all_deps
+    def get_installed_automatic_depends_for_pkg(self, pkg):
+        """ Get the installed automatic dependencies for this given package
+            only.
+
+            Note that the package must be marked for removal already for
+            this to work
+        """
+        installed_auto_deps = set()
+        deps = self._installed_dependencies(pkg.name)
+        for dep_name in deps:
+            if self._cache.has_key(dep_name):
+                pkg = self._cache[dep_name]
+                if (pkg.isInstalled and 
+                    pkg.isAutoRemovable):
+                    installed_auto_deps.add(dep_name)
+        return installed_auto_deps
     def get_installed_rdepends(self, pkg):
         return self._get_installed_rdepends_by_type(pkg, self.DEPENDENCY_TYPES)
     def get_installed_rrecommends(self, pkg):
@@ -100,7 +136,16 @@ class AptCache(gobject.GObject):
 if __name__ == "__main__":
     c = AptCache()
     c.open()
+    print "deps of unrar"
+    print c._installed_dependencies(c["unrar"].name)
+
+    print "unused deps of 4g8"
+    pkg = c["4g8"]
+    pkg.markDelete()
+    print c.get_installed_automatic_depends_for_pkg(pkg)
+
     pkg = c["unace"]
+    print c.get_installed_automatic_depends_for_pkg(pkg)
     print c.get_installed_rdepends(pkg)
     print c.get_installed_rrecommends(pkg)
     print c.get_installed_rsuggests(pkg)

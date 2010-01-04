@@ -13,6 +13,9 @@ software-center (1.1.6) UNRELEASED; urgency=low
     - add higher ranks for exact package name matches
   * merged from lp:~lucian.grijincu/software-center/lucian 
     (many thanks)
+  * softwarecenter/apt/aptcache.py:
+    - add get_installed_automatic_depends_for_pkg() for better
+      support for automatic removal
 
   [ Jonathan Thomas ]
   * Correct dependency on the KDE PolicyKit 1 frontend (policykit-1-qt ->
