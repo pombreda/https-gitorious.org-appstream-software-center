@@ -18,6 +18,8 @@ software-center (1.1.6) UNRELEASEDlucid; urgency=low
       support for automatic removal
   * softwarecenter/backend/aptd.py:
     - remove no longer used dependencies on removal (LP: #467539)
+  * softwarecenter/view/appview.py:
+    - ensure we do not add duplicated entries on searches
 
   [ Jonathan Thomas ]
   * Correct dependency on the KDE PolicyKit 1 frontend (policykit-1-qt ->

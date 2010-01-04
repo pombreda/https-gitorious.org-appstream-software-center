@@ -102,8 +102,9 @@ class AppStore(gtk.GenericTreeModel):
             # if list we append them one by one
             if isinstance(search_query, xapian.Query):
                 search_query = [search_query]
+            already_added = set()
             for q in search_query:
-                print "query: ", q, type(q)
+                logging.debug("using query: '%s'" % q)
                 enquire = xapian.Enquire(db.xapiandb)
                 enquire.set_query(q)
                 # set search order mode
@@ -127,7 +128,11 @@ class AppStore(gtk.GenericTreeModel):
                     pkgname = db.get_pkgname(doc)
                     if filter and self.is_filtered_out(filter, doc):
                         continue
-                    self.apps.append(Application(appname, pkgname))
+                    # when doing multiple queries we need to ensure
+                    # we don't add duplicates
+                    if not (appname, pkgname) in already_added:
+                        self.apps.append(Application(appname, pkgname))
+                        already_added.add((appname, pkgname))
             if sort:
                 self.apps.sort(cmp=Application.apps_cmp)
     def is_filtered_out(self, filter, doc):
