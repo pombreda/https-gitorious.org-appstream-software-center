@@ -280,7 +280,7 @@ class CategoriesView(WebkitWidget):
         categories = []
         # we support multiple menu files and menu drop ins
         menu_files = [datadir+"/desktop/software-center.menu"]
-        menu_files += glob.glob(datadir+"/menus.d/*.menu")
+        menu_files += glob.glob(datadir+"/menu.d/*.menu")
         for f in menu_files:
             tree = ET.parse(f)
             root = tree.getroot()
