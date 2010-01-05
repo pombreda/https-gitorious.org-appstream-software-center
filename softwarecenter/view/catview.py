@@ -207,6 +207,10 @@ class CategoriesView(WebkitWidget):
                 logging.debug("adding type: %s" % and_elem.text)
                 q = xapian.Query("AT"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCChannel":
+                logging.debug("adding channel: %s" % and_elem.text)
+                q = xapian.Query("AH"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
             else: 
                 print "UNHANDLED: ", and_elem.tag, and_elem.text
         return query

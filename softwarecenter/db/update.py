@@ -130,7 +130,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             # channel (third party stuff)
             if parser.has_option_desktop("X-AppInstall-Channel"):
                 archive_channel = parser.get_desktop("X-AppInstall-Channel")
-                doc.add_term("AH"+archive_section)
+                doc.add_term("AH"+archive_channel)
                 doc.add_value(XAPIAN_VALUE_ARCHIVE_CHANNEL, archive_channel)
             # icon
             if parser.has_option_desktop("Icon"):
