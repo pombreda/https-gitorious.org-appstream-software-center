@@ -83,6 +83,7 @@ class AvailablePane(SoftwarePane):
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.scroll_subcategories.add(self.subcategories_view)
+        self._subcategories_view_showing = False
         # now a vbox for subcategories and applist 
         apps_vbox = gtk.VPaned()
         apps_vbox.pack1(self.scroll_subcategories, resize=True)
@@ -142,8 +143,10 @@ class AvailablePane(SoftwarePane):
             not (self.apps_search_query or self.apps_subcategory)):
             self.subcategories_view.set_subcategory(self.apps_category)
             self.scroll_subcategories.show()
+            self._subcategories_view_showing = True
         else:
             self.scroll_subcategories.hide()
+            self._subcategories_view_showing = False
 
     def _show_hide_applist(self):
         # now check if the apps_category view has entries and if
@@ -338,8 +341,8 @@ class AvailablePane(SoftwarePane):
         self._set_category(category)
         
     def is_category_view_showing(self):
-        return self.notebook.get_current_page() == self.PAGE_CATEGORY
-        # TODO:  IMPLEMENT THE SUBCATEGORY CASE
+        return (self.notebook.get_current_page() == self.PAGE_CATEGORY or
+                self._subcategories_view_showing)
 
     def _set_category(self, category):
         query = category.query
