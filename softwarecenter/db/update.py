@@ -118,11 +118,15 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             doc.add_term("AP"+pkgname)
             doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
             doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, desktopf)
-            # section (main, restricted, ...)
+            # pocket (main, restricted, ...)
             if parser.has_option_desktop("X-AppInstall-Section"):
                 archive_section = parser.get_desktop("X-AppInstall-Section")
                 doc.add_term("AS"+archive_section)
                 doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, archive_section)
+            # section (mail, base, ..)
+            if pkgname in cache and cache[pkgname].candidate:
+                section = cache[pkgname].candidate.section
+                doc.add_term("AE"+section)
             # channel (third party stuff)
             if parser.has_option_desktop("X-AppInstall-Channel"):
                 archive_channel = parser.get_desktop("X-AppInstall-Channel")

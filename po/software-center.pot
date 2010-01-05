@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-15 16:33+0100\n"
+"POT-Creation-Date: 2010-01-05 15:53+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -91,10 +91,6 @@ msgstr ""
 msgid "pending"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:19
-msgid "separator_1"
-msgstr ""
-
 #: ../data/ubuntu-software-center.desktop.in.h:1
 msgid ""
 "Lets you choose from thousands of free applications available for Ubuntu"
@@ -125,162 +121,190 @@ msgid "Debug"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:6
-msgid "Development"
+msgid "Debugging"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:7
-msgid "Documentation"
+msgid "Development"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:8
-msgid "Editors"
+msgid "Documentation"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:9
-msgid "Embedded"
+msgid "Editors"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:10
-msgid "Fonts"
+msgid "Embedded"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:11
-msgid "Games"
+msgid "Fonts"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:12
-msgid "Gnome"
+msgid "Games"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:13
-msgid "Graphics"
+msgid "Gnome"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:14
-msgid "Hamradio"
+msgid "Graphic Interface Design"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:15
-msgid "Interpreters"
+msgid "Graphics"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:16
-msgid "Java"
+msgid "Hamradio"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:17
-msgid "KDE"
+msgid "Haskell"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:18
-msgid "Kernel"
+msgid "IDEs"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:19
-msgid "Libraries"
+msgid "Interpreters"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:20
-msgid "Mail"
+msgid "Java"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:21
-msgid "Mathematics"
+msgid "KDE"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:22
-msgid "Network"
+msgid "Kernel"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:23
-msgid "Other Packages"
+msgid "Libraries"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:24
-msgid "Perl"
+msgid "Lisp"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:25
-msgid "Python"
+msgid "Mail"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:26
-msgid "Ruby"
+msgid "Mathematics"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:27
-msgid "Science"
+msgid "Network"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:28
-msgid "Shells"
+msgid "OCaml"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:29
-msgid "Sound"
+msgid "Other Packages"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:30
-msgid "System Packages"
+msgid "Perl"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:31
-msgid "Tex"
+msgid "Profiling"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:32
-msgid "Text"
+msgid "Python"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:33
-msgid "Translations"
+msgid "Ruby"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:34
-msgid "Utils"
+msgid "Science"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:35
-msgid "Version Control Systems"
+msgid "Shells"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:36
-msgid "Video"
+msgid "Sound"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:37
-msgid "Web"
+msgid "System Packages"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:38
-msgid "Web servers"
+msgid "Tex"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:39
-msgid "X11"
+msgid "Text"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:40
-msgid "libdevel"
+msgid "Translations"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:41
-msgid "localization"
+msgid "Utils"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:42
-msgid "metapackages"
+msgid "Version Control"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:43
-msgid "misc"
+msgid "Video"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:44
-msgid "oldlibs"
+msgid "Web"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:45
+msgid "Web servers"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:46
+msgid "X11"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:47
+msgid "libdevel"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:48
+msgid "localization"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:49
+msgid "metapackages"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:50
+msgid "misc"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:51
+msgid "oldlibs"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:52
 msgid "otherosfs"
 msgstr ""
 
@@ -296,7 +320,7 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:125
+#: ../softwarecenter/backend/aptd.py:127
 msgid "Error"
 msgstr ""
 
@@ -305,7 +329,7 @@ msgstr ""
 #. provide a list of words in your language that people are likely
 #. to include in a search but that should normally be ignored in
 #. the search.
-#: ../softwarecenter/db/database.py:54
+#: ../softwarecenter/db/database.py:58
 msgid "app;application;package;program;programme;suite;tool"
 msgstr ""
 
@@ -503,7 +527,11 @@ msgstr ""
 msgid "Get Free Software"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:191
+#: ../softwarecenter/view/availablepane.py:202
+msgid "Search"
+msgstr ""
+
+#: ../softwarecenter/view/availablepane.py:224
 #: ../softwarecenter/view/installedpane.py:121
 #, python-format
 msgid "%s matching item"
@@ -511,14 +539,14 @@ msgid_plural "%s matching items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:195
+#: ../softwarecenter/view/availablepane.py:228
 #, python-format
 msgid "%s application available"
 msgid_plural "%s applications available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/catview.py:74 ../softwarecenter/view/catview.py:77
+#: ../softwarecenter/view/catview.py:76 ../softwarecenter/view/catview.py:79
 msgid "Departments"
 msgstr ""
 

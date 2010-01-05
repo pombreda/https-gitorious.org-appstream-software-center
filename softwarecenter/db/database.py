@@ -40,6 +40,10 @@ class Application(object):
         # currently broken, see http://bugs.python.org/issue2481
         if x.appname and y.appname:
             return locale.strcoll(x.appname, y.appname)
+        elif x.appname:
+            return locale.strcoll(x.appname, y.pkgname)
+        elif y.appname:
+            return locale.strcoll(x.pkgname, y.appname)
         else:
             return cmp(x.pkgname, y.pkgname)
 

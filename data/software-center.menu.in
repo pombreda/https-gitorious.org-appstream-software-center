@@ -1,4 +1,426 @@
 <Menu>
+
+  <!-- Applications -->
+
+  <!-- Accessories submenu -->
+  <Menu>
+    <Name>Accessories</Name>
+    <Directory>Utility.directory</Directory>
+    <Include>
+      <And>
+        <Category>Utility</Category>
+        <!-- Accessibility spec must have either the Utility or Settings
+             category, and we display an accessibility submenu already for
+             the ones that do not have Settings, so don't display accessibility
+             applications here -->
+        <Not><Category>Accessibility</Category></Not>
+        <Not><Category>System</Category></Not>
+      </And>
+    </Include>
+  </Menu> <!-- End Accessories -->
+
+  <!-- Accessibility submenu -->
+  <Menu>
+    <Name>Universal Access</Name>
+    <Directory>Utility-Accessibility.directory</Directory>
+    <Include>
+      <And>
+        <Category>Accessibility</Category>
+        <Not><Category>Settings</Category></Not>
+      </And>
+    </Include>
+  </Menu> <!-- End Accessibility -->
+
+  <!-- Development Tools -->
+  <Menu>
+    <Name>Development</Name>
+    <Directory>Development.directory</Directory>
+    <Include>
+      <And>
+        <Category>Development</Category>
+      </And>
+      <Filename>emacs.desktop</Filename>
+    </Include>
+
+    <!-- package sub-sections, see spec-->
+    <Menu>
+      <_Name>Debugging</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Category>Debugger</Category>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Graphic Interface Design</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Category>GUIDesigner</Category>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Haskell</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>haskell</SCSection>
+	  <SCSection>restricted/haskell</SCSection>
+	  <SCSection>universe/haskell</SCSection>
+	  <SCSection>multiverse/haskell</SCSection>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>IDEs</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Category>IDE</Category>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Interpreters</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>interpreters</SCSection>
+	  <SCSection>restricted/interpreters</SCSection>
+	  <SCSection>universe/interpreters</SCSection>
+	  <SCSection>multiverse/interpreters</SCSection>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Java</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>java</SCSection>
+	  <SCSection>restricted/java</SCSection>
+	  <SCSection>universe/java</SCSection>
+	  <SCSection>multiverse/java</SCSection>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Libraries</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>libdevel</SCSection>
+	  <SCSection>restricted/libdevel</SCSection>
+	  <SCSection>universe/libdevel</SCSection>
+	  <SCSection>multiverse/libdevel</SCSection>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Lisp</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>lisp</SCSection>
+	  <SCSection>restricted/lisp</SCSection>
+	  <SCSection>universe/lisp</SCSection>
+	  <SCSection>multiverse/lisp</SCSection>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>CLI Mono</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+        <Or>
+          <SCSection>cli-mono</SCSection>
+          <SCSection>restricted/cli-mono</SCSection>
+          <SCSection>universe/cli-mono</SCSection>
+          <SCSection>multiverse/cli-mono</SCSection>
+        </Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>OCaml</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+        <Or>
+          <SCSection>ocaml</SCSection>
+          <SCSection>restricted/ocaml</SCSection>
+          <SCSection>universe/ocaml</SCSection>
+          <SCSection>multiverse/ocaml</SCSection>
+        </Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Perl</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>perl</SCSection>
+	  <SCSection>restricted/perl</SCSection>
+	  <SCSection>universe/perl</SCSection>
+	  <SCSection>multiverse/perl</SCSection>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Profiling</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Category>Profiling</Category>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Python</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>python</SCSection>
+	  <SCSection>restricted/python</SCSection>
+	  <SCSection>universe/python</SCSection>
+	  <SCSection>multiverse/python</SCSection>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Ruby</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>ruby</SCSection>
+	  <SCSection>restricted/ruby</SCSection>
+	  <SCSection>universe/ruby</SCSection>
+	  <SCSection>multiverse/ruby</SCSection>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Version Control</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<Or>
+	  <SCSection>vcs</SCSection>
+	  <SCSection>restricted/vcs</SCSection>
+	  <SCSection>universe/vcs</SCSection>
+	  <SCSection>multiverse/vcs</SCSection>
+	  <Category>RevisionControl</Category>
+	</Or>
+      </Include>
+    </Menu>
+
+
+
+  </Menu> <!-- End Development Tools -->
+
+  <!-- Education -->
+  <Menu>
+    <Name>Education</Name>
+    <Directory>Education.directory</Directory>
+    <Include>
+      <And>
+        <Category>Education</Category>
+        <Not><Category>Science</Category></Not>
+      </And>
+    </Include>
+  </Menu> <!-- End Education -->
+
+  <!-- Science -->
+  <Menu>
+    <Name>Science</Name>
+    <Directory>GnomeScience.directory</Directory>
+    <Include>
+      <And>
+        <Category>Education</Category>
+        <Category>Science</Category>
+      </And>
+    </Include>
+  </Menu> <!-- End Science -->
+
+  <!-- Games -->
+  <Menu>
+    <Name>Games</Name>
+    <Directory>Game.directory</Directory>
+    <Include>
+      <And>
+        <Category>Game</Category>
+      </And>
+    </Include>
+    <!-- Sub-categories for the games -->
+    <Menu>
+      <Name>Action</Name>
+      <Directory>ActionGames.directory</Directory>
+      <Include>
+        <Category>ActionGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Adventure</Name>
+      <Directory>AdventureGames.directory</Directory>
+      <Include>
+        <Category>AdventureGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Arcade</Name>
+      <Directory>ArcadeGames.directory</Directory>
+      <Include>
+        <Category>ArcadeGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Board</Name>
+      <Directory>BoardGames.directory</Directory>
+      <Include>
+        <Category>BoardGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Blocks</Name>
+      <Directory>BlocksGames.directory</Directory>
+      <Include>
+        <Category>BlocksGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Cards</Name>
+      <Directory>CardGames.directory</Directory>
+      <Include>
+        <Category>CardGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Kids</Name>
+      <Directory>KidsGames.directory</Directory>
+      <Include>
+        <Category>KidsGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Logic</Name>
+      <Directory>LogicGames.directory</Directory>
+      <Include>
+        <Category>LogicGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Role Playing</Name>
+      <Directory>RolePlayingGames.directory</Directory>
+      <Include>
+        <Category>RolePlaying</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Simulation</Name>
+      <Directory>SimulationGames.directory</Directory>
+      <Include>
+        <Category>Simulation</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Sports</Name>
+      <Directory>SportsGames.directory</Directory>
+      <Include>
+        <Category>SportsGame</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>Strategy</Name>
+      <Directory>StrategyGames.directory</Directory>
+      <Include>
+        <Category>StrategyGame</Category>
+      </Include>
+    </Menu>
+
+  </Menu> <!-- End Games -->
+
+  <!-- Graphics -->
+  <Menu>
+    <Name>Graphics</Name>
+    <Directory>Graphics.directory</Directory>
+    <Include>
+      <And>
+        <Category>Graphics</Category>
+      </And>
+    </Include>
+  </Menu> <!-- End Graphics -->
+
+  <!-- Internet -->
+  <Menu>
+    <Name>Internet</Name>
+    <Directory>Network.directory</Directory>
+    <Include>
+      <And>
+        <Category>Network</Category>
+      </And>
+    </Include>
+  </Menu>   <!-- End Internet -->
+
+  <!-- Multimedia -->
+  <Menu>
+    <Name>Multimedia</Name>
+    <Directory>AudioVideo.directory</Directory>
+    <Include>
+      <And>
+        <Category>AudioVideo</Category>
+      </And>
+    </Include>
+  </Menu>   <!-- End Multimedia -->
+
+  <!-- Office -->
+  <Menu>
+    <Name>Office</Name>
+    <Directory>Office.directory</Directory>
+    <Include>
+      <And>
+        <Category>Office</Category>
+      </And>
+    </Include>
+  </Menu> <!-- End Office -->
+
+  <!-- System Tools-->
+  <Menu>
+    <Name>System</Name>
+    <Directory>System-Tools.directory</Directory>
+    <Include>
+      <And>
+        <Category>System</Category>
+<!--        <Not><Category>Settings</Category></Not> -->
+<!--        <Not><Category>Game</Category></Not> -->
+      </And>
+    </Include>
+  </Menu>   <!-- End System Tools -->
+
+  <!-- Other -->
+  <Menu>
+    <Name>Other</Name>
+    <Directory>X-GNOME-Other.directory</Directory>
+    <OnlyUnallocated/>
+    <Include>
+      <And>
+        <Category>Application</Category>
+        <Not><Category>Core</Category></Not>
+<!--        <Not><Category>Settings</Category></Not> -->
+        <Not><Category>Screensaver</Category></Not>
+      </And>
+    </Include>
+  </Menu> <!-- End Other -->
+
+
+
+
+
+
  <!-- Packages -->
   <Menu>
     <_Name>System Packages</_Name>
@@ -32,19 +454,6 @@
           <SCSection>restricted/base</SCSection>
           <SCSection>universe/base</SCSection>
           <SCSection>multiverse/base</SCSection>
-        </Or>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>CLI Mono</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-        <Or>
-          <SCSection>cli-mono</SCSection>
-          <SCSection>restricted/cli-mono</SCSection>
-          <SCSection>universe/cli-mono</SCSection>
-          <SCSection>multiverse/cli-mono</SCSection>
         </Or>
       </Include>
     </Menu>
@@ -216,34 +625,6 @@
 
 
     <Menu>
-      <_Name>Interpreters</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>interpreters</SCSection>
-	  <SCSection>restricted/interpreters</SCSection>
-	  <SCSection>universe/interpreters</SCSection>
-	  <SCSection>multiverse/interpreters</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-  <_Name>Java</_Name>
-  <SCIcon>applications-other</SCIcon>
-  <Include>
-    <Or>
-      <SCSection>java</SCSection>
-      <SCSection>restricted/java</SCSection>
-      <SCSection>universe/java</SCSection>
-      <SCSection>multiverse/java</SCSection>
-    </Or>
-  </Include>
-    </Menu>
-
-
-    <Menu>
       <_Name>KDE</_Name>
       <SCIcon>applications-other</SCIcon>
       <Include>
@@ -409,47 +790,6 @@
     </Menu>
 
 
-    <Menu>
-      <_Name>Perl</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>perl</SCSection>
-	  <SCSection>restricted/perl</SCSection>
-	  <SCSection>universe/perl</SCSection>
-	  <SCSection>multiverse/perl</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Python</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>python</SCSection>
-	  <SCSection>restricted/python</SCSection>
-	  <SCSection>universe/python</SCSection>
-	  <SCSection>multiverse/python</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Ruby</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>ruby</SCSection>
-	  <SCSection>restricted/ruby</SCSection>
-	  <SCSection>universe/ruby</SCSection>
-	  <SCSection>multiverse/ruby</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
 
     <Menu>
       <_Name>Science</_Name>
@@ -547,21 +887,6 @@
 	</Or>
       </Include>
     </Menu>
-
-
-    <Menu>
-      <_Name>Version Control Systems</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>vcs</SCSection>
-	  <SCSection>restricted/vcs</SCSection>
-	  <SCSection>universe/vcs</SCSection>
-	  <SCSection>multiverse/vcs</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
 
     <Menu>
       <_Name>Video</_Name>

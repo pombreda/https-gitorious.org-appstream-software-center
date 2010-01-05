@@ -18,6 +18,7 @@
 
 import gettext
 import glib
+import glob
 import gobject
 import gtk
 import logging
@@ -74,6 +75,8 @@ class CategoriesView(WebkitWidget):
         super(CategoriesView, self).__init__(datadir)
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Departments"))
+        self.categories = []
+        self.header = ""
         self.icons = icons
         if not root_category:
             self.header = _("Departments")
@@ -83,6 +86,9 @@ class CategoriesView(WebkitWidget):
         self.connect("load-finished", self._on_load_finished)
 
     def set_subcategory(self, root_category):
+        # nothing to do
+        if self.categories == root_category.subcategories:
+            return
         self.header = root_category.name
         self.categories = root_category.subcategories
         self.refresh_html()
@@ -102,11 +108,12 @@ class CategoriesView(WebkitWidget):
         """
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
-            iconinfo = self.icons.lookup_icon(cat.iconname, 
-                                              self.CATEGORY_ICON_SIZE, 0)
-            if iconinfo:
-                iconpath = iconinfo.get_filename()
-                logging.debug("icon: %s %s" % (iconinfo, iconpath))
+            if cat.iconname:
+                iconinfo = self.icons.lookup_icon(cat.iconname, 
+                                                  self.CATEGORY_ICON_SIZE, 0)
+                if iconinfo:
+                    iconpath = iconinfo.get_filename()
+                    logging.debug("icon: %s %s" % (iconinfo, iconpath))
             # FIXME: this looks funny with german locales
             s = 'addCategory("%s","%s")' % (cat.name, iconpath)
             logging.debug("running script '%s'" % s)
@@ -188,7 +195,13 @@ class CategoriesView(WebkitWidget):
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCSection":
                 logging.debug("adding section: %s" % and_elem.text)
-                q = xapian.Query("XS"+and_elem.text.lower())
+                # we have the section once in apt-xapian-index and once
+                # in our own DB this is why we need two prefixes
+                # FIXME: ponder if it makes sense to simply write
+                #        out XS in update-software-center instead of AE?
+                q = xapian.Query(xapian.Query.OP_OR,
+                                 xapian.Query("XS"+and_elem.text.lower()),
+                                 xapian.Query("AE"+and_elem.text.lower()))
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCType":
                 logging.debug("adding type: %s" % and_elem.text)
@@ -261,8 +274,10 @@ class CategoriesView(WebkitWidget):
     def parse_applications_menu(self, datadir):
         " parse a application menu and return a list of Category objects"""
         categories = []
-        for f in [datadir+"/desktop/applications.menu",
-                  datadir+"/desktop/software-center.menu"]:                  
+        # we support multiple menu files and menu drop ins
+        menu_files = [datadir+"/desktop/software-center.menu"]
+        menu_files += glob.glob(datadir+"/menus.d/*.menu")
+        for f in menu_files:
             tree = ET.parse(f)
             root = tree.getroot()
             for child in root.getchildren():

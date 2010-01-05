@@ -5,6 +5,22 @@ software-center (1.1.7) UNRELEASED; urgency=low
   * data/software-center.menu.in:
     - use SCDontDisplay and SCType in System Packages menu to
       allow searching in all system packages again
+  * README:
+    - updated to include section term
+  * data/software-center.menu.in:
+    - move the previous seperate applications.menu in here to support 
+      subcategories that mix applications and non-applications
+      this makes /usr/share/app-install/desktop/applications.menu
+      obsolete for software-center
+    - update to reflect the sub-category layout from the spec
+  * softwarecenter/db/database.py:
+    - fix sorting for mixed app/package display
+  * softwarecenter/db/update.py:
+    - write out archive section (mail, admin, ...) into the xapian DB
+  * softwarecenter/view/catview.py:
+    - fix sub-category jumping back to (0,0) on going back
+    - support mixed app/package section querries
+    - support menu additions via "/usr/share/app-install/menus.d/*.menu"
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jan 2010 16:38:31 +0100
 
