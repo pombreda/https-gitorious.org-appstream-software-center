@@ -101,7 +101,6 @@ class AppDetailsView(WebkitWidget):
     # public API
     def init_app(self, appname, pkgname):
         logging.debug("AppDetailsView.init_app '%s'" % appname)
-        print "called init_app with appname=%s, pkgname=%s" % (appname, pkgname)
         # init app specific data
         self.appname = appname
         # if we don't have a app, we use the pkgname as appname

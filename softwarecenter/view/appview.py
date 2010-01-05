@@ -601,9 +601,6 @@ def get_query_from_search_entry(search_term):
     return query
 
 def on_entry_changed(widget, data):
-    #### need to send an app-list-changed event?
-    #### better to update just the single entry in the already existing view, rather
-    #### than setting a whole new model?
     new_text = widget.get_text()
     print "on_entry_changed: ", new_text
     #if len(new_text) < 3:

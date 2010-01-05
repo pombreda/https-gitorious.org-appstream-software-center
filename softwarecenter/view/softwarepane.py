@@ -136,6 +136,19 @@ class SoftwarePane(gtk.VBox):
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(name, pkgname)
+        
+    def update_app_view(self):
+        """
+        Update the app_view.  If no application is selected,
+        the first application in the list is selected, else, the selection
+        is unchanged.
+        """
+        selection = self.app_view.get_selection()
+        (model, iter) = selection.get_selected()
+        # if the model is not empty and if no application is selected,
+        # select the first one in the list
+        if model.get_iter_root() is not None and iter is None:
+            self.app_view.set_cursor(0)
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -151,10 +164,6 @@ class SoftwarePane(gtk.VBox):
         pass
 
     def on_db_reopen(self):
-        " stub implementation "
-        pass
-        
-    def update_view(self):
         " stub implementation "
         pass
         
