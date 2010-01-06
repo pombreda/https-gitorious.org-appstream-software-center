@@ -22,6 +22,10 @@ software-center (1.1.7) UNRELEASED; urgency=low
     - support mixed app/package section querries
     - support menu additions via "/usr/share/app-install/menu.d/*.menu"
     - support SCChannel as match for (sub)menus
+  * softwarecenter/db/database.py:
+    - simplfy get get_query_list_from_search_entry() code
+  * softwarecenter/view/availablepane.py:
+    - fix performance problem for empty queries and simply the code
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jan 2010 16:38:31 +0100
 

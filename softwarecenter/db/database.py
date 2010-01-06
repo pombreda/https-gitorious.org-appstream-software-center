@@ -112,11 +112,24 @@ class StoreDatabase(gobject.GObject):
             return query
         return None
 
-    def get_query_from_search_entry(self, search_term):
-        """ get xapian.Query from a search term string """
+    def get_query_list_from_search_entry(self, search_term, category_query):
+        """ get xapian.Query from a search term string and a limit the
+            search to the given category
+        """
+        def _add_category_to_query(query):
+            """ helper that adds the current category to the query"""
+            if not category_query:
+                return query
+            return xapian.Query(xapian.Query.OP_AND, 
+                                category_query,
+                                query)
+        # empty query returns a query that matches nothing (for performance
+        # reasons)
+        if search_term == "" and category_query is None:
+            return xapian.Query()
         # we cheat and return a match-all query for single letter searches
         if len(search_term) < 2:
-            return xapian.Query("")
+            return _add_category_to_query(xapian.Query(""))
 
         # filter query by greylist (to avoid overly generic search terms)
         orig_search_term = search_term
@@ -133,7 +146,7 @@ class StoreDatabase(gobject.GObject):
         # query
         query = self._comma_expansion(search_term)
         if query:
-            return query
+            return _add_category_to_query(query)
 
         # get a pkg query
         pkg_query = xapian.Query()
@@ -141,12 +154,14 @@ class StoreDatabase(gobject.GObject):
             pkg_query = xapian.Query(xapian.Query.OP_OR,
                                      xapian.Query("XP"+term),
                                      pkg_query)
+        pkg_query = _add_category_to_query(pkg_query)
 
         # get a search query
-        query = self.xapian_parser.parse_query(search_term, 
+        fuzzy_query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
-        return [pkg_query,query]
+        fuzzy_query = _add_category_to_query(fuzzy_query)
+        return [pkg_query,fuzzy_query]
 
     def get_summary(self, doc):
         """ get human readable summary of the given document """

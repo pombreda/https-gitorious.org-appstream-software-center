@@ -59,7 +59,7 @@ class AvailablePane(SoftwarePane):
         # state
         self.apps_category = None
         self.apps_subcategory = None
-        self.apps_search_query = None
+        self.apps_search_term = ""
         self.apps_sorted = True
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
@@ -104,50 +104,35 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.add_with_id(_("Get Free Software"), 
                                         self.on_navigation_category,
                                         "category")
+
     def _get_query(self):
         """helper that gets the query for the current category/search mode"""
-        # if we have a subquery, that one wins
-        if self.apps_category and self.apps_subcategory:
-            query = self.apps_subcategory.query
-        elif self.apps_category:
-            query = self.apps_category.query
-        else:
-            query = xapian.Query("")
-        # build search query
-        if self.apps_category and self.apps_search_query:
-            # FIXME: abstract this away so that a search
-            #        query is not a xapian query (or a list)
-            #        but always a proper object with 
-            #          SearchQuery.exact_pkgname_match
-            #          SearchQuery.fuzzy_search
-            current_search_query = self.apps_search_query
-            if isinstance(current_search_query, list):
-                current_search_query = current_search_query[1]
-            query = xapian.Query(xapian.Query.OP_AND, 
-                                 query, current_search_query)
-        elif self.apps_search_query:
-            query = self.apps_search_query
-
-        # SPECIAL CASE for the DontDisplay categories that have 
-        #              subcategories
+        # NoDisplay is a specal case
         if self._in_no_display_category():
             return xapian.Query()
-
-        return query
+        # get current sub-category (or category, but sub-category wins)
+        cat_query = None
+        if self.apps_subcategory:
+            cat_query = self.apps_subcategory.query
+        elif self.apps_category:
+            cat_query = self.apps_category.query
+        # mix category with the search terms and return query
+        return self.db.get_query_list_from_search_entry(self.apps_search_term, 
+                                                        cat_query)
 
     def _in_no_display_category(self):
         """return True if we are in a category with NoDisplay set in the XML"""
         return (self.apps_category and
                 self.apps_category.dont_display and
                 not self.apps_subcategory and
-                not self.apps_search_query)
+                not self.apps_search_term)
 
     def _show_hide_subcategories(self):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
         if (self.apps_category and 
             self.apps_category.subcategories and
-            not (self.apps_search_query or self.apps_subcategory)):
+            not (self.apps_search_term or self.apps_subcategory)):
             self.subcategories_view.set_subcategory(self.apps_category)
             self.scroll_subcategories.show()
         else:
@@ -194,11 +179,11 @@ class AvailablePane(SoftwarePane):
 
     def update_navigation_button(self):
         """Update the navigation button"""
-        if self.apps_category and not self.apps_search_query:
+        if self.apps_category and not self.apps_search_term:
             cat =  self.apps_category.name
             self.navigation_bar.add_with_id(
                 cat, self.on_navigation_list, "list")
-        elif self.apps_search_query:
+        elif self.apps_search_term:
             self.navigation_bar.add_with_id(_("Search"),
                                             self.on_navigation_search, 
                                             "search")
@@ -247,7 +232,7 @@ class AvailablePane(SoftwarePane):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
         self.apps_sorted = True
-        self.apps_search_query = None
+        self.apps_search_term = ""
         self.navigation_bar.remove_id("search")
 
     # callbacks
@@ -273,7 +258,7 @@ class AvailablePane(SoftwarePane):
         if not new_text:
             self._clear_search()
         else:
-            self.apps_search_query = self.db.get_query_from_search_entry(new_text)
+            self.apps_search_term = new_text
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
         self.update_navigation_button()
@@ -306,7 +291,7 @@ class AvailablePane(SoftwarePane):
         if self.apps_subcategory:
             self.apps_subcategory = None
             self._set_category(self.apps_category)
-        if self.apps_search_query:
+        if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -316,7 +301,7 @@ class AvailablePane(SoftwarePane):
     def on_navigation_list_subcategory(self, button):
         if not button.get_active():
             return
-        if self.apps_search_query:
+        if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
         self.navigation_bar.remove_id("details")
