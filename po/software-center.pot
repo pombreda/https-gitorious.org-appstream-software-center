@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-05 15:53+0100\n"
+"POT-Creation-Date: 2010-01-05 18:44-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -368,21 +368,21 @@ msgstr ""
 
 #: ../softwarecenter/distro/Ubuntu.py:78
 #, python-format
-msgid "It is used by %s installed software packages."
+msgid "It is used by %s installed software package."
 msgid_plural "It is used by %s installed software packages."
 msgstr[0] ""
 msgstr[1] ""
 
 #: ../softwarecenter/distro/Ubuntu.py:84
 #, python-format
-msgid "It is recommended by %s installed software packages."
+msgid "It is recommended by %s installed software package."
 msgid_plural "It is recommended by %s installed software packages."
 msgstr[0] ""
 msgstr[1] ""
 
 #: ../softwarecenter/distro/Ubuntu.py:90
 #, python-format
-msgid "It is suggested by %s installed software packages."
+msgid "It is suggested by %s installed software package."
 msgid_plural "It is suggested by %s installed software packages."
 msgstr[0] ""
 msgstr[1] ""
@@ -546,7 +546,7 @@ msgid_plural "%s applications available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/catview.py:76 ../softwarecenter/view/catview.py:79
+#: ../softwarecenter/view/catview.py:77 ../softwarecenter/view/catview.py:82
 msgid "Departments"
 msgstr ""
 

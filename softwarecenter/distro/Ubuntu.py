@@ -75,19 +75,19 @@ class Ubuntu(Distro):
             if len(installed_rdeps) > 0:
                 s += " "
                 s += gettext.ngettext(
-                    "It is used by %s installed software packages.",
+                    "It is used by %s installed software package.",
                     "It is used by %s installed software packages.",
                     len(installed_rdeps)) % len(installed_rdeps)
             elif len(installed_rrecommends) > 0:
                 s += " "
                 s += gettext.ngettext(
-                    "It is recommended by %s installed software packages.",
+                    "It is recommended by %s installed software package.",
                     "It is recommended by %s installed software packages.",
                     len(installed_rrecommends)) % len(installed_rrecommends)
             elif len(installed_rsuggests) > 0:
                 s += " "
                 s += gettext.ngettext(
-                    "It is suggested by %s installed software packages.",
+                    "It is suggested by %s installed software package.",
                     "It is suggested by %s installed software packages.",
                     len(installed_rrecommends)) % len(installed_rrecommends)
         return s
