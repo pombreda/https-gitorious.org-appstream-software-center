@@ -23,7 +23,6 @@ import logging
 import os
 import sys
 import xapian
-import gobject
 
 from gettext import gettext as _
 
@@ -46,13 +45,6 @@ class AvailablePane(SoftwarePane):
      PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(3)
      
-    __gsignals__ = {
-        "category-view-selected" : (gobject.SIGNAL_RUN_LAST,
-                                    gobject.TYPE_NONE,
-                                    ()
-                                   )
-        }
-
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
@@ -274,7 +266,6 @@ class AvailablePane(SoftwarePane):
             return
         # clear the search
         self._clear_search()
-        self.emit("category-view-selected")
         self._show_category_overview()
     def on_navigation_search(self, button):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -330,6 +321,11 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_category = category
         self._set_category(category)
+        
+    def is_category_view_showing(self):
+        #return (self.notebook.get_current_page() == self.PAGE_CATEGORY or
+        #        self.scroll_subcategories.props.visible)
+        return self.notebook.get_current_page() == self.PAGE_CATEGORY
 
     def _set_category(self, category):
         query = category.query

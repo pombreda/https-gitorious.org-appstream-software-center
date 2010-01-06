@@ -156,8 +156,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected,
                                              self.NOTEBOOK_PAGE_AVAILABLE)
-        self.available_pane.connect("category-view-selected",
-                                    self.on_category_view_selected)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -222,9 +220,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.notebook_view.get_current_page() == page:
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
-            self.menuitem_copy_web_link.set_sensitive(False)
+            self.update_app_list_view()
+            self.update_app_status_menu()
             self.update_status_bar()
 
     def on_app_selected(self, widget, appname, pkgname, page):
@@ -232,11 +229,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._selected_pkgname_for_page[page] = pkgname
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
-
-    def on_category_view_selected(self, widget):
-        self.menuitem_install.set_sensitive(False)
-        self.menuitem_remove.set_sensitive(False)
-        self.menuitem_copy_web_link.set_sensitive(False)
 
     def on_window_main_delete_event(self, widget, event):
         gtk.main_quit()
@@ -281,6 +273,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._block_menuitem_view = False
         # switch to new page
         self.notebook_view.set_current_page(action)
+        self.update_app_list_view()
         self.update_status_bar()
         self.update_app_status_menu()
 
@@ -449,19 +442,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self.cache.ready:
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
-        # if the pkg is not in the cache, clear menu
-        if not self.cache.has_key(pkgname):
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
-            self.menuitem_copy_web_link.set_sensitive(False)
-        # update File menu status
-        if self.cache.has_key(pkgname):
+        # update menu items
+        if not self.active_pane.is_category_view_showing() and self.cache.has_key(pkgname):
             pkg = self.cache[pkgname]
             installed = bool(pkg.installed)
             self.menuitem_install.set_sensitive(not installed)
             self.menuitem_remove.set_sensitive(installed)
             self.menuitem_copy_web_link.set_sensitive(True)
         else:
+            # clear menu items if category view or if the package is not
+            # in the cache
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
@@ -477,6 +467,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # FIXME: deal with the pending view status
             s = ""
         self.label_status.set_text(s)
+        
+    def update_app_list_view(self):
+        """Helper that updates the appview list.  If no application is selected,
+           the first application in the list is selected, else, the selection
+           is unchanged.
+        """
+        if self.active_pane is not None and not self.active_pane.is_category_view_showing():
+            self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
