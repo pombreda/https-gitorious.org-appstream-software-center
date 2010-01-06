@@ -323,9 +323,10 @@ class AvailablePane(SoftwarePane):
         self._set_category(category)
         
     def is_category_view_showing(self):
-        #return (self.notebook.get_current_page() == self.PAGE_CATEGORY or
-        #        self.scroll_subcategories.props.visible)
-        return self.notebook.get_current_page() == self.PAGE_CATEGORY
+        # check if we are in the category page or if we display a
+        # sub-category page that has no visible applications
+        return (self.notebook.get_current_page() == self.PAGE_CATEGORY or
+                not self.scroll_app_list.props.visible)
 
     def _set_category(self, category):
         query = category.query
