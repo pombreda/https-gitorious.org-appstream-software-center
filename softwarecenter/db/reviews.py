@@ -126,7 +126,7 @@ ipsum dolor sit amet"""
             review.id = random.randint(1,5)
             review.date = time.ctime(time.time())
             review.person = self._random_person()
-            review.text = self._random_text()
+            review.text = self._random_text().replace("\n","")
             reviews.append(review)
         return reviews
 

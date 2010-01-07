@@ -41,7 +41,9 @@ if os.path.exists("./softwarecenter/enums.py"):
 
 from softwarecenter.enums import *
 from softwarecenter.version import *
-from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.database import StoreDatabase, Application
+#from softwarecenter.db.reviews import ReviewLoader
+from softwarecenter.db.reviews import ReviewLoaderIpsum as ReviewLoader
 from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
 
 from widgets.wkwidget import WebkitWidget
@@ -77,6 +79,7 @@ class AppDetailsView(WebkitWidget):
         self.datadir = datadir
         self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
                                      stdout=subprocess.PIPE).communicate()[0].strip()
+        self.review_loader = ReviewLoader()
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
@@ -156,6 +159,8 @@ class AppDetailsView(WebkitWidget):
         # also start a gtimeout handler to check when the thread finished
         # (multiple GUI access is something that gtk does not like)
         glib.timeout_add(200, self._check_thumb_gtk)
+        # do a async review lookup
+        glib.timeout_add(200, self._check_for_reviews)
 
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -418,6 +423,21 @@ class AppDetailsView(WebkitWidget):
         return 0
 
     # internal helpers
+    def _check_for_reviews(self):
+        logging.debug("_check_for_reviews")
+        app = Application(self.appname, self.pkgname)
+        reviews = self.review_loader.get_reviews(app)
+        print reviews
+        for review in reviews:
+            s = 'addReview("%s","%s","%s","%s","%s");' % (review.text,
+                                                          review.id, 
+                                                          review.date, 
+                                                          review.rating, 
+                                                          review.person)
+            print s
+            self.execute_script(s)
+        return False
+
     def _check_thumb_gtk(self):
         logging.debug("_check_thumb_gtk")
         # wait until its ready for JS injection

@@ -45,6 +45,21 @@
   function disable_action_button() {
     document.getElementById("button_$action_button_value").disabled = true;
   }
+  function on_button_report_abuse(review_id) {
+    alert("report abuse for id: "+review_id+" not implemented yet");
+  }
+  function addReview(review_text, review_id, review_date, review_rating, review_person) {
+    parent = document.getElementById("reviews");
+    elm = document.createElement("p");
+    elm.setAttribute("class", "review");
+    elm.innerHTML = review_text;
+    parent.appendChild(elm);
+    b = document.createElement("input");
+    b.setAttribute("type", "button");
+    b.setAttribute("value", "Report");
+    b.setAttribute("onclick", "on_button_report_abuse("+review_id+")");
+    parent.appendChild(b);
+  }
   window.onload = function() {
     initElement('screenshot_thumbnail_img');
     initElement('$screenshot_installed')
@@ -176,6 +191,9 @@
 	  />
    <p id="package_information">$package_information</p>
    <p id="maintainance_time">$maintainance_time</p>
+   <p id="reviews">
+     <!-- reviews go here via addReview() -->
+   </p>
  </div>
 
 
