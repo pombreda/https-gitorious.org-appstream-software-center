@@ -115,7 +115,7 @@ elitr sed diam nonumy eirmod tempor invidunt ut labore et dolore magna
 aliquyam erat sed diam voluptua at vero eos et accusam et justo duo dolores
 et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
-    USERS = ["joe", "john", "cat", "foo", "bar", "baz"]
+    USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", "Bar Tender", "Baz Lightyear"]
     SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
     def _random_person(self):
         return random.choice(self.USERS)

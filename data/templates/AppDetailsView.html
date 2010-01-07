@@ -58,6 +58,10 @@
     summary = document.createElement("div");
     summary.setAttribute("class", "review_summary");
     summary.appendChild(document.createTextNode(review_summary));
+    summary_r = document.createElement("span");
+    summary_r.setAttribute("class", "review_summary_right");
+    summary_r.appendChild(document.createTextNode(review_person+", "+review_date));
+    summary.appendChild(summary_r);
     elm.appendChild(summary);
     text = document.createTextNode(review_text);
     elm.appendChild(text);
@@ -172,9 +176,19 @@
       font-size:80%; 
       text-align:right;
       float: right;
+      clear: both;
     }
     .review_summary {
-    font-weight:bold;
+      font-weight:bold;
+    }
+    .review_summary_right {
+      float:right;
+      font-size:80%;
+      font-weight:normal;
+    }
+    .review_summary_after {
+      clear:both;
+      margin-bottom: 2em;
     }
  </style>
 
