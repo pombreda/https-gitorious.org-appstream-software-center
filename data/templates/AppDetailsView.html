@@ -57,11 +57,12 @@
     elm.setAttribute("class", "review");
     elm.innerHTML = review_text;
     parent.appendChild(elm);
-    b = document.createElement("input");
-    b.setAttribute("type", "button");
-    b.setAttribute("value", "Report");
-    b.setAttribute("onclick", "on_report_abuse_clicked("+review_id+")");
-    parent.appendChild(b);
+    a = document.createElement("a");
+    a.setAttribute("href", "#");
+    a.setAttribute("class", "report_abuse_link");
+    a.appendChild(document.createTextNode("$report_abuse_label"));
+    a.setAttribute("OnClick", "on_report_abuse_clicked("+review_id+");return false;");
+    parent.appendChild(a);
   }
   window.onload = function() {
     initElement('screenshot_thumbnail_img');
@@ -149,10 +150,6 @@
     #price { 
       font-size:70%; 
     }
-    #add_review_link {
-      font-size:80%; 
-      text-align:right;
-    }
     #button_homepage { 
       visibility:${homepage_button_visibility}; 
     }
@@ -161,6 +158,14 @@
     }
     .action_button { 
       visibility:${action_button_visible}; 
+    }
+    .add_review_link {
+      font-size:80%; 
+      text-align:right;
+    }
+    .report_abuse_link {
+      font-size:80%; 
+      text-align:right;
     }
  </style>
 
@@ -200,8 +205,8 @@
 
    <p>
      <h2>Reviews</h2>
-     <a id="add_review_link"
-	href="" 
+     <a class="add_review_link"
+	href="#" 
 	OnClick="javascript:on_write_new_review_clicked();return false;">
        $new_review_label_text
      </a>
