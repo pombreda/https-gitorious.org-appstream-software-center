@@ -55,14 +55,14 @@
     parent = document.getElementById("reviews");
     elm = document.createElement("p");
     elm.setAttribute("class", "review");
-    elm.innerHTML = review_text;
+    elm.appendChild(document.createTextNode(review_text));
     parent.appendChild(elm);
     a = document.createElement("a");
     a.setAttribute("href", "#");
     a.setAttribute("class", "report_abuse_link");
     a.appendChild(document.createTextNode("$report_abuse_label"));
     a.setAttribute("OnClick", "on_report_abuse_clicked("+review_id+");return false;");
-    parent.appendChild(a);
+    elm.appendChild(a);
   }
   window.onload = function() {
     initElement('screenshot_thumbnail_img');
@@ -166,6 +166,7 @@
     .report_abuse_link {
       font-size:80%; 
       text-align:right;
+      float: right;
     }
  </style>
 
