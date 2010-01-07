@@ -55,7 +55,12 @@
     parent = document.getElementById("reviews");
     elm = document.createElement("p");
     elm.setAttribute("class", "review");
-    elm.appendChild(document.createTextNode(review_text));
+    summary = document.createElement("div");
+    summary.setAttribute("class", "review_summary");
+    summary.appendChild(document.createTextNode(review_summary));
+    elm.appendChild(summary);
+    text = document.createTextNode(review_text);
+    elm.appendChild(text);
     parent.appendChild(elm);
     a = document.createElement("a");
     a.setAttribute("href", "#");
@@ -167,6 +172,9 @@
       font-size:80%; 
       text-align:right;
       float: right;
+    }
+    .review_summary {
+    font-weight:bold;
     }
  </style>
 
