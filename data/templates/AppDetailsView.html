@@ -51,7 +51,7 @@
   function on_write_new_review_clicked(appname, pkgname) {
     changeTitle("call:on_write_new_review_clicked");
   }
-  function addReview(review_text, review_id, review_date, review_rating, review_person) {
+  function addReview(review_summary, review_text, review_id, review_date, review_rating, review_person) {
     parent = document.getElementById("reviews");
     elm = document.createElement("p");
     elm.setAttribute("class", "review");

@@ -29,6 +29,7 @@ class Review(object):
         self.app = app
         # the review items that the object fills in
         self.id = None
+        self.summary = None
         self.text = None
         self.date = None
         self.rating = None
@@ -115,15 +116,19 @@ aliquyam erat sed diam voluptua at vero eos et accusam et justo duo dolores
 et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
     USERS = ["joe", "john", "cat", "foo", "bar", "baz"]
+    SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
     def _random_person(self):
         return random.choice(self.USERS)
     def _random_text(self):
         return random.choice(self.LOREM.split("\n\n"))
+    def _random_summary(self):
+        return random.choice(self.SUMMARIES)
     def get_reviews(self, application):
         reviews = []
         for i in range(0,random.randint(0,6)):
             review = Review(application)
             review.id = random.randint(1,5)
+            review.summary = self._random_summary()
             review.date = time.ctime(time.time())
             review.person = self._random_person()
             review.text = self._random_text().replace("\n","")

@@ -442,11 +442,12 @@ class AppDetailsView(WebkitWidget):
             s='document.getElementById("reviews").innerHTML="%s"' % no_review
             self.execute_script(s)
         for review in reviews:
-            s = 'addReview("%s","%s","%s","%s","%s");' % (review.text,
-                                                          review.id, 
-                                                          review.date, 
-                                                          review.rating, 
-                                                          review.person)
+            s = 'addReview("%s", "%s","%s","%s","%s","%s");' % (review.summary,
+                                                                review.text,
+                                                                review.id, 
+                                                                review.date, 
+                                                                review.rating, 
+                                                                review.person)
             self.execute_script(s)
         return False
 
