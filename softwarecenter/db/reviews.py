@@ -127,7 +127,8 @@ ipsum dolor sit amet"""
         reviews = []
         for i in range(0,random.randint(0,6)):
             review = Review(application)
-            review.id = random.randint(1,5)
+            review.id = random.randint(1,500)
+            review.rating = random.randint(1,5)
             review.summary = self._random_summary()
             review.date = time.ctime(time.time())
             review.person = self._random_person()

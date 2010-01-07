@@ -264,6 +264,8 @@ class AppDetailsView(WebkitWidget):
         return _("Write new review")
     def wksub_report_abuse_label(self):
         return _("Report")
+    def wksub_review_summary_stars_base_path(self):
+        return self.distro.REVIEW_SUMMARY_STARS_BASE_PATH
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):

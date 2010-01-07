@@ -56,11 +56,16 @@
     elm = document.createElement("p");
     elm.setAttribute("class", "review");
     summary = document.createElement("div");
-    summary.setAttribute("class", "review_summary");
-    summary.appendChild(document.createTextNode(review_summary));
+    summary_img = document.createElement("img");
+    summary_img.setAttribute("src","file:${review_summary_stars_base_path}"+review_rating+".png");
+    summary_l = document.createElement("span");
+    summary_l.setAttribute("class", "review_summary");
+    summary_l.appendChild(document.createTextNode(review_summary));
     summary_r = document.createElement("span");
     summary_r.setAttribute("class", "review_summary_right");
     summary_r.appendChild(document.createTextNode(review_person+", "+review_date));
+    summary.appendChild(summary_img);
+    summary.appendChild(summary_l);
     summary.appendChild(summary_r);
     elm.appendChild(summary);
     text = document.createTextNode(review_text);
