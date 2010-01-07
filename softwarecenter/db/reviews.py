@@ -121,7 +121,7 @@ ipsum dolor sit amet"""
         return random.choice(self.LOREM.split("\n\n"))
     def get_reviews(self, application):
         reviews = []
-        for i in range(0,random.randint(1,10)):
+        for i in range(0,random.randint(0,6)):
             review = Review(application)
             review.id = random.randint(1,5)
             review.date = time.ctime(time.time())

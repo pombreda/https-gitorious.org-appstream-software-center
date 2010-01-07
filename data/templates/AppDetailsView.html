@@ -45,8 +45,11 @@
   function disable_action_button() {
     document.getElementById("button_$action_button_value").disabled = true;
   }
-  function on_button_report_abuse(review_id) {
-    alert("report abuse for id: "+review_id+" not implemented yet");
+  function on_report_abuse_clicked(review_id) {
+    changeTitle("call:on_report_abuse_clicked");
+  }
+  function on_write_new_review_clicked(appname, pkgname) {
+    changeTitle("call:on_write_new_review_clicked");
   }
   function addReview(review_text, review_id, review_date, review_rating, review_person) {
     parent = document.getElementById("reviews");
@@ -57,7 +60,7 @@
     b = document.createElement("input");
     b.setAttribute("type", "button");
     b.setAttribute("value", "Report");
-    b.setAttribute("onclick", "on_button_report_abuse("+review_id+")");
+    b.setAttribute("onclick", "on_report_abuse_clicked("+review_id+")");
     parent.appendChild(b);
   }
   window.onload = function() {
@@ -96,7 +99,6 @@
       -webkit-background-origin: border-box;
       -webkit-background-size: ${icon_width}px ${icon_height}px;
     }
-
     .screenshot_thumbnail {
       width:160px; 
       height:120px;
@@ -147,6 +149,10 @@
     #price { 
       font-size:70%; 
     }
+    #add_review_link {
+      font-size:80%; 
+      text-align:right;
+    }
     #button_homepage { 
       visibility:${homepage_button_visibility}; 
     }
@@ -191,10 +197,18 @@
 	  />
    <p id="package_information">$package_information</p>
    <p id="maintainance_time">$maintainance_time</p>
-   <p id="reviews">
-     <!-- reviews go here via addReview() -->
+
+   <p>
+     <h2>Reviews</h2>
+     <a id="add_review_link"
+	href="" 
+	OnClick="javascript:on_write_new_review_clicked();return false;">
+       $new_review_label_text
+     </a>
+     <p id="reviews">
+       <!-- reviews go here via addReview() -->
+     </p>
    </p>
- </div>
 
 
 </body>

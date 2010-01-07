@@ -260,6 +260,8 @@ class AppDetailsView(WebkitWidget):
         return self.INSTALLED_ICON
     def wksub_screenshot_alt(self):
         return _("Application Screenshot")
+    def wksub_new_review_label_text(self):
+        return _("Write new review")
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):
@@ -344,6 +346,12 @@ class AppDetailsView(WebkitWidget):
         self.backend.reload()
         self._set_action_button_sensitive(False)
 
+    def on_write_new_review_clicked(self):
+        print "on_write_new_review_clicked"
+        dialogs.error(None, "new review not implemented yet","")
+    def on_report_abuse_clicked(self):
+        print "on_report_abuse_clicked"
+        dialogs.error(None, "report abuse not implemented yet","")
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
         # FIXME: move this to utilities or something
@@ -427,14 +435,16 @@ class AppDetailsView(WebkitWidget):
         logging.debug("_check_for_reviews")
         app = Application(self.appname, self.pkgname)
         reviews = self.review_loader.get_reviews(app)
-        print reviews
+        if not reviews:
+            no_review = _("This software item has no reviews yet.")
+            s='document.getElementById("reviews").innerHTML="%s"' % no_review
+            self.execute_script(s)
         for review in reviews:
             s = 'addReview("%s","%s","%s","%s","%s");' % (review.text,
                                                           review.id, 
                                                           review.date, 
                                                           review.rating, 
                                                           review.person)
-            print s
             self.execute_script(s)
         return False
 
@@ -564,8 +574,8 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
-    #view.show_app("3D Chess", "3dchess")
-    view.show_app("Movie Player", "totem")
+    view.show_app("3D Chess", "3dchess")
+    #view.show_app("Movie Player", "totem")
     #view.show_app("ACE", "unace")
 
     #view.show_app("AMOR")
@@ -577,7 +587,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll.add(view)
     win.add(scroll)
-    win.set_size_request(600,400)
+    win.set_size_request(600,600)
     win.show_all()
 
     #view._config_file_prompt(None, "/etc/fstab", "/tmp/lala")
