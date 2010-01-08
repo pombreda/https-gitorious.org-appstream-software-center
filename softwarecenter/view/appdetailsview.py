@@ -22,6 +22,7 @@ import gettext
 import glib
 import gobject
 import gtk
+import json
 import logging
 import os
 import re
@@ -43,7 +44,8 @@ from softwarecenter.enums import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase, Application
 #from softwarecenter.db.reviews import ReviewLoader
-from softwarecenter.db.reviews import ReviewLoaderIpsum as ReviewLoader
+#from softwarecenter.db.reviews import ReviewLoaderIpsum as ReviewLoader
+from softwarecenter.db.reviews import ReviewLoaderXMLAsync as ReviewLoader
 from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
 
 from widgets.wkwidget import WebkitWidget
@@ -444,12 +446,15 @@ class AppDetailsView(WebkitWidget):
             s='document.getElementById("reviews").innerHTML="%s"' % no_review
             self.execute_script(s)
         for review in reviews:
-            s = 'addReview("%s", "%s","%s","%s","%s","%s");' % (review.summary,
-                                                                review.text,
-                                                                review.id, 
-                                                                review.date, 
-                                                                review.rating, 
-                                                                review.person)
+            # use json.dumps() here to let it deal with all the escaping
+            # of ", \, \n etc
+            s = 'addReview(%s, %s,%s,%s,%s,%s);' % (json.dumps(review.summary),
+                                                    json.dumps(review.text),
+                                                    json.dumps(review.id), 
+                                                    json.dumps(review.date), 
+                                                    json.dumps(review.rating), 
+                                                    json.dumps(review.person))
+            #logging.debug("running '%s'" % s)
             self.execute_script(s)
         return False
 
@@ -579,8 +584,8 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
-    view.show_app("3D Chess", "3dchess")
-    #view.show_app("Movie Player", "totem")
+    #view.show_app("3D Chess", "3dchess")
+    view.show_app("Movie Player", "totem")
     #view.show_app("ACE", "unace")
 
     #view.show_app("AMOR")

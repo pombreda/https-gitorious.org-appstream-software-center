@@ -18,10 +18,15 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
+import gio
+import json
 import random
 import time
 import weakref
+import xml.dom.minidom
+
+import softwarecenter.distro
+from softwarecenter.utils import *
 
 class ReviewStats(object):
     def __init__(self, app):
@@ -54,6 +59,11 @@ class ReviewLoader(object):
     # cache the ReviewStats
     REVIEW_STATS_CACHE = weakref.WeakValueDictionary()
 
+    def __init__(self, distro=None):
+        self.distro = distro
+        if not self.distro:
+            self.distro = softwarecenter.distro.get_distro()
+
     def get_reviews(self, application):
         """returns a list of review objects for the given
            db.database.Application object
@@ -73,6 +83,26 @@ class ReviewLoader(object):
         self.REVIEW_STATS_CACHE[application]= stats
         return stats
 
+class ReviewLoaderXMLAsync(ReviewLoader):
+    def get_reviews(self, app):
+        url = self.distro.REVIEWS_URL % (
+            hash_pkgname_for_changelogs(app.pkgname), app.pkgname, app.pkgname)
+        f=gio.File(url)
+        stream=f.read()
+        xml_str=stream.read()
+        dom = xml.dom.minidom.parseString(xml_str)
+        reviews = []
+        for review_xml in dom.getElementsByTagName("review"):
+            review = Review(app)
+            review.id = review_xml.getAttribute("review_id")
+            review.date = review_xml.getAttribute("review_date")
+            review.rating = review_xml.getAttribute("review_rating")
+            review.person = review_xml.getAttribute("review_person")
+            review.summary = review_xml.getElementsByTagName("summary")[0].childNodes[0].data
+            review.text = review_xml.getElementsByTagName("text")[0].childNodes[0].data
+            reviews.append(review)
+        return reviews
+
 class ReviewLoaderIpsum(ReviewLoader):
     """ a test review loader that does not do any network io
         and returns random lorem ipsum review texts
@@ -80,7 +110,7 @@ class ReviewLoaderIpsum(ReviewLoader):
     #This text is under public domain
     #Lorem ipsum
     #Cicero
-    LOREM=u"""lorem ipsum dolor äöü sit amet consetetur sadipscing elitr sed diam nonumy
+    LOREM=u"""lorem ipsum "dolor" äöü sit amet consetetur sadipscing elitr sed diam nonumy
 eirmod tempor invidunt ut labore et dolore magna aliquyam erat sed diam
 voluptua at vero eos et accusam et justo duo dolores et ea rebum stet clita
 kasd gubergren no sea takimata sanctus est lorem ipsum dolor sit amet lorem
@@ -166,6 +196,9 @@ ipsum dolor sit amet"""
 if __name__ == "__main__":
     from softwarecenter.db.database import Application
     app = Application("7zip",None)
-    loader = ReviewLoaderIpsum()
+    #loader = ReviewLoaderIpsum()
+    #print loader.get_reviews(app)
+    #print loader.get_review_stats(app)
+    app = Application("totem","totem")
+    loader = ReviewLoaderXMLAsync()
     print loader.get_reviews(app)
-    print loader.get_review_stats(app)

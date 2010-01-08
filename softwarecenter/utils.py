@@ -19,6 +19,7 @@
 import logging
 import time
 
+
 class ExecutionTime(object):
     """
     Helper that can be used in with statements to have a simple
@@ -69,6 +70,15 @@ def decode_xml_char_reference(s):
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
+def hash_pkgname_for_changelogs(pkgname):
+    """ hash pkgname for changelogs.ubuntu.com 
+        returns  "a" for "abcd"
+                 "liba" for "libabcd"
+    """
+    if pkgname.startswith("lib"):
+        return pkgname[0:4]
+    return pkgname[0:1]
+
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print s
