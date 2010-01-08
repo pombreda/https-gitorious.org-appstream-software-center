@@ -223,11 +223,15 @@ ipsum dolor sit amet"""
         callback(application, reviews)
 
 if __name__ == "__main__":
+    def callback(app, reviews):
+        print app, reviews
     from softwarecenter.db.database import Application
     app = Application("7zip",None)
-    #loader = ReviewLoaderIpsum()
-    #print loader.get_reviews(app)
-    #print loader.get_review_stats(app)
+    loader = ReviewLoaderIpsum()
+    print loader.get_reviews(app, callback)
+    print loader.get_review_stats(app)
     app = Application("totem","totem")
     loader = ReviewLoaderXMLAsync()
-    print loader.get_reviews(app)
+    loader.get_reviews(app, callback)
+    import gtk
+    gtk.main()

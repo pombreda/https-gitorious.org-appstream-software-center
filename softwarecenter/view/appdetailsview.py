@@ -448,6 +448,11 @@ class AppDetailsView(WebkitWidget):
                                                  self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
+        # avoid possible race if we already moved to a new app when
+        # the reviews become ready
+        if (self.pkgname != app.pkgname or
+            self.appname != app.appname):
+            return
         if not reviews:
             no_review = _("This software item has no reviews yet.")
             s='document.getElementById("reviews").innerHTML="%s"' % no_review
@@ -464,7 +469,6 @@ class AppDetailsView(WebkitWidget):
             #logging.debug("running '%s'" % s)
             # FIXME: ensure webkit is in WEBKIT_LOAD_FINISHED state
             self.execute_script(s)
-        return False
 
     def _check_thumb_gtk(self):
         logging.debug("_check_thumb_gtk")
