@@ -201,11 +201,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # default focus
         self.available_pane.searchentry.grab_focus()
         
-        #should we maximize?
+        # restore state
         self.config = get_config()
-        if (self.config.has_option("general", "maximized") and
-            self.config.getboolean("general", "maximized")):
-            self.window_main.maximize()
+        self.restore_state()
 
     # callbacks
     def on_app_details_changed(self, widget, appname, pkgname, page):
@@ -554,14 +552,26 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
 
+    def restore_state(self):
+        if self.config.has_option("general", "size"):
+            (x, y) = self.config.get("general", "size").split(",")
+            self.window_main.resize(int(x), int(y))
+        if (self.config.has_option("general", "maximized") and
+            self.config.getboolean("general", "maximized")):
+            self.window_main.maximize()
+
     def save_state(self):
         logging.debug("save_state")
         if not self.config.has_section("general"):
             self.config.add_section("general")
-        if self.window_main.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED:
+        maximized = self.window_main.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED
+        if maximized:
             self.config.set("general", "maximized", "True")
         else:
             self.config.set("general", "maximized", "False")
+            # size only matters when non-maximized
+            size = self.window_main.get_size() 
+            self.config.set("general","size", "%s, %s" % (size[0], size[1]))
         self.config.write()
 
     def run(self, args):
