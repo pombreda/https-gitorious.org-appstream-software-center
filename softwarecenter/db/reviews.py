@@ -21,9 +21,19 @@
 
 import random
 import time
+import weakref
+
+class ReviewStats(object):
+    def __init__(self, app):
+        self.app = app
+        self.rating = None
+        self.nr_reviews = 0
+        self.nr_ratings = 0
+    def __repr__(self):
+        return "[ReviewStats rating='%s' nr_ratings='%s', nr_reviews='%s']" % (self.rating, self.nr_ratings, self.nr_reviews)
 
 class Review(object):
-    """A review object """
+    """A individual review object """
     def __init__(self, app):
         # a softwarecenter.db.database.Application object
         self.app = app
@@ -39,12 +49,29 @@ class Review(object):
 
 
 class ReviewLoader(object):
+    """A loader that returns a review object list"""
+
+    # cache the ReviewStats
+    REVIEW_STATS_CACHE = weakref.WeakValueDictionary()
+
     def get_reviews(self, application):
         """returns a list of review objects for the given
            db.database.Application object
         """
         return []
 
+    def get_review_stats(self, application):
+        """return a ReviewStats (number of reviews, rating)
+           for a given application. this *must* be super-fast
+           as it is called a lot during tree view display
+        """
+        # check cache
+        if application in self.REVIEW_STATS_CACHE:
+            return self.REVIEW_STATS_CACHE[application]
+        # create new and add to cache
+        stats = ReviewStats(application)
+        self.REVIEW_STATS_CACHE[application]= stats
+        return stats
 
 class ReviewLoaderIpsum(ReviewLoader):
     """ a test review loader that does not do any network io
@@ -53,7 +80,7 @@ class ReviewLoaderIpsum(ReviewLoader):
     #This text is under public domain
     #Lorem ipsum
     #Cicero
-    LOREM=u"""lorem ipsum dolor öäü sit amet consetetur sadipscing elitr sed diam nonumy
+    LOREM=u"""lorem ipsum dolor äöü sit amet consetetur sadipscing elitr sed diam nonumy
 eirmod tempor invidunt ut labore et dolore magna aliquyam erat sed diam
 voluptua at vero eos et accusam et justo duo dolores et ea rebum stet clita
 kasd gubergren no sea takimata sanctus est lorem ipsum dolor sit amet lorem
@@ -141,3 +168,4 @@ if __name__ == "__main__":
     app = Application("7zip",None)
     loader = ReviewLoaderIpsum()
     print loader.get_reviews(app)
+    print loader.get_review_stats(app)
