@@ -7,6 +7,8 @@ software-center (1.1.8) UNRELEASED; urgency=low
     - simplify state save logic
     - save window size
     - fix crash in ConfigParser (LP: #494899)
+  * softwarecenter/view/installedpane.py:
+    - fix search in installed section (LP: #504380)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Jan 2010 11:53:53 +0100
 

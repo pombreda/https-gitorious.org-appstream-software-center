@@ -112,7 +112,7 @@ class StoreDatabase(gobject.GObject):
             return query
         return None
 
-    def get_query_list_from_search_entry(self, search_term, category_query):
+    def get_query_list_from_search_entry(self, search_term, category_query=None):
         """ get xapian.Query from a search term string and a limit the
             search to the given category
         """
