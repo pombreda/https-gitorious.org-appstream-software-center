@@ -1,3 +1,11 @@
+software-center (1.1.8) UNRELEASED; urgency=low
+
+  * softwarecenter/view/appdetailsview.py:
+    - replace thumbnail checking thread with (much nicer) gio
+      code
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Jan 2010 11:53:53 +0100
+
 software-center (1.1.7) lucid; urgency=low
 
   [ Michael Vogt ]
