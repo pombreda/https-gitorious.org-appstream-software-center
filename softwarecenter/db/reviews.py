@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gio
+import glib
 import json
 import random
 import time
@@ -64,8 +65,9 @@ class ReviewLoader(object):
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
 
-    def get_reviews(self, application):
-        """returns a list of review objects for the given
+    def get_reviews(self, application, callback):
+        """run callback f(app, review_list) 
+           with list of review objects for the given
            db.database.Application object
         """
         return []
@@ -84,12 +86,14 @@ class ReviewLoader(object):
         return stats
 
 class ReviewLoaderXMLAsync(ReviewLoader):
-    def get_reviews(self, app):
-        url = self.distro.REVIEWS_URL % (
-            hash_pkgname_for_changelogs(app.pkgname), app.pkgname, app.pkgname)
-        f=gio.File(url)
-        stream=f.read()
-        xml_str=stream.read()
+    def _gio_review_input_callback(self, source, result):
+        app = source.get_data("app")
+        callback = source.get_data("callback")
+        try:
+            xml_str = source.read_finish(result)
+        except glib.GError, e:
+            # ignore read errors, most likely transient
+            return callback(app, [])
         dom = xml.dom.minidom.parseString(xml_str)
         reviews = []
         for review_xml in dom.getElementsByTagName("review"):
@@ -101,7 +105,32 @@ class ReviewLoaderXMLAsync(ReviewLoader):
             review.summary = review_xml.getElementsByTagName("summary")[0].childNodes[0].data
             review.text = review_xml.getElementsByTagName("text")[0].childNodes[0].data
             reviews.append(review)
-        return reviews
+        # run callback
+        callback(app, reviews)
+    def _gio_review_read_callback(self, source, result):
+        app = source.get_data("app")
+        callback = source.get_data("callback")
+        try:
+            stream=source.read_finish(result)
+        except glib.GError, e:
+            # 404 means no review
+            if e.code == 404:
+                return callback(app, [])
+            # raise other errors
+            raise
+        stream.set_data("app", app)
+        stream.set_data("callback", callback)
+        # FIXME: static size here as first argument sucks, but it seems
+        #        like there is a bug in the python bindings, I can not pass
+        #        -1 or anything like this
+        stream.read_async(128*1024, self._gio_review_input_callback)
+    def get_reviews(self, app, callback):
+        url = self.distro.REVIEWS_URL % (
+            hash_pkgname_for_changelogs(app.pkgname), app.pkgname, app.pkgname)
+        f=gio.File(url)
+        f.read_async(self._gio_review_read_callback)
+        f.set_data("app", app)
+        f.set_data("callback", callback)
 
 class ReviewLoaderIpsum(ReviewLoader):
     """ a test review loader that does not do any network io
@@ -180,7 +209,7 @@ ipsum dolor sit amet"""
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application):
+    def get_reviews(self, application, callback):
         reviews = []
         for i in range(0,random.randint(0,6)):
             review = Review(application)
@@ -191,7 +220,7 @@ ipsum dolor sit amet"""
             review.person = self._random_person()
             review.text = self._random_text().replace("\n","")
             reviews.append(review)
-        return reviews
+        callback(application, reviews)
 
 if __name__ == "__main__":
     from softwarecenter.db.database import Application

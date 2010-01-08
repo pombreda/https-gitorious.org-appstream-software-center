@@ -43,9 +43,13 @@ if os.path.exists("./softwarecenter/enums.py"):
 from softwarecenter.enums import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase, Application
-#from softwarecenter.db.reviews import ReviewLoader
-#from softwarecenter.db.reviews import ReviewLoaderIpsum as ReviewLoader
-from softwarecenter.db.reviews import ReviewLoaderXMLAsync as ReviewLoader
+
+# make review feature testing easy
+if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
+    from softwarecenter.db.reviews import ReviewLoaderIpsum as ReviewLoader
+else:
+    from softwarecenter.db.reviews import ReviewLoaderXMLAsync as ReviewLoader
+
 from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
 
 from widgets.wkwidget import WebkitWidget
@@ -440,7 +444,10 @@ class AppDetailsView(WebkitWidget):
     def _check_for_reviews(self):
         logging.debug("_check_for_reviews")
         app = Application(self.appname, self.pkgname)
-        reviews = self.review_loader.get_reviews(app)
+        reviews = self.review_loader.get_reviews(app, 
+                                                 self._reviews_ready_callback)
+
+    def _reviews_ready_callback(self, app, reviews):
         if not reviews:
             no_review = _("This software item has no reviews yet.")
             s='document.getElementById("reviews").innerHTML="%s"' % no_review
@@ -455,6 +462,7 @@ class AppDetailsView(WebkitWidget):
                                                     json.dumps(review.rating), 
                                                     json.dumps(review.person))
             #logging.debug("running '%s'" % s)
+            # FIXME: ensure webkit is in WEBKIT_LOAD_FINISHED state
             self.execute_script(s)
         return False
 

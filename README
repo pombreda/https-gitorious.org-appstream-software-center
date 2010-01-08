@@ -1,4 +1,10 @@
 
+== useful debug environment ==
+
+SOFTWARE_CENTER_IPSUM_REVIEWS - geneate random reviews
+SOFTWARE_CENTER_OLD_PATHBAR - use old pathbar code
+SOFTWARE_CENTER_SEARCHES_SORT_MODE={popcon,alphabetic,xapian}
+
 == aptdaemon ==
  * the dbus limits for the system bus are rather low, this means that
    adding  <limit name="max_match_rules_per_connection">512</limit> 
