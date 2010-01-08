@@ -19,9 +19,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gio
+import gzip
 import glib
 import json
 import random
+import StringIO
 import time
 import weakref
 import xml.dom.minidom
@@ -86,6 +88,7 @@ class ReviewLoader(object):
         return stats
 
 class ReviewLoaderXMLAsync(ReviewLoader):
+    """ get xml (or gzip compressed xml) """
     def _gio_review_input_callback(self, source, result):
         app = source.get_data("app")
         callback = source.get_data("callback")
@@ -94,6 +97,10 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         except glib.GError, e:
             # ignore read errors, most likely transient
             return callback(app, [])
+        # check for gzip header
+        if xml_str.startswith("\37\213"):
+            gz=gzip.GzipFile(fileobj=StringIO.StringIO(xml_str))
+            xml_str = gz.read()
         dom = xml.dom.minidom.parseString(xml_str)
         reviews = []
         for review_xml in dom.getElementsByTagName("review"):
