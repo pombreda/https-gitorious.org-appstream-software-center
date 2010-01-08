@@ -203,11 +203,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
         #should we maximize?
         self.config = get_config()
-        if self.config.has_option("general", "maximized"):
-            self.window_state = self.config.getboolean("general", "maximized")
-        else:
-            self.window_state = False
-        if self.window_state:
+        if (self.config.has_option("general", "maximized") and
+            self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
 
     # callbacks
@@ -393,9 +390,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.apps_filter.set_supported_only(True)
         self.active_pane.refresh_apps()
         
-    def on_window_main_window_state_event(self, widget, event):
-        self.window_state = event.new_window_state.value_names
-
     # helper
 
     # FIXME: move the two functions below into generic code
@@ -562,7 +556,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def save_state(self):
         logging.debug("save_state")
-        if self.window_state == ['GDK_WINDOW_STATE_MAXIMIZED']:
+        if not self.config.has_section("general"):
+            self.config.add_section("general")
+        if self.window_main.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED:
             self.config.set("general", "maximized", "True")
         else:
             self.config.set("general", "maximized", "False")
