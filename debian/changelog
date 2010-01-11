@@ -1,5 +1,6 @@
 software-center (1.1.8) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/view/appdetailsview.py:
     - replace thumbnail checking thread with (much nicer) gio
       code
@@ -10,7 +11,16 @@ software-center (1.1.8) UNRELEASED; urgency=low
   * softwarecenter/view/installedpane.py:
     - fix search in installed section (LP: #504380)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Jan 2010 11:53:53 +0100
+  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/view/softwarepane.py:
+    - add code to reselect the app in the list view on
+      a tree model refresh
+  * softwarecenter/view/widgets/pathbar2.py:
+    - remove explicit callback when a button is appended
+      to the pathbar as it is not needed
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 11 Jan 2010 17:09:47 -0500
 
 software-center (1.1.7) lucid; urgency=low
 
