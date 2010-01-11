@@ -47,7 +47,7 @@ class DetailsMessageDialog(gtk.MessageDialog):
             expand.show_all()
             self.get_content_area().pack_start(expand)
         if parent:
-            self.set_model(True)
+            self.set_modal(True)
             self.set_property("skip-taskbar-hint", True)
 
 def messagedialog(parent=None, 
