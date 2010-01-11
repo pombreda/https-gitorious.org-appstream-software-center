@@ -469,11 +469,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.label_status.set_text(s)
         
     def update_app_list_view(self):
-        """Helper that updates the appview list.  If no application is selected,
-           the first application in the list is selected, else, the selection
-           is unchanged.
+        """Helper that updates the app view list.
         """
         if self.active_pane is not None and not self.active_pane.is_category_view_showing():
+#            from softwarecenter.utils import *
+#            with ExecutionTime("TIME update_app_view"):
+#                self.active_pane.update_app_view()
             self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):

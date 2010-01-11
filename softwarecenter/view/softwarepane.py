@@ -86,7 +86,9 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-
+        self.app_view.connect("application-selected", 
+                              self.on_application_selected)
+        self._current_selected_pkgname = None
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -127,7 +129,7 @@ class SoftwarePane(gtk.VBox):
             vadj.value_changed()
 
     def on_application_activated(self, appview, name, pkgname):
-        """callback when a app is clicked"""
+        """callback when an app is clicked"""
         logging.debug("on_application_activated: '%s'" % name)
         if not name:
             name = pkgname
@@ -137,18 +139,36 @@ class SoftwarePane(gtk.VBox):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(name, pkgname)
         
+    def on_application_selected(self, appview, name, pkgname):
+        """callback when an app is selected"""
+        logging.debug("on_application_selected: '%s'" % name)
+        self._current_selected_pkgname = pkgname
+        
     def update_app_view(self):
         """
-        Update the app_view.  If no application is selected,
-        the first application in the list is selected, else, the selection
-        is unchanged.
+        Update the app_view.  If no row is selected, then the previously
+        selected app is reselected if it is found in the model, else the
+        first app in the list is selected.  If a row is already selected,
+        nothing is done.
         """
         selection = self.app_view.get_selection()
         (model, iter) = selection.get_selected()
-        # if the model is not empty and if no application is selected,
-        # select the first one in the list
         if model.get_iter_root() is not None and iter is None:
-            self.app_view.set_cursor(0)
+            if self._current_selected_pkgname:
+                index = 0
+                app_found = False
+                for (name, text, icon, overlay, pkgname) in model:
+                    if pkgname == self._current_selected_pkgname:
+                        self.app_view.set_cursor(index)
+                        self.app_view.scroll_to_cell(index, use_align=True, row_align=0.3)
+                        app_found = True
+                        break
+                    else:
+                        index = index + 1
+                if not app_found:
+                    self.app_view.set_cursor(0)
+            else:
+                self.app_view.set_cursor(0)
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
