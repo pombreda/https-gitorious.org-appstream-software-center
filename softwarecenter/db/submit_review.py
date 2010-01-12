@@ -26,6 +26,7 @@ gobject.threads_init()
 import gettext
 import glib
 import gtk
+import logging
 import os
 import sys
 import time
@@ -99,10 +100,16 @@ class LaunchpadlibWorker(threading.Thread):
         print "hello"
 
         # login into LP with GUI
-        self.launchpad = Launchpad.login_with(
-            'software-center', 'edge', cachedir,
-            allow_access_levels = ['WRITE_PUBLIC'],
-            authorizer_class=AuthorizeRequestTokenFromThread)
+        try:
+            self.launchpad = Launchpad.login_with(
+                'software-center', 'edge', cachedir,
+                allow_access_levels = ['WRITE_PUBLIC'],
+                authorizer_class=AuthorizeRequestTokenFromThread)
+        except Exception, e:
+            logging.exception("Launchpad.login_with()")
+            self.login_state = LOGIN_STATE_AUTH_FAILURE
+            self.shutdown = True
+            return
         # if we are here we are in
         self.login_state = LOGIN_STATE_SUCCESS
         print "/done"
@@ -117,14 +124,15 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         return o
 
     def input_username(self, cached_username, suggested_message):
-        print "foo: ", self.lp_worker.login_state
-        print "thread ask username"
+        print "input_username: ", self.lp_worker.login_state
+        # otherwise go into ASK state
+        if not self.lp_worker.login_state in (LOGIN_STATE_ASK_USER_AND_PASS,
+                                              LOGIN_STATE_AUTH_FAILURE,
+                                              LOGIN_STATE_USER_CANCEL):
+            self.lp_worker.login_state = LOGIN_STATE_ASK_USER_AND_PASS
         # check if user canceled and if so just return ""
         if self.lp_worker.login_state == LOGIN_STATE_USER_CANCEL:
             return ""
-        # otherwise go into ASK state
-        if self.lp_worker.login_state != LOGIN_STATE_ASK_USER_AND_PASS:
-            self.lp_worker.login_state = LOGIN_STATE_ASK_USER_AND_PASS
         # wait for username to become available
         while not self.lp_worker.login_state in (LOGIN_STATE_HAS_USER_AND_PASS,
                                                  LOGIN_STATE_USER_CANCEL):
@@ -197,6 +205,11 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         # signal thread to finish
         lp_worker_thread.shutdown = True
         gtk.main_quit()
+        
+    def show_login_auth_failure(self):
+        softwarecenter.view.dialogs.error(None,
+                                          _("Authentication failure"),
+                                          _("Sorry, please try again"))
 
     def run(self):
         # do the launchpad stuff async
@@ -208,12 +221,16 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
     
     def _wait_for_login(self):
         print "gui: _wait_state_change: ", lp_worker_thread.login_state
-        if lp_worker_thread.login_state == LOGIN_STATE_ASK_USER_AND_PASS:
+        state = lp_worker_thread.login_state
+        if state == LOGIN_STATE_AUTH_FAILURE:
+            self.show_login_auth_failure()
             self.enter_username_password()
-        elif lp_worker_thread.login_state == LOGIN_STATE_SUCCESS:
+        elif state == LOGIN_STATE_ASK_USER_AND_PASS:
+            self.enter_username_password()
+        elif state == LOGIN_STATE_SUCCESS:
             self.enter_review()
             return False
-        elif lp_worker_thread.login_state == LOGIN_STATE_USER_CANCEL:
+        elif state == LOGIN_STATE_USER_CANCEL:
             return False
         return True
 
