@@ -206,8 +206,12 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         gettext.textdomain("software-center")
         # data
         self.app = app
+        # set pw dialog transient for main window
+        self.dialog_review_login.set_transient_for(self.dialog_review_app)
+        self.dialog_review_login.set_modal(True)
 
     def enter_username_password(self):
+        self.progressbar_connecting.hide()
         res = self.dialog_review_login.run()
         self.dialog_review_login.hide()
         if res == gtk.RESPONSE_OK:
@@ -216,11 +220,13 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             password = self.entry_review_login_password.get_text()
             lp_worker_thread.login_password = password
             lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
+            self.progressbar_connecting.show()
         else:
             lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
             self.quit()
 
     def enter_review(self):
+        self.dialog_review_app.set_sensitive(True)
         res = self.dialog_review_app.run()
         self.dialog_review_app.hide()
         print res
@@ -236,7 +242,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self.quit()
         
     def show_login_auth_failure(self):
-        softwarecenter.view.dialogs.error(None,
+        softwarecenter.view.dialogs.error(self.dialog_review_app,
                                           _("Authentication failure"),
                                           _("Sorry, please try again"))
 
@@ -245,6 +251,11 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         gtk.main_quit()
 
     def run(self):
+        # show main dialog insensitive until we are logged in
+        self.dialog_review_app.set_sensitive(False)
+        self.progressbar_connecting.set_text(_("Connecting..."))
+        self.dialog_review_app.show()
+        
         # do the launchpad stuff async
         lp_worker_thread.start()
         # wait for  state change 
@@ -255,6 +266,8 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
     def _wait_for_login(self):
         print "gui: _wait_state_change: ", lp_worker_thread.login_state
         state = lp_worker_thread.login_state
+        # hide progress once we got a reply
+        # check state
         if state == LOGIN_STATE_AUTH_FAILURE:
             self.show_login_auth_failure()
             self.enter_username_password()
@@ -265,6 +278,8 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             return False
         elif state == LOGIN_STATE_USER_CANCEL:
             return False
+        # pulse
+        self.progressbar_connecting.pulse()
         return True
 
 # IMPORTANT: create one (module) global LP worker thread here
