@@ -213,33 +213,39 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         gettext.textdomain("software-center")
         # data
         self.app = app
+        self.version = "1.0"
+        self.rating = 0
         # set pw dialog transient for main window
         self.dialog_review_login.set_transient_for(self.dialog_review_app)
         self.dialog_review_login.set_modal(True)
         self._init_icons()
+        # events
         for i in range(1,6):
             eventbox = getattr(self, "eventbox_review_%i" % i)
-            eventbox.connect("button-release-event",
-                             self.on_image_review_star_button_release_event,
+            eventbox.connect("button-press-event",
+                             self.on_image_review_star_button_press_event,
                              i)
+        self.label_name.set_markup("<big>%s</big>\n<small>%s</small>" % (
+                self.app, self.version))
     
     def _init_icons(self):
         """ init the icons """
         self.image_review_login.set_from_file(self.LOGIN_IMAGE)
-        self._update_rating(0)
+        self._update_rating()
 
-    def _update_rating(self, rating):
-        print "_update_rating", rating
-        for i in range(1, rating+1):
+    def _update_rating(self):
+        print "_update_rating", self.rating
+        for i in range(1, self.rating+1):
             img = getattr(self, "image_review_star%i" % i)
             img.set_from_file(self.STAR_IMAGE)
-        for i in range(rating+1, 6):
+        for i in range(self.rating+1, 6):
             img = getattr(self, "image_review_star%i" % i)
             img.set_from_file(self.DARK_STAR_IMAGE)
 
-    def on_image_review_star_button_release_event(self, widget, event, data):
+    def on_image_review_star_button_press_event(self, widget, event, data):
         #print widget, event, data
-        self._update_rating(data)
+        self.rating = data
+        self._update_rating()
 
     def enter_username_password(self):
         self.progressbar_connecting.hide()
