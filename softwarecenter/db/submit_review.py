@@ -49,6 +49,9 @@ LOGIN_STATE_SUCCESS = "success"
 LOGIN_STATE_AUTH_FAILURE = "auth-fail"
 LOGIN_STATE_USER_CANCEL = "user-cancel"
 
+class UserCancelException(Exception):
+    pass
+
 class LaunchpadlibWorker(threading.Thread):
 
     def __init__(self):
@@ -106,7 +109,8 @@ class LaunchpadlibWorker(threading.Thread):
                 allow_access_levels = ['WRITE_PUBLIC'],
                 authorizer_class=AuthorizeRequestTokenFromThread)
         except Exception, e:
-            logging.exception("Launchpad.login_with()")
+            if type(e) != UserCancelException:
+                logging.exception("Launchpad.login_with()")
             self.login_state = LOGIN_STATE_AUTH_FAILURE
             self.shutdown = True
             return
@@ -132,7 +136,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
             self.lp_worker.login_state = LOGIN_STATE_ASK_USER_AND_PASS
         # check if user canceled and if so just return ""
         if self.lp_worker.login_state == LOGIN_STATE_USER_CANCEL:
-            return ""
+            raise UserCancelException
         # wait for username to become available
         while not self.lp_worker.login_state in (LOGIN_STATE_HAS_USER_AND_PASS,
                                                  LOGIN_STATE_USER_CANCEL):
