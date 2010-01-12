@@ -54,7 +54,15 @@ class UserCancelException(Exception):
     pass
 
 class LaunchpadlibWorker(threading.Thread):
+    """The launchpadlib worker thread - it does not touch the UI
+       and only communicates via the following variables:
 
+       "login_state" - the current LOGIN_STATE_* value
+       
+       To input reviews call "queue_review()"
+       When no longer needed, call "shutdown()"
+    """
+    
     def __init__(self):
         # init parent
         threading.Thread.__init__(self)
@@ -68,13 +76,26 @@ class LaunchpadlibWorker(threading.Thread):
         self.shutdown = False
 
     def run(self):
+        """Main thread run interface, logs into launchpad and waits
+           for commands
+        """
         print "lp worker thread run"
         # login
-        self.lp_login()
+        self._lp_login()
         # loop
         self._wait_for_commands()
 
+    def shutdown(self):
+        """Request shutdown"""
+        self.shutdown = True
+
+    def queue_review(self, review):
+        """ queue a new review for sending to LP """
+        print "queue_review", text
+        self.pending_reviews.put(review)
+
     def _wait_for_commands(self):
+        """internal helper that waits for commands"""
         while True:
             print "worker: _wait_for_commands", self.login_state
             self._submit_reviews()
@@ -82,11 +103,8 @@ class LaunchpadlibWorker(threading.Thread):
             if self.shutdown and self.pending_reviews.empty():
                 return
 
-    def queue_review(self, text):
-        print "queue_review", text
-        self.pending_reviews.put(text)
-
     def _submit_reviews(self):
+        """ internal submit code """
         print "_submit_review"
         while not self.pending_reviews.empty():
             review = self.pending_reviews.get()
@@ -96,7 +114,8 @@ class LaunchpadlibWorker(threading.Thread):
                                       content=review)
             self.pending_reviews.task_done()
 
-    def lp_login(self):
+    def _lp_login(self):
+        """ internal LP login code """
         print "lp_login"
         # use cachedir
         cachedir = os.path.expanduser("~/.cache/software-center")
@@ -122,6 +141,9 @@ class LaunchpadlibWorker(threading.Thread):
         print self.launchpad
 
 class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
+    """ Internal helper that updates the login_state of
+        the modul global lp_worker_thread object
+    """
 
     def __new__(cls, *args, **kwargs):
         o = object.__new__(cls)
@@ -175,6 +197,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
 
 class SubmitReviewsApp(SimpleGtkbuilderApp):
     """ review a given application or package """
+
     def __init__(self, app, datadir):
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/reviews.ui",
@@ -209,7 +232,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             print text
             lp_worker_thread.queue_review(text)
         # signal thread to finish
-        lp_worker_thread.shutdown = True
+        lp_worker_thread.shutdown()
         self.quit()
         
     def show_login_auth_failure(self):
