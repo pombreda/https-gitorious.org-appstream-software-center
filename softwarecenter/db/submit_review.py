@@ -36,6 +36,7 @@ from gettext import gettext as _
 from launchpadlib.launchpad import Launchpad
 from launchpadlib.credentials import RequestTokenAuthorizationEngine
 from launchpadlib import uris
+from Queue import Queue
 from urlparse import urljoin
 
 import softwarecenter.view.dialogs
@@ -63,7 +64,7 @@ class LaunchpadlibWorker(threading.Thread):
         self.login_username = ""
         self.login_password = ""
         self._launchpad = None
-        self.pending_reviews = []
+        self.pending_reviews = Queue()
         self.shutdown = False
 
     def run(self):
@@ -78,21 +79,22 @@ class LaunchpadlibWorker(threading.Thread):
             print "worker: _wait_for_commands", self.login_state
             self._submit_reviews()
             time.sleep(0.2)
-            if self.shutdown:
+            if self.shutdown and self.pending_reviews.empty():
                 return
 
     def queue_review(self, text):
         print "queue_review", text
-        self.pending_reviews.append(text)
+        self.pending_reviews.put(text)
 
     def _submit_reviews(self):
         print "_submit_review"
-        while self.pending_reviews:
-            review = self.pending_reviews.pop()
+        while not self.pending_reviews.empty():
+            review = self.pending_reviews.get()
             print "sending review"
             test_bug = self.launchpad.bugs[505983]
             msg = test_bug.newMessage(subject="test", 
                                       content=review)
+            self.pending_reviews.task_done()
 
     def lp_login(self):
         print "lp_login"
@@ -193,7 +195,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
         else:
             lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
-            gtk.main_quit()
+            self.quit()
 
     def enter_review(self):
         res = self.dialog_review_app.run()
@@ -208,12 +210,16 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             lp_worker_thread.queue_review(text)
         # signal thread to finish
         lp_worker_thread.shutdown = True
-        gtk.main_quit()
+        self.quit()
         
     def show_login_auth_failure(self):
         softwarecenter.view.dialogs.error(None,
                                           _("Authentication failure"),
                                           _("Sorry, please try again"))
+
+    def quit(self):
+        lp_worker_thread.join()
+        gtk.main_quit()
 
     def run(self):
         # do the launchpad stuff async
