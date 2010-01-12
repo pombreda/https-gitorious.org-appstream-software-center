@@ -73,7 +73,7 @@ class LaunchpadlibWorker(threading.Thread):
         self.login_password = ""
         self._launchpad = None
         self.pending_reviews = Queue()
-        self.shutdown = False
+        self._shutdown = False
 
     def run(self):
         """Main thread run interface, logs into launchpad and waits
@@ -87,7 +87,7 @@ class LaunchpadlibWorker(threading.Thread):
 
     def shutdown(self):
         """Request shutdown"""
-        self.shutdown = True
+        self._shutdown = True
 
     def queue_review(self, review):
         """ queue a new review for sending to LP """
@@ -100,7 +100,7 @@ class LaunchpadlibWorker(threading.Thread):
             print "worker: _wait_for_commands", self.login_state
             self._submit_reviews()
             time.sleep(0.2)
-            if self.shutdown and self.pending_reviews.empty():
+            if self._shutdown and self.pending_reviews.empty():
                 return
 
     def _submit_reviews(self):
@@ -133,7 +133,7 @@ class LaunchpadlibWorker(threading.Thread):
             if type(e) != UserCancelException:
                 logging.exception("Launchpad.login_with()")
             self.login_state = LOGIN_STATE_AUTH_FAILURE
-            self.shutdown = True
+            self._shutdown = True
             return
         # if we are here we are in
         self.login_state = LOGIN_STATE_SUCCESS
