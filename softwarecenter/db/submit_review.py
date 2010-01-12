@@ -59,6 +59,8 @@ class LaunchpadlibWorker(threading.Thread):
         self.login_username = ""
         self.login_password = ""
         self._launchpad = None
+        self.pending_reviews = []
+        self.shutdown = False
 
     def run(self):
         print "lp worker thread run"
@@ -69,8 +71,24 @@ class LaunchpadlibWorker(threading.Thread):
 
     def _wait_for_commands(self):
         while True:
-            print "worker: _wait_state_change"
+            print "worker: _wait_for_commands", self.login_state
+            self._submit_reviews()
             time.sleep(0.2)
+            if self.shutdown:
+                return
+
+    def queue_review(self, text):
+        print "queue_review", text
+        self.pending_reviews.append(text)
+
+    def _submit_reviews(self):
+        print "_submit_review"
+        while self.pending_reviews:
+            review = self.pending_reviews.pop()
+            print "sending review"
+            test_bug = self.launchpad.bugs[505983]
+            msg = test_bug.newMessage(subject="test", 
+                                      content=review)
 
     def lp_login(self):
         print "lp_login"
@@ -131,6 +149,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
     def authentication_failure(self, suggested_message):
         """The user entered invalid credentials."""
         print "auth failure"
+        # ignore auth failures if the user canceled
         if self.lp_worker.login_state == LOGIN_STATE_USER_CANCEL:
             return
         self.lp_worker.login_state = LOGIN_STATE_AUTH_FAILURE
@@ -162,21 +181,22 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
         else:
             lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
+            gtk.main_quit()
 
     def enter_review(self):
         res = self.dialog_review_app.run()
+        self.dialog_review_app.hide()
         print res
         if res == gtk.RESPONSE_OK:
             print "ok"
-            # get a test bug
-            test_bug = self._launchpad.bugs[505983]
-            print test_bug.title
             text_buffer = self.textview_review.get_buffer()
             text = text_buffer.get_text(text_buffer.get_start_iter(),
                                         text_buffer.get_end_iter())
             print text
-            test_bug.description = text
-            test_bug.lp_save()
+            lp_worker_thread.queue_review(text)
+        # signal thread to finish
+        lp_worker_thread.shutdown = True
+        gtk.main_quit()
 
     def run(self):
         # do the launchpad stuff async
@@ -192,6 +212,8 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             self.enter_username_password()
         elif lp_worker_thread.login_state == LOGIN_STATE_SUCCESS:
             self.enter_review()
+            return False
+        elif lp_worker_thread.login_state == LOGIN_STATE_USER_CANCEL:
             return False
         return True
 
