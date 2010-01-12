@@ -51,11 +51,12 @@ LOGIN_STATE_AUTH_FAILURE = "auth-fail"
 LOGIN_STATE_USER_CANCEL = "user-cancel"
 
 class UserCancelException(Exception):
+    """ user pressed cancel """
     pass
 
 class LaunchpadlibWorker(threading.Thread):
     """The launchpadlib worker thread - it does not touch the UI
-       and only communicates via the following variables:
+       and only communicates via the following:
 
        "login_state" - the current LOGIN_STATE_* value
        
@@ -97,7 +98,7 @@ class LaunchpadlibWorker(threading.Thread):
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
         while True:
-            print "worker: _wait_for_commands", self.login_state
+            #print "worker: _wait_for_commands", self.login_state
             self._submit_reviews()
             time.sleep(0.2)
             if self._shutdown and self.pending_reviews.empty():
@@ -105,7 +106,7 @@ class LaunchpadlibWorker(threading.Thread):
 
     def _submit_reviews(self):
         """ internal submit code """
-        print "_submit_review"
+        #print "_submit_review"
         while not self.pending_reviews.empty():
             review = self.pending_reviews.get()
             print "sending review"
@@ -145,9 +146,11 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         the modul global lp_worker_thread object
     """
 
+    # we need this to give the engine a place to store the state
+    # for the UI
     def __new__(cls, *args, **kwargs):
         o = object.__new__(cls)
-        # keep the state here (the lp_worker_thead is a singelton)
+        # keep the state here (the lp_worker_thead global to this module)
         o.lp_worker = lp_worker_thread
         return o
 
@@ -198,6 +201,10 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
 class SubmitReviewsApp(SimpleGtkbuilderApp):
     """ review a given application or package """
 
+    LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
+    STAR_IMAGE = "/usr/share/software-center/images/star-yellow.png"
+    DARK_STAR_IMAGE = "/usr/share/software-center/images/star-dark.png"
+
     def __init__(self, app, datadir):
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/reviews.ui",
@@ -209,6 +216,30 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         # set pw dialog transient for main window
         self.dialog_review_login.set_transient_for(self.dialog_review_app)
         self.dialog_review_login.set_modal(True)
+        self._init_icons()
+        for i in range(1,6):
+            eventbox = getattr(self, "eventbox_review_%i" % i)
+            eventbox.connect("button-release-event",
+                             self.on_image_review_star_button_release_event,
+                             i)
+    
+    def _init_icons(self):
+        """ init the icons """
+        self.image_review_login.set_from_file(self.LOGIN_IMAGE)
+        self._update_rating(0)
+
+    def _update_rating(self, rating):
+        print "_update_rating", rating
+        for i in range(1, rating+1):
+            img = getattr(self, "image_review_star%i" % i)
+            img.set_from_file(self.STAR_IMAGE)
+        for i in range(rating+1, 6):
+            img = getattr(self, "image_review_star%i" % i)
+            img.set_from_file(self.DARK_STAR_IMAGE)
+
+    def on_image_review_star_button_release_event(self, widget, event, data):
+        #print widget, event, data
+        self._update_rating(data)
 
     def enter_username_password(self):
         self.progressbar_connecting.hide()
@@ -226,6 +257,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             self.quit()
 
     def enter_review(self):
+        self.progressbar_connecting.hide()
         self.dialog_review_app.set_sensitive(True)
         res = self.dialog_review_app.run()
         self.dialog_review_app.hide()
@@ -264,7 +296,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         SimpleGtkbuilderApp.run(self)
     
     def _wait_for_login(self):
-        print "gui: _wait_state_change: ", lp_worker_thread.login_state
+        #print "gui: _wait_state_change: ", lp_worker_thread.login_state
         state = lp_worker_thread.login_state
         # hide progress once we got a reply
         # check state

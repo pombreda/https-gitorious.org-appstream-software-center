@@ -15,7 +15,7 @@
             <property name="visible">True</property>
             <property name="spacing">18</property>
             <child>
-              <object class="GtkImage" id="image7">
+              <object class="GtkImage" id="image_review_login">
                 <property name="visible">True</property>
                 <property name="yalign">0</property>
                 <property name="pixbuf">ubuntu-screensaver.svg</property>
@@ -235,9 +235,9 @@
             <property name="column_spacing">12</property>
             <property name="row_spacing">12</property>
             <child>
-              <object class="GtkImage" id="image1">
+              <object class="GtkImage" id="image_review_app">
                 <property name="visible">True</property>
-                <property name="stock">gtk-missing-image</property>
+                <property name="icon_name">applications-other</property>
               </object>
               <packing>
                 <property name="x_options"></property>
@@ -297,57 +297,74 @@
               <object class="GtkHBox" id="hbox2">
                 <property name="visible">True</property>
                 <child>
-                  <object class="GtkImage" id="image2">
+                  <object class="GtkEventBox" id="eventbox_review_1">
                     <property name="visible">True</property>
-                    <property name="stock">gtk-missing-image</property>
+                    <signal name="button_release_event" handler="on_image_review_star_button_release_event"/>
+                    <child>
+                      <object class="GtkImage" id="image_review_star1">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-missing-image</property>
+                      </object>
+                    </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="image3">
+                  <object class="GtkEventBox" id="eventbox_review_2">
                     <property name="visible">True</property>
-                    <property name="stock">gtk-missing-image</property>
+                    <signal name="button_release_event" handler="on_image_review_star_button_release_event"/>
+                    <child>
+                      <object class="GtkImage" id="image_review_star2">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-missing-image</property>
+                      </object>
+                    </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="image4">
+                  <object class="GtkEventBox" id="eventbox_review_3">
                     <property name="visible">True</property>
-                    <property name="stock">gtk-missing-image</property>
+                    <child>
+                      <object class="GtkImage" id="image_review_star3">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-missing-image</property>
+                      </object>
+                    </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
                     <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="image5">
+                  <object class="GtkEventBox" id="eventbox_review_4">
                     <property name="visible">True</property>
-                    <property name="stock">gtk-missing-image</property>
+                    <child>
+                      <object class="GtkImage" id="image_review_star4">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-missing-image</property>
+                      </object>
+                    </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
                     <property name="position">3</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="image6">
+                  <object class="GtkEventBox" id="eventbox_review_5">
                     <property name="visible">True</property>
-                    <property name="stock">gtk-missing-image</property>
+                    <child>
+                      <object class="GtkImage" id="image_review_star5">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-missing-image</property>
+                      </object>
+                    </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
                     <property name="position">4</property>
                   </packing>
                 </child>
@@ -362,9 +379,6 @@
               </packing>
             </child>
             <child>
-              <placeholder/>
-            </child>
-            <child>
               <object class="GtkProgressBar" id="progressbar_connecting">
                 <property name="visible">True</property>
               </object>
@@ -376,6 +390,9 @@
                 <property name="x_options">GTK_FILL</property>
                 <property name="y_options"></property>
               </packing>
+            </child>
+            <child>
+              <placeholder/>
             </child>
           </object>
           <packing>
