@@ -1,10 +1,19 @@
 software-center (1.1.9) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/view/softwarepane.py:
+    - add code to reselect the app in the list view on
+      a tree model refresh
+  * softwarecenter/view/widgets/pathbar2.py:
+    - remove explicit callback when a button is appended
+      to the pathbar as it is not needed
+
+  [ Michael Vogt ]
   * softwarecenter/apt/aptcache.py:
     - properly fix removal warning (needs latest python-apt)
   * debian/control:
     - depend on latest python-apt
-  
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jan 2010 14:48:49 +0100
 
