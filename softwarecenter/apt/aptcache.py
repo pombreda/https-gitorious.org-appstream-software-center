@@ -38,19 +38,15 @@ class GtkMainIterationProgress(apt.progress.OpProgress):
         while gtk.events_pending():
             gtk.main_iteration()
 
-# FIXME: fix in python-apt API
-def apt_i18n(s):
-    return gettext.dgettext("libapt-pkg4.8", s)
-
 class AptCache(gobject.GObject):
     """ 
     A apt cache that opens in the background and keeps the UI alive
     """
 
     # dependency types we are about
-    DEPENDENCY_TYPES = (apt_i18n("PreDepends"), apt_i18n("Depends"))
-    RECOMMENDS_TYPES = (apt_i18n("Recommends"),)
-    SUGGESTS_TYPES = (apt_i18n("Suggests"),)
+    DEPENDENCY_TYPES = ("PreDepends", "Depends")
+    RECOMMENDS_TYPES = ("Recommends",)
+    SUGGESTS_TYPES = ("Suggests",)
 
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
@@ -88,7 +84,7 @@ class AptCache(gobject.GObject):
     def _get_installed_rdepends_by_type(self, pkg, type):
         installed_rdeps = set()
         for rdep in pkg._pkg.RevDependsList:
-            if rdep.DepType in type:
+            if rdep.UntranslatedDepType in type:
                 rdep_name = rdep.ParentPkg.Name
                 if (self._cache.has_key(rdep_name) and
                     self._cache[rdep_name].isInstalled):

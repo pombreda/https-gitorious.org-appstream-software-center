@@ -1,3 +1,13 @@
+software-center (1.1.9) UNRELEASED; urgency=low
+
+  * softwarecenter/apt/aptcache.py:
+    - properly fix removal warning (needs latest python-apt)
+  * debian/control:
+    - depend on latest python-apt
+  
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jan 2010 14:48:49 +0100
+
 software-center (1.1.8) lucid; urgency=low
 
   * softwarecenter/view/appdetailsview.py:
