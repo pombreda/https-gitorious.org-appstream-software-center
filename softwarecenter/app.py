@@ -226,6 +226,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.menuitem_copy.set_sensitive(True)
 
     def on_window_main_delete_event(self, widget, event):
+        self.save_state()
         gtk.main_quit()
         
     def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
@@ -562,6 +563,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def save_state(self):
         logging.debug("save_state")
+        # this happens on a delete event, we explicitely save_state() there
+        if self.window_main.window is None:
+            return
         if not self.config.has_section("general"):
             self.config.add_section("general")
         maximized = self.window_main.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED
