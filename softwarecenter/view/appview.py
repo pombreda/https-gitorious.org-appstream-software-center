@@ -85,6 +85,7 @@ class AppStore(gtk.GenericTreeModel):
         self.db = db
         self.icons = icons
         self.apps = []
+        self.sorted = sort
         self.filter = filter
         self._searches_sort_mode = self._get_searches_sort_mode()
         if not search_query:
@@ -111,7 +112,7 @@ class AppStore(gtk.GenericTreeModel):
                 if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
                     enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
                 elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
-                    sort=True
+                    self.sorted=sort=True
                 if limit == 0:
                     matches = enquire.get_mset(0, len(db))
                 else:
@@ -628,7 +629,13 @@ if __name__ == "__main__":
     filter = AppViewFilter(db, cache)
     filter.set_supported_only(True)
     filter.set_installed_only(True)
-    store = AppStore(cache, db, icons, filter=filter)
+    store = AppStore(cache, db, icons, sort=True, filter=filter)
+
+    # test bisect
+    import bisect
+    print store.sorted
+    index = bisect.bisect(store.apps, ("Compiz","compiz"))
+    print "index: index"
 
     # gui
     scroll = gtk.ScrolledWindow()
