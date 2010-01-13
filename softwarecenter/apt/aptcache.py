@@ -38,15 +38,19 @@ class GtkMainIterationProgress(apt.progress.OpProgress):
         while gtk.events_pending():
             gtk.main_iteration()
 
+# FIXME: fix in python-apt API
+def apt_i18n(s):
+    return gettext.dgettext("libapt-pkg4.8", s)
+
 class AptCache(gobject.GObject):
     """ 
     A apt cache that opens in the background and keeps the UI alive
     """
 
     # dependency types we are about
-    DEPENDENCY_TYPES = ("PreDepends", "Depends")
-    RECOMMENDS_TYPES = ("Recommends",)
-    SUGGESTS_TYPES = ("Suggests",)
+    DEPENDENCY_TYPES = (apt_i18n("PreDepends"), apt_i18n("Depends"))
+    RECOMMENDS_TYPES = (apt_i18n("Recommends"),)
+    SUGGESTS_TYPES = (apt_i18n("Suggests"),)
 
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
