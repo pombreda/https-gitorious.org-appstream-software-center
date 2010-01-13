@@ -12,8 +12,10 @@ software-center (1.1.8) UNRELEASED; urgency=low
   * softwarecenter/apt/aptcache.py:
     - fix missing warning on removal for non-english systems
       (LP: #486474)
+  * softwarecenter/view/widgets/imagedialog.py:
+    - fix crash because of missing import
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Jan 2010 11:53:53 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jan 2010 14:39:35 +0100
 
 software-center (1.1.7) lucid; urgency=low
 

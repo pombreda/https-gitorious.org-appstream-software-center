@@ -23,6 +23,7 @@ import gtk
 import logging
 import tempfile
 import time
+import threading
 import urllib
 import gobject
 
