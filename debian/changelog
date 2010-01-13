@@ -1,4 +1,4 @@
-software-center (1.1.8) UNRELEASED; urgency=low
+software-center (1.1.8) lucid; urgency=low
 
   * softwarecenter/view/appdetailsview.py:
     - replace thumbnail checking thread with (much nicer) gio
