@@ -631,11 +631,11 @@ if __name__ == "__main__":
     filter.set_installed_only(True)
     store = AppStore(cache, db, icons, sort=True, filter=filter)
 
-    # test bisect
+    # test bisect based search
     import bisect
     print store.sorted
-    index = bisect.bisect(store.apps, ("Compiz","compiz"))
-    print "index: index"
+    index = bisect.bisect(store.apps, Application("Compiz","compiz"))
+    print "index: ", index
 
     # gui
     scroll = gtk.ScrolledWindow()

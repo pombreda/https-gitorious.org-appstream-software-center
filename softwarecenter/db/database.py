@@ -33,6 +33,8 @@ class Application(object):
     def __init__(self, appname, pkgname):
         self.appname = appname
         self.pkgname = pkgname
+    def __cmp__(self, other):
+        return self.apps_cmp(self, other)
     @staticmethod
     def apps_cmp(x, y):
         """ sort method for the applications """
