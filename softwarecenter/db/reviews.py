@@ -21,6 +21,7 @@
 import gio
 import gzip
 import glib
+import locale
 import json
 import random
 import StringIO
@@ -47,6 +48,7 @@ class Review(object):
         self.app = app
         # the review items that the object fills in
         self.id = None
+        self.language = None
         self.summary = None
         self.text = None
         self.date = None
@@ -54,7 +56,12 @@ class Review(object):
         self.person = None
     def __repr__(self):
         return "[Review id=%s text='%s' person='%s']" % (self.id, self.text, self.person)
-
+    def to_xml(self):
+        return """<review review_id="%s" review_language="%s" 
+review_data="%s" review_rating="%s" review_person="%s">
+<summary>%s</summary><text>%s</text></review>""" % (
+            self.id, self.language, self.date, self.rating, self.person,
+            self.summary, self.text)
 
 class ReviewLoader(object):
     """A loader that returns a review object list"""
@@ -109,6 +116,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
             review.date = review_xml.getAttribute("review_date")
             review.rating = review_xml.getAttribute("review_rating")
             review.person = review_xml.getAttribute("review_person")
+            review.language = review_xml.getAttribute("review_language")
             review.summary = review_xml.getElementsByTagName("summary")[0].childNodes[0].data
             review.text = review_xml.getElementsByTagName("text")[0].childNodes[0].data
             reviews.append(review)

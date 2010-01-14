@@ -26,6 +26,7 @@ gobject.threads_init()
 import gettext
 import glib
 import gtk
+import locale
 import logging
 import os
 import sys
@@ -40,6 +41,9 @@ from Queue import Queue
 from urlparse import urljoin
 
 import softwarecenter.view.dialogs
+
+from softwarecenter.db.reviews import Review
+from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
 # the various states that the login can be in
@@ -92,7 +96,7 @@ class LaunchpadlibWorker(threading.Thread):
 
     def queue_review(self, review):
         """ queue a new review for sending to LP """
-        print "queue_review", text
+        print "queue_review", review
         self.pending_reviews.put(review)
 
     def _wait_for_commands(self):
@@ -109,10 +113,12 @@ class LaunchpadlibWorker(threading.Thread):
         #print "_submit_review"
         while not self.pending_reviews.empty():
             review = self.pending_reviews.get()
+            review.person = self.launchpad.me.name
             print "sending review"
             test_bug = self.launchpad.bugs[505983]
             msg = test_bug.newMessage(subject="test", 
-                                      content=review)
+                                      content=review.to_xml())
+            print review.to_xml()
             self.pending_reviews.task_done()
 
     def _lp_login(self):
@@ -241,6 +247,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         for i in range(self.rating+1, 6):
             img = getattr(self, "image_review_star%i" % i)
             img.set_from_file(self.DARK_STAR_IMAGE)
+        self._enable_or_disable_post_button()
 
     def on_image_review_star_button_press_event(self, widget, event, data):
         #print widget, event, data
@@ -262,6 +269,16 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
             self.quit()
 
+    def on_entry_summary_changed(self, widget):
+        #print "on_entry_summary_changed", widget
+        self._enable_or_disable_post_button()
+
+    def _enable_or_disable_post_button(self):
+        if self.entry_summary.get_text() and self.rating > 0:
+            self.button_post_review.set_sensitive(True)
+        else:
+            self.button_post_review.set_sensitive(False)
+            
     def enter_review(self):
         self.progressbar_connecting.hide()
         self.dialog_review_app.set_sensitive(True)
@@ -270,11 +287,15 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         print res
         if res == gtk.RESPONSE_OK:
             print "ok"
+            review = Review(self.app)
             text_buffer = self.textview_review.get_buffer()
-            text = text_buffer.get_text(text_buffer.get_start_iter(),
-                                        text_buffer.get_end_iter())
-            print text
-            lp_worker_thread.queue_review(text)
+            review.text = text_buffer.get_text(text_buffer.get_start_iter(),
+                                               text_buffer.get_end_iter())
+            review.summary = self.entry_summary.get_text()
+            review.date = time.time()
+            review.language = get_language()
+            review.rating = self.rating
+            lp_worker_thread.queue_review(review)
         # signal thread to finish
         lp_worker_thread.shutdown()
         self.quit()
@@ -324,6 +345,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
 lp_worker_thread = LaunchpadlibWorker()
 
 if __name__ == "__main__":
+    locale.setlocale(locale.LC_ALL, "")
     # FIXME: provide a package
     review_app = SubmitReviewsApp(datadir="./data", app="2vcard")
     review_app.run()

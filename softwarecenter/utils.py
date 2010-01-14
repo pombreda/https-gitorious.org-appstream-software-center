@@ -34,6 +34,19 @@ class ExecutionTime(object):
     def __exit__(self, type, value, stack):
         print "%s: %s" % (self.info, time.time() - self.now)
 
+def get_language():
+    """Helper that returns the current language
+    """
+    import locale
+    # those languages need the full language-code, the other ones
+    # can be abbreved
+    FULL = ["pt_BR", 
+            "zh_CN", "zh_TW"]
+    (language, encoding) = locale.getlocale()
+    if language in FULL:
+        return language
+    return language.split("_")[0]
+
 def get_http_proxy_string_from_gconf():
     """Helper that gets the http proxy from gconf
 
