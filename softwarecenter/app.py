@@ -207,9 +207,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.restore_state()
 
     # callbacks
-    def on_app_details_changed(self, widget, appname, pkgname, page):
-        self._selected_pkgname_for_page[page] = pkgname
-        self._selected_appname_for_page[page] = appname
+    def on_app_details_changed(self, widget, app, page):
+        self._selected_pkgname_for_page[page] = app.pkgname
+        self._selected_appname_for_page[page] = app.appname
         self.update_app_status_menu()
         self.update_status_bar()
 
@@ -220,9 +220,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.update_app_status_menu()
             self.update_status_bar()
 
-    def on_app_selected(self, widget, appname, pkgname, page):
-        self._selected_appname_for_page[page] = appname
-        self._selected_pkgname_for_page[page] = pkgname
+    def on_app_selected(self, widget, app, page):
+        self._selected_appname_for_page[page] = app.appname
+        self._selected_pkgname_for_page[page] = app.pkgname
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
 

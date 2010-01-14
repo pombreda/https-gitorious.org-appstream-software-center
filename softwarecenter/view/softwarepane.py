@@ -130,21 +130,19 @@ class SoftwarePane(gtk.VBox):
         if vadj:
             vadj.value_changed()
 
-    def on_application_activated(self, appview, name, pkgname):
+    def on_application_activated(self, appview, app):
         """callback when an app is clicked"""
-        logging.debug("on_application_activated: '%s'" % name)
-        if not name:
-            name = pkgname
-        self.navigation_bar.add_with_id(name,
+        logging.debug("on_application_activated: '%s'" % app)
+        self.navigation_bar.add_with_id(app.name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.app_details.show_app(name, pkgname)
+        self.app_details.show_app(app)
         
-    def on_application_selected(self, appview, name, pkgname):
+    def on_application_selected(self, appview, app):
         """callback when an app is selected"""
-        logging.debug("on_application_selected: '%s'" % name)
-        self._current_selected_pkgname = Application(name, pkgname)
+        logging.debug("on_application_selected: '%s'" % app)
+        self._current_selected_pkgname = app
         
     def update_app_view(self):
         """
@@ -156,7 +154,7 @@ class SoftwarePane(gtk.VBox):
         selection = self.app_view.get_selection()
         (model, it) = selection.get_selected()
         if model.get_iter_root() is not None and it is None:
-            index=0
+            index=-1
             vadj = self.scroll_app_list.get_vadjustment()
             if self._current_selected_pkgname:
                 if model.sorted:
@@ -165,11 +163,10 @@ class SoftwarePane(gtk.VBox):
                                           self._current_selected_pkgname) - 1
                     # index may not be the item we want
                     if model.apps[index] != self._current_selected_pkgname:
-                        index = 0
+                        index = -1
             # re-select item
-            self.app_view.set_cursor(index)
-            # reapply the scrollbar adjustment
-            if vadj and index:
+            if vadj and index >= 0:
+                self.app_view.set_cursor(index)
                 vadj.value_changed()
 
 
@@ -192,4 +189,8 @@ class SoftwarePane(gtk.VBox):
         
     def is_category_view_showing(self):
         " stub implementation "
+        pass
+
+    def get_selected_app(self):
+        """ return the current selected appliction object """
         pass
