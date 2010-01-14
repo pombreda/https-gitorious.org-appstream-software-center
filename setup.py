@@ -26,6 +26,7 @@ RELEASE='%s'
 
 setup(name="software-center", version=VERSION,
       scripts=["software-center",
+               "utils/submit_review.py",
                "utils/update-software-center",
                ],
       packages = ['softwarecenter',
