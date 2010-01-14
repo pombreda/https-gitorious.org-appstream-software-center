@@ -1,4 +1,42 @@
-software-center (1.1.7) UNRELEASED; urgency=low
+software-center (1.1.9) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/view/softwarepane.py:
+    - add code to reselect the app in the list view on
+      a tree model refresh
+  * softwarecenter/view/widgets/pathbar2.py:
+    - remove explicit callback when a button is appended
+      to the pathbar as it is not needed
+
+  [ Michael Vogt ]
+  * softwarecenter/apt/aptcache.py:
+    - properly fix removal warning (needs latest python-apt)
+  * debian/control:
+    - depend on latest python-apt
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jan 2010 14:48:49 +0100
+
+software-center (1.1.8) lucid; urgency=low
+
+  * softwarecenter/view/appdetailsview.py:
+    - replace thumbnail checking thread with (much nicer) gio
+      code
+  * softwarecenter/app.py:
+    - simplify state save logic
+    - save window size
+    - fix crash in ConfigParser (LP: #494899)
+  * softwarecenter/view/installedpane.py:
+    - fix search in installed section (LP: #504380)
+  * softwarecenter/apt/aptcache.py:
+    - fix missing warning on removal for non-english systems
+      (LP: #486474)
+  * softwarecenter/view/widgets/imagedialog.py:
+    - fix crash because of missing import
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jan 2010 14:39:35 +0100
+
+software-center (1.1.7) lucid; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/availablepane.py:
@@ -34,7 +72,7 @@ software-center (1.1.7) UNRELEASED; urgency=low
   * po/software-center.pot:
     - updated 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 05 Jan 2010 17:44:25 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 06 Jan 2010 19:03:28 +0100
 
 software-center (1.1.6) lucid; urgency=low
 

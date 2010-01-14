@@ -35,6 +35,7 @@ import xapian
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
 from softwarecenter.enums import *
+from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 
@@ -201,14 +202,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # default focus
         self.available_pane.searchentry.grab_focus()
         
-        #should we maximize?
+        # restore state
         self.config = get_config()
-        if self.config.has_option("general", "maximized"):
-            self.window_state = self.config.getboolean("general", "maximized")
-        else:
-            self.window_state = False
-        if self.window_state:
-            self.window_main.maximize()
+        self.restore_state()
 
     # callbacks
     def on_app_details_changed(self, widget, appname, pkgname, page):
@@ -231,6 +227,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.menuitem_copy.set_sensitive(True)
 
     def on_window_main_delete_event(self, widget, event):
+        self.save_state()
         gtk.main_quit()
         
     def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
@@ -393,9 +390,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.apps_filter.set_supported_only(True)
         self.active_pane.refresh_apps()
         
-    def on_window_main_window_state_event(self, widget, event):
-        self.window_state = event.new_window_state.value_names
-
     # helper
 
     # FIXME: move the two functions below into generic code
@@ -469,11 +463,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.label_status.set_text(s)
         
     def update_app_list_view(self):
-        """Helper that updates the appview list.  If no application is selected,
-           the first application in the list is selected, else, the selection
-           is unchanged.
+        """Helper that updates the app view list.
         """
         if self.active_pane is not None and not self.active_pane.is_category_view_showing():
+#            with ExecutionTime("TIME update_app_view"):
+#                self.active_pane.update_app_view()
             self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
@@ -560,12 +554,29 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
 
+    def restore_state(self):
+        if self.config.has_option("general", "size"):
+            (x, y) = self.config.get("general", "size").split(",")
+            self.window_main.resize(int(x), int(y))
+        if (self.config.has_option("general", "maximized") and
+            self.config.getboolean("general", "maximized")):
+            self.window_main.maximize()
+
     def save_state(self):
         logging.debug("save_state")
-        if self.window_state == ['GDK_WINDOW_STATE_MAXIMIZED']:
+        # this happens on a delete event, we explicitely save_state() there
+        if self.window_main.window is None:
+            return
+        if not self.config.has_section("general"):
+            self.config.add_section("general")
+        maximized = self.window_main.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED
+        if maximized:
             self.config.set("general", "maximized", "True")
         else:
             self.config.set("general", "maximized", "False")
+            # size only matters when non-maximized
+            size = self.window_main.get_size() 
+            self.config.set("general","size", "%s, %s" % (size[0], size[1]))
         self.config.write()
 
     def run(self, args):

@@ -19,6 +19,7 @@
 import apt
 import dbus
 import gettext
+import gio
 import glib
 import gobject
 import gtk
@@ -31,7 +32,6 @@ import string
 import subprocess
 import sys
 import tempfile
-import threading
 import urllib
 import xapian
 
@@ -155,18 +155,8 @@ class AppDetailsView(WebkitWidget):
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.appname, self.pkgname)
-        # FIXME: this 404 checking code is all ugly and should be
-        #        factored out
-        # check for thumbnail (does a http HEAD so needs to run in
-        # a extra thread to avoid blocking on connect)
-        self._thumbnail_is_missing = False
-        self._thumbnail_checking_thread_running = True
-        threading.Thread(target=self._check_thumb_available).start()
-        # also start a gtimeout handler to check when the thread finished
-        # (multiple GUI access is something that gtk does not like)
-        glib.timeout_add(200, self._check_thumb_gtk)
-        # do a async review lookup
-        glib.timeout_add(200, self._check_for_reviews)
+        self._check_thumb_available()
+        self._check_for_reviews()
 
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -450,8 +440,11 @@ class AppDetailsView(WebkitWidget):
     def _reviews_ready_callback(self, app, reviews):
         # avoid possible race if we already moved to a new app when
         # the reviews become ready
+        print "got: ", app.appname, app.pkgname
+        print "have: ", self.appname, self.pkgname
         if (self.pkgname != app.pkgname or
             self.appname != app.appname):
+            print "no"
             return
         if not reviews:
             no_review = _("This software item has no reviews yet.")
@@ -470,36 +463,33 @@ class AppDetailsView(WebkitWidget):
             # FIXME: ensure webkit is in WEBKIT_LOAD_FINISHED state
             self.execute_script(s)
 
-    def _check_thumb_gtk(self):
-        logging.debug("_check_thumb_gtk")
-        # wait until its ready for JS injection
-        # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-        if self.get_property("load-status") != 2:
-            return True
-        if self._thumbnail_is_missing:
-            self.execute_script("thumbMissing();")
-        return self._thumbnail_checking_thread_running
-
     def _check_thumb_available(self):
-        """ check if the thumbnail image is available on the server
-            and alter the html if not
+        """ check for 404 on the given thumbnail image and run
+            JS thumbMissing() if the thumb is not available
         """
-        # we have to do the checking here and can not do it directly
-        # inside the html (e.g. via xmlhttp) because the security
-        # boundaries will not allow us to request a http:// uri
-        # from a file:// html page
-        logging.debug("_check_thumb_available")
-        # check if we can get the thumbnail or just a 404
-        timeout = socket.getdefaulttimeout()
-        socket.setdefaulttimeout(DEFAULT_SOCKET_TIMEOUT)
-        urllib._urlopener = GnomeProxyURLopener()
-        try:
-            f = urllib.urlopen(self.distro.SCREENSHOT_THUMB_URL % self.pkgname)
-        except (Url404Error, IOError), e:
-            logging.debug("no thumbnail image")
-            self._thumbnail_is_missing = True
-        socket.setdefaulttimeout(timeout)
-        self._thumbnail_checking_thread_running = False
+        # internal helpers for the internal helper
+        def thumb_query_info_async_callback(source, result):
+            logging.debug("thumb_query_info_async_callback")
+            try:
+                result = source.query_info_finish(result)
+            except glib.GError, e:
+                logging.debug("no thumb available")
+                glib.timeout_add(200, run_thumb_missing_js)
+            del source
+        def run_thumb_missing_js():
+            logging.debug("run_thumb_missing_js")
+            # wait until its ready for JS injection
+            # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
+            if self.get_property("load-status") != 2:
+                return True
+            self.execute_script("thumbMissing();")
+            return False
+        # use gio (its so nice)
+        url = self.distro.SCREENSHOT_THUMB_URL % self.pkgname
+        logging.debug("_check_thumb_available '%s'" % url)
+        f=gio.File(url)
+        f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
+                           thumb_query_info_async_callback)
 
     def _get_action_button_label_and_value(self):
         action_button_label = ""
@@ -597,8 +587,8 @@ if __name__ == "__main__":
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
     #view.show_app("3D Chess", "3dchess")
-    view.show_app("Movie Player", "totem")
-    #view.show_app("ACE", "unace")
+    #view.show_app("Movie Player", "totem")
+    view.show_app("ACE", "unace")
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")

@@ -113,7 +113,8 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         dom = xml.dom.minidom.parseString(xml_str)
         reviews = []
         for review_xml in dom.getElementsByTagName("review"):
-            app = Application(review_xml.getAttribute("review_app"))
+            appname, pkgname = review_xml.getAttribute("review_app").split(",")
+            app = Application(appname, pkgname)
             review = Review(app)
             review.id = review_xml.getAttribute("review_id")
             review.date = review_xml.getAttribute("review_date")

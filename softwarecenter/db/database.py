@@ -33,14 +33,17 @@ class Application(object):
     def __init__(self, appname, pkgname):
         self.appname = appname
         self.pkgname = pkgname
-    def __str__(self):
-        return "%s,%s" % (self.appname, self.pkgname)
     @property
     def name(self):
         """Show user visible name"""
         if self.appname:
             return self.appname
         return self.pkgname
+    # special methods
+    def __cmp__(self, other):
+        return self.apps_cmp(self, other)
+    def __str__(self):
+        return "%s,%s" % (self.appname, self.pkgname)
     @staticmethod
     def apps_cmp(x, y):
         """ sort method for the applications """
@@ -120,7 +123,7 @@ class StoreDatabase(gobject.GObject):
             return query
         return None
 
-    def get_query_list_from_search_entry(self, search_term, category_query):
+    def get_query_list_from_search_entry(self, search_term, category_query=None):
         """ get xapian.Query from a search term string and a limit the
             search to the given category
         """

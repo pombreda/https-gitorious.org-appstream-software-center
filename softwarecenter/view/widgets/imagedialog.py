@@ -17,6 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gconf
+import glib
+import gio
 import gtk
 import logging
 import tempfile

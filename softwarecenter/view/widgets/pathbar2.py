@@ -1328,7 +1328,8 @@ class NavigationBar(PathBar):
             self.queue_draw_area(*part.get_allocation_tuple())
         else:
             part = PathPart(label, callback)
-            part.callback(self)
+            # mvo please check this:  the following seems redundant, so removing (gml)
+            # part.callback(self)
             part.set_pathbar(self)
             self.id_to_part[id] = part
             gobject.timeout_add(50, self.append, part)
