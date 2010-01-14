@@ -34,6 +34,7 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
+from softwarecenter import Application
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
@@ -543,7 +544,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # FIXME: this currently only works with pkg names for apps
             #        it needs to perform a search because a App name
             #        is (in general) not unique
-            self.available_pane.app_details.show_app("", pkg_name)
+            app = Application("", pkg_name)
+            self.available_pane.app_details.show_app(app)
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APP_DETAILS)
         if len(packages) > 1:
