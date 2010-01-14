@@ -30,6 +30,8 @@ import weakref
 import xml.dom.minidom
 
 import softwarecenter.distro
+
+from softwarecenter.db.database import Application
 from softwarecenter.utils import *
 
 class ReviewStats(object):
@@ -57,11 +59,11 @@ class Review(object):
     def __repr__(self):
         return "[Review id=%s text='%s' person='%s']" % (self.id, self.text, self.person)
     def to_xml(self):
-        return """<review review_id="%s" review_language="%s" 
+        return """<review review_app="%s" review_id="%s" review_language="%s" 
 review_data="%s" review_rating="%s" review_person="%s">
 <summary>%s</summary><text>%s</text></review>""" % (
-            self.id, self.language, self.date, self.rating, self.person,
-            self.summary, self.text)
+            self.app, self.id, self.language, self.date, self.rating, 
+            self.person, self.summary, self.text)
 
 class ReviewLoader(object):
     """A loader that returns a review object list"""
@@ -111,6 +113,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         dom = xml.dom.minidom.parseString(xml_str)
         reviews = []
         for review_xml in dom.getElementsByTagName("review"):
+            app = Application(review_xml.getAttribute("review_app"))
             review = Review(app)
             review.id = review_xml.getAttribute("review_id")
             review.date = review_xml.getAttribute("review_date")

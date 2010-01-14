@@ -33,6 +33,14 @@ class Application(object):
     def __init__(self, appname, pkgname):
         self.appname = appname
         self.pkgname = pkgname
+    def __str__(self):
+        return "%s,%s" % (self.appname, self.pkgname)
+    @property
+    def name(self):
+        """Show user visible name"""
+        if self.appname:
+            return self.appname
+        return self.pkgname
     @staticmethod
     def apps_cmp(x, y):
         """ sort method for the applications """

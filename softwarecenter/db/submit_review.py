@@ -42,6 +42,7 @@ from urlparse import urljoin
 
 import softwarecenter.view.dialogs
 
+from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
@@ -116,7 +117,7 @@ class LaunchpadlibWorker(threading.Thread):
             review.person = self.launchpad.me.name
             print "sending review"
             test_bug = self.launchpad.bugs[505983]
-            msg = test_bug.newMessage(subject="test", 
+            msg = test_bug.newMessage(subject=review.summary, 
                                       content=review.to_xml())
             print review.to_xml()
             self.pending_reviews.task_done()
@@ -128,7 +129,6 @@ class LaunchpadlibWorker(threading.Thread):
         cachedir = os.path.expanduser("~/.cache/software-center")
         if not os.path.exists(cachedir):
             os.makedirs(cachedir)
-        print "hello"
 
         # login into LP with GUI
         try:
@@ -211,7 +211,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
     STAR_IMAGE = "/usr/share/software-center/images/star-yellow.png"
     DARK_STAR_IMAGE = "/usr/share/software-center/images/star-dark.png"
 
-    def __init__(self, app, datadir):
+    def __init__(self, app, version, datadir):
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/reviews.ui",
                                      "software-center")
@@ -219,7 +219,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         gettext.textdomain("software-center")
         # data
         self.app = app
-        self.version = "1.0"
+        self.version = version
         self.rating = 0
         # set pw dialog transient for main window
         self.dialog_review_login.set_transient_for(self.dialog_review_app)
@@ -232,7 +232,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
                              self.on_image_review_star_button_press_event,
                              i)
         self.label_name.set_markup("<big>%s</big>\n<small>%s</small>" % (
-                self.app, self.version))
+                self.app.name, self.version))
     
     def _init_icons(self):
         """ init the icons """
@@ -347,6 +347,7 @@ lp_worker_thread = LaunchpadlibWorker()
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
     # FIXME: provide a package
-    review_app = SubmitReviewsApp(datadir="./data", app="2vcard")
+    app = Application(None, "7zip")
+    review_app = SubmitReviewsApp(datadir="./data", app=app, version="1.0")
     review_app.run()
 
