@@ -42,6 +42,7 @@ if os.path.exists("./softwarecenter/enums.py"):
 
 from softwarecenter import Application
 from softwarecenter.enums import *
+from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase, Application
 
@@ -346,17 +347,22 @@ class AppDetailsView(WebkitWidget):
         self._set_action_button_sensitive(False)
 
     def on_write_new_review_clicked(self):
-        print "on_write_new_review_clicked"
-        #dialogs.error(None, "new review not implemented yet","")
         if not (self.pkg and self.pkg.candidate):
-            dialogs.error(self, _("Unknwon version"),
-                          _("A review is not possible."))
+            dialogs.error(None, 
+                          _("Version unknown"),
+                          _("The version of the application can not "
+                            "be detected. Entering a review is not "
+                            "possible."))
             return
         # call out
+        version = self.pkg.candidate.version
+        if self.pkg.installed:
+            version = self.pkg.installed.version
         cmd = [SUBMIT_REVIEW_APP, 
                "--pkgname", self.app.pkgname,
                "--iconname", self.iconname,
-               "--version", self.pkg.candidate.version]
+               "--parent-xid", "%s" % get_parent_xid(self),
+               "--version", version]
         if self.app.appname:
             cmd += ["--appname", self.app.appname]
         subprocess.Popen(cmd)

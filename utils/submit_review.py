@@ -213,7 +213,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
 
     APP_ICON_SIZE = 48
 
-    def __init__(self, app, version, iconname, datadir):
+    def __init__(self, app, version, iconname, parent_xid, datadir):
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/reviews.ui",
                                      "software-center")
@@ -229,6 +229,15 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self.version = version
         self.iconname = iconname
         self.rating = 0
+        # title
+        self.dialog_review_app.set_title(_("Review %s" % self.app.name))
+        # parent xid
+        if parent_xid:
+            win = gtk.gdk.window_foreign_new(int(parent_xid))
+            if win:
+                self.dialog_review_app.realize()
+                self.dialog_review_app.window.set_transient_for(win)
+        self.dialog_review_app.set_position(gtk.WIN_POS_MOUSE)
         # set pw dialog transient for main window
         self.dialog_review_login.set_transient_for(self.dialog_review_app)
         self.dialog_review_login.set_modal(True)
@@ -361,6 +370,7 @@ if __name__ == "__main__":
     parser.add_option("-p", "--pkgname")
     parser.add_option("-i", "--iconname")
     parser.add_option("-V", "--version")
+    parser.add_option("", "--parent-xid")
     parser.add_option("", "--debug",
                       action="store_true", default=False)
     parser.add_option("", "--datadir", 
@@ -377,6 +387,7 @@ if __name__ == "__main__":
     app = Application(options.appname, options.pkgname)
     review_app = SubmitReviewsApp(datadir=options.datadir,
                                   app=app, 
+                                  parent_xid=options.parent_xid,
                                   iconname=options.iconname,
                                   version=options.version)
     review_app.run()

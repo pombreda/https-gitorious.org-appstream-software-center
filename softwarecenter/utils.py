@@ -34,6 +34,11 @@ class ExecutionTime(object):
     def __exit__(self, type, value, stack):
         print "%s: %s" % (self.info, time.time() - self.now)
 
+def get_parent_xid(widget):
+    while widget.get_parent():
+        widget = widget.get_parent()
+    return widget.window.xid
+
 def get_language():
     """Helper that returns the current language
     """
