@@ -157,6 +157,7 @@ class SoftwarePane(gtk.VBox):
         (model, it) = selection.get_selected()
         if model.get_iter_root() is not None and it is None:
             index=0
+            vadj = self.scroll_app_list.get_vadjustment()
             if self._current_selected_pkgname:
                 if model.sorted:
                     # bisect returns "insert" point right of the element
@@ -165,8 +166,11 @@ class SoftwarePane(gtk.VBox):
                     # index may not be the item we want
                     if model.apps[index] != self._current_selected_pkgname:
                         index = 0
+            # re-select item
             self.app_view.set_cursor(index)
-            self.app_view.scroll_to_cell(index, use_align=True, row_align=0.3)
+            # reapply the scrollbar adjustment
+            if vadj and index:
+                vadj.value_changed()
 
 
     def get_status_text(self):
