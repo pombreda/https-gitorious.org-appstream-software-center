@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2009 Canonical
@@ -38,6 +39,7 @@ from launchpadlib.launchpad import Launchpad
 from launchpadlib.credentials import RequestTokenAuthorizationEngine
 from launchpadlib import uris
 from Queue import Queue
+from optparse import OptionParser
 from urlparse import urljoin
 
 import softwarecenter.view.dialogs
@@ -85,7 +87,7 @@ class LaunchpadlibWorker(threading.Thread):
         """Main thread run interface, logs into launchpad and waits
            for commands
         """
-        print "lp worker thread run"
+        logging.debug("lp worker thread run")
         # login
         self._lp_login()
         # loop
@@ -97,13 +99,13 @@ class LaunchpadlibWorker(threading.Thread):
 
     def queue_review(self, review):
         """ queue a new review for sending to LP """
-        print "queue_review", review
+        logging.debug("queue_review %s" % review)
         self.pending_reviews.put(review)
 
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
         while True:
-            #print "worker: _wait_for_commands", self.login_state
+            #logging.debug("worker: _wait_for_commands %s" % self.login_state)
             self._submit_reviews()
             time.sleep(0.2)
             if self._shutdown and self.pending_reviews.empty():
@@ -111,25 +113,24 @@ class LaunchpadlibWorker(threading.Thread):
 
     def _submit_reviews(self):
         """ internal submit code """
-        #print "_submit_review"
         while not self.pending_reviews.empty():
+            logging.debug("_submit_review")
             review = self.pending_reviews.get()
             review.person = self.launchpad.me.name
-            print "sending review"
+            logging.debug("sending review %s" % review.to_xml())
+            # FIXME: this needs to be replaced with the actual API
             test_bug = self.launchpad.bugs[505983]
             msg = test_bug.newMessage(subject=review.summary, 
                                       content=review.to_xml())
-            print review.to_xml()
             self.pending_reviews.task_done()
 
     def _lp_login(self):
         """ internal LP login code """
-        print "lp_login"
+        logging.debug("lp_login")
         # use cachedir
         cachedir = os.path.expanduser("~/.cache/software-center")
         if not os.path.exists(cachedir):
             os.makedirs(cachedir)
-
         # login into LP with GUI
         try:
             self.launchpad = Launchpad.login_with(
@@ -144,8 +145,7 @@ class LaunchpadlibWorker(threading.Thread):
             return
         # if we are here we are in
         self.login_state = LOGIN_STATE_SUCCESS
-        print "/done"
-        print self.launchpad
+        logging.debug("/done %s" % self.launchpad)
 
 class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
     """ Internal helper that updates the login_state of
@@ -161,7 +161,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         return o
 
     def input_username(self, cached_username, suggested_message):
-        print "input_username: ", self.lp_worker.login_state
+        logging.debug( "input_username: %s" %self.lp_worker.login_state)
         # otherwise go into ASK state
         if not self.lp_worker.login_state in (LOGIN_STATE_ASK_USER_AND_PASS,
                                               LOGIN_STATE_AUTH_FAILURE,
@@ -179,21 +179,21 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         return self.lp_worker.login_username
 
     def input_password(self, suggested_message):
-        print "Input password"
+        logging.debug( "Input password size %s" % len(login_password))
         return self.lp_worker.login_password
 
     def input_access_level(self, available_levels, suggested_message,
                            only_one_option=None):
         """Collect the desired level of access from the end-user."""
-        print "input_access_level"
+        logging.debug("input_access_level")
         return "WRITE_PUBLIC"
 
     def startup(self, suggested_messages):
-        print "startup"
+        logging.debug("startup")
 
     def authentication_failure(self, suggested_message):
         """The user entered invalid credentials."""
-        print "auth failure"
+        logging.debug("auth failure")
         # ignore auth failures if the user canceled
         if self.lp_worker.login_state == LOGIN_STATE_USER_CANCEL:
             return
@@ -201,7 +201,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
 
     def success(self, suggested_message):
         """The token was successfully authorized."""
-        print "success"
+        logging.debug("success")
         self.lp_worker.login_state = LOGIN_STATE_SUCCESS
 
 class SubmitReviewsApp(SimpleGtkbuilderApp):
@@ -240,7 +240,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self._update_rating()
 
     def _update_rating(self):
-        print "_update_rating", self.rating
+        logging.debug("_update_rating %s" % self.rating)
         for i in range(1, self.rating+1):
             img = getattr(self, "image_review_star%i" % i)
             img.set_from_file(self.STAR_IMAGE)
@@ -250,7 +250,6 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self._enable_or_disable_post_button()
 
     def on_image_review_star_button_press_event(self, widget, event, data):
-        #print widget, event, data
         self.rating = data
         self._update_rating()
 
@@ -270,7 +269,6 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             self.quit()
 
     def on_entry_summary_changed(self, widget):
-        #print "on_entry_summary_changed", widget
         self._enable_or_disable_post_button()
 
     def _enable_or_disable_post_button(self):
@@ -284,9 +282,8 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self.dialog_review_app.set_sensitive(True)
         res = self.dialog_review_app.run()
         self.dialog_review_app.hide()
-        print res
         if res == gtk.RESPONSE_OK:
-            print "ok"
+            logging.debug("enter_review ok button")
             review = Review(self.app)
             text_buffer = self.textview_review.get_buffer()
             review.text = text_buffer.get_text(text_buffer.get_start_iter(),
@@ -323,7 +320,6 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         SimpleGtkbuilderApp.run(self)
     
     def _wait_for_login(self):
-        #print "gui: _wait_state_change: ", lp_worker_thread.login_state
         state = lp_worker_thread.login_state
         # hide progress once we got a reply
         # check state
@@ -346,8 +342,28 @@ lp_worker_thread = LaunchpadlibWorker()
 
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
-    # FIXME: provide a package
-    app = Application(None, "7zip")
-    review_app = SubmitReviewsApp(datadir="./data", app=app, version="1.0")
+    
+    # check options
+    parser = OptionParser()
+    parser.add_option("-a", "--appname")
+    parser.add_option("-p", "--pkgname")
+    parser.add_option("-V", "--version")
+    parser.add_option("", "--debug",
+                      action="store_true", default=False)
+    parser.add_option("", "--datadir", 
+                      default="/usr/share/software-center/")
+    (options, args) = parser.parse_args()
+
+    if not (options.pkgname or options.version):
+        parser.error(_("Missing arguments"))
+    
+    if options.debug:
+       logging.basicConfig(level=logging.DEBUG)                        
+
+    # initialize and run
+    app = Application(options.appname, options.pkgname)
+    review_app = SubmitReviewsApp(datadir=options.datadir,
+                                  app=app, 
+                                  version=options.version)
     review_app.run()
 
