@@ -439,12 +439,10 @@ class AppDetailsView(WebkitWidget):
 
     def _reviews_ready_callback(self, app, reviews):
         # avoid possible race if we already moved to a new app when
-        # the reviews become ready
-        print "got: ", app.appname, app.pkgname
-        print "have: ", self.appname, self.pkgname
-        if (self.pkgname != app.pkgname or
-            self.appname != app.appname):
-            print "no"
+        # the reviews become ready 
+        # (we only check for pkgname currently to avoid breaking on
+        #  software-center totem)
+        if self.pkgname != app.pkgname:
             return
         if not reviews:
             no_review = _("This software item has no reviews yet.")
