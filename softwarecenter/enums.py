@@ -23,7 +23,10 @@ APP_INSTALL_PATH = "/usr/share/app-install"
 APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
-SOFTWARE_CENTER_ICON_PATH = "/usr/share/software-center/icons"
+
+SOFTWARE_CENTER_BASE = "/usr/share/software-center"
+SOFTWARE_CENTER_ICON_PATH = SOFTWARE_CENTER_BASE+"/icons"
+SUBMIT_REVIEW_APP = SOFTWARE_CENTER_BASE+"/submit_review.py"
 
 # icon
 MISSING_APP_ICON = "applications-other"

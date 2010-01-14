@@ -211,15 +211,23 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
     STAR_IMAGE = "/usr/share/software-center/images/star-yellow.png"
     DARK_STAR_IMAGE = "/usr/share/software-center/images/star-dark.png"
 
-    def __init__(self, app, version, datadir):
+    APP_ICON_SIZE = 48
+
+    def __init__(self, app, version, iconname, datadir):
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/reviews.ui",
                                      "software-center")
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")
+        
+        # additional icons come from app-install-data
+        self.icons = gtk.icon_theme_get_default()
+        self.icons.append_search_path("/usr/share/app-install/icons/")
+
         # data
         self.app = app
         self.version = version
+        self.iconname = iconname
         self.rating = 0
         # set pw dialog transient for main window
         self.dialog_review_login.set_transient_for(self.dialog_review_app)
@@ -238,6 +246,10 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         """ init the icons """
         self.image_review_login.set_from_file(self.LOGIN_IMAGE)
         self._update_rating()
+        if self.iconname:
+            icon = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
+            if icon:
+                self.image_review_app.set_from_pixbuf(icon)
 
     def _update_rating(self):
         logging.debug("_update_rating %s" % self.rating)
@@ -347,6 +359,7 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-a", "--appname")
     parser.add_option("-p", "--pkgname")
+    parser.add_option("-i", "--iconname")
     parser.add_option("-V", "--version")
     parser.add_option("", "--debug",
                       action="store_true", default=False)
@@ -354,7 +367,7 @@ if __name__ == "__main__":
                       default="/usr/share/software-center/")
     (options, args) = parser.parse_args()
 
-    if not (options.pkgname or options.version):
+    if not (options.pkgname and options.version):
         parser.error(_("Missing arguments"))
     
     if options.debug:
@@ -364,6 +377,7 @@ if __name__ == "__main__":
     app = Application(options.appname, options.pkgname)
     review_app = SubmitReviewsApp(datadir=options.datadir,
                                   app=app, 
+                                  iconname=options.iconname,
                                   version=options.version)
     review_app.run()
 

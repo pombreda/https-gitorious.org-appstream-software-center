@@ -347,7 +347,20 @@ class AppDetailsView(WebkitWidget):
 
     def on_write_new_review_clicked(self):
         print "on_write_new_review_clicked"
-        dialogs.error(None, "new review not implemented yet","")
+        #dialogs.error(None, "new review not implemented yet","")
+        if not (self.pkg and self.pkg.candidate):
+            dialogs.error(self, _("Unknwon version"),
+                          _("A review is not possible."))
+            return
+        # call out
+        cmd = [SUBMIT_REVIEW_APP, 
+               "--pkgname", self.app.pkgname,
+               "--iconname", self.iconname,
+               "--version", self.pkg.candidate.version]
+        if self.app.appname:
+            cmd += ["--appname", self.app.appname]
+        subprocess.Popen(cmd)
+                         
     def on_report_abuse_clicked(self):
         print "on_report_abuse_clicked"
         dialogs.error(None, "report abuse not implemented yet","")

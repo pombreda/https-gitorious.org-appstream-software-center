@@ -290,6 +290,7 @@
               <object class="GtkTextView" id="textview_review">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="wrap_mode">word</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
