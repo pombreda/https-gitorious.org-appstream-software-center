@@ -34,6 +34,7 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
+from softwarecenter import Application
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
@@ -207,9 +208,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.restore_state()
 
     # callbacks
-    def on_app_details_changed(self, widget, appname, pkgname, page):
-        self._selected_pkgname_for_page[page] = pkgname
-        self._selected_appname_for_page[page] = appname
+    def on_app_details_changed(self, widget, app, page):
+        self._selected_pkgname_for_page[page] = app.pkgname
+        self._selected_appname_for_page[page] = app.appname
         self.update_app_status_menu()
         self.update_status_bar()
 
@@ -220,9 +221,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.update_app_status_menu()
             self.update_status_bar()
 
-    def on_app_selected(self, widget, appname, pkgname, page):
-        self._selected_appname_for_page[page] = appname
-        self._selected_pkgname_for_page[page] = pkgname
+    def on_app_selected(self, widget, app, page):
+        self._selected_appname_for_page[page] = app.appname
+        self._selected_pkgname_for_page[page] = app.pkgname
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
 
@@ -543,7 +544,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # FIXME: this currently only works with pkg names for apps
             #        it needs to perform a search because a App name
             #        is (in general) not unique
-            self.available_pane.app_details.show_app("", pkg_name)
+            app = Application("", pkg_name)
+            self.available_pane.app_details.show_app(app)
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APP_DETAILS)
         if len(packages) > 1:

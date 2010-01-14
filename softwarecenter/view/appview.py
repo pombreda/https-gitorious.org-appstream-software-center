@@ -97,7 +97,7 @@ class AppStore(gtk.GenericTreeModel):
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
                 pkgname = db.get_pkgname(doc)
                 self.apps.append(Application(appname, pkgname))
-            self.apps.sort(cmp=Application.apps_cmp)
+            self.apps.sort()
         else:
             # we support single and list search_queries, 
             # if list we append them one by one
@@ -131,11 +131,12 @@ class AppStore(gtk.GenericTreeModel):
                         continue
                     # when doing multiple queries we need to ensure
                     # we don't add duplicates
-                    if not (appname, pkgname) in already_added:
-                        self.apps.append(Application(appname, pkgname))
-                        already_added.add((appname, pkgname))
+                    app = Application(appname, pkgname)
+                    if not app in already_added:
+                        self.apps.append(app)
+                        already_added.add(app)
             if sort:
-                self.apps.sort(cmp=Application.apps_cmp)
+                self.apps.sort()
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = self.db.get_pkgname(doc)
@@ -436,11 +437,11 @@ class AppView(gtk.TreeView):
     __gsignals__ = {
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
-                                   (str, str, ),
+                                   (gobject.TYPE_PYOBJECT, ),
                                   ),
         "application-selected" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
-                                   (str, str, ),
+                                   (gobject.TYPE_PYOBJECT, ),
                                   ),
     }
 
@@ -476,7 +477,7 @@ class AppView(gtk.TreeView):
 
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
-        self.emit("application-activated", name, pkgname)
+        self.emit("application-activated", Application(name, pkgname))
 
     def _on_cursor_changed(self, treeview):
         selection = treeview.get_selection()
@@ -484,7 +485,7 @@ class AppView(gtk.TreeView):
         if iter is None:
             return
         (name, text, icon, overlay, pkgname) = model[iter]
-        self.emit("application-selected", name, pkgname)
+        self.emit("application-selected", Application(name, pkgname))
 
     # FIXME: move the tooltip, motion_notify etc to the render/TreeViewColumn?
     def _on_motion_notify_event(self, widget, event, tr):

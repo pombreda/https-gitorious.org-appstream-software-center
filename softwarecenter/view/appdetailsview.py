@@ -40,6 +40,7 @@ from gettext import gettext as _
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 
+from softwarecenter import Application
 from softwarecenter.enums import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase, Application
@@ -73,7 +74,7 @@ class AppDetailsView(WebkitWidget):
 
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
-                                (str,str, ))
+                                (gobject.TYPE_PYOBJECT, )),
                     }
 
     def __init__(self, db, distro, icons, cache, datadir):
@@ -94,8 +95,7 @@ class AppDetailsView(WebkitWidget):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         # data
-        self.appname = ""
-        self.pkgname = ""
+        self.app = None
         self.iconname = ""
         # setup user-agent
         settings = self.get_settings()
@@ -103,18 +103,15 @@ class AppDetailsView(WebkitWidget):
         self.connect("navigation-requested", self._on_navigation_requested)
 
     def _show(self, widget):
-        if not self.appname:
+        if not self.app:
             return
         super(AppDetailsView, self)._show(widget)
 
     # public API
-    def init_app(self, appname, pkgname):
-        logging.debug("AppDetailsView.init_app '%s'" % appname)
+    def init_app(self, app):
+        logging.debug("AppDetailsView.init_app '%s'" % app)
         # init app specific data
-        self.appname = appname
-        # if we don't have a app, we use the pkgname as appname
-        if not appname:
-            self.appname = pkgname
+        self.app = app
         # other data
         self.homepage_url = None
         self.channelfile = None
@@ -122,9 +119,11 @@ class AppDetailsView(WebkitWidget):
         self.doc = None
 
         # get xapian document
-        self.doc = self.db.get_xapian_document(appname, pkgname)
+        self.doc = self.db.get_xapian_document(self.app.appname, 
+                                               self.app.pkgname)
         if not self.doc:
-            raise IndexError, "No app '%s' for '%s' in database" % (appname, pkgname)
+            raise IndexError, "No app '%s' for '%s' in database" % (
+                self.app.appname, self.app.pkgname)
 
         # get icon
         self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)
@@ -133,28 +132,28 @@ class AppDetailsView(WebkitWidget):
         self.iconname = os.path.splitext(self.iconname)[0]
 
         # get apt cache data
-        self.pkgname = self.db.get_pkgname(self.doc)
+        pkgname = self.db.get_pkgname(self.doc)
         self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.pkg = None
-        if (self.cache.has_key(self.pkgname) and
-            self.cache[self.pkgname].candidate):
-            self.pkg = self.cache[self.pkgname]
+        if (self.cache.has_key(pkgname) and
+            self.cache[pkgname].candidate):
+            self.pkg = self.cache[pkgname]
         if self.pkg:
             self.homepage_url = self.pkg.candidate.homepage
     
-    def show_app(self, appname, pkgname):
-        logging.debug("AppDetailsView.show_app '%s'" % appname)
+    def show_app(self, app):
+        logging.debug("AppDetailsView.show_app '%s'" % app)
 
         # clear first to avoid showing the old app details for
         # some milliseconds before switching to the new app
         self.clear()
         
         # initialize the app
-        self.init_app(appname, pkgname)
+        self.init_app(app)
         
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
-        self.emit("selected", self.appname, self.pkgname)
+        self.emit("selected", self.app)
         self._check_thumb_available()
         self._check_for_reviews()
 
@@ -172,12 +171,12 @@ class AppDetailsView(WebkitWidget):
 
     # substitute functions called during page display
     def wksub_appname(self):
-        return self.appname
+        return self.app.name
     def wksub_pkgname(self):
-        return self.pkgname
+        return self.app.pkgname
     def wksub_body_class(self):
-        if (self.cache.has_key(self.pkgname) and
-            self.cache[self.pkgname].isInstalled):
+        if (self.cache.has_key(self.app.pkgname) and
+            self.cache[self.app.pkgname].isInstalled):
             return "section-installed"
         return "section-get"
     def wksub_description(self):
@@ -194,7 +193,7 @@ class AppDetailsView(WebkitWidget):
             else:
                 return _("Sorry, '%s' is not available for "
                          "this type of computer (%s).") % (
-                        self.appname, self.arch)
+                        self.app.name, self.arch)
 
         # format for html
         description = self.pkg.description
@@ -232,8 +231,8 @@ class AppDetailsView(WebkitWidget):
         return description
 
     def wksub_iconpath_loading(self):
-        if (self.cache.has_key(self.pkgname) and
-            self.cache[self.pkgname].isInstalled):
+        if (self.cache.has_key(self.app.pkgname) and
+            self.cache[self.app.pkgname].isInstalled):
             return self.IMAGE_LOADING_INSTALLED
         return self.IMAGE_LOADING
     def wksub_iconpath(self):
@@ -248,7 +247,7 @@ class AppDetailsView(WebkitWidget):
             iconpath = self.tf.name
         return iconpath
     def wksub_screenshot_thumbnail_url(self):
-        url = self.distro.SCREENSHOT_THUMB_URL % self.pkgname
+        url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
         return url
     def wksub_screenshot_alt(self):
         return _("Application Screenshot")
@@ -295,12 +294,12 @@ class AppDetailsView(WebkitWidget):
     def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
         return self.distro.get_maintenance_status(self.cache,
-            self.appname, self.pkgname, self.component, self.channelfile)
+            self.app.appname, self.app.pkgname, self.component, self.channelfile)
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
         if not self.pkg:
             return ""
-        return self.distro.get_rdepends_text(self.cache, self.pkg, self.appname)
+        return self.distro.get_rdepends_text(self.cache, self.pkg, self.app.name)
     def wksub_homepage(self):
         s = _("Website")
         return s
@@ -316,8 +315,8 @@ class AppDetailsView(WebkitWidget):
             return "visible"
         return "hidden"
     def wksub_screenshot_installed(self):
-        if (self.cache.has_key(self.pkgname) and
-            self.cache[self.pkgname].isInstalled):
+        if (self.cache.has_key(self.app.pkgname) and
+            self.cache[self.app.pkgname].isInstalled):
             return "screenshot_thumbnail-installed"
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):
@@ -359,8 +358,8 @@ class AppDetailsView(WebkitWidget):
         self._set_action_button_sensitive(False)
 
     def on_screenshot_thumbnail_clicked(self):
-        url = self.distro.SCREENSHOT_LARGE_URL % self.pkgname
-        title = _("%s - Screenshot") % self.appname
+        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
+        title = _("%s - Screenshot") % self.app.name
         d = ShowImageDialog(
             title, url,
             self.icons.lookup_icon("process-working", 32, ()).get_filename(),
@@ -381,7 +380,7 @@ class AppDetailsView(WebkitWidget):
         # FIXME: this text is not accurate, we look at recommends as
         #        well as part of the rdepends, but those do not need to
         #        be removed, they just may be limited in functionatlity
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.pkg, self.appname)
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.pkg, self.app.name)
 
         # ask for confirmation if we have rdepends
         depends = self.cache.get_installed_rdepends(self.pkg)
@@ -399,20 +398,20 @@ class AppDetailsView(WebkitWidget):
 
     # public interface
     def install(self):
-        self.backend.install(self.pkgname, self.appname, self.iconname)
+        self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
         self._set_action_button_sensitive(False)
     def remove(self):
-        self.backend.remove(self.pkgname, self.appname, self.iconname)
+        self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
         self._set_action_button_sensitive(False)
     def upgrade(self):
-        self.backend.upgrade(self.pkgname, self.appname, self.iconname)
+        self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
         self._set_action_button_sensitive(False)
 
     # internal callback
     def _on_transaction_finished(self, backend, success):
         # re-open cache and refresh app display
         self.cache.open()
-        self.show_app(self.appname, self.pkgname)
+        self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)
 
@@ -433,8 +432,7 @@ class AppDetailsView(WebkitWidget):
     # internal helpers
     def _check_for_reviews(self):
         logging.debug("_check_for_reviews")
-        app = Application(self.appname, self.pkgname)
-        reviews = self.review_loader.get_reviews(app, 
+        reviews = self.review_loader.get_reviews(self.app, 
                                                  self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
@@ -442,7 +440,7 @@ class AppDetailsView(WebkitWidget):
         # the reviews become ready 
         # (we only check for pkgname currently to avoid breaking on
         #  software-center totem)
-        if self.pkgname != app.pkgname:
+        if self.app.pkgname != app.pkgname:
             return
         if not reviews:
             no_review = _("This software item has no reviews yet.")
@@ -483,7 +481,7 @@ class AppDetailsView(WebkitWidget):
             self.execute_script("thumbMissing();")
             return False
         # use gio (its so nice)
-        url = self.distro.SCREENSHOT_THUMB_URL % self.pkgname
+        url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
         logging.debug("_check_thumb_available '%s'" % url)
         f=gio.File(url)
         f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
@@ -586,7 +584,7 @@ if __name__ == "__main__":
     view = AppDetailsView(db, distro, icons, cache, datadir)
     #view.show_app("3D Chess", "3dchess")
     #view.show_app("Movie Player", "totem")
-    view.show_app("ACE", "unace")
+    view.show_app(Application("ACE", "unace"))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")
