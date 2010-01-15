@@ -22,30 +22,10 @@ import logging
 import re
 import xapian
 
+from softwarecenter import Application
+
 from softwarecenter.enums import *
 from gettext import gettext as _
-
-class Application(object):
-    """ a simple data object that contains just appname, pkgname
-        and a sort method
-    """
-    __slots__ = ["appname", "pkgname"]
-    def __init__(self, appname, pkgname):
-        self.appname = appname
-        self.pkgname = pkgname
-    @staticmethod
-    def apps_cmp(x, y):
-        """ sort method for the applications """
-        # sort(key=locale.strxfrm) would be more efficient, but its
-        # currently broken, see http://bugs.python.org/issue2481
-        if x.appname and y.appname:
-            return locale.strcoll(x.appname, y.appname)
-        elif x.appname:
-            return locale.strcoll(x.appname, y.pkgname)
-        elif y.appname:
-            return locale.strcoll(x.pkgname, y.appname)
-        else:
-            return cmp(x.pkgname, y.pkgname)
 
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""

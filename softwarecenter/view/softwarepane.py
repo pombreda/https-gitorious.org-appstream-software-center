@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import bisect
 import glib
 import gobject
 import gtk
@@ -35,6 +36,7 @@ from widgets.searchentry import SearchEntry
 from appview import AppView, AppStore, AppViewFilter
 from appdetailsview import AppDetailsView
 
+from softwarecenter.db.database import Application
 
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that the cache is ready using a
@@ -86,7 +88,9 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-
+        self.app_view.connect("application-selected", 
+                              self.on_application_selected)
+        self._current_selected_pkgname = None
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -126,29 +130,45 @@ class SoftwarePane(gtk.VBox):
         if vadj:
             vadj.value_changed()
 
-    def on_application_activated(self, appview, name, pkgname):
-        """callback when a app is clicked"""
-        logging.debug("on_application_activated: '%s'" % name)
-        if not name:
-            name = pkgname
-        self.navigation_bar.add_with_id(name,
+    def on_application_activated(self, appview, app):
+        """callback when an app is clicked"""
+        logging.debug("on_application_activated: '%s'" % app)
+        self.navigation_bar.add_with_id(app.name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.app_details.show_app(name, pkgname)
+        self.app_details.show_app(app)
+        
+    def on_application_selected(self, appview, app):
+        """callback when an app is selected"""
+        logging.debug("on_application_selected: '%s'" % app)
+        self._current_selected_pkgname = app
         
     def update_app_view(self):
         """
-        Update the app_view.  If no application is selected,
-        the first application in the list is selected, else, the selection
-        is unchanged.
+        Update the app_view.  If no row is selected, then the previously
+        selected app is reselected if it is found in the model, else the
+        first app in the list is selected.  If a row is already selected,
+        nothing is done.
         """
         selection = self.app_view.get_selection()
-        (model, iter) = selection.get_selected()
-        # if the model is not empty and if no application is selected,
-        # select the first one in the list
-        if model.get_iter_root() is not None and iter is None:
-            self.app_view.set_cursor(0)
+        (model, it) = selection.get_selected()
+        if model.get_iter_root() is not None and it is None:
+            index=-1
+            vadj = self.scroll_app_list.get_vadjustment()
+            if self._current_selected_pkgname:
+                if model.sorted:
+                    # bisect returns "insert" point right of the element
+                    index = bisect.bisect(model.apps, 
+                                          self._current_selected_pkgname) - 1
+                    # index may not be the item we want
+                    if model.apps[index] != self._current_selected_pkgname:
+                        index = -1
+            # re-select item
+            if vadj and index >= 0:
+                self.app_view.set_cursor(index)
+                vadj.value_changed()
+
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -169,4 +189,8 @@ class SoftwarePane(gtk.VBox):
         
     def is_category_view_showing(self):
         " stub implementation "
+        pass
+
+    def get_selected_app(self):
+        """ return the current selected appliction object """
         pass

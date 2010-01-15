@@ -34,7 +34,9 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
+from softwarecenter import Application
 from softwarecenter.enums import *
+from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 
@@ -206,9 +208,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.restore_state()
 
     # callbacks
-    def on_app_details_changed(self, widget, appname, pkgname, page):
-        self._selected_pkgname_for_page[page] = pkgname
-        self._selected_appname_for_page[page] = appname
+    def on_app_details_changed(self, widget, app, page):
+        self._selected_pkgname_for_page[page] = app.pkgname
+        self._selected_appname_for_page[page] = app.appname
         self.update_app_status_menu()
         self.update_status_bar()
 
@@ -219,13 +221,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.update_app_status_menu()
             self.update_status_bar()
 
-    def on_app_selected(self, widget, appname, pkgname, page):
-        self._selected_appname_for_page[page] = appname
-        self._selected_pkgname_for_page[page] = pkgname
+    def on_app_selected(self, widget, app, page):
+        self._selected_appname_for_page[page] = app.appname
+        self._selected_pkgname_for_page[page] = app.pkgname
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
 
     def on_window_main_delete_event(self, widget, event):
+        self.save_state()
         gtk.main_quit()
         
     def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
@@ -461,11 +464,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.label_status.set_text(s)
         
     def update_app_list_view(self):
-        """Helper that updates the appview list.  If no application is selected,
-           the first application in the list is selected, else, the selection
-           is unchanged.
+        """Helper that updates the app view list.
         """
         if self.active_pane is not None and not self.active_pane.is_category_view_showing():
+#            with ExecutionTime("TIME update_app_view"):
+#                self.active_pane.update_app_view()
             self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
@@ -541,7 +544,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # FIXME: this currently only works with pkg names for apps
             #        it needs to perform a search because a App name
             #        is (in general) not unique
-            self.available_pane.app_details.show_app("", pkg_name)
+            app = Application("", pkg_name)
+            self.available_pane.app_details.show_app(app)
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APP_DETAILS)
         if len(packages) > 1:
@@ -562,6 +566,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def save_state(self):
         logging.debug("save_state")
+        # this happens on a delete event, we explicitely save_state() there
+        if self.window_main.window is None:
+            return
         if not self.config.has_section("general"):
             self.config.add_section("general")
         maximized = self.window_main.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED
