@@ -135,7 +135,9 @@ class PathBar(gtk.DrawingArea):
 
         old_w = self.__draw_width()
 
+        # remove part from interal part list
         del self.__parts[self.__parts.index(part)]
+
         self.__compose_parts(self.__parts[-1], False)
 
         if old_w >= self.allocation.width:
@@ -1009,9 +1011,9 @@ class PathBarThemeHuman:
 
     curvature = 2.5
     min_part_width = 56
-    xpadding = 10
-    ypadding = 4
-    spacing = 6
+    xpadding = 6
+    ypadding = 2
+    spacing = 4
     arrow_width = 13
     scroll_duration_ms = 150
     scroll_fps = 50
@@ -1341,7 +1343,7 @@ class NavigationBar(PathBar):
         if id in self.id_to_part:
             part = self.id_to_part[id]
             part.set_label(label)
-            self.queue_draw_area(*part.get_allocation_tuple())
+#            self.queue_draw_area(*part.get_allocation_tuple())
         else:
             part = PathPart(label, callback)
             # mvo please check this:  the following seems redundant, so removing (gml)
@@ -1357,7 +1359,6 @@ class NavigationBar(PathBar):
         if not id in self.id_to_part:
             return
 
-        print 'remove id', id
         part = self.id_to_part[id]
         del self.id_to_part[id]
         self.remove(part)
