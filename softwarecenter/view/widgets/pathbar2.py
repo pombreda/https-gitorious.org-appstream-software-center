@@ -305,30 +305,33 @@ class PathBar(gtk.DrawingArea):
         return a[0] + a[2]
 
     def __hscroll_init(self, distance, draw_area, duration, fps):
-        sec = duration*0.001
-        interval = int(duration/(sec*fps))  # duration / n_frames
+        duration = duration*0.001   # convert to seconds
+        interval = int(1000.0 / fps)
+
         self.__scroller = gobject.timeout_add(
             interval,
-            self.__hscroll_cb,
-            sec,
-            1/sec,
+            self.__hscroll_out_cb,
             distance,
-            gobject.get_current_time() + sec,
+            1/duration,
+            gobject.get_current_time(),
             draw_area.x,
             draw_area.y,
             draw_area.width,
             draw_area.height)
         return
 
-    def __hscroll_cb(self, sec, sec_inv, distance, end_t, x, y, w, h):
+    def __hscroll_out_cb(self, distance, duration_inv, start_t, x, y, w, h):
         cur_t = gobject.get_current_time()
-        xO = distance*(sec - (end_t - cur_t))*sec_inv
+        xO = distance*((cur_t - start_t)*duration_inv)
+
         if xO < distance:
             self.__scroll_xO = xO
             self.queue_draw_area(x, y, w, h)
         else:   # final frame
             self.__scroll_xO = 0
-            self.queue_draw_area(x, y, w, h)
+            # redraw the entire widget
+            # incase some timeouts are skipped due to high system load
+            self.queue_draw()
             self.__scroller = None
             return False
         return True
@@ -345,15 +348,31 @@ class PathBar(gtk.DrawingArea):
     def __draw_hscroll(self, cr):
         if len(self.__parts) < 2:
             return
+
         # draw the last two parts
         prev, last = self.__parts[-2:]
 
-        self.__draw_part(cr, last, self.style, self.theme.curvature,
-            self.theme.arrow_width, self.__shapes,
-            last.get_width() - self.__scroll_xO)
+        # style theme stuff
+        style, r, aw, shapes = self.style, self.theme.curvature, \
+            self.theme.arrow_width, self.__shapes
 
-        self.__draw_part(cr, prev, self.style, self.theme.curvature,
-            self.theme.arrow_width, self.__shapes)
+        # draw part that need scrolling
+        self.__draw_part(cr,
+                         last,
+                         style,
+                         r,
+                         aw,
+                         shapes,
+                         last.get_width() - self.__scroll_xO)
+               
+
+        # draw the last part that does not scroll
+        self.__draw_part(cr,
+                         prev,
+                         style,
+                         r,
+                         aw,
+                         shapes)
         return
 
     def __draw_all(self, cr, event_area):
@@ -998,7 +1017,7 @@ class PathBarThemeHuman:
     spacing = 6
     arrow_width = 13
     scroll_duration_ms = 150
-    scroll_fps = 60
+    scroll_fps = 50
     animate = gtk.settings_get_default().get_property("gtk-enable-animations")
 
     def __init__(self):
@@ -1239,7 +1258,7 @@ class PathBarThemeHicolor:
     spacing = 10
     arrow_width = 15
     scroll_duration_ms = 150
-    scroll_fps = 60
+    scroll_fps = 50
     animate = gtk.settings_get_default().get_property("gtk-enable-animations")
 
     def __init__(self):
@@ -1331,16 +1350,16 @@ class NavigationBar(PathBar):
             part.callback(self)
             part.set_pathbar(self)
             self.id_to_part[id] = part
-            gobject.timeout_add(50, self.append, part)
+            gobject.timeout_add(150, self.append, part)
 
         if icon: part.set_icon(icon)
         return
 
     def remove_id(self, id):
-
         if not id in self.id_to_part:
             return
 
+        print 'remove id', id
         part = self.id_to_part[id]
         del self.id_to_part[id]
         self.remove(part)
