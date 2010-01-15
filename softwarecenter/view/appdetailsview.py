@@ -156,7 +156,8 @@ class AppDetailsView(WebkitWidget):
         self._show(self)
         self.emit("selected", self.app)
         self._check_thumb_available()
-        self._check_for_reviews()
+        if self.pkg and self.pkg.candidate:
+            self._check_for_reviews()
 
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -339,7 +340,10 @@ class AppDetailsView(WebkitWidget):
         return self._get_font_description_property("style").value_nick
     def wksub_font_size(self):
         return self._get_font_description_property("size")/1024
-
+    def wksub_show_if_package_available(self):
+        if self.pkg and self.pkg.candidate:
+            return "visible"
+        return "hidden"
 
     # callbacks
     def on_button_reload_clicked(self):

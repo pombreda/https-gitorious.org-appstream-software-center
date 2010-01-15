@@ -173,9 +173,13 @@
     .action_button { 
       visibility:${action_button_visible}; 
     }
+    .reviews_area {
+      visibility:${show_if_package_available};
+    }
     .add_review_link {
       font-size:80%; 
       text-align:right;
+      visibility:${show_if_package_available};
     }
     .report_abuse_link {
       font-size:80%; 
@@ -233,8 +237,9 @@
    <p id="maintainance_time">$maintainance_time</p>
 
    <p>
-     <h2>Reviews</h2>
+     <h2 class="reviews_area">Reviews</h2>
      <a class="add_review_link"
+	id="add_review_link_id"
 	href="#" 
 	OnClick="javascript:on_write_new_review_clicked();return false;">
        $new_review_label_text
@@ -243,7 +248,6 @@
        <!-- reviews go here via addReview() -->
      </p>
    </p>
-
 
 </body>
 </html>
