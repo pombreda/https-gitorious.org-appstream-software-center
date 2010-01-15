@@ -434,6 +434,8 @@ gobject.type_register(CellRendererPixbufWithOverlay)
 class AppView(gtk.TreeView):
     """Treeview based view component that takes a AppStore and displays it"""
 
+    POINTER_POSITION_CHECK_INTERVAL_MS = 200
+
     __gsignals__ = {
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE, 
@@ -485,7 +487,7 @@ class AppView(gtk.TreeView):
         # compared to when mousing over treeview using "motion-notify-event"
         # signal
         self._motion_checker = gobject.timeout_add(
-            200,
+            self.POINTER_POSITION_CHECK_INTERVAL_MS,
             self._check_cursor_position,
             tr)
 
@@ -545,13 +547,17 @@ class AppView(gtk.TreeView):
     def _xy_is_over_arrow(self, x, y, tr):
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             (relx, rely, w, h, depth) = self.window.get_geometry()
-            if w-x <= tr.get_arrow_width():
+            if w-x <= tr.get_arrow_width() and self._xy_is_over_focal_row(x,y):
                 return True
         else:
-            if x <= tr.get_arrow_width():
+            if x <= tr.get_arrow_width() and self._xy_is_over_focal_row(x,y):
                 self.window.set_cursor(self._cursor_hand)
+                self._xy_is_over_focal_row(x,y)
                 return True
         return False
+
+    def _xy_is_over_focal_row(self, x, y):
+        return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
 
 # XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):
