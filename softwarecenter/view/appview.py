@@ -472,8 +472,26 @@ class AppView(gtk.TreeView):
         # button and motion are "special" 
 
         self.connect("button-press-event", self._on_button_press_event, tr)
-        self.connect("motion-notify-event", self._on_motion_notify_event, tr)
         self.connect("cursor-changed", self._on_cursor_changed)
+
+        self.connect("enter-notify-event", self._on_enter, tr)
+        self.connect("leave-notify-event", self._on_leave)
+
+    def _on_enter(self, widget, event, tr):
+        # on enter-notify start a timeout to check pointer position
+        # and then decide what needs to happen re cursor/tooltips etc
+
+        # reason for this is to dramatically reduce cpu usage
+        # compared to when mousing over treeview using "motion-notify-event"
+        # signal
+        self._motion_checker = gobject.timeout_add(
+            200,
+            self._check_cursor_position,
+            tr)
+
+    def _on_leave(self, widget, event):
+        # on leave-notify remove the position check timeout
+        gobject.source_remove(self._motion_checker)
 
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
@@ -488,15 +506,17 @@ class AppView(gtk.TreeView):
         self.emit("application-selected", Application(name, pkgname))
 
     # FIXME: move the tooltip, motion_notify etc to the render/TreeViewColumn?
-    def _on_motion_notify_event(self, widget, event, tr):
+    def _check_cursor_position(self, tr):
+        x, y, flags = self.window.get_pointer()
         #self.set_has_tooltip(False)
-        if self._xy_is_over_arrow(int(event.x), (event.y), tr):
+        if self._xy_is_over_arrow(x, y, tr):
             # FIXME: deactivated for karmic (because we are in string freeze
             #tip = _("Click to view application details")
             #gobject.timeout_add(50, self._set_tooltip_cb, tip)
             self.window.set_cursor(self._cursor_hand)
         else:
             self.window.set_cursor(None)
+        return True
 
     def _set_tooltip_cb(self, text):
         # callback allows the tooltip position to be updated as pointer moves
