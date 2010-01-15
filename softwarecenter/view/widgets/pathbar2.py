@@ -118,7 +118,7 @@ class PathBar(gtk.DrawingArea):
             w += aw
 
             # begin scroll animation
-            self.__hscroll_init(
+            self.__hscroll_out_init(
                 part.get_width(),
                 gtk.gdk.Rectangle(x,y,w,h),
                 self.theme.scroll_duration_ms,
@@ -304,15 +304,12 @@ class PathBar(gtk.DrawingArea):
         a = self.__parts[-1].allocation
         return a[0] + a[2]
 
-    def __hscroll_init(self, distance, draw_area, duration, fps):
-        duration = duration*0.001   # convert to seconds
-        interval = int(1000.0 / fps)
-
+    def __hscroll_out_init(self, distance, draw_area, duration, fps):
         self.__scroller = gobject.timeout_add(
-            interval,
+            int(1000.0 / fps),  # interval
             self.__hscroll_out_cb,
             distance,
-            1/duration,
+            duration*0.001,   # 1 over duration (converted to seconds)
             gobject.get_current_time(),
             draw_area.x,
             draw_area.y,
@@ -320,11 +317,11 @@ class PathBar(gtk.DrawingArea):
             draw_area.height)
         return
 
-    def __hscroll_out_cb(self, distance, duration_inv, start_t, x, y, w, h):
+    def __hscroll_out_cb(self, distance, duration, start_t, x, y, w, h):
         cur_t = gobject.get_current_time()
-        xO = distance*((cur_t - start_t)*duration_inv)
+        xO = distance - distance*((cur_t - start_t) / duration)
 
-        if xO < distance:
+        if xO > 0:
             self.__scroll_xO = xO
             self.queue_draw_area(x, y, w, h)
         else:   # final frame
@@ -363,7 +360,7 @@ class PathBar(gtk.DrawingArea):
                          r,
                          aw,
                          shapes,
-                         last.get_width() - self.__scroll_xO)
+                         self.__scroll_xO)
 
         # draw the last part that does not scroll
         self.__draw_part(cr,
@@ -750,17 +747,18 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __expose_cb(self, widget, event):
-        #t = gobject.get_current_time()
         cr = widget.window.cairo_create()
+
         if self.theme.base_hack:
             cr.set_source_rgb(*self.theme.base_hack)
             cr.paint()
+
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
         else:
             self.__draw_all(cr, event.area)
+
         del cr
-        #print 'Exposure fps: %s' % (1 / (gobject.get_current_time() - t))
         return
 
     def __style_change_cb(self, widget, old_style):
