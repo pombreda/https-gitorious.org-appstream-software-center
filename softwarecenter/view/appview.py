@@ -552,7 +552,6 @@ class AppView(gtk.TreeView):
         else:
             if x <= tr.get_arrow_width() and self._xy_is_over_focal_row(x,y):
                 self.window.set_cursor(self._cursor_hand)
-                self._xy_is_over_focal_row(x,y)
                 return True
         return False
 
