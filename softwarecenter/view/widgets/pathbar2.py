@@ -329,10 +329,10 @@ class PathBar(gtk.DrawingArea):
             self.queue_draw_area(x, y, w, h)
         else:   # final frame
             self.__scroll_xO = 0
-            self.__scroller = None
             # redraw the entire widget
             # incase some timeouts are skipped due to high system load
             self.queue_draw()
+            self.__scroller = None
             return False
         return True
 
@@ -364,7 +364,6 @@ class PathBar(gtk.DrawingArea):
                          aw,
                          shapes,
                          last.get_width() - self.__scroll_xO)
-               
 
         # draw the last part that does not scroll
         self.__draw_part(cr,
@@ -1387,4 +1386,4 @@ class NavigationBar(PathBar):
         """
         if not id in self.id_to_part:
             return
-        return self.id_to_part[id].get_label()
+
