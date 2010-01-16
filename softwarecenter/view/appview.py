@@ -38,7 +38,7 @@ from softwarecenter.db.database import StoreDatabase, Application
 from gettext import gettext as _
 
 class AppStore(gtk.GenericTreeModel):
-    """ 
+    """
     A subclass GenericTreeModel that reads its data from a xapian
     database. It can combined with any xapian querry and with
     a generic filter function (that can filter on data not
@@ -46,14 +46,14 @@ class AppStore(gtk.GenericTreeModel):
     """
 
     (COL_APP_NAME,
-     COL_TEXT, 
+     COL_TEXT,
      COL_ICON,
      COL_INSTALLED_OVERLAY,
      COL_PKGNAME,
      IS_ACTIVE
      ) = range(6)
 
-    column_type = (str, 
+    column_type = (str,
                    str,
                    gtk.gdk.Pixbuf,
                    bool,
@@ -65,13 +65,13 @@ class AppStore(gtk.GenericTreeModel):
     (SEARCHES_SORTED_BY_POPCON,
      SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
      SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
-     
-    def __init__(self, cache, db, icons, search_query=None, limit=200, 
+
+    def __init__(self, cache, db, icons, search_query=None, limit=200,
                  sort=False, filter=None):
         """
-        Initalize a AppStore. 
+        Initalize a AppStore.
 
-        :Parameters: 
+        :Parameters:
         - `cache`: apt cache (for stuff like the overlay icon)
         - `db`: a xapian.Database that contians the applications
         - `icons`: a gtk.IconTheme that contains the icons
@@ -79,7 +79,7 @@ class AppStore(gtk.GenericTreeModel):
         - `limit`: how many items the search should return (0 == unlimited)
         - `sort`: sort alphabetically after a search
                    (default is to use relevance sort)
-        - `filter`: filter functions that can be used to filter the 
+        - `filter`: filter functions that can be used to filter the
                     data further. A python function that gets a pkgname
         """
         gtk.GenericTreeModel.__init__(self)
@@ -102,7 +102,7 @@ class AppStore(gtk.GenericTreeModel):
                 self.apps.append(Application(appname, pkgname))
             self.apps.sort()
         else:
-            # we support single and list search_queries, 
+            # we support single and list search_queries,
             # if list we append them one by one
             if isinstance(search_query, xapian.Query):
                 search_query = [search_query]
@@ -187,7 +187,7 @@ class AppStore(gtk.GenericTreeModel):
                 appname = app.pkgname
             summary = self.db.get_summary(doc)
             if self.db.is_appname_duplicated(appname):
-                appname = "%s (%s)" % (appname, app.pkgname) 
+                appname = "%s (%s)" % (appname, app.pkgname)
             s = "%s\n<small>%s</small>" % (
                 gobject.markup_escape_text(appname),
                 gobject.markup_escape_text(summary))
@@ -261,7 +261,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
     def __init__(self, star_pixbuf):
         self.__gobject_init__()
         self.markup = None
-        self.rating = 3
+        self.rating = 5
         self.isactive = 0
         self.star_pixbuf = star_pixbuf
         return
@@ -272,7 +272,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
     def do_get_property(self, pspec):
         return getattr(self, pspec.name)
 
-    def on_render(self, window, widget, background_area, cell_area, 
+    def on_render(self, window, widget, background_area, cell_area,
         expose_area, flags):
 
         xpad = self.get_property('xpad')
@@ -309,7 +309,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # draw star rating
         dest_x = cell_area.width-ypad
         for i in range(self.rating):
-            window.draw_pixbuf(None, 
+            window.draw_pixbuf(None,
                                self.star_pixbuf,    # icon
                                0, 0,                # src pixbuf
                                dest_x - (self.rating-i)*(w+1) - xpad,  # ydest
@@ -434,14 +434,14 @@ gobject.type_register(CellRendererAppView)
 
 # custom renderer for the arrow thing that mpt wants
 class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
-    
+
     # offset of the install overlay icon
     OFFSET_X = 14
     OFFSET_Y = 16
 
     # size of the install overlay icon
     OVERLAY_SIZE = 16
-    
+
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
                      gobject.PARAM_READWRITE),
@@ -456,21 +456,21 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
                                           self.OVERLAY_SIZE, 0)
         except glib.GError:
             # icon not present in theme, probably because running uninstalled
-            self._installed = icons.load_icon('emblem-system', 
+            self._installed = icons.load_icon('emblem-system',
                                           self.OVERLAY_SIZE, 0)
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
     def do_get_property(self, pspec):
         return getattr(self, pspec.name)
-    def do_render(self, window, widget, background_area, cell_area, 
+    def do_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
-        gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, 
+        gtk.CellRendererPixbuf.do_render(self, window, widget, background_area,
                                          cell_area, expose_area, flags)
         overlay = self.get_property("overlay")
         if overlay:
             dest_x = cell_area.x + self.OFFSET_X
             dest_y = cell_area.y + self.OFFSET_Y
-            window.draw_pixbuf(None, 
+            window.draw_pixbuf(None,
                                self._installed, # icon
                                0, 0,            # src pixbuf
                                dest_x, dest_y,  # dest in window
@@ -484,27 +484,28 @@ class AppView(gtk.TreeView):
 
     __gsignals__ = {
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE, 
+                                   gobject.TYPE_NONE,
                                    (gobject.TYPE_PYOBJECT, ),
                                   ),
         "application-selected" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE, 
+                                   gobject.TYPE_NONE,
                                    (gobject.TYPE_PYOBJECT, ),
                                   ),
     }
 
     def __init__(self, store=None):
         gtk.TreeView.__init__(self)
+        # previous active row reference
         self.prev = 0
-        
+
         #self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
         tp = CellRendererPixbufWithOverlay("software-center-installed")
-        column = gtk.TreeViewColumn("Icon", tp, 
+        column = gtk.TreeViewColumn("Icon", tp,
                                     pixbuf=AppStore.COL_ICON,
                                     overlay=AppStore.COL_INSTALLED_OVERLAY)
-        #column.set_fixed_width(32)
-        #column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        column.set_fixed_width(32)
+        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
 
 
@@ -528,7 +529,7 @@ class AppView(gtk.TreeView):
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
         # our own "activate" handler
         self.connect("row-activated", self._on_row_activated)
-        # button and motion are "special" 
+        # button and motion are "special"
 
         self.connect("button-press-event", self._on_button_press_event, tr)
         self.connect("cursor-changed", self._on_cursor_changed2)
@@ -538,7 +539,10 @@ class AppView(gtk.TreeView):
 
     def _on_cursor_changed2(self, tree):
         model = tree.get_model()
-        model.set_activity(self.prev, 0)
+        try:
+            model.set_activity(self.prev, 0)
+        except:
+            pass
 
         path = tree.get_cursor()[0][0]
         model.set_activity(path, 1)
@@ -603,7 +607,7 @@ class AppView(gtk.TreeView):
         (path, column, wx, wy) = res
         if path is None:
             return
-        # only act when the selection is already there 
+        # only act when the selection is already there
         selection = widget.get_selection()
         if not selection.path_is_selected(path):
             return
@@ -627,7 +631,7 @@ class AppView(gtk.TreeView):
 
 # XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):
-    """ 
+    """
     Filter that can be hooked into AppStore to filter for criteria that
     are based around the package details that are not listed in xapian
     (like installed_only) or archive section
@@ -648,9 +652,9 @@ class AppViewFilter(object):
     def get_supported_only(self):
         return self.supported_only
     def set_only_packages_without_applications(self, v):
-        """ 
+        """
         only show packages that are not displayed as applications
-        
+
         e.g. abiword (the package document) will not be displayed
              because there is a abiword application already
         """
@@ -672,7 +676,7 @@ class AppViewFilter(object):
                 not self.cache[pkgname].isInstalled):
                 return False
         if self.not_installed_only:
-            if (self.cache.has_key(pkgname) and 
+            if (self.cache.has_key(pkgname) and
                 self.cache[pkgname].isInstalled):
                 return False
         # FIXME: add special property to the desktop file instead?
@@ -747,4 +751,4 @@ if __name__ == "__main__":
     win.set_size_request(400, 400)
     win.show_all()
 
-    gtk.main()
+
