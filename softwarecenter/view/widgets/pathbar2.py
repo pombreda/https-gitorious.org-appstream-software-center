@@ -997,7 +997,7 @@ class PathBarIcon:
             render_icon(icon_set, self.name, self.size)
 
         if not self.pixbuf:
-            print FAIL + 'Error: No name failed to match any installed icon set.' + ENDC
+            print 'Error: No name failed to match any installed icon set.'
             self.name = gtk.STOCK_MISSING_IMAGE
             icon_set = style.lookup_icon_set(self.name)
             render_icon(icon_set, self.name, self.size)
@@ -1011,7 +1011,7 @@ class PathBarThemeHuman:
 
     curvature = 2.5
     min_part_width = 56
-    xpadding = 6
+    xpadding = 8
     ypadding = 2
     spacing = 4
     arrow_width = 13
@@ -1343,11 +1343,8 @@ class NavigationBar(PathBar):
         if id in self.id_to_part:
             part = self.id_to_part[id]
             part.set_label(label)
-#            self.queue_draw_area(*part.get_allocation_tuple())
         else:
             part = PathPart(label, callback)
-            # mvo please check this:  the following seems redundant, so removing (gml)
-            # part.callback(self)
             part.set_pathbar(self)
             self.id_to_part[id] = part
             gobject.timeout_add(150, self.append, part)

@@ -98,6 +98,8 @@ class AppStore(gtk.GenericTreeModel):
                 if filter and self.is_filtered_out(filter, doc):
                     continue
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+                # eh, how do i get real popcorn values not unicodes???
+                #print repr(doc.get_value(XAPIAN_VALUE_POPCON))
                 pkgname = db.get_pkgname(doc)
                 self.apps.append(Application(appname, pkgname))
             self.apps.sort()
@@ -245,6 +247,7 @@ class AppStore(gtk.GenericTreeModel):
         self.row_changed(rowref, self.get_iter(rowref))
         return
 
+
 class CellRendererAppView(gtk.GenericCellRenderer):
 
     __gproperties__ = {
@@ -258,12 +261,11 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             gobject.PARAM_READWRITE)
         }
 
-    def __init__(self, star_pixbuf):
+    def __init__(self):
         self.__gobject_init__()
         self.markup = None
-        self.rating = 5
+        self.rating = 4
         self.isactive = 0
-        self.star_pixbuf = star_pixbuf
         return
 
     def do_set_property(self, pspec, value):
@@ -288,13 +290,13 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         dst_x = cell_area.x + xpad
         dst_y = cell_area.y + ypad
 
-        w = self.star_pixbuf.get_width()
-        h = self.star_pixbuf.get_height()
+        w = widget.star_pixbuf.get_width()
+        h = widget.star_pixbuf.get_height()
         max_star_width = 5*(h+1) + xpad
 
         # work out layouts max width
         if layout.get_pixel_extents()[1][2] >= cell_area.width-cell_area.y-2*xpad - max_star_width:
-            layout.set_width((cell_area.width - 2*xpad - max_star_width)*pango.SCALE)
+            layout.set_width((cell_area.width - 3*xpad - max_star_width)*pango.SCALE)
 
         widget.style.paint_layout(window,
                                   flags,
@@ -310,9 +312,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         dest_x = cell_area.width-ypad
         for i in range(self.rating):
             window.draw_pixbuf(None,
-                               self.star_pixbuf,    # icon
+                               widget.star_pixbuf,    # icon
                                0, 0,                # src pixbuf
-                               dest_x - (self.rating-i)*(w+1) - xpad,  # ydest
+                               dest_x - (self.rating-i)*(w+1) + 32,  # ydest
                                cell_area.y+(32-h)/2,    # xdest
                                -1, -1,              # size
                                0, 0, 0)             # dither
@@ -327,10 +329,10 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         lh = layout.get_pixel_extents()[1][3]
 
         # button size
-        bw = lw+10*xpad # install button should have more padding, cos of importance?
+        bw0 = lw+10*xpad # install button should have more padding, cos of importance?
         bh = lh+4*ypad
 
-        dst_x = cell_area.width-xpad-bw
+        dst_x0 = cell_area.width-xpad-bw0+32
         dst_y = cell_area.y+32+(32-bh)/2
 
         widget.style.paint_box(window,
@@ -339,9 +341,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                cell_area,
                                widget,
                                "button",
-                               dst_x,       # x
+                               dst_x0,       # x
                                dst_y,       # y
-                               bw,          # width
+                               bw0,          # width
                                bh)          # height
 
         # draw Install button label
@@ -351,7 +353,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                             cell_area,
                             widget,
                             None,
-                            dst_x + (bw-lw)/2,
+                            dst_x0 + (bw0-lw)/2,
                             dst_y + (bh-lh)/2,
                             layout)
 
@@ -359,13 +361,10 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # label and label size
         layout.set_markup("<small>Choose Add-Ons...</small>")
         lw = layout.get_pixel_extents()[1][2]
-        lh = layout.get_pixel_extents()[1][3]
 
         # button size
-        bw = lw+4*xpad
-        bh = lh+4*ypad
-
-        dst_x = dst_x - bw - 2*xpad
+        bw1 = lw+4*xpad
+        dst_x1 = dst_x0 - bw1 - 2*xpad
 
         widget.style.paint_box(window,
                                gtk.STATE_NORMAL,
@@ -373,9 +372,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                cell_area,
                                widget,
                                "button",
-                               dst_x,       # x
+                               dst_x1,       # x
                                dst_y,       # y
-                               bw,          # width
+                               bw1,          # width
                                bh)          # height
 
         # draw Install button label
@@ -385,7 +384,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                             cell_area,
                             widget,
                             None,
-                            dst_x + (bw-lw)/2,
+                            dst_x1 + (bw1-lw)/2,
                             dst_y + (bh-lh)/2,
                             layout)
 
@@ -393,13 +392,10 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # label and label size
         layout.set_markup("<small>More Info</small>")
         lw = layout.get_pixel_extents()[1][2]
-        lh = layout.get_pixel_extents()[1][3]
 
         # button size
-        bw = lw+4*xpad
-        bh = lh+4*ypad
-
-        dst_x = cell_area.x + xpad
+        bw2 = lw+4*xpad
+        dst_x2 = cell_area.x + xpad
 
         widget.style.paint_box(window,
                                gtk.STATE_NORMAL,
@@ -407,9 +403,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                cell_area,
                                widget,
                                "button",
-                               dst_x,           # x
+                               dst_x2,           # x
                                dst_y,           # y
-                               bw,              # width
+                               bw2,              # width
                                bh)              # height
 
         # draw Install button label
@@ -419,15 +415,23 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                             cell_area,
                             widget,
                             None,
-                            dst_x + (bw-lw)/2,
+                            dst_x2 + (bw2-lw)/2,
                             dst_y + (bh-lh)/2,
                             layout)
+
+        if widget.btn_regions: return
+
+        # specify button regions
+        widget.btn_regions = []
+        widget.btn_regions.append((dst_x0, dst_y, bw0, bh, 'install'))
+        widget.btn_regions.append((dst_x1, dst_y, bw1, bh, 'addons'))
+        widget.btn_regions.append((dst_x2, dst_y, bw2, bh, 'info'))
         return
 
     def on_get_size(self, widget, cell_area):
         h = 32
         if self.isactive: h += 32
-        return 0, 0, widget.allocation.width, h
+        return -1, -1, -1, h
 
 gobject.type_register(CellRendererAppView)
 
@@ -497,6 +501,7 @@ class AppView(gtk.TreeView):
         gtk.TreeView.__init__(self)
         # previous active row reference
         self.prev = 0
+        self.btn_regions = None
 
         #self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
@@ -510,14 +515,14 @@ class AppView(gtk.TreeView):
 
 
         filename = "/usr/share/icons/Humanity/emblems/16/emblem-favorite.svg"
-        star_pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
-        tr = CellRendererAppView(star_pixbuf)
+        self.star_pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
+        tr = CellRendererAppView()
         tr.set_property('xpad', 2)
         tr.set_property('ypad', 2)
 
 #        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
         column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, isactive=AppStore.IS_ACTIVE)
-#        column.set_fixed_width(200)
+        column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
 
@@ -531,13 +536,31 @@ class AppView(gtk.TreeView):
         self.connect("row-activated", self._on_row_activated)
         # button and motion are "special"
 
-        self.connect("button-press-event", self._on_button_press_event, tr)
-        self.connect("cursor-changed", self._on_cursor_changed2)
+        self.connect("button-press-event", self._on_button_press_event, column)
+        self.connect("cursor-changed", self._on_cursor_changed)
+        self.connect("motion-notify-event", self._on_motion, tr, column)
 
-#        self.connect("enter-notify-event", self._on_enter, tr)
-#        self.connect("leave-notify-event", self._on_leave)
+    def _on_motion(self, tree, event, tr, col):
+        x, y = int(event.x), int(event.y)
+        if not self._xy_is_over_focal_row(x, y) or not self.btn_regions:
+            self.window.set_cursor(None)
+            return
 
-    def _on_cursor_changed2(self, tree):
+        path = tree.get_path_at_pos(x, y)
+        if not path: return
+        yO = tree.get_cell_area(path[0], col).y
+        for cx, cy, cw, ch, name in self.btn_regions:
+            rect = gtk.gdk.Rectangle(cx, yO+cy, cw, ch)
+            rr = gtk.gdk.region_rectangle(rect)
+
+            if rr.point_in(x, y):
+                self.window.set_cursor(self._cursor_hand)
+                break
+            else:
+                self.window.set_cursor(None)
+        return
+
+    def _on_cursor_changed(self, tree):
         model = tree.get_model()
         try:
             model.set_activity(self.prev, 0)
@@ -548,83 +571,44 @@ class AppView(gtk.TreeView):
         model.set_activity(path, 1)
 
         self.prev = path
+
+        selection = tree.get_selection()
+        (model, it) = selection.get_selected()
+        if it is None:
+            return
+        (name, text, icon, overlay, pkgname, isactive) = model[it]
+        self.emit("application-selected", Application(name, pkgname))
         return
-
-#    def _on_enter(self, widget, event, tr):
-#        # on enter-notify start a timeout to check pointer position
-#        # and then decide what needs to happen re cursor/tooltips etc
-
-#        # reason for this is to dramatically reduce cpu usage
-#        # compared to when mousing over treeview using "motion-notify-event"
-#        # signal
-#        self._motion_checker = gobject.timeout_add(
-#            self.POINTER_POSITION_CHECK_INTERVAL_MS,
-#            self._check_cursor_position,
-#            tr)
-
-    def _on_leave(self, widget, event):
-        # on leave-notify remove the position check timeout
-        gobject.source_remove(self._motion_checker)
 
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon, overlay, pkgname, isactive) = treeview.get_model()[path]
         self.emit("application-activated", Application(name, pkgname))
 
-    def _on_cursor_changed(self, treeview):
-        selection = treeview.get_selection()
-        (model, iter) = selection.get_selected()
-        if iter is None:
-            return
-        (name, text, icon, overlay, pkgname, isactive) = model[iter]
-        self.emit("application-selected", Application(name, pkgname))
-
-    # FIXME: move the tooltip, motion_notify etc to the render/TreeViewColumn?
-    def _check_cursor_position(self, tr):
-        x, y, flags = self.window.get_pointer()
-        #self.set_has_tooltip(False)
-        if self._xy_is_over_arrow(x, y, tr):
-            # FIXME: deactivated for karmic (because we are in string freeze
-            #tip = _("Click to view application details")
-            #gobject.timeout_add(50, self._set_tooltip_cb, tip)
-            self.window.set_cursor(self._cursor_hand)
-        else:
-            self.window.set_cursor(None)
-        return True
-
-    def _set_tooltip_cb(self, text):
-        # callback allows the tooltip position to be updated as pointer moves
-        # accross different button regions
-        self.set_has_tooltip(True)
-        self.set_tooltip_markup(text)
-        return False
-
-    def _on_button_press_event(self, widget, event, tr):
+    def _on_button_press_event(self, tree, event, col):
         if event.button != 1:
             return
-        res = self.get_path_at_pos(int(event.x), int(event.y))
+        res = tree.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
         if path is None:
             return
         # only act when the selection is already there
-        selection = widget.get_selection()
+        selection = tree.get_selection()
         if not selection.path_is_selected(path):
             return
-        # the last pixels of the view are reserved for the arrow icon
-#        if self._xy_is_over_arrow(int(event.x), int(event.y), tr):
-#            self.emit("row-activated", path, column)
 
-    def _xy_is_over_arrow(self, x, y, tr):
-        if self.get_direction() != gtk.TEXT_DIR_RTL:
-            (relx, rely, w, h, depth) = self.window.get_geometry()
-            if w-x <= tr.get_arrow_width() and self._xy_is_over_focal_row(x,y):
-                return True
-        else:
-            if x <= tr.get_arrow_width() and self._xy_is_over_focal_row(x,y):
-                self.window.set_cursor(self._cursor_hand)
-                return True
-        return False
+        x, y = int(event.x), int(event.y)
+        yO = tree.get_cell_area(path, col).y
+        for cx, cy, cw, ch, name in self.btn_regions:
+            rect = gtk.gdk.Rectangle(cx, yO+cy, cw, ch)
+            rr = gtk.gdk.region_rectangle(rect)
+
+            if rr.point_in(x, y):
+                if name == 'info':
+                    name, text, icon, overlay, pkgname, isactive = tree.get_model()[path]
+                    self.emit("application-activated", Application(name, pkgname))
+                break
 
     def _xy_is_over_focal_row(self, x, y):
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
