@@ -34,6 +34,7 @@ if os.path.exists("./softwarecenter/enums.py"):
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
+#from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
 
 from gettext import gettext as _
 
@@ -102,6 +103,7 @@ class AppStore(gtk.GenericTreeModel):
                 #print repr(doc.get_value(XAPIAN_VALUE_POPCON))
                 pkgname = db.get_pkgname(doc)
                 self.apps.append(Application(appname, pkgname))
+                self.apps_activity.append(0)
             self.apps.sort()
         else:
             # we support single and list search_queries,
@@ -213,7 +215,11 @@ class AppStore(gtk.GenericTreeModel):
             pkgname = self.db.get_pkgname(doc)
             return pkgname
         elif column == self.IS_ACTIVE:
-            return self.apps_activity[rowref]
+            try:
+                is_active = self.apps_activity[rowref]
+            except:
+                return 0
+            return is_active
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -243,8 +249,11 @@ class AppStore(gtk.GenericTreeModel):
         return None
 
     def set_activity(self, rowref, value):
-        self.apps_activity[rowref] = value
-        self.row_changed(rowref, self.get_iter(rowref))
+        try:
+            self.apps_activity[rowref] = value
+            self.row_changed(rowref, self.get_iter(rowref))
+        except:
+            pass
         return
 
 
@@ -254,18 +263,30 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
             gobject.PARAM_READWRITE),
 
+#        'addons': (gobject.TYPE_INT, 'AddOns', 'Has add-ons?', 0, 2, 0,
+#            gobject.PARAM_READWRITE),
+
 #        'rating': (gobject.TYPE_INT, 'Rating', 'Popcorn rating', 0, 5, 0,
 #            gobject.PARAM_READWRITE),
 
+#        'reviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
+#            gobject.PARAM_READWRITE),
+
         'isactive': (gobject.TYPE_INT, 'IsActive', 'Is active?', 0, 2, 0,
-            gobject.PARAM_READWRITE)
+            gobject.PARAM_READWRITE),
+
+        'installed': (bool, 'installed', 'Is the app installed', False,
+                     gobject.PARAM_READWRITE),
         }
 
-    def __init__(self):
+    def __init__(self, show_ratings):
         self.__gobject_init__()
         self.markup = None
-        self.rating = 4
+        self.rating = 5
+        self.reviews = 1
         self.isactive = 0
+        self.installed = False
+        self.show_ratings = show_ratings
         return
 
     def do_set_property(self, pspec, value):
@@ -274,25 +295,14 @@ class CellRendererAppView(gtk.GenericCellRenderer):
     def do_get_property(self, pspec):
         return getattr(self, pspec.name)
 
-    def on_render(self, window, widget, background_area, cell_area,
-        expose_area, flags):
-
-        xpad = self.get_property('xpad')
-        ypad = self.get_property('ypad')
-
-        # create pango layout with markup
-        pc = widget.get_pango_context()
-        layout = pango.Layout(pc)
-        layout.set_markup(self.markup)
-        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-
+    def draw_appname_summary(self, window, widget, cell_area, xpad, ypad, layout, flags):
         # work out where to draw layout
         dst_x = cell_area.x + xpad
         dst_y = cell_area.y + ypad
 
         w = widget.star_pixbuf.get_width()
         h = widget.star_pixbuf.get_height()
-        max_star_width = 5*(h+1) + xpad
+        max_star_width = 5*(w+1) + xpad
 
         # work out layouts max width
         if layout.get_pixel_extents()[1][2] >= cell_area.width-cell_area.y-2*xpad - max_star_width:
@@ -307,17 +317,81 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                   dst_x,
                                   dst_y,
                                   layout)
+        return w, h
 
-        # draw star rating
-        dest_x = cell_area.width-ypad
+    def draw_rating(self, window, widget, cell_area, xpad, ypad, layout, w, h, flags):
+       # draw star rating
+        dest_x = cell_area.width-xpad 
         for i in range(self.rating):
             window.draw_pixbuf(None,
                                widget.star_pixbuf,    # icon
                                0, 0,                # src pixbuf
-                               dest_x - (self.rating-i)*(w+1) + 32,  # ydest
-                               cell_area.y+(32-h)/2,    # xdest
+                               dest_x - (self.rating-i)*(w+1) + 32,  # xdest
+                               cell_area.y+1+ypad,    # ydest
                                -1, -1,              # size
                                0, 0, 0)             # dither
+
+        # draw number of reviews
+        if self.reviews != 1:
+            s = 's'
+        elif self.reviews:
+            s = ''
+
+        layout.set_markup("<small>%s review%s</small>" % (self.reviews, s))
+        lw = layout.get_pixel_extents()[1][2]
+        dest_x = dest_x - 5*(w+1) + 32 + (5*(w+1)-lw)/2
+
+        widget.style.paint_layout(window,
+                                  flags,
+                                  True,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  dest_x,
+                                  cell_area.y+ypad+h+1,
+                                  layout)
+        return
+
+    def draw_button(self, window, widget, cell_area, xpad, ypad, layout, dst_x, dst_y, bw, bh, lw, lh):
+        widget.style.paint_box(window,
+                               gtk.STATE_NORMAL,
+                               gtk.SHADOW_ETCHED_OUT,
+                               cell_area,
+                               widget,
+                               "button",
+                               dst_x,       # x
+                               dst_y,       # y
+                               bw,          # width
+                               bh)          # height
+
+        # draw Install button label
+        widget.style.paint_layout(window,
+                            gtk.STATE_NORMAL,
+                            True,
+                            cell_area,
+                            widget,
+                            None,
+                            dst_x + (bw-lw)/2,
+                            dst_y + (bh-lh)/2,
+                            layout)
+        return
+
+    def on_render(self, window, widget, background_area, cell_area,
+        expose_area, flags):
+
+        xpad = self.get_property('xpad')
+        ypad = self.get_property('ypad')
+
+        # create pango layout with markup
+        pc = widget.get_pango_context()
+        layout = pango.Layout(pc)
+        layout.set_markup(self.markup)
+        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+
+        w, h = self.draw_appname_summary(window, widget, cell_area, xpad, ypad, layout, flags)
+
+        if self.show_ratings:
+            self.draw_rating(window, widget, cell_area, xpad, ypad, layout, w, h, flags)
 
         if not self.isactive: return
         # else draw buttons
@@ -332,61 +406,32 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         bw0 = lw+10*xpad # install button should have more padding, cos of importance?
         bh = lh+4*ypad
 
-        dst_x0 = cell_area.width-xpad-bw0+32
-        dst_y = cell_area.y+32+(32-bh)/2
+        dst_x0 = cell_area.width-xpad+32 - bw0
+        dst_y = cell_area.y+36+(32-bh)/2
 
-        widget.style.paint_box(window,
-                               gtk.STATE_NORMAL,
-                               gtk.SHADOW_ETCHED_OUT,
-                               cell_area,
-                               widget,
-                               "button",
-                               dst_x0,       # x
-                               dst_y,       # y
-                               bw0,          # width
-                               bh)          # height
+        if self.installed:
+            layout.set_markup("<small>Remove</small>")
+            lw = layout.get_pixel_extents()[1][2]
 
-        # draw Install button label
-        widget.style.paint_layout(window,
-                            gtk.STATE_NORMAL,
-                            True,
-                            cell_area,
-                            widget,
-                            None,
-                            dst_x0 + (bw0-lw)/2,
-                            dst_y + (bh-lh)/2,
-                            layout)
+        self.draw_button(window,
+                 widget,
+                 cell_area,
+                 xpad, ypad,
+                 layout,
+                 dst_x0, dst_y,
+                 bw0, bh,
+                 lw, lh)
 
-        # Choose Add-Ons... button
-        # label and label size
-        layout.set_markup("<small>Choose Add-Ons...</small>")
-        lw = layout.get_pixel_extents()[1][2]
+#        # Choose Add-Ons... button
+#        # label and label size
+#        layout.set_markup("<small>Choose Add-Ons...</small>")
+#        lw = layout.get_pixel_extents()[1][2]
 
-        # button size
-        bw1 = lw+4*xpad
-        dst_x1 = dst_x0 - bw1 - 2*xpad
+#        # button size
+#        bw1 = lw+4*xpad
+#        dst_x1 = dst_x0 - bw1 - 3*xpad
 
-        widget.style.paint_box(window,
-                               gtk.STATE_NORMAL,
-                               gtk.SHADOW_ETCHED_OUT,
-                               cell_area,
-                               widget,
-                               "button",
-                               dst_x1,       # x
-                               dst_y,       # y
-                               bw1,          # width
-                               bh)          # height
-
-        # draw Install button label
-        widget.style.paint_layout(window,
-                            gtk.STATE_NORMAL,
-                            True,
-                            cell_area,
-                            widget,
-                            None,
-                            dst_x1 + (bw1-lw)/2,
-                            dst_y + (bh-lh)/2,
-                            layout)
+#        self.draw_button(window, widget, cell_area, xpad, ypad, layout, dst_x1, dst_y, bw1, bh, lw, lh)
 
         # More Info button
         # label and label size
@@ -394,42 +439,29 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         lw = layout.get_pixel_extents()[1][2]
 
         # button size
-        bw2 = lw+4*xpad
+        bw2 = lw+3*xpad
         dst_x2 = cell_area.x + xpad
 
-        widget.style.paint_box(window,
-                               gtk.STATE_NORMAL,
-                               gtk.SHADOW_ETCHED_OUT,
-                               cell_area,
-                               widget,
-                               "button",
-                               dst_x2,           # x
-                               dst_y,           # y
-                               bw2,              # width
-                               bh)              # height
-
-        # draw Install button label
-        widget.style.paint_layout(window,
-                            gtk.STATE_NORMAL,
-                            True,
-                            cell_area,
-                            widget,
-                            None,
-                            dst_x2 + (bw2-lw)/2,
-                            dst_y + (bh-lh)/2,
-                            layout)
+        self.draw_button(window,
+                         widget,
+                         cell_area,
+                         xpad, ypad,
+                         layout,
+                         dst_x2, dst_y,
+                         bw2, bh,
+                         lw, lh)
 
         if widget.btn_regions: return
 
         # specify button regions
         widget.btn_regions = []
         widget.btn_regions.append((dst_x0, dst_y, bw0, bh, 'install'))
-        widget.btn_regions.append((dst_x1, dst_y, bw1, bh, 'addons'))
+        #widget.btn_regions.append((dst_x1, dst_y, bw1, bh, 'addons'))
         widget.btn_regions.append((dst_x2, dst_y, bw2, bh, 'info'))
         return
 
     def on_get_size(self, widget, cell_area):
-        h = 32
+        h = 36
         if self.isactive: h += 32
         return -1, -1, -1, h
 
@@ -497,7 +529,7 @@ class AppView(gtk.TreeView):
                                   ),
     }
 
-    def __init__(self, store=None):
+    def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
         # previous active row reference
         self.prev = 0
@@ -516,12 +548,11 @@ class AppView(gtk.TreeView):
 
         filename = "/usr/share/icons/Humanity/emblems/16/emblem-favorite.svg"
         self.star_pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
-        tr = CellRendererAppView()
-        tr.set_property('xpad', 2)
+        tr = CellRendererAppView(show_ratings)
+        tr.set_property('xpad', 3)
         tr.set_property('ypad', 2)
 
-#        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
-        column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, isactive=AppStore.IS_ACTIVE)
+        column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, isactive=AppStore.IS_ACTIVE, installed=AppStore.COL_INSTALLED_OVERLAY)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -605,13 +636,20 @@ class AppView(gtk.TreeView):
             rr = gtk.gdk.region_rectangle(rect)
 
             if rr.point_in(x, y):
+                appname, text, icon, overlay, pkgname, isactive = tree.get_model()[path]
                 if name == 'info':
-                    name, text, icon, overlay, pkgname, isactive = tree.get_model()[path]
-                    self.emit("application-activated", Application(name, pkgname))
+                    self.emit("application-activated", Application(appname, pkgname))
+                elif name == 'install':
+                    print (not overlay), 'install'
                 break
 
     def _xy_is_over_focal_row(self, x, y):
+        res = self.get_path_at_pos(x, y)
+        cur = self.get_cursor()
+        if not res:
+            return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
+
 
 # XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):

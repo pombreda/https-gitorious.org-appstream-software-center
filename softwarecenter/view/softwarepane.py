@@ -69,7 +69,7 @@ class SoftwarePane(gtk.VBox):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
@@ -81,7 +81,7 @@ class SoftwarePane(gtk.VBox):
         # common UI elements (applist and appdetails) 
         # its the job of the Child class to put it into a good location
         # list
-        self.app_view = AppView()
+        self.app_view = AppView(show_ratings)
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
