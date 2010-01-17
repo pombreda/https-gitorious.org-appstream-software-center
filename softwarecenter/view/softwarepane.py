@@ -90,7 +90,7 @@ class SoftwarePane(gtk.VBox):
                               self.on_application_activated)
         self.app_view.connect("application-selected", 
                               self.on_application_selected)
-        self._current_selected_pkgname = None
+        self._current_selected_app = None
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -142,7 +142,7 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
-        self._current_selected_pkgname = app
+        self._current_selected_app = app
         
     def update_app_view(self):
         """
@@ -154,21 +154,16 @@ class SoftwarePane(gtk.VBox):
         selection = self.app_view.get_selection()
         (model, it) = selection.get_selected()
         if model.get_iter_root() is not None and it is None:
-            index=-1
+            index=0
             vadj = self.scroll_app_list.get_vadjustment()
-            if self._current_selected_pkgname:
-                if model.sorted:
-                    # bisect returns "insert" point right of the element
-                    index = bisect.bisect(model.apps, 
-                                          self._current_selected_pkgname) - 1
-                    # index may not be the item we want
-                    if model.apps[index] != self._current_selected_pkgname:
-                        index = -1
+            if self._current_selected_app:
+                app_map = self.app_view.get_model().app_index_map
+                if self._current_selected_app.key() in app_map:
+                    index = app_map.get(self._current_selected_app.key())
             # re-select item
-            if vadj and index >= 0:
+            if vadj:
                 self.app_view.set_cursor(index)
                 vadj.value_changed()
-
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -192,5 +187,5 @@ class SoftwarePane(gtk.VBox):
         pass
 
     def get_selected_app(self):
-        """ return the current selected appliction object """
+        """ return the current selected application object """
         pass

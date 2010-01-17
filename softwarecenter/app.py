@@ -380,16 +380,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add(1000, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if self._block_menuitem_view:
-            return
-        self.active_pane.apps_filter.set_supported_only(False)
-        self.active_pane.refresh_apps()
+        if not self._block_menuitem_view and self.active_pane.apps_filter.get_supported_only():
+            self.active_pane.apps_filter.set_supported_only(False)
+            self.active_pane.refresh_apps()
 
     def on_menuitem_view_supported_only_activate(self, widget):
-        if self._block_menuitem_view: 
-            return
-        self.active_pane.apps_filter.set_supported_only(True)
-        self.active_pane.refresh_apps()
+        if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
+            self.active_pane.apps_filter.set_supported_only(True)
+            self.active_pane.refresh_apps()
         
     # helper
 

@@ -35,6 +35,10 @@ class Application(object):
         if self.appname:
             return self.appname
         return self.pkgname
+    def key(self):
+        """Return a key to uniquely identify this application"""
+        str_list = [self.appname, " : ", self.pkgname]
+        return "".join(str_list)
     def __cmp__(self, other):
         return self.apps_cmp(self, other)
     def __str__(self):
