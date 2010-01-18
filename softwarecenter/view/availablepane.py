@@ -125,8 +125,8 @@ class AvailablePane(SoftwarePane):
         if (self.apps_category and 
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
-            self.subcategories_view.set_subcategory(self.apps_category)
             self.scroll_subcategories.show()
+            self.subcategories_view.set_subcategory(self.apps_category)
         else:
             self.scroll_subcategories.hide()
 
@@ -148,6 +148,8 @@ class AvailablePane(SoftwarePane):
            navigation bar
         """
         logging.debug("refresh_apps")
+        # mvo: its important to fist show the subcategories and then
+        #      the new model, otherwise we run into visual lack
         self._show_hide_subcategories()
         self._refresh_apps_with_apt_cache()
 
