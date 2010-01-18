@@ -282,8 +282,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
     def __init__(self, show_ratings):
         self.__gobject_init__()
         self.markup = None
-        self.rating = 5
-        self.reviews = 1
+        import random # for testing
+        self.rating = int(random.random()*5)
+        self.reviews = int(random.random()*100)
         self.isactive = 0
         self.installed = False
         self.show_ratings = show_ratings
@@ -321,15 +322,26 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
     def draw_rating(self, window, widget, cell_area, xpad, ypad, layout, w, h, flags):
        # draw star rating
-        dest_x = cell_area.width-xpad 
+        dest_x = cell_area.width-xpad
+        tw = 5*(w+1)    # total 5star width
         for i in range(self.rating):
             window.draw_pixbuf(None,
                                widget.star_pixbuf,    # icon
                                0, 0,                # src pixbuf
-                               dest_x - (self.rating-i)*(w+1) + 32,  # xdest
+                               dest_x - tw + i*(w+1) + 32,  # xdest
                                cell_area.y+1+ypad,    # ydest
                                -1, -1,              # size
                                0, 0, 0)             # dither
+        i = self.rating
+        while i < 5:
+           window.draw_pixbuf(None,
+                       widget.star_not_pixbuf,    # icon
+                       0, 0,                # src pixbuf
+                       dest_x - tw + i*(w+1) + 32,  # xdest
+                       cell_area.y+1+ypad,    # ydest
+                       -1, -1,              # size
+                       0, 0, 0)             # dither
+           i += 1
 
         # draw number of reviews
         if self.reviews != 1:
@@ -339,7 +351,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         layout.set_markup("<small>%s review%s</small>" % (self.reviews, s))
         lw = layout.get_pixel_extents()[1][2]
-        dest_x = dest_x - 5*(w+1) + 32 + (5*(w+1)-lw)/2
+        dest_x = dest_x - tw + 32 + (tw-lw)/2
 
         widget.style.paint_layout(window,
                                   flags,
@@ -548,6 +560,10 @@ class AppView(gtk.TreeView):
 
         filename = "/usr/share/icons/Humanity/emblems/16/emblem-favorite.svg"
         self.star_pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
+
+        filename = "data/emblems/emblem-favorite-not.png"
+        self.star_not_pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
+
         tr = CellRendererAppView(show_ratings)
         tr.set_property('xpad', 3)
         tr.set_property('ypad', 2)
@@ -579,11 +595,11 @@ class AppView(gtk.TreeView):
 
         path = tree.get_path_at_pos(x, y)
         if not path: return
+
         yO = tree.get_cell_area(path[0], col).y
         for cx, cy, cw, ch, name in self.btn_regions:
             rect = gtk.gdk.Rectangle(cx, yO+cy, cw, ch)
             rr = gtk.gdk.region_rectangle(rect)
-
             if rr.point_in(x, y):
                 self.window.set_cursor(self._cursor_hand)
                 break
