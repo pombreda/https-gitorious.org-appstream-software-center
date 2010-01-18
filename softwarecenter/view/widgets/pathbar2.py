@@ -118,7 +118,7 @@ class PathBar(gtk.DrawingArea):
             w += aw
 
             # begin scroll animation
-            self.__hscroll_init(
+            self.__hscroll_out_init(
                 part.get_width(),
                 gtk.gdk.Rectangle(x,y,w,h),
                 self.theme.scroll_duration_ms,
@@ -135,7 +135,9 @@ class PathBar(gtk.DrawingArea):
 
         old_w = self.__draw_width()
 
+        # remove part from interal part list
         del self.__parts[self.__parts.index(part)]
+
         self.__compose_parts(self.__parts[-1], False)
 
         if old_w >= self.allocation.width:
@@ -304,31 +306,31 @@ class PathBar(gtk.DrawingArea):
         a = self.__parts[-1].allocation
         return a[0] + a[2]
 
-    def __hscroll_init(self, distance, draw_area, duration, fps):
-        sec = duration*0.001
-        interval = int(duration/(sec*fps))  # duration / n_frames
+    def __hscroll_out_init(self, distance, draw_area, duration, fps):
         self.__scroller = gobject.timeout_add(
-            interval,
-            self.__hscroll_cb,
-            sec,
-            1/sec,
+            int(1000.0 / fps),  # interval
+            self.__hscroll_out_cb,
             distance,
-            gobject.get_current_time() + sec,
+            duration*0.001,   # 1 over duration (converted to seconds)
+            gobject.get_current_time(),
             draw_area.x,
             draw_area.y,
             draw_area.width,
             draw_area.height)
         return
 
-    def __hscroll_cb(self, sec, sec_inv, distance, end_t, x, y, w, h):
+    def __hscroll_out_cb(self, distance, duration, start_t, x, y, w, h):
         cur_t = gobject.get_current_time()
-        xO = distance*(sec - (end_t - cur_t))*sec_inv
-        if xO < distance:
+        xO = distance - distance*((cur_t - start_t) / duration)
+
+        if xO > 0:
             self.__scroll_xO = xO
             self.queue_draw_area(x, y, w, h)
         else:   # final frame
             self.__scroll_xO = 0
-            self.queue_draw_area(x, y, w, h)
+            # redraw the entire widget
+            # incase some timeouts are skipped due to high system load
+            self.queue_draw()
             self.__scroller = None
             return False
         return True
@@ -345,15 +347,30 @@ class PathBar(gtk.DrawingArea):
     def __draw_hscroll(self, cr):
         if len(self.__parts) < 2:
             return
+
         # draw the last two parts
         prev, last = self.__parts[-2:]
 
-        self.__draw_part(cr, last, self.style, self.theme.curvature,
-            self.theme.arrow_width, self.__shapes,
-            last.get_width() - self.__scroll_xO)
+        # style theme stuff
+        style, r, aw, shapes = self.style, self.theme.curvature, \
+            self.theme.arrow_width, self.__shapes
 
-        self.__draw_part(cr, prev, self.style, self.theme.curvature,
-            self.theme.arrow_width, self.__shapes)
+        # draw part that need scrolling
+        self.__draw_part(cr,
+                         last,
+                         style,
+                         r,
+                         aw,
+                         shapes,
+                         self.__scroll_xO)
+
+        # draw the last part that does not scroll
+        self.__draw_part(cr,
+                         prev,
+                         style,
+                         r,
+                         aw,
+                         shapes)
         return
 
     def __draw_all(self, cr, event_area):
@@ -732,17 +749,18 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __expose_cb(self, widget, event):
-        #t = gobject.get_current_time()
         cr = widget.window.cairo_create()
+
         if self.theme.base_hack:
             cr.set_source_rgb(*self.theme.base_hack)
             cr.paint()
+
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
         else:
             self.__draw_all(cr, event.area)
+
         del cr
-        #print 'Exposure fps: %s' % (1 / (gobject.get_current_time() - t))
         return
 
     def __style_change_cb(self, widget, old_style):
@@ -979,7 +997,7 @@ class PathBarIcon:
             render_icon(icon_set, self.name, self.size)
 
         if not self.pixbuf:
-            print FAIL + 'Error: No name failed to match any installed icon set.' + ENDC
+            print 'Error: No name failed to match any installed icon set.'
             self.name = gtk.STOCK_MISSING_IMAGE
             icon_set = style.lookup_icon_set(self.name)
             render_icon(icon_set, self.name, self.size)
@@ -993,12 +1011,12 @@ class PathBarThemeHuman:
 
     curvature = 2.5
     min_part_width = 56
-    xpadding = 10
-    ypadding = 4
-    spacing = 6
+    xpadding = 8
+    ypadding = 2
+    spacing = 4
     arrow_width = 13
     scroll_duration_ms = 150
-    scroll_fps = 60
+    scroll_fps = 50
     animate = gtk.settings_get_default().get_property("gtk-enable-animations")
 
     def __init__(self):
@@ -1239,7 +1257,7 @@ class PathBarThemeHicolor:
     spacing = 10
     arrow_width = 15
     scroll_duration_ms = 150
-    scroll_fps = 60
+    scroll_fps = 50
     animate = gtk.settings_get_default().get_property("gtk-enable-animations")
 
     def __init__(self):
@@ -1325,20 +1343,16 @@ class NavigationBar(PathBar):
         if id in self.id_to_part:
             part = self.id_to_part[id]
             part.set_label(label)
-            self.queue_draw_area(*part.get_allocation_tuple())
         else:
             part = PathPart(label, callback)
-            # mvo please check this:  the following seems redundant, so removing (gml)
-            # part.callback(self)
             part.set_pathbar(self)
             self.id_to_part[id] = part
-            gobject.timeout_add(50, self.append, part)
+            gobject.timeout_add(150, self.append, part)
 
         if icon: part.set_icon(icon)
         return
 
     def remove_id(self, id):
-
         if not id in self.id_to_part:
             return
 
@@ -1368,4 +1382,4 @@ class NavigationBar(PathBar):
         """
         if not id in self.id_to_part:
             return
-        return self.id_to_part[id].get_label()
+
