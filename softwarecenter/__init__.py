@@ -39,6 +39,8 @@ class Application(object):
     def popcon(self):
         return self._popcon
     # special methods
+    def __hash__(self):
+        return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
     def __cmp__(self, other):
         return self.apps_cmp(self, other)
     def __str__(self):

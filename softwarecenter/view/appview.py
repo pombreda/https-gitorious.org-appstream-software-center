@@ -94,6 +94,7 @@ class AppStore(gtk.GenericTreeModel):
         self.db = db
         self.icons = icons
         self.apps = []
+        self.app_index_map = {} 
         self.sorted = sort
         self.filter = filter
         # rowref of the active app and last active app
@@ -111,6 +112,8 @@ class AppStore(gtk.GenericTreeModel):
                 popcon = db.get_popcon(doc)
                 self.apps.append(Application(appname, pkgname, popcon))
             self.apps.sort()
+            for (i, app) in enumerate(self.apps):
+                self.app_index_map[app] = i
         else:
             # we support single and list search_queries,
             # if list we append them one by one
@@ -131,6 +134,7 @@ class AppStore(gtk.GenericTreeModel):
                 else:
                     matches = enquire.get_mset(0, limit)
                 logging.debug("found ~%i matches" % matches.get_matches_estimated())
+                app_index = 0
                 for m in matches:
                     doc = m[xapian.MSET_DOCUMENT]
                     if "APPVIEW_DEBUG_TERMS" in os.environ:
@@ -149,8 +153,13 @@ class AppStore(gtk.GenericTreeModel):
                     if not app in already_added:
                         self.apps.append(app)
                         already_added.add(app)
+                        if not sort:
+                            self.app_index_map[app] = app_index
+                            app_index = app_index + 1
             if sort:
                 self.apps.sort()
+                for (i, app) in enumerate(self.apps):
+                    self.app_index_map[app] = i
 
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """

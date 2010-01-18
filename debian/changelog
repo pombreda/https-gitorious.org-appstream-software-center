@@ -8,6 +8,9 @@ software-center (1.1.9) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/pathbar2.py:
     - remove explicit callback when a button is appended
       to the pathbar as it is not needed
+  * softwarecenter/app.py:
+    - fix double call to the all/supported only menu
+      item handlers
 
   [ Michael Vogt ]
   * softwarecenter/apt/aptcache.py:
@@ -18,7 +21,7 @@ software-center (1.1.9) UNRELEASED; urgency=low
     Many thanks to Matthew McGowan
     This gives us much nicer layout and a popcon column
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jan 2010 14:48:49 +0100
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 17 Jan 2010 11:01:37 -0500
 
 software-center (1.1.8) lucid; urgency=low
 
