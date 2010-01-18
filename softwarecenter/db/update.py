@@ -156,10 +156,10 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             # FIXME: popularity not only based on popcon but also
             #        on archive section, third party app etc
             if parser.has_option_desktop("X-AppInstall-Popcon"):
-                popcon = parser.get_desktop("X-AppInstall-Popcon")
+                popcon = float(parser.get_desktop("X-AppInstall-Popcon"))
                 # sort_by_value uses string compare, so we need to pad here
                 doc.add_value(XAPIAN_VALUE_POPCON, 
-                              xapian.sortable_serialise(float(popcon)))
+                              xapian.sortable_serialise(popcon))
                 popcon_max = max(popcon_max, popcon)
             # comment goes into the summary data if there is one,
             # other wise we try GenericName
