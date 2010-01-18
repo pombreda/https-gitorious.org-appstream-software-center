@@ -51,15 +51,17 @@ class AppStore(gtk.GenericTreeModel):
     (COL_APP_NAME,
      COL_TEXT,
      COL_ICON,
-     COL_INSTALLED_OVERLAY,
+     COL_INSTALLED,
+     COL_AVAILABLE,
      COL_PKGNAME,
      COL_POPCON,
      IS_ACTIVE
-     ) = range(7)
+     ) = range(8)
 
     column_type = (str,
                    str,
                    gtk.gdk.Pixbuf,
+                   bool,
                    bool,
                    str,
                    int,
@@ -218,11 +220,14 @@ class AppStore(gtk.GenericTreeModel):
             except glib.GError, e:
                 logging.debug("get_icon returned '%s'" % e)
             return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
-        elif column == self.COL_INSTALLED_OVERLAY:
+        elif column == self.COL_INSTALLED:
             pkgname = self.db.get_pkgname(doc)
             if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
                 return True
             return False
+        elif column == self.COL_AVAILABLE:
+            pkgname = self.db.get_pkgname(doc)
+            return self.cache.has_key(pkgname)
         elif column == self.COL_PKGNAME:
             pkgname = self.db.get_pkgname(doc)
             return pkgname
@@ -278,6 +283,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             gobject.PARAM_READWRITE),
 
         'installed': (bool, 'installed', 'Is the app installed', False,
+                     gobject.PARAM_READWRITE),
+
+        'available': (bool, 'available', 'Is the app available for install', False,
                      gobject.PARAM_READWRITE),
         }
 
@@ -413,7 +421,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         return
 
     def on_render(self, window, widget, background_area, cell_area,
-        expose_area, flags):
+                  expose_area, flags):
 
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
@@ -450,14 +458,16 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             layout.set_markup("<small>%s</small>" % _("Remove"))
             lw = self._get_layout_pixel_width(layout)
 
-        self.draw_button(window,
-                 widget,
-                 cell_area,
-                 xpad, ypad,
-                 layout,
-                 dst_x0, dst_y,
-                 bw0, bh,
-                 lw, lh)
+        # only draw a install/remove button if the app is actually available
+        if self.available:
+            self.draw_button(window,
+                             widget,
+                             cell_area,
+                             xpad, ypad,
+                             layout,
+                             dst_x0, dst_y,
+                             bw0, bh,
+                             lw, lh)
 
 #        # Choose Add-Ons... button
 #        # label and label size
@@ -493,7 +503,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         # specify button regions
         widget.btn_regions = []
-        widget.btn_regions.append((dst_x0, dst_y, bw0, bh, 'install'))
+        widget.btn_regions.append((dst_x0, dst_y, bw0, bh, 'action'))
         #widget.btn_regions.append((dst_x1, dst_y, bw1, bh, 'addons'))
         widget.btn_regions.append((dst_x2, dst_y, bw2, bh, 'info'))
         return
@@ -568,6 +578,10 @@ class AppView(gtk.TreeView):
                                    gobject.TYPE_NONE,
                                    (gobject.TYPE_PYOBJECT, ),
                                   ),
+        "application-request-action" : (gobject.SIGNAL_RUN_LAST,
+                                        gobject.TYPE_NONE,
+                                        (gobject.TYPE_PYOBJECT, str),
+                                       ),
     }
 
     def __init__(self, show_ratings, store=None):
@@ -580,7 +594,7 @@ class AppView(gtk.TreeView):
         tp = CellRendererPixbufWithOverlay("software-center-installed")
         column = gtk.TreeViewColumn("Icon", tp,
                                     pixbuf=AppStore.COL_ICON,
-                                    overlay=AppStore.COL_INSTALLED_OVERLAY)
+                                    overlay=AppStore.COL_INSTALLED)
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -589,7 +603,7 @@ class AppView(gtk.TreeView):
         tr.set_property('xpad', 3)
         tr.set_property('ypad', 2)
 
-        column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, rating=AppStore.COL_POPCON, isactive=AppStore.IS_ACTIVE, installed=AppStore.COL_INSTALLED_OVERLAY)
+        column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, rating=AppStore.COL_POPCON, isactive=AppStore.IS_ACTIVE, installed=AppStore.COL_INSTALLED, available=AppStore.COL_AVAILABLE)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -639,40 +653,52 @@ class AppView(gtk.TreeView):
         (model, it) = selection.get_selected()
         if it is None:
             return
-        (name, text, icon, overlay, pkgname, popcon, isactive) = model[it]
+        name = model[it][AppStore.COL_APP_NAME]
+        pkgname = model[it][AppStore.COL_PKGNAME]
+        popcon = model[it][AppStore.COL_POPCON]
         self.emit("application-selected", Application(name, pkgname, popcon))
         return
 
     def _on_row_activated(self, treeview, path, column):
-        (name, text, icon, overlay, pkgname, popcon, isactive) = treeview.get_model()[path]
+        name = model[it][AppStore.COL_APP_NAME]
+        pkgname = model[it][AppStore.COL_PKGNAME]
+        popcon = model[it][AppStore.COL_POPCON]
         self.emit("application-activated", Application(name, pkgname, popcon))
 
-    def _on_button_press_event(self, tree, event, col):
+    def _on_button_press_event(self, view, event, col):
         if event.button != 1:
             return
-        res = tree.get_path_at_pos(int(event.x), int(event.y))
+        res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
         if path is None:
             return
         # only act when the selection is already there
-        selection = tree.get_selection()
+        selection = view.get_selection()
         if not selection.path_is_selected(path):
             return
 
         x, y = int(event.x), int(event.y)
-        yO = tree.get_cell_area(path, col).y
+        yO = view.get_cell_area(path, col).y
         for cx, cy, cw, ch, name in self.btn_regions:
             rect = gtk.gdk.Rectangle(cx, yO+cy, cw, ch)
             rr = gtk.gdk.region_rectangle(rect)
 
             if rr.point_in(x, y):
-                appname, text, icon, overlay, pkgname, popcon, isactive = tree.get_model()[path]
+                model = view.get_model()
+                appname = model[path][AppStore.COL_APP_NAME]
+                pkgname = model[path][AppStore.COL_PKGNAME]
+                installed = model[path][AppStore.COL_INSTALLED]
+                popcon = model[path][AppStore.COL_POPCON]
                 if name == 'info':
                     self.emit("application-activated", Application(appname, pkgname, popcon))
-                elif name == 'install':
-                    print (not overlay), 'install'
+                elif name == 'action':
+                    if installed: 
+                        perform_action = "remove"
+                    else:
+                        perform_action = "install"
+                    self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
                 break
 
     def _xy_is_over_focal_row(self, x, y):

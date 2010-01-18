@@ -90,6 +90,8 @@ class SoftwarePane(gtk.VBox):
                               self.on_application_activated)
         self.app_view.connect("application-selected", 
                               self.on_application_selected)
+        self.app_view.connect("application-request-action", 
+                              self.on_application_request_action)
         self._current_selected_pkgname = None
         # details
         self.app_details = AppDetailsView(self.db, 
@@ -143,7 +145,17 @@ class SoftwarePane(gtk.VBox):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
         self._current_selected_pkgname = app
-        
+
+    def on_application_request_action(self, appview, app, action):
+        """callback when an app action is requested from the appview"""
+        logging.debug("on_application_action_requested: '%s' %s" % (app, action))
+        self.app_details.init_app(app)
+        action_func = getattr(self.app_details, action)
+        if callable(action_func):
+            action_func()
+        else:
+            logging.error("can not find action '%s'" % action)
+
     def update_app_view(self):
         """
         Update the app_view.  If no row is selected, then the previously
