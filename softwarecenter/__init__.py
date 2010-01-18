@@ -25,10 +25,11 @@ class Application(object):
         
         There is also a __cmp__ method and a name property
     """
-    __slots__ = ["appname", "pkgname"]
-    def __init__(self, appname, pkgname):
+    __slots__ = ["appname", "pkgname", "popcorn"]
+    def __init__(self, appname, pkgname, popcorn):
         self.appname = appname
         self.pkgname = pkgname
+        self.popcorn = popcorn
     @property
     def name(self):
         """Show user visible name"""
@@ -52,3 +53,6 @@ class Application(object):
             return locale.strcoll(x.pkgname, y.appname)
         else:
             return cmp(x.pkgname, y.pkgname)
+
+    def get_popcorn(self):
+        return self.popcorn

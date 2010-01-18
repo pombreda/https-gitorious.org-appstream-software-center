@@ -28,6 +28,7 @@ import pango
 import sys
 import time
 import xapian
+import math
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -51,14 +52,16 @@ class AppStore(gtk.GenericTreeModel):
      COL_ICON,
      COL_INSTALLED_OVERLAY,
      COL_PKGNAME,
+     COL_POPCORN,
      IS_ACTIVE
-     ) = range(6)
+     ) = range(7)
 
     column_type = (str,
                    str,
                    gtk.gdk.Pixbuf,
                    bool,
                    str,
+                   int,
                    int)
 
     ICON_SIZE = 24
@@ -88,9 +91,11 @@ class AppStore(gtk.GenericTreeModel):
         self.db = db
         self.icons = icons
         self.apps = []
-        self.apps_activity = []
+        self.active_app = None
+        self._prev_active_app = 0
         self.sorted = sort
         self.filter = filter
+        self.max_popcorn = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
         if not search_query:
             # limit to applications
@@ -99,11 +104,11 @@ class AppStore(gtk.GenericTreeModel):
                 if filter and self.is_filtered_out(filter, doc):
                     continue
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-                # eh, how do i get real popcorn values not unicodes???
-                #print repr(doc.get_value(XAPIAN_VALUE_POPCON))
                 pkgname = db.get_pkgname(doc)
-                self.apps.append(Application(appname, pkgname))
-                self.apps_activity.append(0)
+                popcorn = doc.get_value(XAPIAN_VALUE_POPCON)
+                popcorn = xapian.sortable_unserialise(popcorn)
+                self.max_popcorn = max(popcorn, self.max_popcorn)
+                self.apps.append(Application(appname, pkgname, popcorn))
             self.apps.sort()
         else:
             # we support single and list search_queries,
@@ -138,10 +143,12 @@ class AppStore(gtk.GenericTreeModel):
                         continue
                     # when doing multiple queries we need to ensure
                     # we don't add duplicates
-                    app = Application(appname, pkgname)
+                    popcorn = doc.get_value(XAPIAN_VALUE_POPCON)
+                    popcorn = xapian.sortable_unserialise(popcorn)
+                    self.max_popcorn = max(popcorn, self.max_popcorn)
+                    app = Application(appname, pkgname, popcorn)
                     if not app in already_added:
                         self.apps.append(app)
-                        self.apps_activity.append(0)
                         already_added.add(app)
             if sort:
                 self.apps.sort()
@@ -166,6 +173,15 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
                 gtk.TREE_MODEL_ITERS_PERSIST)
+    def _set_active_app(self, path):
+        """ helper that emits row_changed signals for the new
+            and previous selected app
+        """
+        self.row_changed(self._prev_active_app, 
+        self.get_iter(self._prev_active_app))
+        self._prev_active_app = path
+        self.active_app = path
+        self.row_changed(path, self.get_iter(path))
     def on_get_n_columns(self):
         return len(self.column_type)
     def on_get_column_type(self, index):
@@ -214,12 +230,11 @@ class AppStore(gtk.GenericTreeModel):
         elif column == self.COL_PKGNAME:
             pkgname = self.db.get_pkgname(doc)
             return pkgname
+        elif column == self.COL_POPCORN:
+            popcorn = self.apps[rowref].get_popcorn()
+            return popcorn
         elif column == self.IS_ACTIVE:
-            try:
-                is_active = self.apps_activity[rowref]
-            except:
-                return 0
-            return is_active
+            return rowref == self.active_app
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -248,14 +263,6 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_parent(self, child):
         return None
 
-    def set_activity(self, rowref, value):
-        try:
-            self.apps_activity[rowref] = value
-            self.row_changed(rowref, self.get_iter(rowref))
-        except:
-            pass
-        return
-
 
 class CellRendererAppView(gtk.GenericCellRenderer):
 
@@ -266,8 +273,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 #        'addons': (gobject.TYPE_INT, 'AddOns', 'Has add-ons?', 0, 2, 0,
 #            gobject.PARAM_READWRITE),
 
-#        'rating': (gobject.TYPE_INT, 'Rating', 'Popcorn rating', 0, 5, 0,
-#            gobject.PARAM_READWRITE),
+        'rating': (gobject.TYPE_INT, 'Rating', 'Popcorn rating', 0, 1000000, 0,
+            gobject.PARAM_READWRITE),
 
 #        'reviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
 #            gobject.PARAM_READWRITE),
@@ -283,8 +290,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         self.__gobject_init__()
         self.markup = None
         import random # for testing
-        self.rating = int(random.random()*5)
-        self.reviews = int(random.random()*100)
+        self.rating = 0
+        self.reviews = 85
         self.isactive = 0
         self.installed = False
         self.show_ratings = show_ratings
@@ -324,7 +331,13 @@ class CellRendererAppView(gtk.GenericCellRenderer):
        # draw star rating
         dest_x = cell_area.width-xpad
         tw = 5*(w+1)    # total 5star width
-        for i in range(self.rating):
+        
+        if self.rating != 0:
+            r  = int(5 * math.log(self.rating)/math.log(widget.get_model().max_popcorn+1))
+        else:
+            r = 0
+
+        for i in range(r):
             window.draw_pixbuf(None,
                                widget.star_pixbuf,    # icon
                                0, 0,                # src pixbuf
@@ -332,16 +345,16 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                cell_area.y+1+ypad,    # ydest
                                -1, -1,              # size
                                0, 0, 0)             # dither
-        i = self.rating
-        while i < 5:
+
+        while r < 5:
            window.draw_pixbuf(None,
                        widget.star_not_pixbuf,    # icon
                        0, 0,                # src pixbuf
-                       dest_x - tw + i*(w+1) + 32,  # xdest
+                       dest_x - tw + r*(w+1) + 32,  # xdest
                        cell_area.y+1+ypad,    # ydest
                        -1, -1,              # size
                        0, 0, 0)             # dither
-           i += 1
+           r += 1
 
         # draw number of reviews
         if self.reviews != 1:
@@ -545,7 +558,6 @@ class AppView(gtk.TreeView):
     def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
         # previous active row reference
-        self.prev = 0
         self.btn_regions = None
 
         #self.set_fixed_height_mode(True)
@@ -569,7 +581,7 @@ class AppView(gtk.TreeView):
         tr.set_property('xpad', 3)
         tr.set_property('ypad', 2)
 
-        column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, isactive=AppStore.IS_ACTIVE, installed=AppStore.COL_INSTALLED_OVERLAY)
+        column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, rating=AppStore.COL_POPCORN, isactive=AppStore.IS_ACTIVE, installed=AppStore.COL_INSTALLED_OVERLAY)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -608,29 +620,27 @@ class AppView(gtk.TreeView):
                 self.window.set_cursor(None)
         return
 
-    def _on_cursor_changed(self, tree):
-        model = tree.get_model()
-        try:
-            model.set_activity(self.prev, 0)
-        except:
-            pass
+    def _on_cursor_changed(self, view):
+        # update is_active property for the custom cell renderer
+        model = view.get_model()
+        (path, column) = view.get_cursor()
+        model._set_active_app(path[0])
 
-        path = tree.get_cursor()[0][0]
-        model.set_activity(path, 1)
-
-        self.prev = path
-
-        selection = tree.get_selection()
+        # update the selections and emit the right signal
+        selection = view.get_selection()
         (model, it) = selection.get_selected()
         if it is None:
             return
-        (name, text, icon, overlay, pkgname, isactive) = model[it]
-        self.emit("application-selected", Application(name, pkgname))
+        (model, it) = selection.get_selected()
+        if it is None:
+            return
+        (name, text, icon, overlay, pkgname, popcorn, isactive) = model[it]
+        self.emit("application-selected", Application(name, pkgname, popcorn))
         return
 
     def _on_row_activated(self, treeview, path, column):
         (name, text, icon, overlay, pkgname, isactive) = treeview.get_model()[path]
-        self.emit("application-activated", Application(name, pkgname))
+        self.emit("application-activated", Application(name, pkgname, popcorn))
 
     def _on_button_press_event(self, tree, event, col):
         if event.button != 1:
@@ -653,9 +663,9 @@ class AppView(gtk.TreeView):
             rr = gtk.gdk.region_rectangle(rect)
 
             if rr.point_in(x, y):
-                appname, text, icon, overlay, pkgname, isactive = tree.get_model()[path]
+                appname, text, icon, overlay, pkgname, popcorn, isactive = tree.get_model()[path]
                 if name == 'info':
-                    self.emit("application-activated", Application(appname, pkgname))
+                    self.emit("application-activated", Application(appname, pkgname, popcorn))
                 elif name == 'install':
                     print (not overlay), 'install'
                 break
