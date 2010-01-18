@@ -75,6 +75,10 @@ class StoreDatabase(gobject.GObject):
         self.open()
         self.emit("reopen")
 
+    @property
+    def popcorn_max(self):
+        return xapian.sortable_unserialise(self.xapiandb.get_metadata("popcon_max_desktop"))
+
     def _comma_expansion(self, search_term):
         """do expansion of "," in a search term, see
         https://wiki.ubuntu.com/SoftwareCenter?action=show&redirect=SoftwareStore#Searching%20for%20multiple%20package%20names
@@ -202,6 +206,7 @@ if __name__ == "__main__":
 
     db = StoreDatabase("/var/cache/software-center/xapian", apt.Cache())
     db.open()
+    print db.popcon_max
     if len(sys.argv) < 2:
         search = "apt,apport"
     else:

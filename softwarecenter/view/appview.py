@@ -93,9 +93,9 @@ class AppStore(gtk.GenericTreeModel):
         self.apps = []
         self.active_app = None
         self._prev_active_app = 0
+        self.max_popcorn = 1
         self.sorted = sort
         self.filter = filter
-        self.max_popcorn = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
         if not search_query:
             # limit to applications
@@ -107,6 +107,7 @@ class AppStore(gtk.GenericTreeModel):
                 pkgname = db.get_pkgname(doc)
                 popcorn = doc.get_value(XAPIAN_VALUE_POPCON)
                 popcorn = xapian.sortable_unserialise(popcorn)
+                # sorry didnt sync with new database, brain ceases to function
                 self.max_popcorn = max(popcorn, self.max_popcorn)
                 self.apps.append(Application(appname, pkgname, popcorn))
             self.apps.sort()
@@ -145,6 +146,7 @@ class AppStore(gtk.GenericTreeModel):
                     # we don't add duplicates
                     popcorn = doc.get_value(XAPIAN_VALUE_POPCON)
                     popcorn = xapian.sortable_unserialise(popcorn)
+                    # sorry didnt sync with new database, brain ceases to function
                     self.max_popcorn = max(popcorn, self.max_popcorn)
                     app = Application(appname, pkgname, popcorn)
                     if not app in already_added:
@@ -286,15 +288,15 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                      gobject.PARAM_READWRITE),
         }
 
-    def __init__(self, show_ratings):
+    def __init__(self, show_ratings, max_popcorn=1):
         self.__gobject_init__()
         self.markup = None
-        import random # for testing
         self.rating = 0
         self.reviews = 85
         self.isactive = 0
         self.installed = False
         self.show_ratings = show_ratings
+        self.max_popcorn = max_popcorn
         return
 
     def do_set_property(self, pspec, value):
