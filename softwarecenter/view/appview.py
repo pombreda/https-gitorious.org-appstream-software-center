@@ -368,7 +368,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         widget.style.paint_box(window,
                                gtk.STATE_NORMAL,
                                gtk.SHADOW_ETCHED_OUT,
-                               cell_area,
+                               (dst_x, dst_y, bw, bh),
                                widget,
                                "button",
                                dst_x,       # x
@@ -380,7 +380,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         widget.style.paint_layout(window,
                             gtk.STATE_NORMAL,
                             True,
-                            cell_area,
+                            (dst_x, dst_y, bw, bh),
                             widget,
                             None,
                             dst_x + (bw-lw)/2,
@@ -512,9 +512,10 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
         return getattr(self, pspec.name)
     def do_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
+        area = cell_area.x, cell_area.y, 26, 32
         gtk.CellRendererPixbuf.do_render(self, window, widget, background_area,
-                                         cell_area, expose_area, flags)
-        overlay = self.get_property("overlay")
+                                         area, area, flags)
+        overlay = self.overlay
         if overlay:
             dest_x = cell_area.x + self.OFFSET_X
             dest_y = cell_area.y + self.OFFSET_Y
