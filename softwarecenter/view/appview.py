@@ -96,6 +96,7 @@ class AppStore(gtk.GenericTreeModel):
         self.apps = []
         self.sorted = sort
         self.filter = filter
+        # rowref of the active app and last active app
         self.active_app = None
         self._prev_active_app = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
@@ -643,16 +644,14 @@ class AppView(gtk.TreeView):
         return
 
     def _on_cursor_changed(self, view):
-        # update is_active property for the custom cell renderer
         model = view.get_model()
-        (path, column) = view.get_cursor()
-        model._set_active_app(path[0])
-
-        # update the selections and emit the right signal
         selection = view.get_selection()
         (model, it) = selection.get_selected()
         if it is None:
             return
+        # update active app, use row-ref as argument
+        model._set_active_app(model.get_path(it)[0])
+        # emit selected signal
         name = model[it][AppStore.COL_APP_NAME]
         pkgname = model[it][AppStore.COL_PKGNAME]
         popcon = model[it][AppStore.COL_POPCON]
