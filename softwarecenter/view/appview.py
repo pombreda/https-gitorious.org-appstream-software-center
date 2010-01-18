@@ -587,7 +587,7 @@ class AppView(gtk.TreeView):
     def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
         # previous active row reference
-        self.btn_regions = None
+        self.btn_regions = []
 
         #self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
@@ -659,10 +659,11 @@ class AppView(gtk.TreeView):
         self.emit("application-selected", Application(name, pkgname, popcon))
         return
 
-    def _on_row_activated(self, treeview, path, column):
-        name = model[it][AppStore.COL_APP_NAME]
-        pkgname = model[it][AppStore.COL_PKGNAME]
-        popcon = model[it][AppStore.COL_POPCON]
+    def _on_row_activated(self, view, path, column):
+        model = view.get_model()
+        name = model[path][AppStore.COL_APP_NAME]
+        pkgname = model[path][AppStore.COL_PKGNAME]
+        popcon = model[path][AppStore.COL_POPCON]
         self.emit("application-activated", Application(name, pkgname, popcon))
 
     def _on_button_press_event(self, view, event, col):
