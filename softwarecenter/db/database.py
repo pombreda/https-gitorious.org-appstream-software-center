@@ -168,6 +168,15 @@ class StoreDatabase(gobject.GObject):
             pkgname = doc.get_data()
         return pkgname
 
+    def get_popcon(self, doc):
+        """ Return a popcon value from a xapian document """
+        popcon_raw = doc.get_value(XAPIAN_VALUE_POPCON)
+        if popcon_raw:
+            popcon = xapian.sortable_unserialise(popcon_raw)
+        else:
+            popcon = 0
+        return popcon
+
     def get_xapian_document(self, appname, pkgname):
         """ Get the machting xapian document for appname, pkgname
         

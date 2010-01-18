@@ -105,8 +105,7 @@ class AppStore(gtk.GenericTreeModel):
                     continue
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
                 pkgname = db.get_pkgname(doc)
-                popcon = xapian.sortable_unserialise(doc.get_value(XAPIAN_VALUE_POPCON))
-                print popcon
+                popcon = db.get_popcon(doc)
                 self.apps.append(Application(appname, pkgname, popcon))
             self.apps.sort()
         else:
@@ -142,7 +141,7 @@ class AppStore(gtk.GenericTreeModel):
                         continue
                     # when doing multiple queries we need to ensure
                     # we don't add duplicates
-                    popcon = xapian.sortable_unserialise(doc.get_value(XAPIAN_VALUE_POPCON))
+                    popcon = db.get_popcon(doc)
                     app = Application(appname, pkgname, popcon)
                     if not app in already_added:
                         self.apps.append(app)
