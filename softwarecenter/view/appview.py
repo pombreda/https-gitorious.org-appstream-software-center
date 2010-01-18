@@ -288,7 +288,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                      gobject.PARAM_READWRITE),
         }
 
-    def __init__(self, show_ratings, max_popcorn=1):
+    def __init__(self, show_ratings):
         self.__gobject_init__()
         self.markup = None
         self.rating = 0
@@ -296,7 +296,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         self.isactive = 0
         self.installed = False
         self.show_ratings = show_ratings
-        self.max_popcorn = max_popcorn
         return
 
     def do_set_property(self, pspec, value):
