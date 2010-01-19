@@ -181,10 +181,10 @@ class AppStore(gtk.GenericTreeModel):
         """ helper that emits row_changed signals for the new
             and previous selected app
         """
+        self.active_app = path
         self.row_changed(self._prev_active_app, 
                          self.get_iter(self._prev_active_app))
         self._prev_active_app = path
-        self.active_app = path
         self.row_changed(path, self.get_iter(path))
     # GtkTreeModel functions
     def on_get_flags(self):
@@ -812,19 +812,14 @@ if __name__ == "__main__":
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()
-    icons.append_search_path("/usr/share/app-install/icons/")
+    icons.prepend_search_path("/usr/share/app-install/icons/")
+    icons.prepend_search_path("/usr/share/software-center/icons/")
 
     # now the store
     filter = AppViewFilter(db, cache)
-    filter.set_supported_only(True)
-    filter.set_installed_only(True)
+    filter.set_supported_only(False)
+    filter.set_installed_only(False)
     store = AppStore(cache, db, icons, sort=True, filter=filter)
-
-    # test bisect based search
-    import bisect
-    print store.sorted
-    index = bisect.bisect(store.apps, Application("Compiz","compiz"))
-    print "index: ", index
 
     # gui
     scroll = gtk.ScrolledWindow()
@@ -832,6 +827,7 @@ if __name__ == "__main__":
 
     entry = gtk.Entry()
     entry.connect("changed", on_entry_changed, (cache, db, view))
+    entry.set_text("f")
 
     box = gtk.VBox()
     box.pack_start(entry, expand=False)
@@ -843,4 +839,5 @@ if __name__ == "__main__":
     win.set_size_request(400, 400)
     win.show_all()
 
+    gtk.main()
 
