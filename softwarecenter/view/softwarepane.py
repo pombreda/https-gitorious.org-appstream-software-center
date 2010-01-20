@@ -88,11 +88,8 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-        self.app_view.connect("application-selected", 
-                              self.on_application_selected)
         self.app_view.connect("application-request-action", 
                               self.on_application_request_action)
-        self.current_appview_selection = None
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -140,11 +137,6 @@ class SoftwarePane(gtk.VBox):
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(app)
-        
-    def on_application_selected(self, appview, app):
-        """callback when an app is selected"""
-        logging.debug("on_application_selected: '%s'" % app)
-        self.current_appview_selection = app
 
     def on_application_request_action(self, appview, app, action):
         """callback when an app action is requested from the appview"""
@@ -204,5 +196,5 @@ class SoftwarePane(gtk.VBox):
         pass
         
     def get_current_app(self):
-        """return the current application object"""
+        " stub implementation "
         pass
