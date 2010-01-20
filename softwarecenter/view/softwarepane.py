@@ -92,7 +92,7 @@ class SoftwarePane(gtk.VBox):
                               self.on_application_selected)
         self.app_view.connect("application-request-action", 
                               self.on_application_request_action)
-        self._current_selected_app = None
+        self.active_appview_selection = None
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -144,7 +144,7 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
-        self._current_selected_app = app
+        self.active_appview_selection = app
 
     def on_application_request_action(self, appview, app, action):
         """callback when an app action is requested from the appview"""
@@ -165,13 +165,14 @@ class SoftwarePane(gtk.VBox):
         """
         selection = self.app_view.get_selection()
         (model, it) = selection.get_selected()
+        active_app = self.get_active_app()
         if model.get_iter_root() is not None and it is None:
             index=0
             vadj = self.scroll_app_list.get_vadjustment()
-            if self._current_selected_app:
+            if active_app:
                 app_map = self.app_view.get_model().app_index_map
-                if self._current_selected_app in app_map:
-                    index = app_map.get(self._current_selected_app)
+                if active_app in app_map:
+                    index = app_map.get(active_app)
             # re-select item
             if vadj:
                 self.app_view.set_cursor(index)
@@ -180,6 +181,10 @@ class SoftwarePane(gtk.VBox):
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         raise Exception, "Not implemented"
+        
+    def is_search_in_progress(self):
+        """return True is a search is currently in progress"""
+        return len(self.searchentry.get_text()) > 0
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):
@@ -197,7 +202,7 @@ class SoftwarePane(gtk.VBox):
     def is_category_view_showing(self):
         " stub implementation "
         pass
-
-    def get_selected_app(self):
-        """ return the current selected application object """
+        
+    def get_active_app(self):
+        """return the current active application object"""
         pass

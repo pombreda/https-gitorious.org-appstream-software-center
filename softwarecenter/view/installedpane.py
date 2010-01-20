@@ -125,6 +125,18 @@ class InstalledPane(SoftwarePane):
             return gettext.ngettext("%s application installed",
                                     "%s applications installed",
                                     length) % length
+                                    
+    def get_active_app(self):
+        """return the current active application object applicable
+           to the context"""
+        if self.is_search_in_progress():
+            model = self.app_view.get_model()
+            if len(model) > 0:
+                return self.app_view.get_model().apps[0]
+            else:
+                return None
+        else:
+            return self.active_appview_selection
         
     def is_category_view_showing(self):
         # there is no category view in the installed pane
