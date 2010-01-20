@@ -191,7 +191,7 @@ class AvailablePane(SoftwarePane):
             return ""
         return self._status_text
         
-    def get_active_app(self):
+    def get_current_app(self):
         """return the current active application object"""
         if self.is_category_view_showing():
             return None
@@ -202,7 +202,7 @@ class AvailablePane(SoftwarePane):
             else:
                 return None
         else:
-            return self.active_appview_selection
+            return self.current_appview_selection
     
     def _on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text up-to-date by

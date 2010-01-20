@@ -92,7 +92,7 @@ class SoftwarePane(gtk.VBox):
                               self.on_application_selected)
         self.app_view.connect("application-request-action", 
                               self.on_application_request_action)
-        self.active_appview_selection = None
+        self.current_appview_selection = None
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -144,7 +144,7 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
-        self.active_appview_selection = app
+        self.current_appview_selection = app
 
     def on_application_request_action(self, appview, app, action):
         """callback when an app action is requested from the appview"""
@@ -165,14 +165,14 @@ class SoftwarePane(gtk.VBox):
         """
         selection = self.app_view.get_selection()
         (model, it) = selection.get_selected()
-        active_app = self.get_active_app()
+        current_app = self.get_current_app()
         if model.get_iter_root() is not None and it is None:
             index=0
             vadj = self.scroll_app_list.get_vadjustment()
-            if active_app:
+            if current_app:
                 app_map = self.app_view.get_model().app_index_map
-                if active_app in app_map:
-                    index = app_map.get(active_app)
+                if current_app in app_map:
+                    index = app_map.get(current_app)
             # re-select item
             if vadj:
                 self.app_view.set_cursor(index)
@@ -203,6 +203,6 @@ class SoftwarePane(gtk.VBox):
         " stub implementation "
         pass
         
-    def get_active_app(self):
-        """return the current active application object"""
+    def get_current_app(self):
+        """return the current application object"""
         pass

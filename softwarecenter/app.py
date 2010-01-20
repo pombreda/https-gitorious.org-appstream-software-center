@@ -270,12 +270,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # Menu Items
     def on_menuitem_install_activate(self, menuitem):
-        app = self.active_pane.get_active_app()
+        app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.install()
 
     def on_menuitem_remove_activate(self, menuitem):
-        app = self.active_pane.get_active_app()
+        app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.remove()
         
@@ -322,7 +322,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_copy_web_link_activate(self, menuitem):
-        app = self.active_pane.get_active_app()
+        app = self.active_pane.get_current_app()
         if app:
             clipboard = gtk.Clipboard()
             clipboard.set_text(self.WEBLINK_URL % app.pkgname)
@@ -411,7 +411,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # check if we have a pkg for this page
         app = None
         if self.active_pane:
-            app = self.active_pane.get_active_app()
+            app = self.active_pane.get_current_app()
         if app is None:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)

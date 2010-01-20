@@ -126,7 +126,7 @@ class InstalledPane(SoftwarePane):
                                     "%s applications installed",
                                     length) % length
                                     
-    def get_active_app(self):
+    def get_current_app(self):
         """return the current active application object applicable
            to the context"""
         if self.is_search_in_progress():
@@ -136,7 +136,7 @@ class InstalledPane(SoftwarePane):
             else:
                 return None
         else:
-            return self.active_appview_selection
+            return self.current_appview_selection
         
     def is_category_view_showing(self):
         # there is no category view in the installed pane
