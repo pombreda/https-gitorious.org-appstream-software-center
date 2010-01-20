@@ -21,7 +21,7 @@ import gettext
 import locale
 import subprocess
 
-from aptutils import *
+from apt.utils import *
 from softwarecenter.distro import Distro
 from gettext import gettext as _
 
