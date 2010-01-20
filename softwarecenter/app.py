@@ -417,8 +417,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
             return False
-        print ">> app: "
-        print app
         # wait for the cache to become ready (if needed)
         if not self.cache.ready:
             glib.timeout_add(100, lambda: self.update_app_status_menu())
