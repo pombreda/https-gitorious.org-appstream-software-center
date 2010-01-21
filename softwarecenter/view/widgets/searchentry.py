@@ -46,8 +46,8 @@ class SearchEntry(gtk.Entry):
                                                    self._on_changed)
         self.connect("icon-press", self._on_icon_pressed)
 
-        self.set_icon_from_stock(gtk.GTK_ENTRY_ICON_PRIMARY, gtk.gtk.STOCK_FIND)
-        self.set_icon_from_stock(gtk.GTK_ENTRY_ICON_SECONDARY, gtk.GTK_STOCK_CLEAR);
+        self.set_icon_from_stock(gtk.ENTRY_ICON_PRIMARY, gtk.STOCK_FIND)
+        self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, None)
 
         # Do not draw a yellow bg if an a11y theme is used
         settings = gtk.settings_get_default()
@@ -64,13 +64,13 @@ class SearchEntry(gtk.Entry):
         Emit the terms-changed signal without any time out when the clear
         button was clicked
         """
-        if icon == gtk.GTK_ENTRY_ICON_SECONDARY:
+        if icon == gtk.ENTRY_ICON_SECONDARY:
             # clear with no signal and emit manually to avoid the
             # search-timeout
             self.clear_with_no_signal()
             self.grab_focus()
             self.emit("terms-changed", "")
-        elif icon == gtk.GTK_ENTRY_ICON_PRIMARY:
+        elif icon == gtk.ENTRY_ICON_PRIMARY:
             self.select_region(0, -1)
             self.grab_focus()
 
@@ -126,10 +126,9 @@ class SearchEntry(gtk.Entry):
         """
         # show/hide icon
         if self.get_text() != "":
-            self.set_icon_from_stock(gtk.GTK_ENTRY_ICON_SECONDARY, gtk.GTK_STOCK_CLEAR)
+            self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, gtk.STOCK_CLEAR)
         else:
-            self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.empty_image)
-            self.set_icon_from_stock(gtk.GTK_ENTRY_ICON_SECONDARY, None)
+            self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, None)
         # Based on the Rhythmbox code
         yellowish = gtk.gdk.Color(63479, 63479, 48830)
         if self._a11y == True:
