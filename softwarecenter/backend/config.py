@@ -29,7 +29,11 @@ class SoftwareCenterConfig(ConfigParser.SafeConfigParser):
         self.configfile = config
         self.read(self.configfile)
     def write(self):
-        ConfigParser.SafeConfigParser.write(self, open(self.configfile, "w"))
+        tmpname = self.configfile+".new"
+        f=open(tmpname, "w")
+        ConfigParser.SafeConfigParser.write(self, f)
+        f.close()
+        os.rename(tmpname, self.configfile)
     
 _software_center_config = None    
 def get_config():
