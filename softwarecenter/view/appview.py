@@ -364,7 +364,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         dest_x = cell_area.width-xpad
         tw = self.MAX_STARS*(w+1)    # total 5star width
         
-        if self.rating != 0:
+        if self.rating > 0:
             r  = int(self.MAX_STARS * math.log(self.rating)/math.log(widget.get_model().db.popcon_max+1))
         else:
             r = 0

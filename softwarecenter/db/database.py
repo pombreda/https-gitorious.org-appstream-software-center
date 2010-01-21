@@ -77,7 +77,9 @@ class StoreDatabase(gobject.GObject):
 
     @property
     def popcon_max(self):
-        return xapian.sortable_unserialise(self.xapiandb.get_metadata("popcon_max_desktop"))
+        popcon_max = xapian.sortable_unserialise(self.xapiandb.get_metadata("popcon_max_desktop"))
+        assert popcon_max > 0
+        return popcon_max
 
     def _comma_expansion(self, search_term):
         """do expansion of "," in a search term, see

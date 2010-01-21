@@ -2,6 +2,10 @@ software-center (1.1.10) UNRELEASED; urgency=low
 
   * softwarecenter/distro/aptutils.py:
     - removed, moved into python-apt
+  * softwarecenter/view/appview.py:
+    - ignore negative ratings (LP: #510409)
+  * softwarecenter/db/database.py:
+    - assert we have a popcon_max value
   * debian/control:
     - updated dependencies to latest python-apt
 
