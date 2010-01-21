@@ -46,6 +46,9 @@ class InstalledPane(SoftwarePane):
         # state
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_installed_only(True)
+        self.app_view.connect("application-selected", 
+                              self.on_application_selected)
+        self.current_appview_selection = None
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -117,6 +120,7 @@ class InstalledPane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+    
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         # no status text in the details page
@@ -132,6 +136,18 @@ class InstalledPane(SoftwarePane):
             return gettext.ngettext("%s application installed",
                                     "%s applications installed",
                                     length) % length
+                                    
+    def get_current_app(self):
+        """return the current active application object applicable
+           to the context"""
+        if self.is_search_in_progress():
+            model = self.app_view.get_model()
+            if len(model) > 0:
+                return self.app_view.get_model().apps[0]
+            else:
+                return None
+        else:
+            return self.current_appview_selection
         
     def is_category_view_showing(self):
         # there is no category view in the installed pane

@@ -60,6 +60,8 @@ class AvailablePane(SoftwarePane):
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
         self.connect("app-list-changed", self._on_app_list_changed)
+        self.current_app_by_category = {}
+        self.current_app_by_subcategory = {}
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -190,6 +192,16 @@ class AvailablePane(SoftwarePane):
             self._in_no_display_category()):
             return ""
         return self._status_text
+        
+    def get_current_app(self):
+        """return the current active application object"""
+        if self.is_category_view_showing():
+            return None
+        else:
+            if self.apps_subcategory:
+                return self.current_app_by_subcategory.get(self.apps_subcategory)
+            else:
+                return self.current_app_by_category.get(self.apps_category)
     
     def _on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text up-to-date by
@@ -323,6 +335,14 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_category = category
         self._set_category(category)
+        
+    def on_application_selected(self, appview, app):
+        """callback when an app is selected"""
+        logging.debug("on_application_selected: '%s'" % app)
+        if self.apps_subcategory:
+            self.current_app_by_subcategory[self.apps_subcategory] = app
+        else:
+            self.current_app_by_category[self.apps_category] = app
         
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a

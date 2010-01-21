@@ -17,6 +17,8 @@ software-center (1.1.10) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/searchentry.py:
     - merge patch from Javier Jardón to use gtk.Entry instead
       of sexy.Entry (LP: #506811) - many thanks!
+  * merged from  lp:~gary-lasker/software-center/active_app,
+    many thanks!
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 20 Jan 2010 18:20:40 +0100
 

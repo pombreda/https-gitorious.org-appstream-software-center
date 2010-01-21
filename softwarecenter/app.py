@@ -144,8 +144,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._pending_transactions = 0
         self._block_menuitem_view = False
         self._available_items_for_page = {}
-        # FIXME: make this all part of a application object
-        self._selected_app_for_page = {}
 
         # available pane
         self.available_pane = AvailablePane(self.cache, self.db,
@@ -208,7 +206,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # callbacks
     def on_app_details_changed(self, widget, app, page):
-        self._selected_app_for_page[page] = app
         self.update_app_status_menu()
         self.update_status_bar()
 
@@ -220,7 +217,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.update_status_bar()
 
     def on_app_selected(self, widget, app, page):
-        self._selected_app_for_page[page] = app
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
 
@@ -274,14 +270,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # Menu Items
     def on_menuitem_install_activate(self, menuitem):
-        page = self.notebook_view.get_current_page()
-        app = self._selected_app_for_page[page]
+        app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.install()
 
     def on_menuitem_remove_activate(self, menuitem):
-        page = self.notebook_view.get_current_page()
-        app = self._selected_app_for_page[page]
+        app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.remove()
         
@@ -328,13 +322,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_copy_web_link_activate(self, menuitem):
-        page = self.notebook_view.get_current_page()
-        try:
-            app = self._selected_app_for_page[page]
-        except KeyError, e:
-            return
-        clipboard = gtk.Clipboard()
-        clipboard.set_text(self.WEBLINK_URL % app.pkgname)
+        app = self.active_pane.get_current_app()
+        if app:
+            clipboard = gtk.Clipboard()
+            clipboard.set_text(self.WEBLINK_URL % app.pkgname)
 
     def on_menuitem_search_activate(self, widget):
         if self.active_pane:
@@ -418,10 +409,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """
         logging.debug("update_app_status_menu")
         # check if we have a pkg for this page
-        page = self.notebook_view.get_current_page()
-        try:
-            app = self._selected_app_for_page[page]
-        except KeyError, e:
+        app = None
+        if self.active_pane:
+            app = self.active_pane.get_current_app()
+        if app is None:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
