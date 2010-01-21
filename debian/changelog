@@ -12,6 +12,11 @@ software-center (1.1.10) UNRELEASED; urgency=low
     - fix name for Search Results (LP: #504379)
   * softwarecenter/view/installedpane.py:
     - add Search Results pathbar
+  * debian/control:
+    - drop python-sexy from the dependencies
+  * softwarecenter/view/widgets/searchentry.py:
+    - merge patch from Javier Jardón to use gtk.Entry instead
+      of sexy.Entry (LP: #506811) - many thanks!
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 20 Jan 2010 18:20:40 +0100
 

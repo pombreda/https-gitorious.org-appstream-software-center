@@ -30,7 +30,6 @@ Depends: ${python:Depends},
 	 policykit-1-gnome | policykit-1-kde,
          python-gtk2,
 	 python-webkit,
-	 python-sexy,
 	 python-gconf,
 	 aptdaemon (>= 0.11+bzr322)
 Recommends: lsb-release, python-launchpad-integration, apt-xapian-index
