@@ -8,6 +8,10 @@ software-center (1.1.10) UNRELEASED; urgency=low
     - assert we have a popcon_max value
   * debian/control:
     - updated dependencies to latest python-apt
+  * softwarecenter/view/availablepane.py:
+    - fix name for Search Results (LP: #504379)
+  * softwarecenter/view/installedpane.py:
+    - add Search Results pathbar
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 20 Jan 2010 18:20:40 +0100
 

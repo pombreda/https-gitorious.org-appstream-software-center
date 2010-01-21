@@ -69,6 +69,9 @@ class InstalledPane(SoftwarePane):
         """
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms)
+            self.navigation_bar.add_with_id(_("Search Results"),
+                                            self.on_navigation_search, 
+                                            "search")
         else:
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
@@ -92,12 +95,16 @@ class InstalledPane(SoftwarePane):
     def on_db_reopen(self, db):
         self.refresh_apps()
         self._show_installed_overview()
+    def on_navigation_search(self, button):
+        logging.debug("on_navigation_search")
+        pass
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
         # remove the details and clear the search
         self.searchentry.clear()
+        self.navigation_bar.remove_id("search")
         self._show_installed_overview()
         # only emit something if the model is there
         model = self.app_view.get_model()

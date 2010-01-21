@@ -178,7 +178,7 @@ class AvailablePane(SoftwarePane):
             self.navigation_bar.add_with_id(
                 cat, self.on_navigation_list, "list")
         elif self.apps_search_term:
-            self.navigation_bar.add_with_id(_("Search"),
+            self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
                                             "search")
 

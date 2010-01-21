@@ -336,7 +336,7 @@ def category_activated(iconview, category, db):
 
 if __name__ == "__main__":
     from softwarecenter.enums import *
-    #logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
 
     appdir = "/usr/share/app-install"
     datadir = "./data"
