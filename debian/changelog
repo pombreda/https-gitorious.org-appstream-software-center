@@ -19,6 +19,8 @@ software-center (1.1.10) UNRELEASED; urgency=low
       of sexy.Entry (LP: #506811) - many thanks!
   * merged from  lp:~gary-lasker/software-center/active_app,
     many thanks!
+  * softwarecenter/distro/Ubuntu.py:
+    - add support for the new "Supported" tag in the Packages file
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 20 Jan 2010 18:20:40 +0100
 
