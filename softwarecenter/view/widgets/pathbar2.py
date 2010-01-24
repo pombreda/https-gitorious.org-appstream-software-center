@@ -670,7 +670,7 @@ class PathBar(gtk.DrawingArea):
         prev_focal = self.__focal_part
 
         if self.__button_down[0]:
-            if prev_focal and part != prev_focal:
+            if part and prev_focal and part != prev_focal:
                 if self.__button_down[1] == part:
                     part.set_state(gtk.STATE_SELECTED)
                 else:
