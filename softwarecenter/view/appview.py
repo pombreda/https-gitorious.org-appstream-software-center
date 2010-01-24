@@ -436,6 +436,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         return
 
     def draw_button(self, window, widget, cell_area, xpad, ypad, layout, dst_x, dst_y, bw, bh, lw, lh):
+        # backgound "button" rect
         widget.style.paint_box(window,
                                gtk.STATE_NORMAL,
                                gtk.SHADOW_ETCHED_OUT,
@@ -447,6 +448,21 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                bw,          # width
                                bh)          # height
 
+        # layout positioning
+        dst_x = dst_x + (bw-lw)/2
+        dst_y = dst_y + (bh-lh)/2
+
+#        # if btn_has_focus:
+#        # draw focal rect
+#        widget.style.paint_focus(window,
+#                                 gtk.STATE_NORMAL,
+#                                 (dst_x, dst_y, bw, bh),
+#                                 widget,
+#                                 "button",
+#                                 dst_x-2,       # x
+#                                 dst_y-2,       # y
+#                                 lw+4,          # width
+#                                 lh+4)          # height
         # draw Install button label
         widget.style.paint_layout(window,
                             gtk.STATE_NORMAL,
@@ -454,8 +470,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                             (dst_x, dst_y, bw, bh),
                             widget,
                             None,
-                            dst_x + (bw-lw)/2,
-                            dst_y + (bh-lh)/2,
+                            dst_x,
+                            dst_y,
                             layout)
         return
 
@@ -484,19 +500,19 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         # Install button
         # label and label size
-        layout.set_markup("<small>%s</small>" % _("Install"))
+        layout.set_markup("%s" % _("Install"))
         lw = self._get_layout_pixel_width(layout)
         lh = self._get_layout_pixel_height(layout)
 
         # button size
         bw0 = lw+10*xpad # install button should have more padding, cos of importance?
-        bh = lh+4*ypad
+        bh = lh+8*ypad
 
         dst_x0 = cell_area.width-xpad+32 - bw0
         dst_y = cell_area.y+self.DEFAULT_HEIGHT+(self.BUTTON_HEIGHT-bh)/2
 
         if self.installed:
-            layout.set_markup("<small>%s</small>" % _("Remove"))
+            layout.set_markup("%s" % _("Remove"))
             lw = self._get_layout_pixel_width(layout)
 
         # only draw a install/remove button if the app is actually available
@@ -523,11 +539,11 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         # More Info button
         # label and label size
-        layout.set_markup("<small>%s</small>" % _("More Info"))
+        layout.set_markup("%s" % _("More Info"))
         lw = self._get_layout_pixel_width(layout)
 
         # button size
-        bw2 = lw+3*xpad
+        bw2 = lw+10*xpad
         dst_x2 = cell_area.x + xpad
 
         self.draw_button(window,
