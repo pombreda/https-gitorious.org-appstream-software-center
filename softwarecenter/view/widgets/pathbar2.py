@@ -138,8 +138,11 @@ class PathBar(gtk.DrawingArea):
         old_w = self.__draw_width()
 
         # remove part from interal part list
-        del self.__parts[self.__parts.index(part)]
-
+        try:
+            del self.__parts[self.__parts.index(part)]
+        except:
+            print 'part not in list!'
+            return
         self.__compose_parts(self.__parts[-1], False)
 
         if old_w >= self.allocation.width:
@@ -1386,7 +1389,7 @@ class NavigationBar(PathBar):
 
     def remove_all(self):
         """remove all elements"""
-        self.__parts = []
+        self.__parts = self.__parts[0]  # keep first part though!
         self.id_to_part = {}
         self.queue_draw()
         return
