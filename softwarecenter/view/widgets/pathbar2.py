@@ -719,7 +719,7 @@ class PathBar(gtk.DrawingArea):
     def __leave_notify_cb(self, widget, event):
         prev_focal = self.__focal_part
         if prev_focal:
-            prev_focal.set_state(gtk.STATE_NORMAL)
+            prev_focal.set_state(self.__state(prev_focal))
             self.queue_draw_area(*prev_focal.get_allocation_tuple())
 
         if not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
