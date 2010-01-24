@@ -671,13 +671,15 @@ class PathBar(gtk.DrawingArea):
 
         if self.__button_down:
             if prev_focal and part != prev_focal:
+                # TODO: fix mouse down + motion over parts bug
                 prev_focal.set_state(self.__state(prev_focal))
                 self.queue_draw_area(*prev_focal.get_allocation_tuple())
-            else:
-                pass
+
+                if part:
+                    part.set_state(gtk.STATE_SELECTED)
+                    self.queue_draw_area(*part.get_allocation_tuple())
             return
 
-        self.__button_down = False
         if part and part.state != gtk.STATE_PRELIGHT:
             self.__tooltip_check(part)
             part.set_state(gtk.STATE_PRELIGHT)
@@ -717,7 +719,6 @@ class PathBar(gtk.DrawingArea):
 
         if not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
             self.__focal_part = None
-        print self.__button_down
         return
 
     def __button_press_cb(self, widget, event):
@@ -734,7 +735,6 @@ class PathBar(gtk.DrawingArea):
         if self.__focal_part and self.__focal_part != part:
             pass
         elif part and self.__button_down:
-            self.grab_focus()
             prev_active, redraw = self.__set_active(part)
             part.set_state(gtk.STATE_PRELIGHT)
             self.queue_draw_area(*part.get_allocation_tuple())
