@@ -60,9 +60,11 @@ class PathBar(gtk.DrawingArea):
                         gtk.gdk.BUTTON_RELEASE_MASK|
                         gtk.gdk.KEY_RELEASE_MASK|
                         gtk.gdk.KEY_PRESS_MASK|
+                        gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK)
 
         self.connect("motion-notify-event", self.__motion_notify_cb)
+        self.connect("enter-notify-event", self.__enter_notify_cb)
         self.connect("leave-notify-event", self.__leave_notify_cb)
         self.connect("button-press-event", self.__button_press_cb)
         self.connect("button-release-event", self.__button_release_cb)
@@ -671,6 +673,8 @@ class PathBar(gtk.DrawingArea):
             if prev_focal and part != prev_focal:
                 prev_focal.set_state(self.__state(prev_focal))
                 self.queue_draw_area(*prev_focal.get_allocation_tuple())
+            else:
+                pass
             return
 
         self.__button_down = False
@@ -685,19 +689,35 @@ class PathBar(gtk.DrawingArea):
             self.__focal_part = part
             self.queue_draw_area(*part.get_allocation_tuple())
 
-        elif not part and prev_focal != None:
+        elif not part and prev_focal != None and \
+            not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
             prev_focal.set_state(self.__state(prev_focal))
             self.queue_draw_area(*prev_focal.get_allocation_tuple())
             self.__focal_part = None
         return
 
+    def __enter_notify_cb(self, widget, event):
+        if not self.__button_down and not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
+            return
+
+        part = self.__part_at_xy(event.x, event.y)
+        prev_focal = self.__focal_part
+
+        if part and prev_focal == part:
+            print 'enter-button-down', 'lets draw'
+            part.set_state(gtk.STATE_SELECTED)
+            self.queue_draw_area(*part.get_allocation_tuple())
+        return
+
     def __leave_notify_cb(self, widget, event):
-        self.__button_down = False
         prev_focal = self.__focal_part
         if prev_focal:
-            prev_focal.set_state(self.__state(prev_focal))
+            prev_focal.set_state(gtk.STATE_NORMAL)
             self.queue_draw_area(*prev_focal.get_allocation_tuple())
-        self.__focal_part = None
+
+        if not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
+            self.__focal_part = None
+        print self.__button_down
         return
 
     def __button_press_cb(self, widget, event):
@@ -706,6 +726,7 @@ class PathBar(gtk.DrawingArea):
         if part:
             part.set_state(gtk.STATE_SELECTED)
             self.queue_draw_area(*part.get_allocation_tuple())
+            self.__focal_part = part
         return
 
     def __button_release_cb(self, widget, event):
