@@ -46,7 +46,7 @@ class PathBar(gtk.DrawingArea):
         self.__parts = []
         self.__active_part = None
         self.__focal_part = None
-        self.__button_down = False
+        self.__button_down = False, None
 
         self.__scroller = None
         self.__scroll_xO = 0
@@ -669,15 +669,17 @@ class PathBar(gtk.DrawingArea):
         part = self.__part_at_xy(event.x, event.y)
         prev_focal = self.__focal_part
 
-        if self.__button_down:
+        if self.__button_down[0]:
             if prev_focal and part != prev_focal:
-                # TODO: fix mouse down + motion over parts bug
+                if self.__button_down[1] == part:
+                    part.set_state(gtk.STATE_SELECTED)
+                else:
+                    part.set_state(gtk.STATE_PRELIGHT)
+
                 prev_focal.set_state(self.__state(prev_focal))
                 self.queue_draw_area(*prev_focal.get_allocation_tuple())
-
-                if part:
-                    part.set_state(gtk.STATE_SELECTED)
-                    self.queue_draw_area(*part.get_allocation_tuple())
+                self.queue_draw_area(*part.get_allocation_tuple())
+                self.__focal_part = part
             return
 
         if part and part.state != gtk.STATE_PRELIGHT:
@@ -699,7 +701,7 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __enter_notify_cb(self, widget, event):
-        if not self.__button_down and not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
+        if not self.__button_down[0] and not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
             return
 
         part = self.__part_at_xy(event.x, event.y)
@@ -722,8 +724,8 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __button_press_cb(self, widget, event):
-        self.__button_down = True
         part = self.__part_at_xy(event.x, event.y)
+        self.__button_down = True, part
         if part:
             part.set_state(gtk.STATE_SELECTED)
             self.queue_draw_area(*part.get_allocation_tuple())
@@ -734,14 +736,14 @@ class PathBar(gtk.DrawingArea):
         part = self.__part_at_xy(event.x, event.y)
         if self.__focal_part and self.__focal_part != part:
             pass
-        elif part and self.__button_down:
+        elif part and self.__button_down[0]:
             prev_active, redraw = self.__set_active(part)
             part.set_state(gtk.STATE_PRELIGHT)
             self.queue_draw_area(*part.get_allocation_tuple())
 
             if redraw:
                 self.queue_draw_area(*prev_active.get_allocation_tuple())
-        self.__button_down = False
+        self.__button_down = False, None
         return
 
 #    def __key_release_cb(self, widget, event):
