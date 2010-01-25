@@ -697,7 +697,10 @@ class AppView(gtk.TreeView):
         gtk.TreeView.__init__(self)
         self.buttons = {}
         self.focal_btn = None
-        self.backend = InstallBackend()
+        self.tab_count = 0
+#        self.backend = InstallBackend()
+#        self.backend.connect("transaction-finished", self._on_transaction_over)
+#        self.backend.connect("transaction-stopped", self._on_transaction_over)
 
         # FIXME: mvo this makes everything sluggish but its the only
         #        way to make the rows grow (sluggish because gtk will
@@ -735,6 +738,8 @@ class AppView(gtk.TreeView):
         self.connect("button-press-event", self._on_button_press_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
+        self.connect("key-press-event", self._on_key_press_event)
+        self.connect("keynav-failed", self._on_keynav_failed)
 
     def _on_realize(self, widget, tr, xpad=3, ypad=2):
         pc = widget.get_pango_context()
@@ -856,8 +861,6 @@ class AppView(gtk.TreeView):
             else:
                 perform_action = "install"
             self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
-            self.backend.connect('transaction-stopped', self._on_transaction_over, btn)
-            self.backend.connect('transaction-finished', self._on_transaction_over, btn)
         return False
 
     def _on_transaction_over(self, *args):
@@ -865,6 +868,18 @@ class AppView(gtk.TreeView):
         btn = args[-1]
         btn.set_senstitive(True)
         return
+
+    def _on_keynav_failed(self, widget, direction):
+        print direction, self.tab_count
+        return True
+
+    def _on_key_press_event(self, widget, event):
+        if not self.tab_count:
+            widget.keynav_failed(True)
+            self.tab_count += 1
+        else:
+            self.tab_count = 0
+            widget.keynav_failed(False)
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)
