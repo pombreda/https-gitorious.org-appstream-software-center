@@ -36,7 +36,7 @@ if os.path.exists("./softwarecenter/enums.py"):
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
-#from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
+from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
 
 from gettext import gettext as _
 
@@ -315,6 +315,7 @@ class CellRendererButton:
         return ink_extends[3]
 
     def set_state(self, state):
+        # use this to set button state, instead of set_param, as this func respect is_sensitive
         if self.params['sensitive']:
             self.params['state'] = state
         return
@@ -696,6 +697,7 @@ class AppView(gtk.TreeView):
         gtk.TreeView.__init__(self)
         self.buttons = {}
         self.focal_btn = None
+        self.backend = InstallBackend()
 
         # FIXME: mvo this makes everything sluggish but its the only
         #        way to make the rows grow (sluggish because gtk will
@@ -743,7 +745,7 @@ class AppView(gtk.TreeView):
 
         # set offset constants
         yO = tr.DEFAULT_HEIGHT+(tr.BUTTON_HEIGHT-action_btn.get_param('height'))/2
-        action_btn.set_param('x_offset_const', 32 - xpad - action_btn.get_param('width'))
+        action_btn.set_param('x_offset_const', 32 - xpad - action_btn.get_param('width'))   # 32 = overlay column width
         action_btn.set_param('y_offset_const', yO)
 
         info_btn.set_param('x_offset_const', xpad)
@@ -854,7 +856,14 @@ class AppView(gtk.TreeView):
             else:
                 perform_action = "install"
             self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
+            self.backend.connect('transaction-stopped', self._on_transaction_over, btn)
+            self.backend.connect('transaction-finished', self._on_transaction_over, btn)
         return False
+
+    def _on_transaction_over(self, *args):
+        print 'trnsaction over'
+        btn.set_senstitive(True)
+        return
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)
