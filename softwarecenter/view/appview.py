@@ -567,8 +567,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                          bw2, bh,
                          lw, lh)
 
-        if widget.btn_regions: 
+        if widget.btn_regions and not widget.size_changed: 
             return
+        # i think we should attempt to precompute a lot of the dimensions
 
         # specify button regions
         widget.btn_regions = []
@@ -664,6 +665,7 @@ class AppView(gtk.TreeView):
         gtk.TreeView.__init__(self)
         self.focal_btn = "", gtk.STATE_NORMAL
         self.btn_regions = []
+        self.size_changed = False
 
         # FIXME: mvo this makes everything sluggish but its the only
         #        way to make the rows grow (sluggish because gtk will
@@ -697,9 +699,13 @@ class AppView(gtk.TreeView):
         self.connect("row-activated", self._on_row_activated)
         # button and motion are "special"
 
+        self.connect("size-allocate", self._on_size_allocate, self.btn_regions)
         self.connect("button-press-event", self._on_button_press_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
+
+    def _on_size_allocate(self, widget, allocation, btn_regions):
+        self.size_changed = True
 
     def _on_motion(self, tree, event, tr, col):
         x, y = int(event.x), int(event.y)
