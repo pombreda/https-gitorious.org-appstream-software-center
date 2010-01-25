@@ -572,9 +572,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         # specify button regions
         widget.btn_regions = []
-        # XXX: Not sure why i have to subtract 18 but eh area does not align with 
-        # drawn button.  This is bad, need to think about it.
-        widget.btn_regions.append((dst_x0-18, dst_y, bw0, bh, 'action'))
+        # XXX: window resizing cause the btn_regions to become wrong.  Need to consider this!
+        widget.btn_regions.append((dst_x0, dst_y, bw0, bh, 'action'))
         #widget.btn_regions.append((dst_x1, dst_y, bw1, bh, 'addons'))
         widget.btn_regions.append((dst_x2, dst_y, bw2, bh, 'info'))
         return
