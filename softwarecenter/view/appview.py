@@ -780,7 +780,10 @@ class AppView(gtk.TreeView):
                 break
 
     def _app_activated_cb(self, name, appname, pkgname, popcon, installed):
-        self.focal_btn = name, gtk.STATE_NORMAL
+        # TODO: we need to disable motion-notify events, so we can set states properly on buttons
+        # once a press has been detected.  This way we can achieve gtk.STATE_INSENSITIVE 
+        # more accuratley (i think).
+        #self.focal_btn = name, gtk.STATE_NORMAL
         if name == 'info':
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif name == 'action':
