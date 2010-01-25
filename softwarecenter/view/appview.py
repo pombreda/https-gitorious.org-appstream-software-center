@@ -435,11 +435,11 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                    0, 0, 0)             # dither
         return
 
-    def draw_button(self, window, widget, cell_area, xpad, ypad, layout, dst_x, dst_y, bw, bh, lw, lh):
+    def draw_button(self, window, widget, cell_area, state, xpad, ypad, layout, dst_x, dst_y, bw, bh, lw, lh):
         # backgound "button" rect
         widget.style.paint_box(window,
-                               gtk.STATE_NORMAL,
-                               gtk.SHADOW_ETCHED_OUT,
+                               state,
+                               gtk.SHADOW_OUT,
                                (dst_x, dst_y, bw, bh),
                                widget,
                                "button",
@@ -455,7 +455,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 #        # if btn_has_focus:
 #        # draw focal rect
 #        widget.style.paint_focus(window,
-#                                 gtk.STATE_NORMAL,
+#                                 state,
 #                                 (dst_x, dst_y, bw, bh),
 #                                 widget,
 #                                 "button",
@@ -494,7 +494,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         elif self.show_ratings:
             self.draw_rating_only(window, widget, cell_area, xpad, ypad, layout, w, h, flags)
 
-        if not self.isactive: 
+        if not self.isactive:
             return
         # else draw buttons
 
@@ -505,8 +505,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         lh = self._get_layout_pixel_height(layout)
 
         # button size
-        bw0 = lw+10*xpad # install button should have more padding, cos of importance?
-        bh = lh+8*ypad
+        bw0 = lw+10*xpad
+        bh = lh+6*ypad
 
         dst_x0 = cell_area.width-xpad+32 - bw0
         dst_y = cell_area.y+self.DEFAULT_HEIGHT+(self.BUTTON_HEIGHT-bh)/2
@@ -516,10 +516,16 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             lw = self._get_layout_pixel_width(layout)
 
         # only draw a install/remove button if the app is actually available
+        # determine focality
         if self.available:
+            if widget.focal_btn[0] == "action":
+                state = widget.focal_btn[1]
+            else:
+                state = gtk.STATE_NORMAL
             self.draw_button(window,
                              widget,
                              cell_area,
+                             state,
                              xpad, ypad,
                              layout,
                              dst_x0, dst_y,
@@ -546,9 +552,15 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         bw2 = lw+10*xpad
         dst_x2 = cell_area.x + xpad
 
+        if widget.focal_btn[0] == "info":
+            state = widget.focal_btn[1]
+        else:
+            state = gtk.STATE_NORMAL
+
         self.draw_button(window,
                          widget,
                          cell_area,
+                         state,
                          xpad, ypad,
                          layout,
                          dst_x2, dst_y,
@@ -560,7 +572,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         # specify button regions
         widget.btn_regions = []
-        widget.btn_regions.append((dst_x0, dst_y, bw0, bh, 'action'))
+        widget.btn_regions.append((dst_x0-18, dst_y, bw0, bh, 'action'))
         #widget.btn_regions.append((dst_x1, dst_y, bw1, bh, 'addons'))
         widget.btn_regions.append((dst_x2, dst_y, bw2, bh, 'info'))
         return
@@ -649,6 +661,7 @@ class AppView(gtk.TreeView):
 
     def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
+        self.focal_btn = "", gtk.STATE_NORMAL
         self.btn_regions = []
 
         # FIXME: mvo this makes everything sluggish but its the only
@@ -697,13 +710,20 @@ class AppView(gtk.TreeView):
         if not path: return
 
         yO = tree.get_cell_area(path[0], col).y
-        for cx, cy, cw, ch, name in self.btn_regions:
+        for cx, cy, cw, ch, id in self.btn_regions:
             rect = gtk.gdk.Rectangle(cx, yO+cy, cw, ch)
             rr = gtk.gdk.region_rectangle(rect)
             if rr.point_in(x, y):
+                if self.focal_btn[0] != id:
+                    self.focal_btn = id, gtk.STATE_PRELIGHT
+                    store = tree.get_model()
+                    store.row_changed(path[0], store.get_iter(path[0]))
                 self.window.set_cursor(self._cursor_hand)
                 break
             else:
+                self.focal_btn = None, gtk.STATE_NORMAL
+                store = tree.get_model()
+                store.row_changed(path[0], store.get_iter(path[0]))
                 self.window.set_cursor(None)
         return
 
@@ -755,15 +775,21 @@ class AppView(gtk.TreeView):
                 pkgname = model[path][AppStore.COL_PKGNAME]
                 installed = model[path][AppStore.COL_INSTALLED]
                 popcon = model[path][AppStore.COL_POPCON]
-                if name == 'info':
-                    self.emit("application-activated", Application(appname, pkgname, popcon))
-                elif name == 'action':
-                    if installed: 
-                        perform_action = "remove"
-                    else:
-                        perform_action = "install"
-                    self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
+                self.focal_btn = name, gtk.STATE_ACTIVE
+                gobject.timeout_add(100, self._app_activated_cb, name, appname, pkgname, popcon, installed)
                 break
+
+    def _app_activated_cb(self, name, appname, pkgname, popcon, installed):
+        self.focal_btn = name, gtk.STATE_NORMAL
+        if name == 'info':
+            self.emit("application-activated", Application(appname, pkgname, popcon))
+        elif name == 'action':
+            if installed: 
+                perform_action = "remove"
+            else:
+                perform_action = "install"
+            self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
+        return False
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)

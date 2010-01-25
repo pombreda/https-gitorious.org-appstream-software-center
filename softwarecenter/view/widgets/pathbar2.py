@@ -711,7 +711,6 @@ class PathBar(gtk.DrawingArea):
         prev_focal = self.__focal_part
 
         if part and prev_focal == part:
-            print 'enter-button-down', 'lets draw'
             part.set_state(gtk.STATE_SELECTED)
             self.queue_draw_area(*part.get_allocation_tuple())
         return
