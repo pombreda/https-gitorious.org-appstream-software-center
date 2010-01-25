@@ -21,6 +21,8 @@ software-center (1.1.10) UNRELEASED; urgency=low
     many thanks!
   * softwarecenter/distro/Ubuntu.py:
     - add support for the new "Supported" tag in the Packages file
+  * merged lp:~mmcg069/software-center/bug-fixes with lots of nice
+    fixes in the pathbar and appview code (many thanks!)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 20 Jan 2010 18:20:40 +0100
 

@@ -46,7 +46,7 @@ class PathBar(gtk.DrawingArea):
         self.__parts = []
         self.__active_part = None
         self.__focal_part = None
-        self.__button_down = False
+        self.__button_down = False, None
 
         self.__scroller = None
         self.__scroll_xO = 0
@@ -60,9 +60,11 @@ class PathBar(gtk.DrawingArea):
                         gtk.gdk.BUTTON_RELEASE_MASK|
                         gtk.gdk.KEY_RELEASE_MASK|
                         gtk.gdk.KEY_PRESS_MASK|
+                        gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK)
 
         self.connect("motion-notify-event", self.__motion_notify_cb)
+        self.connect("enter-notify-event", self.__enter_notify_cb)
         self.connect("leave-notify-event", self.__leave_notify_cb)
         self.connect("button-press-event", self.__button_press_cb)
         self.connect("button-release-event", self.__button_release_cb)
@@ -136,8 +138,11 @@ class PathBar(gtk.DrawingArea):
         old_w = self.__draw_width()
 
         # remove part from interal part list
-        del self.__parts[self.__parts.index(part)]
-
+        try:
+            del self.__parts[self.__parts.index(part)]
+        except:
+            print 'part not in list!'
+            return
         self.__compose_parts(self.__parts[-1], False)
 
         if old_w >= self.allocation.width:
@@ -667,13 +672,19 @@ class PathBar(gtk.DrawingArea):
         part = self.__part_at_xy(event.x, event.y)
         prev_focal = self.__focal_part
 
-        if self.__button_down:
-            if prev_focal and part != prev_focal:
+        if self.__button_down[0]:
+            if part and prev_focal and part != prev_focal:
+                if self.__button_down[1] == part:
+                    part.set_state(gtk.STATE_SELECTED)
+                else:
+                    part.set_state(gtk.STATE_PRELIGHT)
+
                 prev_focal.set_state(self.__state(prev_focal))
                 self.queue_draw_area(*prev_focal.get_allocation_tuple())
+                self.queue_draw_area(*part.get_allocation_tuple())
+                self.__focal_part = part
             return
 
-        self.__button_down = False
         if part and part.state != gtk.STATE_PRELIGHT:
             self.__tooltip_check(part)
             part.set_state(gtk.STATE_PRELIGHT)
@@ -685,42 +696,56 @@ class PathBar(gtk.DrawingArea):
             self.__focal_part = part
             self.queue_draw_area(*part.get_allocation_tuple())
 
-        elif not part and prev_focal != None:
+        elif not part and prev_focal != None and \
+            not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
             prev_focal.set_state(self.__state(prev_focal))
             self.queue_draw_area(*prev_focal.get_allocation_tuple())
             self.__focal_part = None
         return
 
+    def __enter_notify_cb(self, widget, event):
+        if not self.__button_down[0] and not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
+            return
+
+        part = self.__part_at_xy(event.x, event.y)
+        prev_focal = self.__focal_part
+
+        if part and prev_focal == part:
+            part.set_state(gtk.STATE_SELECTED)
+            self.queue_draw_area(*part.get_allocation_tuple())
+        return
+
     def __leave_notify_cb(self, widget, event):
-        self.__button_down = False
         prev_focal = self.__focal_part
         if prev_focal:
             prev_focal.set_state(self.__state(prev_focal))
             self.queue_draw_area(*prev_focal.get_allocation_tuple())
-        self.__focal_part = None
+
+        if not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
+            self.__focal_part = None
         return
 
     def __button_press_cb(self, widget, event):
-        self.__button_down = True
         part = self.__part_at_xy(event.x, event.y)
+        self.__button_down = True, part
         if part:
             part.set_state(gtk.STATE_SELECTED)
             self.queue_draw_area(*part.get_allocation_tuple())
+            self.__focal_part = part
         return
 
     def __button_release_cb(self, widget, event):
         part = self.__part_at_xy(event.x, event.y)
         if self.__focal_part and self.__focal_part != part:
             pass
-        elif part and self.__button_down:
-            self.grab_focus()
+        elif part and self.__button_down[0]:
             prev_active, redraw = self.__set_active(part)
             part.set_state(gtk.STATE_PRELIGHT)
             self.queue_draw_area(*part.get_allocation_tuple())
 
             if redraw:
                 self.queue_draw_area(*prev_active.get_allocation_tuple())
-        self.__button_down = False
+        self.__button_down = False, None
         return
 
 #    def __key_release_cb(self, widget, event):
@@ -1363,7 +1388,7 @@ class NavigationBar(PathBar):
 
     def remove_all(self):
         """remove all elements"""
-        self.__parts = []
+        self.__parts = self.__parts[0]  # keep first part though!
         self.id_to_part = {}
         self.queue_draw()
         return
