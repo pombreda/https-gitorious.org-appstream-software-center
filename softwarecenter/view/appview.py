@@ -572,6 +572,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         # specify button regions
         widget.btn_regions = []
+        # XXX: Not sure why i have to subtract 18 but eh area does not align with 
+        # drawn button.  This is bad, need to think about it.
         widget.btn_regions.append((dst_x0-18, dst_y, bw0, bh, 'action'))
         #widget.btn_regions.append((dst_x1, dst_y, bw1, bh, 'addons'))
         widget.btn_regions.append((dst_x2, dst_y, bw2, bh, 'info'))
@@ -783,7 +785,7 @@ class AppView(gtk.TreeView):
         # TODO: we need to disable motion-notify events, so we can set states properly on buttons
         # once a press has been detected.  This way we can achieve gtk.STATE_INSENSITIVE 
         # more accuratley (i think).
-        #self.focal_btn = name, gtk.STATE_NORMAL
+        self.focal_btn = name, gtk.STATE_NORMAL
         if name == 'info':
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif name == 'action':
