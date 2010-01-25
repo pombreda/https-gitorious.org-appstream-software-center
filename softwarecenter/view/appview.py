@@ -862,6 +862,7 @@ class AppView(gtk.TreeView):
 
     def _on_transaction_over(self, *args):
         print 'trnsaction over'
+        btn = args[-1]
         btn.set_senstitive(True)
         return
 
