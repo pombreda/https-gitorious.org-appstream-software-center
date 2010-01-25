@@ -94,7 +94,7 @@ class AppStore(gtk.GenericTreeModel):
         self.db = db
         self.icons = icons
         self.apps = []
-        self.app_index_map = {} 
+        self.app_index_map = {}
         self.sorted = sort
         self.filter = filter
         # rowref of the active app and last active app
@@ -182,7 +182,7 @@ class AppStore(gtk.GenericTreeModel):
             and previous selected app
         """
         self.active_app = path
-        self.row_changed(self._prev_active_app, 
+        self.row_changed(self._prev_active_app,
                          self.get_iter(self._prev_active_app))
         self._prev_active_app = path
         self.row_changed(path, self.get_iter(path))
@@ -273,6 +273,143 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_parent(self, child):
         return None
 
+
+class CellRendererButton:
+
+    def __init__(self, layout, markup, alt_markup=None, xpad=20, ypad=6):
+        layout.set_markup(markup)
+        self.params = {
+            'label': markup,
+            'markup': markup,
+            'alt_markup': alt_markup,
+            'width': self._get_layout_pixel_width(layout) + 2*xpad,
+            'height': self._get_layout_pixel_height(layout) + 2*ypad,
+            'x_offset_const': 0,
+            'y_offset_const': 0,
+            'allocation': gtk.gdk.Rectangle(0,0,0,0),
+            'xpad': xpad,
+            'ypad': ypad,
+            'sensitive': True,
+            'state': gtk.STATE_NORMAL,
+            'x_alt_correction': 0,
+            'y_alt_correction': 0
+            }
+        self.use_alt = False
+        if not alt_markup: return
+
+        layout.set_markup(alt_markup)
+        w = self._get_layout_pixel_width(layout) + 2*xpad
+        h = self._get_layout_pixel_height(layout) + 2*ypad
+        self.params['x_alt_correction'] = (w - self.params['width'])/2
+        self.params['y_alt_correction'] = (h - self.params['height'])/2
+        return
+
+    def _get_layout_pixel_width(self, layout):
+        (logical_extends, ink_extends) = layout.get_pixel_extents()
+        # extens is (x, y, width, height)
+        return ink_extends[2]
+
+    def _get_layout_pixel_height(self, layout):
+        (logical_extends, ink_extends) = layout.get_pixel_extents()
+        # extens is (x, y, width, height)
+        return ink_extends[3]
+
+    def set_state(self, state):
+        if self.params['sensitive']:
+            self.params['state'] = state
+        return
+
+    def set_sensitive(self, is_sensitive):
+        self.params['sensitive'] = is_sensitive
+        if not is_sensitive:
+            self.set_state(gtk.STATE_INSENSITIVE)
+        else:
+            self.set_state(gtk.STATE_NORMAL)
+        return
+
+    def set_use_alt_markup(self, use_alt):
+        if self.use_alt and use_alt: return
+        self.use_alt = use_alt
+        p = self.params
+        if use_alt:
+            p['label'] = p['alt_markup']
+        else:
+            p['label'] = p['markup']
+        return
+
+    def get_use_alt_markup(self):
+        return self.use_alt
+
+    def set_param(self, key, value):
+        self.params[key] = value
+        return
+
+    def get_param(self, key):
+        return self.params[key]
+
+    def get_params(self, *keys):
+        r = []
+        for k in keys:
+            r.append(self.params[k])
+        return r
+
+    def draw(self, window, widget, layout, cell_xO, cell_yO):
+        p = self.params
+        xO, yO, w, h = self.get_params('x_offset_const', 'y_offset_const', 'width', 'height')
+        state = p['state']
+        layout.set_markup(p['label'])
+
+        dst_x = xO+cell_xO
+        dst_y = yO+cell_yO
+
+        # backgound "button" rect
+        widget.style.paint_box(window,
+                               state,
+                               gtk.SHADOW_OUT,
+                               (dst_x, dst_y, w, h),
+                               widget,
+                               "button",
+                               dst_x,       # x
+                               dst_y,       # y
+                               w,          # width
+                               h)          # height
+
+        # cache allocation for event checks
+        p['allocation'] = gtk.gdk.Rectangle(dst_x, dst_y, w, h)
+
+        # label stuff
+        if not self.use_alt:
+            dst_x += p['xpad']
+            dst_y += p['ypad']
+        else:
+            dst_x += p['xpad'] - p['x_alt_correction']
+            dst_y += p['ypad'] - p['y_alt_correction']
+
+#        # if btn_has_focus:
+#        # draw focal rect
+#        widget.style.paint_focus(window,
+#                                 state,
+#                                 (dst_x, dst_y, w, h),
+#                                 widget,
+#                                 "button",
+#                                 dst_x-2,       # x
+#                                 dst_y-2,       # y
+#                                 w-4,          # width
+#                                 h-4)          # height
+
+        # draw Install button label
+        widget.style.paint_layout(window,
+                            state,
+                            True,
+                            (dst_x, dst_y, w, h),
+                            widget,
+                            None,
+                            dst_x,
+                            dst_y,
+                            layout)
+        return
+
+
 # custom cell renderer to support dynamic grow
 class CellRendererAppView(gtk.GenericCellRenderer):
 
@@ -334,6 +471,13 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # extens is (x, y, width, height)
         return ink_extends[3]
 
+    def _calc_normalized_rating(self, model, raw_rating):
+        if self.rating:
+            r  = int(self.MAX_STARS * math.log(self.rating)/math.log(model.db.popcon_max+1))
+        else:
+            r = 0
+        return r
+
     def draw_appname_summary(self, window, widget, cell_area, xpad, ypad, layout, flags):
         # work out where to draw layout
         dst_x = cell_area.x + xpad
@@ -363,11 +507,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # draw star rating
         dest_x = cell_area.width-xpad
         tw = self.MAX_STARS*(w+1)    # total 5star width
-        
-        if self.rating > 0:
-            r  = int(self.MAX_STARS * math.log(self.rating)/math.log(widget.get_model().db.popcon_max+1))
-        else:
-            r = 0
+
+        r = self._calc_normalized_rating(widget.get_model(), self.rating)
 
         for i in range(self.MAX_STARS):
             if i < r:
@@ -410,11 +551,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # draw star rating
         dest_x = cell_area.width-xpad
         tw = self.MAX_STARS*(w+1)    # total 5star width
-        
-        if self.rating > 0:
-            r  = int(self.MAX_STARS * math.log(self.rating)/math.log(widget.get_model().db.popcon_max+1))
-        else:
-            r = 0
+
+        r = self._calc_normalized_rating( widget.get_model(), self.rating)
 
         for i in range(self.MAX_STARS):
             if i < r:
@@ -433,46 +571,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                    cell_area.y+(cell_area.height-h)/2,    # ydest
                                    -1, -1,              # size
                                    0, 0, 0)             # dither
-        return
-
-    def draw_button(self, window, widget, cell_area, state, xpad, ypad, layout, dst_x, dst_y, bw, bh, lw, lh):
-        # backgound "button" rect
-        widget.style.paint_box(window,
-                               state,
-                               gtk.SHADOW_OUT,
-                               (dst_x, dst_y, bw, bh),
-                               widget,
-                               "button",
-                               dst_x,       # x
-                               dst_y,       # y
-                               bw,          # width
-                               bh)          # height
-
-        # layout positioning
-        dst_x = dst_x + (bw-lw)/2
-        dst_y = dst_y + (bh-lh)/2
-
-#        # if btn_has_focus:
-#        # draw focal rect
-#        widget.style.paint_focus(window,
-#                                 state,
-#                                 (dst_x, dst_y, bw, bh),
-#                                 widget,
-#                                 "button",
-#                                 dst_x-2,       # x
-#                                 dst_y-2,       # y
-#                                 lw+4,          # width
-#                                 lh+4)          # height
-        # draw Install button label
-        widget.style.paint_layout(window,
-                            gtk.STATE_NORMAL,
-                            True,
-                            (dst_x, dst_y, bw, bh),
-                            widget,
-                            None,
-                            dst_x,
-                            dst_y,
-                            layout)
         return
 
     def on_render(self, window, widget, background_area, cell_area,
@@ -494,94 +592,27 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         elif self.show_ratings:
             self.draw_rating_only(window, widget, cell_area, xpad, ypad, layout, w, h, flags)
 
-        if not self.isactive:
-            return
+        if not self.isactive: return
         # else draw buttons
 
-        # Install button
-        # label and label size
-        layout.set_markup("%s" % _("Install"))
-        lw = self._get_layout_pixel_width(layout)
-        lh = self._get_layout_pixel_height(layout)
-
-        # button size
-        bw0 = lw+10*xpad
-        bh = lh+6*ypad
-
-        dst_x0 = cell_area.width-xpad+32 - bw0
-        dst_y = cell_area.y+self.DEFAULT_HEIGHT+(self.BUTTON_HEIGHT-bh)/2
-
-        if self.installed:
-            layout.set_markup("%s" % _("Remove"))
-            lw = self._get_layout_pixel_width(layout)
-
+        # Install/Remove button
         # only draw a install/remove button if the app is actually available
-        # determine focality
         if self.available:
-            if widget.focal_btn[0] == "action":
-                state = widget.focal_btn[1]
+            btn = widget.buttons['action']
+            if self.installed:
+                btn.set_use_alt_markup(True)
             else:
-                state = gtk.STATE_NORMAL
-            self.draw_button(window,
-                             widget,
-                             cell_area,
-                             state,
-                             xpad, ypad,
-                             layout,
-                             dst_x0, dst_y,
-                             bw0, bh,
-                             lw, lh)
+                btn.set_use_alt_markup(False)
+            btn.draw(window, widget, layout, cell_area.width, cell_area.y)
 
-#        # Choose Add-Ons... button
-#        # label and label size
-#        layout.set_markup("<small>%s</small>" % _("Choose Add-Ons..."))
-#        lw = layout.get_pixel_extents()[1][2]
-
-#        # button size
-#        bw1 = lw+4*xpad
-#        dst_x1 = dst_x0 - bw1 - 3*xpad
-
-#        self.draw_button(window, widget, cell_area, xpad, ypad, layout, dst_x1, dst_y, bw1, bh, lw, lh)
-
-        # More Info button
-        # label and label size
-        layout.set_markup("%s" % _("More Info"))
-        lw = self._get_layout_pixel_width(layout)
-
-        # button size
-        bw2 = lw+10*xpad
-        dst_x2 = cell_area.x + xpad
-
-        if widget.focal_btn[0] == "info":
-            state = widget.focal_btn[1]
-        else:
-            state = gtk.STATE_NORMAL
-
-        self.draw_button(window,
-                         widget,
-                         cell_area,
-                         state,
-                         xpad, ypad,
-                         layout,
-                         dst_x2, dst_y,
-                         bw2, bh,
-                         lw, lh)
-
-        if widget.btn_regions and not widget.size_changed: 
-            return
-        # i think we should attempt to precompute a lot of the dimensions
-
-        # specify button regions
-        widget.btn_regions = []
-        # XXX: window resizing cause the btn_regions to become wrong.  Need to consider this!
-        widget.btn_regions.append((dst_x0, dst_y, bw0, bh, 'action'))
-        #widget.btn_regions.append((dst_x1, dst_y, bw1, bh, 'addons'))
-        widget.btn_regions.append((dst_x2, dst_y, bw2, bh, 'info'))
+#        # More Info button
+        btn = widget.buttons['info']
+        btn.draw(window, widget, layout, cell_area.x, cell_area.y)
         return
 
     def on_get_size(self, widget, cell_area):
         h = self.DEFAULT_HEIGHT
-        if self.isactive: 
+        if self.isactive:
             h += self.BUTTON_HEIGHT
         return -1, -1, -1, h
 
@@ -663,9 +694,8 @@ class AppView(gtk.TreeView):
 
     def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
-        self.focal_btn = "", gtk.STATE_NORMAL
-        self.btn_regions = []
-        self.size_changed = False
+        self.buttons = {}
+        self.focal_btn = None
 
         # FIXME: mvo this makes everything sluggish but its the only
         #        way to make the rows grow (sluggish because gtk will
@@ -699,36 +729,53 @@ class AppView(gtk.TreeView):
         self.connect("row-activated", self._on_row_activated)
         # button and motion are "special"
 
-        self.connect("size-allocate", self._on_size_allocate, self.btn_regions)
+        self.connect("realize", self._on_realize, tr)
         self.connect("button-press-event", self._on_button_press_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
 
-    def _on_size_allocate(self, widget, allocation, btn_regions):
-        self.size_changed = True
+    def _on_realize(self, widget, tr, xpad=3, ypad=2):
+        pc = widget.get_pango_context()
+        layout = pango.Layout(pc)
+
+        action_btn = CellRendererButton(layout, markup=_("Install"), alt_markup=_("Remove"))
+        info_btn = CellRendererButton(layout, _("More Info"))
+
+        # set offset constants
+        yO = tr.DEFAULT_HEIGHT+(tr.BUTTON_HEIGHT-action_btn.get_param('height'))/2
+        action_btn.set_param('x_offset_const', 32 - xpad - action_btn.get_param('width'))
+        action_btn.set_param('y_offset_const', yO)
+
+        info_btn.set_param('x_offset_const', xpad)
+        info_btn.set_param('y_offset_const', yO)
+
+        self.buttons['action'] = action_btn
+        self.buttons['info'] = info_btn
 
     def _on_motion(self, tree, event, tr, col):
         x, y = int(event.x), int(event.y)
-        if not self._xy_is_over_focal_row(x, y) or not self.btn_regions:
+        if not self._xy_is_over_focal_row(x, y) or not self.buttons:
             self.window.set_cursor(None)
             return
 
         path = tree.get_path_at_pos(x, y)
         if not path: return
 
-        yO = tree.get_cell_area(path[0], col).y
-        for cx, cy, cw, ch, id in self.btn_regions:
-            rect = gtk.gdk.Rectangle(cx, yO+cy, cw, ch)
+        for id, btn in self.buttons.iteritems():
+            rect = btn.get_param('allocation')
             rr = gtk.gdk.region_rectangle(rect)
-            if rr.point_in(x, y):
-                if self.focal_btn[0] != id:
-                    self.focal_btn = id, gtk.STATE_PRELIGHT
+
+            if rr.point_in(x, y) and btn.get_param('sensitive'):
+                if id != self.focal_btn:
+                    self.focal_btn = id
+                    btn.set_state(gtk.STATE_PRELIGHT)
                     store = tree.get_model()
                     store.row_changed(path[0], store.get_iter(path[0]))
                 self.window.set_cursor(self._cursor_hand)
                 break
-            else:
-                self.focal_btn = None, gtk.STATE_NORMAL
+            elif btn.get_param('sensitive'):
+                self.focal_btn = None
+                btn.set_state(gtk.STATE_NORMAL)
                 store = tree.get_model()
                 store.row_changed(path[0], store.get_iter(path[0]))
                 self.window.set_cursor(None)
@@ -772,29 +819,37 @@ class AppView(gtk.TreeView):
 
         x, y = int(event.x), int(event.y)
         yO = view.get_cell_area(path, col).y
-        for cx, cy, cw, ch, name in self.btn_regions:
-            rect = gtk.gdk.Rectangle(cx, yO+cy, cw, ch)
+        for btn_id, btn in self.buttons.iteritems():
+            rect = btn.get_param('allocation')
             rr = gtk.gdk.region_rectangle(rect)
 
-            if rr.point_in(x, y):
+            if rr.point_in(x, y) and btn.get_param('sensitive'):
+                self.focal_btn = btn_id
+                btn.set_state(gtk.STATE_ACTIVE)
+
                 model = view.get_model()
                 appname = model[path][AppStore.COL_APP_NAME]
                 pkgname = model[path][AppStore.COL_PKGNAME]
                 installed = model[path][AppStore.COL_INSTALLED]
                 popcon = model[path][AppStore.COL_POPCON]
-                self.focal_btn = name, gtk.STATE_ACTIVE
-                gobject.timeout_add(100, self._app_activated_cb, name, appname, pkgname, popcon, installed)
+
+                gobject.timeout_add(100,
+                                    self._app_activated_cb,
+                                    btn,
+                                    btn_id,
+                                    appname,
+                                    pkgname,
+                                    popcon,
+                                    installed)
                 break
 
-    def _app_activated_cb(self, name, appname, pkgname, popcon, installed):
-        # TODO: we need to disable motion-notify events, so we can set states properly on buttons
-        # once a press has been detected.  This way we can achieve gtk.STATE_INSENSITIVE 
-        # more accuratley (i think).
-        self.focal_btn = name, gtk.STATE_NORMAL
-        if name == 'info':
+    def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed):
+        if btn_id == 'info':
+            btn.set_state(gtk.STATE_NORMAL)
             self.emit("application-activated", Application(appname, pkgname, popcon))
-        elif name == 'action':
-            if installed: 
+        elif btn_id == 'action':
+            btn.set_sensitive(False)
+            if installed:
                 perform_action = "remove"
             else:
                 perform_action = "install"
