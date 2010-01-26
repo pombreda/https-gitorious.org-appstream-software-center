@@ -1,5 +1,6 @@
 software-center (1.1.10) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/distro/aptutils.py:
     - removed, moved into python-apt
   * softwarecenter/view/appview.py:
@@ -24,7 +25,14 @@ software-center (1.1.10) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/bug-fixes with lots of nice
     fixes in the pathbar and appview code (many thanks!)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 20 Jan 2010 18:20:40 +0100
+  [ Gary Lasker ]
+  * softwarecenter/view/widgets/pathbar2.py,
+    softwarecenter/app.py,
+    data/ui/SoftwareCenter.ui:
+    - add support for using backspace key to navigate up one
+      level in the hierarchy (LP: #509783)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 26 Jan 2010 14:10:02 -0500
 
 software-center (1.1.9) lucid; urgency=low
 
