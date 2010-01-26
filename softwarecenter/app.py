@@ -224,6 +224,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.save_state()
         gtk.main_quit()
         
+    def on_window_main_key_press_event(self, widget, event):
+        if event.keyval == 65288 and not self.active_pane.searchentry.is_focus():
+            self.active_pane.navigation_bar.navigate_up()
+        
     def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
         # if the pending number drops to zero check if we should switch
         # to the previous view
@@ -374,7 +378,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
-        
+
     # helper
 
     # FIXME: move the two functions below into generic code

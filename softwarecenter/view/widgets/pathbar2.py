@@ -154,6 +154,13 @@ class PathBar(gtk.DrawingArea):
             self.queue_draw_area(*self.__parts[-1].get_allocation_tuple())
         return
 
+    def navigate_up(self):
+        index = 0
+        if len(self.__parts) > 1:
+            nav_part = self.__parts[len(self.__parts) - 2]
+            self.set_active(nav_part)
+        return
+
     def __set_active(self, part):
         prev_active = self.__active_part
         redraw = False
