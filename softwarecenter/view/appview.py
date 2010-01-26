@@ -250,7 +250,7 @@ class AppStore(gtk.GenericTreeModel):
         elif column == self.COL_PKGNAME:
             pkgname = self.db.get_pkgname(doc)
             return pkgname
-        elif column == self.COL_POPCON:  
+        elif column == self.COL_POPCON:
             return self._calc_normalized_rating(self.apps[rowref].popcon)
         elif column == self.IS_ACTIVE:
             return rowref == self.active_app
@@ -286,34 +286,14 @@ class AppStore(gtk.GenericTreeModel):
 class CellRendererButton:
 
     def __init__(self, layout, markup, alt_markup=None, xpad=20, ypad=6):
+        # XXX: we make the assumption markup is ~= alt_markup.  <- bad. should fix
         layout.set_markup(markup)
-        m_w = self._get_layout_pixel_width(layout) + 2*xpad
-        m_h = self._get_layout_pixel_height(layout) + 2*ypad
-        
-        if alt_markup:      
-            layout.set_markup(alt_markup)
-            am_w = self._get_layout_pixel_width(layout) + 2*xpad
-            am_h = self._get_layout_pixel_height(layout) + 2*ypad
-
-            # determine the largest width and height needed
-            w = max(m_w, am_w)
-            h = max(m_h, am_h)
-
-            # xy corrections in relation to markup for when alt_markup is displayed 
-            xac = (am_w - m_w)/2
-            yac = (am_h - m_h)/2
-        else:
-            xac = 0
-            yac = 0
-            w = m_w
-            h = m_h
-
         self.params = {
             'label': markup,
             'markup': markup,
             'alt_markup': alt_markup,
-            'width': w,
-            'height': h,
+            'width': self._get_layout_pixel_width(layout) + 2*xpad,
+            'height': self._get_layout_pixel_height(layout) + 2*ypad,
             'x_offset_const': 0,
             'y_offset_const': 0,
             'region_rect': gtk.gdk.region_rectangle(gtk.gdk.Rectangle(0,0,0,0)),
@@ -321,10 +301,19 @@ class CellRendererButton:
             'ypad': ypad,
             'sensitive': True,
             'state': gtk.STATE_NORMAL,
-            'x_alt_correction': xac,
-            'y_alt_correction': yac
+            'x_alt_correction': 0,
+            'y_alt_correction': 0
             }
         self.use_alt = False
+
+        if not alt_markup: return
+
+        layout.set_markup(alt_markup)
+        w = self._get_layout_pixel_width(layout) + 2*xpad
+        h = self._get_layout_pixel_height(layout) + 2*ypad
+
+        self.params['x_alt_correction'] = (w - self.params['width'])/2
+        self.params['y_alt_correction'] = (h - self.params['height'])/2
         return
 
     def _get_layout_pixel_width(self, layout):
@@ -392,9 +381,9 @@ class CellRendererButton:
                                (dst_x, dst_y, w, h),
                                widget,
                                "button",
-                               dst_x,       
-                               dst_y,       
-                               w,          
+                               dst_x,
+                               dst_y,
+                               w,
                                h)
 
         # cache region_rectangle for event checks
@@ -522,14 +511,14 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         dst_x = cell_area.width-xpad
         dst_y = 1+ypad
         tw = self.draw_rating(window, cell_area, dst_x, dst_y, self.rating)
-        
+
         # draw number of reviews
         nr_reviews_str = gettext.ngettext("%s review",
                                           "%s reviews",
                                           self.reviews) % self.reviews
         layout.set_markup("<small>%s</small>" % nr_reviews_str)
         lw = self._get_layout_pixel_width(layout)
-        dst_x += 32 - tw + (tw-lw)/2
+        dst_x -= tw - 32 - (tw-lw)/2
 
         widget.style.paint_layout(window,
                                   flags,
@@ -587,7 +576,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         # else draw buttons and rating with the number of reviews
         self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad, w, h, flags)
-        
+
         # Install/Remove button
         # only draw a install/remove button if the app is actually available
         if self.available:
@@ -811,7 +800,7 @@ class AppView(gtk.TreeView):
         x, y = int(event.x), int(event.y)
         yO = view.get_cell_area(path, col).y
         for btn_id, btn in self.buttons.iteritems():
-            rect = btn.get_param('region_rect')
+            rr = btn.get_param('region_rect')
             if rr.point_in(x, y) and btn.get_param('sensitive'):
                 self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_ACTIVE)
