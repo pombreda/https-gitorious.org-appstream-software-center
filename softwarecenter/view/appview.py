@@ -286,14 +286,17 @@ class AppStore(gtk.GenericTreeModel):
 class CellRendererButton:
 
     def __init__(self, layout, markup, alt_markup=None, xpad=20, ypad=6):
-        # XXX: we make the assumption markup is ~= alt_markup.  <- bad. should fix
-        layout.set_markup(markup)
+        if not alt_markup:
+            w, h, mx, amx = self._calc_markup_params(layout, markup, xpad, ypad)
+        else:
+            w, h, mx, amx = self._calc_markup_params_alt(layout, markup, alt_markup, xpad, ypad)
+
         self.params = {
             'label': markup,
             'markup': markup,
             'alt_markup': alt_markup,
-            'width': self._get_layout_pixel_width(layout) + 2*xpad,
-            'height': self._get_layout_pixel_height(layout) + 2*ypad,
+            'width': w,
+            'height': h,
             'x_offset_const': 0,
             'y_offset_const': 0,
             'region_rect': gtk.gdk.region_rectangle(gtk.gdk.Rectangle(0,0,0,0)),
@@ -301,20 +304,37 @@ class CellRendererButton:
             'ypad': ypad,
             'sensitive': True,
             'state': gtk.STATE_NORMAL,
-            'x_alt_correction': 0,
-            'y_alt_correction': 0
+            'layout_x': mx,
+            'markup_x': mx,
+            'alt_markup_x': amx
             }
         self.use_alt = False
+        return
 
-        if not alt_markup: return
-
-        layout.set_markup(alt_markup)
+    def _calc_markup_params(self, layout, markup, xpad, ypad):
+        layout.set_markup(markup)
         w = self._get_layout_pixel_width(layout) + 2*xpad
         h = self._get_layout_pixel_height(layout) + 2*ypad
+        return w, h, xpad, 0
 
-        self.params['x_alt_correction'] = (w - self.params['width'])/2
-        self.params['y_alt_correction'] = (h - self.params['height'])/2
-        return
+    def _calc_markup_params_alt(self, layout, markup, alt_markup, xpad, ypad):
+        layout.set_markup(markup)
+        mw = self._get_layout_pixel_width(layout)
+        layout.set_markup(alt_markup)
+        amw = self._get_layout_pixel_width(layout)
+
+        if amw > mw:
+            w = amw + 2*xpad
+            mx = xpad + (amw - mw)/2
+            amx = xpad
+        else:
+            w = mw + 2*xpad
+            mx = xpad
+            amx = xpad + (mw - amw)/2
+
+        # assume text height is the same for markups.
+        h = self._get_layout_pixel_height(layout) + 2*ypad
+        return w, h, mx, amx
 
     def _get_layout_pixel_width(self, layout):
         (logical_extends, ink_extends) = layout.get_pixel_extents()
@@ -340,13 +360,15 @@ class CellRendererButton:
         return
 
     def set_use_alt_markup(self, use_alt):
-        if self.use_alt and use_alt: return
+        if self.use_alt == use_alt: return
         self.use_alt = use_alt
         p = self.params
         if use_alt:
             p['label'] = p['alt_markup']
+            p['layout_x'] = p['alt_markup_x']
         else:
             p['label'] = p['markup']
+            p['layout_x'] = p['markup_x']
         return
 
     def get_use_alt_markup(self):
@@ -390,12 +412,8 @@ class CellRendererButton:
         p['region_rect'] = gtk.gdk.region_rectangle(gtk.gdk.Rectangle(dst_x, dst_y, w, h))
 
         # label stuff
-        if not self.use_alt:
-            dst_x += p['xpad']
-            dst_y += p['ypad']
-        else:
-            dst_x += p['xpad'] - p['x_alt_correction']
-            dst_y += p['ypad'] - p['y_alt_correction']
+        dst_x += p['layout_x']
+        dst_y += p['ypad']
 
 #        # if btn_has_focus:
 #        # draw focal rect
@@ -720,7 +738,7 @@ class AppView(gtk.TreeView):
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
 
-        action_btn = CellRendererButton(layout, markup=_("Install"), alt_markup=_("Remove"))
+        action_btn = CellRendererButton(layout, markup=_("Install this app!"), alt_markup=_("Remove"))
         info_btn = CellRendererButton(layout, _("More Info"))
 
         # set offset constants
