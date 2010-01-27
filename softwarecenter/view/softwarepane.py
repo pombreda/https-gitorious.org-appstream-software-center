@@ -176,10 +176,6 @@ class SoftwarePane(gtk.VBox):
         """return user readable status text suitable for a status bar"""
         raise Exception, "Not implemented"
         
-    def is_search_in_progress(self):
-        """return True is a search is currently in progress"""
-        return len(self.searchentry.get_text()) > 0
-
     @wait_for_apt_cache_ready
     def refresh_apps(self):
         " stub implementation "
