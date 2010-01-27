@@ -34,8 +34,11 @@ software-center (1.1.10) UNRELEASED; urgency=low
   * softwarecenter/app.py, softwarecenter/view/installedpane.py,
     softwarecenter/view/softwarepane.py:
     - fixes in the on_application_selected() code
+  * softwarecenter/view/installedpane.py,
+    softwarecenter/view/softwarepane.py:
+    - remove is_search_in_progress, it's not needed 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 26 Jan 2010 14:10:02 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 27 Jan 2010 10:27:48 -0500
 
 software-center (1.1.9) lucid; urgency=low
 
