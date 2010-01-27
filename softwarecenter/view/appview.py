@@ -68,6 +68,7 @@ class AppStore(gtk.GenericTreeModel):
                    bool)
 
     ICON_SIZE = 24
+    MAX_STARS = 5
 
     (SEARCHES_SORTED_BY_POPCON,
      SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
@@ -186,6 +187,14 @@ class AppStore(gtk.GenericTreeModel):
                          self.get_iter(self._prev_active_app))
         self._prev_active_app = path
         self.row_changed(path, self.get_iter(path))
+
+    def _calc_normalized_rating(self, raw_rating):
+        if raw_rating:
+            r  = int(self.MAX_STARS * math.log(raw_rating)/math.log(self.db.popcon_max+1))
+        else:
+            r = 0
+        return r
+
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -242,7 +251,7 @@ class AppStore(gtk.GenericTreeModel):
             pkgname = self.db.get_pkgname(doc)
             return pkgname
         elif column == self.COL_POPCON:
-            return self.apps[rowref].popcon
+            return self._calc_normalized_rating(self.apps[rowref].popcon)
         elif column == self.IS_ACTIVE:
             return rowref == self.active_app
     def on_iter_next(self, rowref):
@@ -277,32 +286,55 @@ class AppStore(gtk.GenericTreeModel):
 class CellRendererButton:
 
     def __init__(self, layout, markup, alt_markup=None, xpad=20, ypad=6):
-        layout.set_markup(markup)
+        if not alt_markup:
+            w, h, mx, amx = self._calc_markup_params(layout, markup, xpad, ypad)
+        else:
+            w, h, mx, amx = self._calc_markup_params_alt(layout, markup, alt_markup, xpad, ypad)
+
         self.params = {
             'label': markup,
             'markup': markup,
             'alt_markup': alt_markup,
-            'width': self._get_layout_pixel_width(layout) + 2*xpad,
-            'height': self._get_layout_pixel_height(layout) + 2*ypad,
+            'width': w,
+            'height': h,
             'x_offset_const': 0,
             'y_offset_const': 0,
-            'allocation': gtk.gdk.Rectangle(0,0,0,0),
+            'region_rect': gtk.gdk.region_rectangle(gtk.gdk.Rectangle(0,0,0,0)),
             'xpad': xpad,
             'ypad': ypad,
             'sensitive': True,
             'state': gtk.STATE_NORMAL,
-            'x_alt_correction': 0,
-            'y_alt_correction': 0
+            'layout_x': mx,
+            'markup_x': mx,
+            'alt_markup_x': amx
             }
         self.use_alt = False
-        if not alt_markup: return
+        return
 
-        layout.set_markup(alt_markup)
+    def _calc_markup_params(self, layout, markup, xpad, ypad):
+        layout.set_markup(markup)
         w = self._get_layout_pixel_width(layout) + 2*xpad
         h = self._get_layout_pixel_height(layout) + 2*ypad
-        self.params['x_alt_correction'] = (w - self.params['width'])/2
-        self.params['y_alt_correction'] = (h - self.params['height'])/2
-        return
+        return w, h, xpad, 0
+
+    def _calc_markup_params_alt(self, layout, markup, alt_markup, xpad, ypad):
+        layout.set_markup(markup)
+        mw = self._get_layout_pixel_width(layout)
+        layout.set_markup(alt_markup)
+        amw = self._get_layout_pixel_width(layout)
+
+        if amw > mw:
+            w = amw + 2*xpad
+            mx = xpad + (amw - mw)/2
+            amx = xpad
+        else:
+            w = mw + 2*xpad
+            mx = xpad
+            amx = xpad + (mw - amw)/2
+
+        # assume text height is the same for markups.
+        h = self._get_layout_pixel_height(layout) + 2*ypad
+        return w, h, mx, amx
 
     def _get_layout_pixel_width(self, layout):
         (logical_extends, ink_extends) = layout.get_pixel_extents()
@@ -328,13 +360,15 @@ class CellRendererButton:
         return
 
     def set_use_alt_markup(self, use_alt):
-        if self.use_alt and use_alt: return
+        if self.use_alt == use_alt: return
         self.use_alt = use_alt
         p = self.params
         if use_alt:
             p['label'] = p['alt_markup']
+            p['layout_x'] = p['alt_markup_x']
         else:
             p['label'] = p['markup']
+            p['layout_x'] = p['markup_x']
         return
 
     def get_use_alt_markup(self):
@@ -369,21 +403,17 @@ class CellRendererButton:
                                (dst_x, dst_y, w, h),
                                widget,
                                "button",
-                               dst_x,       # x
-                               dst_y,       # y
-                               w,          # width
-                               h)          # height
+                               dst_x,
+                               dst_y,
+                               w,
+                               h)
 
-        # cache allocation for event checks
-        p['allocation'] = gtk.gdk.Rectangle(dst_x, dst_y, w, h)
+        # cache region_rectangle for event checks
+        p['region_rect'] = gtk.gdk.region_rectangle(gtk.gdk.Rectangle(dst_x, dst_y, w, h))
 
         # label stuff
-        if not self.use_alt:
-            dst_x += p['xpad']
-            dst_y += p['ypad']
-        else:
-            dst_x += p['xpad'] - p['x_alt_correction']
-            dst_y += p['ypad'] - p['y_alt_correction']
+        dst_x += p['layout_x']
+        dst_y += p['ypad']
 
 #        # if btn_has_focus:
 #        # draw focal rect
@@ -415,19 +445,19 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
     __gproperties__ = {
         'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
-            gobject.PARAM_READWRITE),
+                    gobject.PARAM_READWRITE),
 
-#        'addons': (gobject.TYPE_INT, 'AddOns', 'Has add-ons?', 0, 2, 0,
-#            gobject.PARAM_READWRITE),
+#        'addons': (bool, 'AddOns', 'Has add-ons?', False,
+#                   gobject.PARAM_READWRITE),
 
-        'rating': (gobject.TYPE_INT, 'Rating', 'Popcon rating', 0, 1000000, 0,
+        'rating': (gobject.TYPE_INT, 'Rating', 'Popcon rating', 0, 5, 0,
             gobject.PARAM_READWRITE),
 
 #        'reviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
 #            gobject.PARAM_READWRITE),
 
-        'isactive': (gobject.TYPE_INT, 'IsActive', 'Is active?', 0, 2, 0,
-            gobject.PARAM_READWRITE),
+        'isactive': (bool, 'IsActive', 'Is active?', False,
+                    gobject.PARAM_READWRITE),
 
         'installed': (bool, 'installed', 'Is the app installed', False,
                      gobject.PARAM_READWRITE),
@@ -437,10 +467,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         }
 
     # class constants
-    MAX_STARS = 5
     DEFAULT_HEIGHT = 38
     BUTTON_HEIGHT = 32
-    MIN_DIST_TEXT_STAR = 32
 
     def __init__(self, show_ratings):
         self.__gobject_init__()
@@ -471,21 +499,14 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # extens is (x, y, width, height)
         return ink_extends[3]
 
-    def _calc_normalized_rating(self, model, raw_rating):
-        if self.rating:
-            r  = int(self.MAX_STARS * math.log(self.rating)/math.log(model.db.popcon_max+1))
-        else:
-            r = 0
-        return r
-
-    def draw_appname_summary(self, window, widget, cell_area, xpad, ypad, layout, flags):
+    def draw_appname_summary(self, window, widget, cell_area, layout, xpad, ypad, flags):
         # work out where to draw layout
         dst_x = cell_area.x + xpad
         dst_y = cell_area.y + ypad
 
         w = self.star_pixbuf.get_width()
         h = self.star_pixbuf.get_height()
-        max_star_width = self.MAX_STARS*(w+1) + xpad
+        max_star_width = AppStore.MAX_STARS*(w+1) + xpad
 
         # work out layouts max width
         lw = self._get_layout_pixel_width(layout)
@@ -503,30 +524,11 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                   layout)
         return w, h
 
-    def draw_rating_and_reviews(self, window, widget, cell_area, xpad, ypad, layout, w, h, flags):
+    def draw_rating_and_reviews(self, window, widget, cell_area, layout, xpad, ypad, w, h, flags):
         # draw star rating
-        dest_x = cell_area.width-xpad
-        tw = self.MAX_STARS*(w+1)    # total 5star width
-
-        r = self._calc_normalized_rating(widget.get_model(), self.rating)
-
-        for i in range(self.MAX_STARS):
-            if i < r:
-                window.draw_pixbuf(None,
-                                   self.star_pixbuf,    # icon
-                                   0, 0,                # src pixbuf
-                                   dest_x - tw + i*(w+1) + 32,  # xdest
-                                   cell_area.y+1+ypad,    # ydest
-                                   -1, -1,              # size
-                                   0, 0, 0)             # dither
-            else:
-                window.draw_pixbuf(None,
-                                   self.star_not_pixbuf,    # icon
-                                   0, 0,                # src pixbuf
-                                   dest_x - tw + i*(w+1) + 32,  # xdest
-                                   cell_area.y+1+ypad,    # ydest
-                                   -1, -1,              # size
-                                   0, 0, 0)             # dither
+        dst_x = cell_area.width-xpad
+        dst_y = 1+ypad
+        tw = self.draw_rating(window, cell_area, dst_x, dst_y, self.rating)
 
         # draw number of reviews
         nr_reviews_str = gettext.ngettext("%s review",
@@ -534,7 +536,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                           self.reviews) % self.reviews
         layout.set_markup("<small>%s</small>" % nr_reviews_str)
         lw = self._get_layout_pixel_width(layout)
-        dest_x = dest_x - tw + 32 + (tw-lw)/2
+        dst_x -= tw - 32 - (tw-lw)/2
 
         widget.style.paint_layout(window,
                                   flags,
@@ -542,40 +544,35 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                   cell_area,
                                   widget,
                                   None,
-                                  dest_x,
+                                  dst_x,
                                   cell_area.y+ypad+h+1,
                                   layout)
         return
 
-    def draw_rating_only(self, window, widget, cell_area, xpad, ypad, layout, w, h, flags):
-        # draw star rating
-        dest_x = cell_area.width-xpad
-        tw = self.MAX_STARS*(w+1)    # total 5star width
-
-        r = self._calc_normalized_rating( widget.get_model(), self.rating)
-
-        for i in range(self.MAX_STARS):
+    def draw_rating(self, window, cell_area, dst_x, dst_y, r):
+        w = self.star_pixbuf.get_width()
+        tw = AppStore.MAX_STARS*(w+1)    # total 5star width + 1 px spacing per star
+        for i in range(AppStore.MAX_STARS):
             if i < r:
                 window.draw_pixbuf(None,
-                                   self.star_pixbuf,    # icon
-                                   0, 0,                # src pixbuf
-                                   dest_x - tw + i*(w+1) + 32,  # xdest
-                                   cell_area.y+(cell_area.height-h)/2,    # ydest
-                                   -1, -1,              # size
-                                   0, 0, 0)             # dither
+                                   self.star_pixbuf,                    # icon
+                                   0, 0,                                # src pixbuf
+                                   dst_x - tw + i*(w+1) + 32,           # xdest
+                                   cell_area.y + dst_y,                 # ydest
+                                   -1, -1,                              # size
+                                   0, 0, 0)                             # dither
             else:
                 window.draw_pixbuf(None,
-                                   self.star_not_pixbuf,    # icon
-                                   0, 0,                # src pixbuf
-                                   dest_x - tw + i*(w+1) + 32,  # xdest
-                                   cell_area.y+(cell_area.height-h)/2,    # ydest
-                                   -1, -1,              # size
-                                   0, 0, 0)             # dither
-        return
+                                   self.star_not_pixbuf,                # icon
+                                   0, 0,                                # src pixbuf
+                                   dst_x - tw + i*(w+1) + 32,   # xdest
+                                   cell_area.y + dst_y,                 # ydest
+                                   -1, -1,                              # size
+                                   0, 0, 0)                             # dither
+        return tw
 
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
-
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
 
@@ -585,15 +582,18 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         layout.set_markup(self.markup)
         layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
 
-        w, h = self.draw_appname_summary(window, widget, cell_area, xpad, ypad, layout, flags)
+        w, h = self.draw_appname_summary(window, widget, cell_area, layout, xpad, ypad, flags)
 
-        if self.show_ratings and self.isactive:
-            self.draw_rating_and_reviews(window, widget, cell_area, xpad, ypad, layout, w, h, flags)
-        elif self.show_ratings:
-            self.draw_rating_only(window, widget, cell_area, xpad, ypad, layout, w, h, flags)
+        if not self.isactive:
+            if self.show_ratings:
+                # draw star rating only
+                dst_x = cell_area.width-xpad
+                dst_y = (cell_area.height-h)/2
+                self.draw_rating(window, cell_area, dst_x, dst_y, self.rating)
+            return
 
-        if not self.isactive: return
-        # else draw buttons
+        # else draw buttons and rating with the number of reviews
+        self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad, w, h, flags)
 
         # Install/Remove button
         # only draw a install/remove button if the app is actually available
@@ -605,7 +605,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                 btn.set_use_alt_markup(False)
             btn.draw(window, widget, layout, cell_area.width, cell_area.y)
 
-#        # More Info button
+        # More Info button
         btn = widget.buttons['info']
         btn.draw(window, widget, layout, cell_area.x, cell_area.y)
         return
@@ -762,9 +762,7 @@ class AppView(gtk.TreeView):
         if not path: return
 
         for id, btn in self.buttons.iteritems():
-            rect = btn.get_param('allocation')
-            rr = gtk.gdk.region_rectangle(rect)
-
+            rr = btn.get_param('region_rect')
             if rr.point_in(x, y) and btn.get_param('sensitive'):
                 if id != self.focal_btn:
                     self.focal_btn = id
@@ -820,9 +818,7 @@ class AppView(gtk.TreeView):
         x, y = int(event.x), int(event.y)
         yO = view.get_cell_area(path, col).y
         for btn_id, btn in self.buttons.iteritems():
-            rect = btn.get_param('allocation')
-            rr = gtk.gdk.region_rectangle(rect)
-
+            rr = btn.get_param('region_rect')
             if rr.point_in(x, y) and btn.get_param('sensitive'):
                 self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_ACTIVE)
