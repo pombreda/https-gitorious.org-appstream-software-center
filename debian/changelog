@@ -31,6 +31,9 @@ software-center (1.1.10) UNRELEASED; urgency=low
     data/ui/SoftwareCenter.ui:
     - add support for using backspace key to navigate up one
       level in the hierarchy (LP: #509783)
+  * softwarecenter/app.py, softwarecenter/view/installedpane.py,
+    softwarecenter/view/softwarepane.py:
+    - fixes in the on_application_selected() code
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 26 Jan 2010 14:10:02 -0500
 

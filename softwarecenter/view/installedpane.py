@@ -46,8 +46,6 @@ class InstalledPane(SoftwarePane):
         # state
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_installed_only(True)
-        self.app_view.connect("application-selected", 
-                              self.on_application_selected)
         self.current_appview_selection = None
         # UI
         self._build_ui()
@@ -120,6 +118,11 @@ class InstalledPane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        
+    def on_application_selected(self, appview, app):
+        """callback when an app is selected"""
+        logging.debug("on_application_selected: '%s'" % app)
+        self.current_appview_selection = app
     
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""

@@ -153,8 +153,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
         self.available_pane.app_view.connect("application-selected",
-                                             self.on_app_selected,
-                                             self.NOTEBOOK_PAGE_AVAILABLE)
+                                             self.on_app_selected)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -168,8 +167,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_INSTALLED)
         self.installed_pane.app_view.connect("application-selected",
-                                             self.on_app_selected,
-                                             self.NOTEBOOK_PAGE_INSTALLED)
+                                             self.on_app_selected)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_INSTALLED)
@@ -216,7 +214,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.update_app_status_menu()
             self.update_status_bar()
 
-    def on_app_selected(self, widget, app, page):
+    def on_app_selected(self, widget, app):
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
 
