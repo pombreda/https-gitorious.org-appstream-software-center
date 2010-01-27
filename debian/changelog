@@ -37,8 +37,12 @@ software-center (1.1.10) UNRELEASED; urgency=low
   * softwarecenter/view/installedpane.py,
     softwarecenter/view/softwarepane.py:
     - remove is_search_in_progress, it's not needed 
+  * softwarecenter/view/appview.py:
+    - comment out the install/remove button set insensitive
+      call temporarily, will restore after we are cleanly
+      setting it sensitive again after transaction completed
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 27 Jan 2010 10:27:48 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 27 Jan 2010 14:33:06 -0500
 
 software-center (1.1.9) lucid; urgency=low
 

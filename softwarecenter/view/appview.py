@@ -844,7 +844,9 @@ class AppView(gtk.TreeView):
             btn.set_state(gtk.STATE_NORMAL)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
-            btn.set_sensitive(False)
+            # TODO:  restore this - just removed temporarily until we can re-enable the button
+            # cleanly on transaction completed
+            # btn.set_sensitive(False)
             if installed:
                 perform_action = "remove"
             else:
