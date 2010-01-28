@@ -624,18 +624,19 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                w,
                                h)
 
-        # Installing... note
+        # Working... note
         layout.set_markup("<small>%s</small>" % _("Working..."))
         lw = self._get_layout_pixel_width(layout)
         dst_x += (2 + (w-lw)/2)
+        dst_y += (ypad+h+1)
         widget.style.paint_layout(window,
                                   flags,
                                   True,
-                                  cell_area,
+                                  (dst_x, dst_y, lw, self._get_layout_pixel_height(layout)),
                                   widget,
                                   None,
                                   dst_x,
-                                  dst_y+ypad+h+1,
+                                  dst_y,
                                   layout)
 
     def on_render(self, window, widget, background_area, cell_area,
