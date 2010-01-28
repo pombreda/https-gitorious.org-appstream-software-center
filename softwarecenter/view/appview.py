@@ -36,7 +36,7 @@ if os.path.exists("./softwarecenter/enums.py"):
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
-#from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
+from softwarecenter.backend import get_install_backend
 
 from gettext import gettext as _
 
@@ -55,8 +55,9 @@ class AppStore(gtk.GenericTreeModel):
      COL_AVAILABLE,
      COL_PKGNAME,
      COL_POPCON,
-     IS_ACTIVE
-     ) = range(8)
+     COL_IS_ACTIVE,
+     COL_ACTION_IN_PROGRESS,
+     ) = range(9)
 
     column_type = (str,
                    str,
@@ -65,7 +66,8 @@ class AppStore(gtk.GenericTreeModel):
                    bool,
                    str,
                    int,
-                   bool)
+                   bool,
+                   int)
 
     ICON_SIZE = 24
     MAX_STARS = 5
@@ -98,6 +100,7 @@ class AppStore(gtk.GenericTreeModel):
         self.app_index_map = {}
         self.sorted = sort
         self.filter = filter
+        self.backend = get_install_backend()
         # rowref of the active app and last active app
         self.active_app = None
         self._prev_active_app = 0
@@ -240,20 +243,25 @@ class AppStore(gtk.GenericTreeModel):
                 logging.debug("get_icon returned '%s'" % e)
             return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         elif column == self.COL_INSTALLED:
-            pkgname = self.db.get_pkgname(doc)
+            pkgname = app.pkgname
             if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
                 return True
             return False
         elif column == self.COL_AVAILABLE:
-            pkgname = self.db.get_pkgname(doc)
+            pkgname = app.pkgname
             return self.cache.has_key(pkgname)
         elif column == self.COL_PKGNAME:
-            pkgname = self.db.get_pkgname(doc)
+            pkgname = app.pkgname
             return pkgname
         elif column == self.COL_POPCON:
             return self._calc_normalized_rating(self.apps[rowref].popcon)
-        elif column == self.IS_ACTIVE:
-            return rowref == self.active_app
+        elif column == self.COL_IS_ACTIVE:
+            return (rowref == self.active_app)
+        elif column == self.COL_ACTION_IN_PROGRESS:
+            if app.pkgname in self.backend.pending_transactions:
+                return True
+            else:
+                return False
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -360,7 +368,8 @@ class CellRendererButton:
         return
 
     def set_use_alt_markup(self, use_alt):
-        if self.use_alt == use_alt: return
+        if self.use_alt == use_alt: 
+            return
         self.use_alt = use_alt
         p = self.params
         if use_alt:
@@ -450,6 +459,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 #        'addons': (bool, 'AddOns', 'Has add-ons?', False,
 #                   gobject.PARAM_READWRITE),
 
+        # numbers mean: min: 0, max: 5, default: 0
         'rating': (gobject.TYPE_INT, 'Rating', 'Popcon rating', 0, 5, 0,
             gobject.PARAM_READWRITE),
 
@@ -463,6 +473,10 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                      gobject.PARAM_READWRITE),
 
         'available': (bool, 'available', 'Is the app available for install', False,
+                     gobject.PARAM_READWRITE),
+
+        # FIXME: we could make this a int later when we wire in progress
+        'action_in_progress': (bool, 'Action Progress', 'Action progress', False,
                      gobject.PARAM_READWRITE),
         }
 
@@ -603,6 +617,11 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                 btn.set_use_alt_markup(True)
             else:
                 btn.set_use_alt_markup(False)
+            # check if the current app is in progress
+            if self.props.action_in_progress == True:
+                btn.set_sensitive(False)
+            else:
+                btn.set_sensitive(True)
             btn.draw(window, widget, layout, cell_area.width, cell_area.y)
 
         # More Info button
@@ -714,7 +733,13 @@ class AppView(gtk.TreeView):
         tr.set_property('xpad', 3)
         tr.set_property('ypad', 2)
 
-        column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, rating=AppStore.COL_POPCON, isactive=AppStore.IS_ACTIVE, installed=AppStore.COL_INSTALLED, available=AppStore.COL_AVAILABLE)
+        column = gtk.TreeViewColumn("Apps", tr, 
+                                    markup=AppStore.COL_TEXT,
+                                    rating=AppStore.COL_POPCON,
+                                    isactive=AppStore.COL_IS_ACTIVE,
+                                    installed=AppStore.COL_INSTALLED, 
+                                    available=AppStore.COL_AVAILABLE,
+                                    action_in_progress=AppStore.COL_ACTION_IN_PROGRESS)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -844,9 +869,7 @@ class AppView(gtk.TreeView):
             btn.set_state(gtk.STATE_NORMAL)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
-            # TODO:  restore this - just removed temporarily until we can re-enable the button
-            # cleanly on transaction completed
-            # btn.set_sensitive(False)
+            btn.set_sensitive(False)
             if installed:
                 perform_action = "remove"
             else:

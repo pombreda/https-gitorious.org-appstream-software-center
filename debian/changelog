@@ -1,3 +1,10 @@
+software-center (1.1.11) UNRELEASED; urgency=low
+
+  * make action buttons in the appview insensitive while a action
+    is in progress
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 28 Jan 2010 09:43:41 +0100
+
 software-center (1.1.10) lucid; urgency=low
 
   [ Michael Vogt ]

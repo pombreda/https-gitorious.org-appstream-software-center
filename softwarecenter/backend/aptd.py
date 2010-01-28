@@ -28,12 +28,13 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
 import gtk
 
+from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.view import dialogs
 
 from gettext import gettext as _
 
-class AptdaemonBackend(gobject.GObject):
+class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     """ software center specific code that interacts with aptdaemon """
 
     __gsignals__ = {'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
@@ -46,7 +47,9 @@ class AptdaemonBackend(gobject.GObject):
 
     def __init__(self):
         gobject.GObject.__init__(self)
+        TransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
+        self.pending_transactions = set()
 
     # public methods
     def upgrade(self, pkgname, appname, iconname):
@@ -99,6 +102,20 @@ class AptdaemonBackend(gobject.GObject):
         self.reload()
 
     # internal helpers
+    def on_transactions_changed(self, current, pending):
+        # update pending_transactions
+        self.pending_transactions.clear()
+        for tid in [current] + pending:
+            if not tid:
+                continue
+            trans = client.get_transaction(tid, error_handler=lambda x: True)
+            # FIXME: add a bit more data here
+            try:
+                pkgname = trans.meta_data["sc_pkgname"]
+                self.pending_transactions.add(pkgname)
+            except KeyError:
+                pass
+
     def _on_trans_reply(self):
         # dummy callback for now, but its required, otherwise the aptdaemon
         # client blocks the UI and keeps gtk from refreshing
@@ -177,6 +194,7 @@ class AptdaemonBackend(gobject.GObject):
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
         trans.set_meta_data(sc_appname=appname, sc_iconname=iconname,
+                            sc_pkgname=pkgname,
                             reply_handler=set_debconf,
                             error_handler=self._on_trans_error)
 

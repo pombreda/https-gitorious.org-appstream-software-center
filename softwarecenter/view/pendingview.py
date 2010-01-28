@@ -28,7 +28,7 @@ import aptdaemon.client
 from aptdaemon.enums import *
 
 from softwarecenter.enums import *
-from transactionswatcher import TransactionsWatcher
+from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 
 class PendingStore(gtk.ListStore, TransactionsWatcher):
 
