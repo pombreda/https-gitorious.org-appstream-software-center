@@ -601,8 +601,19 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         dst_x = cell_width + xO
         dst_y = cell_yoffset + PADDING_Y + 1
         h = self.star_pixbuf.get_height()
-        state = gtk.STATE_NORMAL
-        widget.style.paint_box(window, state, gtk.SHADOW_OUT,
+        widget.style.paint_box(window, gtk.STATE_NORMAL, gtk.SHADOW_IN,
+                               (dst_x, dst_y, w, h),
+                               widget, 
+                               "progressbar",
+                               dst_x,
+                               dst_y,
+                               w,
+                               h)
+        dst_x += 2
+        dst_y += 2
+        w -= 4
+        h -= 4
+        widget.style.paint_box(window, gtk.STATE_SELECTED, gtk.SHADOW_NONE,
                                (dst_x, dst_y, (float(percent)/w)*100, h),
                                widget, 
                                "progressbar",
