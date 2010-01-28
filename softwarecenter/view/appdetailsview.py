@@ -43,7 +43,7 @@ from softwarecenter import Application
 from softwarecenter.enums import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
+from softwarecenter.backend import get_install_backend
 
 from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
@@ -82,7 +82,7 @@ class AppDetailsView(WebkitWidget):
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
         # aptdaemon
-        self.backend = InstallBackend()
+        self.backend = get_install_backend()
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         # data
@@ -134,6 +134,8 @@ class AppDetailsView(WebkitWidget):
     
     def show_app(self, app):
         logging.debug("AppDetailsView.show_app '%s'" % app)
+        if app is None:
+            return
 
         # clear first to avoid showing the old app details for
         # some milliseconds before switching to the new app
