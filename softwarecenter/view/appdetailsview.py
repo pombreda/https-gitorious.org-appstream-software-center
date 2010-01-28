@@ -391,7 +391,7 @@ class AppDetailsView(WebkitWidget):
 
     # internal callback
     def _on_cache_ready(self, cache):
-        print "on_cache_ready"
+        print "AppDetailsView._on_cache_ready", self, cache
         self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)

@@ -123,7 +123,7 @@ class SoftwarePane(gtk.VBox):
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
-        print "on_cache_ready"
+        print "SoftwarePane.on_cache_ready", self, cache
         # FIXME: preserve selection too
         # get previous vadjustment and reapply it
         vadj = self.scroll_app_list.get_vadjustment()
