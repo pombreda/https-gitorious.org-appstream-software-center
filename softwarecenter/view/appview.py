@@ -592,15 +592,15 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                    0, 0, 0)                             # dither
         return tw
 
-    def draw_progress(self, window, widget, cell_width, cell_yoffset, ypad):
+    def draw_progress(self, window, widget, cell_area, layout, ypad, flags):
         percent = self.props.action_in_progress
         # we get e.g. 600, 1
-        PADDING_X = 2
-        PADDING_Y = 2
         w, xO = widget.buttons["action"].get_params('width', 'x_offset_const')
-        dst_x = cell_width + xO
-        dst_y = cell_yoffset + PADDING_Y + 1
+        dst_x = cell_area.width + xO
+        dst_y = cell_area.y + ypad + 1
         h = self.star_pixbuf.get_height()
+
+        # background
         widget.style.paint_box(window, gtk.STATE_NORMAL, gtk.SHADOW_IN,
                                (dst_x, dst_y, w, h),
                                widget, 
@@ -613,7 +613,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         dst_y += 2
         w -= 4
         h -= 4
-        widget.style.paint_box(window, gtk.STATE_SELECTED, gtk.SHADOW_NONE,
+
+        # progress
+        widget.style.paint_flat_box(window, gtk.STATE_SELECTED, gtk.SHADOW_NONE,
                                (dst_x, dst_y, (float(percent)/w)*100, h),
                                widget, 
                                "progressbar",
@@ -621,6 +623,20 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                dst_y,
                                w,
                                h)
+
+        # Installing... note
+        layout.set_markup("<small>%s</small>" % _("Working..."))
+        lw = self._get_layout_pixel_width(layout)
+        dst_x += (2 + (w-lw)/2)
+        widget.style.paint_layout(window,
+                                  flags,
+                                  True,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  dst_x,
+                                  dst_y+ypad+h+1,
+                                  layout)
 
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
@@ -657,7 +673,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                 # draw buttons and rating with the number of reviews
                 self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad, w, h, flags)
             else:
-                self.draw_progress(window, widget, cell_area.width, cell_area.y, ypad)
+                self.draw_progress(window, widget, cell_area, layout, ypad, flags)
 
         # More Info button
         btn = widget.buttons['info']
