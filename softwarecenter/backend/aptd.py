@@ -43,6 +43,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             ()),                    
+                    'transaction-progress-changed':(gobject.SIGNAL_RUN_FIRST,
+                                                    gobject.TYPE_NONE,
+                                                    (str,)),
                     }
 
     def __init__(self):
@@ -131,6 +134,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         try:
             pkgname = trans.meta_data["sc_pkgname"]
             self.pending_transactions[pkgname] = progress
+            self.emit("transaction-progress-changed", pkgname)
         except KeyError:
             pass
 
@@ -173,6 +177,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     trans.error_details)
         # send finished signal
         self.emit("transaction-finished", enum != enums.EXIT_FAILED)
+        try:
+            pkgname = trans.meta_data["sc_pkgname"]
+            self.pending_transactions[pkgname] = -1
+            self.emit("transaction-progress-changed", pkgname)
+        except KeyError:
+            pass
 
     def _config_file_conflict(self, transaction, old, new):
         dia = AptConfigFileConflictDialog(old, new)

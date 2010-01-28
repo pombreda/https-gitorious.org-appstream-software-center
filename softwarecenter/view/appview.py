@@ -101,6 +101,7 @@ class AppStore(gtk.GenericTreeModel):
         self.sorted = sort
         self.filter = filter
         self.backend = get_install_backend()
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # rowref of the active app and last active app
         self.active_app = None
         self._prev_active_app = 0
@@ -197,6 +198,14 @@ class AppStore(gtk.GenericTreeModel):
         else:
             r = 0
         return r
+
+    def _on_transaction_progress_changed(self, backend, pkgname):
+        print "_on_transaction_progress_changed", pkgname
+        for row in self:
+            if row[self.COL_PKGNAME] == pkgname:
+                print "found"
+                self.row_changed(row.path, row.iter)
+
 
     # GtkTreeModel functions
     def on_get_flags(self):
@@ -583,46 +592,24 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                    0, 0, 0)                             # dither
         return tw
 
-    def draw_progress(self, window, widget, cell_x0, cell_y0):
+    def draw_progress(self, window, widget, cell_width, cell_yoffset, ypad):
         percent = self.props.action_in_progress
         # we get e.g. 600, 1
         PADDING_X = 2
         PADDING_Y = 2
-        PROGRESS_SIZE_X = 100
-        PROGRESS_SIZE_Y = 16
-        dst_x = cell_x0 - PROGRESS_SIZE_X - PADDING_X
-        w = PROGRESS_SIZE_X
-        yO = self.DEFAULT_HEIGHT+self.BUTTON_HEIGHT
-        dst_y = cell_y0 + PADDING_Y
-        h = PROGRESS_SIZE_Y
+        w, xO = widget.buttons["action"].get_params('width', 'x_offset_const')
+        dst_x = cell_width + xO
+        dst_y = cell_yoffset + PADDING_Y + 1
+        h = self.star_pixbuf.get_height()
         state = gtk.STATE_NORMAL
-        print cell_x0, cell_y0 
-        print dst_x, dst_y, w, h
-        print (float(percent)/w)*100
-        print
-        widget.style.paint_box(window, state, gtk.SHADOW_NONE,
+        widget.style.paint_box(window, state, gtk.SHADOW_OUT,
                                (dst_x, dst_y, (float(percent)/w)*100, h),
                                widget, 
-                               "progress",
+                               "progressbar",
                                dst_x,
                                dst_y,
                                w,
                                h)
-
-    def _progress_draw_helper(self, widget):
-        print "_progress_draw_helper"
-        model = widget.get_model()
-        if not model:
-            return False
-        print "looking at the model"
-        found = False
-        for row in model:
-            if row[AppStore.COL_ACTION_IN_PROGRESS] >= 0:
-                print "repaint"
-                cell_area = widget.get_cell_area(row.path, widget.get_column(0))
-                widget.queue_draw_area(cell_area.x, cell_area.y, 
-                                       cell_area.width, cell_area.height)
-                found = True
 
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
@@ -645,9 +632,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                 self.draw_rating(window, cell_area, dst_x, dst_y, self.rating)
             return
 
-        # else draw buttons and rating with the number of reviews
-        self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad, w, h, flags)
-
         # Install/Remove button
         # only draw a install/remove button if the app is actually available
         if self.available:
@@ -656,12 +640,13 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                 btn.set_use_alt_markup(True)
             else:
                 btn.set_use_alt_markup(False)
+            btn.draw(window, widget, layout, cell_area.width, cell_area.y)
             # check if the current app has a action that is in progress
             if self.props.action_in_progress < 0:
-                btn.draw(window, widget, layout, cell_area.width, cell_area.y)
+                # draw buttons and rating with the number of reviews
+                self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad, w, h, flags)
             else:
-                self.draw_progress(window, widget, cell_area.width, cell_area.y)
-                glib.timeout_add(50, self._progress_draw_helper, widget)
+                self.draw_progress(window, widget, cell_area.width, cell_area.y, ypad)
 
         # More Info button
         btn = widget.buttons['info']
