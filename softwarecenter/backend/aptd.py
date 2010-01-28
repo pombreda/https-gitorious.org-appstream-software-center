@@ -43,6 +43,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             ()),                    
+                    'transactions-changed':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (gobject.TYPE_PYOBJECT, )),
                     'transaction-progress-changed':(gobject.SIGNAL_RUN_FIRST,
                                                     gobject.TYPE_NONE,
                                                     (str,)),
@@ -128,11 +131,13 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 self.pending_transactions[pkgname] = trans.progress
             except KeyError:
                 pass
+        self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
         """ internal helper that gets called on transaction progress """
         try:
             pkgname = trans.meta_data["sc_pkgname"]
+            print "progress changed: ", pkgname, progress
             self.pending_transactions[pkgname] = progress
             self.emit("transaction-progress-changed", pkgname)
         except KeyError:
@@ -176,13 +181,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     enums.get_error_description_from_enum(trans.error_code),
                     trans.error_details)
         # send finished signal
-        self.emit("transaction-finished", enum != enums.EXIT_FAILED)
         try:
             pkgname = trans.meta_data["sc_pkgname"]
-            self.pending_transactions[pkgname] = -1
+            print "finished: ", pkgname
+            del self.pending_transactions[pkgname]
             self.emit("transaction-progress-changed", pkgname)
         except KeyError:
             pass
+        self.emit("transactions-changed", self.pending_transactions)
+        self.emit("transaction-finished", enum != enums.EXIT_FAILED)
 
     def _config_file_conflict(self, transaction, old, new):
         dia = AptConfigFileConflictDialog(old, new)

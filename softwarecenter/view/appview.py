@@ -92,6 +92,7 @@ class AppStore(gtk.GenericTreeModel):
         - `filter`: filter functions that can be used to filter the
                     data further. A python function that gets a pkgname
         """
+        print "AppStore.__init__", self
         gtk.GenericTreeModel.__init__(self)
         self.cache = cache
         self.db = db
@@ -100,6 +101,7 @@ class AppStore(gtk.GenericTreeModel):
         self.app_index_map = {}
         self.sorted = sort
         self.filter = filter
+        self.active = True
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # rowref of the active app and last active app
@@ -200,11 +202,15 @@ class AppStore(gtk.GenericTreeModel):
         return r
 
     def _on_transaction_progress_changed(self, backend, pkgname):
+        if not self.apps or not self.active:
+            return
+        print "progress_changed: ", self, pkgname
+        # FIXME: use app_index_map to speed this up
         with ExecutionTime("iterate all rows"):
             for row in self:
                 if row[self.COL_PKGNAME] == pkgname:
                     self.row_changed(row.path, row.iter)
-
+                    break
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -224,7 +230,11 @@ class AppStore(gtk.GenericTreeModel):
         return rowref
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
-        app = self.apps[rowref]
+        try:
+            app = self.apps[rowref]
+        except IndexError:
+            logging.exception("on_get_value: rowref=%s apps=%s" % (rowref, self.apps))
+            return
         doc = self.db.get_xapian_document(app.appname, app.pkgname)
         if column == self.COL_APP_NAME:
             return app.appname
@@ -592,7 +602,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
     def draw_progress(self, window, widget, cell_area, layout, ypad, flags):
         percent = self.props.action_in_progress
-        # we get e.g. 600, 1
         w, xO = widget.buttons["action"].get_params('width', 'x_offset_const')
         dst_x = cell_area.width + xO
         dst_y = cell_area.y + ypad + 1
@@ -614,7 +623,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         # progress
         widget.style.paint_flat_box(window, gtk.STATE_SELECTED, gtk.SHADOW_NONE,
-                               (dst_x, dst_y, (float(percent)/w)*100, h),
+                               (dst_x, dst_y, (percent/100.0)*w, h),
                                widget, 
                                "progressbar",
                                dst_x,
