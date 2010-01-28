@@ -49,7 +49,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         gobject.GObject.__init__(self)
         TransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
-        self.pending_transactions = set()
+        self.pending_transactions = {}
+        self._progress_signal = None
 
     # public methods
     def upgrade(self, pkgname, appname, iconname):
@@ -103,7 +104,16 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
-        # update pending_transactions
+        # cleanup progress signal (to be sure to not leave dbus matchers around)
+        if self._progress_signal:
+            gobject.source_remove(self._progress_signal)
+            self._progress_signal = None
+        # attach progress-changed signal for current transaction
+        if current:
+            trans = client.get_transaction(current, 
+                                           error_handler=lambda x: True)
+            self._progress_signal = trans.connect("progress-changed", self._on_progress_changed)
+        # now update pending transactions
         self.pending_transactions.clear()
         for tid in [current] + pending:
             if not tid:
@@ -112,9 +122,17 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # FIXME: add a bit more data here
             try:
                 pkgname = trans.meta_data["sc_pkgname"]
-                self.pending_transactions.add(pkgname)
+                self.pending_transactions[pkgname] = trans.progress
             except KeyError:
                 pass
+
+    def _on_progress_changed(self, trans, progress):
+        """ internal helper that gets called on transaction progress """
+        try:
+            pkgname = trans.meta_data["sc_pkgname"]
+            self.pending_transactions[pkgname] = progress
+        except KeyError:
+            pass
 
     def _on_trans_reply(self):
         # dummy callback for now, but its required, otherwise the aptdaemon

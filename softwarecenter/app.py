@@ -183,8 +183,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
-        self.view_switcher.model.connect("transactions-changed", 
-                                   self.on_view_switcher_transactions_changed)
+        #self.view_switcher.model.connect("transactions-changed", 
+        #                           self.on_view_switcher_transactions_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
         # launchpad integration help, its ok if that fails

@@ -259,9 +259,9 @@ class AppStore(gtk.GenericTreeModel):
             return (rowref == self.active_app)
         elif column == self.COL_ACTION_IN_PROGRESS:
             if app.pkgname in self.backend.pending_transactions:
-                return True
+                return self.backend.pending_transactions[app.pkgname]
             else:
-                return False
+                return -1
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -475,8 +475,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         'available': (bool, 'available', 'Is the app available for install', False,
                      gobject.PARAM_READWRITE),
 
-        # FIXME: we could make this a int later when we wire in progress
-        'action_in_progress': (bool, 'Action Progress', 'Action progress', False,
+        'action_in_progress': (gobject.TYPE_INT, 'Action Progress', 'Action progress', -1, 100, -1,
                      gobject.PARAM_READWRITE),
         }
 
@@ -496,7 +495,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         icons = gtk.icon_theme_get_default()
         self.star_pixbuf = icons.load_icon("sc-emblem-favorite", 16, 0)
         self.star_not_pixbuf = icons.load_icon("sc-emblem-favorite-not", 16, 0)
-
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
 
@@ -585,6 +583,47 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                    0, 0, 0)                             # dither
         return tw
 
+    def draw_progress(self, window, widget, cell_x0, cell_y0):
+        percent = self.props.action_in_progress
+        # we get e.g. 600, 1
+        PADDING_X = 2
+        PADDING_Y = 2
+        PROGRESS_SIZE_X = 100
+        PROGRESS_SIZE_Y = 16
+        dst_x = cell_x0 - PROGRESS_SIZE_X - PADDING_X
+        w = PROGRESS_SIZE_X
+        yO = self.DEFAULT_HEIGHT+self.BUTTON_HEIGHT
+        dst_y = cell_y0 + PADDING_Y
+        h = PROGRESS_SIZE_Y
+        state = gtk.STATE_NORMAL
+        print cell_x0, cell_y0 
+        print dst_x, dst_y, w, h
+        print (float(percent)/w)*100
+        print
+        widget.style.paint_box(window, state, gtk.SHADOW_NONE,
+                               (dst_x, dst_y, (float(percent)/w)*100, h),
+                               widget, 
+                               "progress",
+                               dst_x,
+                               dst_y,
+                               w,
+                               h)
+
+    def _progress_draw_helper(self, widget):
+        print "_progress_draw_helper"
+        model = widget.get_model()
+        if not model:
+            return False
+        print "looking at the model"
+        found = False
+        for row in model:
+            if row[AppStore.COL_ACTION_IN_PROGRESS] >= 0:
+                print "repaint"
+                cell_area = widget.get_cell_area(row.path, widget.get_column(0))
+                widget.queue_draw_area(cell_area.x, cell_area.y, 
+                                       cell_area.width, cell_area.height)
+                found = True
+
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
         xpad = self.get_property('xpad')
@@ -617,12 +656,12 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                 btn.set_use_alt_markup(True)
             else:
                 btn.set_use_alt_markup(False)
-            # check if the current app is in progress
-            if self.props.action_in_progress == True:
-                btn.set_sensitive(False)
+            # check if the current app has a action that is in progress
+            if self.props.action_in_progress < 0:
+                btn.draw(window, widget, layout, cell_area.width, cell_area.y)
             else:
-                btn.set_sensitive(True)
-            btn.draw(window, widget, layout, cell_area.width, cell_area.y)
+                self.draw_progress(window, widget, cell_area.width, cell_area.y)
+                glib.timeout_add(50, self._progress_draw_helper, widget)
 
         # More Info button
         btn = widget.buttons['info']
@@ -856,20 +895,20 @@ class AppView(gtk.TreeView):
 
                 gobject.timeout_add(100,
                                     self._app_activated_cb,
+                                    path,
                                     btn,
                                     btn_id,
                                     appname,
                                     pkgname,
                                     popcon,
-                                    installed)
+                                    installed,)
                 break
 
-    def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed):
+    def _app_activated_cb(self, path, btn, btn_id, appname, pkgname, popcon, installed):
         if btn_id == 'info':
             btn.set_state(gtk.STATE_NORMAL)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
-            btn.set_sensitive(False)
             if installed:
                 perform_action = "remove"
             else:
