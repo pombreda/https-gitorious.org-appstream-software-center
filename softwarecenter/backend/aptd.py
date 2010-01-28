@@ -109,6 +109,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if not tid:
                 continue
             trans = client.get_transaction(tid, error_handler=lambda x: True)
+            # FIXME: add a bit more data here
             try:
                 pkgname = trans.meta_data["sc_pkgname"]
                 self.pending_transactions.add(pkgname)
