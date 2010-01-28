@@ -75,6 +75,9 @@ class AppDetailsView(WebkitWidget):
         self.distro = distro
         self.icons = icons
         self.cache = cache
+        print self.cache
+        self.cache.connect("cache-ready", self._on_cache_ready)
+
         self.datadir = datadir
         self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
                                      stdout=subprocess.PIPE).communicate()[0].strip()
@@ -83,7 +86,6 @@ class AppDetailsView(WebkitWidget):
         atk_desc.set_name(_("Description"))
         # aptdaemon
         self.backend = get_install_backend()
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         # data
         self.app = None
@@ -388,9 +390,8 @@ class AppDetailsView(WebkitWidget):
         self._set_action_button_sensitive(False)
 
     # internal callback
-    def _on_transaction_finished(self, backend, success):
-        # re-open cache and refresh app display
-        self.cache.open()
+    def _on_cache_ready(self, cache):
+        print "on_cache_ready"
         self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)
