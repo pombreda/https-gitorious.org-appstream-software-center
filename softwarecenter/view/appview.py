@@ -101,6 +101,7 @@ class AppStore(gtk.GenericTreeModel):
         self.sorted = sort
         self.filter = filter
         self.backend = get_install_backend()
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # rowref of the active app and last active app
         self.active_app = None
         self._prev_active_app = 0
@@ -197,6 +198,14 @@ class AppStore(gtk.GenericTreeModel):
         else:
             r = 0
         return r
+
+    def _on_transaction_progress_changed(self, backend, pkgname):
+        print "_on_transaction_progress_changed", pkgname
+        for row in self:
+            if row[self.COL_PKGNAME] == pkgname:
+                print "found"
+                self.row_changed(row.path, row.iter)
+
 
     # GtkTreeModel functions
     def on_get_flags(self):
@@ -609,21 +618,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                w,
                                h)
 
-    def _progress_draw_helper(self, widget):
-        print "_progress_draw_helper"
-        model = widget.get_model()
-        if not model:
-            return False
-        print "looking at the model"
-        found = False
-        for row in model:
-            if row[AppStore.COL_ACTION_IN_PROGRESS] >= 0:
-                print "repaint"
-                cell_area = widget.get_cell_area(row.path, widget.get_column(0))
-                widget.queue_draw_area(cell_area.x, cell_area.y, 
-                                       cell_area.width, cell_area.height)
-                found = True
-
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
         xpad = self.get_property('xpad')
@@ -661,7 +655,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                 btn.draw(window, widget, layout, cell_area.width, cell_area.y)
             else:
                 self.draw_progress(window, widget, cell_area.width, cell_area.y)
-                glib.timeout_add(50, self._progress_draw_helper, widget)
 
         # More Info button
         btn = widget.buttons['info']
