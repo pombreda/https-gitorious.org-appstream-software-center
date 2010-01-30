@@ -193,10 +193,8 @@ class AppStore(gtk.GenericTreeModel):
 
     def _calc_normalized_rating(self, raw_rating):
         if raw_rating:
-            r  = int(self.MAX_STARS * math.log(raw_rating)/math.log(self.db.popcon_max+1))
-        else:
-            r = 0
-        return r
+            return int(self.MAX_STARS * math.log(raw_rating)/math.log(self.db.popcon_max+1))
+        return 0
 
     # GtkTreeModel functions
     def on_get_flags(self):
@@ -312,6 +310,7 @@ class CellRendererButton:
             'ypad': ypad,
             'sensitive': True,
             'state': gtk.STATE_NORMAL,
+            'shadow': gtk.SHADOW_OUT,
             'layout_x': mx,
             'markup_x': mx,
             'alt_markup_x': amx
@@ -354,17 +353,23 @@ class CellRendererButton:
         # extens is (x, y, width, height)
         return ink_extends[3]
 
-    def set_state(self, state):
+    def set_state(self, state_type):
         if self.params['sensitive']:
-            self.params['state'] = state
+            self.params['state'] = state_type
         return
+
+    def set_shadow(self, shadow_type):
+        if self.params['sensitive']:
+            self.params['shadow'] = shadow_type
 
     def set_sensitive(self, is_sensitive):
         self.params['sensitive'] = is_sensitive
         if not is_sensitive:
             self.set_state(gtk.STATE_INSENSITIVE)
+            self.set_shadow(gtk.SHADOW_NONE)
         else:
             self.set_state(gtk.STATE_NORMAL)
+            self.set_shadow(gtk.SHADOW_OUT)
         return
 
     def set_use_alt_markup(self, use_alt):
@@ -408,7 +413,7 @@ class CellRendererButton:
         # backgound "button" rect
         widget.style.paint_box(window,
                                state,
-                               gtk.SHADOW_OUT,
+                               p['shadow'],
                                (dst_x, dst_y, w, h),
                                widget,
                                "button",
@@ -847,6 +852,7 @@ class AppView(gtk.TreeView):
             if rr.point_in(x, y) and btn.get_param('sensitive'):
                 self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_ACTIVE)
+                btn.set_shadow(gtk.SHADOW_IN)
 
                 model = view.get_model()
                 appname = model[path][AppStore.COL_APP_NAME]
@@ -854,7 +860,8 @@ class AppView(gtk.TreeView):
                 installed = model[path][AppStore.COL_INSTALLED]
                 popcon = model[path][AppStore.COL_POPCON]
 
-                gobject.timeout_add(100,
+                s = gtk.settings_get_default()
+                gobject.timeout_add(s.get_property("gtk-timeout-initial"),
                                     self._app_activated_cb,
                                     btn,
                                     btn_id,
@@ -867,6 +874,7 @@ class AppView(gtk.TreeView):
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed):
         if btn_id == 'info':
             btn.set_state(gtk.STATE_NORMAL)
+            btn.set_shadow(gtk.SHADOW_OUT)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
             btn.set_sensitive(False)

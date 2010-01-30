@@ -30,6 +30,7 @@ if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
     from widgets.navigationbar import NavigationBar
 else:
     from widgets.pathbar2 import NavigationBar
+    from widgets.backforward import BackForwardButton
 
 from widgets.searchentry import SearchEntry
 
@@ -56,7 +57,7 @@ def wait_for_apt_cache_ready(f):
         f(*args, **kwargs)
         return False
     return wrapper
-            
+
 
 class SoftwarePane(gtk.VBox):
     """ Common base class for InstalledPane and AvailablePane """
@@ -65,7 +66,7 @@ class SoftwarePane(gtk.VBox):
         "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
                               gobject.TYPE_NONE, 
                               (int, ),
-                             )
+                             ),
     }
     PADDING = 6
 
@@ -102,16 +103,24 @@ class SoftwarePane(gtk.VBox):
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
                                        gtk.POLICY_AUTOMATIC)
         self.scroll_details.add(self.app_details)
+        self.app_details.backend.connect("transaction-finished", self.on_transaction_finished)
+        self.app_details.backend.connect("transaction-stopped", self.on_transaction_stopped)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
         # COMMON UI elements
         # navigation bar and search on top in a hbox
+        self.back_forward = BackForwardButton()
+        self.back_forward.left.set_sensitive(False)
+        self.back_forward.right.set_sensitive(False)
+        self.back_forward.connect("left-clicked", self.on_nav_left_clicked)
+        self.back_forward.connect("right-clicked", self.on_nav_right_clicked)
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         top_hbox = gtk.HBox()
+        top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
         top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(top_hbox, expand=False, padding=self.PADDING)
@@ -149,6 +158,45 @@ class SoftwarePane(gtk.VBox):
             action_func()
         else:
             logging.error("can not find action '%s'" % action)
+            
+    def on_transaction_finished(self, backend, success):
+        """ callback when an application install/remove transaction has finished """
+        self.app_view.buttons['action'].set_sensitive(True)
+
+    def on_transaction_stopped(self, backend):
+       """ callback when an application install/remove transaction has stopped """
+       self.app_view.buttons['action'].set_sensitive(True)
+
+    def on_nav_left_clicked(self, widget, event):
+        part, index, pb_length = self.navigation_bar.navigate_up()
+        self.set_page(part)
+        if index == 0:
+            self.back_forward.left.set_sensitive(False)
+            self.back_forward.right.set_sensitive(True)
+        elif index < pb_length-1:
+            self.back_forward.right.set_sensitive(True)
+        return
+
+    def on_nav_right_clicked(self, widget, event):
+        part, index, pb_length = self.navigation_bar.navigate_down()
+        self.set_page(part)
+        if index == pb_length-1:
+            self.back_forward.right.set_sensitive(False)
+            self.back_forward.left.set_sensitive(True)
+        elif index < pb_length-1:
+            self.back_forward.left.set_sensitive(True)
+        return
+
+    def set_page(self, part):
+        if part.name == "category":
+            self.notebook.set_current_page(self.PAGE_CATEGORY)
+        elif part.name in ("subcat", "search", "list"):
+            self.notebook.set_current_page(self.PAGE_APPLIST)
+        elif part.name == "details":
+            self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        else:
+            print "'%s' not mapped to history" % part.name
+        return
 
     def update_app_view(self):
         """
