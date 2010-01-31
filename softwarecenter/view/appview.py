@@ -501,6 +501,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         return
 
     def set_direction(self, text_direction):
+        self.text_direction = text_direction
         if text_direction != gtk.TEXT_DIR_RTL:
             self._calc_x = self._calc_x_ltr
         else:
@@ -588,7 +589,13 @@ class CellRendererAppView(gtk.GenericCellRenderer):
     def draw_rating(self, window, cell_area, dst_y, max_star_width, xpad, r):
         w = self.star_pixbuf.get_width()
         for i in range(AppStore.MAX_STARS):
-            dst_x = self._calc_x(cell_area, w, cell_area.width-xpad-i*(w+1)-w)
+            # special case.  not only do we want to shift the x offset, but we want to reverse the order in which
+            # the gold stars are presented.
+            if self.text_direction != gtk.TEXT_DIR_RTL:
+                dst_x = cell_area.x - w - cell_area.width-xpad-max_star_width+i*(w+1)
+            else:
+                dst_x = cell_area.x + xpad+max_star_width-w-i*(w+1)
+
             if i < r:
                 window.draw_pixbuf(None,
                                    self.star_pixbuf,                        # icon
