@@ -592,9 +592,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             # special case.  not only do we want to shift the x offset, but we want to reverse the order in which
             # the gold stars are presented.
             if self.text_direction != gtk.TEXT_DIR_RTL:
-                dst_x = cell_area.x - w - cell_area.width-xpad-max_star_width+i*(w+1)
+                dst_x = cell_area.x + cell_area.width - xpad - max_star_width +i *(w+1)
             else:
-                dst_x = cell_area.x + xpad+max_star_width-w-i*(w+1)
+                dst_x = cell_area.x + xpad + max_star_width - w - i*(w+1)
 
             if i < r:
                 window.draw_pixbuf(None,
