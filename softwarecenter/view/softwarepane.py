@@ -161,11 +161,15 @@ class SoftwarePane(gtk.VBox):
             
     def on_transaction_finished(self, backend, success):
         """ callback when an application install/remove transaction has finished """
-        self.app_view.buttons['action'].set_sensitive(True)
+        btns = self.self.app_view.buttons
+        if btns.has_key['action']:
+            btns['action'].set_sensitive(True)
 
     def on_transaction_stopped(self, backend):
-       """ callback when an application install/remove transaction has stopped """
-       self.app_view.buttons['action'].set_sensitive(True)
+        """ callback when an application install/remove transaction has stopped """
+        btns = self.self.app_view.buttons
+        if btns.has_key['action']:
+            btns['action'].set_sensitive(True)
 
     def on_nav_left_clicked(self, widget, event):
         part, index, pb_length = self.navigation_bar.navigate_up()

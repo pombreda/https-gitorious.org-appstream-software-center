@@ -811,11 +811,11 @@ class AppView(gtk.TreeView):
         self.window.set_cursor(None)
         for id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
-            if rr.point_in(x, y):
+            if rr.point_in(x, y) and btn.get_param('sensitive'):
                 self.window.set_cursor(self._cursor_hand)
                 if btn.get_param('state') != gtk.STATE_PRELIGHT:
                     btn.set_state(gtk.STATE_PRELIGHT)
-            else:
+            elif btn.get_param('sensitive'):
                 if btn.get_param('state') != gtk.STATE_NORMAL:
                     btn.set_state(gtk.STATE_NORMAL)
 
