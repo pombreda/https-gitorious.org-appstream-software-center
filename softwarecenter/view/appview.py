@@ -365,7 +365,7 @@ class CellRendererButton:
         self.params['sensitive'] = is_sensitive
         if not is_sensitive:
             self.set_state(gtk.STATE_INSENSITIVE)
-            self.set_shadow(gtk.SHADOW_NONE)
+            self.set_shadow(gtk.SHADOW_OUT)
         else:
             self.set_state(gtk.STATE_NORMAL)
             self.set_shadow(gtk.SHADOW_OUT)
@@ -881,16 +881,19 @@ class AppView(gtk.TreeView):
                                     appname,
                                     pkgname,
                                     popcon,
-                                    installed)
+                                    installed,
+                                    view.get_model(),
+                                    path)
                 break
 
-    def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed):
+    def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
         if btn_id == 'info':
             btn.set_state(gtk.STATE_NORMAL)
             btn.set_shadow(gtk.SHADOW_OUT)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
             btn.set_sensitive(False)
+            store.row_changed(path[0], store.get_iter(path[0]))
             if installed:
                 perform_action = "remove"
             else:
