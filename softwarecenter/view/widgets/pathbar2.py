@@ -1214,6 +1214,9 @@ class PathBarThemeHumanClearlooks(PathBarThemeHuman):
             gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_ACTIVE], 1.15)),
                                 f(mid[gtk.STATE_ACTIVE])),
 
+            gtk.STATE_INSENSITIVE: (f(mid[gtk.STATE_INSENSITIVE]),
+                                     f(mid[gtk.STATE_INSENSITIVE])),
+
             self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.35)),
                                  f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
 
@@ -1225,21 +1228,24 @@ class PathBarThemeHumanClearlooks(PathBarThemeHuman):
             gtk.STATE_NORMAL: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.975)),
             gtk.STATE_ACTIVE: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.975)),
             gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT]),
+            gtk.STATE_INSENSITIVE: f(dark[gtk.STATE_INSENSITIVE])
             }
 
         self.light_line_colors = {
             gtk.STATE_NORMAL: None,
             gtk.STATE_ACTIVE: None,
             gtk.STATE_SELECTED: f(mid[gtk.STATE_ACTIVE]),
-            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT]),
+            gtk.STATE_INSENSITIVE: f(light[gtk.STATE_INSENSITIVE])
             }
 
         self.text_state = {
             gtk.STATE_NORMAL: gtk.STATE_NORMAL,
             gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
             gtk.STATE_SELECTED: gtk.STATE_NORMAL,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT,
+            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITVE
             }
 
         self.base_hack = None
@@ -1273,6 +1279,9 @@ class PathBarThemeDust(PathBarThemeHuman):
             self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.35)),
                                  f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
 
+            gtk.STATE_INSENSITIVE: (f(rgb.shade(mid[gtk.STATE_INSENSITIVE], 1.09)),
+                                    f(rgb.shade(mid[gtk.STATE_INSENSITIVE], 1.08))),
+
             self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.35)),
                                  f(rgb.shade(active, 1.15)))
             }
@@ -1281,21 +1290,24 @@ class PathBarThemeDust(PathBarThemeHuman):
             gtk.STATE_NORMAL: f(dark[gtk.STATE_ACTIVE]),
             gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
             gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT]),
+            gtk.STATE_INSENSITIVE: f(dark[gtk.STATE_INSENSITIVE])
             }
 
         self.light_line_colors = {
             gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
             gtk.STATE_ACTIVE: f(light[gtk.STATE_NORMAL]),
             gtk.STATE_SELECTED: None,
-            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT]),
+            gtk.STATE_INSENSITIVE: f(rgb.shade(light[gtk.STATE_INSENSITIVE], 0.96))
             }
 
         self.text_state = {
             gtk.STATE_NORMAL: gtk.STATE_NORMAL,
             gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
             gtk.STATE_SELECTED: gtk.STATE_NORMAL,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT,
+            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITIVE
             }
 
         self.base_hack = None
@@ -1317,43 +1329,51 @@ class PathBarThemeNewWave(PathBarThemeHuman):
         text = style.text
         active = rgb.mix_color(mid[gtk.STATE_NORMAL],
                                light[gtk.STATE_SELECTED], 0.5)
+        top_step = gtk.gdk.color_parse('#FDCF9D')
+        btm_step = gtk.gdk.color_parse('#FCAE87')
 
         self.bg_colors = {
             gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.01)),
                                 f(mid[gtk.STATE_NORMAL])),
 
-            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.01)),
-                               f(active)),
+            gtk.STATE_ACTIVE: (f(top_step),
+                                 f(btm_step)),
 
-            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95)),
-                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95))),
+            gtk.STATE_SELECTED: (f(top_step),
+                                 f(btm_step)),
+
+            gtk.STATE_INSENSITIVE: (f(mid[gtk.STATE_INSENSITIVE]),
+                                     f(mid[gtk.STATE_INSENSITIVE])),
 
             self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.2)),
                                  f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
 
-            self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.2)),
-                                 f(rgb.shade(active, 1.15)))
+            self.PRELIT_ACTIVE: (f(rgb.shade(top_step, 1.11)),
+                                 f(rgb.shade(btm_step, 1.06))),
             }
 
         self.dark_line_colors = {
             gtk.STATE_NORMAL: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
             gtk.STATE_ACTIVE: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
             gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT]),
+            gtk.STATE_INSENSITIVE: f(dark[gtk.STATE_INSENSITIVE])
             }
 
         self.light_line_colors = {
             gtk.STATE_NORMAL: f(rgb.shade(light[gtk.STATE_NORMAL], 1.2)),
             gtk.STATE_ACTIVE: f(rgb.shade(light[gtk.STATE_NORMAL], 1.2)),
             gtk.STATE_SELECTED: None,
-            gtk.STATE_PRELIGHT: f(rgb.shade(light[gtk.STATE_PRELIGHT], 1.2))
+            gtk.STATE_PRELIGHT: f(rgb.shade(light[gtk.STATE_PRELIGHT], 1.2)),
+            gtk.STATE_INSENSITIVE: f(light[gtk.STATE_INSENSITIVE])
             }
 
         self.text_state = {
             gtk.STATE_NORMAL: gtk.STATE_NORMAL,
             gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
             gtk.STATE_SELECTED: gtk.STATE_NORMAL,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT,
+            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITIVE
             }
 
         self.base_hack = f(gtk.gdk.color_parse("#F2F2F2"))
@@ -1394,6 +1414,9 @@ class PathBarThemeHicolor:
             gtk.STATE_SELECTED: (f(mid[gtk.STATE_SELECTED]),
                                  f(mid[gtk.STATE_SELECTED])),
 
+            gtk.STATE_INSENSITIVE: (f(mid[gtk.STATE_INSENSITIVE]),
+                                     f(mid[gtk.STATE_INSENSITIVE])),
+
             self.PRELIT_NORMAL: (f(mid[gtk.STATE_PRELIGHT]),
                                  f(mid[gtk.STATE_PRELIGHT])),
 
@@ -1405,21 +1428,24 @@ class PathBarThemeHicolor:
             gtk.STATE_NORMAL: f(dark[gtk.STATE_NORMAL]),
             gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
             gtk.STATE_SELECTED: f(dark[gtk.STATE_SELECTED]),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT]),
+            gtk.STATE_INSENSITIVE: f(dark[gtk.STATE_INSENSITIVE])
             }
 
         self.light_line_colors = {
             gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
             gtk.STATE_ACTIVE: f(light[gtk.STATE_ACTIVE]),
             gtk.STATE_SELECTED: None,
-            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT]),
+            gtk.STATE_INSENSITIVE: f(light[gtk.STATE_INSENSITIVE])
             }
 
         self.text_state = {
             gtk.STATE_NORMAL: gtk.STATE_NORMAL,
             gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
             gtk.STATE_SELECTED: gtk.STATE_SELECTED,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT,
+            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITIVE
             }
 
         self.base_hack = None
