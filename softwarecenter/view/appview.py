@@ -297,8 +297,6 @@ class CellRendererButton:
         else:
             w, h, mx, amx = self._calc_markup_params_alt(layout, markup, alt_markup, xpad, ypad)
 
-        print 'init', markup, w, h
-
         self.params = {
             'label': markup,
             'markup': markup,
