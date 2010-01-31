@@ -638,10 +638,11 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             else:
                 btn.set_use_alt_markup(False)
             # check if the current app is in progress
-            if self.props.action_in_progress == True:
-                btn.set_sensitive(False)
-            else:
-                btn.set_sensitive(True)
+            # XXX: this code breaks button state changes, can the setting of button sensitivity be done elswhere?
+#            if self.props.action_in_progress == True:
+#                btn.set_sensitive(False)
+#            else:
+#                btn.set_sensitive(True)
             dst_x = self._calc_x(cell_area, btn.get_param('width'), cell_area.width-xpad-btn.get_param('width'))
             btn.draw(window, widget, layout, dst_x, cell_area.y)
 
@@ -807,22 +808,19 @@ class AppView(gtk.TreeView):
         path = tree.get_path_at_pos(x, y)
         if not path: return
 
+        self.window.set_cursor(None)
         for id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
-            if rr.point_in(x, y) and btn.get_param('sensitive'):
-                if id != self.focal_btn:
-                    self.focal_btn = id
-                    btn.set_state(gtk.STATE_PRELIGHT)
-                    store = tree.get_model()
-                    store.row_changed(path[0], store.get_iter(path[0]))
+            if rr.point_in(x, y):
                 self.window.set_cursor(self._cursor_hand)
-                break
-            elif btn.get_param('sensitive'):
-                self.focal_btn = None
-                btn.set_state(gtk.STATE_NORMAL)
-                store = tree.get_model()
-                store.row_changed(path[0], store.get_iter(path[0]))
-                self.window.set_cursor(None)
+                if btn.get_param('state') != gtk.STATE_PRELIGHT:
+                    btn.set_state(gtk.STATE_PRELIGHT)
+            else:
+                if btn.get_param('state') != gtk.STATE_NORMAL:
+                    btn.set_state(gtk.STATE_NORMAL)
+
+        store = tree.get_model()
+        store.row_changed(path[0], store.get_iter(path[0]))
         return
 
     def _on_cursor_changed(self, view):
