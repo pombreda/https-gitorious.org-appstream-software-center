@@ -297,6 +297,8 @@ class CellRendererButton:
         else:
             w, h, mx, amx = self._calc_markup_params_alt(layout, markup, alt_markup, xpad, ypad)
 
+        print 'init', markup, w, h
+
         self.params = {
             'label': markup,
             'markup': markup,
@@ -405,7 +407,6 @@ class CellRendererButton:
         w, h, yO = self.get_params('width', 'height', 'y_offset_const')
         dst_y = yO+cell_yO
         state = p['state']
-        layout.set_markup(p['label'])
 
         # backgound "button" rect
         widget.style.paint_box(window,
@@ -422,10 +423,6 @@ class CellRendererButton:
         # cache region_rectangle for event checks
         p['region_rect'] = gtk.gdk.region_rectangle(gtk.gdk.Rectangle(dst_x, dst_y, w, h))
 
-        # label stuff
-        dst_x += p['layout_x']
-        dst_y += p['ypad']
-
 #        # if btn_has_focus:
 #        # draw focal rect
 #        widget.style.paint_focus(window,
@@ -439,6 +436,9 @@ class CellRendererButton:
 #                                 h-4)          # height
 
         # draw Install button label
+        dst_x += p['layout_x']
+        dst_y += p['ypad']
+        layout.set_markup(p['label'])
         widget.style.paint_layout(window,
                             state,
                             True,
@@ -542,6 +542,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         max_layout_width = cell_area.width - 4*xpad - max_star_width
 
         if lw >= max_layout_width:
+            layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             layout.set_width((max_layout_width)*pango.SCALE)
             lw = max_layout_width
 
@@ -558,6 +559,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                   dst_x,
                                   dst_y,
                                   layout)
+        # remove layout size constraints
+        layout.set_width(-1)
         return w, h, max_star_width
 
     def draw_rating_and_reviews(self, window, widget, cell_area, layout, xpad, ypad, w, h, max_star_width, flags):
@@ -615,7 +618,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
         layout.set_markup(self.markup)
-        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
 
         w, h, max_star_width = self.draw_appname_summary(window, widget, cell_area, layout, xpad, ypad, flags)
 
