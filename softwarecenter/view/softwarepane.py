@@ -123,10 +123,13 @@ class SoftwarePane(gtk.VBox):
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
-        # just re-draw, nothing but the "is-installed" overlay will
-        # change when something is installed or removed in the available
-        # pane
-        self.app_view.queue_draw()
+        # FIXME: preserve selection too
+        # get previous vadjustment and reapply it
+        vadj = self.scroll_app_list.get_vadjustment()
+        self.refresh_apps()
+        # needed otherwise we jump back to the beginning of the table
+        if vadj:
+            vadj.value_changed()
 
     def on_application_activated(self, appview, app):
         """callback when an app is clicked"""
