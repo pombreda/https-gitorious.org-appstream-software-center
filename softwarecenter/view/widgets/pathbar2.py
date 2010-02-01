@@ -1342,8 +1342,8 @@ class PathBarThemeNewWave(PathBarThemeHuman):
             gtk.STATE_SELECTED: (f(top_step),
                                  f(btm_step)),
 
-            gtk.STATE_INSENSITIVE: (f(mid[gtk.STATE_INSENSITIVE]),
-                                     f(mid[gtk.STATE_INSENSITIVE])),
+            gtk.STATE_INSENSITIVE: (f(rgb.shade(mid[gtk.STATE_INSENSITIVE], 1.075)),
+                                    f(rgb.shade(mid[gtk.STATE_INSENSITIVE], 1.075))),
 
             self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.2)),
                                  f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
