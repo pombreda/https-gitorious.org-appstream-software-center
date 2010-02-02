@@ -69,7 +69,7 @@ class SoftwarePane(gtk.VBox):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
@@ -81,16 +81,17 @@ class SoftwarePane(gtk.VBox):
         # common UI elements (applist and appdetails) 
         # its the job of the Child class to put it into a good location
         # list
-        self.app_view = AppView()
+        self.app_view = AppView(show_ratings)
+        self.app_view.connect("application-selected", 
+                              self.on_application_selected)
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-        self.app_view.connect("application-selected", 
-                              self.on_application_selected)
-        self._current_selected_pkgname = None
+        self.app_view.connect("application-request-action", 
+                              self.on_application_request_action)
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -138,12 +139,17 @@ class SoftwarePane(gtk.VBox):
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(app)
-        
-    def on_application_selected(self, appview, app):
-        """callback when an app is selected"""
-        logging.debug("on_application_selected: '%s'" % app)
-        self._current_selected_pkgname = app
-        
+
+    def on_application_request_action(self, appview, app, action):
+        """callback when an app action is requested from the appview"""
+        logging.debug("on_application_action_requested: '%s' %s" % (app, action))
+        self.app_details.init_app(app)
+        action_func = getattr(self.app_details, action)
+        if callable(action_func):
+            action_func()
+        else:
+            logging.error("can not find action '%s'" % action)
+
     def update_app_view(self):
         """
         Update the app_view.  If no row is selected, then the previously
@@ -153,27 +159,23 @@ class SoftwarePane(gtk.VBox):
         """
         selection = self.app_view.get_selection()
         (model, it) = selection.get_selected()
+        current_app = self.get_current_app()
         if model.get_iter_root() is not None and it is None:
-            index=-1
+            index=0
             vadj = self.scroll_app_list.get_vadjustment()
-            if self._current_selected_pkgname:
-                if model.sorted:
-                    # bisect returns "insert" point right of the element
-                    index = bisect.bisect(model.apps, 
-                                          self._current_selected_pkgname) - 1
-                    # index may not be the item we want
-                    if model.apps[index] != self._current_selected_pkgname:
-                        index = -1
+            if current_app:
+                app_map = self.app_view.get_model().app_index_map
+                if current_app in app_map:
+                    index = app_map.get(current_app)
             # re-select item
-            if vadj and index >= 0:
+            if vadj:
                 self.app_view.set_cursor(index)
                 vadj.value_changed()
-
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         raise Exception, "Not implemented"
-
+        
     @wait_for_apt_cache_ready
     def refresh_apps(self):
         " stub implementation "
@@ -190,7 +192,11 @@ class SoftwarePane(gtk.VBox):
     def is_category_view_showing(self):
         " stub implementation "
         pass
+        
+    def get_current_app(self):
+        " stub implementation "
+        pass
 
-    def get_selected_app(self):
-        """ return the current selected appliction object """
+    def on_application_selected(self, widget, app):
+        " stub implementation "
         pass

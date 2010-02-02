@@ -75,6 +75,12 @@ class StoreDatabase(gobject.GObject):
         self.open()
         self.emit("reopen")
 
+    @property
+    def popcon_max(self):
+        popcon_max = xapian.sortable_unserialise(self.xapiandb.get_metadata("popcon_max_desktop"))
+        assert popcon_max > 0
+        return popcon_max
+
     def _comma_expansion(self, search_term):
         """do expansion of "," in a search term, see
         https://wiki.ubuntu.com/SoftwareCenter?action=show&redirect=SoftwareStore#Searching%20for%20multiple%20package%20names
@@ -164,6 +170,15 @@ class StoreDatabase(gobject.GObject):
             pkgname = doc.get_data()
         return pkgname
 
+    def get_popcon(self, doc):
+        """ Return a popcon value from a xapian document """
+        popcon_raw = doc.get_value(XAPIAN_VALUE_POPCON)
+        if popcon_raw:
+            popcon = xapian.sortable_unserialise(popcon_raw)
+        else:
+            popcon = 0
+        return popcon
+
     def get_xapian_document(self, appname, pkgname):
         """ Get the machting xapian document for appname, pkgname
         
@@ -202,6 +217,7 @@ if __name__ == "__main__":
 
     db = StoreDatabase("/var/cache/software-center/xapian", apt.Cache())
     db.open()
+    print db.popcon_max
     if len(sys.argv) < 2:
         search = "apt,apport"
     else:

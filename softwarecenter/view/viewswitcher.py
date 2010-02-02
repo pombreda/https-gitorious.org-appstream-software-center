@@ -31,7 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-from transactionswatcher import TransactionsWatcher
+from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
 class ViewSwitcher(gtk.TreeView):

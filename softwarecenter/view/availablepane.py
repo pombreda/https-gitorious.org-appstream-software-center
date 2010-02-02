@@ -60,6 +60,8 @@ class AvailablePane(SoftwarePane):
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
         self.connect("app-list-changed", self._on_app_list_changed)
+        self.current_app_by_category = {}
+        self.current_app_by_subcategory = {}
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -125,8 +127,8 @@ class AvailablePane(SoftwarePane):
         if (self.apps_category and 
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
-            self.subcategories_view.set_subcategory(self.apps_category)
             self.scroll_subcategories.show()
+            self.subcategories_view.set_subcategory(self.apps_category)
         else:
             self.scroll_subcategories.hide()
 
@@ -148,6 +150,8 @@ class AvailablePane(SoftwarePane):
            navigation bar
         """
         logging.debug("refresh_apps")
+        # mvo: its important to fist show the subcategories and then
+        #      the new model, otherwise we run into visual lack
         self._show_hide_subcategories()
         self._refresh_apps_with_apt_cache()
 
@@ -176,7 +180,7 @@ class AvailablePane(SoftwarePane):
             self.navigation_bar.add_with_id(
                 cat, self.on_navigation_list, "list")
         elif self.apps_search_term:
-            self.navigation_bar.add_with_id(_("Search"),
+            self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
                                             "search")
 
@@ -188,6 +192,16 @@ class AvailablePane(SoftwarePane):
             self._in_no_display_category()):
             return ""
         return self._status_text
+        
+    def get_current_app(self):
+        """return the current active application object"""
+        if self.is_category_view_showing():
+            return None
+        else:
+            if self.apps_subcategory:
+                return self.current_app_by_subcategory.get(self.apps_subcategory)
+            else:
+                return self.current_app_by_category.get(self.apps_category)
     
     def _on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text up-to-date by
@@ -228,6 +242,13 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("search")
 
     # callbacks
+    def on_cache_ready(self, cache):
+        """ refresh the application list when the cache is re-opened """
+        # just re-draw in the available pane, nothing but the 
+        # "is-installed" overlay icon will change when something 
+        # is installed or removed in the available pane
+        self.app_view.queue_draw()
+
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
         logging.debug("on_entry_changed: %s" % new_text)
@@ -321,6 +342,14 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_category = category
         self._set_category(category)
+        
+    def on_application_selected(self, appview, app):
+        """callback when an app is selected"""
+        logging.debug("on_application_selected: '%s'" % app)
+        if self.apps_subcategory:
+            self.current_app_by_subcategory[self.apps_subcategory] = app
+        else:
+            self.current_app_by_category[self.apps_category] = app
         
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a

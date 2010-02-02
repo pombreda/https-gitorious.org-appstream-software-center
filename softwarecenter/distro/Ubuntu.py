@@ -21,7 +21,7 @@ import gettext
 import locale
 import subprocess
 
-from aptutils import *
+from apt.utils import *
 from softwarecenter.distro import Distro
 from gettext import gettext as _
 
@@ -130,10 +130,25 @@ class Ubuntu(Distro):
             release_age = (now - release_date).days
             #print "release age: ", release_age
 
+            # init with the default time
+            support_month = 18
+
+            # see if we have a "Supported" entry in the pkg record
+            if (cache.has_key(pkgname) and
+                cache[pkgname].candidate):
+                support_time = cache[pkgname].candidate.record.get("Supported")
+                if support_time:
+                    if support_time.endswith("y"):
+                        support_month = 12*int(support_time.strip("y"))
+                    elif support_time.endswith("m"):
+                        support_month = int(support_time.strip("m"))
+                    else:
+                        logging.warning("unsupported 'Supported' string '%s'" % support_time)
+
             # mvo: we do not define the end date very precisely
             #      currently this is why it will just display a end
             #      range
-            (support_end_year, support_end_month) = get_maintenance_end_date(release_date, 18)
+            (support_end_year, support_end_month) = get_maintenance_end_date(release_date, support_month)
             support_end_month_str = locale.nl_langinfo(getattr(locale,"MON_%d" % support_end_month))
              # check if the support has ended
             support_ended = (now.year >= support_end_year and 

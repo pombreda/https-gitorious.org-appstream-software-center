@@ -85,13 +85,16 @@ class CategoriesView(WebkitWidget):
             self.set_subcategory(root_category)
         self.connect("load-finished", self._on_load_finished)
 
-    def set_subcategory(self, root_category):
+    def set_subcategory(self, root_category, block=False):
         # nothing to do
         if self.categories == root_category.subcategories:
             return
         self.header = root_category.name
         self.categories = root_category.subcategories
         self.refresh_html()
+        # wait until html is ready
+        while gtk.events_pending():
+            gtk.main_iteration()
 
     def on_category_clicked(self, name):
         """emit the category-selected signal when a category was clicked"""
@@ -333,7 +336,7 @@ def category_activated(iconview, category, db):
 
 if __name__ == "__main__":
     from softwarecenter.enums import *
-    #logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
 
     appdir = "/usr/share/app-install"
     datadir = "./data"

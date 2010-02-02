@@ -14,7 +14,6 @@ softwarecenter/db/database.py
 softwarecenter/db/reviews.py
 softwarecenter/db/update.py
 softwarecenter/distro/__init__.py
-softwarecenter/distro/aptutils.py
 softwarecenter/distro/Ubuntu.py
 softwarecenter/view/__init__.py
 softwarecenter/view/appdetailsview.py

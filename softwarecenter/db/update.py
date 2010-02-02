@@ -88,6 +88,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
     term_generator = xapian.TermGenerator()
     seen = set()
     context = glib.main_context_default()
+    popcon_max = 0
     for desktopf in glob(datadir+"/desktop/*.desktop"):
         logging.debug("processing %s" % desktopf)
         # process events
@@ -155,11 +156,11 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             # FIXME: popularity not only based on popcon but also
             #        on archive section, third party app etc
             if parser.has_option_desktop("X-AppInstall-Popcon"):
-                popcon = parser.get_desktop("X-AppInstall-Popcon")
+                popcon = float(parser.get_desktop("X-AppInstall-Popcon"))
                 # sort_by_value uses string compare, so we need to pad here
                 doc.add_value(XAPIAN_VALUE_POPCON, 
-                              xapian.sortable_serialise(float(popcon)))
-
+                              xapian.sortable_serialise(popcon))
+                popcon_max = max(popcon_max, popcon)
             # comment goes into the summary data if there is one,
             # other wise we try GenericName
             if parser.has_option_desktop("Comment"):
@@ -204,6 +205,9 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             continue
         # now add it
         db.add_document(doc)
+    # add db global meta-data
+    logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
+    db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
     return True
 
 def rebuild_database(pathname):
