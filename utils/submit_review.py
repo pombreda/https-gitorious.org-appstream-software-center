@@ -179,7 +179,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         return self.lp_worker.login_username
 
     def input_password(self, suggested_message):
-        logging.debug( "Input password size %s" % len(login_password))
+        logging.debug( "Input password size %s" % len(self.lp_worker.login_password))
         return self.lp_worker.login_password
 
     def input_access_level(self, available_levels, suggested_message,
