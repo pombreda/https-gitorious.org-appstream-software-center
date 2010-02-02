@@ -178,7 +178,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # view switcher
-        self.view_switcher = ViewSwitcher(datadir, self.icons)
+        self.view_switcher = ViewSwitcher(datadir, self.db, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
@@ -242,7 +242,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_PENDING)
         self._pending_transactions = pending_nr
 
-    def on_view_switcher_changed(self, view_switcher, action):
+    def on_view_switcher_changed(self, view_switcher, action, details):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
@@ -268,7 +268,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._block_menuitem_view = False
         # switch to new page
         self.notebook_view.set_current_page(action)
-        self.update_app_list_view()
+        self.update_app_list_view(details)
         self.update_status_bar()
         self.update_app_status_menu()
 
@@ -452,13 +452,18 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             s = ""
         self.label_status.set_text(s)
         
-    def update_app_list_view(self):
+    def update_app_list_view(self, details=None):
         """Helper that updates the app view list.
         """
-        if self.active_pane is not None and not self.active_pane.is_category_view_showing():
-#            with ExecutionTime("TIME update_app_view"):
-#                self.active_pane.update_app_view()
-            self.active_pane.update_app_view()
+        if self.active_pane is None:
+            return
+        if details is None and self.active_pane.is_category_view_showing():
+            return
+        if details:
+            self.active_pane.apps_origin = details
+            self.active_pane.refresh_apps()
+            
+        self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)

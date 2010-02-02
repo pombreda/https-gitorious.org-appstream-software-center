@@ -173,12 +173,12 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             elif pkgname in cache and cache[pkgname].candidate:
                 s = cache[pkgname].candidate.summary
                 doc.add_value(XAPIAN_VALUE_SUMMARY, s)
-                for origin in ver.origins:
-                    document.add_term("XOA"+origin.archive)
-                    document.add_term("XOC"+origin.component)
-                    document.add_term("XOL"+origin.label)
-                    document.add_term("XOO"+origin.origin)
-                    document.add_term("XOS"+origin.site)
+                for origin in cache[pkgname].candidate.origins:
+                    doc.add_term("XOA"+origin.archive)
+                    doc.add_term("XOC"+origin.component)
+                    doc.add_term("XOL"+origin.label)
+                    doc.add_term("XOO"+origin.origin)
+                    doc.add_term("XOS"+origin.site)
 
             # add packagename as meta-data too
             term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)

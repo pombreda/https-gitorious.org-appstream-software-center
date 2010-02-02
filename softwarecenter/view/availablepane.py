@@ -51,6 +51,7 @@ class AvailablePane(SoftwarePane):
         # state
         self.apps_category = None
         self.apps_subcategory = None
+        self.apps_origin = None
         self.apps_search_term = ""
         self.apps_sorted = True
         self.apps_limit = 0
@@ -111,8 +112,15 @@ class AvailablePane(SoftwarePane):
         elif self.apps_category:
             cat_query = self.apps_category.query
         # mix category with the search terms and return query
-        return self.db.get_query_list_from_search_entry(self.apps_search_term, 
-                                                        cat_query)
+        query = self.db.get_query_list_from_search_entry(self.apps_search_term, 
+                                                         cat_query)
+        if self.apps_origin is not None:
+            print "origin: ", self.apps_origin
+            return xapian.Query(xapian.Query.OP_AND, 
+                                query,
+                                xapian.Query("XOL"+self.apps_origin))
+        return query
+                                
 
     def _in_no_display_category(self):
         """return True if we are in a category with NoDisplay set in the XML"""

@@ -41,7 +41,7 @@ class ViewSwitcher(gtk.TreeView):
     __gsignals__ = {
         "view-changed" : (gobject.SIGNAL_RUN_LAST,
                           gobject.TYPE_NONE, 
-                          (int, ),
+                          (int, str),
                          ),
     }
 
@@ -109,7 +109,7 @@ class ViewSwitcher(gtk.TreeView):
         return path[0]
     def set_view(self, action):
         self.set_cursor((action,))
-        self.emit("view-changed", action)
+        self.emit("view-changed", action, None)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
         path = self.get_path_at_pos(int(event.x), int(event.y))
@@ -127,7 +127,8 @@ class ViewSwitcher(gtk.TreeView):
             return
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
-        self.emit("view-changed", action)
+        details = model[path][ViewSwitcherList.COL_ACTION_DETAILS]
+        self.emit("view-changed", action, details)
 
 class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
     
@@ -166,7 +167,7 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         else:
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
-        piter = self.append(None, [icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, ""])
+        piter = self.append(None, [icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
         
         if self.icons.lookup_icon("distributor-logo", self.ICON_SIZE, 0):
             icon = AnimatedImage(self.icons.load_icon("distributor-logo", self.ICON_SIZE, 0))
@@ -179,8 +180,10 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         for it in self.db.xapiandb.allterms("XOL"):
             term = it.term[3:]
             if not term:
-                term = _("Unknown")
-            self.append(piter, [icon, term, self.ACTION_ITEM_AVAILABLE, ""])
+                term_str = _("Unknown")
+            else:
+                term_str = term
+            self.append(piter, [icon, term_str, self.ACTION_ITEM_AVAILABLE, term])
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
