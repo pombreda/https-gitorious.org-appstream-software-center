@@ -242,6 +242,13 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("search")
 
     # callbacks
+    def on_cache_ready(self, cache):
+        """ refresh the application list when the cache is re-opened """
+        # just re-draw in the available pane, nothing but the 
+        # "is-installed" overlay icon will change when something 
+        # is installed or removed in the available pane
+        self.app_view.queue_draw()
+
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
         logging.debug("on_entry_changed: %s" % new_text)
