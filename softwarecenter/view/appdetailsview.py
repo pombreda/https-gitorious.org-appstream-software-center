@@ -397,11 +397,11 @@ class AppDetailsView(WebkitWidget):
         self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)
-        self.executeScript("showProgress(False);")
+        self.execute_script("showProgress(false);")
     def _on_transaction_progress_changed(self, backend, pkgname):
         if not self.app or not self.app.pkgname == pkgname:
             return
-        print "progress_changed: ", pkgname
+        self.execute_script("showProgress(true);")
         if pkgname in backend.pending_transactions:
             percent = backend.pending_transactions[pkgname]
             self.execute_script("updateProgress(%s);" % percent)

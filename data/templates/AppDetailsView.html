@@ -20,10 +20,18 @@
     }
   }
   function showProgress(show) {
-    console.log("showProgress ",show)
+    console.log("showProgress "+show);
+    obj=document.getElementById("action_progress"); 
+    if (show == true) {
+      obj.style.visibility = 'visible';
+    } else {
+      obj.style.visibility = 'hidden';
+    }
   }
   function updateProgress(progress) {
-    console.log("updateProgress ",progress)
+    console.log("updateProgress "+progress);
+    obj=document.getElementById("action_progress"); 
+    obj.innerText = "Progress: "+progress;
   }
   function thumbMissing() {
     obj=document.getElementById("screenshot_thumbnail_img"); 
@@ -140,6 +148,9 @@
     #button_homepage { 
       visibility:${homepage_button_visibility}; 
     }
+    #action_progress {
+       visibility:hidden;
+    } 
     #action_button_description { 
       font-size:70%; 
     }
@@ -170,6 +181,7 @@
    <p id="license">$license</p>
    <p id="price">$price</p>
    <p id="action_button_description">$action_button_description</p>
+   <p id="action_progress"></p>
    <input type="button" id="button_${action_button_value}" 
           class="action_button"
           value="$action_button_label"
