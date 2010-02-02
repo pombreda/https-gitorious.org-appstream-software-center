@@ -719,7 +719,7 @@ class AppView(gtk.TreeView):
         # FIXME: mvo this makes everything sluggish but its the only
         #        way to make the rows grow (sluggish because gtk will
         #        use a lot of the handlers to validate the treeview)
-        #self.set_fixed_height_mode(True)
+        self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
         tp = CellRendererPixbufWithOverlay("software-center-installed")
         column = gtk.TreeViewColumn("Icon", tp,

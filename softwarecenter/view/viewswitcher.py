@@ -31,6 +31,8 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
+from softwarecenter.enums import *
+from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
@@ -44,12 +46,12 @@ class ViewSwitcher(gtk.TreeView):
     }
 
 
-    def __init__(self, datadir, icons, store=None):
+    def __init__(self, datadir, db, icons, store=None):
         super(ViewSwitcher, self).__init__()
         self.datadir = datadir
         self.icons = icons
         if not store:
-            store = ViewSwitcherList(datadir, icons)
+            store = ViewSwitcherList(datadir, db, icons)
             # FIXME: this is just set here for app.py, make the
             #        transactions-changed signal part of the view api
             #        instead of the model
@@ -132,7 +134,8 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
     # columns
     (COL_ICON,
      COL_NAME,
-     COL_ACTION) = range(3)
+     COL_ACTION,
+     COL_ACTION_DETAILS) = range(4)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
@@ -149,11 +152,12 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
                                               (int, )),
                      }
 
-    def __init__(self, datadir, icons):
-        gtk.TreeStore.__init__(self, AnimatedImage, str, int)
+    def __init__(self, datadir, db, icons):
+        gtk.TreeStore.__init__(self, AnimatedImage, str, int, str)
         TransactionsWatcher.__init__(self)
         self.icons = icons
         self.datadir = datadir
+        self.db = db
         # pending transactions
         self._pending = 0
         # setup the normal stuff
@@ -162,7 +166,7 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         else:
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
-        piter = self.append(None, [icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE])
+        piter = self.append(None, [icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, ""])
         
         if self.icons.lookup_icon("distributor-logo", self.ICON_SIZE, 0):
             icon = AnimatedImage(self.icons.load_icon("distributor-logo", self.ICON_SIZE, 0))
@@ -170,12 +174,18 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
             # icon not present in theme, probably because running uninstalled
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
-        self.append(piter, [icon, _("Free Software"), self.ACTION_ITEM_AVAILABLE])
+        
+        # add labels
+        for it in self.db.xapiandb.allterms("XOL"):
+            term = it.term[3:]
+            if not term:
+                term = _("Unknown")
+            self.append(piter, [icon, term, self.ACTION_ITEM_AVAILABLE, ""])
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
+        self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
         icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1])
+        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, ""])
 
     def on_transactions_changed(self, current, queue):
         #print "check_pending"
@@ -217,7 +227,14 @@ if __name__ == "__main__":
 
     scroll = gtk.ScrolledWindow()
     icons = gtk.icon_theme_get_default()
-    view = ViewSwitcher(datadir, icons)
+
+    xapian_base_path = XAPIAN_BASE_PATH
+    pathname = os.path.join(xapian_base_path, "xapian")
+    cache = apt.Cache(apt.progress.OpTextProgress())
+    db = StoreDatabase(pathname, cache)
+    db.open()
+
+    view = ViewSwitcher(datadir, db, icons)
 
     box = gtk.VBox()
     box.pack_start(scroll)
