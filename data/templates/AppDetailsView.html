@@ -19,7 +19,12 @@
       }
     }
   }
-            
+  function showProgress(show) {
+    console.log("showProgress ",show)
+  }
+  function updateProgress(progress) {
+    console.log("updateProgress ",progress)
+  }
   function thumbMissing() {
     obj=document.getElementById("screenshot_thumbnail_img"); 
     obj.style.background= 'url("file:$screenshot_thumbnail_missing")';

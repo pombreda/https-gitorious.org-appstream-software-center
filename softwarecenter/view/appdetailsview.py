@@ -87,7 +87,9 @@ class AppDetailsView(WebkitWidget):
         # aptdaemon
         self.backend = get_install_backend()
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # data
+        self.pkg = None
         self.app = None
         self.iconname = ""
         # setup user-agent
@@ -395,6 +397,14 @@ class AppDetailsView(WebkitWidget):
         self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)
+        self.executeScript("showProgress(False);")
+    def _on_transaction_progress_changed(self, backend, pkgname):
+        if not self.app or not self.app.pkgname == pkgname:
+            return
+        print "progress_changed: ", pkgname
+        if pkgname in backend.pending_transactions:
+            percent = backend.pending_transactions[pkgname]
+            self.execute_script("updateProgress(%s);" % percent)
 
     def _on_navigation_requested(self, view, frame, request):
         logging.debug("_on_navigation_requested %s" % request.get_uri())
