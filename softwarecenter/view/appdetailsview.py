@@ -307,6 +307,8 @@ class AppDetailsView(WebkitWidget):
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):
         return self.distro.IMAGE_THUMBNAIL_MISSING
+    def wksub_no_screenshot_avaliable(self):
+        return _('No screenshot available')
     def wksub_text_direction(self):
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
