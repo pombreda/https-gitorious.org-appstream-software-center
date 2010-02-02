@@ -24,6 +24,9 @@
     obj=document.getElementById("screenshot_thumbnail_img"); 
     obj.style.background= 'url("file:$screenshot_thumbnail_missing")';
     obj.style.visibility = 'visible';
+
+    obj=document.getElementById("screenshot_thumbnail_img_missing");
+    obj.appendChild(document.createTextNode('$no_screenshot_avaliable'));
   }
   function setOpacity(obj, opacity) {
     opacity = (opacity == 100)?99.999:opacity;
@@ -104,6 +107,14 @@
       visibility:hidden; 
       background:url('${screenshot_thumbnail_url}') no-repeat;
       cursor: -webkit-zoom-in
+      float:right;
+      text-align:center;
+      vertical-align:middle;
+      display:table-cell;
+    }
+    .screenshot_a {
+      text-decoration:none;
+      color:grey;
     }
     #text {
       float:left; 
@@ -156,8 +167,9 @@
    <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail'>
         <div id='$screenshot_installed' class='screenshot_thumbnail'>
             <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">
-            <img id="screenshot_thumbnail_img" class="screenshot_thumbnail" 
-		 alt="${screenshot_alt}"/>
+            <div id="screenshot_thumbnail_img" class="screenshot_thumbnail">
+                <span id="screenshot_thumbnail_img_missing"/>
+            </div>
             </a>
         </div>
    </div>
