@@ -48,7 +48,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                             (gobject.TYPE_PYOBJECT, )),
                     'transaction-progress-changed':(gobject.SIGNAL_RUN_FIRST,
                                                     gobject.TYPE_NONE,
-                                                    (str,)),
+                                                    (str,int,)),
                     }
 
     def __init__(self):
@@ -137,9 +137,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """ internal helper that gets called on transaction progress """
         try:
             pkgname = trans.meta_data["sc_pkgname"]
-            print "progress changed: ", pkgname, progress
             self.pending_transactions[pkgname] = progress
-            self.emit("transaction-progress-changed", pkgname)
+            self.emit("transaction-progress-changed", pkgname, progress)
         except KeyError:
             pass
 
@@ -183,9 +182,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # send finished signal
         try:
             pkgname = trans.meta_data["sc_pkgname"]
-            print "finished: ", pkgname
             del self.pending_transactions[pkgname]
-            self.emit("transaction-progress-changed", pkgname)
+            self.emit("transaction-progress-changed", pkgname, 100)
         except KeyError:
             pass
         self.emit("transactions-changed", self.pending_transactions)

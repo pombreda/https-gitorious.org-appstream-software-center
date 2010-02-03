@@ -75,7 +75,6 @@ class AppDetailsView(WebkitWidget):
         self.distro = distro
         self.icons = icons
         self.cache = cache
-        print self.cache
         self.cache.connect("cache-ready", self._on_cache_ready)
 
         self.datadir = datadir
@@ -311,6 +310,8 @@ class AppDetailsView(WebkitWidget):
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):
         return self.distro.IMAGE_THUMBNAIL_MISSING
+    def wksub_no_screenshot_avaliable(self):
+        return _('No screenshot available')
     def wksub_text_direction(self):
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
@@ -393,18 +394,20 @@ class AppDetailsView(WebkitWidget):
 
     # internal callback
     def _on_cache_ready(self, cache):
-        print "AppDetailsView._on_cache_ready", self, cache
+        logging.debug("on_cache_ready")
         self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)
+        if not self.app:
+            return
+        print self.app
         self.execute_script("showProgress(false);")
-    def _on_transaction_progress_changed(self, backend, pkgname):
+    def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if not self.app or not self.app.pkgname == pkgname:
             return
         self.execute_script("showProgress(true);")
         if pkgname in backend.pending_transactions:
-            percent = backend.pending_transactions[pkgname]
-            self.execute_script("updateProgress(%s);" % percent)
+            self.execute_script("updateProgress(%s);" % progress)
 
     def _on_navigation_requested(self, view, frame, request):
         logging.debug("_on_navigation_requested %s" % request.get_uri())

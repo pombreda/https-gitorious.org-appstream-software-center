@@ -172,7 +172,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1])
 
     def on_transactions_changed(self, backend, total_transactions):
-        print "on_transactions_changed", total_transactions
+        logging.debug("on_transactions_changed '%s'" % total_transactions)
         pending = len(total_transactions)
         if pending > 0:
             for row in self:

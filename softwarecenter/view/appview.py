@@ -92,7 +92,6 @@ class AppStore(gtk.GenericTreeModel):
         - `filter`: filter functions that can be used to filter the
                     data further. A python function that gets a pkgname
         """
-        print "AppStore.__init__", self
         gtk.GenericTreeModel.__init__(self)
         self.cache = cache
         self.db = db
@@ -201,10 +200,9 @@ class AppStore(gtk.GenericTreeModel):
             r = 0
         return r
 
-    def _on_transaction_progress_changed(self, backend, pkgname):
+    def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if not self.apps or not self.active:
             return
-        print "progress_changed: ", self, pkgname
         # FIXME: use app_index_map to speed this up
         with ExecutionTime("iterate all rows"):
             for row in self:
