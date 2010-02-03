@@ -97,7 +97,10 @@ class AppStore(gtk.GenericTreeModel):
         self.db = db
         self.icons = icons
         self.apps = []
+        # this is used to re-set the cursor
         self.app_index_map = {}
+        # this is used to find the in-progress rows
+        self.pkgname_index_map = {}
         self.sorted = sort
         self.filter = filter
         self.active = True
@@ -166,6 +169,11 @@ class AppStore(gtk.GenericTreeModel):
                 self.apps.sort()
                 for (i, app) in enumerate(self.apps):
                     self.app_index_map[app] = i
+            # build the pkgname map
+            for (i, app) in enumerate(self.apps):
+                if not app.pkgname in self.pkgname_index_map:
+                    self.pkgname_index_map[app.pkgname] = []
+                self.pkgname_index_map[app.pkgname].append(i)
 
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
@@ -201,14 +209,13 @@ class AppStore(gtk.GenericTreeModel):
         return r
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        if not self.apps or not self.active:
+        if (not self.apps or
+            not self.active or
+            not pkgname in self.pkgname_index_map):
             return
-        # FIXME: use app_index_map to speed this up
-        with ExecutionTime("iterate all rows"):
-            for row in self:
-                if row[self.COL_PKGNAME] == pkgname:
-                    self.row_changed(row.path, row.iter)
-                    break
+        for index in self.pkgname_index_map[pkgname]:
+            row = self[index]
+            self.row_changed(row.path, row.iter)
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
