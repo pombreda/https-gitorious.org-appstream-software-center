@@ -75,6 +75,8 @@ class AppDetailsView(WebkitWidget):
         self.distro = distro
         self.icons = icons
         self.cache = cache
+        self.cache.connect("cache-ready", self._on_cache_ready)
+
         self.datadir = datadir
         self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
                                      stdout=subprocess.PIPE).communicate()[0].strip()
@@ -83,9 +85,10 @@ class AppDetailsView(WebkitWidget):
         atk_desc.set_name(_("Description"))
         # aptdaemon
         self.backend = get_install_backend()
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # data
+        self.pkg = None
         self.app = None
         self.iconname = ""
         # setup user-agent
@@ -390,12 +393,21 @@ class AppDetailsView(WebkitWidget):
         self._set_action_button_sensitive(False)
 
     # internal callback
-    def _on_transaction_finished(self, backend, success):
-        # re-open cache and refresh app display
-        self.cache.open()
+    def _on_cache_ready(self, cache):
+        logging.debug("on_cache_ready")
         self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)
+        if not self.app:
+            return
+        print self.app
+        self.execute_script("showProgress(false);")
+    def _on_transaction_progress_changed(self, backend, pkgname, progress):
+        if not self.app or not self.app.pkgname == pkgname:
+            return
+        self.execute_script("showProgress(true);")
+        if pkgname in backend.pending_transactions:
+            self.execute_script("updateProgress(%s);" % progress)
 
     def _on_navigation_requested(self, view, frame, request):
         logging.debug("_on_navigation_requested %s" % request.get_uri())
