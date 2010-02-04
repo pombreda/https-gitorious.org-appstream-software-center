@@ -103,7 +103,7 @@ class InstalledPane(SoftwarePane):
         """callback when the navigation button with id 'list' is clicked"""
         if not pathbar.get_active():
             return
-        self.back_forward.left.set_sensitive(True)
+#        self.back_forward.left.set_sensitive(True)
         # remove the details and clear the search
         self.searchentry.clear()
         self.navigation_bar.remove_id("search")
@@ -117,8 +117,8 @@ class InstalledPane(SoftwarePane):
         """callback when the navigation button with id 'details' is clicked"""
         if not pathbar.get_active():
             return
-        self.back_forward.left.set_sensitive(True)
-        self.back_forward.right.set_sensitive(False)
+#        self.back_forward.left.set_sensitive(True)
+#        self.back_forward.right.set_sensitive(False)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         #self.searchentry.hide()
         

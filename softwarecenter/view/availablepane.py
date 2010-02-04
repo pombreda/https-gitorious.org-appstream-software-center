@@ -239,6 +239,13 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("search")
 
     # callbacks
+    def on_cache_ready(self, cache):
+        """ refresh the application list when the cache is re-opened """
+        # just re-draw in the available pane, nothing but the 
+        # "is-installed" overlay icon will change when something 
+        # is installed or removed in the available pane
+        self.app_view.queue_draw()
+
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
         logging.debug("on_entry_changed: %s" % new_text)
@@ -277,8 +284,8 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'category' is clicked"""
         if not pathbar.get_active():
             return
-        self.back_forward.left.set_sensitive(False)
-        self.back_forward.right.set_sensitive(False)
+#        self.back_forward.left.set_sensitive(False)
+#        self.back_forward.right.set_sensitive(False)
         # clear the search
         self._clear_search()
         self._show_category_overview()
@@ -286,8 +293,8 @@ class AvailablePane(SoftwarePane):
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
         self.navigation_bar.remove_id("details")
-        self.back_forward.left.set_sensitive(True)
-        self.back_forward.right.set_sensitive(False)
+#        self.back_forward.left.set_sensitive(True)
+#        self.back_forward.right.set_sensitive(False)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         #self.searchentry.show()
@@ -298,7 +305,7 @@ class AvailablePane(SoftwarePane):
             return
         self.navigation_bar.remove_id("subcat")
         self.navigation_bar.remove_id("details")
-        self.back_forward.left.set_sensitive(True)
+#        self.back_forward.left.set_sensitive(True)
         if self.apps_subcategory:
             self.apps_subcategory = None
             self._set_category(self.apps_category)
@@ -311,7 +318,7 @@ class AvailablePane(SoftwarePane):
         #self.searchentry.show()
 
     def on_navigation_list_subcategory(self, pathbar, part):
-        self.back_forward.left.set_sensitive(True)
+#        self.back_forward.left.set_sensitive(True)
         if not pathbar.get_active():
             return
         if self.apps_search_term:
@@ -323,8 +330,8 @@ class AvailablePane(SoftwarePane):
         #self.searchentry.show()
 
     def on_navigation_details(self, pathbar, part):
-        self.back_forward.left.set_sensitive(True)
-        self.back_forward.right.set_sensitive(False)
+#        self.back_forward.left.set_sensitive(True)
+#        self.back_forward.right.set_sensitive(False)
         """callback when the navigation button with id 'details' is clicked"""
         if not pathbar.get_active():
             return

@@ -30,7 +30,7 @@ if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
     from widgets.navigationbar import NavigationBar
 else:
     from widgets.pathbar2 import NavigationBar
-    from widgets.backforward import BackForwardButton
+#    from widgets.backforward import BackForwardButton
 
 from widgets.searchentry import SearchEntry
 
@@ -111,16 +111,16 @@ class SoftwarePane(gtk.VBox):
         self.cache.connect("cache-ready", self.on_cache_ready)
         # COMMON UI elements
         # navigation bar and search on top in a hbox
-        self.back_forward = BackForwardButton()
-        self.back_forward.left.set_sensitive(False)
-        self.back_forward.right.set_sensitive(False)
-        self.back_forward.connect("left-clicked", self.on_nav_left_clicked)
-        self.back_forward.connect("right-clicked", self.on_nav_right_clicked)
+#        self.back_forward = BackForwardButton()
+#        self.back_forward.left.set_sensitive(False)
+#        self.back_forward.right.set_sensitive(False)
+#        self.back_forward.connect("left-clicked", self.on_nav_left_clicked)
+#        self.back_forward.connect("right-clicked", self.on_nav_right_clicked)
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
+#        top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
         top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(top_hbox, expand=False, padding=self.PADDING)
@@ -171,25 +171,25 @@ class SoftwarePane(gtk.VBox):
         if btns.has_key('action'):
             btns['action'].set_sensitive(True)
 
-    def on_nav_left_clicked(self, widget, event):
-        part, index, pb_length = self.navigation_bar.navigate_up()
-        self.set_page(part)
-        if index == 0:
-            self.back_forward.left.set_sensitive(False)
-            self.back_forward.right.set_sensitive(True)
-        elif index < pb_length-1:
-            self.back_forward.right.set_sensitive(True)
-        return
+#    def on_nav_left_clicked(self, widget, event):
+#        part, index, pb_length = self.navigation_bar.navigate_up()
+#        self.set_page(part)
+#        if index == 0:
+#            self.back_forward.left.set_sensitive(False)
+#            self.back_forward.right.set_sensitive(True)
+#        elif index < pb_length-1:
+#            self.back_forward.right.set_sensitive(True)
+#        return
 
-    def on_nav_right_clicked(self, widget, event):
-        part, index, pb_length = self.navigation_bar.navigate_down()
-        self.set_page(part)
-        if index == pb_length-1:
-            self.back_forward.right.set_sensitive(False)
-            self.back_forward.left.set_sensitive(True)
-        elif index < pb_length-1:
-            self.back_forward.left.set_sensitive(True)
-        return
+#    def on_nav_right_clicked(self, widget, event):
+#        part, index, pb_length = self.navigation_bar.navigate_down()
+#        self.set_page(part)
+#        if index == pb_length-1:
+#            self.back_forward.right.set_sensitive(False)
+#            self.back_forward.left.set_sensitive(True)
+#        elif index < pb_length-1:
+#            self.back_forward.left.set_sensitive(True)
+#        return
 
     def set_page(self, part):
         if part.name == "category":
