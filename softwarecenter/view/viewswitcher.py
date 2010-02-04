@@ -90,6 +90,7 @@ class ViewSwitcher(gtk.TreeView):
         pass
     
     def on_treeview_selected(self, path):
+        print "on_treeview_selected" 
         if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
             return False
         return True    
@@ -128,6 +129,7 @@ class ViewSwitcher(gtk.TreeView):
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
         details = model[path][ViewSwitcherList.COL_ACTION_DETAILS]
+        print "details: %s" % details
         self.emit("view-changed", action, details)
 
 class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
@@ -142,7 +144,8 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
     (ACTION_ITEM_AVAILABLE,
      ACTION_ITEM_INSTALLED,
      ACTION_ITEM_SEPARATOR_1,
-     ACTION_ITEM_PENDING) = range(4)
+     ACTION_ITEM_PENDING,
+     ACTION_PPA_SOURCE_VIEW) = range(5)
 
     ICON_SIZE = 24
 
@@ -162,28 +165,45 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         # pending transactions
         self._pending = 0
         # setup the normal stuff
-        if self.icons.lookup_icon("softwarecenter", self.ICON_SIZE, 0):
-            icon = AnimatedImage(self.icons.load_icon("softwarecenter", self.ICON_SIZE, 0))
-        else:
-            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
-                                                      self.ICON_SIZE, 0))
-        piter = self.append(None, [icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
+        root_icon = self._get_icon("softwarecenter")
+        piter = self.append(None, [root_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
         
-        if self.icons.lookup_icon("distributor-logo", self.ICON_SIZE, 0):
-            icon = AnimatedImage(self.icons.load_icon("distributor-logo", self.ICON_SIZE, 0))
-        else:
-            # icon not present in theme, probably because running uninstalled
-            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
-                                                      self.ICON_SIZE, 0))
+        dist_icon = self._get_icon("distributor-logo")
+        ppa_icon = self._get_icon("ppa")
+        partner_icon = self._get_icon("partner")
         
-        # add labels
+        # append additional sources
+        source_labels = []
+        source_icons = []    ####
         for it in self.db.xapiandb.allterms("XOL"):
-            term = it.term[3:]
-            if not term:
-                term_str = _("Unknown")
+            term = it.term[3:]            
+            print term
+            
+            if term == "Ubuntu":       # lose this, sort list properly per below
+                print "!"
+                source_labels.insert(0, term)
             else:
-                term_str = term
-            self.append(piter, [icon, term_str, self.ACTION_ITEM_AVAILABLE, term])
+                source_labels.append(term)
+            
+        # TODO: sort and arrange sources: Ubuntu, Partners, PPAs alphabetically, Unknown source last
+        # TODO: determine icon per source and associate it
+        
+        # add the source items
+        for label in source_labels:
+            print "append source with label: %s" % label
+            
+            if label == "Ubuntu":         # lose this, better way to associate the icon
+                source_icon = dist_icon
+            else:
+                source_icon = ppa_icon
+                
+            if not label:
+                label_str = "Unknown"
+            elif label == "Ubuntu":
+                label_str = _("Provided by Ubuntu")
+            else:
+                label_str = label
+            self.append(piter, [source_icon, label_str, self.ACTION_PPA_SOURCE_VIEW, label])
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
@@ -216,6 +236,15 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
             self.emit("transactions-changed", pending)
             self._pending = pending
         return True
+        
+    def _get_icon(self, icon_name):
+        if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
+            icon = AnimatedImage(self.icons.load_icon(icon_name, self.ICON_SIZE, 0))
+        else:
+            # icon not present in theme, probably because running uninstalled
+            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
+                                                      self.ICON_SIZE, 0))
+        return icon
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

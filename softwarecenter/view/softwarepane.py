@@ -26,10 +26,12 @@ import xapian
 import os
 
 # magic environment to get old pathbar
-if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
-    from widgets.navigationbar import NavigationBar
-else:
-    from widgets.pathbar2 import NavigationBar
+#if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
+#    from widgets.navigationbar import NavigationBar
+#else:
+#    from widgets.pathbar2 import NavigationBar
+#####################################################
+from widgets.navigationbar import NavigationBar
 
 from widgets.searchentry import SearchEntry
 
@@ -198,5 +200,9 @@ class SoftwarePane(gtk.VBox):
         pass
 
     def on_application_selected(self, widget, app):
+        " stub implementation "
+        pass
+        
+    def update_navigation_bar(self):
         " stub implementation "
         pass

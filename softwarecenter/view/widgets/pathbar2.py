@@ -860,6 +860,7 @@ class PathPart:
 
     def set_label(self, label):
         # escape special characters
+        print "part.set_label: %s" % label
         label = gobject.markup_escape_text(label.strip())
         # some hackery to preserve italics markup
         label = label.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
@@ -1414,4 +1415,16 @@ class NavigationBar(PathBar):
         """
         if not id in self.id_to_part:
             return
+            
+    def set_label(self, new_label, id):
+        """
+        Set the label of the navigation button with the given id to
+        the value specified
+        """
+        if not id in self.id_to_part:
+            return
+        part = self.id_to_part[id]
+        part.set_label(new_label)
+        self.queue_draw()
+        return
 

@@ -115,9 +115,15 @@ class AvailablePane(SoftwarePane):
         query = self.db.get_query_list_from_search_entry(self.apps_search_term, 
                                                          cat_query)
         if self.apps_origin is not None:
-            print "origin: ", self.apps_origin
+            print "in _get_query(), origin: ", self.apps_origin
+            print "...query value is: %s" % query
+            # hmm, on selecting a PPA source, want query value passed in to be Xapian::Query(<alldocuments>)
+            # ...but it is Xapian::Query(), so following value is also Xapian::Query()
+#            return xapian.Query(xapian.Query.OP_AND, 
+#                                query,
+#                                xapian.Query("XOL"+self.apps_origin))
             return xapian.Query(xapian.Query.OP_AND, 
-                                query,
+                                xapian.Query(""),
                                 xapian.Query("XOL"+self.apps_origin))
         return query
                                 
@@ -167,6 +173,9 @@ class AvailablePane(SoftwarePane):
     def _refresh_apps_with_apt_cache(self):
         # build query
         query = self._get_query()
+        print "--"
+        print "query: %s" % query
+        print "--"
         # create new model and attach it
         new_model = AppStore(self.cache,
                              self.db, 
@@ -358,6 +367,13 @@ class AvailablePane(SoftwarePane):
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
             self.current_app_by_category[self.apps_category] = app
+            
+    def update_navigation_bar(self):
+        if self.apps_origin:
+            #self.navigation_bar.remove_all()
+            self.navigation_bar.set_label(self.apps_origin, "category")
+        else:
+            self.navigation_bar.set_label(_("Get Free Software"), "category")
         
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a

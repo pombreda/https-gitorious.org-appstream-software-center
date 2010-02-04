@@ -75,7 +75,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     (NOTEBOOK_PAGE_AVAILABLE,
      NOTEBOOK_PAGE_INSTALLED,
      NOTEBOOK_PAGE_SEPARATOR_1,
-     NOTEBOOK_PAGE_PENDING) = range(4)
+     NOTEBOOK_PAGE_PENDING,
+     PPA_SOURCE_VIEW) = range(5)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
@@ -250,6 +251,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane = self.installed_pane
         elif action == self.NOTEBOOK_PAGE_PENDING:
             self.active_pane = None
+        # GML: add new action for PPA_VIEW
+        elif action == self.PPA_SOURCE_VIEW:
+            # TODO:  Fix this, it's specific to the AvailablePane only
+            self.active_pane.notebook.set_current_page(self.active_pane.PAGE_APPLIST)
         elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:
             # do nothing
             return
@@ -267,10 +272,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
         # switch to new page
+        # TODO: handle a click on a source in the view switcher
         self.notebook_view.set_current_page(action)
         self.update_app_list_view(details)
         self.update_status_bar()
         self.update_app_status_menu()
+        self.active_pane.update_navigation_bar()
 
     # Menu Items
     def on_menuitem_install_activate(self, menuitem):
@@ -460,6 +467,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if details is None and self.active_pane.is_category_view_showing():
             return
         if details:
+            print "setting apps_origin to: %s" % details
             self.active_pane.apps_origin = details
             self.active_pane.refresh_apps()
             
