@@ -90,7 +90,6 @@ class ViewSwitcher(gtk.TreeView):
         pass
     
     def on_treeview_selected(self, path):
-        print "on_treeview_selected" 
         if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
             return False
         return True    
@@ -174,16 +173,26 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         
         # append additional sources
         source_labels = []
-        source_icons = []    ####
         for it in self.db.xapiandb.allterms("XOL"):
             term = it.term[3:]            
             print term
             
+
+            m = db.xapiandb.postlist_begin(it.term)
+            doc = db.xapiandb.get_document(m.get_docid())
+            for term_it in doc.termlist():
+                if term_it.term.startswith("XOOLP-PPA-"): 
+                    print "yup, it's a ppa"
+                    break
+                
             if term == "Ubuntu":       # lose this, sort list properly per below
                 print "!"
                 source_labels.insert(0, term)
             else:
                 source_labels.append(term)
+                
+       
+        
             
         # TODO: sort and arrange sources: Ubuntu, Partners, PPAs alphabetically, Unknown source last
         # TODO: determine icon per source and associate it

@@ -1,11 +1,15 @@
 software-center (1.1.11) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * make action buttons in the appview insensitive while a action
     is in progress
   * added po/th.po:
     - thanks to Sira Nokyoonhtong 
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 28 Jan 2010 09:43:41 +0100
+  [ Gary Lasker ]
+  * Implement channel views.
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Feb 2010 14:20:09 -0800
 
 software-center (1.1.10) lucid; urgency=low
 
