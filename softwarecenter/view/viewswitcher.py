@@ -71,7 +71,6 @@ class ViewSwitcher(gtk.TreeView):
         
         self.set_model(store)
         self.set_headers_visible(False)
-        self.connect("button-press-event", self.on_button_press_event)
         self.get_selection().set_select_function(self.on_treeview_selected)
         # expand the first entry (get software)
         self.expand_to_path((0,))
@@ -80,6 +79,7 @@ class ViewSwitcher(gtk.TreeView):
         
         self.connect("row-expanded", self.on_treeview_row_expanded)
         self.connect("row-collapsed", self.on_treeview_row_collapsed)
+        self.connect("cursor-changed", self.on_cursor_changed)
         
     def on_treeview_row_expanded(self, widget, iter, path):
         #behaviour overrides
@@ -92,7 +92,13 @@ class ViewSwitcher(gtk.TreeView):
     def on_treeview_selected(self, path):
         if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
             return False
-        return True    
+        return True
+        
+    def on_cursor_changed(self, widget):
+        (path, column) = self.get_cursor()
+        model = self.get_model()
+        action = model[path][ViewSwitcherList.COL_ACTION]
+        self.emit("view-changed", action) 
         
     def get_view(self):
         """return the current activated view number or None if no
@@ -117,19 +123,6 @@ class ViewSwitcher(gtk.TreeView):
             self.window.set_cursor(None)
         else:
             self.window.set_cursor(self.cursor_hand)
-    def on_button_press_event(self, widget, event):
-        #print "on_button_press_event: ", event
-        res = self.get_path_at_pos(int(event.x), int(event.y))
-        if not res:
-            return
-        (path, column, wx, wy) = res
-        if event.button != 1 or path is None:
-            return
-        model = self.get_model()
-        action = model[path][ViewSwitcherList.COL_ACTION]
-        details = model[path][ViewSwitcherList.COL_ACTION_DETAILS]
-        print "details: %s" % details
-        self.emit("view-changed", action, details)
 
 class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
     
