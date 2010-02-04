@@ -48,6 +48,7 @@ from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
 
 from backend.config import get_config
+from backend import get_install_backend
 
 from distro import get_distro
 
@@ -106,6 +107,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # a main iteration friendly apt cache
         self.cache = AptCache()
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-finished", 
+                             lambda backend, result, self: self.cache.open(), 
+                             self)
 
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -394,6 +399,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                    excep.details)
             print msg
         # re-open cache and refresh app display
+        print self.cache
         self.cache.open()
     def run_update_cache(self):
         """update the apt cache (e.g. after new sources where added """

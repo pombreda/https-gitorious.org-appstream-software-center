@@ -65,6 +65,7 @@ class AptCache(gobject.GObject):
     def ready(self):
         return self._ready
     def open(self):
+        print "cache.open()"
         self._ready = False
         self.emit("cache-invalid")
         if self._cache == None:
