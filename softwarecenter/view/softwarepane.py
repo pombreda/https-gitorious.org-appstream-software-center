@@ -31,6 +31,8 @@ import os
 #else:
 #    from widgets.pathbar2 import NavigationBar
 #####################################################
+# TODO: restore the pathbar2 NavigationBar
+#####################################################
 from widgets.navigationbar import NavigationBar
 
 from widgets.searchentry import SearchEntry

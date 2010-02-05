@@ -263,6 +263,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_CHANNEL:
+            self.channel_pane.set_apps_origin(details)
             self.active_pane = self.channel_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane

@@ -47,10 +47,11 @@ class ChannelPane(SoftwarePane):
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         # state
         self.apps_filter = None
+        self.apps_origin = ""
         self.current_appview_selection = None
-        self._channel_label = "TODO"
         # UI
         self._build_ui()
+        
     def _build_ui(self):
         self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
@@ -64,6 +65,23 @@ class ChannelPane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
+        
+    def _get_query(self):
+        """helper that gets the query for the current channel origin and search mode"""
+        # mix category with the search terms and return query
+        print "search_terms: %s" % self.search_terms
+        if self.search_terms:
+            query = self.db.get_query_list_from_search_entry(self.search_terms)
+        else:
+            query = xapian.Query("")
+        if self.apps_origin:
+            print "in _get_query(), origin: ", self.apps_origin
+            print "...search_query value is: %s" % query
+            query = xapian.Query(xapian.Query.OP_AND, 
+                                query,
+                                xapian.Query("XOL"+self.apps_origin))
+            print "...query value is: %s" % query
+        return query
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):
@@ -71,13 +89,11 @@ class ChannelPane(SoftwarePane):
            navigation bar
         """
         if self.search_terms:
-            query = self.db.get_query_list_from_search_entry(self.search_terms)
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
                                             "search")
-        else:
-            query = None
-        self.navigation_bar.add_with_id(self._channel_label, 
+        query = self._get_query()
+        self.navigation_bar.add_with_id(self.apps_origin, 
                                         self.on_navigation_list,
                                         "list")
         # get a new store and attach it to the view
@@ -153,18 +169,12 @@ class ChannelPane(SoftwarePane):
     def is_category_view_showing(self):
         # there is no category view in the channel pane
         return False
-        
-    def update_navigation_bar(self):
-        # TODO: implement this
-        print "update_navigation_bar -- implement this"
-        self.navigation_bar.set_label(self._channel_label, "channel")
-#        if self.apps_origin:
-#            self.navigation_bar.set_label(self.apps_origin, "category")
-#        else:
-#            self.navigation_bar.set_label(_("Get Free Software"), "category")
 
-    def set_channel_label(self, new_label):
-        self._channel_label = new_label
+#    def set_channel_label(self, channel_label):
+#        self._channel_label = channel_label
+        
+    def set_apps_origin(self, apps_origin):
+        self.apps_origin = apps_origin;
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
