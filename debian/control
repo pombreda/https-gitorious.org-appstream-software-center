@@ -10,7 +10,7 @@ Build-Depends: debhelper (>= 7.0.50),
                python-central,
                python-distutils-extra,
                python-setuptools
-Standards-Version: 3.8.3
+Standards-Version: 3.8.4
 XS-Python-Version: current
 Vcs-Bzr: http://bazaar.launchpad.net/~juliank/software-center/debian/
 

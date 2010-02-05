@@ -4,6 +4,7 @@ software-center (1.1.10debian1) unstable; urgency=low
   * debian/control:
     - Reindent with spaces only.
     - Require at least version 0.7.93.1 of python-apt.
+    - Set Standards-Version to 3.8.4.
   * softwarecenter/distro/Debian.py:
     - Replace import from aptutils with apt.utils.
   * data/icons/scalable/apps/softwarecenter.svg:
