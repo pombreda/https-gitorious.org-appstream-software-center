@@ -6,6 +6,8 @@ software-center (1.1.10debian1) unstable; urgency=low
     - Require at least version 0.7.93.1 of python-apt.
   * softwarecenter/distro/Debian.py:
     - Replace import from aptutils with apt.utils.
+  * data/icons/scalable/apps/softwarecenter.svg:
+    - Remove the execute bit from the file.
 
  -- Julian Andres Klode <jak@debian.org>  Fri, 05 Feb 2010 17:49:29 +0100
 
