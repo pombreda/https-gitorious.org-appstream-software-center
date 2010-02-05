@@ -3,13 +3,13 @@ Section: gnome
 Priority: optional
 Maintainer: Julian Andres Klode <jak@debian.org>
 Build-Depends: debhelper (>= 7.0.50),
-	       lsb-release,
+               lsb-release,
                gettext,
                intltool,
                python,
                python-central,
                python-distutils-extra,
-	       python-setuptools
+               python-setuptools
 Standards-Version: 3.8.3
 XS-Python-Version: current
 Vcs-Bzr: http://bazaar.launchpad.net/~juliank/software-center/debian/
@@ -20,18 +20,18 @@ Depends: ${python:Depends},
          ${misc:Depends},
          app-install-data (>= 0.4.0),
          gnome-icon-theme,
-	 gnome-menus,
-	 python-xapian,
+         gnome-menus,
+         python-xapian,
          python-apt (>= 0.7.13.4ubuntu3),
-	 python-aptdaemon (>= 0.11+bzr319),
-	 python-aptdaemon-gtk,
+         python-aptdaemon (>= 0.11+bzr319),
+         python-aptdaemon-gtk,
          python-dbus,
-	 policykit-1,
-	 policykit-1-gnome | policykit-1-kde,
+         policykit-1,
+         policykit-1-gnome | policykit-1-kde,
          python-gtk2,
-	 python-webkit,
-	 python-gconf,
-	 aptdaemon (>= 0.11+bzr322)
+         python-webkit,
+         python-gconf,
+         aptdaemon (>= 0.11+bzr322)
 Recommends: lsb-release, python-launchpad-integration, apt-xapian-index
 Conflicts: software-store
 Replaces: software-store
