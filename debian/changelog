@@ -9,6 +9,8 @@ software-center (1.1.10debian1) unstable; urgency=low
     - Replace import from aptutils with apt.utils.
   * data/icons/scalable/apps/softwarecenter.svg:
     - Remove the execute bit from the file.
+  * man/update-software-center.8:
+    - Add a manpage for update-software-center.
 
  -- Julian Andres Klode <jak@debian.org>  Fri, 05 Feb 2010 17:49:29 +0100
 
