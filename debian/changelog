@@ -8,6 +8,10 @@ software-center (1.1.11) UNRELEASED; urgency=low
   * merge lp:~tomeu/software-center/bug-fixes that makes the 
     "No screenshot available" text translatable, thanks to
     Tomeu Vizoso
+  * softwarecenter/backend/aptd.py:
+    - only set meta-data that is actually available (LP: #499392)
+  * utils/update-software-center:
+    - warn if locale can not be set (LP: #516266)
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
