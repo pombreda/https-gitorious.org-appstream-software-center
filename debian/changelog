@@ -7,7 +7,7 @@ software-center (1.1.11) UNRELEASED; urgency=low
     - thanks to Sira Nokyoonhtong 
   * merge lp:~tomeu/software-center/bug-fixes that makes the 
     "No screenshot available" text translatable, thanks to
-    Tomeu Vizoso
+    Tomeu Vizoso (LP: #443066)
   * softwarecenter/backend/aptd.py:
     - only set meta-data that is actually available (LP: #499392)
   * utils/update-software-center:
