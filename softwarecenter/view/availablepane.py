@@ -368,13 +368,6 @@ class AvailablePane(SoftwarePane):
         else:
             self.current_app_by_category[self.apps_category] = app
             
-    def update_navigation_bar(self):
-        if self.apps_origin:
-            #self.navigation_bar.remove_all()
-            self.navigation_bar.set_label(self.apps_origin, "category")
-        else:
-            self.navigation_bar.set_label(_("Get Free Software"), "category")
-        
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
         # sub-category page that has no visible applications

@@ -10,12 +10,12 @@ software-center (1.1.11) UNRELEASED; urgency=low
     Tomeu Vizoso
 
   [ Gary Lasker ]
-  * Implement channel views.
   * softwarecenter/view/viewswitcher.py:
     - add support for using the up/down arrow keys to select
       items in the navigation pane (LP: #517271)
+  * Implement channel views (XXXXXX)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Feb 2010 14:20:09 -0800
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Feb 2010 18:03:27 -0800
 
 software-center (1.1.10) lucid; urgency=low
 

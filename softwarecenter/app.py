@@ -44,6 +44,7 @@ import view.dialogs
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.pendingview import PendingView
 from view.installedpane import InstalledPane
+from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
 
@@ -76,7 +77,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
      NOTEBOOK_PAGE_INSTALLED,
      NOTEBOOK_PAGE_SEPARATOR_1,
      NOTEBOOK_PAGE_PENDING,
-     PPA_SOURCE_VIEW) = range(5)
+     NOTEBOOK_PAGE_CHANNEL) = range(5)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
@@ -160,6 +161,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                     self.NOTEBOOK_PAGE_AVAILABLE)
         self.alignment_available.add(self.available_pane)
 
+        # channel pane
+        self.channel_pane = ChannelPane(self.cache, self.db,
+                                            self.distro,
+                                            self.icons, datadir)
+        self.channel_pane.app_details.connect("selected", 
+                                                self.on_app_details_changed,
+                                                self.NOTEBOOK_PAGE_CHANNEL)
+        self.channel_pane.app_view.connect("application-selected",
+                                             self.on_app_selected)
+        self.channel_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    self.NOTEBOOK_PAGE_CHANNEL)
+        self.alignment_channel.add(self.channel_pane)
+        
         # installed pane
         self.installed_pane = InstalledPane(self.cache, self.db,
                                             self.distro,
@@ -247,14 +262,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
+        elif action == self.NOTEBOOK_PAGE_CHANNEL:
+            self.active_pane = self.channel_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
         elif action == self.NOTEBOOK_PAGE_PENDING:
             self.active_pane = None
-        # GML: add new action for PPA_VIEW
-        elif action == self.PPA_SOURCE_VIEW:
-            # TODO:  Fix this, it's specific to the AvailablePane only
-            self.active_pane.notebook.set_current_page(self.active_pane.PAGE_APPLIST)
         elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:
             # do nothing
             return
@@ -266,7 +279,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # set menu state
         if self.active_pane:
             self._block_menuitem_view = True
-            if self.active_pane.apps_filter.get_supported_only():
+            if not self.active_pane.apps_filter:
+                self.menuitem_view_all.set_sensitive(False)
+                self.menuitem_view_supported_only.set_sensitive(False)
+            elif self.active_pane.apps_filter.get_supported_only():
                 self.menuitem_view_supported_only.activate()
             else:
                 self.menuitem_view_all.activate()

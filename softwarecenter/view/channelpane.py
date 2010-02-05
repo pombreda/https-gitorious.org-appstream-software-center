@@ -42,12 +42,13 @@ class ChannelPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
 
-    def __init__(self, cache, db, distro, icons, datadir, channel_label):
+    def __init__(self, cache, db, distro, icons, datadir):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         # state
+        self.apps_filter = None
         self.current_appview_selection = None
-        self._channel_label = channel_label
+        self._channel_label = "TODO"
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -83,23 +84,26 @@ class ChannelPane(SoftwarePane):
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
-                             query, 
-                             filter=self.apps_filter)
+                             query)
         self.app_view.set_model(new_model)
         self.emit("app-list-changed", len(new_model))
         return False
+        
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
         self.search_terms = terms
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
+        
     def on_db_reopen(self, db):
         self.refresh_apps()
         self._show_channel_overview()
+
     def on_navigation_search(self, button):
         logging.debug("on_navigation_search")
         pass
+
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
@@ -149,6 +153,18 @@ class ChannelPane(SoftwarePane):
     def is_category_view_showing(self):
         # there is no category view in the channel pane
         return False
+        
+    def update_navigation_bar(self):
+        # TODO: implement this
+        print "update_navigation_bar -- implement this"
+        self.navigation_bar.set_label(self._channel_label, "channel")
+#        if self.apps_origin:
+#            self.navigation_bar.set_label(self.apps_origin, "category")
+#        else:
+#            self.navigation_bar.set_label(_("Get Free Software"), "category")
+
+    def set_channel_label(self, new_label):
+        self._channel_label = new_label
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

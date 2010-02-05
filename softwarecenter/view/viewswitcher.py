@@ -98,7 +98,9 @@ class ViewSwitcher(gtk.TreeView):
         (path, column) = self.get_cursor()
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
-        self.emit("view-changed", action) 
+        details = model[path][ViewSwitcherList.COL_ACTION_DETAILS]
+        print "details: %s" % details
+        self.emit("view-changed", action, details)
         
     def get_view(self):
         """return the current activated view number or None if no
@@ -106,6 +108,7 @@ class ViewSwitcher(gtk.TreeView):
            disappeared). Views are:
            
            ViewSwitcherList.ACTION_ITEM_AVAILABLE
+           ViewSwitcherList.ACTION_ITEM_CHANNEL
            ViewSwitcherList.ACTION_ITEM_INSTALLED
            ViewSwitcherList.ACTION_ITEM_PENDING
         """
@@ -137,7 +140,7 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
      ACTION_ITEM_INSTALLED,
      ACTION_ITEM_SEPARATOR_1,
      ACTION_ITEM_PENDING,
-     ACTION_PPA_SOURCE_VIEW) = range(5)
+     ACTION_ITEM_CHANNEL) = range(5)
 
     ICON_SIZE = 24
 
@@ -205,7 +208,7 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
                 label_str = _("Provided by Ubuntu")
             else:
                 label_str = label
-            self.append(piter, [source_icon, label_str, self.ACTION_PPA_SOURCE_VIEW, label])
+            self.append(piter, [source_icon, label_str, self.ACTION_ITEM_CHANNEL, label])
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
