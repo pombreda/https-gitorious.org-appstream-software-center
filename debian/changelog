@@ -11,6 +11,8 @@ software-center (1.1.10debian1) unstable; urgency=low
     - Remove the execute bit from the file.
   * man/update-software-center.8:
     - Add a manpage for update-software-center.
+  * debian/manpages:
+    - Add man/update-software-center.8 to the list of manpages.
 
  -- Julian Andres Klode <jak@debian.org>  Fri, 05 Feb 2010 17:49:29 +0100
 
