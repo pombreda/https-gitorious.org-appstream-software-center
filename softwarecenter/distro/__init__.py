@@ -39,14 +39,20 @@ class Distro(object):
         raise UnimplementedError
 
 def get_distro():
-    prefix = "distro"
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
                                  stdout=subprocess.PIPE).communicate()[0].strip()
     logging.debug("get_distro: '%s'" % distro_id)
-    distro_module = __import__(prefix+"."+distro_id)
-    sub_distro_module = getattr(distro_module, distro_id)
-    distro_class = getattr(sub_distro_module, distro_id)
+    importstr = "softwarecenter.distro.%s" % distro_id
+    # start with a import, this gives us only a softwarecenter module
+    module =  __import__(importstr)
+    # go down to the right sub-level module
+    for s in importstr.split(".")[1:]:
+        module =  getattr(module, s)
+    # get the right class and instanciate it
+    distro_class = getattr(module, distro_id)
     instance = distro_class()
     return instance
 
 
+if __name__ == "__main__":
+    print get_distro()

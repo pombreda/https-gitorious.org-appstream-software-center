@@ -18,11 +18,13 @@
 
 
 import apt
-import locale
-import logging
+import gettext
 import glib
 import gobject
 import gtk
+import locale
+import logging
+import math
 import os
 import pango
 import sys
@@ -32,12 +34,14 @@ import xapian
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 from softwarecenter.enums import *
+from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
+#from softwarecenter.backend.aptd import AptdaemonBackend as InstallBackend
 
 from gettext import gettext as _
 
 class AppStore(gtk.GenericTreeModel):
-    """ 
+    """
     A subclass GenericTreeModel that reads its data from a xapian
     database. It can combined with any xapian querry and with
     a generic filter function (that can filter on data not
@@ -45,38 +49,45 @@ class AppStore(gtk.GenericTreeModel):
     """
 
     (COL_APP_NAME,
-     COL_TEXT, 
+     COL_TEXT,
      COL_ICON,
-     COL_INSTALLED_OVERLAY,
+     COL_INSTALLED,
+     COL_AVAILABLE,
      COL_PKGNAME,
-     ) = range(5)
+     COL_POPCON,
+     IS_ACTIVE
+     ) = range(8)
 
-    column_type = (str, 
+    column_type = (str,
                    str,
                    gtk.gdk.Pixbuf,
                    bool,
-                   str)
+                   bool,
+                   str,
+                   int,
+                   bool)
 
     ICON_SIZE = 24
+    MAX_STARS = 5
 
     (SEARCHES_SORTED_BY_POPCON,
      SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
      SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
-     
-    def __init__(self, cache, db, icons, search_query=None, limit=200, 
+
+    def __init__(self, cache, db, icons, search_query=None, limit=200,
                  sort=False, filter=None):
         """
-        Initalize a AppStore. 
+        Initalize a AppStore.
 
-        :Parameters: 
+        :Parameters:
         - `cache`: apt cache (for stuff like the overlay icon)
         - `db`: a xapian.Database that contians the applications
         - `icons`: a gtk.IconTheme that contains the icons
-        - `search_query`: a search as a xapian.Query 
+        - `search_query`: a single search as a xapian.Query or a list
         - `limit`: how many items the search should return (0 == unlimited)
         - `sort`: sort alphabetically after a search
                    (default is to use relevance sort)
-        - `filter`: filter functions that can be used to filter the 
+        - `filter`: filter functions that can be used to filter the
                     data further. A python function that gets a pkgname
         """
         gtk.GenericTreeModel.__init__(self)
@@ -84,7 +95,12 @@ class AppStore(gtk.GenericTreeModel):
         self.db = db
         self.icons = icons
         self.apps = []
+        self.app_index_map = {}
+        self.sorted = sort
         self.filter = filter
+        # rowref of the active app and last active app
+        self.active_app = None
+        self._prev_active_app = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
         if not search_query:
             # limit to applications
@@ -94,37 +110,58 @@ class AppStore(gtk.GenericTreeModel):
                     continue
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
                 pkgname = db.get_pkgname(doc)
-                self.apps.append(Application(appname, pkgname))
-            self.apps.sort(cmp=Application.apps_cmp)
+                popcon = db.get_popcon(doc)
+                self.apps.append(Application(appname, pkgname, popcon))
+            self.apps.sort()
+            for (i, app) in enumerate(self.apps):
+                self.app_index_map[app] = i
         else:
-            enquire = xapian.Enquire(db.xapiandb)
-            enquire.set_query(search_query)
-            # set search order mode
-            if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
-                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
-            elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
-                sort=True
-            # SEARCHES_SORTED_BY_XAPIAN_RELEVANCE: is default in xapian
-            # no need to explicitely srt
-            if limit == 0:
-                matches = enquire.get_mset(0, len(db))
-            else:
-                matches = enquire.get_mset(0, limit)
-            logging.debug("found ~%i matches" % matches.get_matches_estimated())
-            for m in matches:
-                doc = m[xapian.MSET_DOCUMENT]
-                if "APPVIEW_DEBUG_TERMS" in os.environ:
-                    print doc.get_value(XAPIAN_VALUE_APPNAME)
-                    for t in doc.termlist():
-                        print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
-                    print "\n"
-                appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-                pkgname = db.get_pkgname(doc)
-                if filter and self.is_filtered_out(filter, doc):
-                    continue
-                self.apps.append(Application(appname, pkgname))
+            # we support single and list search_queries,
+            # if list we append them one by one
+            if isinstance(search_query, xapian.Query):
+                search_query = [search_query]
+            already_added = set()
+            for q in search_query:
+                logging.debug("using query: '%s'" % q)
+                enquire = xapian.Enquire(db.xapiandb)
+                enquire.set_query(q)
+                # set search order mode
+                if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
+                    enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+                elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
+                    self.sorted=sort=True
+                if limit == 0:
+                    matches = enquire.get_mset(0, len(db))
+                else:
+                    matches = enquire.get_mset(0, limit)
+                logging.debug("found ~%i matches" % matches.get_matches_estimated())
+                app_index = 0
+                for m in matches:
+                    doc = m[xapian.MSET_DOCUMENT]
+                    if "APPVIEW_DEBUG_TERMS" in os.environ:
+                        print doc.get_value(XAPIAN_VALUE_APPNAME)
+                        for t in doc.termlist():
+                            print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
+                        print "\n"
+                    appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+                    pkgname = db.get_pkgname(doc)
+                    if filter and self.is_filtered_out(filter, doc):
+                        continue
+                    # when doing multiple queries we need to ensure
+                    # we don't add duplicates
+                    popcon = db.get_popcon(doc)
+                    app = Application(appname, pkgname, popcon)
+                    if not app in already_added:
+                        self.apps.append(app)
+                        already_added.add(app)
+                        if not sort:
+                            self.app_index_map[app] = app_index
+                            app_index = app_index + 1
             if sort:
-                self.apps.sort(cmp=Application.apps_cmp)
+                self.apps.sort()
+                for (i, app) in enumerate(self.apps):
+                    self.app_index_map[app] = i
+
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = self.db.get_pkgname(doc)
@@ -141,6 +178,23 @@ class AppStore(gtk.GenericTreeModel):
             elif k == "xapian":
                 mode = self.SEARCHES_SORTED_BY_XAPIAN_RELEVANCE
         return mode
+    def _set_active_app(self, path):
+        """ helper that emits row_changed signals for the new
+            and previous selected app
+        """
+        self.active_app = path
+        self.row_changed(self._prev_active_app,
+                         self.get_iter(self._prev_active_app))
+        self._prev_active_app = path
+        self.row_changed(path, self.get_iter(path))
+
+    def _calc_normalized_rating(self, raw_rating):
+        if raw_rating:
+            r  = int(self.MAX_STARS * math.log(raw_rating)/math.log(self.db.popcon_max+1))
+        else:
+            r = 0
+        return r
+
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -170,7 +224,7 @@ class AppStore(gtk.GenericTreeModel):
                 appname = app.pkgname
             summary = self.db.get_summary(doc)
             if self.db.is_appname_duplicated(appname):
-                appname = "%s (%s)" % (appname, app.pkgname) 
+                appname = "%s (%s)" % (appname, app.pkgname)
             s = "%s\n<small>%s</small>" % (
                 gobject.markup_escape_text(appname),
                 gobject.markup_escape_text(summary))
@@ -180,19 +234,26 @@ class AppStore(gtk.GenericTreeModel):
                 icon_name = doc.get_value(XAPIAN_VALUE_ICON)
                 if icon_name:
                     icon_name = os.path.splitext(icon_name)[0]
-                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE,0)
+                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
                     return icon
             except glib.GError, e:
                 logging.debug("get_icon returned '%s'" % e)
             return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
-        elif column == self.COL_INSTALLED_OVERLAY:
+        elif column == self.COL_INSTALLED:
             pkgname = self.db.get_pkgname(doc)
             if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
                 return True
             return False
+        elif column == self.COL_AVAILABLE:
+            pkgname = self.db.get_pkgname(doc)
+            return self.cache.has_key(pkgname)
         elif column == self.COL_PKGNAME:
             pkgname = self.db.get_pkgname(doc)
             return pkgname
+        elif column == self.COL_POPCON:
+            return self._calc_normalized_rating(self.apps[rowref].popcon)
+        elif column == self.IS_ACTIVE:
+            return rowref == self.active_app
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -222,34 +283,205 @@ class AppStore(gtk.GenericTreeModel):
         return None
 
 
-# custom renderer for the arrow thing that mpt wants
-class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
-    """ 
-    a custom cell renderer that renders a arrow at the very right
-    of the text and that emits a "row-activated" signal when the 
-    arrow is clicked
-    """
+class CellRendererButton:
+
+    def __init__(self, layout, markup, alt_markup=None, xpad=20, ypad=6):
+        if not alt_markup:
+            w, h, mx, amx = self._calc_markup_params(layout, markup, xpad, ypad)
+        else:
+            w, h, mx, amx = self._calc_markup_params_alt(layout, markup, alt_markup, xpad, ypad)
+
+        self.params = {
+            'label': markup,
+            'markup': markup,
+            'alt_markup': alt_markup,
+            'width': w,
+            'height': h,
+            'x_offset_const': 0,
+            'y_offset_const': 0,
+            'region_rect': gtk.gdk.region_rectangle(gtk.gdk.Rectangle(0,0,0,0)),
+            'xpad': xpad,
+            'ypad': ypad,
+            'sensitive': True,
+            'state': gtk.STATE_NORMAL,
+            'layout_x': mx,
+            'markup_x': mx,
+            'alt_markup_x': amx
+            }
+        self.use_alt = False
+        return
+
+    def _calc_markup_params(self, layout, markup, xpad, ypad):
+        layout.set_markup(markup)
+        w = self._get_layout_pixel_width(layout) + 2*xpad
+        h = self._get_layout_pixel_height(layout) + 2*ypad
+        return w, h, xpad, 0
+
+    def _calc_markup_params_alt(self, layout, markup, alt_markup, xpad, ypad):
+        layout.set_markup(markup)
+        mw = self._get_layout_pixel_width(layout)
+        layout.set_markup(alt_markup)
+        amw = self._get_layout_pixel_width(layout)
+
+        if amw > mw:
+            w = amw + 2*xpad
+            mx = xpad + (amw - mw)/2
+            amx = xpad
+        else:
+            w = mw + 2*xpad
+            mx = xpad
+            amx = xpad + (mw - amw)/2
+
+        # assume text height is the same for markups.
+        h = self._get_layout_pixel_height(layout) + 2*ypad
+        return w, h, mx, amx
+
+    def _get_layout_pixel_width(self, layout):
+        (logical_extends, ink_extends) = layout.get_pixel_extents()
+        # extens is (x, y, width, height)
+        return ink_extends[2]
+
+    def _get_layout_pixel_height(self, layout):
+        (logical_extends, ink_extends) = layout.get_pixel_extents()
+        # extens is (x, y, width, height)
+        return ink_extends[3]
+
+    def set_state(self, state):
+        if self.params['sensitive']:
+            self.params['state'] = state
+        return
+
+    def set_sensitive(self, is_sensitive):
+        self.params['sensitive'] = is_sensitive
+        if not is_sensitive:
+            self.set_state(gtk.STATE_INSENSITIVE)
+        else:
+            self.set_state(gtk.STATE_NORMAL)
+        return
+
+    def set_use_alt_markup(self, use_alt):
+        if self.use_alt == use_alt: return
+        self.use_alt = use_alt
+        p = self.params
+        if use_alt:
+            p['label'] = p['alt_markup']
+            p['layout_x'] = p['alt_markup_x']
+        else:
+            p['label'] = p['markup']
+            p['layout_x'] = p['markup_x']
+        return
+
+    def get_use_alt_markup(self):
+        return self.use_alt
+
+    def set_param(self, key, value):
+        self.params[key] = value
+        return
+
+    def get_param(self, key):
+        return self.params[key]
+
+    def get_params(self, *keys):
+        r = []
+        for k in keys:
+            r.append(self.params[k])
+        return r
+
+    def draw(self, window, widget, layout, cell_xO, cell_yO):
+        p = self.params
+        xO, yO, w, h = self.get_params('x_offset_const', 'y_offset_const', 'width', 'height')
+        state = p['state']
+        layout.set_markup(p['label'])
+
+        dst_x = xO+cell_xO
+        dst_y = yO+cell_yO
+
+        # backgound "button" rect
+        widget.style.paint_box(window,
+                               state,
+                               gtk.SHADOW_OUT,
+                               (dst_x, dst_y, w, h),
+                               widget,
+                               "button",
+                               dst_x,
+                               dst_y,
+                               w,
+                               h)
+
+        # cache region_rectangle for event checks
+        p['region_rect'] = gtk.gdk.region_rectangle(gtk.gdk.Rectangle(dst_x, dst_y, w, h))
+
+        # label stuff
+        dst_x += p['layout_x']
+        dst_y += p['ypad']
+
+#        # if btn_has_focus:
+#        # draw focal rect
+#        widget.style.paint_focus(window,
+#                                 state,
+#                                 (dst_x, dst_y, w, h),
+#                                 widget,
+#                                 "button",
+#                                 dst_x-2,       # x
+#                                 dst_y-2,       # y
+#                                 w-4,          # width
+#                                 h-4)          # height
+
+        # draw Install button label
+        widget.style.paint_layout(window,
+                            state,
+                            True,
+                            (dst_x, dst_y, w, h),
+                            widget,
+                            None,
+                            dst_x,
+                            dst_y,
+                            layout)
+        return
+
+
+# custom cell renderer to support dynamic grow
+class CellRendererAppView(gtk.GenericCellRenderer):
 
     __gproperties__ = {
         'markup': (gobject.TYPE_STRING, 'Markup', 'Pango markup', '',
+                    gobject.PARAM_READWRITE),
+
+#        'addons': (bool, 'AddOns', 'Has add-ons?', False,
+#                   gobject.PARAM_READWRITE),
+
+        'rating': (gobject.TYPE_INT, 'Rating', 'Popcon rating', 0, 5, 0,
             gobject.PARAM_READWRITE),
 
-        'ellipsize': (pango.EllipsizeMode, 'Ellipsize', 'Ellipsize mode', 0,
-            gobject.PARAM_READWRITE)
+#        'reviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
+#            gobject.PARAM_READWRITE),
+
+        'isactive': (bool, 'IsActive', 'Is active?', False,
+                    gobject.PARAM_READWRITE),
+
+        'installed': (bool, 'installed', 'Is the app installed', False,
+                     gobject.PARAM_READWRITE),
+
+        'available': (bool, 'available', 'Is the app available for install', False,
+                     gobject.PARAM_READWRITE),
         }
 
-    # padding around the arrow at the end
-    ARROW_PADDING = 4
-    XPAD = 2
-    YPAD = 2
+    # class constants
+    DEFAULT_HEIGHT = 38
+    BUTTON_HEIGHT = 32
 
-    def __init__(self):
+    def __init__(self, show_ratings):
         self.__gobject_init__()
-        self.ellipsize = pango.ELLIPSIZE_NONE
         self.markup = None
-        self._height = None
-        self._pixbuf = None
-        self._layout = None
+        self.rating = 0
+        self.reviews = 0
+        self.isactive = False
+        self.installed = False
+        self.show_ratings = show_ratings
+        # get rating icons
+        icons = gtk.icon_theme_get_default()
+        self.star_pixbuf = icons.load_icon("sc-emblem-favorite", 16, 0)
+        self.star_not_pixbuf = icons.load_icon("sc-emblem-favorite-not", 16, 0)
 
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
@@ -257,131 +489,146 @@ class CellRendererTextWithActivateArrow(gtk.GenericCellRenderer):
     def do_get_property(self, pspec):
         return getattr(self, pspec.name)
 
-    def on_get_size(self, widget, cell_area):
-        a = widget.get_allocation()
-        if not self._height:
-            self._layout = self._load_layout(widget)
-            self._height = max(self._layout.get_pixel_size()[1]+2*self.YPAD, 32)
-        return a.x, a.y, a.width, self._height
+    def _get_layout_pixel_width(self, layout):
+        (logical_extends, ink_extends) = layout.get_pixel_extents()
+        # extens is (x, y, width, height)
+        return ink_extends[2]
 
-    def do_render(self, window, widget, background_area, cell_area, 
-                  expose_area, flags):
+    def _get_layout_pixel_height(self, layout):
+        (logical_extends, ink_extends) = layout.get_pixel_extents()
+        # extens is (x, y, width, height)
+        return ink_extends[3]
 
-        xpad = self.XPAD
-        ypad = self.YPAD
+    def draw_appname_summary(self, window, widget, cell_area, layout, xpad, ypad, flags):
+        # work out where to draw layout
+        dst_x = cell_area.x + xpad
+        dst_y = cell_area.y + ypad
 
-        # reserve space at the end for the arrow
-        self._layout.set_markup(self.markup)
+        w = self.star_pixbuf.get_width()
+        h = self.star_pixbuf.get_height()
+        max_star_width = AppStore.MAX_STARS*(w+1) + xpad
 
-        dst_x = cell_area.x+xpad
-        if widget.get_direction() == gtk.TEXT_DIR_RTL:
-            dst_x += +self._height-self.ARROW_PADDING
-        dst_y = cell_area.y+(cell_area.height-self._layout.get_pixel_size()[1])/2
+        # work out layouts max width
+        lw = self._get_layout_pixel_width(layout)
+        if lw >= cell_area.width-cell_area.y-2*xpad - max_star_width:
+            layout.set_width((cell_area.width - 3*xpad - max_star_width)*pango.SCALE)
 
-        state = gtk.STATE_NORMAL
-        if gtk.CELL_RENDERER_SELECTED & flags:
-            state = gtk.STATE_SELECTED
-
-        lw = cell_area.width-self._height-self.ARROW_PADDING
-        self._layout.set_width(lw*pango.SCALE)
         widget.style.paint_layout(window,
-                                  state,
+                                  flags,
                                   True,
                                   cell_area,
                                   widget,
                                   None,
                                   dst_x,
                                   dst_y,
-                                  self._layout)
+                                  layout)
+        return w, h
 
-        # now render the arrow if its selected
-        if gtk.CELL_RENDERER_SELECTED & flags:
-            if widget.get_direction() != gtk.TEXT_DIR_RTL:
-                dst_x = cell_area.x+cell_area.width-cell_area.height+xpad
+    def draw_rating_and_reviews(self, window, widget, cell_area, layout, xpad, ypad, w, h, flags):
+        # draw star rating
+        dst_x = cell_area.width-xpad
+        dst_y = 1+ypad
+        tw = self.draw_rating(window, cell_area, dst_x, dst_y, self.rating)
+
+        # draw number of reviews
+        nr_reviews_str = gettext.ngettext("%s review",
+                                          "%s reviews",
+                                          self.reviews) % self.reviews
+        layout.set_markup("<small>%s</small>" % nr_reviews_str)
+        lw = self._get_layout_pixel_width(layout)
+        dst_x -= tw - 32 - (tw-lw)/2
+
+        widget.style.paint_layout(window,
+                                  flags,
+                                  True,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  dst_x,
+                                  cell_area.y+ypad+h+1,
+                                  layout)
+        return
+
+    def draw_rating(self, window, cell_area, dst_x, dst_y, r):
+        w = self.star_pixbuf.get_width()
+        tw = AppStore.MAX_STARS*(w+1)    # total 5star width + 1 px spacing per star
+        for i in range(AppStore.MAX_STARS):
+            if i < r:
+                window.draw_pixbuf(None,
+                                   self.star_pixbuf,                    # icon
+                                   0, 0,                                # src pixbuf
+                                   dst_x - tw + i*(w+1) + 32,           # xdest
+                                   cell_area.y + dst_y,                 # ydest
+                                   -1, -1,                              # size
+                                   0, 0, 0)                             # dither
             else:
-                dst_x = cell_area.x+xpad
+                window.draw_pixbuf(None,
+                                   self.star_not_pixbuf,                # icon
+                                   0, 0,                                # src pixbuf
+                                   dst_x - tw + i*(w+1) + 32,   # xdest
+                                   cell_area.y + dst_y,                 # ydest
+                                   -1, -1,                              # size
+                                   0, 0, 0)                             # dither
+        return tw
 
-            dst_y = cell_area.y+ypad
-            width = height = cell_area.height-2*ypad
+    def on_render(self, window, widget, background_area, cell_area,
+                  expose_area, flags):
+        xpad = self.get_property('xpad')
+        ypad = self.get_property('ypad')
 
-            state = gtk.STATE_NORMAL
-            if gtk.CELL_RENDERER_PRELIT & flags:
-                state = gtk.STATE_PRELIGHT
-
-            widget.style.paint_box(window,
-                                   state,
-                                   gtk.SHADOW_ETCHED_OUT,
-                                   cell_area,
-                                   widget,
-                                   "button",
-                                   dst_x,
-                                   dst_y,
-                                   width,
-                                   height)
-
-            if not self._pixbuf:
-                # we connect here because in init we do not have
-                # a parent widget yet
-                widget.connect("style-set", self._on_style_change)
-                self._pixbuf = self._load_icon_pixbuf(widget)
-
-            pixbuf = self._pixbuf
-            dst_x = dst_x + (width - pixbuf.get_width())/2
-            dst_y = dst_y + (height - pixbuf.get_height())/2
-
-            window.draw_pixbuf(None,
-                               pixbuf,
-                               0,
-                               0,
-                               dst_x,
-                               dst_y,
-                               width=-1,
-                               height=-1,
-                               dither=gtk.gdk.RGB_DITHER_NORMAL,
-                               x_dither=0,
-                               y_dither=0)
-        return
-
-    def get_arrow_width(self):
-        return self._height
-
-    def _on_style_change(self, widget, old_style):
-        # on style change reload icon pixbuf and recalc height
-        self._pixbuf = self._load_icon_pixbuf(widget)
-        self._layout = self._load_layout(widget)
-        self._height = None
-        return
-
-    def _load_layout(self, widget):
+        # create pango layout with markup
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
         layout.set_markup(self.markup)
-        layout.set_ellipsize(self.ellipsize)
-        return layout
+        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
 
-    def _load_icon_pixbuf(self, widget, stock_id=gtk.STOCK_GO_FORWARD):
-        icon = widget.style.lookup_icon_set(stock_id)
-        return icon.render_icon(widget.style,
-                                widget.get_direction(),
-                                gtk.STATE_NORMAL,
-                                gtk.ICON_SIZE_MENU,
-                                widget,
-                                detail=None)
+        w, h = self.draw_appname_summary(window, widget, cell_area, layout, xpad, ypad, flags)
 
+        if not self.isactive:
+            if self.show_ratings:
+                # draw star rating only
+                dst_x = cell_area.width-xpad
+                dst_y = (cell_area.height-h)/2
+                self.draw_rating(window, cell_area, dst_x, dst_y, self.rating)
+            return
 
-gobject.type_register(CellRendererTextWithActivateArrow)
+        # else draw buttons and rating with the number of reviews
+        self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad, w, h, flags)
+
+        # Install/Remove button
+        # only draw a install/remove button if the app is actually available
+        if self.available:
+            btn = widget.buttons['action']
+            if self.installed:
+                btn.set_use_alt_markup(True)
+            else:
+                btn.set_use_alt_markup(False)
+            btn.draw(window, widget, layout, cell_area.width, cell_area.y)
+
+        # More Info button
+        btn = widget.buttons['info']
+        btn.draw(window, widget, layout, cell_area.x, cell_area.y)
+        return
+
+    def on_get_size(self, widget, cell_area):
+        h = self.DEFAULT_HEIGHT
+        if self.isactive:
+            h += self.BUTTON_HEIGHT
+        return -1, -1, -1, h
+
+gobject.type_register(CellRendererAppView)
 
 
 # custom renderer for the arrow thing that mpt wants
 class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
-    
+
     # offset of the install overlay icon
     OFFSET_X = 14
     OFFSET_Y = 16
 
     # size of the install overlay icon
     OVERLAY_SIZE = 16
-    
+
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
                      gobject.PARAM_READWRITE),
@@ -396,143 +643,239 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
                                           self.OVERLAY_SIZE, 0)
         except glib.GError:
             # icon not present in theme, probably because running uninstalled
-            self._installed = icons.load_icon('emblem-system', 
+            self._installed = icons.load_icon('emblem-system',
                                           self.OVERLAY_SIZE, 0)
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
     def do_get_property(self, pspec):
         return getattr(self, pspec.name)
-    def do_render(self, window, widget, background_area, cell_area, 
+    def do_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
-        gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, 
-                                         cell_area, expose_area, flags)
-        overlay = self.get_property("overlay")
+        # always render icon app icon centered with respect to an unexpanded CellRendererAppView
+        area = (cell_area.x+(cell_area.width-AppStore.ICON_SIZE)/2,
+                cell_area.y+(CellRendererAppView.DEFAULT_HEIGHT-AppStore.ICON_SIZE)/2,
+                AppStore.ICON_SIZE,
+                AppStore.ICON_SIZE)
+
+        gtk.CellRendererPixbuf.do_render(self, window, widget, background_area,
+                                         area, area, flags)
+        overlay = self.overlay
         if overlay:
             dest_x = cell_area.x + self.OFFSET_X
             dest_y = cell_area.y + self.OFFSET_Y
-            window.draw_pixbuf(None, 
+            window.draw_pixbuf(None,
                                self._installed, # icon
                                0, 0,            # src pixbuf
                                dest_x, dest_y,  # dest in window
                                -1, -1,          # size
                                0, 0, 0)         # dither
+
 gobject.type_register(CellRendererPixbufWithOverlay)
 
 
 class AppView(gtk.TreeView):
+
     """Treeview based view component that takes a AppStore and displays it"""
 
     __gsignals__ = {
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE, 
-                                   (str, str, ),
+                                   gobject.TYPE_NONE,
+                                   (gobject.TYPE_PYOBJECT, ),
                                   ),
         "application-selected" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE, 
-                                   (str, str, ),
+                                   gobject.TYPE_NONE,
+                                   (gobject.TYPE_PYOBJECT, ),
                                   ),
+        "application-request-action" : (gobject.SIGNAL_RUN_LAST,
+                                        gobject.TYPE_NONE,
+                                        (gobject.TYPE_PYOBJECT, str),
+                                       ),
     }
 
-    def __init__(self, store=None):
+    def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
-        self.set_fixed_height_mode(True)
+        self.buttons = {}
+        self.focal_btn = None
+
+        # FIXME: mvo this makes everything sluggish but its the only
+        #        way to make the rows grow (sluggish because gtk will
+        #        use a lot of the handlers to validate the treeview)
+        #self.set_fixed_height_mode(True)
         self.set_headers_visible(False)
         tp = CellRendererPixbufWithOverlay("software-center-installed")
-        column = gtk.TreeViewColumn("Icon", tp, 
+        column = gtk.TreeViewColumn("Icon", tp,
                                     pixbuf=AppStore.COL_ICON,
-                                    overlay=AppStore.COL_INSTALLED_OVERLAY)
+                                    overlay=AppStore.COL_INSTALLED)
         column.set_fixed_width(32)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
-        tr = CellRendererTextWithActivateArrow()
-        tr.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
-        column = gtk.TreeViewColumn("Name", tr, markup=AppStore.COL_TEXT)
+
+        tr = CellRendererAppView(show_ratings)
+        tr.set_property('xpad', 3)
+        tr.set_property('ypad', 2)
+
+        column = gtk.TreeViewColumn("Apps", tr, markup=AppStore.COL_TEXT, rating=AppStore.COL_POPCON, isactive=AppStore.IS_ACTIVE, installed=AppStore.COL_INSTALLED, available=AppStore.COL_AVAILABLE)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
+
         if store is None:
             store = gtk.ListStore(str, gtk.gdk.Pixbuf)
         self.set_model(store)
+
         # custom cursor
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
         # our own "activate" handler
         self.connect("row-activated", self._on_row_activated)
-        # button and motion are "special" 
 
-        self.connect("button-press-event", self._on_button_press_event, tr)
-        self.connect("motion-notify-event", self._on_motion_notify_event, tr)
+        # button and motion are "special"
+        self.connect("realize", self._on_realize, tr)
+        self.connect("button-press-event", self._on_button_press_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
+        self.connect("motion-notify-event", self._on_motion, tr, column)
 
-    def _on_row_activated(self, treeview, path, column):
-        (name, text, icon, overlay, pkgname) = treeview.get_model()[path]
-        self.emit("application-activated", name, pkgname)
+    def _on_realize(self, widget, tr, xpad=3, ypad=2):
+        pc = widget.get_pango_context()
+        layout = pango.Layout(pc)
 
-    def _on_cursor_changed(self, treeview):
-        selection = treeview.get_selection()
-        (model, iter) = selection.get_selected()
-        if iter is None:
-            return
-        (name, text, icon, overlay, pkgname) = model[iter]
-        self.emit("application-selected", name, pkgname)
+        action_btn = CellRendererButton(layout, markup=_("Install"), alt_markup=_("Remove"))
+        info_btn = CellRendererButton(layout, _("More Info"))
 
-    # FIXME: move the tooltip, motion_notify etc to the render/TreeViewColumn?
-    def _on_motion_notify_event(self, widget, event, tr):
-        #self.set_has_tooltip(False)
-        if self._xy_is_over_arrow(int(event.x), (event.y), tr):
-            # FIXME: deactivated for karmic (because we are in string freeze
-            #tip = _("Click to view application details")
-            #gobject.timeout_add(50, self._set_tooltip_cb, tip)
-            self.window.set_cursor(self._cursor_hand)
-        else:
+        # set offset constants
+        yO = tr.DEFAULT_HEIGHT+(tr.BUTTON_HEIGHT-action_btn.get_param('height'))/2
+        action_btn.set_param('x_offset_const', 32 - xpad - action_btn.get_param('width'))
+        action_btn.set_param('y_offset_const', yO)
+
+        info_btn.set_param('x_offset_const', xpad)
+        info_btn.set_param('y_offset_const', yO)
+
+        self.buttons['action'] = action_btn
+        self.buttons['info'] = info_btn
+
+    def _on_motion(self, tree, event, tr, col):
+        x, y = int(event.x), int(event.y)
+        if not self._xy_is_over_focal_row(x, y) or not self.buttons:
             self.window.set_cursor(None)
+            return
 
-    def _set_tooltip_cb(self, text):
-        # callback allows the tooltip position to be updated as pointer moves
-        # accross different button regions
-        self.set_has_tooltip(True)
-        self.set_tooltip_markup(text)
-        return False
+        path = tree.get_path_at_pos(x, y)
+        if not path: return
 
-    def _on_button_press_event(self, widget, event, tr):
+        for id, btn in self.buttons.iteritems():
+            rr = btn.get_param('region_rect')
+            if rr.point_in(x, y) and btn.get_param('sensitive'):
+                if id != self.focal_btn:
+                    self.focal_btn = id
+                    btn.set_state(gtk.STATE_PRELIGHT)
+                    store = tree.get_model()
+                    store.row_changed(path[0], store.get_iter(path[0]))
+                self.window.set_cursor(self._cursor_hand)
+                break
+            elif btn.get_param('sensitive'):
+                self.focal_btn = None
+                btn.set_state(gtk.STATE_NORMAL)
+                store = tree.get_model()
+                store.row_changed(path[0], store.get_iter(path[0]))
+                self.window.set_cursor(None)
+        return
+
+    def _on_cursor_changed(self, view):
+        model = view.get_model()
+        selection = view.get_selection()
+        (model, it) = selection.get_selected()
+        if it is None:
+            return
+        # update active app, use row-ref as argument
+        model._set_active_app(model.get_path(it)[0])
+        # emit selected signal
+        name = model[it][AppStore.COL_APP_NAME]
+        pkgname = model[it][AppStore.COL_PKGNAME]
+        popcon = model[it][AppStore.COL_POPCON]
+        self.emit("application-selected", Application(name, pkgname, popcon))
+        return
+
+    def _on_row_activated(self, view, path, column):
+        model = view.get_model()
+        name = model[path][AppStore.COL_APP_NAME]
+        pkgname = model[path][AppStore.COL_PKGNAME]
+        popcon = model[path][AppStore.COL_POPCON]
+        self.emit("application-activated", Application(name, pkgname, popcon))
+
+    def _on_button_press_event(self, view, event, col):
         if event.button != 1:
             return
-        res = self.get_path_at_pos(int(event.x), int(event.y))
+        res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
         if path is None:
             return
-        # only act when the selection is already there 
-        selection = widget.get_selection()
+        # only act when the selection is already there
+        selection = view.get_selection()
         if not selection.path_is_selected(path):
             return
-        # the last pixels of the view are reserved for the arrow icon
-        if self._xy_is_over_arrow(int(event.x), int(event.y), tr):
-            self.emit("row-activated", path, column)
 
-    def _xy_is_over_arrow(self, x, y, tr):
-        if self.get_direction() != gtk.TEXT_DIR_RTL:
-            (relx, rely, w, h, depth) = self.window.get_geometry()
-            if w-x <= tr.get_arrow_width():
-                return True
-        else:
-            if x <= tr.get_arrow_width():
-                self.window.set_cursor(self._cursor_hand)
-                return True
+        x, y = int(event.x), int(event.y)
+        yO = view.get_cell_area(path, col).y
+        for btn_id, btn in self.buttons.iteritems():
+            rr = btn.get_param('region_rect')
+            if rr.point_in(x, y) and btn.get_param('sensitive'):
+                self.focal_btn = btn_id
+                btn.set_state(gtk.STATE_ACTIVE)
+
+                model = view.get_model()
+                appname = model[path][AppStore.COL_APP_NAME]
+                pkgname = model[path][AppStore.COL_PKGNAME]
+                installed = model[path][AppStore.COL_INSTALLED]
+                popcon = model[path][AppStore.COL_POPCON]
+
+                gobject.timeout_add(100,
+                                    self._app_activated_cb,
+                                    btn,
+                                    btn_id,
+                                    appname,
+                                    pkgname,
+                                    popcon,
+                                    installed)
+                break
+
+    def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed):
+        if btn_id == 'info':
+            btn.set_state(gtk.STATE_NORMAL)
+            self.emit("application-activated", Application(appname, pkgname, popcon))
+        elif btn_id == 'action':
+            # TODO:  restore this - just removed temporarily until we can re-enable the button
+            # cleanly on transaction completed
+            # btn.set_sensitive(False)
+            if installed:
+                perform_action = "remove"
+            else:
+                perform_action = "install"
+            self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
         return False
+
+    def _xy_is_over_focal_row(self, x, y):
+        res = self.get_path_at_pos(x, y)
+        cur = self.get_cursor()
+        if not res:
+            return False
+        return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
+
 
 # XXX should we use a xapian.MatchDecider instead?
 class AppViewFilter(object):
-    """ 
+    """
     Filter that can be hooked into AppStore to filter for criteria that
     are based around the package details that are not listed in xapian
     (like installed_only) or archive section
     """
-    def __init__(self, cache):
+    def __init__(self, db, cache):
+        self.db = db
         self.cache = cache
         self.supported_only = False
         self.installed_only = False
         self.not_installed_only = False
+        self.only_packages_without_applications = False
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
@@ -541,16 +884,32 @@ class AppViewFilter(object):
         self.not_installed_only = v
     def get_supported_only(self):
         return self.supported_only
+    def set_only_packages_without_applications(self, v):
+        """
+        only show packages that are not displayed as applications
+
+        e.g. abiword (the package document) will not be displayed
+             because there is a abiword application already
+        """
+        self.only_packages_without_applications = v
+    def get_only_packages_without_applications(self, v):
+        return self.only_packages_without_applications
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
         #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
+        if self.only_packages_without_applications:
+            if not doc.get_value(XAPIAN_VALUE_PKGNAME):
+                # "if not self.db.xapiandb.postlist("AP"+pkgname):"
+                # does not work for some reason
+                for m in self.db.xapiandb.postlist("AP"+pkgname):
+                    return False
         if self.installed_only:
             if (not self.cache.has_key(pkgname) or
                 not self.cache[pkgname].isInstalled):
                 return False
         if self.not_installed_only:
-            if (self.cache.has_key(pkgname) and 
+            if (self.cache.has_key(pkgname) and
                 self.cache[pkgname].isInstalled):
                 return False
         # FIXME: add special property to the desktop file instead?
@@ -586,19 +945,22 @@ if __name__ == "__main__":
 
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = StoreDatabase(pathname)
+
+    # the store
+    cache = apt.Cache(apt.progress.OpTextProgress())
+    db = StoreDatabase(pathname, cache)
+    db.open()
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()
-    icons.append_search_path("/usr/share/app-install/icons/")
+    icons.prepend_search_path("/usr/share/app-install/icons/")
+    icons.prepend_search_path("/usr/share/software-center/icons/")
 
     # now the store
-    import apt
-    cache = apt.Cache(apt.progress.OpTextProgress())
-    filter = AppViewFilter(cache)
-    filter.set_supported_only(True)
-    filter.set_installed_only(True)
-    store = AppStore(cache, db, icons, filter=filter)
+    filter = AppViewFilter(db, cache)
+    filter.set_supported_only(False)
+    filter.set_installed_only(False)
+    store = AppStore(cache, db, icons, sort=True, filter=filter)
 
     # gui
     scroll = gtk.ScrolledWindow()
@@ -606,6 +968,7 @@ if __name__ == "__main__":
 
     entry = gtk.Entry()
     entry.connect("changed", on_entry_changed, (cache, db, view))
+    entry.set_text("f")
 
     box = gtk.VBox()
     box.pack_start(entry, expand=False)
@@ -614,7 +977,8 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll.add(view)
     win.add(box)
-    win.set_size_request(400,400)
+    win.set_size_request(400, 400)
     win.show_all()
 
     gtk.main()
+

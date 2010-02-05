@@ -19,31 +19,26 @@
 import gobject
 import locale
 import logging
+import re
 import xapian
+
+from softwarecenter import Application
+
 from softwarecenter.enums import *
-
-
-class Application(object):
-    """ a simple data object that contains just appname, pkgname
-        and a sort method
-    """
-    __slots__ = ["appname", "pkgname"]
-    def __init__(self, appname, pkgname):
-        self.appname = appname
-        self.pkgname = pkgname
-    @staticmethod
-    def apps_cmp(x, y):
-        """ sort method for the applications """
-        # sort(key=locale.strxfrm) would be more efficient, but its
-        # currently broken, see http://bugs.python.org/issue2481
-        if x.appname and y.appname:
-            return locale.strcoll(x.appname, y.appname)
-        else:
-            return cmp(x.pkgname, y.pkgname)
+from gettext import gettext as _
 
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
+    # TRANSLATORS: List of "grey-listed" words sperated with ";"
+    # Do not translate this list directly. Instead,
+    # provide a list of words in your language that people are likely
+    # to include in a search but that should normally be ignored in
+    # the search.
+    SEARCH_GREYLIST_STR = _("app;application;package;program;programme;"
+                            "suite;tool")
+
+    # signal emited
     __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 ()),
@@ -71,7 +66,7 @@ class StoreDatabase(gobject.GObject):
             logging.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.xapian_parser.add_boolean_prefix("pkg", "XP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
 
@@ -80,13 +75,79 @@ class StoreDatabase(gobject.GObject):
         self.open()
         self.emit("reopen")
 
-    def get_query_from_search_entry(self, search_term):
-        """ get xapian.Query from a search term string """
-        query = self.xapian_parser.parse_query(search_term, 
+    @property
+    def popcon_max(self):
+        popcon_max = xapian.sortable_unserialise(self.xapiandb.get_metadata("popcon_max_desktop"))
+        assert popcon_max > 0
+        return popcon_max
+
+    def _comma_expansion(self, search_term):
+        """do expansion of "," in a search term, see
+        https://wiki.ubuntu.com/SoftwareCenter?action=show&redirect=SoftwareStore#Searching%20for%20multiple%20package%20names
+        """
+        # expand "," to APpkgname AND
+        if "," in search_term:
+            query = xapian.Query()
+            for pkgname in search_term.split(","):
+                # not a pkgname
+                if not re.match("[0-9a-z\.\-]+", pkgname):
+                    return None
+                if pkgname:
+                    query = xapian.Query(xapian.Query.OP_OR, query, 
+                                         xapian.Query("XP"+pkgname))
+            return query
+        return None
+
+    def get_query_list_from_search_entry(self, search_term, category_query=None):
+        """ get xapian.Query from a search term string and a limit the
+            search to the given category
+        """
+        def _add_category_to_query(query):
+            """ helper that adds the current category to the query"""
+            if not category_query:
+                return query
+            return xapian.Query(xapian.Query.OP_AND, 
+                                category_query,
+                                query)
+        # empty query returns a query that matches nothing (for performance
+        # reasons)
+        if search_term == "" and category_query is None:
+            return xapian.Query()
+        # we cheat and return a match-all query for single letter searches
+        if len(search_term) < 2:
+            return _add_category_to_query(xapian.Query(""))
+
+        # filter query by greylist (to avoid overly generic search terms)
+        orig_search_term = search_term
+        for item in self.SEARCH_GREYLIST_STR.split(";"):
+            (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
+            if n: 
+                logging.debug("greylist changed search term: '%s'" % search_term)
+        # restore query if it was just greylist words
+        if search_term == '':
+            logging.debug("grey-list replaced all terms, restoring")
+            search_term = orig_search_term
+        
+        # check if we need to do comma expansion instead of a regular
+        # query
+        query = self._comma_expansion(search_term)
+        if query:
+            return _add_category_to_query(query)
+
+        # get a pkg query
+        pkg_query = xapian.Query()
+        for term in search_term.split():
+            pkg_query = xapian.Query(xapian.Query.OP_OR,
+                                     xapian.Query("XP"+term),
+                                     pkg_query)
+        pkg_query = _add_category_to_query(pkg_query)
+
+        # get a search query
+        fuzzy_query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
-        # FIXME: expand to add "AA" and "AP" before each search term?
-        return query
+        fuzzy_query = _add_category_to_query(fuzzy_query)
+        return [pkg_query,fuzzy_query]
 
     def get_summary(self, doc):
         """ get human readable summary of the given document """
@@ -109,12 +170,21 @@ class StoreDatabase(gobject.GObject):
             pkgname = doc.get_data()
         return pkgname
 
+    def get_popcon(self, doc):
+        """ Return a popcon value from a xapian document """
+        popcon_raw = doc.get_value(XAPIAN_VALUE_POPCON)
+        if popcon_raw:
+            popcon = xapian.sortable_unserialise(popcon_raw)
+        else:
+            popcon = 0
+        return popcon
+
     def get_xapian_document(self, appname, pkgname):
         """ Get the machting xapian document for appname, pkgname
         
         If no document is found, raise a IndexError
         """
-        logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
+        #logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA"+appname):
             doc = self.xapiandb.get_document(m.docid)
@@ -141,3 +211,22 @@ class StoreDatabase(gobject.GObject):
         return self.xapiandb.get_doccount()
 
 
+if __name__ == "__main__":
+    import apt
+    import sys
+
+    db = StoreDatabase("/var/cache/software-center/xapian", apt.Cache())
+    db.open()
+    print db.popcon_max
+    if len(sys.argv) < 2:
+        search = "apt,apport"
+    else:
+        search = sys.argv[1]
+    query = db.get_query_from_search_entry(search)
+    print query
+    enquire = xapian.Enquire(db.xapiandb)
+    enquire.set_query(query)
+    matches = enquire.get_mset(0, len(db))
+    for m in matches:
+        doc = m[xapian.MSET_DOCUMENT]
+        print doc.get_data()

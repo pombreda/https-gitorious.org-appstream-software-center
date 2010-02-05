@@ -22,17 +22,16 @@ Depends: ${python:Depends},
          gnome-icon-theme,
 	 gnome-menus,
 	 python-xapian,
-         python-apt (>= 0.7.13),
-	 python-aptdaemon,
+         python-apt (>= 0.7.13.4ubuntu3),
+	 python-aptdaemon (>= 0.11+bzr319),
 	 python-aptdaemon-gtk,
          python-dbus,
 	 policykit-1,
-	 policykit-1-gnome | policykit-1-qt,
+	 policykit-1-gnome | policykit-1-kde,
          python-gtk2,
 	 python-webkit,
-	 python-sexy,
 	 python-gconf,
-	 aptdaemon (>= 0.10+bzr259)
+	 aptdaemon (>= 0.11+bzr322)
 Recommends: lsb-release, python-launchpad-integration, apt-xapian-index
 Conflicts: software-store
 Replaces: software-store

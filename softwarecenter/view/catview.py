@@ -18,6 +18,7 @@
 
 import gettext
 import glib
+import glob
 import gobject
 import gtk
 import logging
@@ -40,12 +41,15 @@ def encode_for_xml(unicode_data, encoding="ascii"):
 
 class Category(object):
     """represents a menu category"""
-    def __init__(self, untranslated_name, name, iconname, query):
+    def __init__(self, untranslated_name, name, iconname, query,
+                 only_unallocated, dont_display, subcategories):
         self.name = name
         self.untranslated_name = untranslated_name
         self.iconname = iconname
         self.query = query
-
+        self.only_unallocated = only_unallocated
+        self.subcategories = subcategories
+        self.dont_display = dont_display
 
 class CategoriesView(WebkitWidget):
 
@@ -54,31 +58,50 @@ class CategoriesView(WebkitWidget):
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
                                gobject.TYPE_NONE, 
-                               (str, gobject.TYPE_PYOBJECT),
+                               (gobject.TYPE_PYOBJECT,
+                               ),
                               )
         }
 
-    def __init__(self, datadir, desktopdir, db, icons):
+    def __init__(self, datadir, desktopdir, db, icons, root_category=None):
         """ init the widget, takes
         
         datadir - the base directory of the app-store data
         desktopdir - the dir where the applications.menu file can be found
         db - a Database object
         icons - a gtk.IconTheme
+        root_category - a Category class with subcategories or None
         """
         super(CategoriesView, self).__init__(datadir)
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Departments"))
+        self.categories = []
+        self.header = ""
         self.icons = icons
-        self.categories = self.parse_applications_menu(desktopdir)
+        if not root_category:
+            self.header = _("Departments")
+            self.categories = self.parse_applications_menu(desktopdir)
+        else:
+            self.set_subcategory(root_category)
         self.connect("load-finished", self._on_load_finished)
+
+    def set_subcategory(self, root_category, block=False):
+        # nothing to do
+        if self.categories == root_category.subcategories:
+            return
+        self.header = root_category.name
+        self.categories = root_category.subcategories
+        self.refresh_html()
+        # wait until html is ready
+        while gtk.events_pending():
+            gtk.main_iteration()
 
     def on_category_clicked(self, name):
         """emit the category-selected signal when a category was clicked"""
         logging.debug("on_category_changed: %s" % name)
-        for n in self.categories:
-            if n.name == name:
-                self.emit("category-selected", name, n.query)
+        for cat in self.categories:
+            if cat.name == name:
+                self.emit("category-selected", cat)
 
     # run javascript inside the html
     def _on_load_finished(self, view, frame):
@@ -88,11 +111,12 @@ class CategoriesView(WebkitWidget):
         """
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
-            iconinfo = self.icons.lookup_icon(cat.iconname, 
-                                              self.CATEGORY_ICON_SIZE, 0)
-            if iconinfo:
-                iconpath = iconinfo.get_filename()
-                logging.debug("icon: %s %s" % (iconinfo, iconpath))
+            if cat.iconname:
+                iconinfo = self.icons.lookup_icon(cat.iconname, 
+                                                  self.CATEGORY_ICON_SIZE, 0)
+                if iconinfo:
+                    iconpath = iconinfo.get_filename()
+                    logging.debug("icon: %s %s" % (iconinfo, iconpath))
             # FIXME: this looks funny with german locales
             s = 'addCategory("%s","%s")' % (cat.name, iconpath)
             logging.debug("running script '%s'" % s)
@@ -102,7 +126,7 @@ class CategoriesView(WebkitWidget):
     def wksub_icon_size(self):
         return self.CATEGORY_ICON_SIZE
     def wksub_header(self):
-        return _("Departments")
+        return self.header
     def wksub_text_direction(self):
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
@@ -127,9 +151,9 @@ class CategoriesView(WebkitWidget):
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
-        if a.untranslated_name == "Packages":
+        if a.untranslated_name == "System Packages":
             return 1
-        elif b.untranslated_name == "Packages":
+        elif b.untranslated_name == "System Packages":
             return -1
         if a.untranslated_name == "Other":
             return 1
@@ -141,85 +165,147 @@ class CategoriesView(WebkitWidget):
             return -1
         return cmp(a.name, b.name)
 
+    def _parse_directory_tag(self, element):
+        cp = ConfigParser()
+        fname = "/usr/share/desktop-directories/%s" % element.text
+        logging.debug("reading '%s'" % fname)
+        cp.read(fname)
+        try:
+            untranslated_name = name = cp.get("Desktop Entry","Name")
+        except Exception, e:
+            logging.warn("'%s' has no name" % fname)
+            return None
+        try:
+            gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
+        except:
+            gettext_domain = None
+        try:
+            icon = cp.get("Desktop Entry","Icon")
+        except Exception, e:
+            icon = "applications-other"
+            if gettext_domain:
+                name = gettext.dgettext(gettext_domain, untranslated_name)
+        return (untranslated_name, name, gettext_domain, icon)
+
+    def _parse_and_or_not_tag(self, element, query, xapian_op):
+        """parse a <And>, <Or>, <Not> tag """
+        for and_elem in element.getchildren():
+            if and_elem.tag == "Not":
+                query = self._parse_and_or_not_tag(and_elem, query, xapian.Query.OP_AND_NOT)
+            elif and_elem.tag == "Category":
+                logging.debug("adding: %s" % and_elem.text)
+                q = xapian.Query("AC"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCSection":
+                logging.debug("adding section: %s" % and_elem.text)
+                # we have the section once in apt-xapian-index and once
+                # in our own DB this is why we need two prefixes
+                # FIXME: ponder if it makes sense to simply write
+                #        out XS in update-software-center instead of AE?
+                q = xapian.Query(xapian.Query.OP_OR,
+                                 xapian.Query("XS"+and_elem.text.lower()),
+                                 xapian.Query("AE"+and_elem.text.lower()))
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCType":
+                logging.debug("adding type: %s" % and_elem.text)
+                q = xapian.Query("AT"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCChannel":
+                logging.debug("adding channel: %s" % and_elem.text)
+                q = xapian.Query("AH"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            else: 
+                print "UNHANDLED: ", and_elem.tag, and_elem.text
+        return query
+
+    def _parse_include_tag(self, element):
+        for include in element.getchildren():
+            if include.tag == "Or":
+                query = xapian.Query()
+                return self._parse_and_or_not_tag(include, query, xapian.Query.OP_OR)
+            if include.tag == "And":
+                query = xapian.Query("")
+                return self._parse_and_or_not_tag(include, query, xapian.Query.OP_AND)
+            # without "and" tag we take the first entry
+            elif include.tag == "Category":
+                return xapian.Query("AC"+include.text.lower())
+            else:
+                logging.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
+        # null query if nothing should be included
+        return xapian.Query()
+
+    def _parse_menu_tag(self, item):
+        name = None
+        untranslated_name = None
+        query = None
+        icon = None
+        only_unallocated = False
+        dont_display = False
+        subcategories = []
+        for element in item.getchildren():
+            if element.tag == "Name":
+                untranslated_name = element.text
+                name = gettext.gettext(untranslated_name)
+            elif element.tag == "SCIcon":
+                icon = element.text
+            elif element.tag == "Directory":
+                (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
+            elif element.tag == "Include":
+                query = self._parse_include_tag(element)
+            elif element.tag == "OnlyUnallocated":
+                only_unallocated = True
+            elif element.tag == "SCDontDisplay":
+                dont_display = True
+            elif element.tag == "Menu":
+                subcat = self._parse_menu_tag(element)
+                if subcat:
+                    subcategories.append(subcat)
+            else:
+                print "UNHANDLED tag in _parse_menu_tag: ", element.tag
+                
+        if untranslated_name and query:
+            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, subcategories)
+        else:
+            print "UNHANDLED entry: ", name, untranslated_name, icon, query
+        return None
+
+    def _build_unallocated_queries(self, categories):
+        for cat_unalloc in categories:
+            if not cat_unalloc.only_unallocated:
+                continue
+            for cat in categories:
+                if cat.name != cat_unalloc.name:
+                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
+            #print cat_unalloc.name, cat_unalloc.query
+
     def parse_applications_menu(self, datadir):
         " parse a application menu and return a list of Category objects"""
-        tree = ET.parse(datadir+"/desktop/applications.menu")
-        categories = {}
-        only_unallocated = set()
-        root = tree.getroot()
-        for child in root.getchildren():
-            if child.tag == "Menu":
-                name = None
-                untranslated_name = None
-                query = None
-                icon = None
-                for element in child.getchildren():
-                    if element.tag == "Name":
-                        name = element.text
-                    elif element.tag == "Directory":
-                        cp = ConfigParser()
-                        fname = "/usr/share/desktop-directories/%s" % element.text
-                        logging.debug("reading '%s'" % fname)
-                        cp.read(fname)
-                        try:
-                            untranslated_name = cp.get("Desktop Entry","Name")
-                        except Exception, e:
-                            logging.warn("'%s' has no name" % fname)
-                            continue
-                        try:
-                            gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
-                        except:
-                            gettext_domain = None
-                        # sometimes there is no icon?
-                        try:
-                            icon = cp.get("Desktop Entry","Icon")
-                        except Exception, e:
-                            icon = "applications-other"
-                        if gettext_domain:
-                            name = gettext.dgettext(gettext_domain, untranslated_name)
-                    elif element.tag == "Include":
-                        query = xapian.Query("")
-                        for include in element.getchildren():
-                            if include.tag == "And":
-                                for and_elem in include.getchildren():
-                                    if and_elem.tag == "Not":
-                                        for not_elem in and_elem.getchildren():
-                                            if not_elem.tag == "Category":
-                                                q = xapian.Query("AC"+not_elem.text.lower())
-                                                query = xapian.Query(xapian.Query.OP_AND_NOT, query, q)
-                                                
-                                    elif and_elem.tag == "Category":
-                                        logging.debug("adding: %s" % and_elem.text)
-                                        q = xapian.Query("AC"+and_elem.text.lower())
-                                        query = xapian.Query(xapian.Query.OP_AND, query, q)
-                                    else: 
-                                        print "UNHANDLED: ", and_elem.tag, and_elem.text
-                    elif element.tag == "OnlyUnallocated":
-                        only_unallocated.add(untranslated_name)
-                    if untranslated_name and query:
-                        categories[untranslated_name] = Category(untranslated_name, name, icon, query)
+        categories = []
+        # we support multiple menu files and menu drop ins
+        menu_files = [datadir+"/desktop/software-center.menu"]
+        menu_files += glob.glob(datadir+"/menu.d/*.menu")
+        for f in menu_files:
+            tree = ET.parse(f)
+            root = tree.getroot()
+            for child in root.getchildren():
+                category = None
+                if child.tag == "Menu":
+                    category = self._parse_menu_tag(child)
+                if category:
+                    categories.append(category)
         # post processing for <OnlyUnallocated>
-        for unalloc in only_unallocated:
-            if not unalloc in categories:
-                logging.debug("not category '%s' in the unalloced ones" % unalloc)
-                continue
-            cat_unalloc = categories[unalloc]
-            for key in categories:
-                if key != unalloc:
-                    cat = categories[key]
-                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
-            categories[unalloc] = cat_unalloc
+        # now build the unallocated queries, once for top-level,
+        # and for the subcategories. this means that subcategories
+        # can have a "OnlyUnallocated/" that applies only to 
+        # unallocated entries in their sublevel
+        for cat in categories:
+            self._build_unallocated_queries(cat.subcategories)
+        self._build_unallocated_queries(categories)
 
-        # add packages
-        query = xapian.Query(xapian.Query.OP_AND_NOT, xapian.Query(""), xapian.Query("ATapplication"))
-        pkg_category = Category("Packages", _("System Packages"), "applications-other", query)
-        categories["Packages"] = pkg_category
-            
         # debug print
-        for catname in categories:
-            cat = categories[catname]
-            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query.get_description()))
-        return categories.values()
+        for cat in categories:
+            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
+        return categories
         
     def _get_pango_font_description(self):
         return gtk.Label("pango").get_pango_context().get_font_description()
@@ -232,8 +318,10 @@ class CategoriesView(WebkitWidget):
 
 
 # test code
-def category_activated(iconview, name, query, db):
+def category_activated(iconview, category, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
+    name = category.name
+    query = category.query
     enquire = xapian.Enquire(db)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
@@ -247,7 +335,7 @@ def category_activated(iconview, name, query, db):
     print len(matches)
 
 if __name__ == "__main__":
-
+    from softwarecenter.enums import *
     logging.basicConfig(level=logging.DEBUG)
 
     appdir = "/usr/share/app-install"
@@ -261,19 +349,30 @@ if __name__ == "__main__":
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
-    # now the store
+    # now the category view
     view = CategoriesView(datadir, appdir, db, icons)
-    #view = CategoriesView(datadir, db, icons)
     view.connect("category-selected", category_activated, db)
-
-    # gui
     scroll = gtk.ScrolledWindow()
     scroll.add(view)
 
+    # now a sub-category view
+    for cat in view.categories:
+        if cat.untranslated_name == "Games":
+            games_category = cat
+    subview = CategoriesView(datadir, appdir, db, icons, games_category)
+    subview.connect("category-selected", category_activated, db)
+    scroll2 = gtk.ScrolledWindow()
+    scroll2.add(subview)
+
+    # pack and show
+    vbox = gtk.VBox()
+    vbox.pack_start(scroll, padding=6)
+    vbox.pack_start(scroll2, padding=6)
+
     win = gtk.Window()
-    win.add(scroll)
+    win.add(vbox)
     view.grab_focus()
-    win.set_size_request(500,200)
+    win.set_size_request(700,600)
     win.show_all()
 
     gtk.main()

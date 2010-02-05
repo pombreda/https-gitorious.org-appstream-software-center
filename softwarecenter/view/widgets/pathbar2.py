@@ -46,7 +46,7 @@ class PathBar(gtk.DrawingArea):
         self.__parts = []
         self.__active_part = None
         self.__focal_part = None
-        self.__button_down = False
+        self.__button_down = False, None
 
         self.__scroller = None
         self.__scroll_xO = 0
@@ -60,9 +60,11 @@ class PathBar(gtk.DrawingArea):
                         gtk.gdk.BUTTON_RELEASE_MASK|
                         gtk.gdk.KEY_RELEASE_MASK|
                         gtk.gdk.KEY_PRESS_MASK|
+                        gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK)
 
         self.connect("motion-notify-event", self.__motion_notify_cb)
+        self.connect("enter-notify-event", self.__enter_notify_cb)
         self.connect("leave-notify-event", self.__leave_notify_cb)
         self.connect("button-press-event", self.__button_press_cb)
         self.connect("button-release-event", self.__button_release_cb)
@@ -118,7 +120,7 @@ class PathBar(gtk.DrawingArea):
             w += aw
 
             # begin scroll animation
-            self.__hscroll_init(
+            self.__hscroll_out_init(
                 part.get_width(),
                 gtk.gdk.Rectangle(x,y,w,h),
                 self.theme.scroll_duration_ms,
@@ -135,7 +137,12 @@ class PathBar(gtk.DrawingArea):
 
         old_w = self.__draw_width()
 
-        del self.__parts[self.__parts.index(part)]
+        # remove part from interal part list
+        try:
+            del self.__parts[self.__parts.index(part)]
+        except:
+            print 'part not in list!'
+            return
         self.__compose_parts(self.__parts[-1], False)
 
         if old_w >= self.allocation.width:
@@ -145,6 +152,13 @@ class PathBar(gtk.DrawingArea):
         else:
             self.queue_draw_area(*part.get_allocation_tuple())
             self.queue_draw_area(*self.__parts[-1].get_allocation_tuple())
+        return
+
+    def navigate_up(self):
+        index = 0
+        if len(self.__parts) > 1:
+            nav_part = self.__parts[len(self.__parts) - 2]
+            self.set_active(nav_part)
         return
 
     def __set_active(self, part):
@@ -209,7 +223,7 @@ class PathBar(gtk.DrawingArea):
     def __shrink_check(self, allocation):
         path_w = self.__draw_width()
         shrinkage = path_w - allocation.width
-        mpw = self.min_part_width
+        mpw = self.theme.min_part_width
         xO = 0
 
         for part in self.__parts[:-1]:
@@ -304,31 +318,31 @@ class PathBar(gtk.DrawingArea):
         a = self.__parts[-1].allocation
         return a[0] + a[2]
 
-    def __hscroll_init(self, distance, draw_area, duration, fps):
-        sec = duration*0.001
-        interval = int(duration/(sec*fps))  # duration / n_frames
+    def __hscroll_out_init(self, distance, draw_area, duration, fps):
         self.__scroller = gobject.timeout_add(
-            interval,
-            self.__hscroll_cb,
-            sec,
-            1/sec,
+            int(1000.0 / fps),  # interval
+            self.__hscroll_out_cb,
             distance,
-            gobject.get_current_time() + sec,
+            duration*0.001,   # 1 over duration (converted to seconds)
+            gobject.get_current_time(),
             draw_area.x,
             draw_area.y,
             draw_area.width,
             draw_area.height)
         return
 
-    def __hscroll_cb(self, sec, sec_inv, distance, end_t, x, y, w, h):
+    def __hscroll_out_cb(self, distance, duration, start_t, x, y, w, h):
         cur_t = gobject.get_current_time()
-        xO = distance*(sec - (end_t - cur_t))*sec_inv
-        if xO < distance:
+        xO = distance - distance*((cur_t - start_t) / duration)
+
+        if xO > 0:
             self.__scroll_xO = xO
             self.queue_draw_area(x, y, w, h)
         else:   # final frame
             self.__scroll_xO = 0
-            self.queue_draw_area(x, y, w, h)
+            # redraw the entire widget
+            # incase some timeouts are skipped due to high system load
+            self.queue_draw()
             self.__scroller = None
             return False
         return True
@@ -345,15 +359,30 @@ class PathBar(gtk.DrawingArea):
     def __draw_hscroll(self, cr):
         if len(self.__parts) < 2:
             return
+
         # draw the last two parts
         prev, last = self.__parts[-2:]
 
-        self.__draw_part(cr, last, self.style, self.theme.curvature,
-            self.theme.arrow_width, self.__shapes,
-            last.get_width() - self.__scroll_xO)
+        # style theme stuff
+        style, r, aw, shapes = self.style, self.theme.curvature, \
+            self.theme.arrow_width, self.__shapes
 
-        self.__draw_part(cr, prev, self.style, self.theme.curvature,
-            self.theme.arrow_width, self.__shapes)
+        # draw part that need scrolling
+        self.__draw_part(cr,
+                         last,
+                         style,
+                         r,
+                         aw,
+                         shapes,
+                         self.__scroll_xO)
+
+        # draw the last part that does not scroll
+        self.__draw_part(cr,
+                         prev,
+                         style,
+                         r,
+                         aw,
+                         shapes)
         return
 
     def __draw_all(self, cr, event_area):
@@ -650,13 +679,19 @@ class PathBar(gtk.DrawingArea):
         part = self.__part_at_xy(event.x, event.y)
         prev_focal = self.__focal_part
 
-        if self.__button_down:
-            if prev_focal and part != prev_focal:
+        if self.__button_down[0]:
+            if part and prev_focal and part != prev_focal:
+                if self.__button_down[1] == part:
+                    part.set_state(gtk.STATE_SELECTED)
+                else:
+                    part.set_state(gtk.STATE_PRELIGHT)
+
                 prev_focal.set_state(self.__state(prev_focal))
                 self.queue_draw_area(*prev_focal.get_allocation_tuple())
+                self.queue_draw_area(*part.get_allocation_tuple())
+                self.__focal_part = part
             return
 
-        self.__button_down = False
         if part and part.state != gtk.STATE_PRELIGHT:
             self.__tooltip_check(part)
             part.set_state(gtk.STATE_PRELIGHT)
@@ -668,42 +703,56 @@ class PathBar(gtk.DrawingArea):
             self.__focal_part = part
             self.queue_draw_area(*part.get_allocation_tuple())
 
-        elif not part and prev_focal != None:
+        elif not part and prev_focal != None and \
+            not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
             prev_focal.set_state(self.__state(prev_focal))
             self.queue_draw_area(*prev_focal.get_allocation_tuple())
             self.__focal_part = None
         return
 
+    def __enter_notify_cb(self, widget, event):
+        if not self.__button_down[0] and not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
+            return
+
+        part = self.__part_at_xy(event.x, event.y)
+        prev_focal = self.__focal_part
+
+        if part and prev_focal == part:
+            part.set_state(gtk.STATE_SELECTED)
+            self.queue_draw_area(*part.get_allocation_tuple())
+        return
+
     def __leave_notify_cb(self, widget, event):
-        self.__button_down = False
         prev_focal = self.__focal_part
         if prev_focal:
             prev_focal.set_state(self.__state(prev_focal))
             self.queue_draw_area(*prev_focal.get_allocation_tuple())
-        self.__focal_part = None
+
+        if not widget.window.get_pointer()[2] & gtk.gdk.BUTTON1_MASK:
+            self.__focal_part = None
         return
 
     def __button_press_cb(self, widget, event):
-        self.__button_down = True
         part = self.__part_at_xy(event.x, event.y)
+        self.__button_down = True, part
         if part:
             part.set_state(gtk.STATE_SELECTED)
             self.queue_draw_area(*part.get_allocation_tuple())
+            self.__focal_part = part
         return
 
     def __button_release_cb(self, widget, event):
         part = self.__part_at_xy(event.x, event.y)
         if self.__focal_part and self.__focal_part != part:
             pass
-        elif part and self.__button_down:
-            self.grab_focus()
+        elif part and self.__button_down[0]:
             prev_active, redraw = self.__set_active(part)
             part.set_state(gtk.STATE_PRELIGHT)
             self.queue_draw_area(*part.get_allocation_tuple())
 
             if redraw:
                 self.queue_draw_area(*prev_active.get_allocation_tuple())
-        self.__button_down = False
+        self.__button_down = False, None
         return
 
 #    def __key_release_cb(self, widget, event):
@@ -732,17 +781,18 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __expose_cb(self, widget, event):
-        #t = gobject.get_current_time()
         cr = widget.window.cairo_create()
+
         if self.theme.base_hack:
             cr.set_source_rgb(*self.theme.base_hack)
             cr.paint()
+
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
         else:
             self.__draw_all(cr, event.area)
+
         del cr
-        #print 'Exposure fps: %s' % (1 / (gobject.get_current_time() - t))
         return
 
     def __style_change_cb(self, widget, old_style):
@@ -979,7 +1029,7 @@ class PathBarIcon:
             render_icon(icon_set, self.name, self.size)
 
         if not self.pixbuf:
-            print FAIL + 'Error: No name failed to match any installed icon set.' + ENDC
+            print 'Error: No name failed to match any installed icon set.'
             self.name = gtk.STOCK_MISSING_IMAGE
             icon_set = style.lookup_icon_set(self.name)
             render_icon(icon_set, self.name, self.size)
@@ -993,12 +1043,12 @@ class PathBarThemeHuman:
 
     curvature = 2.5
     min_part_width = 56
-    xpadding = 10
-    ypadding = 4
-    spacing = 6
+    xpadding = 8
+    ypadding = 2
+    spacing = 4
     arrow_width = 13
     scroll_duration_ms = 150
-    scroll_fps = 60
+    scroll_fps = 50
     animate = gtk.settings_get_default().get_property("gtk-enable-animations")
 
     def __init__(self):
@@ -1239,7 +1289,7 @@ class PathBarThemeHicolor:
     spacing = 10
     arrow_width = 15
     scroll_duration_ms = 150
-    scroll_fps = 60
+    scroll_fps = 50
     animate = gtk.settings_get_default().get_property("gtk-enable-animations")
 
     def __init__(self):
@@ -1321,27 +1371,20 @@ class NavigationBar(PathBar):
         with the new one
         """
 
-        def idle_append_cb(part):
-            gobject.timeout_add(50, self.append, part)
-            return False
-
         # check if we have the button of that id or need a new one
         if id in self.id_to_part:
             part = self.id_to_part[id]
             part.set_label(label)
-            self.queue_draw_area(*part.get_allocation_tuple())
         else:
             part = PathPart(label, callback)
-            part.callback(self)
             part.set_pathbar(self)
             self.id_to_part[id] = part
-            gobject.idle_add(idle_append_cb, part)
+            gobject.timeout_add(150, self.append, part)
 
         if icon: part.set_icon(icon)
         return
 
     def remove_id(self, id):
-
         if not id in self.id_to_part:
             return
 
@@ -1352,7 +1395,7 @@ class NavigationBar(PathBar):
 
     def remove_all(self):
         """remove all elements"""
-        self.__parts = []
+        self.__parts = self.__parts[0]  # keep first part though!
         self.id_to_part = {}
         self.queue_draw()
         return
@@ -1371,4 +1414,4 @@ class NavigationBar(PathBar):
         """
         if not id in self.id_to_part:
             return
-        return self.id_to_part[id].get_label()
+

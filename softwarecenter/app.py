@@ -18,6 +18,7 @@
 
 import apt
 import aptdaemon
+import atexit
 import locale
 import dbus
 import dbus.service
@@ -33,7 +34,9 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
+from softwarecenter import Application
 from softwarecenter.enums import *
+from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 
@@ -43,6 +46,9 @@ from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
+
+from backend.config import get_config
+
 from distro import get_distro
 
 from apt.aptcache import AptCache
@@ -68,7 +74,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     (NOTEBOOK_PAGE_AVAILABLE,
      NOTEBOOK_PAGE_INSTALLED,
-     NOTEBOOK_PAGE_PENDING) = range(3)
+     NOTEBOOK_PAGE_SEPARATOR_1,
+     NOTEBOOK_PAGE_PENDING) = range(4)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
@@ -78,6 +85,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                      "software-center")
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")
+
         try:
             locale.setlocale(locale.LC_ALL, "")
         except:
@@ -130,14 +138,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
         # HACK: make it more friendly for local installs (for mpt)
         self.icons.append_search_path(datadir+"/icons/32x32/status")
-        
+        gtk.window_set_default_icon_name("softwarecenter")
+
         # misc state
         self._pending_transactions = 0
         self._block_menuitem_view = False
         self._available_items_for_page = {}
-        # FIXME: make this all part of a application object
-        self._selected_pkgname_for_page = {}
-        self._selected_appname_for_page = {}
 
         # available pane
         self.available_pane = AvailablePane(self.cache, self.db,
@@ -147,8 +153,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
         self.available_pane.app_view.connect("application-selected",
-                                             self.on_app_selected,
-                                             self.NOTEBOOK_PAGE_AVAILABLE)
+                                             self.on_app_selected)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -162,8 +167,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_INSTALLED)
         self.installed_pane.app_view.connect("application-selected",
-                                             self.on_app_selected,
-                                             self.NOTEBOOK_PAGE_INSTALLED)
+                                             self.on_app_selected)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_INSTALLED)
@@ -193,27 +197,36 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # default focus
         self.available_pane.searchentry.grab_focus()
+        
+        # restore state
+        self.config = get_config()
+        self.restore_state()
 
     # callbacks
-    def on_app_details_changed(self, widget, appname, pkgname, page):
-        self._selected_pkgname_for_page[page] = pkgname
-        self._selected_appname_for_page[page] = appname
+    def on_app_details_changed(self, widget, app, page):
         self.update_app_status_menu()
         self.update_status_bar()
 
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.notebook_view.get_current_page() == page:
+            self.update_app_list_view()
+            self.update_app_status_menu()
             self.update_status_bar()
 
-    def on_app_selected(self, widget, appname, pkgname, page):
-        self._selected_appname_for_page[page] = appname
-        self._selected_pkgname_for_page[page] = pkgname
+    def on_app_selected(self, widget, app):
+        self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
-        self.menuitem_copy_web_link.set_sensitive(True)
 
     def on_window_main_delete_event(self, widget, event):
+        self.save_state()
         gtk.main_quit()
+        
+    def on_window_main_key_press_event(self, widget, event):
+        if (event.keyval == gtk.gdk.keyval_from_name("BackSpace") and 
+            self.active_pane and
+            not self.active_pane.searchentry.is_focus()):
+            self.active_pane.navigation_bar.navigate_up()
         
     def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
         # if the pending number drops to zero check if we should switch
@@ -237,6 +250,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane = self.installed_pane
         elif action == self.NOTEBOOK_PAGE_PENDING:
             self.active_pane = None
+        elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:
+            # do nothing
+            return
         else:
             assert False, "Not reached"
         # set menu sensitve
@@ -252,15 +268,19 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._block_menuitem_view = False
         # switch to new page
         self.notebook_view.set_current_page(action)
+        self.update_app_list_view()
         self.update_status_bar()
         self.update_app_status_menu()
 
     # Menu Items
-
     def on_menuitem_install_activate(self, menuitem):
+        app = self.active_pane.get_current_app()
+        self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.install()
 
     def on_menuitem_remove_activate(self, menuitem):
+        app = self.active_pane.get_current_app()
+        self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.remove()
         
     def on_menuitem_close_activate(self, widget):
@@ -306,13 +326,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_copy_web_link_activate(self, menuitem):
-        page = self.notebook_view.get_current_page()
-        try:
-            pkg = self._selected_pkgname_for_page[page]
-        except KeyError, e:
-            return
-        clipboard = gtk.Clipboard()
-        clipboard.set_text(self.WEBLINK_URL % pkg)
+        app = self.active_pane.get_current_app()
+        if app:
+            clipboard = gtk.Clipboard()
+            clipboard.set_text(self.WEBLINK_URL % app.pkgname)
 
     def on_menuitem_search_activate(self, widget):
         if self.active_pane:
@@ -353,16 +370,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add(1000, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if self._block_menuitem_view:
-            return
-        self.active_pane.apps_filter.set_supported_only(False)
-        self.active_pane.refresh_apps()
+        if not self._block_menuitem_view and self.active_pane.apps_filter.get_supported_only():
+            self.active_pane.apps_filter.set_supported_only(False)
+            self.active_pane.refresh_apps()
 
     def on_menuitem_view_supported_only_activate(self, widget):
-        if self._block_menuitem_view: 
-            return
-        self.active_pane.apps_filter.set_supported_only(True)
-        self.active_pane.refresh_apps()
+        if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
+            self.active_pane.apps_filter.set_supported_only(True)
+            self.active_pane.refresh_apps()
 
     # helper
 
@@ -398,10 +413,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """
         logging.debug("update_app_status_menu")
         # check if we have a pkg for this page
-        page = self.notebook_view.get_current_page()
-        try:
-            pkgname = self._selected_pkgname_for_page[page]
-        except KeyError, e:
+        app = None
+        if self.active_pane:
+            app = self.active_pane.get_current_app()
+        if app is None:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
@@ -410,20 +425,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self.cache.ready:
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
-        # if the pkg is not in the cache, clear menu
-        if not self.cache.has_key(pkgname):
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
-            self.menuitem_copy_web_link.set_sensitive(False)
-        # update File menu status
-        if self.cache.has_key(pkgname):
-            pkg = self.cache[pkgname]
+        # update menu items
+        if (not self.active_pane.is_category_view_showing() and 
+            self.cache.has_key(app.pkgname)):
+            pkg = self.cache[app.pkgname]
             installed = bool(pkg.installed)
             self.menuitem_install.set_sensitive(not installed)
             self.menuitem_remove.set_sensitive(installed)
+            self.menuitem_copy_web_link.set_sensitive(True)
         else:
+            # clear menu items if category view or if the package is not
+            # in the cache
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
+            self.menuitem_copy_web_link.set_sensitive(False)
         # return False to ensure that a possible glib.timeout_add ends
         return False
 
@@ -436,6 +451,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # FIXME: deal with the pending view status
             s = ""
         self.label_status.set_text(s)
+        
+    def update_app_list_view(self):
+        """Helper that updates the app view list.
+        """
+        if self.active_pane is not None and not self.active_pane.is_category_view_showing():
+#            with ExecutionTime("TIME update_app_view"):
+#                self.active_pane.update_app_view()
+            self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
@@ -447,7 +470,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if is_rebuilding:
             self.window_rebuilding.show()
         else:
-            # we need to re-open when the database finished updating
+            # we need to reopen when the database finished updating
             self.db.reopen()
             self.window_rebuilding.hide()
 
@@ -499,8 +522,58 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter',bus)
             self.dbusControler = SoftwarecenterDbusController(self, bus_name)
 
-    def run(self):
+    def show_available_packages(self, packages):
+        """ Show packages given as arguments in the available_pane
+            If the list of packages is only one element long show that,
+            otherwise turn it into a comma seperated search
+        """
+        if len(packages) == 1:
+            # show a single package
+            pkg_name = packages[0]
+            # FIXME: this currently only works with pkg names for apps
+            #        it needs to perform a search because a App name
+            #        is (in general) not unique
+            app = Application("", pkg_name)
+            self.available_pane.app_details.show_app(app)
+            self.available_pane.notebook.set_current_page(
+                self.available_pane.PAGE_APP_DETAILS)
+        if len(packages) > 1:
+            # turn multiple packages into a search with ","
+            # turn off de-duplication
+            self.available_pane.apps_filter.set_only_packages_without_applications(False)
+            self.available_pane.searchentry.set_text(",".join(packages))
+            self.available_pane.notebook.set_current_page(
+                self.available_pane.PAGE_APPLIST)
+
+    def restore_state(self):
+        if self.config.has_option("general", "size"):
+            (x, y) = self.config.get("general", "size").split(",")
+            self.window_main.resize(int(x), int(y))
+        if (self.config.has_option("general", "maximized") and
+            self.config.getboolean("general", "maximized")):
+            self.window_main.maximize()
+
+    def save_state(self):
+        logging.debug("save_state")
+        # this happens on a delete event, we explicitely save_state() there
+        if self.window_main.window is None:
+            return
+        if not self.config.has_section("general"):
+            self.config.add_section("general")
+        maximized = self.window_main.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED
+        if maximized:
+            self.config.set("general", "maximized", "True")
+        else:
+            self.config.set("general", "maximized", "False")
+            # size only matters when non-maximized
+            size = self.window_main.get_size() 
+            self.config.set("general","size", "%s, %s" % (size[0], size[1]))
+        self.config.write()
+
+    def run(self, args):
         self.window_main.show_all()
+        self.show_available_packages(args)
+        atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
 
 

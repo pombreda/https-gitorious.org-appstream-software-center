@@ -18,13 +18,10 @@
 
 import apt
 import gettext
-import glib
-import gobject
 import gtk
 import logging
 import os
 import sys
-import string
 import xapian
 
 from gettext import gettext as _
@@ -45,10 +42,11 @@ class InstalledPane(SoftwarePane):
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         # state
-        self.apps_filter = AppViewFilter(cache)
+        self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_installed_only(True)
+        self.current_appview_selection = None
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -71,7 +69,10 @@ class InstalledPane(SoftwarePane):
            navigation bar
         """
         if self.search_terms:
-            query = self.db.get_query_from_search_entry(self.search_terms)
+            query = self.db.get_query_list_from_search_entry(self.search_terms)
+            self.navigation_bar.add_with_id(_("Search Results"),
+                                            self.on_navigation_search, 
+                                            "search")
         else:
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
@@ -95,23 +96,34 @@ class InstalledPane(SoftwarePane):
     def on_db_reopen(self, db):
         self.refresh_apps()
         self._show_installed_overview()
+    def on_navigation_search(self, button):
+        logging.debug("on_navigation_search")
+        pass
     def on_navigation_list(self, button):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
         # remove the details and clear the search
         self.searchentry.clear()
+        self.navigation_bar.remove_id("search")
         self._show_installed_overview()
         # only emit something if the model is there
         model = self.app_view.get_model()
         if model:
             self.emit("app-list-changed", len(model))
+
     def on_navigation_details(self, button):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        
+    def on_application_selected(self, appview, app):
+        """callback when an app is selected"""
+        logging.debug("on_application_selected: '%s'" % app)
+        self.current_appview_selection = app
+    
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         # no status text in the details page
@@ -124,9 +136,18 @@ class InstalledPane(SoftwarePane):
                                     "%s matching items",
                                     length) % length
         else:
-            return gettext.ngettext("%s installed item",
-                                    "%s installed items",
+            return gettext.ngettext("%s application installed",
+                                    "%s applications installed",
                                     length) % length
+                                    
+    def get_current_app(self):
+        """return the current active application object applicable
+           to the context"""
+        return self.current_appview_selection
+        
+    def is_category_view_showing(self):
+        # there is no category view in the installed pane
+        return False
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
@@ -151,7 +172,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(w)
-    win.set_size_request(400,600)
+    win.set_size_request(400, 600)
     win.show_all()
 
     gtk.main()

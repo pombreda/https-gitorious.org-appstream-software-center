@@ -21,6 +21,7 @@ import gobject
 import gtk
 import logging
 import os
+import tempfile
 import string
 
 gobject.threads_init()
@@ -64,6 +65,13 @@ class WebkitWidget(webkit.WebView):
         # global settings
         settings = self.get_settings()
         settings.set_property("enable-plugins", False)
+        if logging.root.level == logging.DEBUG:
+            self.debug_html_path = os.path.join(
+                tempfile.mkdtemp(), "software-center-render.html")
+            logging.info("writing html output to '%s'" % self.debug_html_path)
+
+    def refresh_html(self):
+        self._show(None)
 
     # internal helpers
     def _show(self, widget):
@@ -83,7 +91,13 @@ class WebkitWidget(webkit.WebView):
 
     def _render(self):
         # FIXME: use self._html_path here as base_uri ?
-        self.load_html_string(self._html, "file:/") 
+        self.load_html_string(self._html, "file:/")
+        # If we are debugging, save us a copy of the substitued HTML
+        if logging.root.level == logging.DEBUG:
+            f = open(self.debug_html_path, "w")
+            logging.info("writing html output to '%s'" % self.debug_html_path)
+            f.write(self._html)
+            f.close()
 
     def _substitute(self, subs=None):
         """

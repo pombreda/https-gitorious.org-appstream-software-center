@@ -17,13 +17,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import bisect
 import glib
 import gobject
 import gtk
 import logging
-import os
-import sys
-import string
 import xapian
 import os
 
@@ -38,6 +36,7 @@ from widgets.searchentry import SearchEntry
 from appview import AppView, AppStore, AppViewFilter
 from appdetailsview import AppDetailsView
 
+from softwarecenter.db.database import Application
 
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that the cache is ready using a
@@ -70,7 +69,7 @@ class SoftwarePane(gtk.VBox):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
@@ -82,14 +81,17 @@ class SoftwarePane(gtk.VBox):
         # common UI elements (applist and appdetails) 
         # its the job of the Child class to put it into a good location
         # list
-        self.app_view = AppView()
+        self.app_view = AppView(show_ratings)
+        self.app_view.connect("application-selected", 
+                              self.on_application_selected)
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-
+        self.app_view.connect("application-request-action", 
+                              self.on_application_request_action)
         # details
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
@@ -129,21 +131,51 @@ class SoftwarePane(gtk.VBox):
         if vadj:
             vadj.value_changed()
 
-    def on_application_activated(self, appview, name, pkgname):
-        """callback when a app is clicked"""
-        logging.debug("on_application_activated: '%s'" % name)
-        if not name:
-            name = pkgname
-        self.navigation_bar.add_with_id(name,
+    def on_application_activated(self, appview, app):
+        """callback when an app is clicked"""
+        logging.debug("on_application_activated: '%s'" % app)
+        self.navigation_bar.add_with_id(app.name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.app_details.show_app(name, pkgname)
+        self.app_details.show_app(app)
+
+    def on_application_request_action(self, appview, app, action):
+        """callback when an app action is requested from the appview"""
+        logging.debug("on_application_action_requested: '%s' %s" % (app, action))
+        self.app_details.init_app(app)
+        action_func = getattr(self.app_details, action)
+        if callable(action_func):
+            action_func()
+        else:
+            logging.error("can not find action '%s'" % action)
+
+    def update_app_view(self):
+        """
+        Update the app_view.  If no row is selected, then the previously
+        selected app is reselected if it is found in the model, else the
+        first app in the list is selected.  If a row is already selected,
+        nothing is done.
+        """
+        selection = self.app_view.get_selection()
+        (model, it) = selection.get_selected()
+        current_app = self.get_current_app()
+        if model.get_iter_root() is not None and it is None:
+            index=0
+            vadj = self.scroll_app_list.get_vadjustment()
+            if current_app:
+                app_map = self.app_view.get_model().app_index_map
+                if current_app in app_map:
+                    index = app_map.get(current_app)
+            # re-select item
+            if vadj:
+                self.app_view.set_cursor(index)
+                vadj.value_changed()
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         raise Exception, "Not implemented"
-
+        
     @wait_for_apt_cache_ready
     def refresh_apps(self):
         " stub implementation "
@@ -154,5 +186,17 @@ class SoftwarePane(gtk.VBox):
         pass
 
     def on_db_reopen(self):
+        " stub implementation "
+        pass
+        
+    def is_category_view_showing(self):
+        " stub implementation "
+        pass
+        
+    def get_current_app(self):
+        " stub implementation "
+        pass
+
+    def on_application_selected(self, widget, app):
         " stub implementation "
         pass

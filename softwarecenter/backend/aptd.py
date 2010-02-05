@@ -16,15 +16,22 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import dbus
 import gobject
+import os
 import logging
+import subprocess
 
-from aptdaemon import policykit1
 from aptdaemon import client
 from aptdaemon import enums
-from aptdaemon.gtkwidgets import AptMediumRequiredDialog
+from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
+                                 AptConfigFileConflictDialog
+import gtk
 
 from softwarecenter.utils import get_http_proxy_string_from_gconf
+from softwarecenter.view import dialogs
+
+from gettext import gettext as _
 
 class AptdaemonBackend(gobject.GObject):
     """ software center specific code that interacts with aptdaemon """
@@ -43,19 +50,32 @@ class AptdaemonBackend(gobject.GObject):
 
     # public methods
     def upgrade(self, pkgname, appname, iconname):
-        trans = self.aptd_client.upgrade_packages([pkgname],
-                                          exit_handler=self._on_trans_finished)
-        self._run_transaction(trans, pkgname, appname, iconname)
+        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
+                                                            appname, iconname)
+        self.aptd_client.upgrade_packages([pkgname],
+                                          reply_handler=reply_handler,
+                                          error_handler=self._on_trans_error)
 
     def remove(self, pkgname, appname, iconname):
-        trans = self.aptd_client.remove_packages([pkgname],
-                                          exit_handler=self._on_trans_finished)
-        self._run_transaction(trans, pkgname, appname, iconname)
+        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
+                                                            appname, iconname)
+        self.aptd_client.remove_packages([pkgname], wait=False, 
+                                         remove_unused_dependencies=True,
+                                         reply_handler=reply_handler,
+                                         error_handler=self._on_trans_error)
 
     def install(self, pkgname, appname, iconname):
-        trans = self.aptd_client.install_packages([pkgname],
-                                          exit_handler=self._on_trans_finished)
-        self._run_transaction(trans, pkgname, appname, iconname)
+        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
+                                                            appname, iconname)
+        self.aptd_client.install_packages([pkgname],
+                                          reply_handler=reply_handler,
+                                          error_handler=self._on_trans_error)
+
+    def reload(self):
+        reply_handler = lambda trans: self._run_transaction(trans, None, None,
+                                                            None)
+        trans = self.aptd_client.update_cache(reply_handler=reply_handler,
+                                             error_handler=self._on_trans_error)
 
     def enable_channel(self, channelfile):
         import aptsources.sourceslist
@@ -76,9 +96,7 @@ class AptdaemonBackend(gobject.GObject):
             except dbus.exceptions.DBusException, e:
                 if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                     return
-        trans = self.aptd_client.update_cache(
-            exit_handler=self._on_trans_finished)
-        self._run_transaction(trans, None, None, None)
+        self.reload()
 
     # internal helpers
     def _on_trans_reply(self):
@@ -93,64 +111,44 @@ class AptdaemonBackend(gobject.GObject):
             error._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
             pass
         else:
-            raise
+            raise error
         self.emit("transaction-stopped")
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
         if enum == enums.EXIT_FAILED:
-            excep = trans.get_error()
             # daemon died are messages that result from broken
             # cancel handling in aptdaemon (LP: #440941)
             # FIXME: this is not a proper fix, just a workaround
-            if excep.code == enums.ERROR_DAEMON_DIED:
+            if trans.error_code == enums.ERROR_DAEMON_DIED:
                 logging.warn("daemon dies, ignoring: %s" % excep)
             else:
                 msg = "%s: %s\n%s\n\n%s" % (
-                    _("ERROR"),
-                    enums.get_error_string_from_enum(excep.code),
-                    enums.get_error_description_from_enum(excep.code),
-                    excep.details)
+                    _("Error"),
+                    enums.get_error_string_from_enum(trans.error_code),
+                    enums.get_error_description_from_enum(trans.error_code),
+                    trans.error_details)
                 logging.error("error in _on_trans_finished '%s'" % msg)
                 # show dialog to the user and exit (no need to reopen
                 # the cache)
-                dialogs.error(None,
-                              enums.get_error_string_from_enum(excep.code),
-                              enums.get_error_description_from_enum(excep.code),
-                              excep.details)
+                dialogs.error(
+                    None, 
+                    enums.get_error_string_from_enum(trans.error_code),
+                    enums.get_error_description_from_enum(trans.error_code),
+                    trans.error_details)
         # send finished signal
         self.emit("transaction-finished", enum != enums.EXIT_FAILED)
 
-    # FIXME: move this to a better place
-    def _get_diff(self, old, new):
-        if not os.path.exists("/usr/bin/diff"):
-            return ""
-        diff = subprocess.Popen(["/usr/bin/diff",
-                                 "-u",
-                                 old, new],
-                                stdout=subprocess.PIPE).communicate()[0]
-        return diff
-
-    # FIXME: move this into aptdaemon/use the aptdaemon one
-    def _config_file_prompt(self, transaction, old, new):
-        diff = self._get_diff(old, new)
-        d = dialogs.DetailsMessageDialog(None,
-                                         details=diff,
-                                         type=gtk.MESSAGE_INFO,
-                                         buttons=gtk.BUTTONS_NONE)
-        d.add_buttons(_("_Keep"), gtk.RESPONSE_NO,
-                      _("_Replace"), gtk.RESPONSE_YES)
-        d.set_default_response(gtk.RESPONSE_NO)
-        text = _("Configuration file '%s' changed") % old
-        desc = _("Do you want to use the new version?")
-        d.set_markup("<big><b>%s</b></big>\n\n%s" % (text, desc))
-        res = d.run()
-        d.destroy()
+    def _config_file_conflict(self, transaction, old, new):
+        dia = AptConfigFileConflictDialog(old, new)
+        res = dia.run()
+        dia.hide()
+        dia.destroy()
         # send result to the daemon
         if res == gtk.RESPONSE_YES:
-            transaction.config_file_prompt_answer(old, "replace")
+            transaction.resolve_config_file_conflict(old, "replace")
         else:
-            transaction.config_file_prompt_answer(old, "keep")
+            transaction.resolve_config_file_conflict(old, "keep")
 
     def _medium_required(self, transaction, medium, drive):
         dialog = AptMediumRequiredDialog(medium, drive)
@@ -161,24 +159,28 @@ class AptdaemonBackend(gobject.GObject):
         else:
             transaction.cancel()
 
-    def _setup_http_proxy(self, transaction):
-        http_proxy = get_http_proxy_string_from_gconf()
-        if http_proxy:
-            transaction.set_http_proxy(http_proxy)
-
     def _run_transaction(self, trans, pkgname, appname, iconname):
-        # set object data
-        trans.set_data("appname", appname)
-        trans.set_data("iconname", iconname)
-        trans.set_data("pkgname", pkgname)
-        # setup http proxy
-        self._setup_http_proxy(trans)
-        # we support debconf
-        trans.set_debconf_frontend("gnome")
-        trans.connect("config-file-prompt", self._config_file_prompt)
+        def set_debconf(trans):
+            trans.set_debconf_frontend("gnome", reply_handler=set_http_proxy,
+                                       error_handler=self._on_trans_error)
+        def set_http_proxy(trans):
+            http_proxy = get_http_proxy_string_from_gconf()
+            if http_proxy:
+                trans.set_http_proxy(http_proxy, reply_handler=run,
+                                     error_handler=self._on_trans_error)
+            else:
+                run(trans)
+        def run(trans):
+            trans.run(error_handler=self._on_trans_error,
+                      reply_handler=self._on_trans_reply)
+        trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
-        trans.run(error_handler=self._on_trans_error,
-                  reply_handler=self._on_trans_reply)
+        trans.connect("finished", self._on_trans_finished)
+        trans.set_meta_data(sc_appname=appname, sc_iconname=iconname,
+                            reply_handler=set_debconf,
+                            error_handler=self._on_trans_error)
 
-
+if __name__ == "__main__":
+    c = client.AptClient()
+    c.remove_packages(["4g8"], remove_unused_dependencies=True)
 
