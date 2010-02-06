@@ -47,7 +47,8 @@ class ChannelPane(SoftwarePane):
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         # state
         self.apps_filter = None
-        self.apps_origin = ""
+        self.apps_origin = "TODO"  # TODO:  lose this
+        self.search_terms = ""
         self.current_appview_selection = None
         # UI
         self._build_ui()
@@ -56,9 +57,6 @@ class ChannelPane(SoftwarePane):
         self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
-        # initial refresh
-        self.search_terms = ""
-        self.refresh_apps()
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
@@ -66,36 +64,28 @@ class ChannelPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
-    def _get_query(self):
-        """helper that gets the query for the current channel origin and search mode"""
-        # mix category with the search terms and return query
-        print "search_terms: %s" % self.search_terms
-        if self.search_terms:
-            query = self.db.get_query_list_from_search_entry(self.search_terms)
-        else:
-            query = xapian.Query("")
-        if self.apps_origin:
-            print "in _get_query(), origin: ", self.apps_origin
-            print "...search_query value is: %s" % query
-            query = xapian.Query(xapian.Query.OP_AND, 
-                                query,
-                                xapian.Query("XOL"+self.apps_origin))
-            print "...query value is: %s" % query
-        return query
+    def _clear_search(self):
+        # remove the details and clear the search
+        self.searchentry.clear()
+        self.navigation_bar.remove_id("search")
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        if self.search_terms:
-            self.navigation_bar.add_with_id(_("Search Results"),
-                                            self.on_navigation_search, 
-                                            "search")
-        query = self._get_query()
+        print "in refresh_apps, apps_origin: %s" % self.apps_origin
         self.navigation_bar.add_with_id(self.apps_origin, 
                                         self.on_navigation_list,
                                         "list")
+        if self.search_terms:
+            query = self.db.get_query_list_from_search_entry(self.search_terms,
+                                                             xapian.Query("XOL"+self.apps_origin))
+            self.navigation_bar.add_with_id(_("Search Results"),
+                                            self.on_navigation_search, 
+                                            "search")
+        else:
+            query = xapian.Query("XOL"+self.apps_origin)
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
@@ -109,6 +99,8 @@ class ChannelPane(SoftwarePane):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
         self.search_terms = terms
+        if not self.search_terms:
+            self._clear_search()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
         
@@ -124,9 +116,7 @@ class ChannelPane(SoftwarePane):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
-        # remove the details and clear the search
-        self.searchentry.clear()
-        self.navigation_bar.remove_id("search")
+        self._clear_search()
         self._show_channel_overview()
         # only emit something if the model is there
         model = self.app_view.get_model()

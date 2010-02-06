@@ -26,14 +26,10 @@ import xapian
 import os
 
 # magic environment to get old pathbar
-#if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
-#    from widgets.navigationbar import NavigationBar
-#else:
-#    from widgets.pathbar2 import NavigationBar
-#####################################################
-# TODO: restore the pathbar2 NavigationBar
-#####################################################
-from widgets.navigationbar import NavigationBar
+if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
+    from widgets.navigationbar import NavigationBar
+else:
+    from widgets.pathbar2 import NavigationBar
 
 from widgets.searchentry import SearchEntry
 

@@ -62,6 +62,11 @@ class InstalledPane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
+        
+    def _clear_search(self):
+        # remove the details and clear the search
+        self.searchentry.clear()
+        self.navigation_bar.remove_id("search")
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):
@@ -91,6 +96,8 @@ class InstalledPane(SoftwarePane):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
         self.search_terms = terms
+        if not self.search_terms:
+            self._clear_search()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
     def on_db_reopen(self, db):
@@ -103,9 +110,7 @@ class InstalledPane(SoftwarePane):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
-        # remove the details and clear the search
-        self.searchentry.clear()
-        self.navigation_bar.remove_id("search")
+        self._clear_search()
         self._show_installed_overview()
         # only emit something if the model is there
         model = self.app_view.get_model()

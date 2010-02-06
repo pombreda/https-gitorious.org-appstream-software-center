@@ -1415,16 +1415,4 @@ class NavigationBar(PathBar):
         """
         if not id in self.id_to_part:
             return
-            
-    def set_label(self, new_label, id):
-        """
-        Set the label of the navigation button with the given id to
-        the value specified
-        """
-        if not id in self.id_to_part:
-            return
-        part = self.id_to_part[id]
-        part.set_label(new_label)
-        self.queue_draw()
-        return
 
