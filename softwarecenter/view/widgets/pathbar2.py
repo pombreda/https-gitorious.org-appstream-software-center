@@ -867,7 +867,6 @@ class PathPart:
 
     def set_label(self, label):
         # escape special characters
-        print "part.set_label: %s" % label
         label = gobject.markup_escape_text(label.strip())
         # some hackery to preserve italics markup
         label = label.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')

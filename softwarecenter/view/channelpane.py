@@ -47,7 +47,7 @@ class ChannelPane(SoftwarePane):
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         # state
         self.apps_filter = None
-        self.apps_origin = "TODO"  # TODO:  lose this
+        self.channel_name = ""
         self.search_terms = ""
         self.current_appview_selection = None
         # UI
@@ -74,19 +74,19 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        print "in channelpane refresh_apps, apps_origin: %s" % self.apps_origin
+        print "in channelpane refresh_apps, channel_name: %s" % self.channel_name
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
-                                                             xapian.Query("XOL"+self.apps_origin))
+                                                             xapian.Query("XOL"+self.channel_name))
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
                                             "search")
         else:
             self.navigation_bar.remove_all()
-            self.navigation_bar.add_with_id(self.apps_origin, 
+            self.navigation_bar.add_with_id(self.channel_name, 
                                         self.on_navigation_list,
                                         "list")
-            query = xapian.Query("XOL"+self.apps_origin)
+            query = xapian.Query("XOL"+self.channel_name)
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
@@ -164,8 +164,8 @@ class ChannelPane(SoftwarePane):
 #    def set_channel_label(self, channel_label):
 #        self._channel_label = channel_label
         
-    def set_apps_origin(self, apps_origin):
-        self.apps_origin = apps_origin;
+    def set_channel_name(self, channel_name):
+        self.channel_name = channel_name;
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

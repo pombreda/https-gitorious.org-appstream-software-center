@@ -258,12 +258,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_PENDING)
         self._pending_transactions = pending_nr
 
-    def on_view_switcher_changed(self, view_switcher, action, details):
+    def on_view_switcher_changed(self, view_switcher, action, channel_name):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_CHANNEL:
-            self.channel_pane.set_apps_origin(details)
+            self.channel_pane.set_channel_name(channel_name)
             self.active_pane = self.channel_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
@@ -289,9 +289,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
         # switch to new page
-        # TODO: handle a click on a source in the view switcher
         self.notebook_view.set_current_page(action)
-        self.update_app_list_view(details)
+        self.update_app_list_view(channel_name)
         self.update_status_bar()
         self.update_app_status_menu()
 
@@ -475,16 +474,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             s = ""
         self.label_status.set_text(s)
         
-    def update_app_list_view(self, details=None):
+    def update_app_list_view(self, channel_name=None):
         """Helper that updates the app view list.
         """
         if self.active_pane is None:
             return
-        if details is None and self.active_pane.is_category_view_showing():
+        if channel_name is None and self.active_pane.is_category_view_showing():
             return
-        if details:
-            print "setting apps_origin to: %s" % details
-            self.active_pane.apps_origin = details
+        if channel_name:
+            print "setting channel_name to: %s" % channel_name
+            self.active_pane.set_channel_name(channel_name)
             self.active_pane.refresh_apps()
             
         self.active_pane.update_app_view()
