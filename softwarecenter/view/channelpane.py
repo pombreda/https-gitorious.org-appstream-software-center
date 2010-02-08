@@ -74,10 +74,7 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        print "in refresh_apps, apps_origin: %s" % self.apps_origin
-        self.navigation_bar.add_with_id(self.apps_origin, 
-                                        self.on_navigation_list,
-                                        "list")
+        print "in channelpane refresh_apps, apps_origin: %s" % self.apps_origin
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
                                                              xapian.Query("XOL"+self.apps_origin))
@@ -85,6 +82,10 @@ class ChannelPane(SoftwarePane):
                                             self.on_navigation_search, 
                                             "search")
         else:
+            self.navigation_bar.remove_all()
+            self.navigation_bar.add_with_id(self.apps_origin, 
+                                        self.on_navigation_list,
+                                        "list")
             query = xapian.Query("XOL"+self.apps_origin)
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,

@@ -200,7 +200,3 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, widget, app):
         " stub implementation "
         pass
-        
-    def update_navigation_bar(self):
-        " stub implementation "
-        pass

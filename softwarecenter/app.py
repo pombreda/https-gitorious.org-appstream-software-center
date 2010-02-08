@@ -294,7 +294,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_app_list_view(details)
         self.update_status_bar()
         self.update_app_status_menu()
-        self.active_pane.update_navigation_bar()
 
     # Menu Items
     def on_menuitem_install_activate(self, menuitem):

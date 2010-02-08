@@ -51,7 +51,6 @@ class AvailablePane(SoftwarePane):
         # state
         self.apps_category = None
         self.apps_subcategory = None
-        self.apps_origin = None
         self.apps_search_term = ""
         self.apps_sorted = True
         self.apps_limit = 0
@@ -112,21 +111,8 @@ class AvailablePane(SoftwarePane):
         elif self.apps_category:
             cat_query = self.apps_category.query
         # mix category with the search terms and return query
-        query = self.db.get_query_list_from_search_entry(self.apps_search_term, 
-                                                         cat_query)
-        if self.apps_origin is not None:
-            print "in _get_query(), origin: ", self.apps_origin
-            print "...query value is: %s" % query
-            # hmm, on selecting a PPA source, want query value passed in to be Xapian::Query(<alldocuments>)
-            # ...but it is Xapian::Query(), so following value is also Xapian::Query()
-#            return xapian.Query(xapian.Query.OP_AND, 
-#                                query,
-#                                xapian.Query("XOL"+self.apps_origin))
-            return xapian.Query(xapian.Query.OP_AND, 
-                                xapian.Query(""),
-                                xapian.Query("XOL"+self.apps_origin))
-        return query
-                                
+        return self.db.get_query_list_from_search_entry(self.apps_search_term, 
+                                                        cat_query)
 
     def _in_no_display_category(self):
         """return True if we are in a category with NoDisplay set in the XML"""
@@ -173,9 +159,7 @@ class AvailablePane(SoftwarePane):
     def _refresh_apps_with_apt_cache(self):
         # build query
         query = self._get_query()
-        print "--"
-        print "query: %s" % query
-        print "--"
+        print "availablepane query: %s" % query
         # create new model and attach it
         new_model = AppStore(self.cache,
                              self.db, 
@@ -367,7 +351,7 @@ class AvailablePane(SoftwarePane):
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
             self.current_app_by_category[self.apps_category] = app
-            
+        
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
         # sub-category page that has no visible applications

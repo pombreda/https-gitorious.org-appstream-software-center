@@ -155,10 +155,17 @@ class PathBar(gtk.DrawingArea):
         return
 
     def navigate_up(self):
-        index = 0
         if len(self.__parts) > 1:
             nav_part = self.__parts[len(self.__parts) - 2]
             self.set_active(nav_part)
+        return
+        
+    def remove_all(self):
+        """remove all elements"""
+#         self.__parts = self.__parts[0]  # keep first part though!
+        self.__parts = []
+        self.id_to_part = {}
+        self.queue_draw()
         return
 
     def __set_active(self, part):
@@ -1392,13 +1399,6 @@ class NavigationBar(PathBar):
         part = self.id_to_part[id]
         del self.id_to_part[id]
         self.remove(part)
-        return
-
-    def remove_all(self):
-        """remove all elements"""
-        self.__parts = self.__parts[0]  # keep first part though!
-        self.id_to_part = {}
-        self.queue_draw()
         return
 
     def get_button_from_id(self, id):
