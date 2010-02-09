@@ -98,9 +98,9 @@ class ViewSwitcher(gtk.TreeView):
         (path, column) = self.get_cursor()
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
-        details = model[path][ViewSwitcherList.COL_ACTION_DETAILS]
-        print "details: %s" % details
-        self.emit("view-changed", action, details)
+        channel_name = model[path][ViewSwitcherList.COL_CHANNEL_NAME]
+        print "channel_name: %s" % channel_name
+        self.emit("view-changed", action, channel_name)
         
     def get_view(self):
         """return the current activated view number or None if no
@@ -133,7 +133,7 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
     (COL_ICON,
      COL_NAME,
      COL_ACTION,
-     COL_ACTION_DETAILS) = range(4)
+     COL_CHANNEL_NAME) = range(4)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
@@ -160,60 +160,32 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         # pending transactions
         self._pending = 0
         # setup the normal stuff
-        root_icon = self._get_icon("softwarecenter")
-        piter = self.append(None, [root_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
+        available_icon = self._get_icon("softwarecenter")
+        available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
         
-        dist_icon = self._get_icon("distributor-logo")
-        ppa_icon = self._get_icon("ppa")
-        partner_icon = self._get_icon("partner")
+        # gather icons for use with channel sources
+        self.dist_icon = self._get_icon("distributor-logo")
+        self.partner_icon = self._get_icon("partner")
+        self.ppa_icon = self._get_icon("ppa")
+        self.unknown_channel_icon = self._get_icon("unknown-channel")
         
-        # append additional sources
-        source_labels = []
-        for it in self.db.xapiandb.allterms("XOL"):
-            term = it.term[3:]            
-            print term
-            
-
-            m = db.xapiandb.postlist_begin(it.term)
-            doc = db.xapiandb.get_document(m.get_docid())
-            for term_it in doc.termlist():
-                if term_it.term.startswith("XOOLP-PPA-"): 
-                    print "yup, it's a ppa"
-                    break
-                
-            if term == "Ubuntu":       # lose this, sort list properly per below
-                print "!"
-                source_labels.insert(0, term)
-            else:
-                source_labels.append(term)
-                
-       
+        # get list of channel sources in form:
+        # [icon, label, action, channel_name]
+        channel_sources = self._get_channel_sources()
         
-            
-        # TODO: sort and arrange sources: Ubuntu, Partners, PPAs alphabetically, Unknown source last
-        # TODO: determine icon per source and associate it
-        
-        # add the source items
-        for label in source_labels:
-            print "append source with label: %s" % label
-            
-            if label == "Ubuntu":         # lose this, better way to associate the icon
-                source_icon = dist_icon
-            else:
-                source_icon = ppa_icon
-                
-            if not label:
-                label_str = "Unknown"
-            elif label == "Ubuntu":
-                label_str = _("Provided by Ubuntu")
-            else:
-                label_str = label
-            self.append(piter, [source_icon, label_str, self.ACTION_ITEM_CHANNEL, label])
+        # iterate the channel sources list and add as subnodes of the available node
+        for channel in channel_sources:
+            self.append(available_iter, channel)
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
+        installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, ""])
+        
+        # iterate the channel sources list and add as subnodes of the installed node
+        # TODO:  These lists must be filters on installed only!
+        for channel in channel_sources:
+            self.append(installed_iter, channel)
 
     def on_transactions_changed(self, current, queue):
         #print "check_pending"
@@ -250,6 +222,76 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
         return icon
+        
+    def _get_channel_sources(self):
+        """
+        return a list of channel sources, with each entry in the list
+        in the form:
+               [icon, label, action, channel_name]
+        """        
+        channel_names = []
+        for channel_iter in self.db.xapiandb.allterms("XOL"):
+            channel_name = channel_iter.term[3:]            
+            print "channel_name: %s" % channel_name
+            
+            # get origin information for this channel
+            # TODO:  Use this per channel name
+            m = self.db.xapiandb.postlist_begin(channel_iter.term)
+            doc = self.db.xapiandb.get_document(m.get_docid())
+            for term_iter in doc.termlist():
+                if term_iter.term.startswith("XOO"): 
+                    channel_origin = term_iter.term[3:]
+                    print "channel_origin: %s" % channel_origin
+                    break
+                
+            if channel_name == "Ubuntu":       # TODO: lose this, sort list properly per below
+                print "!"
+                channel_names.insert(0, channel_name)
+            else:
+                channel_names.append(channel_name)
+            
+        # TODO: sort and arrange channels: Ubuntu, Partners, PPAs alphabetically, Unknown channel last
+        
+        # add the channel items
+        channel_sources = []
+        for channel_name in channel_names:
+#        for channel_name, channel_origin in channels:
+            print "add new channel node with channel_name: %s" % channel_name
+            channel_sources.append([self._get_icon_for_channel(channel_name, channel_origin), 
+                                    self._get_display_name_for_channel(channel_name),
+                                    self.ACTION_ITEM_CHANNEL,
+                                    channel_name])     
+                
+        return channel_sources
+        
+    def _get_icon_for_channel(self, channel_name, channel_origin):
+        """
+        return the icon that corresponds to each channel node based
+        on the channel name and its origin string
+        """
+        # TODO: detect PPA using the origin string (see above)
+        if channel_name == "Ubuntu":
+            channel_icon = self.dist_icon
+        elif channel_origin.startswith("LP-PPA"):
+            channel_icon = self.ppa_icon
+        # TODO:  Add check for partner_icon
+        elif channel_name == "Unknown":
+            channel_icon = self.unknown_channel_icon
+        else:
+            channel_icon = self.unknown_channel_icon
+        return channel_icon
+        
+    def _get_display_name_for_channel(self, channel_name):
+        """
+        return the display name for the corresponding channel node
+        """
+        if not channel_name:
+            channel_display_name = "Unknown"
+        elif channel_name == "Ubuntu":
+            channel_display_name = _("Provided by Ubuntu")
+        else:
+            channel_display_name = channel_name
+        return channel_display_name
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

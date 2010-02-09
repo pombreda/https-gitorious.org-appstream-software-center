@@ -87,6 +87,7 @@ class ChannelPane(SoftwarePane):
                                         self.on_navigation_list,
                                         "list")
             query = xapian.Query("XOL"+self.channel_name)
+        print "channelpane query: %s" % query
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
@@ -161,9 +162,6 @@ class ChannelPane(SoftwarePane):
         # there is no category view in the channel pane
         return False
 
-#    def set_channel_label(self, channel_label):
-#        self._channel_label = channel_label
-        
     def set_channel_name(self, channel_name):
         self.channel_name = channel_name;
 
