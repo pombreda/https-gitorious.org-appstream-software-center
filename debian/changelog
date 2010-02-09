@@ -1,3 +1,10 @@
+software-center (1.1.10debian2) unstable; urgency=low
+
+  * softwarecenter/db/update.py:
+    - Use logging.warning instead of logging.exception (Closes: #568941)
+
+ -- Julian Andres Klode <jak@debian.org>  Tue, 09 Feb 2010 07:40:07 +0100
+
 software-center (1.1.10debian1) unstable; urgency=low
 
   * Merge with Ubuntu.
