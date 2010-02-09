@@ -13,6 +13,8 @@ software-center (1.1.11) UNRELEASED; urgency=low
   * utils/update-software-center:
     - warn if locale can not be set (LP: #516266)
   * merge branch lp:~juliank/software-center/debian (many thanks)
+  * merge lp:~mvo/software-center/spinner, this gives us inline
+    progress
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
