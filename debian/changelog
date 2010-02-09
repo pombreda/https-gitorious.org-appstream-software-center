@@ -1,14 +1,28 @@
 software-center (1.1.11) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * make action buttons in the appview insensitive while a action
     is in progress
   * added po/th.po:
     - thanks to Sira Nokyoonhtong 
   * merge lp:~tomeu/software-center/bug-fixes that makes the 
     "No screenshot available" text translatable, thanks to
-    Tomeu Vizoso
+    Tomeu Vizoso (LP: #443066)
+  * softwarecenter/backend/aptd.py:
+    - only set meta-data that is actually available (LP: #499392)
+  * utils/update-software-center:
+    - warn if locale can not be set (LP: #516266)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 28 Jan 2010 09:43:41 +0100
+  [ Gary Lasker ]
+  * softwarecenter/view/viewswitcher.py:
+    - add support for using the up/down arrow keys to select
+      items in the navigation pane (LP: #517271)
+  * softwarecenter/distro/Ubuntu.py,
+    po/software-center.pot:
+    - fix typo for apps with unknown maintenance status,
+      refreshed .pot file (LP: #519090) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 08 Feb 2010 19:39:36 -0500
 
 software-center (1.1.10) lucid; urgency=low
 
