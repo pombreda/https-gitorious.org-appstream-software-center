@@ -201,7 +201,8 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             #        desktop file
             # FIXME3: add X-AppInstall-Section
         except Exception, e:
-            logging.exception("error processing: %s %s" % (desktopf, e))
+            # Print a warning, no error (Debian Bug #568941)
+            logging.warning("error processing: %s %s" % (desktopf, e))
             continue
         # now add it
         db.add_document(doc)
