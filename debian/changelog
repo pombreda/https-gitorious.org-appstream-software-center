@@ -1,4 +1,4 @@
-software-center (1.1.11) UNRELEASED; urgency=low
+software-center (1.1.11) lucid; urgency=low
 
   [ Michael Vogt ]
   * make action buttons in the appview insensitive while a action
@@ -25,7 +25,7 @@ software-center (1.1.11) UNRELEASED; urgency=low
     - fix typo for apps with unknown maintenance status,
       refreshed .pot file (LP: #519090) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 08 Feb 2010 19:39:36 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 09 Feb 2010 16:45:47 +0100
 
 software-center (1.1.10debian2) unstable; urgency=low
 
