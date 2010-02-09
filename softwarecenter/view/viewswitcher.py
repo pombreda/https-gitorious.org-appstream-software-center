@@ -169,8 +169,8 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         self.ppa_icon = self._get_icon("ppa")
         self.unknown_channel_icon = self._get_icon("unknown-channel")
         
-        # get list of channel sources in form:
-        # [icon, label, action, channel_name]
+        # get list of channel sources of form:
+        #     [icon, label, action, channel_name]
         channel_sources = self._get_channel_sources()
         
         # iterate the channel sources list and add as subnodes of the available node
@@ -183,7 +183,7 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, ""])
         
         # iterate the channel sources list and add as subnodes of the installed node
-        # TODO:  These lists must be filters on installed only!
+        # TODO:  These lists must be filtered on installed only!
         for channel in channel_sources:
             self.append(installed_iter, channel)
 
@@ -229,13 +229,12 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         in the form:
                [icon, label, action, channel_name]
         """        
-        channel_names = []
+        channels = []
         for channel_iter in self.db.xapiandb.allterms("XOL"):
             channel_name = channel_iter.term[3:]            
             print "channel_name: %s" % channel_name
             
             # get origin information for this channel
-            # TODO:  Use this per channel name
             m = self.db.xapiandb.postlist_begin(channel_iter.term)
             doc = self.db.xapiandb.get_document(m.get_docid())
             for term_iter in doc.termlist():
@@ -243,26 +242,49 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
                     channel_origin = term_iter.term[3:]
                     print "channel_origin: %s" % channel_origin
                     break
-                
-            if channel_name == "Ubuntu":       # TODO: lose this, sort list properly per below
-                print "!"
-                channel_names.insert(0, channel_name)
-            else:
-                channel_names.append(channel_name)
+            channels.append((channel_name, channel_origin))
             
-        # TODO: sort and arrange channels: Ubuntu, Partners, PPAs alphabetically, Unknown channel last
-        
-        # add the channel items
         channel_sources = []
-        for channel_name in channel_names:
-#        for channel_name, channel_origin in channels:
-            print "add new channel node with channel_name: %s" % channel_name
+        for (channel_name, channel_origin) in self._order_channels(channels):
             channel_sources.append([self._get_icon_for_channel(channel_name, channel_origin), 
                                     self._get_display_name_for_channel(channel_name),
                                     self.ACTION_ITEM_CHANNEL,
                                     channel_name])     
                 
         return channel_sources
+        
+    def _order_channels(self, channels):
+        """
+        given a list of channels, order them according to:
+            Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
+            Unknown channel last
+        """
+        dist_channel = []
+        partner_channel = []
+        ppa_channels = []
+        other_channels = []
+        unknown_channel = []
+        ordered_channels = []
+        
+        for (channel_name, channel_origin) in channels:
+            if not channel_name:
+                unknown_channel.append((channel_name, channel_origin))
+            elif channel_name == "Ubuntu":
+                dist_channel.append((channel_name, channel_origin))
+            elif channel_origin and channel_origin.startswith("LP-PPA"):
+                ppa_channels.append((channel_name, channel_origin))
+            # TODO: detect partner channel
+            else:
+                other_channels.append((channel_name, channel_origin))
+        
+        # set them in order
+        ordered_channels.extend(dist_channel)
+        ordered_channels.extend(partner_channel)
+        ordered_channels.extend(ppa_channels)
+        ordered_channels.extend(other_channels)
+        ordered_channels.extend(unknown_channel)
+        
+        return ordered_channels
         
     def _get_icon_for_channel(self, channel_name, channel_origin):
         """
