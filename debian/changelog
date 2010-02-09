@@ -17,8 +17,12 @@ software-center (1.1.11) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - add support for using the up/down arrow keys to select
       items in the navigation pane (LP: #517271)
+  * softwarecenter/distro/Ubuntu.py,
+    po/software-center.pot:
+    - fix typo for apps with unknown maintenance status,
+      refreshed .pot file (LP: #519090) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Feb 2010 14:00:24 -0800
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 08 Feb 2010 19:39:36 -0500
 
 software-center (1.1.10) lucid; urgency=low
 
