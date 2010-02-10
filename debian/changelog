@@ -1,6 +1,16 @@
 software-center (1.1.12) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged  lp:~mmcg069/software-center/spinner  (many thanks)
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py,
+    softwarecenter/view/viewswitcher.py,
+    softwarecenter/view/widgets/pathbar2.py,
+    softwarecenter/view/widgets/navigationbar.py:
+    - implement standalone presentation of individual repositories
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 10 Feb 2010 09:56:29 +0100
 

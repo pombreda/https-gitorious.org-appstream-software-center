@@ -94,7 +94,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             appname = trans.meta_data["sc_appname"]
         except KeyError:
             #FIXME: Extract information from packages property
-            appname = get_role_localised_present_from_enum(role)
+            appname = get_role_localised_present_from_enum(trans.role)
             self._signals.append(
                 trans.connect("role-changed", self._on_role_changed))
         try:
