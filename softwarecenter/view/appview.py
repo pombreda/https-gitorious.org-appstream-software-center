@@ -619,7 +619,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         percent = self.props.action_in_progress / 100.0
         w = widget.buttons['action'].get_param('width')
         h = 22  # pixel height. should be the same height of CellRendererProgress progressbar
-        dst_x = cell_area.x + cell_area.width - w - self.get_property('xpad') - 1
+        xO, w = widget.buttons['action'].get_params('x_offset_const', 'width')
+        dst_x = xO+cell_area.width
         dst_y = cell_area.y + (self.DEFAULT_HEIGHT-h)/2
 
         # progress trough border
@@ -824,7 +825,10 @@ class AppView(gtk.TreeView):
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
 
-    def _on_realize(self, widget, tr, xpad=3, ypad=2):
+    def _on_realize(self, widget, tr):
+        xpad = tr.get_property('xpad')
+        ypad = tr.get_property('ypad')
+
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
 
