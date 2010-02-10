@@ -914,19 +914,24 @@ class AppView(gtk.TreeView):
         return
 
     def _on_cursor_changed(self, view):
-        model = view.get_model()
-        selection = view.get_selection()
-        (model, it) = selection.get_selected()
-        if it is None:
-            return
-        # update active app, use row-ref as argument
-        model._set_active_app(model.get_path(it)[0])
-        # emit selected signal
-        name = model[it][AppStore.COL_APP_NAME]
-        pkgname = model[it][AppStore.COL_PKGNAME]
-        popcon = model[it][AppStore.COL_POPCON]
-        self.emit("application-selected", Application(name, pkgname, popcon))
+        gobject.timeout_add(1, self._app_selected_idle_cb, view)
         return
+
+    def _app_selected_idle_cb(self, view):
+        selection = view.get_selection()
+        model, it = selection.get_selected()
+        model, rows = selection.get_selected_rows()
+        if not rows: return
+
+        row = rows[0][0]
+        # update active app, use row-ref as argument
+        model._set_active_app(row)
+        # emit selected signal
+        name = model[row][AppStore.COL_APP_NAME]
+        pkgname = model[row][AppStore.COL_PKGNAME]
+        popcon = model[row][AppStore.COL_POPCON]
+        self.emit("application-selected", Application(name, pkgname, popcon))
+        return False
 
     def _on_row_activated(self, view, path, column):
         model = view.get_model()
