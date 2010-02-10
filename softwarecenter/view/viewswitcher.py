@@ -31,9 +31,11 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-from softwarecenter.enums import *
+
+from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.enums import *
+
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
 class ViewSwitcher(gtk.TreeView):
@@ -126,7 +128,7 @@ class ViewSwitcher(gtk.TreeView):
         else:
             self.window.set_cursor(self.cursor_hand)
 
-class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
+class ViewSwitcherList(gtk.TreeStore):
     
     # columns
     (COL_ICON,
@@ -145,16 +147,12 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
 
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
-    __gsignals__ = {'transactions-changed' : (gobject.SIGNAL_RUN_LAST,
-                                              gobject.TYPE_NONE,
-                                              (int, )),
-                     }
-
     def __init__(self, datadir, db, icons):
         gtk.TreeStore.__init__(self, AnimatedImage, str, int, str)
-        TransactionsWatcher.__init__(self)
         self.icons = icons
         self.datadir = datadir
+        self.backend = get_install_backend()
+        self.backend.connect("transactions-changed", self.on_transactions_changed)
         self.db = db
         # pending transactions
         self._pending = 0
@@ -186,13 +184,9 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         for channel in channel_sources:
             self.append(installed_iter, channel)
 
-    def on_transactions_changed(self, current, queue):
-        #print "check_pending"
-        pending = 0
-        if current or len(queue) > 0:
-            pending = 1 + len(queue)
-        # if we have a pending item, show it in the action view
-        # and if not, delete any items we added already
+    def on_transactions_changed(self, backend, total_transactions):
+        logging.debug("on_transactions_changed '%s'" % total_transactions)
+        pending = len(total_transactions)
         if pending > 0:
             for row in self:
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
@@ -207,12 +201,7 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
-        # emit signal
-        if pending != self._pending:
-            self.emit("transactions-changed", pending)
-            self._pending = pending
-        return True
-        
+
     def _get_icon(self, icon_name):
         if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
             icon = AnimatedImage(self.icons.load_icon(icon_name, self.ICON_SIZE, 0))

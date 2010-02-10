@@ -44,7 +44,7 @@ class ChannelPane(SoftwarePane):
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=True)
         # state
         self.apps_filter = None
         self.channel_name = ""
@@ -57,6 +57,9 @@ class ChannelPane(SoftwarePane):
         self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+        # FIXME: bogus, but pathbar currently requires a valid first part
+        self.navigation_bar.add_with_id(_("Channels"), self.on_navigation_list,
+                                        "list")
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
@@ -86,12 +89,19 @@ class ChannelPane(SoftwarePane):
                                         self.on_navigation_list,
                                         "list")
             query = xapian.Query("XOL"+self.channel_name)
-        print "channelpane query: %s" % query
+        logging.debug("channelpane query: %s" % query)
+        # *ugh* deactivate the old model because otherwise it keeps
+        # getting progress_changed events and eats CPU time until its
+        # garbage collected
+        old_model = self.app_view.get_model()
+        old_model.active = False
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
-                             query)
+                             query, 
+                             limit=0,
+                             sort=True)
         self.app_view.set_model(new_model)
         self.emit("app-list-changed", len(new_model))
         return False
@@ -109,11 +119,11 @@ class ChannelPane(SoftwarePane):
         self.refresh_apps()
         self._show_channel_overview()
 
-    def on_navigation_search(self, button):
+    def on_navigation_search(self, button, part):
         logging.debug("on_navigation_search")
         pass
 
-    def on_navigation_list(self, button):
+    def on_navigation_list(self, button, part):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
@@ -124,7 +134,7 @@ class ChannelPane(SoftwarePane):
         if model:
             self.emit("app-list-changed", len(model))
 
-    def on_navigation_details(self, button):
+    def on_navigation_details(self, button, part):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
             return
