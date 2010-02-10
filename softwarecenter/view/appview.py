@@ -606,50 +606,42 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         return tw
 
     def draw_progress(self, window, widget, cell_area, layout, ypad, flags):
-        percent = self.props.action_in_progress
-        w, xO = widget.buttons["action"].get_params('width', 'x_offset_const')
-        dst_x = cell_area.width + xO
-        dst_y = cell_area.y + ypad + 1
-        h = self.star_pixbuf.get_height()
+        percent = self.props.action_in_progress / 100.0
+        w = widget.buttons['action'].get_param('width')
+        h = 22  # pixel height. should be the same height of CellRendererProgress progressbar
+        dst_x = cell_area.x + cell_area.width - w - self.get_property('xpad')
+        dst_y = cell_area.y + (self.DEFAULT_HEIGHT-h)/2
 
-        # progress trough
-        widget.style.paint_box(window, gtk.STATE_NORMAL, gtk.SHADOW_IN,
+        # progress trough border
+        widget.style.paint_flat_box(window, gtk.STATE_ACTIVE, gtk.SHADOW_IN,
                                (dst_x, dst_y, w, h),
                                widget, 
-                               "progressbar",
+                               None,
                                dst_x,
                                dst_y,
                                w,
                                h)
-        dst_x += 2
-        dst_y += 2
-        w -= 4
-        h -= 4
 
-        # progress fill
-        widget.style.paint_box(window, gtk.STATE_SELECTED, gtk.SHADOW_NONE,
-                               (dst_x, dst_y, (float(percent)/w)*100, h),
+        # progress trough inner
+        widget.style.paint_flat_box(window, gtk.STATE_NORMAL, gtk.SHADOW_IN,
+                               (dst_x+1, dst_y+1, w-2, h-2),
                                widget, 
-                               "progressbar",
+                               None,
+                               dst_x+1,
+                               dst_y+1,
+                               w-2,
+                               h-2)
+
+        # progress bar
+        widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
+                               (dst_x, dst_y, percent*w, h),
+                               widget, 
+                               "bar",
                                dst_x,
                                dst_y,
-                               w,
+                               percent*w,
                                h)
-
-        # Working... note
-        layout.set_markup("<small>%s</small>" % _("Working..."))
-        lw = self._get_layout_pixel_width(layout)
-        dst_x += (2 + (w-lw)/2)
-        dst_y += (ypad+h+1)
-        widget.style.paint_layout(window,
-                                  flags,
-                                  True,
-                                  (dst_x, dst_y, lw, self._get_layout_pixel_height(layout)),
-                                  widget,
-                                  None,
-                                  dst_x,
-                                  dst_y,
-                                  layout)
+       return
 
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
