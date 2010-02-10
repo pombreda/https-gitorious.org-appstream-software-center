@@ -203,10 +203,8 @@ class AppStore(gtk.GenericTreeModel):
 
     def _calc_normalized_rating(self, raw_rating):
         if raw_rating:
-            r  = int(self.MAX_STARS * math.log(raw_rating)/math.log(self.db.popcon_max+1))
-        else:
-            r = 0
-        return r
+            return int(self.MAX_STARS * math.log(raw_rating)/math.log(self.db.popcon_max+1))
+        return 0
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if (not self.apps or
@@ -327,13 +325,13 @@ class CellRendererButton:
             'alt_markup': alt_markup,
             'width': w,
             'height': h,
-            'x_offset_const': 0,
             'y_offset_const': 0,
             'region_rect': gtk.gdk.region_rectangle(gtk.gdk.Rectangle(0,0,0,0)),
             'xpad': xpad,
             'ypad': ypad,
             'sensitive': True,
             'state': gtk.STATE_NORMAL,
+            'shadow': gtk.SHADOW_OUT,
             'layout_x': mx,
             'markup_x': mx,
             'alt_markup_x': amx
@@ -376,17 +374,23 @@ class CellRendererButton:
         # extens is (x, y, width, height)
         return ink_extends[3]
 
-    def set_state(self, state):
+    def set_state(self, state_type):
         if self.params['sensitive']:
-            self.params['state'] = state
+            self.params['state'] = state_type
         return
+
+    def set_shadow(self, shadow_type):
+        if self.params['sensitive']:
+            self.params['shadow'] = shadow_type
 
     def set_sensitive(self, is_sensitive):
         self.params['sensitive'] = is_sensitive
         if not is_sensitive:
             self.set_state(gtk.STATE_INSENSITIVE)
+            self.set_shadow(gtk.SHADOW_OUT)
         else:
             self.set_state(gtk.STATE_NORMAL)
+            self.set_shadow(gtk.SHADOW_OUT)
         return
 
     def set_use_alt_markup(self, use_alt):
@@ -418,19 +422,16 @@ class CellRendererButton:
             r.append(self.params[k])
         return r
 
-    def draw(self, window, widget, layout, cell_xO, cell_yO):
+    def draw(self, window, widget, layout, dst_x, cell_yO):
         p = self.params
-        xO, yO, w, h = self.get_params('x_offset_const', 'y_offset_const', 'width', 'height')
-        state = p['state']
-        layout.set_markup(p['label'])
-
-        dst_x = xO+cell_xO
+        w, h, yO = self.get_params('width', 'height', 'y_offset_const')
         dst_y = yO+cell_yO
+        state = p['state']
 
         # backgound "button" rect
         widget.style.paint_box(window,
                                state,
-                               gtk.SHADOW_OUT,
+                               p['shadow'],
                                (dst_x, dst_y, w, h),
                                widget,
                                "button",
@@ -441,10 +442,6 @@ class CellRendererButton:
 
         # cache region_rectangle for event checks
         p['region_rect'] = gtk.gdk.region_rectangle(gtk.gdk.Rectangle(dst_x, dst_y, w, h))
-
-        # label stuff
-        dst_x += p['layout_x']
-        dst_y += p['ypad']
 
 #        # if btn_has_focus:
 #        # draw focal rect
@@ -458,7 +455,10 @@ class CellRendererButton:
 #                                 w-4,          # width
 #                                 h-4)          # height
 
-        # draw Install button label
+        # draw button label
+        dst_x += p['layout_x']
+        dst_y += p['ypad']
+        layout.set_markup(p['label'])
         widget.style.paint_layout(window,
                             state,
                             True,
@@ -517,6 +517,18 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         icons = gtk.icon_theme_get_default()
         self.star_pixbuf = icons.load_icon("sc-emblem-favorite", 16, 0)
         self.star_not_pixbuf = icons.load_icon("sc-emblem-favorite-not", 16, 0)
+        # specify the func that calc's distance from margin, based on text dir
+        self._calc_x = self._calc_x_ltr
+        return
+
+    def set_direction(self, text_direction):
+        self.text_direction = text_direction
+        if text_direction != gtk.TEXT_DIR_RTL:
+            self._calc_x = self._calc_x_ltr
+        else:
+            self._calc_x = self._calc_x_rtl
+        return
+
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
 
@@ -533,19 +545,30 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # extens is (x, y, width, height)
         return ink_extends[3]
 
-    def draw_appname_summary(self, window, widget, cell_area, layout, xpad, ypad, flags):
-        # work out where to draw layout
-        dst_x = cell_area.x + xpad
-        dst_y = cell_area.y + ypad
+    def _calc_x_ltr(self, cell_area, aspect_width, margin_xO):
+        return cell_area.x + margin_xO
 
+    def _calc_x_rtl(self, cell_area, aspect_width, margin_xO):
+        return cell_area.x + cell_area.width - aspect_width - margin_xO
+
+    def draw_appname_summary(self, window, widget, cell_area, layout, xpad, ypad, flags):
         w = self.star_pixbuf.get_width()
         h = self.star_pixbuf.get_height()
-        max_star_width = AppStore.MAX_STARS*(w+1) + xpad
+        # total 5star width + 1 px spacing per star
+        max_star_width = AppStore.MAX_STARS*(w+1)
 
         # work out layouts max width
         lw = self._get_layout_pixel_width(layout)
-        if lw >= cell_area.width-cell_area.y-2*xpad - max_star_width:
-            layout.set_width((cell_area.width - 3*xpad - max_star_width)*pango.SCALE)
+        max_layout_width = cell_area.width - 4*xpad - max_star_width
+
+        if lw >= max_layout_width:
+            layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+            layout.set_width((max_layout_width)*pango.SCALE)
+            lw = max_layout_width
+
+        # work out where to draw layout
+        dst_x = self._calc_x(cell_area, lw, xpad)
+        dst_y = cell_area.y + ypad
 
         widget.style.paint_layout(window,
                                   flags,
@@ -556,7 +579,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                   dst_x,
                                   dst_y,
                                   layout)
-        return w, h
+        # remove layout size constraints
+        layout.set_width(-1)
+        return w, h, max_star_width
 
     def draw_appname_activity_state(self, window, widget, cell_area, layout, xpad, ypad, flags, activity):
         # stub.  in the spec mpt has it so that when an app is being installed is has:
@@ -568,11 +593,10 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # Removing ...
         return
 
-    def draw_rating_and_reviews(self, window, widget, cell_area, layout, xpad, ypad, w, h, flags):
+    def draw_rating_and_reviews(self, window, widget, cell_area, layout, xpad, ypad, w, h, max_star_width, flags):
+        dst_y = cell_area.y+ypad
         # draw star rating
-        dst_x = cell_area.width-xpad
-        dst_y = 1+ypad
-        tw = self.draw_rating(window, cell_area, dst_x, dst_y, self.rating)
+        self.draw_rating(window, cell_area, dst_y, max_star_width, xpad, self.rating)
 
         # draw number of reviews
         nr_reviews_str = gettext.ngettext("%s review",
@@ -580,7 +604,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                           self.reviews) % self.reviews
         layout.set_markup("<small>%s</small>" % nr_reviews_str)
         lw = self._get_layout_pixel_width(layout)
-        dst_x -= tw - 32 - (tw-lw)/2
+        dst_x = self._calc_x(cell_area, lw, cell_area.width-xpad-max_star_width+(max_star_width-lw)/2)
 
         widget.style.paint_layout(window,
                                   flags,
@@ -593,34 +617,38 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                   layout)
         return
 
-    def draw_rating(self, window, cell_area, dst_x, dst_y, r):
+    def draw_rating(self, window, cell_area, dst_y, max_star_width, xpad, r):
         w = self.star_pixbuf.get_width()
-        tw = AppStore.MAX_STARS*(w+1)    # total 5star width + 1 px spacing per star
         for i in range(AppStore.MAX_STARS):
+            # special case.  not only do we want to shift the x offset, but we want to reverse the order in which
+            # the gold stars are presented.
+            if self.text_direction != gtk.TEXT_DIR_RTL:
+                dst_x = cell_area.x + cell_area.width - xpad - max_star_width + i*(w+1)
+            else:
+                dst_x = cell_area.x + xpad + max_star_width - w - i*(w+1)
+
             if i < r:
                 window.draw_pixbuf(None,
-                                   self.star_pixbuf,                    # icon
-                                   0, 0,                                # src pixbuf
-                                   dst_x - tw + i*(w+1) + 32,           # xdest
-                                   cell_area.y + dst_y,                 # ydest
-                                   -1, -1,                              # size
-                                   0, 0, 0)                             # dither
+                                   self.star_pixbuf,                        # icon
+                                   0, 0,                                    # src pixbuf
+                                   dst_x,                                   # x
+                                   dst_y,                                   # y
+                                   -1, -1,                                  # size
+                                   0, 0, 0)                                 # dither
             else:
                 window.draw_pixbuf(None,
-                                   self.star_not_pixbuf,                # icon
-                                   0, 0,                                # src pixbuf
-                                   dst_x - tw + i*(w+1) + 32,   # xdest
-                                   cell_area.y + dst_y,                 # ydest
-                                   -1, -1,                              # size
-                                   0, 0, 0)                             # dither
-        return tw
+                                   self.star_not_pixbuf,                    # icon
+                                   0, 0,                                    # src pixbuf
+                                   dst_x,                                   # x
+                                   dst_y,                                   # y
+                                   -1, -1,                                  # size
+                                   0, 0, 0)                                 # dither
+        return
 
-    def draw_progress(self, window, widget, cell_area, layout, ypad, flags):
-        percent = self.props.action_in_progress / 100.0
+    def draw_progress(self, window, widget, cell_area, layout, dst_x, ypad, flags):
+        percent = self.props.action_in_progress * 0.01
         w = widget.buttons['action'].get_param('width')
         h = 22  # pixel height. should be the same height of CellRendererProgress progressbar
-        xO, w = widget.buttons['action'].get_params('x_offset_const', 'width')
-        dst_x = xO+cell_area.width
         dst_y = cell_area.y + (self.DEFAULT_HEIGHT-h)/2
 
         # progress trough border
@@ -644,14 +672,25 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                h-2)
 
         # progress bar
-        widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
-                               (dst_x, dst_y, percent*w, h),
-                               widget, 
-                               "bar",
-                               dst_x,
-                               dst_y,
-                               percent*w,
-                               h)
+        if self.text_direction != gtk.TEXT_DIR_RTL:
+            widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
+                                   (dst_x, dst_y, percent*w, h),
+                                   widget, 
+                                   "bar",
+                                   dst_x,
+                                   dst_y,
+                                   percent*w,
+                                   h)
+        else:
+            widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
+                                   (dst_x + w+1-percent*w, dst_y, percent*w, h),
+                                   widget, 
+                                   "bar",
+                                   dst_x + w+1-percent*w,
+                                   dst_y,
+                                   percent*w,
+                                   h)
+        return
 
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
@@ -662,37 +701,44 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
         layout.set_markup(self.markup)
-        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
 
-        w, h = self.draw_appname_summary(window, widget, cell_area, layout, xpad, ypad, flags)
+        w, h, max_star_width = self.draw_appname_summary(window, widget, cell_area, layout, xpad, ypad, flags)
 
         if not self.isactive:
             if self.show_ratings:
                 # draw star rating only
-                dst_x = cell_area.width-xpad
-                dst_y = (cell_area.height-h)/2
-                self.draw_rating(window, cell_area, dst_x, dst_y, self.rating)
+                dst_y = cell_area.y + (cell_area.height-h)/2
+                self.draw_rating(window, cell_area, dst_y, max_star_width, xpad, self.rating)
             return
 
         # Install/Remove button
         # only draw a install/remove button if the app is actually available
         if self.available:
             btn = widget.buttons['action']
-            if self.installed:
-                btn.set_use_alt_markup(True)
-            else:
-                btn.set_use_alt_markup(False)
-            btn.draw(window, widget, layout, cell_area.width, cell_area.y)
-            # check if the current app has a action that is in progress
+            btn.set_use_alt_markup(self.installed)
+            dst_x = self._calc_x(cell_area, btn.get_param('width'), cell_area.width-xpad-btn.get_param('width'))
+            btn.draw(window, widget, layout, dst_x, cell_area.y)
+            # check if the current app has an action that is in progress
             if self.props.action_in_progress < 0:
-                # draw buttons and rating with the number of reviews
-                self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad, w, h, flags)
+                # draw rating with the number of reviews
+                self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad,
+                    w, h, max_star_width, flags)
             else:
-                self.draw_progress(window, widget, cell_area, layout, ypad, flags)
+                self.draw_progress(window, widget, cell_area, layout, dst_x, ypad, flags)
+
+            # check if the current app is in progress
+            # XXX: this code breaks button state changes, can the setting of button sensitivity be done elswhere?
+            # With regard to the authenticate dialog, is there a callback we can connect to, 
+            # to know if the authentication has been cancelled?
+#            if self.props.action_in_progress == True:
+#                btn.set_sensitive(False)
+#            else:
+#                btn.set_sensitive(True)
 
         # More Info button
         btn = widget.buttons['info']
-        btn.draw(window, widget, layout, cell_area.x, cell_area.y)
+        dst_x = self._calc_x(cell_area, btn.get_param('width'), xpad)
+        btn.draw(window, widget, layout, dst_x, cell_area.y)
         return
 
     def on_get_size(self, widget, cell_area):
@@ -825,9 +871,10 @@ class AppView(gtk.TreeView):
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
 
+
     def _on_realize(self, widget, tr):
-        xpad = tr.get_property('xpad')
-        ypad = tr.get_property('ypad')
+        # tell the cellrenderer the text direction for renderering purposes
+        tr.set_direction(self.get_direction())
 
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
@@ -835,12 +882,8 @@ class AppView(gtk.TreeView):
         action_btn = CellRendererButton(layout, markup=_("Install"), alt_markup=_("Remove"))
         info_btn = CellRendererButton(layout, _("More Info"))
 
-        # set offset constants
         yO = tr.DEFAULT_HEIGHT+(tr.BUTTON_HEIGHT-action_btn.get_param('height'))/2
-        action_btn.set_param('x_offset_const', 32 - xpad - action_btn.get_param('width'))
         action_btn.set_param('y_offset_const', yO)
-
-        info_btn.set_param('x_offset_const', xpad)
         info_btn.set_param('y_offset_const', yO)
 
         self.buttons['action'] = action_btn
@@ -855,22 +898,19 @@ class AppView(gtk.TreeView):
         path = tree.get_path_at_pos(x, y)
         if not path: return
 
+        self.window.set_cursor(None)
         for id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
             if rr.point_in(x, y) and btn.get_param('sensitive'):
-                if id != self.focal_btn:
-                    self.focal_btn = id
-                    btn.set_state(gtk.STATE_PRELIGHT)
-                    store = tree.get_model()
-                    store.row_changed(path[0], store.get_iter(path[0]))
                 self.window.set_cursor(self._cursor_hand)
-                break
+                if btn.get_param('state') != gtk.STATE_PRELIGHT:
+                    btn.set_state(gtk.STATE_PRELIGHT)
             elif btn.get_param('sensitive'):
-                self.focal_btn = None
-                btn.set_state(gtk.STATE_NORMAL)
-                store = tree.get_model()
-                store.row_changed(path[0], store.get_iter(path[0]))
-                self.window.set_cursor(None)
+                if btn.get_param('state') != gtk.STATE_NORMAL:
+                    btn.set_state(gtk.STATE_NORMAL)
+
+        store = tree.get_model()
+        store.row_changed(path[0], store.get_iter(path[0]))
         return
 
     def _on_cursor_changed(self, view):
@@ -910,12 +950,12 @@ class AppView(gtk.TreeView):
             return
 
         x, y = int(event.x), int(event.y)
-        yO = view.get_cell_area(path, col).y
         for btn_id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
             if rr.point_in(x, y) and btn.get_param('sensitive'):
                 self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_ACTIVE)
+                btn.set_shadow(gtk.SHADOW_IN)
 
                 model = view.get_model()
                 appname = model[path][AppStore.COL_APP_NAME]
@@ -923,22 +963,27 @@ class AppView(gtk.TreeView):
                 installed = model[path][AppStore.COL_INSTALLED]
                 popcon = model[path][AppStore.COL_POPCON]
 
-                gobject.timeout_add(100,
+                s = gtk.settings_get_default()
+                gobject.timeout_add(s.get_property("gtk-timeout-initial"),
                                     self._app_activated_cb,
-                                    path,
                                     btn,
                                     btn_id,
                                     appname,
                                     pkgname,
                                     popcon,
-                                    installed,)
+                                    installed,
+                                    view.get_model(),
+                                    path)
                 break
 
-    def _app_activated_cb(self, path, btn, btn_id, appname, pkgname, popcon, installed):
+    def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
         if btn_id == 'info':
             btn.set_state(gtk.STATE_NORMAL)
+            btn.set_shadow(gtk.SHADOW_OUT)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
+            btn.set_sensitive(False)
+            store.row_changed(path[0], store.get_iter(path[0]))
             if installed:
                 perform_action = "remove"
             else:

@@ -385,6 +385,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.cache.open()
     def run_update_cache(self):
         """update the apt cache (e.g. after new sources where added """
+        # FIXME: use the buildin aptd backend instead of the aptdaemon.AptClient
         aptd_client = aptdaemon.client.AptClient()
         trans = aptd_client.update_cache(exit_handler=self._on_trans_finished)
         try:

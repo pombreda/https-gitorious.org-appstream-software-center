@@ -405,6 +405,9 @@ class AppDetailsView(WebkitWidget):
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if not self.app or not self.app.pkgname == pkgname:
             return
+        # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
+        if self.get_load_status() != 2:
+            return
         self.execute_script("showProgress(true);")
         if pkgname in backend.pending_transactions:
             self.execute_script("updateProgress(%s);" % progress)
@@ -441,7 +444,7 @@ class AppDetailsView(WebkitWidget):
             logging.debug("run_thumb_missing_js")
             # wait until its ready for JS injection
             # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-            if self.get_property("load-status") != 2:
+            if self.get_load_status() != 2:
                 return True
             self.execute_script("thumbMissing();")
             return False

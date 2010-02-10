@@ -226,10 +226,20 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
-        trans.set_meta_data(sc_appname=appname, sc_iconname=iconname,
-                            sc_pkgname=pkgname,
+        # set appname/iconname only if we actually have one
+        if appname:
+            trans.set_meta_data(sc_appname=appname, 
+                                reply_handler=lambda t: True,
+                                error_handler=self._on_trans_error)
+        if iconname:
+            trans.set_meta_data(sc_iconname=iconname,
+                                reply_handler=lambda t: True,
+                                error_handler=self._on_trans_error)
+        # we always have a pkgname
+        trans.set_meta_data(sc_pkgname=pkgname,
                             reply_handler=set_debconf,
                             error_handler=self._on_trans_error)
+        
 
 if __name__ == "__main__":
     c = client.AptClient()
