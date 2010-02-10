@@ -10,14 +10,15 @@ software-center (1.1.11) UNRELEASED; urgency=low
     Tomeu Vizoso
 
   [ Gary Lasker ]
-  * softwarecenter/view/viewswitcher.py:
-    - add support for using the up/down arrow keys to select
-      items in the navigation pane (LP: #517271)
-  * Implement channel views (XXXXXX)
-  * po/software-center.pot:
-    - refresh
+  * softwarecenter/app.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py,
+    softwarecenter/view/viewswitcher.py,
+    softwarecenter/view/widgets/pathbar2.py,
+    softwarecenter/view/widgets/navigationbar.py:
+    - implement standalone presentation of individual repositories
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 08 Feb 2010 21:02:41 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 09 Feb 2010 22:39:30 -0500
 
 software-center (1.1.10) lucid; urgency=low
 

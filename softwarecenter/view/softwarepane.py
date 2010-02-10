@@ -200,7 +200,3 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, widget, app):
         " stub implementation "
         pass
-        
-    def set_channel_name(self, channel_name):
-        " stub implementation "
-        pass
