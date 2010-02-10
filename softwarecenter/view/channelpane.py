@@ -74,7 +74,6 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        print "in channelpane refresh_apps, channel_name: %s" % self.channel_name
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
                                                              xapian.Query("XOL"+self.channel_name))

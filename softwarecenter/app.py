@@ -482,7 +482,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if channel_name is None and self.active_pane.is_category_view_showing():
             return
         if channel_name:
-            print "setting channel_name to: %s" % channel_name
             self.active_pane.set_channel_name(channel_name)
             self.active_pane.refresh_apps()
             

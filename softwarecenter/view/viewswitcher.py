@@ -99,7 +99,6 @@ class ViewSwitcher(gtk.TreeView):
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
         channel_name = model[path][ViewSwitcherList.COL_CHANNEL_NAME]
-        print "channel_name: %s" % channel_name
         self.emit("view-changed", action, channel_name)
         
     def get_view(self):
