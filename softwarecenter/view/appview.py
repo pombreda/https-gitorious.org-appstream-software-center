@@ -558,6 +558,16 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                   layout)
         return w, h
 
+    def draw_appname_activity_state(self, window, widget, cell_area, layout, xpad, ypad, flags, activity):
+        # stub.  in the spec mpt has it so that when an app is being installed is has:
+        # Audacity
+        # Installing ...
+
+        #or, for removal:
+        # Audacity
+        # Removing ...
+        return
+
     def draw_rating_and_reviews(self, window, widget, cell_area, layout, xpad, ypad, w, h, flags):
         # draw star rating
         dst_x = cell_area.width-xpad
@@ -609,7 +619,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         percent = self.props.action_in_progress / 100.0
         w = widget.buttons['action'].get_param('width')
         h = 22  # pixel height. should be the same height of CellRendererProgress progressbar
-        dst_x = cell_area.x + cell_area.width - w - self.get_property('xpad')
+        dst_x = cell_area.x + cell_area.width - w - self.get_property('xpad') - 1
         dst_y = cell_area.y + (self.DEFAULT_HEIGHT-h)/2
 
         # progress trough border
@@ -641,7 +651,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                dst_y,
                                percent*w,
                                h)
-       return
 
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
