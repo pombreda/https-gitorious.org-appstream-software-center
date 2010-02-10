@@ -154,10 +154,13 @@ class PathBar(gtk.DrawingArea):
             self.queue_draw_area(*self.__parts[-1].get_allocation_tuple())
         return
 
-    def remove_all(self):
+    def remove_all(self, keep_first_part=True):
         """remove all elements"""
-        self.__parts = [self.__parts[0],]  # keep first part though!
-        self.__compose_parts(self.__parts[-1], False)
+        if keep_first_part:
+            self.__parts = [self.__parts[0],]  # keep first part though!
+            self.__compose_parts(self.__parts[-1], False)
+        else:
+            self.__parts = []
         self.id_to_part = {}
         self.queue_draw()
         return

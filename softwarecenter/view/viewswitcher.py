@@ -178,11 +178,6 @@ class ViewSwitcherList(gtk.TreeStore):
         installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, ""])
-        
-        # iterate the channel sources list and add as subnodes of the installed node
-        # TODO:  These lists must be filtered on installed only!
-        for channel in channel_sources:
-            self.append(installed_iter, channel)
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
@@ -279,7 +274,6 @@ class ViewSwitcherList(gtk.TreeStore):
         return the icon that corresponds to each channel node based
         on the channel name and its origin string
         """
-        # TODO: detect PPA using the origin string (see above)
         if channel_name == "Ubuntu":
             channel_icon = self.dist_icon
         elif channel_origin.startswith("LP-PPA"):

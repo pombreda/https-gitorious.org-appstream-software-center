@@ -57,9 +57,6 @@ class ChannelPane(SoftwarePane):
         self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
-        # FIXME: bogus, but pathbar currently requires a valid first part
-        self.navigation_bar.add_with_id(_("Channels"), self.on_navigation_list,
-                                        "list")
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
@@ -84,7 +81,7 @@ class ChannelPane(SoftwarePane):
                                             self.on_navigation_search, 
                                             "search")
         else:
-            self.navigation_bar.remove_all()
+            self.navigation_bar.remove_all(keep_first_part=False)
             self.navigation_bar.add_with_id(self.channel_name, 
                                         self.on_navigation_list,
                                         "list")
