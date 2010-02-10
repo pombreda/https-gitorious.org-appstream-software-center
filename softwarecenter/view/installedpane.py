@@ -61,7 +61,7 @@ class InstalledPane(SoftwarePane):
         " helper that goes back to the overview page "
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        self.searchentry.show()
+        #self.searchentry.show()
 
     @wait_for_apt_cache_ready
     def refresh_apps(self):
@@ -101,12 +101,12 @@ class InstalledPane(SoftwarePane):
     def on_db_reopen(self, db):
         self.refresh_apps()
         self._show_installed_overview()
-    def on_navigation_search(self, button):
+    def on_navigation_search(self, pathbar, part):
         logging.debug("on_navigation_search")
         pass
-    def on_navigation_list(self, button):
+    def on_navigation_list(self, pathbar, part):
         """callback when the navigation button with id 'list' is clicked"""
-        if not button.get_active():
+        if not pathbar.get_active():
             return
         # remove the details and clear the search
         self.searchentry.clear()
@@ -117,12 +117,12 @@ class InstalledPane(SoftwarePane):
         if model:
             self.emit("app-list-changed", len(model))
 
-    def on_navigation_details(self, button):
+    def on_navigation_details(self, pathbar, part):
         """callback when the navigation button with id 'details' is clicked"""
-        if not button.get_active():
+        if not pathbar.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.searchentry.hide()
+        #self.searchentry.hide()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""

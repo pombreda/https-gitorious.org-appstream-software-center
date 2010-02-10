@@ -1,3 +1,9 @@
+software-center (1.1.12) UNRELEASED; urgency=low
+
+  * merged  lp:~mmcg069/software-center/spinner  (many thanks)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 10 Feb 2010 09:56:29 +0100
+
 software-center (1.1.11) lucid; urgency=low
 
   [ Michael Vogt ]
