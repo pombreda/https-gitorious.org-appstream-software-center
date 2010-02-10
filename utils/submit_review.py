@@ -134,7 +134,7 @@ class LaunchpadlibWorker(threading.Thread):
         # login into LP with GUI
         try:
             self.launchpad = Launchpad.login_with(
-                'software-center', 'edge', cachedir,
+                'software-center', 'staging', cachedir,
                 allow_access_levels = ['WRITE_PUBLIC'],
                 authorizer_class=AuthorizeRequestTokenFromThread)
         except Exception, e:
