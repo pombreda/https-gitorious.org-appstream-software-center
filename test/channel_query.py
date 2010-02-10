@@ -32,3 +32,10 @@ if __name__ == "__main__":
         #print "\n"
     print ";".join(sorted(apps))
     
+    for i in db.postlist(""):
+        doc = db.get_document(i.docid)
+        for t in doc.termlist():
+            if t.term.startswith("XOL"):
+                print "doc: '%s', term: '%s'" % (doc.get_data(), t.term)
+
+        
