@@ -1,4 +1,4 @@
-software-center (1.1.11) UNRELEASED; urgency=low
+software-center (1.1.11) lucid; urgency=low
 
   [ Michael Vogt ]
   * make action buttons in the appview insensitive while a action
@@ -12,6 +12,9 @@ software-center (1.1.11) UNRELEASED; urgency=low
     - only set meta-data that is actually available (LP: #499392)
   * utils/update-software-center:
     - warn if locale can not be set (LP: #516266)
+  * merge branch lp:~juliank/software-center/debian (many thanks)
+  * merge lp:~mvo/software-center/spinner, this gives us inline
+    progress
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
@@ -22,7 +25,33 @@ software-center (1.1.11) UNRELEASED; urgency=low
     - fix typo for apps with unknown maintenance status,
       refreshed .pot file (LP: #519090) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 08 Feb 2010 19:39:36 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 09 Feb 2010 16:45:47 +0100
+
+software-center (1.1.10debian2) unstable; urgency=low
+
+  * softwarecenter/db/update.py:
+    - Use logging.warning instead of logging.exception (Closes: #568941)
+
+ -- Julian Andres Klode <jak@debian.org>  Tue, 09 Feb 2010 07:40:07 +0100
+
+software-center (1.1.10debian1) unstable; urgency=low
+
+  * Merge with Ubuntu.
+  * debian/control:
+    - Reindent with spaces only.
+    - Require at least version 0.7.93.1 of python-apt.
+    - Set Standards-Version to 3.8.4.
+    - Conflicts, Replaces, Provides gnome-app-install.
+  * softwarecenter/distro/Debian.py:
+    - Replace import from aptutils with apt.utils.
+  * data/icons/scalable/apps/softwarecenter.svg:
+    - Remove the execute bit from the file.
+  * man/update-software-center.8:
+    - Add a manpage for update-software-center.
+  * debian/manpages:
+    - Add man/update-software-center.8 to the list of manpages.
+
+ -- Julian Andres Klode <jak@debian.org>  Fri, 05 Feb 2010 17:49:29 +0100
 
 software-center (1.1.10) lucid; urgency=low
 
@@ -260,6 +289,20 @@ software-center (1.1.1) lucid; urgency=low
     - string fixes (thanks to shane fagan), LP: #493618
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Dec 2009 18:32:13 +0100
+ 
+software-center (1.1debian1) unstable; urgency=low
+
+  * Initial upload to Debian (Closes: #558692)
+  * debian/control:
+    - Change maintainer to jak@debian.org
+    - Point Vcs-Bzr to a debian branch
+    - Remove references to Ubuntu from the description
+  * debian/copyright: Add Source field to header section, listing the
+    branches this package is derived from and the launchpad entry.
+  * debian/TODO: Add file with list of items which have to be done in the
+    Debian package.
+
+ -- Julian Andres Klode <jak@debian.org>  Mon, 30 Nov 2009 18:38:36 +0100
 
 software-center (1.1) lucid; urgency=low
 

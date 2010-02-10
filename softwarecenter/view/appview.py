@@ -97,10 +97,15 @@ class AppStore(gtk.GenericTreeModel):
         self.db = db
         self.icons = icons
         self.apps = []
+        # this is used to re-set the cursor
         self.app_index_map = {}
+        # this is used to find the in-progress rows
+        self.pkgname_index_map = {}
         self.sorted = sort
         self.filter = filter
+        self.active = True
         self.backend = get_install_backend()
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # rowref of the active app and last active app
         self.active_app = None
         self._prev_active_app = 0
@@ -164,6 +169,11 @@ class AppStore(gtk.GenericTreeModel):
                 self.apps.sort()
                 for (i, app) in enumerate(self.apps):
                     self.app_index_map[app] = i
+            # build the pkgname map
+            for (i, app) in enumerate(self.apps):
+                if not app.pkgname in self.pkgname_index_map:
+                    self.pkgname_index_map[app.pkgname] = []
+                self.pkgname_index_map[app.pkgname].append(i)
 
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
@@ -196,6 +206,14 @@ class AppStore(gtk.GenericTreeModel):
             return int(self.MAX_STARS * math.log(raw_rating)/math.log(self.db.popcon_max+1))
         return 0
 
+    def _on_transaction_progress_changed(self, backend, pkgname, progress):
+        if (not self.apps or
+            not self.active or
+            not pkgname in self.pkgname_index_map):
+            return
+        for index in self.pkgname_index_map[pkgname]:
+            row = self[index]
+            self.row_changed(row.path, row.iter)
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -215,7 +233,11 @@ class AppStore(gtk.GenericTreeModel):
         return rowref
     def on_get_value(self, rowref, column):
         #logging.debug("on_get_value: %s %s" % (rowref, column))
-        app = self.apps[rowref]
+        try:
+            app = self.apps[rowref]
+        except IndexError:
+            logging.exception("on_get_value: rowref=%s apps=%s" % (rowref, self.apps))
+            return
         doc = self.db.get_xapian_document(app.appname, app.pkgname)
         if column == self.COL_APP_NAME:
             return app.appname
@@ -257,9 +279,9 @@ class AppStore(gtk.GenericTreeModel):
             return (rowref == self.active_app)
         elif column == self.COL_ACTION_IN_PROGRESS:
             if app.pkgname in self.backend.pending_transactions:
-                return True
+                return self.backend.pending_transactions[app.pkgname]
             else:
-                return False
+                return -1
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -475,8 +497,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         'available': (bool, 'available', 'Is the app available for install', False,
                      gobject.PARAM_READWRITE),
 
-        # FIXME: we could make this a int later when we wire in progress
-        'action_in_progress': (bool, 'Action Progress', 'Action progress', False,
+        'action_in_progress': (gobject.TYPE_INT, 'Action Progress', 'Action progress', -1, 100, -1,
                      gobject.PARAM_READWRITE),
         }
 
@@ -614,6 +635,52 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                    0, 0, 0)                                 # dither
         return
 
+    def draw_progress(self, window, widget, cell_area, layout, ypad, flags):
+        percent = self.props.action_in_progress
+        w, xO = widget.buttons["action"].get_params('width', 'x_offset_const')
+        dst_x = cell_area.width + xO
+        dst_y = cell_area.y + ypad + 1
+        h = self.star_pixbuf.get_height()
+
+        # background
+        widget.style.paint_box(window, gtk.STATE_NORMAL, gtk.SHADOW_IN,
+                               (dst_x, dst_y, w, h),
+                               widget, 
+                               "progressbar",
+                               dst_x,
+                               dst_y,
+                               w,
+                               h)
+        dst_x += 2
+        dst_y += 2
+        w -= 4
+        h -= 4
+
+        # progress
+        widget.style.paint_flat_box(window, gtk.STATE_SELECTED, gtk.SHADOW_NONE,
+                               (dst_x, dst_y, (percent/100.0)*w, h),
+                               widget, 
+                               "progressbar",
+                               dst_x,
+                               dst_y,
+                               w,
+                               h)
+
+        # Working... note
+        layout.set_markup("<small>%s</small>" % _("Working..."))
+        lw = self._get_layout_pixel_width(layout)
+        dst_x += (2 + (w-lw)/2)
+        dst_y += (ypad+h+1)
+        widget.style.paint_layout(window,
+                                  flags,
+                                  True,
+                                  (dst_x, dst_y, lw, self._get_layout_pixel_height(layout)),
+                                  widget,
+                                  None,
+                                  dst_x,
+                                  dst_y,
+                                  layout)
+
     def on_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
         xpad = self.get_property('xpad')
@@ -640,16 +707,15 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # only draw a install/remove button if the app is actually available
         if self.available:
             btn = widget.buttons['action']
-            if self.installed:
-                btn.set_use_alt_markup(True)
-            else:
-                btn.set_use_alt_markup(False)
+            btn.set_use_alt_markup(self.installed)
+
             # check if the current app is in progress
             # XXX: this code breaks button state changes, can the setting of button sensitivity be done elswhere?
 #            if self.props.action_in_progress == True:
 #                btn.set_sensitive(False)
 #            else:
 #                btn.set_sensitive(True)
+
             dst_x = self._calc_x(cell_area, btn.get_param('width'), cell_area.width-xpad-btn.get_param('width'))
             btn.draw(window, widget, layout, dst_x, cell_area.y)
 
