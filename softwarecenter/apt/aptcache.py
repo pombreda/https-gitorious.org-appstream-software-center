@@ -84,7 +84,11 @@ class AptCache(gobject.GObject):
     def _get_installed_rdepends_by_type(self, pkg, type):
         installed_rdeps = set()
         for rdep in pkg._pkg.RevDependsList:
-            if rdep.UntranslatedDepType in type:
+            try:
+                dep_type = rdep.dep_type_untranslated
+            except AttributeError:
+                dep_type = rdep.UntranslatedDepType
+            if dep_type in type:
                 rdep_name = rdep.ParentPkg.Name
                 if (self._cache.has_key(rdep_name) and
                     self._cache[rdep_name].isInstalled):

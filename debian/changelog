@@ -10,8 +10,10 @@ software-center (1.1.11debian1) unstable; urgency=low
     - Build depend on dpkg-dev >= 1.15.1 to use dpkg-vendor.
   * softwarecenter/app.py:
     - When not running on Ubuntu, remove the Views menu.
+  * softwarecenter/apt/aptcache.py:
+    - Use dep_type_untranslated instead of UntranslatedDepType if available.
 
- -- Julian Andres Klode <jak@debian.org>  Thu, 11 Feb 2010 17:36:10 +0100
+ -- Julian Andres Klode <jak@debian.org>  Thu, 11 Feb 2010 18:37:35 +0100
 
 software-center (1.1.11) lucid; urgency=low
 
