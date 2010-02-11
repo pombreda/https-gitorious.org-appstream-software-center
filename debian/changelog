@@ -3,6 +3,8 @@ software-center (1.1.11debian1) unstable; urgency=low
   * Merge 1.1.11.
   * softwarecenter/db/update.py:
     - Use logging.warning instead of logging.exception (Closes: #568941)
+  * debian/rules:
+    - Replace Ubuntu by Debian in some files when not building on Ubuntu.
 
  -- Julian Andres Klode <jak@debian.org>  Thu, 11 Feb 2010 17:36:10 +0100
 

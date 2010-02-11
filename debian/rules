@@ -14,6 +14,15 @@ override_dh_auto_install:
 	rmdir debian/software-center/usr/*bin
 	dh_link $(share)/software-center usr/bin/software-center \
 	        $(share)/update-software-center usr/sbin/update-software-center
+
+	# Drop Ubuntu stuff if not on Ubuntu
+	set -e; if ! dpkg-vendor --derives-from Ubuntu; then \
+		cd debian/software-center; sed -i 's/Ubuntu/Debian/g' \
+			usr/share/software-center/ui/SoftwareCenter.ui \
+			usr/share/applications/ubuntu-software-center.desktop; \
+		cd usr/share/applications; \
+		mv ubuntu-software-center.desktop software-center.desktop; \
+	fi;
 	# Remove empty directories.
 	find debian/software-center/usr -type d -empty -delete
 
