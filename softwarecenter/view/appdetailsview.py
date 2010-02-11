@@ -406,7 +406,7 @@ class AppDetailsView(WebkitWidget):
         if not self.app or not self.app.pkgname == pkgname:
             return
         # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-        if self._get_load_status() != 2:
+        if self.get_load_status() != 2:
             return
         self.execute_script("showProgress(true);")
         if pkgname in backend.pending_transactions:
@@ -444,7 +444,7 @@ class AppDetailsView(WebkitWidget):
             logging.debug("run_thumb_missing_js")
             # wait until its ready for JS injection
             # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-            if self._get_load_status() != 2:
+            if self.get_load_status() != 2:
                 return True
             self.execute_script("thumbMissing();")
             return False
@@ -521,9 +521,6 @@ class AppDetailsView(WebkitWidget):
     def _get_font_description_property(self, property):
         description = self._get_pango_font_description()
         return getattr(description, "get_%s" % property)()
-        
-    def _get_load_status(self):
-        return self.get_property("load-status")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
