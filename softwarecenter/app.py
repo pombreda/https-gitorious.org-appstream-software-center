@@ -48,6 +48,7 @@ from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
 
 from backend.config import get_config
+from backend import get_install_backend
 
 from distro import get_distro
 
@@ -106,6 +107,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # a main iteration friendly apt cache
         self.cache = AptCache()
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-finished", 
+                             lambda backend, result, self: self.cache.open(), 
+                             self)
 
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -141,7 +146,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         gtk.window_set_default_icon_name("softwarecenter")
 
         # misc state
-        self._pending_transactions = 0
         self._block_menuitem_view = False
         self._available_items_for_page = {}
 
@@ -183,8 +187,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
-        self.view_switcher.model.connect("transactions-changed", 
-                                   self.on_view_switcher_transactions_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
@@ -228,20 +230,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.searchentry.is_focus()):
             self.active_pane.navigation_bar.navigate_up()
         
-    def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
-        # if the pending number drops to zero check if we should switch
-        # to the previous view
-        if pending_nr == 0 and self._view_before_pending_switch is not None:
-            if self.view_switcher.get_view() is None:
-                self.view_switcher.set_view(self._view_before_pending_switch)
-            self._view_before_pending_switch = None
-        # the spec says that on the first transaction it should auto-switch
-        # to the progress view
-        elif pending_nr > 0 and self._pending_transactions == 0:
-            self._view_before_pending_switch = self.view_switcher.get_view()
-            self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_PENDING)
-        self._pending_transactions = pending_nr
-
     def on_view_switcher_changed(self, view_switcher, action):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
@@ -397,6 +385,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.cache.open()
     def run_update_cache(self):
         """update the apt cache (e.g. after new sources where added """
+        # FIXME: use the buildin aptd backend instead of the aptdaemon.AptClient
         aptd_client = aptdaemon.client.AptClient()
         trans = aptd_client.update_cache(exit_handler=self._on_trans_finished)
         try:

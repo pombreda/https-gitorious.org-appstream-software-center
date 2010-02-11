@@ -159,6 +159,11 @@ class AvailablePane(SoftwarePane):
     def _refresh_apps_with_apt_cache(self):
         # build query
         query = self._get_query()
+        # *ugh* deactivate the old model because otherwise it keeps
+        # getting progress_changed events and eats CPU time until its
+        # garbage collected
+        old_model = self.app_view.get_model()
+        old_model.active = False
         # create new model and attach it
         new_model = AppStore(self.cache,
                              self.db, 
@@ -242,6 +247,13 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("search")
 
     # callbacks
+    def on_cache_ready(self, cache):
+        """ refresh the application list when the cache is re-opened """
+        # just re-draw in the available pane, nothing but the 
+        # "is-installed" overlay icon will change when something 
+        # is installed or removed in the available pane
+        self.app_view.queue_draw()
+
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
         logging.debug("on_entry_changed: %s" % new_text)

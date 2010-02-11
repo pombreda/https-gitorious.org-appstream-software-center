@@ -31,7 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-from transactionswatcher import TransactionsWatcher
+from softwarecenter.backend import get_install_backend
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
 class ViewSwitcher(gtk.TreeView):
@@ -69,7 +69,6 @@ class ViewSwitcher(gtk.TreeView):
         
         self.set_model(store)
         self.set_headers_visible(False)
-        self.connect("button-press-event", self.on_button_press_event)
         self.get_selection().set_select_function(self.on_treeview_selected)
         # expand the first entry (get software)
         self.expand_to_path((0,))
@@ -78,6 +77,7 @@ class ViewSwitcher(gtk.TreeView):
         
         self.connect("row-expanded", self.on_treeview_row_expanded)
         self.connect("row-collapsed", self.on_treeview_row_collapsed)
+        self.connect("cursor-changed", self.on_cursor_changed)
         
     def on_treeview_row_expanded(self, widget, iter, path):
         #behaviour overrides
@@ -90,7 +90,13 @@ class ViewSwitcher(gtk.TreeView):
     def on_treeview_selected(self, path):
         if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
             return False
-        return True    
+        return True
+        
+    def on_cursor_changed(self, widget):
+        (path, column) = self.get_cursor()
+        model = self.get_model()
+        action = model[path][ViewSwitcherList.COL_ACTION]
+        self.emit("view-changed", action) 
         
     def get_view(self):
         """return the current activated view number or None if no
@@ -115,19 +121,8 @@ class ViewSwitcher(gtk.TreeView):
             self.window.set_cursor(None)
         else:
             self.window.set_cursor(self.cursor_hand)
-    def on_button_press_event(self, widget, event):
-        #print "on_button_press_event: ", event
-        res = self.get_path_at_pos(int(event.x), int(event.y))
-        if not res:
-            return
-        (path, column, wx, wy) = res
-        if event.button != 1 or path is None:
-            return
-        model = self.get_model()
-        action = model[path][ViewSwitcherList.COL_ACTION]
-        self.emit("view-changed", action)
 
-class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
+class ViewSwitcherList(gtk.TreeStore):
     
     # columns
     (COL_ICON,
@@ -144,18 +139,12 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
 
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
-    __gsignals__ = {'transactions-changed' : (gobject.SIGNAL_RUN_LAST,
-                                              gobject.TYPE_NONE,
-                                              (int, )),
-                     }
-
     def __init__(self, datadir, icons):
         gtk.TreeStore.__init__(self, AnimatedImage, str, int)
-        TransactionsWatcher.__init__(self)
         self.icons = icons
         self.datadir = datadir
-        # pending transactions
-        self._pending = 0
+        self.backend = get_install_backend()
+        self.backend.connect("transactions-changed", self.on_transactions_changed)
         # setup the normal stuff
         if self.icons.lookup_icon("softwarecenter", self.ICON_SIZE, 0):
             icon = AnimatedImage(self.icons.load_icon("softwarecenter", self.ICON_SIZE, 0))
@@ -177,13 +166,9 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1])
 
-    def on_transactions_changed(self, current, queue):
-        #print "check_pending"
-        pending = 0
-        if current or len(queue) > 0:
-            pending = 1 + len(queue)
-        # if we have a pending item, show it in the action view
-        # and if not, delete any items we added already
+    def on_transactions_changed(self, backend, total_transactions):
+        logging.debug("on_transactions_changed '%s'" % total_transactions)
+        pending = len(total_transactions)
         if pending > 0:
             for row in self:
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
@@ -198,11 +183,6 @@ class ViewSwitcherList(gtk.TreeStore, TransactionsWatcher):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
-        # emit signal
-        if pending != self._pending:
-            self.emit("transactions-changed", pending)
-            self._pending = pending
-        return True
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

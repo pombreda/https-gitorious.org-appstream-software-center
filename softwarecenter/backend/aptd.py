@@ -28,12 +28,13 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
 import gtk
 
+from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.view import dialogs
 
 from gettext import gettext as _
 
-class AptdaemonBackend(gobject.GObject):
+class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     """ software center specific code that interacts with aptdaemon """
 
     __gsignals__ = {'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
@@ -42,11 +43,20 @@ class AptdaemonBackend(gobject.GObject):
                     'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             ()),                    
+                    'transactions-changed':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (gobject.TYPE_PYOBJECT, )),
+                    'transaction-progress-changed':(gobject.SIGNAL_RUN_FIRST,
+                                                    gobject.TYPE_NONE,
+                                                    (str,int,)),
                     }
 
     def __init__(self):
         gobject.GObject.__init__(self)
+        TransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
+        self.pending_transactions = {}
+        self._progress_signal = None
 
     # public methods
     def upgrade(self, pkgname, appname, iconname):
@@ -99,6 +109,39 @@ class AptdaemonBackend(gobject.GObject):
         self.reload()
 
     # internal helpers
+    def on_transactions_changed(self, current, pending):
+        # cleanup progress signal (to be sure to not leave dbus matchers around)
+        if self._progress_signal:
+            gobject.source_remove(self._progress_signal)
+            self._progress_signal = None
+        # attach progress-changed signal for current transaction
+        if current:
+            trans = client.get_transaction(current, 
+                                           error_handler=lambda x: True)
+            self._progress_signal = trans.connect("progress-changed", self._on_progress_changed)
+        # now update pending transactions
+        self.pending_transactions.clear()
+        for tid in [current] + pending:
+            if not tid:
+                continue
+            trans = client.get_transaction(tid, error_handler=lambda x: True)
+            # FIXME: add a bit more data here
+            try:
+                pkgname = trans.meta_data["sc_pkgname"]
+                self.pending_transactions[pkgname] = trans.progress
+            except KeyError:
+                pass
+        self.emit("transactions-changed", self.pending_transactions)
+
+    def _on_progress_changed(self, trans, progress):
+        """ internal helper that gets called on transaction progress """
+        try:
+            pkgname = trans.meta_data["sc_pkgname"]
+            self.pending_transactions[pkgname] = progress
+            self.emit("transaction-progress-changed", pkgname, progress)
+        except KeyError:
+            pass
+
     def _on_trans_reply(self):
         # dummy callback for now, but its required, otherwise the aptdaemon
         # client blocks the UI and keeps gtk from refreshing
@@ -137,6 +180,13 @@ class AptdaemonBackend(gobject.GObject):
                     enums.get_error_description_from_enum(trans.error_code),
                     trans.error_details)
         # send finished signal
+        try:
+            pkgname = trans.meta_data["sc_pkgname"]
+            del self.pending_transactions[pkgname]
+            self.emit("transaction-progress-changed", pkgname, 100)
+        except KeyError:
+            pass
+        self.emit("transactions-changed", self.pending_transactions)
         self.emit("transaction-finished", enum != enums.EXIT_FAILED)
 
     def _config_file_conflict(self, transaction, old, new):
@@ -176,9 +226,20 @@ class AptdaemonBackend(gobject.GObject):
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
-        trans.set_meta_data(sc_appname=appname, sc_iconname=iconname,
+        # set appname/iconname only if we actually have one
+        if appname:
+            trans.set_meta_data(sc_appname=appname, 
+                                reply_handler=lambda t: True,
+                                error_handler=self._on_trans_error)
+        if iconname:
+            trans.set_meta_data(sc_iconname=iconname,
+                                reply_handler=lambda t: True,
+                                error_handler=self._on_trans_error)
+        # we always have a pkgname
+        trans.set_meta_data(sc_pkgname=pkgname,
                             reply_handler=set_debconf,
                             error_handler=self._on_trans_error)
+        
 
 if __name__ == "__main__":
     c = client.AptClient()
