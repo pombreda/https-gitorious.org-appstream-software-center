@@ -5,6 +5,8 @@ software-center (1.1.11debian1) unstable; urgency=low
     - Use logging.warning instead of logging.exception (Closes: #568941)
   * debian/rules:
     - Replace Ubuntu by Debian in some files when not building on Ubuntu.
+  * softwarecenter/app.py:
+    - When not running on Ubuntu, remove the Views menu.
 
  -- Julian Andres Klode <jak@debian.org>  Thu, 11 Feb 2010 17:36:10 +0100
 

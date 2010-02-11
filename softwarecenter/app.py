@@ -105,6 +105,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # distro specific stuff
         self.distro = get_distro()
 
+        if self.distro.__class__.__name__ != "Ubuntu":
+            # Remove the views menu on non-Ubuntu distributions.
+            # TODO: Should probably be done in distribution classes.
+            view = self.builder.get_object("menuitem_view_supported_only")
+            views = view.get_parent().get_property("attach-widget")
+            menu = views.get_parent()
+            menu.remove(views)
+
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.backend = get_install_backend()
