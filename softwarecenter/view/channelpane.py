@@ -74,9 +74,10 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
+        channel_query = xapian.Query("XOL" + self.channel_name)
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
-                                                             xapian.Query("XOL"+self.channel_name))
+                                                             channel_query)
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
                                             "search")
@@ -85,7 +86,7 @@ class ChannelPane(SoftwarePane):
             self.navigation_bar.add_with_id(self.channel_name, 
                                         self.on_navigation_list,
                                         "list")
-            query = xapian.Query("XOL"+self.channel_name)
+            query = xapian.Query(channel_query)
         logging.debug("channelpane query: %s" % query)
         # *ugh* deactivate the old model because otherwise it keeps
         # getting progress_changed events and eats CPU time until its

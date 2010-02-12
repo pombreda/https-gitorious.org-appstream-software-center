@@ -214,17 +214,20 @@ class ViewSwitcherList(gtk.TreeStore):
         """        
         channels = []
         for channel_iter in self.db.xapiandb.allterms("XOL"):
-            channel_name = channel_iter.term[3:]            
-            print "channel_name: %s" % channel_name
+            if len(channel_iter.term) == 3:
+                continue
+            channel_name = channel_iter.term[3:]
             
             # get origin information for this channel
             m = self.db.xapiandb.postlist_begin(channel_iter.term)
             doc = self.db.xapiandb.get_document(m.get_docid())
             for term_iter in doc.termlist():
-                if term_iter.term.startswith("XOO"): 
+                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
                     channel_origin = term_iter.term[3:]
-                    print "channel_origin: %s" % channel_origin
                     break
+            print "---"
+            print "channel_name: %s" % channel_name
+            print "channel_origin: %s" % channel_origin
             channels.append((channel_name, channel_origin))
             
         channel_sources = []
