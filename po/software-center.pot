@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-05 18:44-0500\n"
+"POT-Creation-Date: 2010-02-08 19:19-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -308,19 +308,19 @@ msgstr ""
 msgid "otherosfs"
 msgstr ""
 
-#: ../softwarecenter/app.py:127
+#: ../softwarecenter/app.py:129
 msgid "Sorry, can not open the software database"
 msgstr ""
 
-#: ../softwarecenter/app.py:128
+#: ../softwarecenter/app.py:130
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/app.py:415
+#: ../softwarecenter/app.py:391
 msgid "ERROR"
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:127
+#: ../softwarecenter/backend/aptd.py:144
 msgid "Error"
 msgstr ""
 
@@ -329,7 +329,7 @@ msgstr ""
 #. provide a list of words in your language that people are likely
 #. to include in a search but that should normally be ignored in
 #. the search.
-#: ../softwarecenter/db/database.py:58
+#: ../softwarecenter/db/database.py:38
 msgid "app;application;package;program;programme;suite;tool"
 msgstr ""
 
@@ -404,142 +404,161 @@ msgstr ""
 msgid "License: %s"
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:140
-#: ../softwarecenter/distro/Ubuntu.py:152
+#: ../softwarecenter/distro/Ubuntu.py:155
+#: ../softwarecenter/distro/Ubuntu.py:167
 #, python-format
 msgid ""
 "Canonical does no longer provide updates for %s in Ubuntu %s. Updates may be "
 "available in a newer version of Ubuntu."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:145
+#: ../softwarecenter/distro/Ubuntu.py:160
 #, python-format
 msgid ""
 "Canonical provides critical updates for %(appname)s until %"
 "(support_end_month_str)s %(support_end_year)s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:157
+#: ../softwarecenter/distro/Ubuntu.py:172
 #, python-format
 msgid ""
 "Canonical provides critical updates supplied by the developers of %(appname)"
 "s until %(support_end_month_str)s %(support_end_year)s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:167
+#: ../softwarecenter/distro/Ubuntu.py:182
 #, python-format
 msgid ""
 "Canonical does not provide updates for %s. Some updates may be provided by "
 "the third party vendor."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:171
+#: ../softwarecenter/distro/Ubuntu.py:186
 #, python-format
 msgid "Canonical provides critical updates for %s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:173
+#: ../softwarecenter/distro/Ubuntu.py:188
 #, python-format
 msgid "Canonical provides critical updates supplied by the developers of %s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:176
+#: ../softwarecenter/distro/Ubuntu.py:191
 #, python-format
 msgid ""
 "Canonical does not provide updates for %s. Some updates may be provided by "
 "the Ubuntu community."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:179
+#: ../softwarecenter/distro/Ubuntu.py:194
 #, python-format
-msgid "Application %s has a unkown maintenance status."
+msgid "Application %s has an unknown maintenance status."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:82
+#: ../softwarecenter/view/appdetailsview.py:83
 msgid "Description"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:186
+#: ../softwarecenter/view/appdetailsview.py:178
 #, python-format
 msgid ""
 "This software is available from the '%s' source, which you are not currently "
 "using."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:191
+#: ../softwarecenter/view/appdetailsview.py:183
 msgid ""
 "To show information about this item, the software catalog needs updating."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:194
+#: ../softwarecenter/view/appdetailsview.py:186
 #, python-format
 msgid "Sorry, '%s' is not available for this type of computer (%s)."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:253
-#: ../softwarecenter/view/appdetailsview.py:257
+#: ../softwarecenter/view/appdetailsview.py:245
+#: ../softwarecenter/view/appdetailsview.py:249
 msgid "Application Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:283
+#: ../softwarecenter/view/appdetailsview.py:275
 #, python-format
 msgid "Version: %s (%s)"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:298
+#: ../softwarecenter/view/appdetailsview.py:290
 msgid "Website"
 msgstr ""
 
 #. TRANSLATORS: This text will be showed as price of the software
-#: ../softwarecenter/view/appdetailsview.py:304
+#: ../softwarecenter/view/appdetailsview.py:296
 msgid "Free"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:305
+#: ../softwarecenter/view/appdetailsview.py:297
 #, python-format
 msgid "Price: %s"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:350
+#: ../softwarecenter/view/appdetailsview.py:311
+msgid "No screenshot available"
+msgstr ""
+
+#: ../softwarecenter/view/appdetailsview.py:344
 #, python-format
 msgid "%s - Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:462
+#: ../softwarecenter/view/appdetailsview.py:453
+#: ../softwarecenter/view/appview.py:766
 msgid "Remove"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:465
+#: ../softwarecenter/view/appdetailsview.py:456
+#: ../softwarecenter/view/appview.py:766
 msgid "Install"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarecenter/view/appdetailsview.py:475
+#: ../softwarecenter/view/appdetailsview.py:466
 msgid "Use This Source"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:478
+#: ../softwarecenter/view/appdetailsview.py:469
 msgid "Update Now"
 msgstr ""
 
+#. draw number of reviews
+#: ../softwarecenter/view/appview.py:548
+#, python-format
+msgid "%s review"
+msgid_plural "%s reviews"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../softwarecenter/view/appview.py:767
+msgid "More Info"
+msgstr ""
+
 #. home button
-#: ../softwarecenter/view/availablepane.py:104
+#: ../softwarecenter/view/availablepane.py:98
 msgid "Get Free Software"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:202
-msgid "Search"
+#: ../softwarecenter/view/availablepane.py:183
+#: ../softwarecenter/view/installedpane.py:73
+msgid "Search Results"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:224
-#: ../softwarecenter/view/installedpane.py:121
+#: ../softwarecenter/view/availablepane.py:215
+#: ../softwarecenter/view/installedpane.py:135
 #, python-format
 msgid "%s matching item"
 msgid_plural "%s matching items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:228
+#: ../softwarecenter/view/availablepane.py:219
 #, python-format
 msgid "%s application available"
 msgid_plural "%s applications available"
@@ -563,28 +582,28 @@ msgstr ""
 msgid "Dependency"
 msgstr ""
 
-#: ../softwarecenter/view/installedpane.py:74
-#: ../softwarecenter/view/viewswitcher.py:176
+#: ../softwarecenter/view/installedpane.py:78
+#: ../softwarecenter/view/viewswitcher.py:171
 msgid "Installed Software"
 msgstr ""
 
-#: ../softwarecenter/view/installedpane.py:125
+#: ../softwarecenter/view/installedpane.py:139
 #, python-format
 msgid "%s application installed"
 msgid_plural "%s applications installed"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/viewswitcher.py:165
+#: ../softwarecenter/view/viewswitcher.py:160
 msgid "Get Software"
 msgstr ""
 
-#: ../softwarecenter/view/viewswitcher.py:173
+#: ../softwarecenter/view/viewswitcher.py:168
 msgid "Free Software"
 msgstr ""
 
+#: ../softwarecenter/view/viewswitcher.py:185
 #: ../softwarecenter/view/viewswitcher.py:190
-#: ../softwarecenter/view/viewswitcher.py:195
 #, python-format
 msgid "In Progress (%i)"
 msgstr ""
