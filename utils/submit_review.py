@@ -167,7 +167,7 @@ class LaunchpadlibWorker(threading.Thread):
                                       content=review.to_xml())
             self.pending_reviews.task_done()
 
-    def _lp_login(self):
+    def _lp_login(self, access_level=['READ_PUBLIC']):
         """ internal LP login code """
         logging.debug("lp_login")
         # use cachedir
@@ -178,7 +178,7 @@ class LaunchpadlibWorker(threading.Thread):
         try:
             self.launchpad = Launchpad.login_with(
                 'software-center', SERVICE_ROOT, cachedir,
-                allow_access_levels = ['READ_PUBLIC'],
+                allow_access_levels = access_level,
                 authorizer_class=AuthorizeRequestTokenFromThread)
         except Exception, e:
             if type(e) != UserCancelException:
