@@ -164,6 +164,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self.dist_icon = self._get_icon("distributor-logo")
         self.partner_icon = self._get_icon("partner")
         self.ppa_icon = self._get_icon("ppa")
+        self.generic_repo_icon = self._get_icon("generic-repository")
         self.unknown_channel_icon = self._get_icon("unknown-channel")
         
         # get list of channel sources of form:
@@ -259,6 +260,7 @@ class ViewSwitcherList(gtk.TreeStore):
                 dist_channel.append((channel_name, channel_origin))
             elif channel_origin and channel_origin.startswith("LP-PPA"):
                 ppa_channels.append((channel_name, channel_origin))
+            # TODO: detect generic repository source (e.g., Google, Inc.)
             # TODO: detect partner channel
             else:
                 other_channels.append((channel_name, channel_origin))
@@ -277,13 +279,14 @@ class ViewSwitcherList(gtk.TreeStore):
         return the icon that corresponds to each channel node based
         on the channel name and its origin string
         """
-        if channel_name == "Ubuntu":
-            channel_icon = self.dist_icon
-        elif channel_origin.startswith("LP-PPA"):
-            channel_icon = self.ppa_icon
-        # TODO:  Add check for partner_icon
-        elif channel_name == "Unknown":
+        if not channel_name:
             channel_icon = self.unknown_channel_icon
+        elif channel_name == "Ubuntu":
+            channel_icon = self.dist_icon
+        elif channel_origin and channel_origin.startswith("LP-PPA"):
+            channel_icon = self.ppa_icon
+        # TODO: add check for generic repository source (e.g., Google, Inc.)
+        # TODO: add check for partner_icon
         else:
             channel_icon = self.unknown_channel_icon
         return channel_icon
@@ -293,7 +296,7 @@ class ViewSwitcherList(gtk.TreeStore):
         return the display name for the corresponding channel node
         """
         if not channel_name:
-            channel_display_name = "Unknown"
+            channel_display_name = "Other"
         elif channel_name == "Ubuntu":
             channel_display_name = _("Provided by Ubuntu")
         else:

@@ -83,7 +83,7 @@ class ChannelPane(SoftwarePane):
                                             "search")
         else:
             self.navigation_bar.remove_all(keep_first_part=False)
-            self.navigation_bar.add_with_id(self.channel_name, 
+            self.navigation_bar.add_with_id(self.channel_name,
                                         self.on_navigation_list,
                                         "list")
             query = xapian.Query(channel_query)
