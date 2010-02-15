@@ -40,7 +40,7 @@ import urllib2
 from gettext import gettext as _
 from launchpadlib.launchpad import Launchpad
 from launchpadlib.credentials import RequestTokenAuthorizationEngine
-from launchpadlib import uris
+from launchpadlib.uris import EDGE_SERVICE_ROOT, STAGING_SERVICE_ROOT
 from Queue import Queue
 from optparse import OptionParser
 from urlparse import urljoin
@@ -62,6 +62,10 @@ LOGIN_STATE_USER_CANCEL = "user-cancel"
 
 # the SUBMIT url
 SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/submit_review"
+
+
+# LP to use
+SERVICE_ROOT = EDGE_SERVICE_ROOT
 
 class UserCancelException(Exception):
     """ user pressed cancel """
@@ -135,8 +139,13 @@ class LaunchpadlibWorker(threading.Thread):
                      'date' : review.date,
                      'rating': review.rating,
                      'name' : review.person,
-                     # FIXME: use display name here
-                     'display_name' : review.person,
+                     # send the token, ideally we would not send
+                     # it but instead send a pre-made request
+                     # that uses  "3.4.2.  HMAC-SHA1" - but it
+                     # seems that LP does not support that at this
+                     # point 
+                     'token' : self.launchpad.credentials.access_token.key,
+                     'token-secret' : self.launchpad.credentials.access_token.secret,
                      }
             f = urllib.urlopen(SUBMIT_POST_URL, urllib.urlencode(data))
             res = f.read()
@@ -168,8 +177,8 @@ class LaunchpadlibWorker(threading.Thread):
         # login into LP with GUI
         try:
             self.launchpad = Launchpad.login_with(
-                'software-center', 'staging', cachedir,
-                allow_access_levels = ['WRITE_PUBLIC'],
+                'software-center', SERVICE_ROOT, cachedir,
+                allow_access_levels = ['READ_PUBLIC'],
                 authorizer_class=AuthorizeRequestTokenFromThread)
         except Exception, e:
             if type(e) != UserCancelException:
