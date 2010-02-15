@@ -74,8 +74,6 @@ class ViewSwitcher(gtk.TreeView):
         self.set_model(store)
         self.set_headers_visible(False)
         self.get_selection().set_select_function(self.on_treeview_selected)
-        # expand the first entry (get software)
-        self.expand_to_path((0,))
         self.set_level_indentation(4)
         self.set_enable_search(False)
         
