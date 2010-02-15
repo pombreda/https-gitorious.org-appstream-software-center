@@ -30,6 +30,7 @@ if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
     from widgets.navigationbar import NavigationBar
 else:
     from widgets.pathbar2 import NavigationBar
+    from widgets.backforward import BackForwardButton
 
 from widgets.searchentry import SearchEntry
 
@@ -110,10 +111,16 @@ class SoftwarePane(gtk.VBox):
         self.cache.connect("cache-ready", self.on_cache_ready)
         # COMMON UI elements
         # navigation bar and search on top in a hbox
+        self.back_forward = BackForwardButton()
+        self.back_forward.left.set_sensitive(False)
+        self.back_forward.right.set_sensitive(False)
+        self.back_forward.connect("left-clicked", self.on_nav_left_clicked)
+        self.back_forward.connect("right-clicked", self.on_nav_right_clicked)
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         top_hbox = gtk.HBox()
+        top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
         top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(top_hbox, expand=False, padding=self.PADDING)
@@ -164,6 +171,12 @@ class SoftwarePane(gtk.VBox):
         btns = self.app_view.buttons
         if btns.has_key('action'):
             btns['action'].set_sensitive(True)
+            
+    def on_nav_left_clicked(self, widget, event):
+        print "clicked back button"
+
+    def on_nav_right_clicked(self, widget, event):
+        print "clicked forward button"
 
     def set_page(self, part):
         if part.name == "category":
