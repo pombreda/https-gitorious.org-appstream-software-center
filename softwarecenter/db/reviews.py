@@ -26,6 +26,7 @@ import json
 import random
 import StringIO
 import time
+import urllib
 import weakref
 import xml.dom.minidom
 
@@ -59,10 +60,11 @@ class Review(object):
     def __repr__(self):
         return "[Review id=%s text='%s' person='%s']" % (self.id, self.text, self.person)
     def to_xml(self):
-        return """<review review_app="%s" review_id="%s" review_language="%s" 
-review_data="%s" review_rating="%s" review_person="%s">
+        return """<review app_name="%s" package_name="%s" id="%s" language="%s" 
+data="%s" rating="%s" person="%s">
 <summary>%s</summary><text>%s</text></review>""" % (
-            self.app, self.id, self.language, self.date, self.rating, 
+            self.app.appname, self.app.pkgname,
+            self.id, self.language, self.date, self.rating, 
             self.person, self.summary, self.text)
 
 class ReviewLoader(object):
@@ -98,6 +100,7 @@ class ReviewLoader(object):
 
 class ReviewLoaderXMLAsync(ReviewLoader):
     """ get xml (or gzip compressed xml) """
+
     def _gio_review_input_callback(self, source, result):
         app = source.get_data("app")
         callback = source.get_data("callback")
@@ -113,19 +116,21 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         dom = xml.dom.minidom.parseString(xml_str)
         reviews = []
         for review_xml in dom.getElementsByTagName("review"):
-            appname, pkgname = review_xml.getAttribute("review_app").split(",")
+            appname = review_xml.getAttribute("app_name")
+            pkgname = review_xml.getAttribute("package_name")
             app = Application(appname, pkgname)
             review = Review(app)
-            review.id = review_xml.getAttribute("review_id")
-            review.date = review_xml.getAttribute("review_date")
-            review.rating = review_xml.getAttribute("review_rating")
-            review.person = review_xml.getAttribute("review_person")
-            review.language = review_xml.getAttribute("review_language")
+            review.id = review_xml.getAttribute("id")
+            review.date = review_xml.getAttribute("date")
+            review.rating = review_xml.getAttribute("rating")
+            review.person = review_xml.getAttribute("display_name")
+            review.language = review_xml.getAttribute("language")
             review.summary = review_xml.getElementsByTagName("summary")[0].childNodes[0].data
             review.text = review_xml.getElementsByTagName("text")[0].childNodes[0].data
             reviews.append(review)
         # run callback
         callback(app, reviews)
+
     def _gio_review_read_callback(self, source, result):
         app = source.get_data("app")
         callback = source.get_data("callback")
@@ -143,9 +148,11 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         #        like there is a bug in the python bindings, I can not pass
         #        -1 or anything like this
         stream.read_async(128*1024, self._gio_review_input_callback)
+
     def get_reviews(self, app, callback):
-        url = self.distro.REVIEWS_URL % (
-            hash_pkgname_for_changelogs(app.pkgname), app.pkgname, app.pkgname)
+        url = self.distro.REVIEWS_URL % app.pkgname
+        if app.appname:
+            url += "/%s" % app.appname
         f=gio.File(url)
         f.read_async(self._gio_review_read_callback)
         f.set_data("app", app)

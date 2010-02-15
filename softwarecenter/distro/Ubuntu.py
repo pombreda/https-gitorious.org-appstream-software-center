@@ -35,7 +35,8 @@ class Ubuntu(Distro):
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
 
     # reviews
-    REVIEWS_URL = "http://people.canonical.com/~mvo/reviews/lucid/%s/%s/%s.xml"
+    #REVIEWS_URL = "http://people.canonical.com/~mvo/reviews/lucid/%s/%s/%s.xml"
+    REVIEWS_URL = "http://127.0.0.1:8080/reviews/en/ubuntu/lucid/+binary/%s"
 
     def get_removal_warning_text(self, cache, pkg, appname):
         primary = _("To remove %s, these items must be removed "

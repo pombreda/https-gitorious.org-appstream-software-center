@@ -465,6 +465,7 @@ class AppDetailsView(WebkitWidget):
         # the reviews become ready 
         # (we only check for pkgname currently to avoid breaking on
         #  software-center totem)
+        logging.info("_review_ready_callback: %s" % app)
         if self.app.pkgname != app.pkgname:
             return
         if not reviews:
@@ -599,9 +600,10 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
+    view.show_app(Application("", "2vcard"))
     #view.show_app("3D Chess", "3dchess")
     #view.show_app("Movie Player", "totem")
-    view.show_app(Application("ACE", "unace"))
+    #view.show_app(Application("ACE", "unace"))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")

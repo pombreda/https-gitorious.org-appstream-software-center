@@ -24,6 +24,7 @@ pygtk.require ("2.0")
 import gobject
 gobject.threads_init()
 
+import datetime
 import gettext
 import glib
 import gtk
@@ -33,6 +34,8 @@ import os
 import sys
 import time
 import threading
+import urllib
+import urllib2
 
 from gettext import gettext as _
 from launchpadlib.launchpad import Launchpad
@@ -56,6 +59,9 @@ LOGIN_STATE_HAS_USER_AND_PASS = "has-user-pass"
 LOGIN_STATE_SUCCESS = "success"
 LOGIN_STATE_AUTH_FAILURE = "auth-fail"
 LOGIN_STATE_USER_CANCEL = "user-cancel"
+
+# the SUBMIT url
+SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/submit_review"
 
 class UserCancelException(Exception):
     """ user pressed cancel """
@@ -112,7 +118,35 @@ class LaunchpadlibWorker(threading.Thread):
                 return
 
     def _submit_reviews(self):
-        """ internal submit code """
+        """ the actual submit function """
+        self._submit_reviews_POST()
+        #self._submit_reviews_LP()
+            
+    def _submit_reviews_POST(self):
+        """ http POST based submit """
+        while not self.pending_reviews.empty():
+            logging.debug("_submit_review")
+            review = self.pending_reviews.get()
+            review.person = self.launchpad.me.name
+            data = { 'package_name' : review.app.pkgname,
+                     'app_name' : review.app.appname,
+                     'summary' : review.summary,
+                     'text' : review.text,
+                     'date' : review.date,
+                     'rating': review.rating,
+                     'name' : review.person,
+                     # FIXME: use display name here
+                     'display_name' : review.person,
+                     }
+            f = urllib.urlopen(SUBMIT_POST_URL, urllib.urlencode(data))
+            res = f.read()
+            print res
+            f.close()
+            self.pending_reviews.task_done()
+        
+
+    def _submit_reviews_LP(self):
+        """ launchpadlib based submit """
         while not self.pending_reviews.empty():
             logging.debug("_submit_review")
             review = self.pending_reviews.get()
@@ -310,7 +344,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             review.text = text_buffer.get_text(text_buffer.get_start_iter(),
                                                text_buffer.get_end_iter())
             review.summary = self.entry_summary.get_text()
-            review.date = time.time()
+            review.date = datetime.datetime.now()
             review.language = get_language()
             review.rating = self.rating
             lp_worker_thread.queue_review(review)
