@@ -34,7 +34,7 @@ from catview import CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
-from navigation import NavigationHistory, NavigationItem
+from navigation import *
 
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
@@ -297,16 +297,14 @@ class AvailablePane(SoftwarePane):
         # clear the search
         self._clear_search()
         self._show_category_overview()
-        self.nav_history.navigate(
-            NavigationItem(self, NavigationItem.NAV_CATEGORY))
+        self.nav_history.navigate(CategoryNavigationItem(self))
 
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        self.nav_history.navigate(
-            NavigationItem(self, NavigationItem.NAV_SEARCH))
+        self.nav_history.navigate(SearchNavigationItem(self))
         #self.searchentry.show()
 
     def on_navigation_list(self, pathbar, part):
@@ -324,8 +322,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         self.emit("app-list-changed", len(model))
-        self.nav_history.navigate(
-            NavigationItem(self, NavigationItem.NAV_APPLIST))
+        self.nav_history.navigate(AppListNavigationItem(self))
         #self.searchentry.show()
 
     def on_navigation_list_subcategory(self, pathbar, part):
@@ -337,8 +334,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        self.nav_history.navigate(
-            NavigationItem(self, NavigationItem.NAV_SUBCATEGORY))
+        self.nav_history.navigate(SubcategoryNavigationItem(self))
         #self.searchentry.show()
 
     def on_navigation_details(self, pathbar, part):
@@ -347,8 +343,7 @@ class AvailablePane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         #self.searchentry.hide()    # the spec no-longer calls for the search entry to be hidden
-        self.nav_history.navigate(
-            NavigationItem(self, NavigationItem.NAV_APPDETAILS))
+        self.nav_history.navigate(AppDetailsNavigationItem(self))
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query

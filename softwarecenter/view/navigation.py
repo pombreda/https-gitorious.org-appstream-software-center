@@ -17,12 +17,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 class NavigationHistory(object):
+    """
+    Class to manage navigation history in the software pane.
+    """
     
     def __init__(self, software_pane):
         self.software_pane = software_pane
         # always start at main category view
-        self._current_nav_item = NavigationItem(software_pane,
-                                 NavigationItem.NAV_CATEGORY)
+        self._current_nav_item = CategoryNavigationItem(software_pane)
         # use stacks to track navigation history
         self._nav_back_stack = []
         self._nav_forward_stack = []
@@ -66,36 +68,60 @@ class NavigationHistory(object):
         nav_item.navigate_to()
         
 class NavigationItem(object):
-
-    #### just stubbed out for now ####
-    # TODO:  Implement navigate_to() using one of:
-    #        1. use the if switch as below and implement calls directly (yuck)
-    #        2. pass the navigation function itself and associated arguments
-    #           to the __init__ for each instance of a nav item
-    #        3. NavigationItem is just an interface, add subclasses for each
-    #           navigation impl
-
-    # navigation types
-    (NAV_CATEGORY,
-     NAV_SUBCATEGORY,
-     NAV_APPLIST,
-     NAV_APPDETAILS,
-     NAV_SEARCH) = range(5)
-
-    def __init__(self, software_pane, nav_type):
+    """
+    interface class to represent navigation points for use with the
+    NavigationHistory class
+    """
+    
+    def navigate_to(self):
+        """
+        stub implementation - navigate to the view that corresponds
+        to this NavigationItem
+        """
+        pass
+        
+class CategoryNavigationItem(NavigationItem):
+    """
+    """
+    def __init__(self, software_pane):
         self.software_pane = software_pane
-        self.nav_type = nav_type
         
     def navigate_to(self):
-        if self.nav_type == self.NAV_CATEGORY:
-            print "navigate_to NAV_CATEGORY"
-        elif self.nav_type == self.NAV_SUBCATEGORY:
-            print "navigate_to NAV_SUBCATEGORY"
-        elif self.nav_type == self.NAV_APPLIST:
-            print "navigate_to NAV_APPLIST"
-        elif self.nav_type == self.NAV_APPDETAILS:
-            print "navigate_to NAV_APPDETAILS"
-        elif self.nav_type == self.NAV_SEARCH:
-            print "navigate_to NAV_SEARCH"
-        else:
-            print "unrecognized nav_type"
+        print "CategoryNavigationItem.navigate_to() "
+        
+class SubcategoryNavigationItem(NavigationItem):
+    """
+    """
+    def __init__(self, software_pane):
+        self.software_pane = software_pane
+        
+    def navigate_to(self):
+        print "SubcategoryNavigationItem.navigate_to() "
+        
+class AppListNavigationItem(NavigationItem):
+    """
+    """
+    def __init__(self, software_pane):
+        self.software_pane = software_pane
+        
+    def navigate_to(self):
+        print "AppListNavigationItem.navigate_to() "
+        
+class AppDetailsNavigationItem(NavigationItem):
+    """
+    """
+    def __init__(self, software_pane):
+        self.software_pane = software_pane
+        
+    def navigate_to(self):
+        print "AppDetailsNavigationItem.navigate_to() "
+        
+class SearchNavigationItem(NavigationItem):
+    """
+    """
+    def __init__(self, software_pane):
+        self.software_pane = software_pane
+        
+    def navigate_to(self):
+        print "SearchNavigationItem.navigate_to() "
+        
