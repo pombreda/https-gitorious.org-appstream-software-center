@@ -3,18 +3,25 @@ software-center (1.1.12) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/spinner  (many thanks)
   * merged lp:~mmcg069/software-center/fixes-and-tweaks  (many thanks)
-  
-  [ Gary Lasker ]
-  * implement standalone presentation of individual software
-    repositories
-  
-  [ Michael Vogt ]
   * README:
     - document menu.d/ directory
   * softwarecenter/view/catview.py:
     - add SCPkgname xml filter
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 11 Feb 2010 11:28:45 -0500
+  [ Matthew McGowan ]
+  * softwarecenter/view/widget/backforward.py:
+    - add new widget for use in back/forward navigation feature
+
+  [ Gary Lasker ]
+  * implement standalone presentation of individual software
+    repositories
+  * softwarecenter/view/navigation.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py:
+    - implement forward/back history feature for the "Get Software"
+      section (using Matthew McGowan's BackForwardButton, many thanks!)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Feb 2010 13:19:49 -0500
 
 software-center (1.1.11) lucid; urgency=low
 
