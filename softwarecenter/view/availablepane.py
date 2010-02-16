@@ -34,6 +34,33 @@ from catview import CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
+class NavigationItem(object):
+
+    # navigation types
+    (NAV_CATEGORY,
+     NAV_SUBCATEGORY,
+     NAV_APPLIST,
+     NAV_APPDETAILS,
+     NAV_SEARCH) = range(5)
+
+    def __init__(self, available_pane, nav_type):
+        self.available_pane = available_pane
+        self.nav_type = nav_type
+        
+    def navigate_to(self):
+        if self.nav_type == self.NAV_CATEGORY:
+            print "navigate_to NAV_CATEGORY"
+        elif self.nav_type == self.NAV_SUBCATEGORY:
+            print "navigate_to NAV_SUBCATEGORY"
+        elif self.nav_type == self.NAV_APPLIST:
+            print "navigate_to NAV_APPLIST"
+        elif self.nav_type == self.NAV_APPDETAILS:
+            print "navigate_to NAV_APPDETAILS"
+        elif self.nav_type == self.NAV_SEARCH:
+            print "navigate_to NAV_SEARCH"
+        else:
+            print "unrecognized nav_type"
+
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
        It contains a search entry and navigation buttons
@@ -47,7 +74,7 @@ class AvailablePane(SoftwarePane):
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_back_forward_buttons=True)
         # state
         self.apps_category = None
         self.apps_subcategory = None
@@ -62,6 +89,9 @@ class AvailablePane(SoftwarePane):
         self.connect("app-list-changed", self._on_app_list_changed)
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
+        # stacks for navigation history
+        self._nav_back_stack = []
+        self._nav_forward_stack = []
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -290,17 +320,15 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'category' is clicked"""
         if not pathbar.get_active():
             return
-#        self.back_forward.left.set_sensitive(False)
-#        self.back_forward.right.set_sensitive(False)
         # clear the search
         self._clear_search()
         self._show_category_overview()
+        self._nav_back_stack.append(NavigationItem(NavigationItem.NAV_CATEGORY, ))
+        self.back_forward.left.set_sensitive(True)
 
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
         self.navigation_bar.remove_id("details")
-#        self.back_forward.left.set_sensitive(True)
-#        self.back_forward.right.set_sensitive(False)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         #self.searchentry.show()
@@ -311,7 +339,6 @@ class AvailablePane(SoftwarePane):
             return
         self.navigation_bar.remove_id("subcat")
         self.navigation_bar.remove_id("details")
-#        self.back_forward.left.set_sensitive(True)
         if self.apps_subcategory:
             self.apps_subcategory = None
             self._set_category(self.apps_category)
@@ -324,7 +351,6 @@ class AvailablePane(SoftwarePane):
         #self.searchentry.show()
 
     def on_navigation_list_subcategory(self, pathbar, part):
-#        self.back_forward.left.set_sensitive(True)
         if not pathbar.get_active():
             return
         if self.apps_search_term:
@@ -336,8 +362,6 @@ class AvailablePane(SoftwarePane):
         #self.searchentry.show()
 
     def on_navigation_details(self, pathbar, part):
-#        self.back_forward.left.set_sensitive(True)
-#        self.back_forward.right.set_sensitive(False)
         """callback when the navigation button with id 'details' is clicked"""
         if not pathbar.get_active():
             return
@@ -367,6 +391,16 @@ class AvailablePane(SoftwarePane):
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
             self.current_app_by_category[self.apps_category] = app
+            
+    def on_nav_back_clicked(self, widget, event):
+        print "clicked back button"
+        if len(self.nav_back_stack) <= 1:
+            self.back_forward.left.set_sensitive(False)
+            return
+        self.back_forward.left.set_sensitive(True)   # prolly not needed
+
+    def on_nav_forward_clicked(self, widget, event):
+        print "clicked forward button"
         
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a

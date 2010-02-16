@@ -70,7 +70,7 @@ class SoftwarePane(gtk.VBox):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True, show_back_forward_buttons=False):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
@@ -111,16 +111,17 @@ class SoftwarePane(gtk.VBox):
         self.cache.connect("cache-ready", self.on_cache_ready)
         # COMMON UI elements
         # navigation bar and search on top in a hbox
-        self.back_forward = BackForwardButton()
-        self.back_forward.left.set_sensitive(False)
-        self.back_forward.right.set_sensitive(False)
-        self.back_forward.connect("left-clicked", self.on_nav_left_clicked)
-        self.back_forward.connect("right-clicked", self.on_nav_right_clicked)
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
+        if show_back_forward_buttons:
+            self.back_forward = BackForwardButton()
+            self.back_forward.left.set_sensitive(False)
+            self.back_forward.right.set_sensitive(False)
+            self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
+            self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
+            top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
         top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(top_hbox, expand=False, padding=self.PADDING)
@@ -171,23 +172,6 @@ class SoftwarePane(gtk.VBox):
         btns = self.app_view.buttons
         if btns.has_key('action'):
             btns['action'].set_sensitive(True)
-            
-    def on_nav_left_clicked(self, widget, event):
-        print "clicked back button"
-
-    def on_nav_right_clicked(self, widget, event):
-        print "clicked forward button"
-
-    def set_page(self, part):
-        if part.name == "category":
-            self.notebook.set_current_page(self.PAGE_CATEGORY)
-        elif part.name in ("subcat", "search", "list"):
-            self.notebook.set_current_page(self.PAGE_APPLIST)
-        elif part.name == "details":
-            self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        else:
-            print "'%s' not mapped to history" % part.name
-        return
 
     def update_app_view(self):
         """
@@ -239,3 +223,12 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, widget, app):
         " stub implementation "
         pass
+        
+    def on_nav_back_clicked(self, widget, event):
+        " stub implementation "
+        pass
+
+    def on_nav_forward_clicked(self, widget, event):
+        " stub implementation "
+        pass
+
