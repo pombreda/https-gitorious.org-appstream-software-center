@@ -13,6 +13,12 @@ software-center (1.1.12) UNRELEASED; urgency=low
     - document menu.d/ directory
   * softwarecenter/view/catview.py:
     - add SCPkgname xml filter
+  * apt-xapian-index-plugin/software-center.py:
+    - add custom apt-xapian-index plugins for indexing 
+      "XB-Softwarecenter-Appname" in debian/control
+  * apt-xapian-index-plugin/origin.py:
+    - add custom apt-xapian-index plugins for indexing the origins
+    (disabled for now as it makes the origin list very slow)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 11 Feb 2010 11:28:45 -0500
 
