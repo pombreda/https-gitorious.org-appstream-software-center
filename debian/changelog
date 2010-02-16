@@ -7,6 +7,12 @@ software-center (1.1.12) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * implement standalone presentation of individual software
     repositories
+  
+  [ Michael Vogt ]
+  * README:
+    - document menu.d/ directory
+  * softwarecenter/view/catview.py:
+    - add SCPkgname xml filter
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 11 Feb 2010 11:28:45 -0500
 

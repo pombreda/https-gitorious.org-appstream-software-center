@@ -224,17 +224,17 @@ class ViewSwitcherList(gtk.TreeStore):
                 if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
                     channel_origin = term_iter.term[3:]
                     break
-            print "---"
-            print "channel_name: %s" % channel_name
-            print "channel_origin: %s" % channel_origin
+            logging.debug("channel_name: %s" % channel_name)
+            logging.debug("channel_origin: %s" % channel_origin)
             channels.append((channel_name, channel_origin))
             
         channel_sources = []
         for (channel_name, channel_origin) in self._order_channels(channels):
-            channel_sources.append([self._get_icon_for_channel(channel_name, channel_origin), 
-                                    self._get_display_name_for_channel(channel_name),
-                                    self.ACTION_ITEM_CHANNEL,
-                                    channel_name])     
+            channel_sources.append(
+                [self._get_icon_for_channel(channel_name, channel_origin), 
+                 self._get_display_name_for_channel(channel_name),
+                 self.ACTION_ITEM_CHANNEL,
+                 channel_name])     
                 
         return channel_sources
         
