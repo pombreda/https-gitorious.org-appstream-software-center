@@ -154,25 +154,34 @@ class PathBar(gtk.DrawingArea):
             self.queue_draw_area(*self.__parts[-1].get_allocation_tuple())
         return
 
-    def remove_all(self):
+    def remove_all(self, keep_first_part=True):
         """remove all elements"""
-        self.__parts = [self.__parts[0],]  # keep first part though!
-        self.__compose_parts(self.__parts[-1], False)
+        if keep_first_part:
+            self.__parts = [self.__parts[0],]  # keep first part though!
+            self.__compose_parts(self.__parts[-1], False)
+        else:
+            self.__parts = []
         self.id_to_part = {}
         self.queue_draw()
         return
+        
+    def navigate_up(self):
+        if len(self.__parts) > 1:
+            nav_part = self.__parts[len(self.__parts) - 2]
+            self.set_active(nav_part)
+        return
 
-    def navigate_up(self, remove_pathparts=False):
-        index = self.__parts.index(self.__active_part)
-        if index-1 == -1: return None, index-1, len(self.__parts)
-        self.set_active(self.__parts[index-1], remove_pathparts)
-        return self.__parts[index-1], index-1, len(self.__parts)
+#    def navigate_up(self, remove_pathparts=False):
+#        index = self.__parts.index(self.__active_part)
+#        if index-1 == -1: return None, index-1, len(self.__parts)
+#        self.set_active(self.__parts[index-1], remove_pathparts)
+#        return self.__parts[index-1], index-1, len(self.__parts)
 
-    def navigate_down(self):
-        index = self.__parts.index(self.__active_part)
-        if self.__parts[index] == self.__parts[-1]: return None, index+1, len(self.__parts)
-        self.set_active(self.__parts[index+1], False)
-        return self.__parts[index+1], index+1, len(self.__parts)
+#    def navigate_down(self):
+#        index = self.__parts.index(self.__active_part)
+#        if self.__parts[index] == self.__parts[-1]: return None, index+1, len(self.__parts)
+#        self.set_active(self.__parts[index+1], False)
+#        return self.__parts[index+1], index+1, len(self.__parts)
 
     def __set_active(self, part, do_callback):
         prev_active = self.__active_part

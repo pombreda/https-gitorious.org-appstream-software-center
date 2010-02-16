@@ -1,9 +1,14 @@
 software-center (1.1.12) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/spinner  (many thanks)
   * merged lp:~mmcg069/software-center/fixes-and-tweaks  (many thanks)
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 10 Feb 2010 09:56:29 +0100
+  [ Gary Lasker ]
+  * implement standalone presentation of individual software
+    repositories
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 11 Feb 2010 11:28:45 -0500
 
 software-center (1.1.11) lucid; urgency=low
 

@@ -159,6 +159,7 @@ class AvailablePane(SoftwarePane):
     def _refresh_apps_with_apt_cache(self):
         # build query
         query = self._get_query()
+        logging.debug("availablepane query: %s" % query)
         # *ugh* deactivate the old model because otherwise it keeps
         # getting progress_changed events and eats CPU time until its
         # garbage collected

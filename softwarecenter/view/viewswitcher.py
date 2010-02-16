@@ -31,7 +31,11 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
+
 from softwarecenter.backend import get_install_backend
+from softwarecenter.db.database import StoreDatabase
+from softwarecenter.enums import *
+
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
 class ViewSwitcher(gtk.TreeView):
@@ -39,17 +43,17 @@ class ViewSwitcher(gtk.TreeView):
     __gsignals__ = {
         "view-changed" : (gobject.SIGNAL_RUN_LAST,
                           gobject.TYPE_NONE, 
-                          (int, ),
+                          (int, str),
                          ),
     }
 
 
-    def __init__(self, datadir, icons, store=None):
+    def __init__(self, datadir, db, icons, store=None):
         super(ViewSwitcher, self).__init__()
         self.datadir = datadir
         self.icons = icons
         if not store:
-            store = ViewSwitcherList(datadir, icons)
+            store = ViewSwitcherList(datadir, db, icons)
             # FIXME: this is just set here for app.py, make the
             #        transactions-changed signal part of the view api
             #        instead of the model
@@ -70,8 +74,6 @@ class ViewSwitcher(gtk.TreeView):
         self.set_model(store)
         self.set_headers_visible(False)
         self.get_selection().set_select_function(self.on_treeview_selected)
-        # expand the first entry (get software)
-        self.expand_to_path((0,))
         self.set_level_indentation(4)
         self.set_enable_search(False)
         
@@ -96,7 +98,8 @@ class ViewSwitcher(gtk.TreeView):
         (path, column) = self.get_cursor()
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
-        self.emit("view-changed", action) 
+        channel_name = model[path][ViewSwitcherList.COL_CHANNEL_NAME]
+        self.emit("view-changed", action, channel_name)
         
     def get_view(self):
         """return the current activated view number or None if no
@@ -104,6 +107,7 @@ class ViewSwitcher(gtk.TreeView):
            disappeared). Views are:
            
            ViewSwitcherList.ACTION_ITEM_AVAILABLE
+           ViewSwitcherList.ACTION_ITEM_CHANNEL
            ViewSwitcherList.ACTION_ITEM_INSTALLED
            ViewSwitcherList.ACTION_ITEM_PENDING
         """
@@ -113,7 +117,7 @@ class ViewSwitcher(gtk.TreeView):
         return path[0]
     def set_view(self, action):
         self.set_cursor((action,))
-        self.emit("view-changed", action)
+        self.emit("view-changed", action, None)
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
         path = self.get_path_at_pos(int(event.x), int(event.y))
@@ -127,44 +131,52 @@ class ViewSwitcherList(gtk.TreeStore):
     # columns
     (COL_ICON,
      COL_NAME,
-     COL_ACTION) = range(3)
+     COL_ACTION,
+     COL_CHANNEL_NAME) = range(4)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
      ACTION_ITEM_INSTALLED,
      ACTION_ITEM_SEPARATOR_1,
-     ACTION_ITEM_PENDING) = range(4)
+     ACTION_ITEM_PENDING,
+     ACTION_ITEM_CHANNEL) = range(5)
 
     ICON_SIZE = 24
 
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
-    def __init__(self, datadir, icons):
-        gtk.TreeStore.__init__(self, AnimatedImage, str, int)
+    def __init__(self, datadir, db, icons):
+        gtk.TreeStore.__init__(self, AnimatedImage, str, int, str)
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed", self.on_transactions_changed)
+        self.db = db
+        # pending transactions
+        self._pending = 0
         # setup the normal stuff
-        if self.icons.lookup_icon("softwarecenter", self.ICON_SIZE, 0):
-            icon = AnimatedImage(self.icons.load_icon("softwarecenter", self.ICON_SIZE, 0))
-        else:
-            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
-                                                      self.ICON_SIZE, 0))
-        piter = self.append(None, [icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE])
+        available_icon = self._get_icon("softwarecenter")
+        available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
         
-        if self.icons.lookup_icon("distributor-logo", self.ICON_SIZE, 0):
-            icon = AnimatedImage(self.icons.load_icon("distributor-logo", self.ICON_SIZE, 0))
-        else:
-            # icon not present in theme, probably because running uninstalled
-            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
-                                                      self.ICON_SIZE, 0))
-        self.append(piter, [icon, _("Free Software"), self.ACTION_ITEM_AVAILABLE])
+        # gather icons for use with channel sources
+        self.dist_icon = self._get_icon("distributor-logo")
+        self.partner_icon = self._get_icon("partner")
+        self.ppa_icon = self._get_icon("ppa")
+        self.generic_repo_icon = self._get_icon("generic-repository")
+        self.unknown_channel_icon = self._get_icon("unknown-channel")
+        
+        # get list of channel sources of form:
+        #     [icon, label, action, channel_name]
+        channel_sources = self._get_channel_sources()
+        
+        # iterate the channel sources list and add as subnodes of the available node
+        for channel in channel_sources:
+            self.append(available_iter, channel)
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED])
+        installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
         icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1])
+        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, ""])
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
@@ -184,6 +196,111 @@ class ViewSwitcherList(gtk.TreeStore):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
 
+    def _get_icon(self, icon_name):
+        if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
+            icon = AnimatedImage(self.icons.load_icon(icon_name, self.ICON_SIZE, 0))
+        else:
+            # icon not present in theme, probably because running uninstalled
+            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
+                                                      self.ICON_SIZE, 0))
+        return icon
+        
+    def _get_channel_sources(self):
+        """
+        return a list of channel sources, with each entry in the list
+        in the form:
+               [icon, label, action, channel_name]
+        """        
+        channels = []
+        for channel_iter in self.db.xapiandb.allterms("XOL"):
+            if len(channel_iter.term) == 3:
+                continue
+            channel_name = channel_iter.term[3:]
+            
+            # get origin information for this channel
+            m = self.db.xapiandb.postlist_begin(channel_iter.term)
+            doc = self.db.xapiandb.get_document(m.get_docid())
+            for term_iter in doc.termlist():
+                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
+                    channel_origin = term_iter.term[3:]
+                    break
+            print "---"
+            print "channel_name: %s" % channel_name
+            print "channel_origin: %s" % channel_origin
+            channels.append((channel_name, channel_origin))
+            
+        channel_sources = []
+        for (channel_name, channel_origin) in self._order_channels(channels):
+            channel_sources.append([self._get_icon_for_channel(channel_name, channel_origin), 
+                                    self._get_display_name_for_channel(channel_name),
+                                    self.ACTION_ITEM_CHANNEL,
+                                    channel_name])     
+                
+        return channel_sources
+        
+    def _order_channels(self, channels):
+        """
+        given a list of channels, order them according to:
+            Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
+            Unknown channel last
+        """
+        dist_channel = []
+        partner_channel = []
+        ppa_channels = []
+        other_channels = []
+        unknown_channel = []
+        ordered_channels = []
+        
+        for (channel_name, channel_origin) in channels:
+            if not channel_name:
+                unknown_channel.append((channel_name, channel_origin))
+            elif channel_name == "Ubuntu":
+                dist_channel.append((channel_name, channel_origin))
+            elif channel_origin and channel_origin.startswith("LP-PPA"):
+                ppa_channels.append((channel_name, channel_origin))
+            # TODO: detect generic repository source (e.g., Google, Inc.)
+            # TODO: detect partner channel
+            else:
+                other_channels.append((channel_name, channel_origin))
+        
+        # set them in order
+        ordered_channels.extend(dist_channel)
+        ordered_channels.extend(partner_channel)
+        ordered_channels.extend(ppa_channels)
+        ordered_channels.extend(other_channels)
+        ordered_channels.extend(unknown_channel)
+        
+        return ordered_channels
+        
+    def _get_icon_for_channel(self, channel_name, channel_origin):
+        """
+        return the icon that corresponds to each channel node based
+        on the channel name and its origin string
+        """
+        if not channel_name:
+            channel_icon = self.unknown_channel_icon
+        elif channel_name == "Ubuntu":
+            channel_icon = self.dist_icon
+        elif channel_origin and channel_origin.startswith("LP-PPA"):
+            channel_icon = self.ppa_icon
+        # TODO: add check for generic repository source (e.g., Google, Inc.)
+        # TODO: add check for partner_icon
+        else:
+            channel_icon = self.unknown_channel_icon
+        return channel_icon
+        
+    def _get_display_name_for_channel(self, channel_name):
+        """
+        return the display name for the corresponding channel node
+        """
+        if not channel_name:
+            channel_display_name = "Other"
+        elif channel_name == "Ubuntu":
+            channel_display_name = _("Provided by Ubuntu")
+        else:
+            channel_display_name = channel_name
+        return channel_display_name
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import sys
@@ -197,7 +314,14 @@ if __name__ == "__main__":
 
     scroll = gtk.ScrolledWindow()
     icons = gtk.icon_theme_get_default()
-    view = ViewSwitcher(datadir, icons)
+
+    xapian_base_path = XAPIAN_BASE_PATH
+    pathname = os.path.join(xapian_base_path, "xapian")
+    cache = apt.Cache(apt.progress.OpTextProgress())
+    db = StoreDatabase(pathname, cache)
+    db.open()
+
+    view = ViewSwitcher(datadir, db, icons)
 
     box = gtk.VBox()
     box.pack_start(scroll)
