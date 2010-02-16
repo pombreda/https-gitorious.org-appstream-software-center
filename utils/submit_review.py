@@ -267,6 +267,11 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path("/usr/share/app-install/icons/")
 
+        # spinner
+        self.spinner_status = gtk.Spinner()
+        self.spinner_status.show()
+        self.alignment_status.add(self.spinner_status)
+
         # data
         self.app = app
         self.version = version
@@ -318,7 +323,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self._update_rating()
 
     def enter_username_password(self):
-        self.progressbar_connecting.hide()
+        self.hbox_status.hide()
         res = self.dialog_review_login.run()
         self.dialog_review_login.hide()
         if res == gtk.RESPONSE_OK:
@@ -327,7 +332,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             password = self.entry_review_login_password.get_text()
             lp_worker_thread.login_password = password
             lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
-            self.progressbar_connecting.show()
+            self.hbox_status.show()
         else:
             lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
             self.quit()
@@ -342,7 +347,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             self.button_post_review.set_sensitive(False)
             
     def enter_review(self):
-        self.progressbar_connecting.hide()
+        self.hbox_status.hide()
         self.dialog_review_app.set_sensitive(True)
         res = self.dialog_review_app.run()
         self.dialog_review_app.hide()
@@ -373,7 +378,8 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
     def run(self):
         # show main dialog insensitive until we are logged in
         self.dialog_review_app.set_sensitive(False)
-        self.progressbar_connecting.set_text(_("Connecting..."))
+        self.label_status.set_text(_("Connecting..."))
+        self.spinner_status.start()
         self.dialog_review_app.show()
         
         # do the launchpad stuff async
@@ -397,8 +403,6 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             return False
         elif state == LOGIN_STATE_USER_CANCEL:
             return False
-        # pulse
-        self.progressbar_connecting.pulse()
         return True
 
 # IMPORTANT: create one (module) global LP worker thread here
