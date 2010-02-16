@@ -4,6 +4,20 @@
    adding  <limit name="max_match_rules_per_connection">512</limit> 
    and using something bigger than 512 is a good idea
 
+== applications.menu ==
+
+The menu file parser understands:
+Category, And, Or, Not
+
+The following additional XML filters are definied:
+SCType - e.g. "Applicatin"
+SCChannel - e.g. "lucid-partner"
+SCSection - e.g. "net"
+SCPkgname - e.g. "gimp"
+
+Additional .menu files can be added in:
+/usr/share/app-install/menu.d 
+that software-center will read and parse.
 
 == XAPIAN ==
 
