@@ -173,7 +173,7 @@ class SoftwarePane(gtk.VBox):
         elif part.name == "details":
             self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         else:
-            print "'%s' not mapped to history" % part.name
+            logging.warn("'%s' not mapped to history" % part.name)
         return
 
     def update_app_view(self):

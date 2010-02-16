@@ -11,6 +11,7 @@ softwarecenter/backend/aptd.py
 softwarecenter/db/database.py
 softwarecenter/db/update.py
 softwarecenter/distro/__init__.py
+softwarecenter/distro/Debian.py
 softwarecenter/distro/Ubuntu.py
 softwarecenter/view/__init__.py
 softwarecenter/view/appdetailsview.py
