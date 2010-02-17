@@ -1,3 +1,11 @@
+software-center (1.1.13) UNRELEASED; urgency=low
+
+  * data/featured.menu.in:
+    - add scribus, blender
+    - fix missing i18n
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Feb 2010 14:29:54 +0100
+
 software-center (1.1.12) lucid; urgency=low
 
   [ Michael Vogt ]
