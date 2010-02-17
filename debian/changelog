@@ -3,6 +3,8 @@ software-center (1.1.13) UNRELEASED; urgency=low
   * data/featured.menu.in:
     - add scribus, blender
     - fix missing i18n
+  * data/software-center.menu.in:
+    - add a bunch of missing _
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Feb 2010 14:29:54 +0100
 
