@@ -33,6 +33,7 @@ from gettext import gettext as _
 
 
 from softwarecenter.backend import get_install_backend
+from softwarecenter.distro import get_distro
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import *
 
@@ -152,6 +153,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed", self.on_transactions_changed)
         self.db = db
+        self.distro = get_distro()
         # pending transactions
         self._pending = 0
         # setup the normal stuff
@@ -254,7 +256,7 @@ class ViewSwitcherList(gtk.TreeStore):
         for (channel_name, channel_origin) in channels:
             if not channel_name:
                 unknown_channel.append((channel_name, channel_origin))
-            elif channel_name == "Ubuntu":
+            elif channel_name == self.distro.get_distro_channel_name():
                 dist_channel.append((channel_name, channel_origin))
             elif channel_origin and channel_origin.startswith("LP-PPA"):
                 ppa_channels.append((channel_name, channel_origin))
@@ -279,7 +281,7 @@ class ViewSwitcherList(gtk.TreeStore):
         """
         if not channel_name:
             channel_icon = self.unknown_channel_icon
-        elif channel_name == "Ubuntu":
+        elif channel_name == self.distro.get_distro_channel_name():
             channel_icon = self.dist_icon
         elif channel_origin and channel_origin.startswith("LP-PPA"):
             channel_icon = self.ppa_icon
@@ -294,9 +296,9 @@ class ViewSwitcherList(gtk.TreeStore):
         return the display name for the corresponding channel node
         """
         if not channel_name:
-            channel_display_name = "Other"
-        elif channel_name == "Ubuntu":
-            channel_display_name = _("Provided by Ubuntu")
+            channel_display_name = _("Other")
+        elif channel_name == self.distro.get_distro_channel_name():
+            channel_display_name = self.distro.get_distro_channel_description()
         else:
             channel_display_name = channel_name
         return channel_display_name

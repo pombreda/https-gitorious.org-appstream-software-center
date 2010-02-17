@@ -18,9 +18,14 @@ software-center (1.1.12) UNRELEASED; urgency=low
       "XB-Softwarecenter-Appname" in debian/control
   * apt-xapian-index-plugin/origin.py:
     - add custom apt-xapian-index plugins for indexing the origins
-    (disabled for now as it makes the origin list very slow)
+  * softwarecenter/distro/Ubuntu.py:
+    - add abstraction for distro_channel_{name,description}
+  * softwarecenter/distro/__init__.py:
+    - make get_distro() return a singleton
+  * softwarecenter/view/channelpane.py:
+    - for the main distro channel, show only apps, not all packages
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 11 Feb 2010 11:28:45 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Feb 2010 10:13:41 +0100
 
 software-center (1.1.11) lucid; urgency=low
 
