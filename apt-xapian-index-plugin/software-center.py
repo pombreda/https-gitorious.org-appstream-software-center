@@ -7,7 +7,7 @@ import sys
 import xapian
 
 sys.path.insert(0, "/usr/share/software-center")
-from softwarecenter.enums import *
+from softwarecenter.db.update import *
 
 class SoftwareCenterMetadataPlugin:
     def info(self):
@@ -75,13 +75,11 @@ class SoftwareCenterMetadataPlugin:
             return
         key = "Softwarecenter-Appname"
         if key in ver.record:
-            # FIXME: call something in s-c
             name = ver.record[key]
-            document.add_term("AA"+name)
-            document.add_value(XAPIAN_VALUE_APPNAME, name)
-            document.add_term("AT"+"application")
             self.indexer.set_document(document)
-            self.indexer.index_text_without_positions(name)
+            index_name(document, name, self.indexer)
+            # we pretend to be a application
+            document.add_term("AT"+"application")
 
     def indexDeb822(self, document, pkg):
         """
