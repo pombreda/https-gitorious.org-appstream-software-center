@@ -28,12 +28,16 @@ class NavigationHistory(object):
         # use stacks to track navigation history
         self._nav_back_stack = []
         self._nav_forward_stack = []
+        # flag to skip adding a NavigationItem to history
+        self._skip_history = False
         
     def navigate(self, dest_nav_item):
         """
         append a new NavigationItem to the history stacks
         """
         print "navigate"
+        if self._skip_history:
+            return
         self._nav_back_stack.append(self._current_nav_item)
         self._current_nav_item = dest_nav_item
         self.software_pane.back_forward.left.set_sensitive(True)
@@ -52,7 +56,9 @@ class NavigationHistory(object):
         self._nav_back_stack.append(self._current_nav_item)
         self._current_nav_item = nav_item
         self.software_pane.back_forward.left.set_sensitive(True)
+        self._skip_history = True
         nav_item.navigate_to()
+        self._skip_history = False
     
     def nav_back(self):
         """
@@ -65,7 +71,9 @@ class NavigationHistory(object):
         self._nav_forward_stack.append(self._current_nav_item)
         self._current_nav_item = nav_item
         self.software_pane.back_forward.right.set_sensitive(True)
+        self._skip_history = True
         nav_item.navigate_to()
+        self._skip_history = False
         
 class NavigationItem(object):
     """
@@ -88,6 +96,7 @@ class CategoryNavigationItem(NavigationItem):
         
     def navigate_to(self):
         print "CategoryNavigationItem.navigate_to() "
+        self.software_pane.navigation_bar.get_button_from_id("category").activate()
         
 class SubcategoryNavigationItem(NavigationItem):
     """

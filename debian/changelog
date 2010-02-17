@@ -1,12 +1,24 @@
 software-center (1.1.13) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * data/featured.menu.in:
     - add scribus, blender
     - fix missing i18n
   * data/software-center.menu.in:
     - add a bunch of missing _
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Feb 2010 14:29:54 +0100
+  [ Matthew McGowan ]
+  * softwarecenter/view/widget/backforward.py:
+    - add new widget for use in back/forward navigation feature
+
+  [ Gary Lasker ]
+  * softwarecenter/view/navhistory.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py:
+    - implement forward/back history feature for the "Get Software"
+      section (using Matthew McGowan's BackForwardButton, many thanks!)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 17 Feb 2010 12:36:50 -0500
 
 software-center (1.1.12) lucid; urgency=low
 

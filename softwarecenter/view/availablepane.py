@@ -34,7 +34,7 @@ from catview import CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
-from navigation import *
+from navhistory import *
 
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
