@@ -1,4 +1,4 @@
-software-center (1.1.12) UNRELEASED; urgency=low
+software-center (1.1.12) lucid; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/spinner  (many thanks)
