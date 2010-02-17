@@ -24,6 +24,8 @@ software-center (1.1.12) UNRELEASED; urgency=low
     - make get_distro() return a singleton
   * softwarecenter/view/channelpane.py:
     - for the main distro channel, show only apps, not all packages
+  * data/featured.menu.in:
+    - add a "Featured" category
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Feb 2010 10:13:41 +0100
 

@@ -1,0 +1,12 @@
+<Menu>
+  <Menu>
+    <Name>Featured</Name>
+    <SCIcon>gtk-about</SCIcon>
+    <Include>
+      <Or>
+        <SCPkgname>gimp</SCPkgname>
+        <SCPkgname>abiword</SCPkgname>
+      </Or>
+    </Include>
+  </Menu>
+</Menu>
