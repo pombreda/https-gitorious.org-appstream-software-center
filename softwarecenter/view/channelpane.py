@@ -27,6 +27,7 @@ import xapian
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.distro import get_distro
 
 from appview import AppView, AppStore
 
@@ -50,6 +51,7 @@ class ChannelPane(SoftwarePane):
         self.channel_name = ""
         self.search_terms = ""
         self.current_appview_selection = None
+        self.distro = get_distro()
         # UI
         self._build_ui()
         
@@ -87,6 +89,14 @@ class ChannelPane(SoftwarePane):
                                         self.on_navigation_list,
                                         "list")
             query = xapian.Query(channel_query)
+        # FIXME: abstract this test away somehow
+        if self.channel_name == self.distro.get_distro_channel_name():
+            # show only apps for the main channel, otherwise the list
+            # size explodes (consistency FTW)
+            query = xapian.Query(xapian.Query.OP_AND, 
+                                 query,
+                                 xapian.Query("ATapplication"))
+
         logging.debug("channelpane query: %s" % query)
         # *ugh* deactivate the old model because otherwise it keeps
         # getting progress_changed events and eats CPU time until its

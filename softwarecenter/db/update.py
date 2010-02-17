@@ -83,6 +83,13 @@ class DesktopConfigParser(RawConfigParser):
             pass
         return categories
 
+def index_name(doc, name, term_generator):
+    """ index the name of the application """
+    doc.add_value(XAPIAN_VALUE_APPNAME, name)
+    doc.add_term("AA"+name)
+    w = globals()["WEIGHT_DESKTOP_NAME"]
+    term_generator.index_text_without_positions(name, w)
+
 def update(db, cache, datadir=APP_INSTALL_PATH):
     " index the desktop files in $datadir/desktop/*.desktop "
     term_generator = xapian.TermGenerator()
@@ -105,8 +112,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 logging.debug("duplicated name '%s' (%s)" % (name, desktopf))
             seen.add(name)
             doc.set_data(name)
-            doc.add_value(XAPIAN_VALUE_APPNAME, name)
-            doc.add_term("AA"+name)
+            index_name(doc, name, term_generator)
             # check if we should ignore this file
             if parser.has_option_desktop("X-AppInstall-Ignore"):
                 ignore = parser.get_desktop("X-AppInstall-Ignore")
@@ -180,12 +186,12 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)
 
             # now add search data from the desktop file
-            for key in ["Name","Generic Name","Comment"]:
+            for key in ["GenericName","Comment"]:
                 if not parser.has_option_desktop(key):
                     continue
                 s = parser.get_desktop(key)
                 w = globals()["WEIGHT_DESKTOP_"+key.replace(" ","").upper()]
-                term_generator.index_text_without_positions(s)
+                term_generator.index_text_without_positions(s, w)
             # add data from the apt cache
             if pkgname in cache and cache[pkgname].candidate:
                 s = cache[pkgname].candidate.summary

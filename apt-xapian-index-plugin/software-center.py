@@ -1,10 +1,15 @@
-# Add origin tags to the index
+# add software-center custom metadata to the index
 
 import apt
 import re
 import os
+import sys
+import xapian
 
-class OriginPlugin:
+sys.path.insert(0, "/usr/share/software-center")
+from softwarecenter.db.update import *
+
+class SoftwareCenterMetadataPlugin:
     def info(self):
         """
         Return general information about the plugin.
@@ -37,7 +42,7 @@ class OriginPlugin:
 
         The progress indicator can be used to report progress.
         """
-        pass
+        self.indexer = xapian.TermGenerator()
 
     def doc(self):
         """
@@ -49,11 +54,11 @@ class OriginPlugin:
           fullDoc: the full description as a chapter in ReST format
         """
         return dict(
-            name = "Origin",
-            shortDesc = "Origin information",
+            name = "SoftwareCenterMetadata",
+            shortDesc = "SoftwareCenter meta information",
             fullDoc = """
-            The Origin data source indexes origin information
-            It uses the prefix XO
+            Software-center meta-data 
+            It uses the prefix AP and sets XAPIAN_VALUE_ICON (172)
             """
         )
 
@@ -68,12 +73,13 @@ class OriginPlugin:
         ver = pkg.candidate
         if ver is None: 
             return
-        for origin in ver.origins:
-            document.add_term("XOA"+origin.archive)
-            document.add_term("XOC"+origin.component)
-            document.add_term("XOL"+origin.label)
-            document.add_term("XOO"+origin.origin)
-            document.add_term("XOS"+origin.site)
+        key = "Softwarecenter-Appname"
+        if key in ver.record:
+            name = ver.record[key]
+            self.indexer.set_document(document)
+            index_name(document, name, self.indexer)
+            # we pretend to be a application
+            document.add_term("AT"+"application")
 
     def indexDeb822(self, document, pkg):
         """
@@ -93,4 +99,4 @@ def init():
     """
     Create and return the plugin object.
     """
-    return OriginPlugin()
+    return SoftwareCenterMetadataPlugin()
