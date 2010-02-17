@@ -18,13 +18,14 @@
 
 class NavigationHistory(object):
     """
-    Class to manage navigation history in the software pane.
+    Class to manage navigation history in the "Get Software" section (the
+    available pane).
     """
     
-    def __init__(self, software_pane):
-        self.software_pane = software_pane
+    def __init__(self, available_pane):
+        self.available_pane = available_pane
         # always start at main category view
-        self._current_nav_item = CategoryNavigationItem(software_pane)
+        self._current_nav_item = CategoryViewNavigationItem(available_pane)
         # use stacks to track navigation history
         self._nav_back_stack = []
         self._nav_forward_stack = []
@@ -40,10 +41,10 @@ class NavigationHistory(object):
             return
         self._nav_back_stack.append(self._current_nav_item)
         self._current_nav_item = dest_nav_item
-        self.software_pane.back_forward.left.set_sensitive(True)
-        # reset navigation stacks on a direct navigation
+        self.available_pane.back_forward.left.set_sensitive(True)
+        # reset navigation forward stack on a direct navigation
         self._nav_forward_stack = []
-        self.software_pane.back_forward.right.set_sensitive(False)
+        self.available_pane.back_forward.right.set_sensitive(False)
         
     def nav_forward(self):
         """
@@ -51,11 +52,11 @@ class NavigationHistory(object):
         """
         print "nav_forward"
         if len(self._nav_forward_stack) <= 1:
-            self.software_pane.back_forward.right.set_sensitive(False)
+            self.available_pane.back_forward.right.set_sensitive(False)
         nav_item = self._nav_forward_stack.pop()
         self._nav_back_stack.append(self._current_nav_item)
         self._current_nav_item = nav_item
-        self.software_pane.back_forward.left.set_sensitive(True)
+        self.available_pane.back_forward.left.set_sensitive(True)
         self._skip_history = True
         nav_item.navigate_to()
         self._skip_history = False
@@ -66,11 +67,11 @@ class NavigationHistory(object):
         """
         print "nav_back"
         if len(self._nav_back_stack) <= 1:
-            self.software_pane.back_forward.left.set_sensitive(False)
+            self.available_pane.back_forward.left.set_sensitive(False)
         nav_item = self._nav_back_stack.pop()
         self._nav_forward_stack.append(self._current_nav_item)
         self._current_nav_item = nav_item
-        self.software_pane.back_forward.right.set_sensitive(True)
+        self.available_pane.back_forward.right.set_sensitive(True)
         self._skip_history = True
         nav_item.navigate_to()
         self._skip_history = False
@@ -88,30 +89,47 @@ class NavigationItem(object):
         """
         pass
         
-class CategoryNavigationItem(NavigationItem):
+class CategoryViewNavigationItem(NavigationItem):
     """
     """
-    def __init__(self, software_pane):
-        self.software_pane = software_pane
+    def __init__(self, available_pane):
+        print "create CategoryViewNavigationItem"
+        self.available_pane = available_pane
         
     def navigate_to(self):
-        print "CategoryNavigationItem.navigate_to() "
-        self.software_pane.navigation_bar.get_button_from_id("category").activate()
+        print "CategoryViewNavigationItem.navigate_to() "
+        self.available_pane.on_navigation_category(None, None)
         
-class SubcategoryNavigationItem(NavigationItem):
+class CategoryActivatedNavigationItem(NavigationItem):
     """
     """
-    def __init__(self, software_pane):
-        self.software_pane = software_pane
+    def __init__(self, available_pane, category):
+        print "create CategoryActivatedNavigationItem with category.name: %s" % category.name
+        self.available_pane = available_pane
+        self.category = category
         
     def navigate_to(self):
-        print "SubcategoryNavigationItem.navigate_to() "
+        print "CategoryActivatedNavigationItem.navigate_to() "
+        self.available_pane.on_category_activated(None, self.category)
+        
+class SubcategoryActivatedNavigationItem(NavigationItem):
+    """
+    """
+    def __init__(self, available_pane, category):
+        print "create SubcategoryActivatedNavigationItem with category.name: %s" % category.name
+        self.available_pane = available_pane
+        self.category = category
+        
+    def navigate_to(self):
+        print "SubcategoryActivatedNavigationItem.navigate_to() "
+        self.available_pane.on_subcategory_activated(None, self.category)
         
 class AppListNavigationItem(NavigationItem):
     """
     """
-    def __init__(self, software_pane):
-        self.software_pane = software_pane
+    def __init__(self, available_pane):
+        print "create AppListNavigationItem"
+        self.available_pane = available_pane
         
     def navigate_to(self):
         print "AppListNavigationItem.navigate_to() "
@@ -119,8 +137,9 @@ class AppListNavigationItem(NavigationItem):
 class AppDetailsNavigationItem(NavigationItem):
     """
     """
-    def __init__(self, software_pane):
-        self.software_pane = software_pane
+    def __init__(self, available_pane):
+        print "create AppDetailsNavigationItem"
+        self.available_pane = available_pane
         
     def navigate_to(self):
         print "AppDetailsNavigationItem.navigate_to() "
@@ -128,8 +147,9 @@ class AppDetailsNavigationItem(NavigationItem):
 class SearchNavigationItem(NavigationItem):
     """
     """
-    def __init__(self, software_pane):
-        self.software_pane = software_pane
+    def __init__(self, available_pane):
+        print "create SearchNavigationItem"
+        self.available_pane = available_pane
         
     def navigate_to(self):
         print "SearchNavigationItem.navigate_to() "

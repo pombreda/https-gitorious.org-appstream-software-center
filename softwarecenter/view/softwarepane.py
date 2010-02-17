@@ -115,6 +115,7 @@ class SoftwarePane(gtk.VBox):
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         top_hbox = gtk.HBox()
+        # TODO: remove this from here, should be in availablepane only!
         if show_back_forward_buttons:
             self.back_forward = BackForwardButton()
             self.back_forward.left.set_sensitive(False)
