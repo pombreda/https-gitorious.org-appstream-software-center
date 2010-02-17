@@ -29,7 +29,8 @@ class NavigationHistory(object):
         # use stacks to track navigation history
         self._nav_back_stack = []
         self._nav_forward_stack = []
-        # flag to skip adding a NavigationItem to history
+        # flag to skip adding a NavigationItem to history, this applies
+        # when navigation is via back/forward navigation buttons themselves
         self._skip_history = False
         
     def navigate(self, dest_nav_item):
