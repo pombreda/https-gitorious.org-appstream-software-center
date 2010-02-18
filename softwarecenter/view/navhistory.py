@@ -36,11 +36,11 @@ class NavigationHistory(object):
         """
         # we never want to append a second navigation item of the same
         # type as this is not useful for history and would only occur
-        # under the following conditions:  1. there are multiple clicks
-        # on the same navigation button, or 2. when additional (ignorable)
-        # calls to the navigate method occur due to GTK events that get
+        # under the following conditions:  1. when there are multiple clicks
+        # on the same navigation button, or 2. when additional calls
+        # to the navigate method occur due to GTK events that get
         # generated as side effects when switching views and setting up
-        # navigation buttons
+        # navigation buttons (and these should be ignored)
         if type(dest_nav_item) == type(self._current_nav_item):
             return
         self._nav_back_stack.append(self._current_nav_item)
@@ -90,6 +90,7 @@ class NavigationItem(object):
         
 class CategoryViewNavigationItem(NavigationItem):
     """
+    navigation item that corresponds to the main category view
     """
     def __init__(self, available_pane):
         self.available_pane = available_pane
@@ -99,14 +100,16 @@ class CategoryViewNavigationItem(NavigationItem):
         
 class AppListNavigationItem(NavigationItem):
     """
+    navigation item that corresponds to the application list for the
+    specified category
     """
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-#        print "create AppListNavigationItem"
-#        print "...with apps_category.name: %s" % apps_category.name
+        print "create AppListNavigationItem"
+#        print "...with apps_category.name: %s" % apps_category or apps_category.name
 #        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-#        print "...with apps_search_term: %s" % apps_search_term
+        print "...with apps_search_term: %s" % apps_search_term
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
@@ -122,14 +125,16 @@ class AppListNavigationItem(NavigationItem):
             
 class AppListSubcategoryNavigationItem(NavigationItem):
     """
+    navigation item that corresponds to the application list for the
+    specified category and subcategory
     """
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-#        print "create AppListSubcategoryNavigationItem"
-#        print "...with apps_category.name: %s" % apps_category.name
+        print "create AppListSubcategoryNavigationItem"
+#        print "...with apps_category.name: %s" % apps_category or apps_category.name
 #        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-#        print "...with apps_search_term: %s" % apps_search_term
+        print "...with apps_search_term: %s" % apps_search_term
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
@@ -141,7 +146,7 @@ class AppListSubcategoryNavigationItem(NavigationItem):
         self.available_pane.apps_subcategory = self.apps_subcategory
         self.available_pane.apps_search_term = self.apps_search_term
         self.available_pane.set_category(self.apps_subcategory)
-        # FIXME:  need to check state of navigation bar and make sure we build up all
+        # check state of navigation bar and make sure we build up all
         # buttons as needed
         self.available_pane.navigation_bar.add_with_id(
             self.apps_subcategory.name, self.available_pane.on_navigation_list_subcategory, "subcat")
@@ -149,12 +154,14 @@ class AppListSubcategoryNavigationItem(NavigationItem):
         
 class AppDetailsNavigationItem(NavigationItem):
     """
+    navigation item that corresponds to the details view for the
+    specified application
     """
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        current_app):
 #        print "create AppDetailsNavigationItem"
-#        print "...with apps_category.name: %s" % apps_category.name
+#        print "...with apps_category.name: %s" % apps_category or apps_category.name
 #        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
 #        print "...with current_app: %s" % current_app
         self.available_pane = available_pane
@@ -187,10 +194,20 @@ class AppDetailsNavigationItem(NavigationItem):
         
 class SearchNavigationItem(NavigationItem):
     """
+    navigation item that corresponds to a search in progress
     """
-    def __init__(self, available_pane):
+    def __init__(self, available_pane, apps_category,
+                                       apps_subcategory,
+                                       apps_search_term):
         print "create SearchNavigationItem"
         self.available_pane = available_pane
+        self.apps_category = apps_category
+        self.apps_subcategory = apps_subcategory
+        self.apps_search_term = apps_search_term
+        print "create AppListSubcategoryNavigationItem"
+#        print "...with apps_category.name: %s" % apps_category or apps_category.name
+#        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
+        print "...with apps_search_term: %s" % apps_search_term
         
     def navigate_to(self):
         print "SearchNavigationItem.navigate_to() "

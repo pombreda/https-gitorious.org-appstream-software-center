@@ -304,7 +304,10 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        self.nav_history.navigate(SearchNavigationItem(self))
+#        self.nav_history.navigate(SearchNavigationItem(self, 
+#                                                       self.apps_category,
+#                                                       self.apps_subcategory,
+#                                                       self.apps_search_term))
         #self.searchentry.show()
 
     def on_navigation_list(self, pathbar, part):
@@ -326,7 +329,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         self.emit("app-list-changed", len(model))
-        #self.searchentry.show()
+        self.searchentry.show()
 
     def on_navigation_list_subcategory(self, pathbar, part):
         if pathbar and not pathbar.get_active():
@@ -342,14 +345,14 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        #self.searchentry.show()
+        self.searchentry.show()
 
     def on_navigation_details(self, pathbar, part):
         """callback when the navigation button with id 'details' is clicked"""
         if pathbar and not pathbar.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        #self.searchentry.hide()    # the spec no-longer calls for the search entry to be hidden
+        self.searchentry.hide()    # TODO:  verify if we need this?  see spec
         self.nav_history.navigate(AppDetailsNavigationItem(self,
                                                            self.apps_category,
                                                            self.apps_subcategory,
