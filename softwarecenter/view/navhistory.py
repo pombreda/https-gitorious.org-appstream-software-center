@@ -75,13 +75,6 @@ class NavigationHistory(object):
         self._current_nav_item = nav_item
         nav_item.navigate_to()
         
-    def reset_history(self):
-        self._nav_back_stack = []
-        self._nav_forward_stack = []
-        # update buttons
-        self.available_pane.back_forward.left.set_sensitive(False)
-        self.available_pane.back_forward.right.set_sensitive(False)
-        
 class NavigationItem(object):
     """
     interface class to represent navigation points for use with the
@@ -99,11 +92,9 @@ class CategoryViewNavigationItem(NavigationItem):
     """
     """
     def __init__(self, available_pane):
-        print "create CategoryViewNavigationItem"
         self.available_pane = available_pane
         
     def navigate_to(self):
-        print "CategoryViewNavigationItem.navigate_to() "
         self.available_pane.on_navigation_category(None, None)
         
 class AppListNavigationItem(NavigationItem):
@@ -112,10 +103,10 @@ class AppListNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-        print "create AppListNavigationItem"
-        print "...with apps_category.name: %s" % apps_category.name
-        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-        print "...with apps_search_term: %s" % apps_search_term
+#        print "create AppListNavigationItem"
+#        print "...with apps_category.name: %s" % apps_category.name
+#        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
+#        print "...with apps_search_term: %s" % apps_search_term
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
@@ -135,10 +126,10 @@ class AppListSubcategoryNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-        print "create AppListSubcategoryNavigationItem"
-        print "...with apps_category.name: %s" % apps_category.name
-        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-        print "...with apps_search_term: %s" % apps_search_term
+#        print "create AppListSubcategoryNavigationItem"
+#        print "...with apps_category.name: %s" % apps_category.name
+#        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
+#        print "...with apps_search_term: %s" % apps_search_term
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
@@ -162,10 +153,10 @@ class AppDetailsNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        current_app):
-        print "create AppDetailsNavigationItem"
-        print "...with apps_category.name: %s" % apps_category.name
-        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-        print "...with current_app: %s" % current_app
+#        print "create AppDetailsNavigationItem"
+#        print "...with apps_category.name: %s" % apps_category.name
+#        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
+#        print "...with current_app: %s" % current_app
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
@@ -178,8 +169,16 @@ class AppDetailsNavigationItem(NavigationItem):
         else:
             self.available_pane.current_app_by_category[self.available_pane.apps_category] = self.current_app
         self.available_pane.set_category(self.apps_subcategory or self.apps_category)
-        # FIXME:  need to check state of navigation bar and make sure we build up all
+        # check state of navigation bar and make sure we build up all
         # buttons as needed
+        if not self.available_pane.navigation_bar.get_button_from_id("list"):
+            self.available_pane.navigation_bar.add_with_id(self.apps_category.name,
+                                                           self.available_pane.on_navigation_details,
+                                                           "list")
+        if self.apps_subcategory and not self.available_pane.navigation_bar.get_button_from_id("subcat"):
+            self.available_pane.navigation_bar.add_with_id(self.apps_subcategory.name,
+                                                           self.available_pane.on_navigation_details,
+                                                           "subcat")
         self.available_pane.navigation_bar.add_with_id(self.current_app.name,
                                                        self.available_pane.on_navigation_details,
                                                        "details")
