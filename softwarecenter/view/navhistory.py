@@ -106,17 +106,14 @@ class AppListNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-        print "create AppListNavigationItem"
-#        print "...with apps_category.name: %s" % apps_category or apps_category.name
-#        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-        print "...with apps_search_term: %s" % apps_search_term
+#        print "create AppListNavigationItem"
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
         self.apps_search_term = apps_search_term
         
     def navigate_to(self):
-        print "AppListNavigationItem.navigate_to() "
+#        print "AppListNavigationItem.navigate_to() "
         self.available_pane.apps_category = self.apps_category
         self.available_pane.set_category(self.apps_category)
         self.available_pane.apps_subcategory = self.apps_subcategory
@@ -131,17 +128,14 @@ class AppListSubcategoryNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-        print "create AppListSubcategoryNavigationItem"
-#        print "...with apps_category.name: %s" % apps_category or apps_category.name
-#        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-        print "...with apps_search_term: %s" % apps_search_term
+#        print "create AppListSubcategoryNavigationItem"
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
         self.apps_search_term = apps_search_term
         
     def navigate_to(self):
-        print "AppListNavigationItem.navigate_to() "
+#        print "AppListNavigationItem.navigate_to() "
         self.available_pane.apps_category = self.apps_category
         self.available_pane.apps_subcategory = self.apps_subcategory
         self.available_pane.apps_search_term = self.apps_search_term
@@ -161,16 +155,13 @@ class AppDetailsNavigationItem(NavigationItem):
                                        apps_subcategory,
                                        current_app):
 #        print "create AppDetailsNavigationItem"
-#        print "...with apps_category.name: %s" % apps_category or apps_category.name
-#        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-#        print "...with current_app: %s" % current_app
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
         self.current_app = current_app
         
     def navigate_to(self):
-        print "AppDetailsNavigationItem.navigate_to() "
+#        print "AppDetailsNavigationItem.navigate_to() "
         if self.available_pane.apps_subcategory:
             self.available_pane.current_app_by_subcategory[self.available_pane.apps_subcategory] = self.current_app
         else:
@@ -199,16 +190,12 @@ class SearchNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-        print "create SearchNavigationItem"
+#        print "create SearchNavigationItem"
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
         self.apps_search_term = apps_search_term
-        print "create AppListSubcategoryNavigationItem"
-#        print "...with apps_category.name: %s" % apps_category or apps_category.name
-#        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
-        print "...with apps_search_term: %s" % apps_search_term
         
     def navigate_to(self):
         print "SearchNavigationItem.navigate_to() "
-        
+
