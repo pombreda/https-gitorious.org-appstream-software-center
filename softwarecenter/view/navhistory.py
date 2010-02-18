@@ -75,6 +75,13 @@ class NavigationHistory(object):
         self._current_nav_item = nav_item
         nav_item.navigate_to()
         
+    def reset_history(self):
+        self._nav_back_stack = []
+        self._nav_forward_stack = []
+        # update buttons
+        self.available_pane.back_forward.left.set_sensitive(False)
+        self.available_pane.back_forward.right.set_sensitive(False)
+        
 class NavigationItem(object):
     """
     interface class to represent navigation points for use with the
@@ -143,6 +150,8 @@ class AppListSubcategoryNavigationItem(NavigationItem):
         self.available_pane.apps_subcategory = self.apps_subcategory
         self.available_pane.apps_search_term = self.apps_search_term
         self.available_pane.set_category(self.apps_subcategory)
+        # FIXME:  need to check state of navigation bar and make sure we build up all
+        # buttons as needed
         self.available_pane.navigation_bar.add_with_id(
             self.apps_subcategory.name, self.available_pane.on_navigation_list_subcategory, "subcat")
         self.available_pane.on_navigation_list_subcategory(None, None)
@@ -150,12 +159,32 @@ class AppListSubcategoryNavigationItem(NavigationItem):
 class AppDetailsNavigationItem(NavigationItem):
     """
     """
-    def __init__(self, available_pane):
+    def __init__(self, available_pane, apps_category,
+                                       apps_subcategory,
+                                       current_app):
         print "create AppDetailsNavigationItem"
+        print "...with apps_category.name: %s" % apps_category.name
+        print "...with apps_subcategory.name: %s" % apps_subcategory or apps_subcategory.name
+        print "...with current_app: %s" % current_app
         self.available_pane = available_pane
+        self.apps_category = apps_category
+        self.apps_subcategory = apps_subcategory
+        self.current_app = current_app
         
     def navigate_to(self):
         print "AppDetailsNavigationItem.navigate_to() "
+        if self.available_pane.apps_subcategory:
+            self.available_pane.current_app_by_subcategory[self.available_pane.apps_subcategory] = self.current_app
+        else:
+            self.available_pane.current_app_by_category[self.available_pane.apps_category] = self.current_app
+        self.available_pane.set_category(self.apps_subcategory or self.apps_category)
+        # FIXME:  need to check state of navigation bar and make sure we build up all
+        # buttons as needed
+        self.available_pane.navigation_bar.add_with_id(self.current_app.name,
+                                                       self.available_pane.on_navigation_details,
+                                                       "details")
+        self.available_pane.app_details.show_app(self.current_app)
+        self.available_pane.on_navigation_details(None, None)
         
 class SearchNavigationItem(NavigationItem):
     """

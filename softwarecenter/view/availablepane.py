@@ -294,7 +294,6 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'category' is clicked"""
         if pathbar and not pathbar.get_active():
             return
-        print "on_navigation_category"
         # clear the search
         self._clear_search()
         self._show_category_overview()
@@ -312,7 +311,6 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'list' is clicked"""
         if pathbar and not pathbar.get_active():
             return
-        print "on_navigation_list"
         self.nav_history.navigate(AppListNavigationItem(self, 
                                                         self.apps_category,
                                                         self.apps_subcategory,
@@ -333,7 +331,6 @@ class AvailablePane(SoftwarePane):
     def on_navigation_list_subcategory(self, pathbar, part):
         if pathbar and not pathbar.get_active():
             return
-        print "on_navigation_list_subcategory"
         self.nav_history.navigate(
             AppListSubcategoryNavigationItem(self, 
                                              self.apps_category,
@@ -353,7 +350,10 @@ class AvailablePane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         #self.searchentry.hide()    # the spec no-longer calls for the search entry to be hidden
-        self.nav_history.navigate(AppDetailsNavigationItem(self))
+        self.nav_history.navigate(AppDetailsNavigationItem(self,
+                                                           self.apps_category,
+                                                           self.apps_subcategory,
+                                                           self.get_current_app()))
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
@@ -380,11 +380,9 @@ class AvailablePane(SoftwarePane):
             self.current_app_by_category[self.apps_category] = app
             
     def on_nav_back_clicked(self, widget, event):
-        print "clicked back button"
         self.nav_history.nav_back()
 
     def on_nav_forward_clicked(self, widget, event):
-        print "clicked forward button"
         self.nav_history.nav_forward()
         
     def is_category_view_showing(self):
