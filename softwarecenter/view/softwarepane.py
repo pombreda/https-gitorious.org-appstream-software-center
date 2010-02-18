@@ -30,7 +30,6 @@ if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
     from widgets.navigationbar import NavigationBar
 else:
     from widgets.pathbar2 import NavigationBar
-    from widgets.backforward import BackForwardButton
 
 from widgets.searchentry import SearchEntry
 
@@ -70,7 +69,7 @@ class SoftwarePane(gtk.VBox):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True, show_back_forward_buttons=False):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
@@ -114,18 +113,10 @@ class SoftwarePane(gtk.VBox):
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        top_hbox = gtk.HBox()
-        # TODO: remove this from here, should be in availablepane only!
-        if show_back_forward_buttons:
-            self.back_forward = BackForwardButton()
-            self.back_forward.left.set_sensitive(False)
-            self.back_forward.right.set_sensitive(False)
-            self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
-            self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
-            top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
-        top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
-        top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
-        self.pack_start(top_hbox, expand=False, padding=self.PADDING)
+        self.top_hbox = gtk.HBox()
+        self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
+        self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
+        self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)

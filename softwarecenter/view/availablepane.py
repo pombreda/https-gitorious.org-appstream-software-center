@@ -34,6 +34,8 @@ from catview import CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
+from widgets.backforward import BackForwardButton
+
 from navhistory import *
 
 class AvailablePane(SoftwarePane):
@@ -49,7 +51,7 @@ class AvailablePane(SoftwarePane):
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_back_forward_buttons=True)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
         # state
         self.apps_category = None
         self.apps_subcategory = None
@@ -89,6 +91,15 @@ class AvailablePane(SoftwarePane):
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.scroll_subcategories.add(self.subcategories_view)
+        # add nav history back/forward buttons
+        self.back_forward = BackForwardButton()
+        self.back_forward.left.set_sensitive(False)
+        self.back_forward.right.set_sensitive(False)
+        self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
+        self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
+        self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
+        # nav buttons first in the panel
+        self.top_hbox.reorder_child(self.back_forward, 0)
         # now a vbox for subcategories and applist 
         apps_vbox = gtk.VPaned()
         apps_vbox.pack1(self.scroll_subcategories, resize=True)
