@@ -67,7 +67,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                           error_handler=self._on_trans_error)
 
     def remove(self, pkgname, appname, iconname):
-        print "called backend.remove"
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.remove_packages([pkgname], wait=False, 
@@ -76,7 +75,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                          error_handler=self._on_trans_error)
 
     def install(self, pkgname, appname, iconname):
-        print "called backend.install"
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.install_packages([pkgname],

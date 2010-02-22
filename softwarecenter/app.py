@@ -405,18 +405,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.cache.open()
     def run_update_cache(self):
         """update the apt cache (e.g. after new sources where added """
-        print "called run_update_cache"
         self.backend.reload()
-#        # FIXME: use the buildin aptd backend instead of the aptdaemon.AptClient
-#        aptd_client = aptdaemon.client.AptClient()
-#        trans = aptd_client.update_cache(exit_handler=self._on_trans_finished)
-#        try:
-#            trans.run()
-#        except dbus.exceptions.DBusException, e:
-#            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-#                pass
-#            else:
-#                raise
 
     def update_app_status_menu(self):
         """Helper that updates the 'File' and 'Edit' menu to enable/disable
