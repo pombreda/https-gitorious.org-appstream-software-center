@@ -1,12 +1,18 @@
 software-center (1.1.13) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * data/featured.menu.in:
     - add scribus, blender
     - fix missing i18n
   * data/software-center.menu.in:
     - add a bunch of missing _
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Feb 2010 14:29:54 +0100
+  [ Gary Lasker ]
+  * softwarecenter/view/viewswitcher.py:
+    - fix ValueError in on_transactions_changed (LP: #523420)
+    - fix AttributeError in do_render (LP: #523341)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Feb 2010 12:55:28 -0500
 
 software-center (1.1.12) lucid; urgency=low
 
