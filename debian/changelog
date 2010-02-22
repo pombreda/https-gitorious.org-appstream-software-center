@@ -11,8 +11,10 @@ software-center (1.1.13) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - fix ValueError in on_transactions_changed (LP: #523420)
     - fix AttributeError in do_render (LP: #523341)
+  * softwarecenter/view/installedpane.py:
+    - fix AttributeError in refresh_apps() (LP: #520097)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Feb 2010 12:55:28 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Feb 2010 13:10:54 -0500
 
 software-center (1.1.12) lucid; urgency=low
 
