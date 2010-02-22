@@ -87,7 +87,7 @@ class InstalledPane(SoftwarePane):
         # getting progress_changed events and eats CPU time until it's
         # garbage collected
         old_model = self.app_view.get_model()
-        if old_model not None:
+        if old_model is not None:
             old_model.active = False
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
