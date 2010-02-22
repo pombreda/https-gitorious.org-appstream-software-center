@@ -84,10 +84,11 @@ class InstalledPane(SoftwarePane):
                                         self.on_navigation_list,
                                         "list")
         # *ugh* deactivate the old model because otherwise it keeps
-        # getting progress_changed events and eats CPU time until its
+        # getting progress_changed events and eats CPU time until it's
         # garbage collected
         old_model = self.app_view.get_model()
-        old_model.active = False
+        if old_model not None:
+            old_model.active = False
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
