@@ -9,6 +9,12 @@ software-center (1.1.13) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py:
     - fix cache reload functionality
     - fix display of update/external transactions (LP: #514861)
+  * po/help/po4a.conf:
+    - make help translatable via po4a (LP: #439353)
+  * po/help/software-center-doc.pot:
+    - add help pot
+  * setup.py:
+    - build help translations automatically
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
