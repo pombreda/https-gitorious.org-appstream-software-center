@@ -56,7 +56,7 @@ def wait_for_apt_cache_ready(f):
         f(*args, **kwargs)
         return False
     return wrapper
-            
+
 
 class SoftwarePane(gtk.VBox):
     """ Common base class for InstalledPane and AvailablePane """
@@ -65,7 +65,7 @@ class SoftwarePane(gtk.VBox):
         "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
                               gobject.TYPE_NONE, 
                               (int, ),
-                             )
+                             ),
     }
     PADDING = 6
 
@@ -102,6 +102,8 @@ class SoftwarePane(gtk.VBox):
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
                                        gtk.POLICY_AUTOMATIC)
         self.scroll_details.add(self.app_details)
+        self.app_details.backend.connect("transaction-finished", self.on_transaction_finished)
+        self.app_details.backend.connect("transaction-stopped", self.on_transaction_stopped)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -123,6 +125,7 @@ class SoftwarePane(gtk.VBox):
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
+        logging.debug("on_cache_ready")
         # FIXME: preserve selection too
         # get previous vadjustment and reapply it
         vadj = self.scroll_app_list.get_vadjustment()
@@ -149,6 +152,29 @@ class SoftwarePane(gtk.VBox):
             action_func()
         else:
             logging.error("can not find action '%s'" % action)
+            
+    def on_transaction_finished(self, backend, success):
+        """ callback when an application install/remove transaction has finished """
+        btns = self.app_view.buttons
+        if btns.has_key('action'):
+            btns['action'].set_sensitive(True)
+
+    def on_transaction_stopped(self, backend):
+        """ callback when an application install/remove transaction has stopped """
+        btns = self.app_view.buttons
+        if btns.has_key('action'):
+            btns['action'].set_sensitive(True)
+
+    def set_page(self, part):
+        if part.name == "category":
+            self.notebook.set_current_page(self.PAGE_CATEGORY)
+        elif part.name in ("subcat", "search", "list"):
+            self.notebook.set_current_page(self.PAGE_APPLIST)
+        elif part.name == "details":
+            self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        else:
+            logging.warn("'%s' not mapped to history" % part.name)
+        return
 
     def update_app_view(self):
         """

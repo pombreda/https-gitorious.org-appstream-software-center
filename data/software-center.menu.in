@@ -4,7 +4,7 @@
 
   <!-- Accessories submenu -->
   <Menu>
-    <Name>Accessories</Name>
+    <_Name>Accessories</_Name>
     <Directory>Utility.directory</Directory>
     <Include>
       <And>
@@ -21,7 +21,7 @@
 
   <!-- Accessibility submenu -->
   <Menu>
-    <Name>Universal Access</Name>
+    <_Name>Universal Access</_Name>
     <Directory>Utility-Accessibility.directory</Directory>
     <Include>
       <And>
@@ -33,7 +33,7 @@
 
   <!-- Development Tools -->
   <Menu>
-    <Name>Development</Name>
+    <_Name>Development</_Name>
     <Directory>Development.directory</Directory>
     <Include>
       <And>
@@ -225,7 +225,7 @@
 
   <!-- Education -->
   <Menu>
-    <Name>Education</Name>
+    <_Name>Education</_Name>
     <Directory>Education.directory</Directory>
     <Include>
       <And>
@@ -237,7 +237,7 @@
 
   <!-- Science -->
   <Menu>
-    <Name>Science</Name>
+    <_Name>Science</_Name>
     <Directory>GnomeScience.directory</Directory>
     <Include>
       <And>
@@ -249,7 +249,7 @@
 
   <!-- Games -->
   <Menu>
-    <Name>Games</Name>
+    <_Name>Games</_Name>
     <Directory>Game.directory</Directory>
     <Include>
       <And>
@@ -258,84 +258,84 @@
     </Include>
     <!-- Sub-categories for the games -->
     <Menu>
-      <Name>Action</Name>
+      <_Name>Action</_Name>
       <Directory>ActionGames.directory</Directory>
       <Include>
         <Category>ActionGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Adventure</Name>
+      <_Name>Adventure</_Name>
       <Directory>AdventureGames.directory</Directory>
       <Include>
         <Category>AdventureGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Arcade</Name>
+      <_Name>Arcade</_Name>
       <Directory>ArcadeGames.directory</Directory>
       <Include>
         <Category>ArcadeGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Board</Name>
+      <_Name>Board</_Name>
       <Directory>BoardGames.directory</Directory>
       <Include>
         <Category>BoardGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Blocks</Name>
+      <_Name>Blocks</_Name>
       <Directory>BlocksGames.directory</Directory>
       <Include>
         <Category>BlocksGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Cards</Name>
+      <_Name>Cards</_Name>
       <Directory>CardGames.directory</Directory>
       <Include>
         <Category>CardGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Kids</Name>
+      <_Name>Kids</_Name>
       <Directory>KidsGames.directory</Directory>
       <Include>
         <Category>KidsGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Logic</Name>
+      <_Name>Logic</_Name>
       <Directory>LogicGames.directory</Directory>
       <Include>
         <Category>LogicGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Role Playing</Name>
+      <_Name>Role Playing</_Name>
       <Directory>RolePlayingGames.directory</Directory>
       <Include>
         <Category>RolePlaying</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Simulation</Name>
+      <_Name>Simulation</_Name>
       <Directory>SimulationGames.directory</Directory>
       <Include>
         <Category>Simulation</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Sports</Name>
+      <_Name>Sports</_Name>
       <Directory>SportsGames.directory</Directory>
       <Include>
         <Category>SportsGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Strategy</Name>
+      <_Name>Strategy</_Name>
       <Directory>StrategyGames.directory</Directory>
       <Include>
         <Category>StrategyGame</Category>
@@ -346,7 +346,7 @@
 
   <!-- Graphics -->
   <Menu>
-    <Name>Graphics</Name>
+    <_Name>Graphics</_Name>
     <Directory>Graphics.directory</Directory>
     <Include>
       <And>
@@ -357,7 +357,7 @@
 
   <!-- Internet -->
   <Menu>
-    <Name>Internet</Name>
+    <_Name>Internet</_Name>
     <Directory>Network.directory</Directory>
     <Include>
       <And>
@@ -368,7 +368,7 @@
 
   <!-- Multimedia -->
   <Menu>
-    <Name>Multimedia</Name>
+    <_Name>Multimedia</_Name>
     <Directory>AudioVideo.directory</Directory>
     <Include>
       <And>
@@ -379,7 +379,7 @@
 
   <!-- Office -->
   <Menu>
-    <Name>Office</Name>
+    <_Name>Office</_Name>
     <Directory>Office.directory</Directory>
     <Include>
       <And>
@@ -390,7 +390,7 @@
 
   <!-- System Tools-->
   <Menu>
-    <Name>System</Name>
+    <_Name>System</_Name>
     <Directory>System-Tools.directory</Directory>
     <Include>
       <And>
@@ -403,7 +403,7 @@
 
   <!-- Other -->
   <Menu>
-    <Name>Other</Name>
+    <_Name>Other</_Name>
     <Directory>X-GNOME-Other.directory</Directory>
     <OnlyUnallocated/>
     <Include>

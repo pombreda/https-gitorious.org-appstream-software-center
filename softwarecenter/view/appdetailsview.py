@@ -75,6 +75,8 @@ class AppDetailsView(WebkitWidget):
         self.distro = distro
         self.icons = icons
         self.cache = cache
+        self.cache.connect("cache-ready", self._on_cache_ready)
+
         self.datadir = datadir
         self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
                                      stdout=subprocess.PIPE).communicate()[0].strip()
@@ -83,9 +85,10 @@ class AppDetailsView(WebkitWidget):
         atk_desc.set_name(_("Description"))
         # aptdaemon
         self.backend = get_install_backend()
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # data
+        self.pkg = None
         self.app = None
         self.iconname = ""
         # setup user-agent
@@ -307,6 +310,8 @@ class AppDetailsView(WebkitWidget):
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):
         return self.distro.IMAGE_THUMBNAIL_MISSING
+    def wksub_no_screenshot_avaliable(self):
+        return _('No screenshot available')
     def wksub_text_direction(self):
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
@@ -333,7 +338,6 @@ class AppDetailsView(WebkitWidget):
 
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
-        # FIXME: move this to utilities or something
         self.backend.enable_channel(self.channelfile)
         self._set_action_button_sensitive(False)
 
@@ -388,12 +392,24 @@ class AppDetailsView(WebkitWidget):
         self._set_action_button_sensitive(False)
 
     # internal callback
-    def _on_transaction_finished(self, backend, success):
-        # re-open cache and refresh app display
-        self.cache.open()
+    def _on_cache_ready(self, cache):
+        logging.debug("on_cache_ready")
         self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)
+        if not self.app:
+            return
+        print self.app
+        self.execute_script("showProgress(false);")
+    def _on_transaction_progress_changed(self, backend, pkgname, progress):
+        if not self.app or not self.app.pkgname == pkgname:
+            return
+        # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
+        if self.get_load_status() != 2:
+            return
+        self.execute_script("showProgress(true);")
+        if pkgname in backend.pending_transactions:
+            self.execute_script("updateProgress(%s);" % progress)
 
     def _on_navigation_requested(self, view, frame, request):
         logging.debug("_on_navigation_requested %s" % request.get_uri())
@@ -427,7 +443,7 @@ class AppDetailsView(WebkitWidget):
             logging.debug("run_thumb_missing_js")
             # wait until its ready for JS injection
             # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-            if self.get_property("load-status") != 2:
+            if self.get_load_status() != 2:
                 return True
             self.execute_script("thumbMissing();")
             return False

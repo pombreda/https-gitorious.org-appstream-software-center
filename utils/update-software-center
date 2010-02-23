@@ -73,7 +73,7 @@ if __name__ == "__main__":
     try:
         locale.setlocale(locale.LC_ALL, "")
     except Exception, e:
-        logging.exception("setlocale failed")
+        logging.warn("setlocale failed with '%s'" % e) 
 
     # parser
     parser = OptionParser()

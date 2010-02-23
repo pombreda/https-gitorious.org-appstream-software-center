@@ -16,8 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
-import aptdaemon
 import atexit
 import locale
 import dbus
@@ -44,10 +42,12 @@ import view.dialogs
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from view.pendingview import PendingView
 from view.installedpane import InstalledPane
+from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
 
 from backend.config import get_config
+from backend import get_install_backend
 
 from distro import get_distro
 
@@ -75,7 +75,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     (NOTEBOOK_PAGE_AVAILABLE,
      NOTEBOOK_PAGE_INSTALLED,
      NOTEBOOK_PAGE_SEPARATOR_1,
-     NOTEBOOK_PAGE_PENDING) = range(4)
+     NOTEBOOK_PAGE_PENDING,
+     NOTEBOOK_PAGE_CHANNEL) = range(5)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
@@ -106,6 +107,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # a main iteration friendly apt cache
         self.cache = AptCache()
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-finished", 
+                             lambda backend, result, self: self.cache.open(), 
+                             self)
 
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -141,7 +146,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         gtk.window_set_default_icon_name("softwarecenter")
 
         # misc state
-        self._pending_transactions = 0
         self._block_menuitem_view = False
         self._available_items_for_page = {}
 
@@ -159,6 +163,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                     self.NOTEBOOK_PAGE_AVAILABLE)
         self.alignment_available.add(self.available_pane)
 
+        # channel pane
+        self.channel_pane = ChannelPane(self.cache, self.db,
+                                            self.distro,
+                                            self.icons, datadir)
+        self.channel_pane.app_details.connect("selected", 
+                                                self.on_app_details_changed,
+                                                self.NOTEBOOK_PAGE_CHANNEL)
+        self.channel_pane.app_view.connect("application-selected",
+                                             self.on_app_selected)
+        self.channel_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    self.NOTEBOOK_PAGE_CHANNEL)
+        self.alignment_channel.add(self.channel_pane)
+        
         # installed pane
         self.installed_pane = InstalledPane(self.cache, self.db,
                                             self.distro,
@@ -178,13 +196,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # view switcher
-        self.view_switcher = ViewSwitcher(datadir, self.icons)
+        self.view_switcher = ViewSwitcher(datadir, self.db, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
-        self.view_switcher.model.connect("transactions-changed", 
-                                   self.on_view_switcher_transactions_changed)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
@@ -228,24 +244,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.searchentry.is_focus()):
             self.active_pane.navigation_bar.navigate_up()
         
-    def on_view_switcher_transactions_changed(self, view_switcher, pending_nr):
-        # if the pending number drops to zero check if we should switch
-        # to the previous view
-        if pending_nr == 0 and self._view_before_pending_switch is not None:
-            if self.view_switcher.get_view() is None:
-                self.view_switcher.set_view(self._view_before_pending_switch)
-            self._view_before_pending_switch = None
-        # the spec says that on the first transaction it should auto-switch
-        # to the progress view
-        elif pending_nr > 0 and self._pending_transactions == 0:
-            self._view_before_pending_switch = self.view_switcher.get_view()
-            self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_PENDING)
-        self._pending_transactions = pending_nr
-
-    def on_view_switcher_changed(self, view_switcher, action):
+    def on_view_switcher_changed(self, view_switcher, action, channel_name):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
+        elif action == self.NOTEBOOK_PAGE_CHANNEL:
+            self.channel_pane.set_channel_name(channel_name)
+            self.active_pane = self.channel_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
         elif action == self.NOTEBOOK_PAGE_PENDING:
@@ -261,14 +266,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # set menu state
         if self.active_pane:
             self._block_menuitem_view = True
-            if self.active_pane.apps_filter.get_supported_only():
+            if not self.active_pane.apps_filter:
+                self.menuitem_view_all.set_sensitive(False)
+                self.menuitem_view_supported_only.set_sensitive(False)
+            elif self.active_pane.apps_filter.get_supported_only():
                 self.menuitem_view_supported_only.activate()
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
         # switch to new page
         self.notebook_view.set_current_page(action)
-        self.update_app_list_view()
+        self.update_app_list_view(channel_name)
         self.update_status_bar()
         self.update_app_status_menu()
 
@@ -381,31 +389,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # helper
 
-    # FIXME: move the two functions below into generic code
-    #        and share that with the appdetailsview
-    def _on_trans_finished(self, trans, enum):
-        """callback when a aptdaemon transaction finished"""
-        if enum == aptdaemon.enums.EXIT_FAILED:
-            excep = trans.get_error()
-            msg = "%s: %s\n%s\n\n%s" % (
-                   _("ERROR"),
-                   aptdaemon.enums.get_error_string_from_enum(excep.code),
-                   aptdaemon.enums.get_error_description_from_enum(excep.code),
-                   excep.details)
-            print msg
-        # re-open cache and refresh app display
-        self.cache.open()
     def run_update_cache(self):
         """update the apt cache (e.g. after new sources where added """
-        aptd_client = aptdaemon.client.AptClient()
-        trans = aptd_client.update_cache(exit_handler=self._on_trans_finished)
-        try:
-            trans.run()
-        except dbus.exceptions.DBusException, e:
-            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                pass
-            else:
-                raise
+        self.backend.reload()
 
     def update_app_status_menu(self):
         """Helper that updates the 'File' and 'Edit' menu to enable/disable
@@ -452,13 +438,18 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             s = ""
         self.label_status.set_text(s)
         
-    def update_app_list_view(self):
+    def update_app_list_view(self, channel_name=None):
         """Helper that updates the app view list.
         """
-        if self.active_pane is not None and not self.active_pane.is_category_view_showing():
-#            with ExecutionTime("TIME update_app_view"):
-#                self.active_pane.update_app_view()
-            self.active_pane.update_app_view()
+        if self.active_pane is None:
+            return
+        if channel_name is None and self.active_pane.is_category_view_showing():
+            return
+        if channel_name:
+            self.channel_pane.set_channel_name(channel_name)
+            self.active_pane.refresh_apps()
+            
+        self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
