@@ -13,11 +13,14 @@ software-center (1.1.13) UNRELEASED; urgency=low
     - fix AttributeError in do_render (LP: #523341)
   * softwarecenter/view/installedpane.py:
     - fix AttributeError in refresh_apps() (LP: #520097)
+  * softwarecenter/view/widgets/pathbar2.py:
+    - fix typo in PathBarThemeHumanClearlooks class,
+      gave an AttributeError in __expose_cb() (LP: #523452) 
   * softwarecenter/app.py,
     softwarecenter/backend/aptd.py:
-    - update to use new backend API (LP: #496058)
+    - update to use new backend API (LP: #496058) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Feb 2010 17:41:07 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Feb 2010 21:00:54 -0500
 
 software-center (1.1.12) lucid; urgency=low
 
