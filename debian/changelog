@@ -6,6 +6,8 @@ software-center (1.1.13) UNRELEASED; urgency=low
     - fix missing i18n
   * data/software-center.menu.in:
     - add a bunch of missing _
+  * softwarecenter/backend/aptd.py:
+    - fix cache reload functionality (LP: #514861)
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:

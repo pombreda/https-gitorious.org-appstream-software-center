@@ -338,7 +338,6 @@ class AppDetailsView(WebkitWidget):
 
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
-        # FIXME: move this to utilities or something
         self.backend.enable_channel(self.channelfile)
         self._set_action_button_sensitive(False)
 
