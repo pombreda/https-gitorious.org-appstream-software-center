@@ -136,11 +136,18 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 pkgname = trans.meta_data["sc_pkgname"]
                 self.pending_transactions[pkgname] = trans.progress
             except KeyError:
-                pass
+                # if its not a transaction from us (sc_pkgname) still
+                # add it with the tid as key to get accurate results
+                # (the key of pending_transactions is never directly
+                #  exposed in the UI)
+                self.pending_transactions[trans.tid] = trans.progress
         self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
-        """ internal helper that gets called on transaction progress """
+        """ 
+        internal helper that gets called on our package transaction progress 
+        (only showing pkg progress currently)
+        """
         try:
             pkgname = trans.meta_data["sc_pkgname"]
             self.pending_transactions[pkgname] = progress
@@ -244,6 +251,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # setup debconf only if we have a pkg
             trans.set_debconf_frontend("gnome", reply_handler=lambda t: True,
                                        error_handler=self._on_trans_error)
+            
         # set proxy and run
         self.set_http_proxy(trans)
         trans.run(error_handler=self._on_trans_error,

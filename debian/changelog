@@ -7,7 +7,8 @@ software-center (1.1.13) UNRELEASED; urgency=low
   * data/software-center.menu.in:
     - add a bunch of missing _
   * softwarecenter/backend/aptd.py:
-    - fix cache reload functionality (LP: #514861)
+    - fix cache reload functionality
+    - fix display of update/external transactions (LP: #514861)
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
