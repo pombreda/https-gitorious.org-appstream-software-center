@@ -212,6 +212,7 @@ class PathBar(gtk.DrawingArea):
         self.__parts.append(part)
         part.set_pathbar(self)
 
+        print "appending button part.name: %s" % part.name 
         self.set_active(part)
 
         # determin part shapes, and calc modified parts widths
