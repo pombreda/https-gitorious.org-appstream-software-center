@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import rgb
-import gtk
+import atk
 import cairo
-import pango
 import gobject
+import gtk
+import pango
+import rgb
 
 from rgb import to_float as f
 
@@ -865,12 +865,21 @@ class PathBar(gtk.DrawingArea):
         return
 
 
-class PathPart:
+class PathPart(atk.Object):
 
-    def __init__(self, label=None, callback=None):
+    def __init__(self, parent, label=None, callback=None):
+        atk.Object.__init__(self)
         self.__requisition = (0,0)
         self.__layout = None
         self.__pbar = None
+
+        # self.set_name() would work as well, *but* we have that
+        # function already for a different purpose, so we need to
+        # explicitely call
+        atk.Object.set_name(self, label)
+        atk.Object.set_role(self, atk.ROLE_PUSH_BUTTON)
+        atk.Object.set_parent(self, parent.get_accessible())
+        atk.Object.add_relationship(self, atk.RELATION_MEMBER_OF, parent.get_accessible())
 
         self.allocation = [0, 0, 0, 0]
         self.state = gtk.STATE_NORMAL
@@ -1500,7 +1509,7 @@ class NavigationBar(PathBar):
             part = self.id_to_part[id]
             part.set_label(label)
         else:
-            part = PathPart(label, callback)
+            part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
             part.set_pathbar(self)
             self.id_to_part[id] = part

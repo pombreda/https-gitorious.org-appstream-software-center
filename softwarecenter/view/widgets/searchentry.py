@@ -25,6 +25,8 @@
 import gtk
 import gobject
 
+from gettext import gettext as _
+
 class SearchEntry(gtk.Entry):
 
     # FIMXE: we need "can-undo", "can-redo" signals

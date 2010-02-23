@@ -2,6 +2,9 @@ software-center (1.1.14) UNRELEASED; urgency=low
 
   * softwarecenter/view/:
     - add a bunch of missing atk description to the widgets
+  * softwarecenter/view/widgets/pathbar2.py:
+    - make the PathParts subclasses of atk.Objects and add atk
+      descriptions/parent relations
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Feb 2010 15:40:30 +0100
 
