@@ -29,6 +29,7 @@ from rgb import to_float as f
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
+from gettext import gettext as _
 
 class PathBar(gtk.DrawingArea):
 
@@ -52,6 +53,9 @@ class PathBar(gtk.DrawingArea):
         self.__scroll_xO = 0
 
         self.theme = self.__pick_theme()
+
+        atk_desc = self.get_accessible()
+        atk_desc.set_name(_("Navigation bar"))
 
         # setup event handling
         self.set_flags(gtk.CAN_FOCUS)
