@@ -13,8 +13,11 @@ software-center (1.1.13) UNRELEASED; urgency=low
     - fix AttributeError in do_render (LP: #523341)
   * softwarecenter/view/installedpane.py:
     - fix AttributeError in refresh_apps() (LP: #520097)
+  * softwarecenter/view/widgets/pathbar2.py:
+    - fix typo in PathBarThemeHumanClearlooks class,
+      gave an AttributeError in __expose_cb() (LP: #523452) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Feb 2010 13:10:54 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Feb 2010 20:42:11 -0500
 
 software-center (1.1.12) lucid; urgency=low
 

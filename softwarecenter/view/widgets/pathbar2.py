@@ -1254,7 +1254,7 @@ class PathBarThemeHumanClearlooks(PathBarThemeHuman):
             gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
             gtk.STATE_SELECTED: gtk.STATE_NORMAL,
             gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT,
-            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITVE
+            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITIVE
             }
 
         self.base_hack = None
