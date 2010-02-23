@@ -6,7 +6,7 @@ from DistUtilsExtra.command import *
 import re
 import glob
 import os
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, call
 import sys
 
 # update version.py
@@ -23,7 +23,11 @@ DISTRO='%s'
 RELEASE='%s'
 """ % (VERSION, CODENAME, DISTRO, RELEASE))
 
+# update po4a
+if sys.argv[1] == "build":
+    call(["po4a", "po/help/po4a.conf"])
 
+# real setup
 setup(name="software-center", version=VERSION,
       scripts=["software-center",
                "utils/update-software-center",

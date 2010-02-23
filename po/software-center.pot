@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-17 14:45+0100\n"
+"POT-Creation-Date: 2010-02-23 12:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -393,19 +393,15 @@ msgstr ""
 msgid "otherosfs"
 msgstr ""
 
-#: ../softwarecenter/app.py:136
+#: ../softwarecenter/app.py:134
 msgid "Sorry, can not open the software database"
 msgstr ""
 
-#: ../softwarecenter/app.py:137
+#: ../softwarecenter/app.py:135
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/app.py:401
-msgid "ERROR"
-msgstr ""
-
-#: ../softwarecenter/backend/aptd.py:170
+#: ../softwarecenter/backend/aptd.py:183
 msgid "Error"
 msgstr ""
 
@@ -630,27 +626,27 @@ msgstr ""
 msgid "No screenshot available"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:347
+#: ../softwarecenter/view/appdetailsview.py:346
 #, python-format
 msgid "%s - Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:468
+#: ../softwarecenter/view/appdetailsview.py:467
 #: ../softwarecenter/view/appview.py:882
 msgid "Remove"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:471
+#: ../softwarecenter/view/appdetailsview.py:470
 #: ../softwarecenter/view/appview.py:882
 msgid "Install"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarecenter/view/appdetailsview.py:481
+#: ../softwarecenter/view/appdetailsview.py:480
 msgid "Use This Source"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:484
+#: ../softwarecenter/view/appdetailsview.py:483
 msgid "Update Now"
 msgstr ""
 
@@ -678,7 +674,7 @@ msgid "Search Results"
 msgstr ""
 
 #: ../softwarecenter/view/availablepane.py:221
-#: ../softwarecenter/view/installedpane.py:145
+#: ../softwarecenter/view/installedpane.py:146
 #: ../softwarecenter/view/channelpane.py:165
 #, python-format
 msgid "%s matching item"
@@ -715,7 +711,7 @@ msgstr ""
 msgid "Installed Software"
 msgstr ""
 
-#: ../softwarecenter/view/installedpane.py:149
+#: ../softwarecenter/view/installedpane.py:150
 #, python-format
 msgid "%s application installed"
 msgid_plural "%s applications installed"

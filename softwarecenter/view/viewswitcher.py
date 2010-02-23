@@ -71,6 +71,10 @@ class ViewSwitcher(gtk.TreeView):
         column.pack_start(tr, expand=True)
         column.set_attributes(tr, markup=store.COL_NAME)
         self.append_column(column)
+
+        # set sensible atk name
+        atk_desc = self.get_accessible()
+        atk_desc.set_name(_("Software sources"))
         
         self.set_model(store)
         self.set_headers_visible(False)
@@ -158,7 +162,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self._pending = 0
         # setup the normal stuff
         available_icon = self._get_icon("softwarecenter")
-        available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
+        available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, ""])
         
         # gather icons for use with channel sources
         self.dist_icon = self._get_icon("distributor-logo")
@@ -192,7 +196,7 @@ class ViewSwitcherList(gtk.TreeStore):
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
                 self.append(None, [icon, _("In Progress (%i)") % pending, 
-                             self.ACTION_ITEM_PENDING])
+                             self.ACTION_ITEM_PENDING, ""])
         else:
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:

@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import rgb
-import gtk
+import atk
 import cairo
-import pango
 import gobject
+import gtk
+import pango
+import rgb
 
 from rgb import to_float as f
 
@@ -29,6 +29,7 @@ from rgb import to_float as f
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
+from gettext import gettext as _
 
 class PathBar(gtk.DrawingArea):
 
@@ -52,6 +53,11 @@ class PathBar(gtk.DrawingArea):
         self.__scroll_xO = 0
 
         self.theme = self.__pick_theme()
+
+        atk_desc = self.get_accessible()
+        # Accessibility name for the pathbar
+        atk_desc.set_name(_("You are here:"))
+        atk_desc.set_role(atk.ROLE_PANEL)
 
         # setup event handling
         self.set_flags(gtk.CAN_FOCUS)
@@ -859,13 +865,25 @@ class PathBar(gtk.DrawingArea):
         self.queue_draw()
         return
 
+# FIXME: this should be a subclass atk.Component instead?
+class PathPart(atk.Object):
 
-class PathPart:
-
-    def __init__(self, label=None, callback=None):
+    def __init__(self, parent, label=None, callback=None):
+        atk.Object.__init__(self)
         self.__requisition = (0,0)
         self.__layout = None
         self.__pbar = None
+
+        # self.set_name() would work as well, *but* we have that
+        # function already for a different purpose, so we need to
+        # explicitely call
+        parent_atk = parent.get_accessible()
+        atk.Object.set_name(self, label)
+        atk.Object.set_role(self, atk.ROLE_PUSH_BUTTON)
+        atk.Object.add_relationship(self, atk.RELATION_MEMBER_OF, parent_atk)
+        atk.Object.set_parent(self, parent_atk)
+        #print parent_atk
+        #print parent_atk.get_n_accessible_children()
 
         self.allocation = [0, 0, 0, 0]
         self.state = gtk.STATE_NORMAL
@@ -891,6 +909,7 @@ class PathPart:
         # some hackery to preserve italics markup
         label = label.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
         self.label = label
+        atk.Object.set_name(self, label)
         return
 
     def set_icon(self, stock_icon, size=gtk.ICON_SIZE_BUTTON):
@@ -1254,7 +1273,7 @@ class PathBarThemeHumanClearlooks(PathBarThemeHuman):
             gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
             gtk.STATE_SELECTED: gtk.STATE_NORMAL,
             gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT,
-            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITVE
+            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITIVE
             }
 
         self.base_hack = None
@@ -1495,7 +1514,7 @@ class NavigationBar(PathBar):
             part = self.id_to_part[id]
             part.set_label(label)
         else:
-            part = PathPart(label, callback)
+            part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
             part.set_pathbar(self)
             self.id_to_part[id] = part
