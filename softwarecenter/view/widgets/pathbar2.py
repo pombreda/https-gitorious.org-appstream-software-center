@@ -57,6 +57,7 @@ class PathBar(gtk.DrawingArea):
         atk_desc = self.get_accessible()
         # Accessibility name for the pathbar
         atk_desc.set_name(_("You are here:"))
+        atk_desc.set_role(atk.ROLE_PANEL)
 
         # setup event handling
         self.set_flags(gtk.CAN_FOCUS)
@@ -864,7 +865,7 @@ class PathBar(gtk.DrawingArea):
         self.queue_draw()
         return
 
-
+# FIXME: this should be a subclass atk.Component instead?
 class PathPart(atk.Object):
 
     def __init__(self, parent, label=None, callback=None):
@@ -876,10 +877,13 @@ class PathPart(atk.Object):
         # self.set_name() would work as well, *but* we have that
         # function already for a different purpose, so we need to
         # explicitely call
+        parent_atk = parent.get_accessible()
         atk.Object.set_name(self, label)
         atk.Object.set_role(self, atk.ROLE_PUSH_BUTTON)
-        atk.Object.set_parent(self, parent.get_accessible())
-        atk.Object.add_relationship(self, atk.RELATION_MEMBER_OF, parent.get_accessible())
+        atk.Object.add_relationship(self, atk.RELATION_MEMBER_OF, parent_atk)
+        atk.Object.set_parent(self, parent_atk)
+        #print parent_atk
+        #print parent_atk.get_n_accessible_children()
 
         self.allocation = [0, 0, 0, 0]
         self.state = gtk.STATE_NORMAL
@@ -905,6 +909,7 @@ class PathPart(atk.Object):
         # some hackery to preserve italics markup
         label = label.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
         self.label = label
+        atk.Object.set_name(self, label)
         return
 
     def set_icon(self, stock_icon, size=gtk.ICON_SIZE_BUTTON):
