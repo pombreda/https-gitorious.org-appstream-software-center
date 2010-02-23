@@ -55,7 +55,8 @@ class PathBar(gtk.DrawingArea):
         self.theme = self.__pick_theme()
 
         atk_desc = self.get_accessible()
-        atk_desc.set_name(_("Navigation bar"))
+        # Accessibility name for the pathbar
+        atk_desc.set_name(_("You are here:"))
 
         # setup event handling
         self.set_flags(gtk.CAN_FOCUS)

@@ -71,6 +71,10 @@ class ViewSwitcher(gtk.TreeView):
         column.pack_start(tr, expand=True)
         column.set_attributes(tr, markup=store.COL_NAME)
         self.append_column(column)
+
+        # set sensible atk name
+        atk_desc = self.get_accessible()
+        atk_desc.set_name(_("Software sources"))
         
         self.set_model(store)
         self.set_headers_visible(False)

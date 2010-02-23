@@ -1,7 +1,7 @@
 software-center (1.1.14) UNRELEASED; urgency=low
 
-  * softwarecenter/view/widgets/pathbar2.py:
-    - add atk description to widget
+  * softwarecenter/view/:
+    - add a bunch of missing atk description to the widgets
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Feb 2010 15:40:30 +0100
 
