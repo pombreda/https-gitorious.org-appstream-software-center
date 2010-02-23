@@ -84,8 +84,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def reload(self):
         reply_handler = lambda trans: self._run_transaction(trans, None, None,
                                                             None)
-        trans = self.aptd_client.update_cache(reply_handler=reply_handler,
-                                             error_handler=self._on_trans_error)
+        self.aptd_client.update_cache(reply_handler=reply_handler,
+                                      error_handler=self._on_trans_error)
 
     def enable_channel(self, channelfile):
         import aptsources.sourceslist
@@ -226,7 +226,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
-        # set appname/iconname only if we actually have one
+        # set appname/iconname/pkgname only if we actually have one
         if appname:
             trans.set_meta_data(sc_appname=appname, 
                                 reply_handler=lambda t: True,
@@ -235,10 +235,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             trans.set_meta_data(sc_iconname=iconname,
                                 reply_handler=lambda t: True,
                                 error_handler=self._on_trans_error)
-        # we always have a pkgname
-        trans.set_meta_data(sc_pkgname=pkgname,
-                            reply_handler=set_debconf,
-                            error_handler=self._on_trans_error)
+        # we do not have a pkgname for "cache.update()"
+        if pkgname:
+            trans.set_meta_data(sc_pkgname=pkgname,
+                                reply_handler=set_debconf,
+                                error_handler=self._on_trans_error)
         
 
 if __name__ == "__main__":

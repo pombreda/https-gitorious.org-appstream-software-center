@@ -16,8 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
-import aptdaemon
 import atexit
 import locale
 import dbus
@@ -391,32 +389,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # helper
 
-    # FIXME: move the two functions below into generic code
-    #        and share that with the appdetailsview
-    def _on_trans_finished(self, trans, enum):
-        """callback when a aptdaemon transaction finished"""
-        if enum == aptdaemon.enums.EXIT_FAILED:
-            excep = trans.get_error()
-            msg = "%s: %s\n%s\n\n%s" % (
-                   _("ERROR"),
-                   aptdaemon.enums.get_error_string_from_enum(excep.code),
-                   aptdaemon.enums.get_error_description_from_enum(excep.code),
-                   excep.details)
-            print msg
-        # re-open cache and refresh app display
-        self.cache.open()
     def run_update_cache(self):
         """update the apt cache (e.g. after new sources where added """
-        # FIXME: use the buildin aptd backend instead of the aptdaemon.AptClient
-        aptd_client = aptdaemon.client.AptClient()
-        trans = aptd_client.update_cache(exit_handler=self._on_trans_finished)
-        try:
-            trans.run()
-        except dbus.exceptions.DBusException, e:
-            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                pass
-            else:
-                raise
+        self.backend.reload()
 
     def update_app_status_menu(self):
         """Helper that updates the 'File' and 'Edit' menu to enable/disable
