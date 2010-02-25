@@ -3,6 +3,8 @@ software-center (1.1.15) unstable; urgency=low
   [ Michael Vogt ]
   * softwarecenter/view/widgets/animatedimage.py:
     - fix crash when image property is not set
+  * updated po/th.po:
+    - thanks to Sira Nokyoonhtong 
 
   [ Gary Lasker ]
   * data/ui/SoftwareCenter.ui:

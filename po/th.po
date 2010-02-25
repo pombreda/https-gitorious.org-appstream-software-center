@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: software-store\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-09-25 17:10+0200\n"
-"PO-Revision-Date: 2010-02-01 16:47+0700\n"
-"Last-Translator: Sira Nokyoongtong <gumaraa@gmail.com>\n"
+"PO-Revision-Date: 2010-02-23 20:34+0700\n"
+"Last-Translator: SiraNokyoongtong <gumaraa@gmail.com>\n"
 "Language-Team: Thai <ubuntu-th@lists.launchpad.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,16 +24,15 @@ msgstr "&#xA9;2009 Canonical"
 
 #: ../data/ui/SoftwareCenter.ui.h:2
 msgid "Copy _Web Link"
-msgstr ""
+msgstr "คัดลอกเ_ว็บลิงก์"
 
 #: ../data/ui/SoftwareCenter.ui.h:3
-msgid ""
-"Lets you choose from thousands of free applications available for Ubuntu."
-msgstr ""
+msgid "Lets you choose from thousands of free applications available for Ubuntu."
+msgstr "ให้คุณเลือกโปรแกรมฟรีกว่าพันรายการสำหรับ Ubuntu"
 
 #: ../data/ui/SoftwareCenter.ui.h:4
 msgid "Rebuilding application catalog..."
-msgstr ""
+msgstr "กำลังจัดทำหมวดโปรแกรมใหม่..."
 
 #: ../data/ui/SoftwareCenter.ui.h:5
 msgid "Search..."
@@ -41,20 +40,20 @@ msgstr "ค้นหา..."
 
 #: ../data/ui/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
-msgstr "ตัวช่วยเ_หลือของ Software Center"
+msgstr "ตัวช่วยเ_หลือของศูนย์ซอฟต์แวร์"
 
 #: ../data/ui/SoftwareCenter.ui.h:7
 #: ../data/ubuntu-software-center.desktop.in.h:3
 msgid "Ubuntu Software Center"
-msgstr ""
+msgstr "ศูนย์ซอฟต์แวร์ Ubuntu"
 
 #: ../data/ui/SoftwareCenter.ui.h:8
 msgid "_All Applications"
-msgstr ""
+msgstr "โปรแกรม_ทั้งหมด"
 
 #: ../data/ui/SoftwareCenter.ui.h:9
 msgid "_Canonical-Maintained Applications"
-msgstr ""
+msgstr "โปรแ_กรมที่ Canonical ดูแล"
 
 #: ../data/ui/SoftwareCenter.ui.h:10
 msgid "_Edit"
@@ -66,15 +65,15 @@ msgstr "แ_ฟ้ม"
 
 #: ../data/ui/SoftwareCenter.ui.h:12
 msgid "_Help"
-msgstr "_ช่วยเหลือ"
+msgstr "_วิธีใช้"
 
 #: ../data/ui/SoftwareCenter.ui.h:13
 msgid "_Install"
-msgstr "ติด_ตั้ง"
+msgstr "_ติดตั้ง"
 
 #: ../data/ui/SoftwareCenter.ui.h:14
 msgid "_Software Sources..."
-msgstr ""
+msgstr "แ_หล่งซอฟต์แวร์..."
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"
@@ -82,7 +81,7 @@ msgstr "มุม_มอง"
 
 #: ../data/ui/SoftwareCenter.ui.h:16
 msgid "available"
-msgstr "สามารถติดตั้งได้"
+msgstr "ที่ติดตั้งได้"
 
 #: ../data/ui/SoftwareCenter.ui.h:17
 msgid "installed"
@@ -90,16 +89,15 @@ msgstr "ที่ติดตั้งแล้ว"
 
 #: ../data/ui/SoftwareCenter.ui.h:18
 msgid "pending"
-msgstr ""
+msgstr "ค้างอยู่"
 
 #: ../data/ubuntu-software-center.desktop.in.h:1
-msgid ""
-"Lets you choose from thousands of free applications available for Ubuntu"
-msgstr ""
+msgid "Lets you choose from thousands of free applications available for Ubuntu"
+msgstr "ให้คุณเลือกโปรแกรมฟรีกว่าพันรายการสำหรับ Ubuntu"
 
 #: ../data/ubuntu-software-center.desktop.in.h:2
 msgid "Software Center"
-msgstr "Software Center"
+msgstr "ศูนย์ซอฟต์แวร์"
 
 #: ../data/software-center.menu.in.h:1
 msgid "Admin"
@@ -107,11 +105,11 @@ msgstr "ผู้ดูแล"
 
 #: ../data/software-center.menu.in.h:2
 msgid "Base"
-msgstr ""
+msgstr "Base"
 
 #: ../data/software-center.menu.in.h:3
 msgid "CLI Mono"
-msgstr ""
+msgstr "CLI Mono"
 
 #: ../data/software-center.menu.in.h:4
 msgid "Databases"
@@ -119,15 +117,15 @@ msgstr "ฐานข้อมูล"
 
 #: ../data/software-center.menu.in.h:5
 msgid "Debug"
-msgstr ""
+msgstr "ดีบัก"
 
 #: ../data/software-center.menu.in.h:6
 msgid "Debugging"
-msgstr ""
+msgstr "การดีบัก"
 
 #: ../data/software-center.menu.in.h:7
 msgid "Development"
-msgstr ""
+msgstr "การพัฒนา"
 
 #: ../data/software-center.menu.in.h:8
 msgid "Documentation"
@@ -135,11 +133,11 @@ msgstr "เอกสาร"
 
 #: ../data/software-center.menu.in.h:9
 msgid "Editors"
-msgstr ""
+msgstr "แก้ไขข้อความ"
 
 #: ../data/software-center.menu.in.h:10
 msgid "Embedded"
-msgstr ""
+msgstr "Embedded"
 
 #: ../data/software-center.menu.in.h:11
 msgid "Fonts"
@@ -155,7 +153,7 @@ msgstr "Gnome"
 
 #: ../data/software-center.menu.in.h:14
 msgid "Graphic Interface Design"
-msgstr ""
+msgstr "ออกแบบส่วนติดต่อผู้ใช้แบบกราฟิก"
 
 #: ../data/software-center.menu.in.h:15
 msgid "Graphics"
@@ -163,19 +161,19 @@ msgstr "กราฟิก"
 
 #: ../data/software-center.menu.in.h:16
 msgid "Hamradio"
-msgstr ""
+msgstr "Hamradio"
 
 #: ../data/software-center.menu.in.h:17
 msgid "Haskell"
-msgstr ""
+msgstr "Haskell"
 
 #: ../data/software-center.menu.in.h:18
 msgid "IDEs"
-msgstr ""
+msgstr "IDEs"
 
 #: ../data/software-center.menu.in.h:19
 msgid "Interpreters"
-msgstr "Interpreters"
+msgstr "อินเทอร์พรีเตอร์"
 
 #: ../data/software-center.menu.in.h:20
 msgid "Java"
@@ -195,15 +193,15 @@ msgstr "Libraries"
 
 #: ../data/software-center.menu.in.h:24
 msgid "Lisp"
-msgstr ""
+msgstr "Lisp"
 
 #: ../data/software-center.menu.in.h:25
 msgid "Mail"
-msgstr ""
+msgstr "เมล"
 
 #: ../data/software-center.menu.in.h:26
 msgid "Mathematics"
-msgstr ""
+msgstr "คณิตศาสตร์"
 
 #: ../data/software-center.menu.in.h:27
 msgid "Network"
@@ -211,11 +209,11 @@ msgstr "เครือข่าย"
 
 #: ../data/software-center.menu.in.h:28
 msgid "OCaml"
-msgstr ""
+msgstr "OCaml"
 
 #: ../data/software-center.menu.in.h:29
 msgid "Other Packages"
-msgstr ""
+msgstr "แพกเกจอื่น ๆ"
 
 #: ../data/software-center.menu.in.h:30
 msgid "Perl"
@@ -223,7 +221,7 @@ msgstr "Perl"
 
 #: ../data/software-center.menu.in.h:31
 msgid "Profiling"
-msgstr ""
+msgstr "Profiling"
 
 #: ../data/software-center.menu.in.h:32
 msgid "Python"
@@ -239,7 +237,7 @@ msgstr "วิทยาศาสตร์"
 
 #: ../data/software-center.menu.in.h:35
 msgid "Shells"
-msgstr ""
+msgstr "โปรแกรมเชลล์"
 
 #: ../data/software-center.menu.in.h:36
 msgid "Sound"
@@ -247,15 +245,15 @@ msgstr "เสียง"
 
 #: ../data/software-center.menu.in.h:37
 msgid "System Packages"
-msgstr ""
+msgstr "แพกเกจระบบ"
 
 #: ../data/software-center.menu.in.h:38
 msgid "Tex"
-msgstr ""
+msgstr "Tex"
 
 #: ../data/software-center.menu.in.h:39
 msgid "Text"
-msgstr ""
+msgstr "ข้อความ"
 
 #: ../data/software-center.menu.in.h:40
 msgid "Translations"
@@ -263,15 +261,15 @@ msgstr "การแปลภาษา"
 
 #: ../data/software-center.menu.in.h:41
 msgid "Utils"
-msgstr ""
+msgstr "Utils"
 
 #: ../data/software-center.menu.in.h:42
 msgid "Version Control"
-msgstr ""
+msgstr "ควบคุมรุ่น"
 
 #: ../data/software-center.menu.in.h:43
 msgid "Video"
-msgstr ""
+msgstr "วิดีโอ"
 
 #: ../data/software-center.menu.in.h:44
 msgid "Web"
@@ -303,23 +301,23 @@ msgstr "ทั่วไป"
 
 #: ../data/software-center.menu.in.h:51
 msgid "oldlibs"
-msgstr ""
+msgstr "oldlibs"
 
 #: ../data/software-center.menu.in.h:52
 msgid "otherosfs"
-msgstr ""
+msgstr "otherosfs"
 
 #: ../softwarecenter/app.py:127
 msgid "Sorry, can not open the software database"
-msgstr ""
+msgstr "ขออภัย เปิดฐานข้อมูลซอฟต์แวร์ไม่ได้"
 
 #: ../softwarecenter/app.py:128
 msgid "Please re-install the 'software-center' package."
-msgstr ""
+msgstr "โปรดติดตั้งแพกเกจ 'software-center' ซ้ำ"
 
 #: ../softwarecenter/app.py:415
 msgid "ERROR"
-msgstr "ERROR"
+msgstr "ผิดพลาด"
 
 #: ../softwarecenter/backend/aptd.py:127
 msgid "Error"
@@ -332,61 +330,58 @@ msgstr "ผิดพลาด"
 #. the search.
 #: ../softwarecenter/db/database.py:58
 msgid "app;application;package;program;programme;suite;tool"
-msgstr ""
+msgstr "app;application;package;program;programme;suite;tool"
 
 #: ../softwarecenter/distro/Ubuntu.py:38
 #, python-format
 msgid "To remove %s, these items must be removed as well:"
-msgstr "เพื่อถอน %s รายการนี้ต้องถูกถอนไปด้วย:"
+msgstr "เพื่อถอดถอน %s รายการนี้ต้องถูกถอดถอนไปด้วย:"
 
 #: ../softwarecenter/distro/Ubuntu.py:40
 msgid "Remove All"
-msgstr "ลบทั้งหมด"
+msgstr "ถอดถอนทั้งหมด"
 
 #: ../softwarecenter/distro/Ubuntu.py:47
 #, python-format
-msgid ""
-"If you uninstall %s, future updates will not include new items in <b>%s</b> "
-"set. Are you sure you want to continue?"
-msgstr ""
+msgid "If you uninstall %s, future updates will not include new items in <b>%s</b> set. Are you sure you want to continue?"
+msgstr "ถ้าคุณถอดถอน %s ครั้งถัดไปที่คุณอัปเดท จะไม่มีการอัปเดทชุด <b>%s</b> รวมอยู่ด้วย คุณแน่ใจหรือไม่ที่จะดำเนินการต่อ?"
 
-#: ../softwarecenter/distro/Ubuntu.py:50 ../softwarecenter/distro/Ubuntu.py:61
+#: ../softwarecenter/distro/Ubuntu.py:50
+#: ../softwarecenter/distro/Ubuntu.py:61
 msgid "Remove Anyway"
-msgstr ""
+msgstr "ถอดถอนโดยไม่สนใจคำเตือน"
 
 #: ../softwarecenter/distro/Ubuntu.py:57
 #, python-format
-msgid ""
-"%s is a core application in Ubuntu. Uninstalling it may cause future "
-"upgrades to be incomplete. Are you sure you want to continue?"
-msgstr ""
+msgid "%s is a core application in Ubuntu. Uninstalling it may cause future upgrades to be incomplete. Are you sure you want to continue?"
+msgstr "%s เป็นโปรแกรมหลักใน Ubuntu การถอดถอนมัน อาจทำให้การปรับรุ่นครั้งหน้าไม่สมบูรณ์ คุณแน่ใจหรือไม่ที่จะดำเนินการต่อ?"
 
 #. generic message
 #: ../softwarecenter/distro/Ubuntu.py:70
 #, python-format
 msgid "%s is installed on this computer."
-msgstr "%s ได้ติดตั้งลงในคอมพิวเตอร์แล้ว"
+msgstr "%s ได้ติดตั้งลงในคอมพิวเตอร์อยู่แล้ว"
 
 #: ../softwarecenter/distro/Ubuntu.py:78
 #, python-format
 msgid "It is used by %s installed software package."
 msgid_plural "It is used by %s installed software packages."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "มันถูกใช้โดยแพกเกจ %s ที่ได้ติดตั้งอยู่"
+msgstr[1] "มันถูกใช้โดยแพกเกจ %s ที่ได้ติดตั้งอยู่"
 
 #: ../softwarecenter/distro/Ubuntu.py:84
 #, python-format
 msgid "It is recommended by %s installed software package."
 msgid_plural "It is recommended by %s installed software packages."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "มันถูกแนะนำโดยแพจเกจ %s ที่ได้ติดตั้งอยู่"
+msgstr[1] "มันถูกแนะนำโดยแพจเกจ %s ที่ได้ติดตั้งอยู่"
 
 #: ../softwarecenter/distro/Ubuntu.py:90
 #, python-format
 msgid "It is suggested by %s installed software package."
 msgid_plural "It is suggested by %s installed software packages."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "มันถูกเสนอโดยแพจเกจ %s ที่ได้ติดตั้งอยู่"
+msgstr[1] "มันถูกเสนอโดยแพจเกจ %s ที่ได้ติดตั้งอยู่"
 
 #: ../softwarecenter/distro/Ubuntu.py:103
 msgid "Unknown"
@@ -408,55 +403,43 @@ msgstr "สัญญาอนุญาต: %s"
 #: ../softwarecenter/distro/Ubuntu.py:140
 #: ../softwarecenter/distro/Ubuntu.py:152
 #, python-format
-msgid ""
-"Canonical does no longer provide updates for %s in Ubuntu %s. Updates may be "
-"available in a newer version of Ubuntu."
-msgstr ""
+msgid "Canonical does no longer provide updates for %s in Ubuntu %s. Updates may be available in a newer version of Ubuntu."
+msgstr "Canonical ไม่ได้เป็นผู้ให้การสนับสนุนการอัปเดทในระยะยาวสำหรับ %s ใน Ubuntu %s การอัปเดทอาจมีอีกครั้งใน Ubuntu รุ่นที่ใหม่กว่า"
 
 #: ../softwarecenter/distro/Ubuntu.py:145
 #, python-format
-msgid ""
-"Canonical provides critical updates for %(appname)s until %"
-"(support_end_month_str)s %(support_end_year)s."
-msgstr ""
+msgid "Canonical provides critical updates for %(appname)s until %(support_end_month_str)s %(support_end_year)s."
+msgstr "Canonical เป็นผู้ให้การสนับสนุนการอัปเดทในส่วนที่สำคัญสำหรับ %(appname)s ไปจนถึง %(support_end_month_str)s %(support_end_year)s"
 
 #: ../softwarecenter/distro/Ubuntu.py:157
 #, python-format
-msgid ""
-"Canonical provides critical updates supplied by the developers of %(appname)"
-"s until %(support_end_month_str)s %(support_end_year)s."
-msgstr ""
+msgid "Canonical provides critical updates supplied by the developers of %(appname)s until %(support_end_month_str)s %(support_end_year)s."
+msgstr "Canonical เป็นผู้ให้การสนับสนุนการอัปเดทที่สำคัญ โดยนักพัฒนาของ %(appname)s ไปจนถึง %(support_end_month_str)s %(support_end_year)s"
 
 #: ../softwarecenter/distro/Ubuntu.py:167
 #, python-format
-msgid ""
-"Canonical does not provide updates for %s. Some updates may be provided by "
-"the third party vendor."
-msgstr ""
-"Canonical ไม่ได้เป็นผู้ให้การสนับสนุนการอัพเดทสำหรับ %s "
-"การอัพเดทอาจได้รับการสนับสนุนโดยผู้ประกอบการอื่น"
+msgid "Canonical does not provide updates for %s. Some updates may be provided by the third party vendor."
+msgstr "Canonical ไม่ได้เป็นผู้ให้การสนับสนุนการอัปเดทสำหรับ %s การอัปเดทอาจได้รับการสนับสนุนโดยผู้ประกอบการอื่น"
 
 #: ../softwarecenter/distro/Ubuntu.py:171
 #, python-format
 msgid "Canonical provides critical updates for %s."
-msgstr "Canonical ให้การสนับสนุนการอัพเดทที่สำคัญ สำหรับ %s."
+msgstr "Canonical เป็นผู้ให้การสนับสนุนการอัปเดทที่สำคัญ สำหรับ %s"
 
 #: ../softwarecenter/distro/Ubuntu.py:173
 #, python-format
 msgid "Canonical provides critical updates supplied by the developers of %s."
-msgstr ""
+msgstr "Canonical เป็นผู้ให้การสนับสนุนการอัปเดทที่สำคัญ โดยนักพัฒนาของ %s"
 
 #: ../softwarecenter/distro/Ubuntu.py:176
 #, python-format
-msgid ""
-"Canonical does not provide updates for %s. Some updates may be provided by "
-"the Ubuntu community."
-msgstr ""
+msgid "Canonical does not provide updates for %s. Some updates may be provided by the Ubuntu community."
+msgstr "Canonical ไม่ได้เป็นผู้ให้การสนับสนุนการอัปเดท %s การอัปเดทอาจได้รับการสนับสนุนโดยกลุ่มผู้ใช้ Ubuntu"
 
 #: ../softwarecenter/distro/Ubuntu.py:179
 #, python-format
 msgid "Application %s has a unkown maintenance status."
-msgstr "แอพพลิเคชั่น %s ไม่ทราบสถานะการดูแล"
+msgstr "ไม่ทราบสถานะการดูแลของโปรแกรม %s"
 
 #: ../softwarecenter/view/appdetailsview.py:82
 msgid "Description"
@@ -464,25 +447,22 @@ msgstr "คำอธิบาย"
 
 #: ../softwarecenter/view/appdetailsview.py:186
 #, python-format
-msgid ""
-"This software is available from the '%s' source, which you are not currently "
-"using."
-msgstr ""
+msgid "This software is available from the '%s' source, which you are not currently using."
+msgstr "ซอฟต์แวร์นี้สามารถติดตั้งได้จากแหล่ง '%s' ซึ่งเป็นแหล่งที่คุณยังไม่ได้เปิดใช้"
 
 #: ../softwarecenter/view/appdetailsview.py:191
-msgid ""
-"To show information about this item, the software catalog needs updating."
-msgstr ""
+msgid "To show information about this item, the software catalog needs updating."
+msgstr "เพื่อแสดงข้อมูลเกี่ยวกับรายการนี้ ต้องอัปเดทรายการบัญชีซอฟต์แวร์ก่อน"
 
 #: ../softwarecenter/view/appdetailsview.py:194
 #, python-format
 msgid "Sorry, '%s' is not available for this type of computer (%s)."
-msgstr "เสียใจด้วย '%s' ไม่รองรับคอมพิวเตอร์ประเภทนี้ (%s)"
+msgstr "ขออภัย '%s' ไม่รองรับคอมพิวเตอร์ประเภทนี้ (%s)"
 
 #: ../softwarecenter/view/appdetailsview.py:253
 #: ../softwarecenter/view/appdetailsview.py:257
 msgid "Application Screenshot"
-msgstr "ภาพหน้าจอแอพพลิเคชั่น"
+msgstr "ภาพหน้าจอโปรแกรม"
 
 #: ../softwarecenter/view/appdetailsview.py:283
 #, python-format
@@ -510,7 +490,7 @@ msgstr "%s - ภาพหน้าจอ"
 
 #: ../softwarecenter/view/appdetailsview.py:462
 msgid "Remove"
-msgstr "ถอน"
+msgstr "ถอดถอน"
 
 #: ../softwarecenter/view/appdetailsview.py:465
 msgid "Install"
@@ -523,12 +503,12 @@ msgstr "ใช้แหล่งนี้"
 
 #: ../softwarecenter/view/appdetailsview.py:478
 msgid "Update Now"
-msgstr "อัพเดทขณะนี้"
+msgstr "อัปเดทเดี๋ยวนี้"
 
 #. home button
 #: ../softwarecenter/view/availablepane.py:104
 msgid "Get Free Software"
-msgstr ""
+msgstr "รับซอฟต์แวร์เสรี"
 
 #: ../softwarecenter/view/availablepane.py:202
 msgid "Search"
@@ -539,19 +519,20 @@ msgstr "ค้นหา"
 #, python-format
 msgid "%s matching item"
 msgid_plural "%s matching items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s รายการที่เข้ากัน"
+msgstr[1] "%s รายการที่เข้ากัน"
 
 #: ../softwarecenter/view/availablepane.py:228
 #, python-format
 msgid "%s application available"
 msgid_plural "%s applications available"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s โปรแกรมที่ติดตั้งได้"
+msgstr[1] "%s โปรแกรมที่ติดตั้งได้"
 
-#: ../softwarecenter/view/catview.py:77 ../softwarecenter/view/catview.py:82
+#: ../softwarecenter/view/catview.py:77
+#: ../softwarecenter/view/catview.py:82
 msgid "Departments"
-msgstr ""
+msgstr "ฝ่าย"
 
 #: ../softwarecenter/view/dialogs.py:45
 msgid "Details"
@@ -564,7 +545,7 @@ msgstr "ยกเลิก"
 #. FIXME: make this a generic pkgview widget
 #: ../softwarecenter/view/dialogs.py:91
 msgid "Dependency"
-msgstr ""
+msgstr "สิ่งที่ต้องใช้"
 
 #: ../softwarecenter/view/installedpane.py:74
 #: ../softwarecenter/view/viewswitcher.py:176
@@ -575,12 +556,12 @@ msgstr "ซอฟต์แวร์ที่ติดตั้งแล้ว"
 #, python-format
 msgid "%s application installed"
 msgid_plural "%s applications installed"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s โปรแกรมที่ติดตั้งแล้ว"
+msgstr[1] "%s โปรแกรมที่ติดตั้งแล้ว"
 
 #: ../softwarecenter/view/viewswitcher.py:165
 msgid "Get Software"
-msgstr ""
+msgstr "รับซอฟต์แวร์"
 
 #: ../softwarecenter/view/viewswitcher.py:173
 msgid "Free Software"
@@ -590,4 +571,5 @@ msgstr "ซอฟต์แวร์เสรี"
 #: ../softwarecenter/view/viewswitcher.py:195
 #, python-format
 msgid "In Progress (%i)"
-msgstr ""
+msgstr "กำลังดำเนินการ (%i)"
+
