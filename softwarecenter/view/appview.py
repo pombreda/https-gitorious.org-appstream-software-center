@@ -1082,6 +1082,9 @@ def on_entry_changed(widget, data):
     (cache, db, view) = data
     query = get_query_from_search_entry(new_text)
     view.set_model(AppStore(cache, db, icons, query))
+    with ExecutionTime("model settle"):
+        while gtk.events_pending():
+            gtk.main_iteration()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
