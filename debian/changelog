@@ -1,9 +1,15 @@
 software-center (1.1.15) unstable; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/view/widgets/animatedimage.py:
     - fix crash when image property is not set
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Feb 2010 15:07:28 +0100
+  [ Gary Lasker ]
+  * data/ui/SoftwareCenter.ui:
+    - tweak default window width to restore four-column view
+      in the categories screen
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 25 Feb 2010 12:43:11 -0500
 
 software-center (1.1.14) lucid; urgency=low
 
