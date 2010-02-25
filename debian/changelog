@@ -1,3 +1,10 @@
+software-center (1.1.15) unstable; urgency=low
+
+  * softwarecenter/view/widgets/animatedimage.py:
+    - fix crash when image property is not set
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Feb 2010 15:07:28 +0100
+
 software-center (1.1.14) lucid; urgency=low
 
   * softwarecenter/view/:
