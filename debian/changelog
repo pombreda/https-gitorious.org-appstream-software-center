@@ -17,8 +17,10 @@ software-center (1.1.15) unstable; urgency=low
   * softwarecenter/view/availablepane.py:
     - don't show search entry in app details view (LP: #528121)
     - fix missing status text at startup (LP: #528040) 
+    - fix intermittent attribute error when searching
+      from the main category screen (LP: #524209)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 25 Feb 2010 18:15:36 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 26 Feb 2010 18:30:28 -0500
 
 software-center (1.1.14) lucid; urgency=low
 

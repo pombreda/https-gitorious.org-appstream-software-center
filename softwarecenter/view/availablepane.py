@@ -262,14 +262,14 @@ class AvailablePane(SoftwarePane):
 
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
-        logging.debug("on_entry_changed: %s" % new_text)
+        logging.debug("on_search_terms_changed: %s" % new_text)
 
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*
-        # we are searching but we are not in a any category
+        # we are searching but we are not in any category
         if not self.apps_category and not new_text:
             # category activate will clear search etc
-            self.navigation_bar.get_button_from_id("category").activate()
+            self.navigation_bar.navigate_up()
             return
 
         # if the user searches in the "all categories" page, reset the specific
