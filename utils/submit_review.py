@@ -62,7 +62,7 @@ LOGIN_STATE_USER_CANCEL = "user-cancel"
 
 # the SUBMIT url
 SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/submit_review"
-
+REPORT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/report_abuse"
 
 # LP to use
 SERVICE_ROOT = EDGE_SERVICE_ROOT
@@ -91,6 +91,7 @@ class LaunchpadlibWorker(threading.Thread):
         self.login_password = ""
         self._launchpad = None
         self.pending_reviews = Queue()
+        self.pending_reports = Queue()
         self._shutdown = False
 
     def run(self):
@@ -112,14 +113,42 @@ class LaunchpadlibWorker(threading.Thread):
         logging.debug("queue_review %s" % review)
         self.pending_reviews.put(review)
 
+    def queue_report(self, report):
+        """ queue a new report for sending to LP """
+        logging.debug("queue_report")
+        self.pending_reports.put(report)
+
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
         while True:
             #logging.debug("worker: _wait_for_commands %s" % self.login_state)
             self._submit_reviews()
+            self._submit_reports()
             time.sleep(0.2)
-            if self._shutdown and self.pending_reviews.empty():
+            if (self._shutdown and
+                self.pending_reviews.empty() and
+                self.pending_reports.empty()):
                 return
+
+    def _submit_reports(self):
+        """ the actual report function """
+        self._submit_report_POST()
+
+    def _submit_report_POST(self):
+        while not self.pending_reports.empty():
+            logging.debug("POST report")
+            (review_id, summary, text) = self.pending_reports.get()
+            data = { 'review_id' : review_id,
+                     'reason' : summary,
+                     'text' : text,
+                     'token' : self.launchpad.credentials.access_token.key,
+                     'token-secret' : self.launchpad.credentials.access_token.secret,
+                     }
+            f = urllib.urlopen(REPORT_POST_URL, urllib.urlencode(data))
+            res = f.read()
+            print res
+            f.close()
+            self.pending_reports.task_done()
 
     def _submit_reviews(self):
         """ the actual submit function """
@@ -407,37 +436,187 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
             return False
         return True
 
+class ReportReviewApp(SimpleGtkbuilderApp):
+    """ report a given application or package """
+
+    LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
+
+    APP_ICON_SIZE = 48
+
+    def __init__(self, review_id, parent_xid, datadir):
+        SimpleGtkbuilderApp.__init__(self, 
+                                     datadir+"/ui/reviews.ui",
+                                     "software-center")
+        gettext.bindtextdomain("software-center", "/usr/share/locale")
+        gettext.textdomain("software-center")
+        
+        # additional icons come from app-install-data
+        self.icons = gtk.icon_theme_get_default()
+        self.icons.append_search_path("/usr/share/app-install/icons/")
+
+        # spinner
+        self.spinner_status = gtk.Spinner()
+        self.spinner_status.show()
+        self.alignment_report_status.add(self.spinner_status)
+
+        # data
+        self.review_id = review_id
+
+        # parent xid
+        if parent_xid:
+            win = gtk.gdk.window_foreign_new(int(parent_xid))
+            if win:
+                self.dialog_report_app.realize()
+                self.dialog_report_app.window.set_transient_for(win)
+        self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
+        # set pw dialog transient for main window
+        self.dialog_review_login.set_transient_for(self.dialog_report_app)
+        self.dialog_review_login.set_modal(True)
+        # simple APIs ftw!
+        self.combobox_report_summary = gtk.combo_box_new_text()
+        self.combobox_report_summary.show()
+        self.alignment_report_summary.add(self.combobox_report_summary)
+        for r in [ _("Unspecified"), 
+                   _("Offensive language"), 
+                   _("Infringes copyright"), 
+                   _("Not about this software"), 
+                   _("Other") ]: 
+            self.combobox_report_summary.append_text(r)
+        self.combobox_report_summary.set_active(0)
+
+    def enter_username_password(self):
+        self.hbox_report_status.hide()
+        res = self.dialog_review_login.run()
+        self.dialog_review_login.hide()
+        if res == gtk.RESPONSE_OK:
+            username = self.entry_review_login_email.get_text()
+            lp_worker_thread.login_username = username
+            password = self.entry_review_login_password.get_text()
+            lp_worker_thread.login_password = password
+            lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
+            self.hbox_status.show()
+        else:
+            lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
+            self.quit()
+
+    def report_abuse(self):
+        self.hbox_report_status.hide()
+        self.dialog_report_app.set_sensitive(True)
+        res = self.dialog_report_app.run()
+        self.dialog_report_app.hide()
+        if res == gtk.RESPONSE_OK:
+            logging.debug("report_abuse ok button")
+            report_summary = self.combobox_report_summary.get_active_text()
+            text_buffer = self.textview_report_text.get_buffer()
+            report_text = text_buffer.get_text(text_buffer.get_start_iter(),
+                                               text_buffer.get_end_iter())
+            lp_worker_thread.queue_report((self.review_id,
+                                           report_summary, 
+                                           report_text))
+        # signal thread to finish
+        lp_worker_thread.shutdown()
+        self.quit()
+        
+    def show_login_auth_failure(self):
+        softwarecenter.view.dialogs.error(self.dialog_review_app,
+                                          _("Authentication failure"),
+                                          _("Sorry, please try again"))
+
+    def quit(self):
+        lp_worker_thread.join()
+        gtk.main_quit()
+
+    def run(self):
+        # show main dialog insensitive until we are logged in
+        self.dialog_report_app.set_sensitive(False)
+        self.label_report_status.set_text(_("Connecting..."))
+        self.spinner_status.start()
+        self.dialog_report_app.show()
+        
+        # do the launchpad stuff async
+        lp_worker_thread.start()
+        # wait for  state change 
+        glib.timeout_add(200, self._wait_for_login)
+        # parent
+        SimpleGtkbuilderApp.run(self)
+    
+    def _wait_for_login(self):
+        state = lp_worker_thread.login_state
+        # hide progress once we got a reply
+        # check state
+        if state == LOGIN_STATE_AUTH_FAILURE:
+            self.show_login_auth_failure()
+            self.enter_username_password()
+        elif state == LOGIN_STATE_ASK_USER_AND_PASS:
+            self.enter_username_password()
+        elif state == LOGIN_STATE_SUCCESS:
+            #self.label_reviewer.set_text(lp_worker_thread.display_name)
+            self.report_abuse()
+            return False
+        elif state == LOGIN_STATE_USER_CANCEL:
+            return False
+        return True
+
 # IMPORTANT: create one (module) global LP worker thread here
 lp_worker_thread = LaunchpadlibWorker()
 
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
+
+    print sys.argv
+
+    # run review personality
+    if "submit_review" in sys.argv[0]:
+        print "submit_review mode"
+        # check options
+        parser = OptionParser()
+        parser.add_option("-a", "--appname")
+        parser.add_option("-p", "--pkgname")
+        parser.add_option("-i", "--iconname")
+        parser.add_option("-V", "--version")
+        parser.add_option("", "--parent-xid")
+        parser.add_option("", "--debug",
+                          action="store_true", default=False)
+        parser.add_option("", "--datadir", 
+                          default="/usr/share/software-center/")
+        (options, args) = parser.parse_args()
+
+        if not (options.pkgname and options.version):
+            parser.error(_("Missing arguments"))
     
-    # check options
-    parser = OptionParser()
-    parser.add_option("-a", "--appname")
-    parser.add_option("-p", "--pkgname")
-    parser.add_option("-i", "--iconname")
-    parser.add_option("-V", "--version")
-    parser.add_option("", "--parent-xid")
-    parser.add_option("", "--debug",
-                      action="store_true", default=False)
-    parser.add_option("", "--datadir", 
-                      default="/usr/share/software-center/")
-    (options, args) = parser.parse_args()
+        if options.debug:
+            logging.basicConfig(level=logging.DEBUG)                        
 
-    if not (options.pkgname and options.version):
-        parser.error(_("Missing arguments"))
+        # initialize and run
+        app = Application(options.appname, options.pkgname)
+        review_app = SubmitReviewsApp(datadir=options.datadir,
+                                      app=app, 
+                                      parent_xid=options.parent_xid,
+                                      iconname=options.iconname,
+                                      version=options.version)
+        review_app.run()
+
+
+    # run "report" personality
+    if "report_review" in sys.argv[0]:
+        # check options
+        parser = OptionParser()
+        parser.add_option("", "--review-id") 
+        parser.add_option("", "--parent-xid")
+        parser.add_option("", "--debug",
+                          action="store_true", default=False)
+        parser.add_option("", "--datadir", 
+                          default="/usr/share/software-center/")
+        (options, args) = parser.parse_args()
+
+        if not (options.review_id):
+            parser.error(_("Missing review-id arguments"))
     
-    if options.debug:
-       logging.basicConfig(level=logging.DEBUG)                        
+        if options.debug:
+            logging.basicConfig(level=logging.DEBUG)                        
 
-    # initialize and run
-    app = Application(options.appname, options.pkgname)
-    review_app = SubmitReviewsApp(datadir=options.datadir,
-                                  app=app, 
-                                  parent_xid=options.parent_xid,
-                                  iconname=options.iconname,
-                                  version=options.version)
-    review_app.run()
-
+        # initialize and run
+        report_app = ReportReviewApp(datadir=options.datadir,
+                                      review_id=options.review_id, 
+                                      parent_xid=options.parent_xid)
+        report_app.run()
