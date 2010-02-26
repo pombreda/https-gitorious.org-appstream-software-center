@@ -180,6 +180,7 @@ class LaunchpadlibWorker(threading.Thread):
                 'software-center', SERVICE_ROOT, cachedir,
                 allow_access_levels = access_level,
                 authorizer_class=AuthorizeRequestTokenFromThread)
+            self.display_name = self.launchpad.me.display_name
         except Exception, e:
             if type(e) != UserCancelException:
                 logging.exception("Launchpad.login_with()")
@@ -399,6 +400,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         elif state == LOGIN_STATE_ASK_USER_AND_PASS:
             self.enter_username_password()
         elif state == LOGIN_STATE_SUCCESS:
+            self.label_reviewer.set_text(lp_worker_thread.display_name)
             self.enter_review()
             return False
         elif state == LOGIN_STATE_USER_CANCEL:
