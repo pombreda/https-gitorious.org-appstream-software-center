@@ -277,7 +277,75 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         logging.debug("success")
         self.lp_worker.login_state = LOGIN_STATE_SUCCESS
 
-class SubmitReviewsApp(SimpleGtkbuilderApp):
+
+# GUI STUFF
+class LoginGUI(SimpleGtkbuilderApp):
+    """ Base class that implements password login to LP when
+        run_loop() is called and then transfers the control the parent
+        via the "login_successful" callback
+    """
+
+    def __init__(self, datadir):
+        SimpleGtkbuilderApp.__init__(self, 
+                                     datadir+"/ui/reviews.ui",
+                                     "software-center")
+        gettext.bindtextdomain("software-center", "/usr/share/locale")
+        gettext.textdomain("software-center")
+    
+    def enter_username_password(self):
+        self.hbox_status.hide()
+        res = self.dialog_review_login.run()
+        self.dialog_review_login.hide()
+        if res == gtk.RESPONSE_OK:
+            username = self.entry_review_login_email.get_text()
+            lp_worker_thread.login_username = username
+            password = self.entry_review_login_password.get_text()
+            lp_worker_thread.login_password = password
+            lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
+            self.hbox_status.show()
+        else:
+            lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
+            self.quit()
+
+    def quit(self):
+        lp_worker_thread.join()
+        gtk.main_quit()
+
+    def run_loop(self):
+        # do the launchpad stuff async
+        lp_worker_thread.start()
+        # wait for  state change 
+        glib.timeout_add(200, self._wait_for_login)
+        # parent
+        SimpleGtkbuilderApp.run(self)
+    
+    def login_successful(self):
+        """ callback when the login was successful """
+        pass
+
+    def login_failure(self):
+        """ callback when the login failed """
+        softwarecenter.view.dialogs.error(self.dialog_review_app,
+                                          _("Authentication failure"),
+                                          _("Sorry, please try again"))
+
+    def _wait_for_login(self):
+        state = lp_worker_thread.login_state
+        # hide progress once we got a reply
+        # check state
+        if state == LOGIN_STATE_AUTH_FAILURE:
+            self.login_failure()
+            self.enter_username_password()
+        elif state == LOGIN_STATE_ASK_USER_AND_PASS:
+            self.enter_username_password()
+        elif state == LOGIN_STATE_SUCCESS:
+            self.login_successful()
+            return False
+        elif state == LOGIN_STATE_USER_CANCEL:
+            return False
+        return True
+
+class SubmitReviewsApp(LoginGUI):
     """ review a given application or package """
 
     LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
@@ -287,11 +355,7 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
     APP_ICON_SIZE = 48
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
-        SimpleGtkbuilderApp.__init__(self, 
-                                     datadir+"/ui/reviews.ui",
-                                     "software-center")
-        gettext.bindtextdomain("software-center", "/usr/share/locale")
-        gettext.textdomain("software-center")
+        LoginGUI.__init__(self, datadir)
         
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
@@ -352,21 +416,6 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self.rating = data
         self._update_rating()
 
-    def enter_username_password(self):
-        self.hbox_status.hide()
-        res = self.dialog_review_login.run()
-        self.dialog_review_login.hide()
-        if res == gtk.RESPONSE_OK:
-            username = self.entry_review_login_email.get_text()
-            lp_worker_thread.login_username = username
-            password = self.entry_review_login_password.get_text()
-            lp_worker_thread.login_password = password
-            lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
-            self.hbox_status.show()
-        else:
-            lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
-            self.quit()
-
     def on_entry_summary_changed(self, widget):
         self._enable_or_disable_post_button()
 
@@ -395,15 +444,6 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         # signal thread to finish
         lp_worker_thread.shutdown()
         self.quit()
-        
-    def show_login_auth_failure(self):
-        softwarecenter.view.dialogs.error(self.dialog_review_app,
-                                          _("Authentication failure"),
-                                          _("Sorry, please try again"))
-
-    def quit(self):
-        lp_worker_thread.join()
-        gtk.main_quit()
 
     def run(self):
         # show main dialog insensitive until we are logged in
@@ -411,32 +451,14 @@ class SubmitReviewsApp(SimpleGtkbuilderApp):
         self.label_status.set_text(_("Connecting..."))
         self.spinner_status.start()
         self.dialog_review_app.show()
-        
-        # do the launchpad stuff async
-        lp_worker_thread.start()
-        # wait for  state change 
-        glib.timeout_add(200, self._wait_for_login)
-        # parent
-        SimpleGtkbuilderApp.run(self)
-    
-    def _wait_for_login(self):
-        state = lp_worker_thread.login_state
-        # hide progress once we got a reply
-        # check state
-        if state == LOGIN_STATE_AUTH_FAILURE:
-            self.show_login_auth_failure()
-            self.enter_username_password()
-        elif state == LOGIN_STATE_ASK_USER_AND_PASS:
-            self.enter_username_password()
-        elif state == LOGIN_STATE_SUCCESS:
-            self.label_reviewer.set_text(lp_worker_thread.display_name)
-            self.enter_review()
-            return False
-        elif state == LOGIN_STATE_USER_CANCEL:
-            return False
-        return True
+        # now run the loop
+        self.run_loop()
 
-class ReportReviewApp(SimpleGtkbuilderApp):
+    def login_successful(self):
+        self.label_reviewer.set_text(lp_worker_thread.display_name)
+        self.enter_review()
+
+class ReportReviewApp(LoginGUI):
     """ report a given application or package """
 
     LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
@@ -444,16 +466,8 @@ class ReportReviewApp(SimpleGtkbuilderApp):
     APP_ICON_SIZE = 48
 
     def __init__(self, review_id, parent_xid, datadir):
-        SimpleGtkbuilderApp.__init__(self, 
-                                     datadir+"/ui/reviews.ui",
-                                     "software-center")
-        gettext.bindtextdomain("software-center", "/usr/share/locale")
-        gettext.textdomain("software-center")
+        LoginGUI.__init__(self, datadir)
         
-        # additional icons come from app-install-data
-        self.icons = gtk.icon_theme_get_default()
-        self.icons.append_search_path("/usr/share/app-install/icons/")
-
         # spinner
         self.spinner_status = gtk.Spinner()
         self.spinner_status.show()
@@ -484,21 +498,6 @@ class ReportReviewApp(SimpleGtkbuilderApp):
             self.combobox_report_summary.append_text(r)
         self.combobox_report_summary.set_active(0)
 
-    def enter_username_password(self):
-        self.hbox_report_status.hide()
-        res = self.dialog_review_login.run()
-        self.dialog_review_login.hide()
-        if res == gtk.RESPONSE_OK:
-            username = self.entry_review_login_email.get_text()
-            lp_worker_thread.login_username = username
-            password = self.entry_review_login_password.get_text()
-            lp_worker_thread.login_password = password
-            lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
-            self.hbox_status.show()
-        else:
-            lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
-            self.quit()
-
     def report_abuse(self):
         self.hbox_report_status.hide()
         self.dialog_report_app.set_sensitive(True)
@@ -517,46 +516,20 @@ class ReportReviewApp(SimpleGtkbuilderApp):
         lp_worker_thread.shutdown()
         self.quit()
         
-    def show_login_auth_failure(self):
-        softwarecenter.view.dialogs.error(self.dialog_review_app,
-                                          _("Authentication failure"),
-                                          _("Sorry, please try again"))
-
-    def quit(self):
-        lp_worker_thread.join()
-        gtk.main_quit()
-
     def run(self):
         # show main dialog insensitive until we are logged in
         self.dialog_report_app.set_sensitive(False)
         self.label_report_status.set_text(_("Connecting..."))
         self.spinner_status.start()
         self.dialog_report_app.show()
-        
-        # do the launchpad stuff async
-        lp_worker_thread.start()
-        # wait for  state change 
-        glib.timeout_add(200, self._wait_for_login)
-        # parent
-        SimpleGtkbuilderApp.run(self)
-    
-    def _wait_for_login(self):
-        state = lp_worker_thread.login_state
-        # hide progress once we got a reply
-        # check state
-        if state == LOGIN_STATE_AUTH_FAILURE:
-            self.show_login_auth_failure()
-            self.enter_username_password()
-        elif state == LOGIN_STATE_ASK_USER_AND_PASS:
-            self.enter_username_password()
-        elif state == LOGIN_STATE_SUCCESS:
-            #self.label_reviewer.set_text(lp_worker_thread.display_name)
-            self.report_abuse()
-            return False
-        elif state == LOGIN_STATE_USER_CANCEL:
-            return False
-        return True
+        # start the async loop
+        self.run_loop()
 
+    def login_successful(self):
+        self.label_reporter.set_text(lp_worker_thread.display_name)
+        self.report_abuse()
+
+    
 # IMPORTANT: create one (module) global LP worker thread here
 lp_worker_thread = LaunchpadlibWorker()
 
