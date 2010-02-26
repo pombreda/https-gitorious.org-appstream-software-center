@@ -94,6 +94,8 @@ class AvailablePane(SoftwarePane):
         self.notebook.append_page(apps_vbox, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+        # set status text
+        self._update_status_text(len(self.db))
         # home button
         self.navigation_bar.add_with_id(_("Get Free Software"), 
                                         self.on_navigation_category,
@@ -213,6 +215,12 @@ class AvailablePane(SoftwarePane):
         """internal helper that keeps the status text up-to-date by
            keeping track of the app-list-changed signals
         """
+        self._update_status_text(length)
+                                                 
+    def _update_status_text(self, length):
+        """
+        update the text in the status bar
+        """
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
             length = len(self.db)
@@ -303,7 +311,7 @@ class AvailablePane(SoftwarePane):
 #        self.back_forward.right.set_sensitive(False)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        #self.searchentry.show()
+        self.searchentry.show()
 
     def on_navigation_list(self, pathbar, part):
         """callback when the navigation button with id 'list' is clicked"""
@@ -321,7 +329,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         self.emit("app-list-changed", len(model))
-        #self.searchentry.show()
+        self.searchentry.show()
 
     def on_navigation_list_subcategory(self, pathbar, part):
 #        self.back_forward.left.set_sensitive(True)
@@ -333,7 +341,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        #self.searchentry.show()
+        self.searchentry.show()
 
     def on_navigation_details(self, pathbar, part):
 #        self.back_forward.left.set_sensitive(True)
@@ -342,7 +350,7 @@ class AvailablePane(SoftwarePane):
         if not pathbar.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        #self.searchentry.hide()    # the spec no-longer calls for the search entry to be hidden
+        self.searchentry.hide()
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query

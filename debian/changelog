@@ -9,13 +9,16 @@ software-center (1.1.15) unstable; urgency=low
   [ Gary Lasker ]
   * data/ui/SoftwareCenter.ui:
     - tweak default window width to restore four-column view
-      in the categories screen
+      in the categories screen (LP: #528082)
   * softwarecenter/view/channelpane.py:
     - make status bar text for individual channel views
       consistent with that in the "Get Software" section
       (LP: #528055)
+  * softwarecenter/view/availablepane.py:
+    - don't show search entry in app details view (LP: #528121)
+    - fix missing status text at startup (LP: #528040) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 25 Feb 2010 17:32:20 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 25 Feb 2010 18:15:36 -0500
 
 software-center (1.1.14) lucid; urgency=low
 
