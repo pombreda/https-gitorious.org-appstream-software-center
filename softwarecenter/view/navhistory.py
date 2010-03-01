@@ -222,7 +222,7 @@ class AppDetailsNavigationItem(NavigationItem):
         if (self.apps_subcategory and 
             not self.available_pane.navigation_bar.get_button_from_id(self.available_pane.NAV_BUTTON_ID_SUBCAT)):
             self.available_pane.navigation_bar.add_with_id(self.apps_subcategory.name,
-                                                           self.available_pane.on_navigation_details_subcategory,
+                                                           self.available_pane.on_navigation_list_subcategory,
                                                            self.available_pane.NAV_BUTTON_ID_SUBCAT,
                                                            do_callback=False)
         self.available_pane.navigation_bar.add_with_id(self.current_app.name,
