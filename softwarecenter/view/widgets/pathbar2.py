@@ -866,8 +866,49 @@ class PathBar(gtk.DrawingArea):
         self.queue_draw()
         return
 
-# FIXME: this should be a subclass atk.Component instead?
-class PathPart(atk.Object):
+# FIXME: stubs currently and not working
+class IAtkComponent(atk.Component):
+    # atk --------------------------------------------------------
+    def contains(x, y, coord_type):
+        # atk stub
+        return False
+    def ref_accessible_at_point(x, y, coord_type):
+        # atk stub
+        pass
+    def get_extents(coord_type):
+        # atk stub
+        (0, 0, 0, 0)
+    def get_position(coord_type):
+        # atk stub
+        (0, 0)
+    def get_size(self):
+        # atk stub
+        (0, 0)
+    def grab_focus(self):
+        # atk stub
+        return False
+    def remove_focus_handler(self, handler_id):
+        # atk stub
+        pass
+    def set_extents(self, x, y, width, height, coord_type):
+        # atk stub
+        return False
+    def set_position(self, x, y, coord_type):
+        # atk stub
+        return False
+    def set_size(self, width, height):
+        # atk stub
+        return False
+    def get_layer(self):
+        # atk stub
+        return atk.LAYER_WIDGET
+    def get_mdi_zorder(self):
+        # atk stub
+        return 1
+    #--------------------------------
+
+
+class PathPart(atk.Object, IAtkComponent):
 
     def __init__(self, parent, label=None, callback=None):
         atk.Object.__init__(self)

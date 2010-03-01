@@ -166,8 +166,8 @@ class ChannelPane(SoftwarePane):
                                     "%s matching items",
                                     length) % length
         else:
-            return gettext.ngettext("%s application",
-                                    "%s applications",
+            return gettext.ngettext("%s application available",
+                                    "%s applications available",
                                     length) % length
                                     
     def get_current_app(self):

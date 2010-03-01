@@ -125,6 +125,8 @@ class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
                                    cell_area.width, cell_area.height)
     def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
         image = self.get_property("image")
+        if not image:
+            return
         if image.get_animation_len() > 1:
             gobject.timeout_add(int(1000.0/self.FPS), self._animation_helper, widget, image)
         self.set_property("pixbuf", image.get_current_pixbuf())
