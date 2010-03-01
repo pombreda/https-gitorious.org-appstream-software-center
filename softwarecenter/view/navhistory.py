@@ -194,7 +194,8 @@ class AppDetailsNavigationItem(NavigationItem):
         self.available_pane.set_category(self.apps_subcategory or self.apps_category, do_callback=False)
         # check state of navigation bar and make sure we build up all
         # buttons as needed
-        if not self.available_pane.navigation_bar.get_button_from_id(self.available_pane.NAV_BUTTON_ID_LIST):
+        if (self.apps_category and
+            not self.available_pane.navigation_bar.get_button_from_id(self.available_pane.NAV_BUTTON_ID_LIST)):
             self.available_pane.navigation_bar.add_with_id(self.apps_category.name,
                                                            self.available_pane.on_navigation_list,
                                                            self.available_pane.NAV_BUTTON_ID_LIST,
