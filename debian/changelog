@@ -1,4 +1,4 @@
-software-center (1.1.15) UNRELEASED; urgency=low
+software-center (1.1.15) lucid; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/widgets/animatedimage.py:
@@ -22,7 +22,7 @@ software-center (1.1.15) UNRELEASED; urgency=low
     - fix intermittent attribute error when searching
       from the main category screen (LP: #524209)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 26 Feb 2010 18:30:28 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 01 Mar 2010 14:43:54 +0100
 
 software-center (1.1.14) lucid; urgency=low
 
