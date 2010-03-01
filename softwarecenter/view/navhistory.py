@@ -36,6 +36,8 @@ class NavigationHistory(object):
         """
         print ">>> submitting navitem for history: "
         print dest_nav_item
+        # TODO: Detect multiple clicks on the same nav button and filter
+        #       them out of the history
         self._nav_back_stack.append(self._current_nav_item)
         self._current_nav_item = dest_nav_item
         # reset navigation forward stack on a direct navigation
@@ -159,7 +161,7 @@ class AppListSubcategoryNavigationItem(NavigationItem):
         self.apps_search_term = apps_search_term
         
     def navigate_to(self):
-        print "AppListNavigationItem.navigate_to() "
+        print "AppListSubcategoryNavigationItem.navigate_to() "
         self.available_pane.apps_category = self.apps_category
         self.available_pane.apps_subcategory = self.apps_subcategory
         self.available_pane.apps_search_term = self.apps_search_term
@@ -203,6 +205,8 @@ class AppDetailsNavigationItem(NavigationItem):
         
     def navigate_to(self):
         print "AppDetailsNavigationItem.navigate_to() "
+        self.available_pane.apps_category = self.apps_category
+        self.available_pane.apps_subcategory = self.apps_subcategory
         if self.available_pane.apps_subcategory:
             self.available_pane.current_app_by_subcategory[self.available_pane.apps_subcategory] = self.current_app
         else:
@@ -230,7 +234,7 @@ class AppDetailsNavigationItem(NavigationItem):
         
     def __str__(self):
         details = []
-        details.append("* AppListSubcategoryNavigationItem")
+        details.append("* AppDetailsNavigationItem")
         details.append("\n")
         details.append("  apps_category.name: %s" % self.apps_category.name)
         details.append("\n")
