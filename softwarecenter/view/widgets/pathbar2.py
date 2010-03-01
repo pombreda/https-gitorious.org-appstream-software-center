@@ -113,8 +113,8 @@ class PathBar(gtk.DrawingArea):
 #            i = len(self.__parts)-1
 #        return self.__parts[i]
 
-    def append(self, part):
-        prev, did_shrink = self.__append(part)
+    def append(self, part, do_callback=True):
+        prev, did_shrink = self.__append(part, do_callback)
         if not self.get_property("visible"):
             return False
 
@@ -135,6 +135,9 @@ class PathBar(gtk.DrawingArea):
         else:
             self.queue_draw_area(*part.get_allocation_tuple())
         return False
+        
+    def append_no_callback(self, part):
+        self.append(part, do_callback=False)
 
     def remove(self, part):
         if len(self.__parts)-1 < 1:
@@ -201,7 +204,7 @@ class PathBar(gtk.DrawingArea):
         self.__active_part = part
         return prev_active, redraw
 
-    def __append(self, part):
+    def __append(self, part, do_callback=True):
         # clean up any exisitng scroll callbacks
         if self.__scroller:
             gobject.source_remove(self.__scroller)
@@ -212,8 +215,8 @@ class PathBar(gtk.DrawingArea):
         self.__parts.append(part)
         part.set_pathbar(self)
 
-        print "appending button part.name: %s" % part.name 
-        self.set_active(part)
+        print "appending button part.name: %s, with do_callback: %s" % (part.name, do_callback) 
+        self.set_active(part, do_callback)
 
         # determin part shapes, and calc modified parts widths
         prev = self.__compose_parts(part, True)
@@ -1009,8 +1012,8 @@ class PathPart(atk.Object, IAtkComponent):
     def get_layout(self):
         return self.__layout
 
-    def activate(self):
-        self.__pbar.set_active(self)
+    def activate(self, do_callback=True):
+        self.__pbar.set_active(self, do_callback)
         return
 
     def calc_size_requisition(self):
@@ -1543,7 +1546,7 @@ class NavigationBar(PathBar):
         self.id_to_part = {}
         return
 
-    def add_with_id(self, label, callback, id, icon=None):
+    def add_with_id(self, label, callback, id, icon=None, do_callback=True):
         """
         Add a new button with the given label/callback
 
@@ -1552,15 +1555,21 @@ class NavigationBar(PathBar):
         """
 
         # check if we have the button of that id or need a new one
+        print "CALLED add_with_id, with id: %s" % id
         if id in self.id_to_part:
+            print "id FOUND"
             part = self.id_to_part[id]
             part.set_label(label)
         else:
+            print "id NOT found, add new button"
             part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
             part.set_pathbar(self)
             self.id_to_part[id] = part
-            gobject.timeout_add(150, self.append, part)
+            if do_callback:
+                gobject.timeout_add(150, self.append, part)
+            else:
+                gobject.timeout_add(150, self.append_no_callback, part)
 
         if icon: part.set_icon(icon)
         return
