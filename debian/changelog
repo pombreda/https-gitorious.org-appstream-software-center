@@ -1,10 +1,12 @@
-software-center (1.1.15) unstable; urgency=low
+software-center (1.1.15) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/widgets/animatedimage.py:
     - fix crash when image property is not set
   * updated po/th.po:
-    - thanks to Sira Nokyoonhtong 
+    - thanks to Sira Nokyoonhtong
+  * data/featured.menu.in: updated, based on 
+    https://lists.ubuntu.com/archives/ubuntu-desktop/2010-March/002448.html
 
   [ Gary Lasker ]
   * data/ui/SoftwareCenter.ui:
