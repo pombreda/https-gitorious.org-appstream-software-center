@@ -7,11 +7,13 @@ software-center (1.1.16) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * softwarecenter/view/navhistory.py,
     softwarecenter/view/softwarepane.py,
-    softwarecenter/view/availablepane.py:
-    - implement forward/back history feature for the "Get Software"
-      section (using Matthew McGowan's BackForwardButton, many thanks!)
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/widgets/pathbar2.py:
+    - add navhistory.py, implement forward/back history feature for 
+      the "Get Software" section (using Matthew McGowan's 
+      BackForwardButton, many thanks!)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 01 Mar 2010 16:50:53 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 01 Mar 2010 17:00:24 -0500
 
 software-center (1.1.15) lucid; urgency=low
 
