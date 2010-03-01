@@ -336,7 +336,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        #TODO: implement this, if it is actually needed (may not be)
+        #TODO: implement this if it is actually needed (may not be), or remove it
 #        self.nav_history.navigate(SearchNavigationItem(self, 
 #                                                       self.apps_category,
 #                                                       self.apps_subcategory,
@@ -347,11 +347,6 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'list' is clicked"""
         if pathbar and not pathbar.get_active():
             return
-#        if not skip_history:
-#            self.nav_history.navigate(AppListNavigationItem(self, 
-#                                                            self.apps_category,
-#                                                            self.apps_subcategory,
-#                                                            self.apps_search_term))
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         if self.apps_subcategory:
@@ -373,12 +368,6 @@ class AvailablePane(SoftwarePane):
     def on_navigation_list_subcategory(self, pathbar, part, skip_history=False):
         if pathbar and not pathbar.get_active():
             return
-#        if not skip_history:
-#            self.nav_history.navigate(
-#                AppListSubcategoryNavigationItem(self, 
-#                                                 self.apps_category,
-#                                                 self.apps_subcategory,
-#                                                 self.apps_search_term))
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()

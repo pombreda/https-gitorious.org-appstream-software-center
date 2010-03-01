@@ -215,7 +215,6 @@ class PathBar(gtk.DrawingArea):
         self.__parts.append(part)
         part.set_pathbar(self)
 
-        print "appending button part.name: %s, with do_callback: %s" % (part.name, do_callback) 
         self.set_active(part, do_callback)
 
         # determin part shapes, and calc modified parts widths
@@ -1555,13 +1554,10 @@ class NavigationBar(PathBar):
         """
 
         # check if we have the button of that id or need a new one
-        print "CALLED add_with_id, with id: %s" % id
         if id in self.id_to_part:
-            print "id FOUND"
             part = self.id_to_part[id]
             part.set_label(label)
         else:
-            print "id NOT found, add new button"
             part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
             part.set_pathbar(self)

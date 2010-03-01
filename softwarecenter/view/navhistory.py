@@ -34,10 +34,10 @@ class NavigationHistory(object):
         """
         append a new NavigationItem to the history stack
         """
-        print ">>> submitting navitem for history: "
-        print dest_nav_item
+#        print ">>> submit navitem for history: "
+#        print dest_nav_item
         # TODO: Detect multiple clicks on the same nav button and filter
-        #       them out of the history
+        #       them out - we don't want them in the history
         self._nav_back_stack.append(self._current_nav_item)
         self._current_nav_item = dest_nav_item
         # reset navigation forward stack on a direct navigation
@@ -45,7 +45,6 @@ class NavigationHistory(object):
         # update buttons
         self.available_pane.back_forward.left.set_sensitive(True)
         self.available_pane.back_forward.right.set_sensitive(False)
-        self.print_nav_state("nav state after submit")
         
     def nav_forward(self):
         """
@@ -58,7 +57,6 @@ class NavigationHistory(object):
         self._nav_back_stack.append(self._current_nav_item)
         self._current_nav_item = nav_item
         nav_item.navigate_to()
-        self.print_nav_state("after nav forward")
     
     def nav_back(self):
         """
@@ -71,18 +69,6 @@ class NavigationHistory(object):
         self._nav_forward_stack.append(self._current_nav_item)
         self._current_nav_item = nav_item
         nav_item.navigate_to()
-        self.print_nav_state("after nav back")
-        
-    def print_nav_state(self, desc_string):
-        print "### %s ###" % desc_string
-        print "CURRENT:"
-        print self._current_nav_item
-        print "BACK:"
-        for item in self._nav_back_stack:
-            print item
-        print "FORWARD:"
-        for item in self._nav_forward_stack:
-            print item
         
 class NavigationItem(object):
     """
@@ -118,14 +104,12 @@ class AppListNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-#        print "create AppListNavigationItem"
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
         self.apps_search_term = apps_search_term
         
     def navigate_to(self):
-        print "AppListNavigationItem.navigate_to() "
         self.available_pane.apps_category = self.apps_category
         self.available_pane.apps_subcategory = self.apps_subcategory
         self.available_pane.apps_search_term = self.apps_search_term
@@ -154,14 +138,12 @@ class AppListSubcategoryNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-#        print "create AppListSubcategoryNavigationItem"
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
         self.apps_search_term = apps_search_term
         
     def navigate_to(self):
-        print "AppListSubcategoryNavigationItem.navigate_to() "
         self.available_pane.apps_category = self.apps_category
         self.available_pane.apps_subcategory = self.apps_subcategory
         self.available_pane.apps_search_term = self.apps_search_term
@@ -197,14 +179,12 @@ class AppDetailsNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        current_app):
-#        print "create AppDetailsNavigationItem"
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
         self.current_app = current_app
         
     def navigate_to(self):
-        print "AppDetailsNavigationItem.navigate_to() "
         self.available_pane.apps_category = self.apps_category
         self.available_pane.apps_subcategory = self.apps_subcategory
         if self.available_pane.apps_subcategory:
@@ -242,12 +222,11 @@ class AppDetailsNavigationItem(NavigationItem):
             details.append("  apps_subcategory.name: %s" % self.apps_category.name)
         else:
             details.append("  apps_subcategory.name: none")
-#        details.append("\n")
-#        details.append("  apps_search_term: %s" % self.apps_search_term)
         details.append("\n")
         details.append("  current_app: %s" % self.current_app)
         return ''.join(details)
         
+# TODO: remove this class is not needed
 class SearchNavigationItem(NavigationItem):
     """
     navigation item that corresponds to a search in progress
@@ -255,12 +234,11 @@ class SearchNavigationItem(NavigationItem):
     def __init__(self, available_pane, apps_category,
                                        apps_subcategory,
                                        apps_search_term):
-#        print "create SearchNavigationItem"
         self.available_pane = available_pane
         self.apps_category = apps_category
         self.apps_subcategory = apps_subcategory
         self.apps_search_term = apps_search_term
         
     def navigate_to(self):
-        print "SearchNavigationItem.navigate_to() "
+        return
 
