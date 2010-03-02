@@ -244,14 +244,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.searchentry.is_focus()):
             self.active_pane.navigation_bar.navigate_up()
         
-    def on_view_switcher_changed(self, view_switcher, action, channel_name):
+    def on_view_switcher_changed(self, view_switcher, action, channel):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_CHANNEL:
-            self.channel_pane.set_channel_name(channel_name)
-            self.channel_pane.set_channel_display_name(
-                self.viewswitcher.get_channel_display_name(channel_name))
+            self.channel_pane.set_channel(channel)
             self.active_pane = self.channel_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
@@ -440,17 +438,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             s = ""
         self.label_status.set_text(s)
         
-    def update_app_list_view(self, channel_name=None):
+    def update_app_list_view(self, channel=None):
         """Helper that updates the app view list.
         """
         if self.active_pane is None:
             return
-        if channel_name is None and self.active_pane.is_category_view_showing():
+        if channel is None and self.active_pane.is_category_view_showing():
             return
-        if channel_name:
-            self.channel_pane.set_channel_name(channel_name)
+        if channel:
+            self.channel_pane.set_channel(channel)
             self.active_pane.refresh_apps()
-            
         self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):

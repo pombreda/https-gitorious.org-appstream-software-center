@@ -16,27 +16,36 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from softwarecenter.view.appview import AppViewFilter
+import xapian
+import gettext
+from gettext import gettext as _
+from softwarecenter.distro import get_distro
+from softwarecenter.view.widgets.animatedimage import AnimatedImage
 
 class SoftwareChannel(object):
     """
     class to represent a software channel
     """
     
-    def __init__(self, channel_name, channel_origin, channel_component, requires_filter=False):
+    ICON_SIZE = 24
+    
+    def __init__(self, icons, channel_name, channel_origin, channel_component, filter_required=False):
         """
         configure the software channel object based on channel name,
         origin, and component (the latter for detecting the partner
         channel)
         """
-        self.require_filter = require_filter
         self._channel_name = channel_name
         self._channel_origin = channel_origin
         self._channel_component = channel_component
+        self.filter_required = filter_required
+        self.icons = icons
+        # distro specific stuff
+        self.distro = get_distro()
+        # configure the channel
         self._channel_display_name = self._get_display_name_for_channel(channel_name, channel_component)
         self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
         self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
-        self._apps_filter = self._get_apps_filter_for_channel(channel_name)
         
     def get_channel_name(self):
         """
@@ -75,20 +84,13 @@ class SoftwareChannel(object):
         """
         return self._channel_query
         
-    def get_apps_filter(self):
-        """
-        return the AppView filter to be used with this channel, or
-        None if one is not needed
-        """
-        return self._apps_filter
-        
     # TODO:  implement __cmp__ so that sort for channels is encapsulated
     #        here as well
     
     def _get_display_name_for_channel(self, channel_name, channel_component):
         if channel_component == "partner":
             channel_display_name = _("Canonical Partners")
-        if not channel_name:
+        elif not channel_name:
             channel_display_name = _("Other")
         elif channel_name == self.distro.get_distro_channel_name():
             channel_display_name = self.distro.get_distro_channel_description()
@@ -120,15 +122,6 @@ class SoftwareChannel(object):
         else:
             channel_query = xapian.Query("XOL" + channel_name)
         return channel_query
-    
-    def _get_apps_filter_for_channel(self, channel_name):
-        # the distro channel needs a filter
-        if channel_name == self.distro.get_distro_channel_name():
-            apps_filter = AppViewFilter(db, cache)
-            apps_filter.set_only_packages_without_applications(True)
-        else:
-            apps_filter = None
-        return apps_filter
 
     def _get_icon(self, icon_name):
         if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
@@ -139,5 +132,34 @@ class SoftwareChannel(object):
                                                       self.ICON_SIZE, 0))
         return icon
         
+    def __str__(self):
+        details = []
+        details.append("* SoftwareChannel")
+        details.append("\n")
+        details.append("  get_channel_name(): %s" % self.get_channel_name())
+        details.append("\n")
+        details.append("  get_channel_origin(): %s" % self.get_channel_origin())
+        details.append("\n")
+        details.append("  get_channel_component(): %s" % self.get_channel_component())
+        details.append("\n")
+        details.append("  get_channel_display_name(): %s" % self.get_channel_display_name())
+        details.append("\n")
+        details.append("  get_channel_icon(): %s" % self.get_channel_icon())
+        details.append("\n")
+        details.append("  get_channel_query(): %s" % self.get_channel_query())
+        details.append("\n")
+        details.append("  filter_required: %s" % self.filter_required)
+        return ''.join(details)
         
+if __name__ == "__main__":
+    import gtk
+    from softwarecenter.enums import *
+    icons = gtk.icon_theme_get_default()
+    icons.append_search_path(ICON_PATH)
+    icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
+    distro = get_distro()
+    channel = SoftwareChannel(icons, distro.get_distro_channel_name(), None, None, filter_required=True)
+    print channel
+    channel = SoftwareChannel(icons, "Ubuntu", None, "partner")
+    print channel
 

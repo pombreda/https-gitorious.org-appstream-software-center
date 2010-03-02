@@ -44,7 +44,7 @@ class ViewSwitcher(gtk.TreeView):
     __gsignals__ = {
         "view-changed" : (gobject.SIGNAL_RUN_LAST,
                           gobject.TYPE_NONE, 
-                          (int, str),
+                          (int, gobject.TYPE_PYOBJECT),
                          ),
     }
 
@@ -103,8 +103,8 @@ class ViewSwitcher(gtk.TreeView):
         (path, column) = self.get_cursor()
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
-        channel_name = model[path][ViewSwitcherList.COL_CHANNEL_NAME]
-        self.emit("view-changed", action, channel_name)
+        channel = model[path][ViewSwitcherList.COL_CHANNEL]
+        self.emit("view-changed", action, channel)
         
     def get_view(self):
         """return the current activated view number or None if no
@@ -137,7 +137,7 @@ class ViewSwitcherList(gtk.TreeStore):
     (COL_ICON,
      COL_NAME,
      COL_ACTION,
-     COL_CHANNEL_NAME) = range(4)
+     COL_CHANNEL) = range(4)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,

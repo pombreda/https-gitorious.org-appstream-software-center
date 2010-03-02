@@ -118,9 +118,14 @@ class ChannelPane(SoftwarePane):
     def set_channel(self, channel):
         """
         set the current software channel object for display in the channel pane
+        and set up the AppViewFilter if required
         """
         self.channel = channel
-        self.apps_filter = channel.get_apps_filter()
+        if self.channel.filter_required:
+            self.apps_filter = AppViewFilter(db, cache)
+            self.apps_filter.set_only_packages_without_applications(True)
+        else:
+            self.apps_filter = None
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
