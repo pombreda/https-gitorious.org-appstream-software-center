@@ -1,5 +1,6 @@
 software-center (1.1.16) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * data/software-center.menu.in:
     - merge "System Tools" into "Accessories"
     - rename "System Packages" to "System"
@@ -16,7 +17,23 @@ software-center (1.1.16) UNRELEASED; urgency=low
   * softwarecenter/view/catview.py:
     - fix tests
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 02 Mar 2010 09:46:22 +0100
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel.py:
+    - add to reimplement channels as instances of a new SoftwareChannel
+      class, supports fixing the issues below
+  * softwarecenter/view/viewswitcher.py,
+    softwarecenter/view/channelpane.py:
+    - enable Canonical partner channel repository view (LP: #530401)
+    - fix crash when searching while in "Provided by Ubuntu"
+      view (LP: #523781) 
+    - show all software items in the "Provided by Ubuntu"
+      view (LP: #528043)
+    - enable maintenance filter in the "Provided by Ubuntu"
+      view (LP: #528057)
+    - fix navigation button text for the "Provided by Ubuntu"
+      view (LP: #530398)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 02 Mar 2010 16:22:11 -0500
 
 software-center (1.1.15) lucid; urgency=low
 

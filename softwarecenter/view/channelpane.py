@@ -46,9 +46,8 @@ class ChannelPane(SoftwarePane):
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=True)
-        # state
+        self.channel = None
         self.apps_filter = None
-        self.channel_name = ""
         self.search_terms = ""
         self.current_appview_selection = None
         self.distro = get_distro()
@@ -76,7 +75,8 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        channel_query = xapian.Query("XOL" + self.channel_name)
+#        channel_query = xapian.Query("XOL" + self.channel_name)
+        channel_query = self.channel.get_xapian_query()
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
                                                              channel_query)
@@ -85,7 +85,7 @@ class ChannelPane(SoftwarePane):
                                             "search")
         else:
             self.navigation_bar.remove_all(keep_first_part=False)
-            self.navigation_bar.add_with_id(self.channel_name,
+            self.navigation_bar.add_with_id(self.channel_display_name,
                                         self.on_navigation_list,
                                         "list")
             query = xapian.Query(channel_query)
@@ -109,10 +109,18 @@ class ChannelPane(SoftwarePane):
                              self.icons, 
                              query, 
                              limit=0,
-                             sort=True)
+                             sort=True,
+                             filter=self.apps_filter)
         self.app_view.set_model(new_model)
         self.emit("app-list-changed", len(new_model))
         return False
+        
+    def set_channel(self, channel):
+        """
+        set the current software channel object for display in the channel pane
+        """
+        self.channel = channel
+        self.apps_filter = channel.get_apps_filter()
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
@@ -180,7 +188,17 @@ class ChannelPane(SoftwarePane):
         return False
 
     def set_channel_name(self, channel_name):
-        self.channel_name = channel_name;
+        """
+        set the value for the channel name for use in the Xapian query
+        """
+        self.channel_name = channel_name
+    
+    def set_channel_display_name(self, channel_display_name):
+        """
+        set the value for the string to be used when displaying the
+        channel in the UI
+        """
+        self.channel_display_name = channel_display_name
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

@@ -31,7 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-
+from softwarecenter.backend.channel import SoftwareChannel
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.db.database import StoreDatabase
@@ -164,13 +164,6 @@ class ViewSwitcherList(gtk.TreeStore):
         available_icon = self._get_icon("softwarecenter")
         available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, ""])
         
-        # gather icons for use with channel sources
-        self.dist_icon = self._get_icon("distributor-logo")
-        self.partner_icon = self._get_icon("partner")
-        self.ppa_icon = self._get_icon("ppa")
-        self.generic_repo_icon = self._get_icon("generic-repository")
-        self.unknown_channel_icon = self._get_icon("unknown-channel")
-        
         # get list of channel sources of form:
         #     [icon, label, action, channel_name]
         channel_sources = self._get_channel_sources()
@@ -201,7 +194,7 @@ class ViewSwitcherList(gtk.TreeStore):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
-
+                    
     def _get_icon(self, icon_name):
         if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
             icon = AnimatedImage(self.icons.load_icon(icon_name, self.ICON_SIZE, 0))
@@ -233,6 +226,13 @@ class ViewSwitcherList(gtk.TreeStore):
             logging.debug("channel_name: %s" % channel_name)
             logging.debug("channel_origin: %s" % channel_origin)
             channels.append((channel_name, channel_origin))
+            
+        # find items in the partner repo
+        for component_iter in self.db.xapiandb.allterms("XOC"):
+            if len(component_iter.term) == 3:
+                continue
+            component_name = component_iter.term[3:]
+            print "component_name: %s" % component_name
             
         channel_sources = []
         for (channel_name, channel_origin) in self._order_channels(channels):
@@ -277,35 +277,6 @@ class ViewSwitcherList(gtk.TreeStore):
         ordered_channels.extend(unknown_channel)
         
         return ordered_channels
-        
-    def _get_icon_for_channel(self, channel_name, channel_origin):
-        """
-        return the icon that corresponds to each channel node based
-        on the channel name and its origin string
-        """
-        if not channel_name:
-            channel_icon = self.unknown_channel_icon
-        elif channel_name == self.distro.get_distro_channel_name():
-            channel_icon = self.dist_icon
-        elif channel_origin and channel_origin.startswith("LP-PPA"):
-            channel_icon = self.ppa_icon
-        # TODO: add check for generic repository source (e.g., Google, Inc.)
-        # TODO: add check for partner_icon
-        else:
-            channel_icon = self.unknown_channel_icon
-        return channel_icon
-        
-    def _get_display_name_for_channel(self, channel_name):
-        """
-        return the display name for the corresponding channel node
-        """
-        if not channel_name:
-            channel_display_name = _("Other")
-        elif channel_name == self.distro.get_distro_channel_name():
-            channel_display_name = self.distro.get_distro_channel_description()
-        else:
-            channel_display_name = channel_name
-        return channel_display_name
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

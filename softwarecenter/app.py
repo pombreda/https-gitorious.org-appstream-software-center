@@ -250,6 +250,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_CHANNEL:
             self.channel_pane.set_channel_name(channel_name)
+            self.channel_pane.set_channel_display_name(
+                self.viewswitcher.get_channel_display_name(channel_name))
             self.active_pane = self.channel_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
