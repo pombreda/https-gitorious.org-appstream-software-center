@@ -101,13 +101,11 @@ class AppListNavigationItem(NavigationItem):
     navigation item that corresponds to the application list for the
     specified category
     """
-    def __init__(self, available_pane, apps_category,
-                                       apps_subcategory,
-                                       apps_search_term):
+    def __init__(self, available_pane):
         self.available_pane = available_pane
-        self.apps_category = apps_category
-        self.apps_subcategory = apps_subcategory
-        self.apps_search_term = apps_search_term
+        self.apps_category = available_pane.apps_category
+        self.apps_subcategory = available_pane.apps_subcategory
+        self.apps_search_term = available_pane.apps_search_term
         
     def navigate_to(self):
         self.available_pane.apps_category = self.apps_category
@@ -135,13 +133,11 @@ class AppListSubcategoryNavigationItem(NavigationItem):
     navigation item that corresponds to the application list for the
     specified category and subcategory
     """
-    def __init__(self, available_pane, apps_category,
-                                       apps_subcategory,
-                                       apps_search_term):
+    def __init__(self, available_pane):
         self.available_pane = available_pane
-        self.apps_category = apps_category
-        self.apps_subcategory = apps_subcategory
-        self.apps_search_term = apps_search_term
+        self.apps_category = available_pane.apps_category
+        self.apps_subcategory = available_pane.apps_subcategory
+        self.apps_search_term = available_pane.apps_search_term
         
     def navigate_to(self):
         self.available_pane.apps_category = self.apps_category
@@ -176,13 +172,11 @@ class AppDetailsNavigationItem(NavigationItem):
     navigation item that corresponds to the details view for the
     specified application
     """
-    def __init__(self, available_pane, apps_category,
-                                       apps_subcategory,
-                                       current_app):
+    def __init__(self, available_pane):
         self.available_pane = available_pane
-        self.apps_category = apps_category
-        self.apps_subcategory = apps_subcategory
-        self.current_app = current_app
+        self.apps_category = available_pane.apps_category
+        self.apps_subcategory = available_pane.apps_subcategory
+        self.current_app = available_pane.get_current_app()
         
     def navigate_to(self):
         self.available_pane.apps_category = self.apps_category
@@ -232,14 +226,13 @@ class SearchNavigationItem(NavigationItem):
     """
     navigation item that corresponds to a search in progress
     """
-    def __init__(self, available_pane, apps_category,
-                                       apps_subcategory,
-                                       apps_search_term):
+    def __init__(self, available_pane):
         self.available_pane = available_pane
-        self.apps_category = apps_category
-        self.apps_subcategory = apps_subcategory
-        self.apps_search_term = apps_search_term
+        self.apps_category = available_pane.apps_category
+        self.apps_subcategory = available_pane.apps_subcategory
+        self.apps_search_term = available_pane.apps_search_term
         
     def navigate_to(self):
+        print "FIXME: not implemented"
         return
 

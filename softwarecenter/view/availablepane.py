@@ -336,11 +336,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        #TODO: implement this if it is actually needed (may not be), or remove it
-#        self.nav_history.navigate(SearchNavigationItem(self, 
-#                                                       self.apps_category,
-#                                                       self.apps_subcategory,
-#                                                       self.apps_search_term))
+        self.nav_history.navigate(SearchNavigationItem(self))
         self.searchentry.show()
 
     def on_navigation_list(self, pathbar, part, skip_history=False):
@@ -360,10 +356,7 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(model))
         self.searchentry.show()
         if not skip_history:
-            self.nav_history.navigate(AppListNavigationItem(self, 
-                                                            self.apps_category,
-                                                            self.apps_subcategory,
-                                                            self.apps_search_term))
+            self.nav_history.navigate(AppListNavigationItem(self))
 
     def on_navigation_list_subcategory(self, pathbar, part, skip_history=False):
         if pathbar and not pathbar.get_active():
@@ -376,11 +369,7 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
         if not skip_history:
-            self.nav_history.navigate(
-                AppListSubcategoryNavigationItem(self, 
-                                                 self.apps_category,
-                                                 self.apps_subcategory,
-                                                 self.apps_search_term))
+            self.nav_history.navigate(AppListSubcategoryNavigationItem(self))
 
     def on_navigation_details(self, pathbar, part, skip_history=False):
         """callback when the navigation button with id 'details' is clicked"""
@@ -389,10 +378,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         if not skip_history:
-            self.nav_history.navigate(AppDetailsNavigationItem(self,
-                                                               self.apps_category,
-                                                               self.apps_subcategory,
-                                                               self.get_current_app()))
+            self.nav_history.navigate(AppDetailsNavigationItem(self))
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
