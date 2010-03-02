@@ -227,7 +227,7 @@ class AppDetailsNavigationItem(NavigationItem):
         details.append("  current_app: %s" % self.current_app)
         return ''.join(details)
         
-# TODO: remove this class is not needed
+# TODO: remove this class if not needed
 class SearchNavigationItem(NavigationItem):
     """
     navigation item that corresponds to a search in progress
