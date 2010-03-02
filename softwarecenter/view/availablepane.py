@@ -97,7 +97,7 @@ class AvailablePane(SoftwarePane):
         # set status text
         self._update_status_text(len(self.db))
         # home button
-        self.navigation_bar.add_with_id(_("Get Free Software"), 
+        self.navigation_bar.add_with_id(_("Get Software"), 
                                         self.on_navigation_category,
                                         "category")
 
