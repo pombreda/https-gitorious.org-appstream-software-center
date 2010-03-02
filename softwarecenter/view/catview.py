@@ -216,7 +216,10 @@ class CategoriesView(WebkitWidget):
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCPkgname":
                 logging.debug("adding tag: %s" % and_elem.text)
-                q = xapian.Query("AP"+and_elem.text.lower())
+                # query both axi and s-c
+                q1 = xapian.Query("AP"+and_elem.text.lower())
+                q = xapian.Query(xapian.Query.OP_OR, q1
+                                 xapian.Query("XP"+and_elem.text.lower()))
                 query = xapian.Query(xapian_op, query, q)
             else: 
                 print "UNHANDLED: ", and_elem.tag, and_elem.text
