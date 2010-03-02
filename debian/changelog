@@ -5,6 +5,7 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - rename "System Packages" to "System"
     - add "Fonts" section
     - remove all sub-sections of "System", its one big list again
+    - remove "Other" category and move it into "System"
    (as per spec)
   * softwarecenter/db/database.py:
     - add prefix "pkg_fuzzy"
@@ -12,6 +13,8 @@ software-center (1.1.16) UNRELEASED; urgency=low
     pkgname searches
   * softwarecenter/view/catview.py:
     - fix parsing when inline translations are available in the xml
+  * softwarecenter/view/catview.py:
+    - fix tests
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 02 Mar 2010 09:46:22 +0100
 

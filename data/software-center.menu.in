@@ -400,31 +400,12 @@
     </Include>
   </Menu> <!-- End Office -->
 
-  <!-- Other -->
-  <Menu>
-    <_Name>Other</_Name>
-    <Directory>X-GNOME-Other.directory</Directory>
-    <OnlyUnallocated/>
-    <Include>
-      <And>
-        <Category>Application</Category>
-        <Not><Category>Core</Category></Not>
-<!--        <Not><Category>Settings</Category></Not> -->
-        <Not><Category>Screensaver</Category></Not>
-      </And>
-    </Include>
-  </Menu> <!-- End Other -->
-
-
  <!-- System -->
   <Menu>
     <_Name>System</_Name>
     <SCIcon>applications-other</SCIcon>
     <OnlyUnallocated/>
     <Include>
-      <And>
-        <Not><SCType>application</SCType></Not>
-      </And>
     </Include>
   </Menu> <!-- End Packages -->
 

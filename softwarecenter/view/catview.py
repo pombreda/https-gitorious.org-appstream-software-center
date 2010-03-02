@@ -245,8 +245,8 @@ class CategoriesView(WebkitWidget):
                 return xapian.Query("AC"+include.text.lower())
             else:
                 logging.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
-        # null query if nothing should be included
-        return xapian.Query()
+        # empty query matches all
+        return xapian.Query("")
 
     def _parse_menu_tag(self, item):
         name = None
@@ -340,7 +340,7 @@ def category_activated(iconview, category, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
     name = category.name
     query = category.query
-    enquire = xapian.Enquire(db)
+    enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
     for m in matches:
@@ -353,7 +353,9 @@ def category_activated(iconview, category, db):
     print len(matches)
 
 if __name__ == "__main__":
+    import apt
     from softwarecenter.enums import *
+    from softwarecenter.db.database import StoreDatabase
     logging.basicConfig(level=logging.DEBUG)
 
     appdir = "/usr/share/app-install"
@@ -361,7 +363,9 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = xapian.Database(pathname)
+    cache = apt.Cache()
+    db = StoreDatabase(pathname, cache)
+    db.open()
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()
