@@ -4,16 +4,18 @@ import os
 import sys
 import xapian
 
+from optparse import OptionParser
+
 sys.path.insert(0, "../")
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 
-def parse_query(parser, search_string):
+def parse_query(parser, search_strings, verbose=True):
     str_to_prefix = { 'section' : 'AE',
                       'type' : 'AT',
                       'category' : 'AC' 
                     }
-    for st in search_string.split():
+    for st in search_strings:
         (search_prefix, search_term) = st.split(":")
         if search_prefix == "section":
             t = str_to_prefix[search_prefix]
@@ -33,14 +35,22 @@ def parse_query(parser, search_string):
         enquire.set_query(query)
         with ExecutionTime("Search took"):
             mset = enquire.get_mset(0, db.get_doccount())
-            print "Found %i documents for search '%s'\n" % (len(mset), st)
-            for m in mset:
-                doc = m[xapian.MSET_DOCUMENT]
-                appname = doc.get_data()
-                pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-                print "%s ; %s" % (appname, pkgname)
+            print "Found %i documents for search '%s'" % (len(mset), st)
+            if verbose:
+                for m in mset:
+                    doc = m[xapian.MSET_DOCUMENT]
+                    appname = doc.get_data()
+                    pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                    print "%s ; %s" % (appname, pkgname)
+        print
 
 if __name__ == "__main__":
+
+    parser = OptionParser()
+    parser.add_option("-v", "--verbose", action="store_true",
+                      default=False,
+                      help="print found apps/pkgs too")
+    (options, args) = parser.parse_args()
 
     pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
     db = xapian.Database(pathname)
@@ -49,7 +59,8 @@ if __name__ == "__main__":
     db.add_database(axi)
     parser = xapian.QueryParser()
     parser.set_database(db)
-    
+
+ 
     if len(sys.argv) < 2:
         print "example usage: "
         print " section:net"
@@ -57,4 +68,4 @@ if __name__ == "__main__":
         print " type:Application"
         sys.exit(1)
 
-    parse_query(parser, sys.argv[1])
+    parse_query(parser, args, options.verbose)
