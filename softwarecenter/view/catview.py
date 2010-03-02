@@ -257,6 +257,10 @@ class CategoriesView(WebkitWidget):
         dont_display = False
         subcategories = []
         for element in item.getchildren():
+            # ignore inline translations, we use gettext for this
+            if (element.tag == "Name" and 
+                '{http://www.w3.org/XML/1998/namespace}lang' in element.attrib):
+                continue
             if element.tag == "Name":
                 untranslated_name = element.text
                 name = gettext.gettext(untranslated_name)

@@ -10,7 +10,8 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - add prefix "pkg_fuzzy"
   * add .menu term "SCPkgnameWildcard" to support wildcard based
     pkgname searches
-
+  * softwarecenter/view/catview.py:
+    - fix parsing when inline translations are available in the xml
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 02 Mar 2010 09:46:22 +0100
 
