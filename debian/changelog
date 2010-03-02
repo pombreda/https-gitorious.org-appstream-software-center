@@ -4,11 +4,13 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - merge "System Tools" into "Accessories"
     - rename "System Packages" to "System"
     - add "Fonts" section
+    - remove all sub-sections of "System", its one big list again
    (as per spec)
   * softwarecenter/db/database.py:
     - add prefix "pkg_fuzzy"
   * add .menu term "SCPkgnameWildcard" to support wildcard based
     pkgname searches
+
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 02 Mar 2010 09:46:22 +0100
 
