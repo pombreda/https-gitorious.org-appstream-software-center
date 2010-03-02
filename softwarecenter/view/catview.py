@@ -225,7 +225,7 @@ class CategoriesView(WebkitWidget):
             elif and_elem.tag == "SCPkgnameWildcard":
                 logging.debug("adding tag: %s" % and_elem.text)
                 # query both axi and s-c
-                s = "pkg_fuzzy:%s" % and_elem.text.lower()
+                s = "pkg_wildcard:%s" % and_elem.text.lower()
                 q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
                 query = xapian.Query(xapian_op, query, q)
             else: 

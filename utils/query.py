@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.set_database(db)
 
  
-    if len(sys.argv) < 2:
+    if not args:
         print "example usage: "
         print " section:net"
         print " category:AudioVideo"
