@@ -30,6 +30,7 @@
     </Include>
   </Menu> <!-- End Accessibility -->
 
+
   <!-- Development Tools -->
   <Menu>
     <_Name>Development</_Name>
@@ -245,6 +246,18 @@
       </And>
     </Include>
   </Menu> <!-- End Science -->
+
+  <!-- Fonts -->
+  <Menu>
+    <_Name>Fonts</_Name>
+    <SCIcon>applications-other</SCIcon>
+    <Include>
+      <Or>
+        <SCPkgnameWildcard>ttf*</SCPkgnameWildcard>
+        <SCPkgnameWildcard>otf*</SCPkgnameWildcard>
+      </Or>
+    </Include>
+  </Menu>
 
   <!-- Games -->
   <Menu>

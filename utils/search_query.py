@@ -10,6 +10,7 @@ from softwarecenter.utils import *
 
 def run_query(parser, search_term):
     search_query = parser.parse_query(search_term, 
+                                      xapian.QueryParser.FLAG_WILDCARD|
                                       xapian.QueryParser.FLAG_PARTIAL|
                                       xapian.QueryParser.FLAG_BOOLEAN)
     print search_query
@@ -35,4 +36,5 @@ if __name__ == "__main__":
 
     parser = xapian.QueryParser()
     parser.set_database(db)
+    parser.add_prefix("pkg","XP")
     run_query(parser, sys.argv[1])

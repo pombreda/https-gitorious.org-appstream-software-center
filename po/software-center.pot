@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-23 12:03+0100\n"
+"POT-Creation-Date: 2010-03-02 11:10+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -269,7 +269,7 @@ msgid "Office"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:42
-#: ../softwarecenter/view/viewswitcher.py:299
+#: ../softwarecenter/view/viewswitcher.py:303
 msgid "Other"
 msgstr ""
 
@@ -326,70 +326,66 @@ msgid "System"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:56
-msgid "System Packages"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:57
 msgid "Tex"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:58
+#: ../data/software-center.menu.in.h:57
 msgid "Text"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:59
+#: ../data/software-center.menu.in.h:58
 msgid "Translations"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:60
+#: ../data/software-center.menu.in.h:59
 msgid "Universal Access"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:61
+#: ../data/software-center.menu.in.h:60
 msgid "Utils"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:62
+#: ../data/software-center.menu.in.h:61
 msgid "Version Control"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:63
+#: ../data/software-center.menu.in.h:62
 msgid "Video"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:64
+#: ../data/software-center.menu.in.h:63
 msgid "Web"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:65
+#: ../data/software-center.menu.in.h:64
 msgid "Web servers"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:66
+#: ../data/software-center.menu.in.h:65
 msgid "X11"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:67
+#: ../data/software-center.menu.in.h:66
 msgid "libdevel"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:68
+#: ../data/software-center.menu.in.h:67
 msgid "localization"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:69
+#: ../data/software-center.menu.in.h:68
 msgid "metapackages"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:70
+#: ../data/software-center.menu.in.h:69
 msgid "misc"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:71
+#: ../data/software-center.menu.in.h:70
 msgid "oldlibs"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:72
+#: ../data/software-center.menu.in.h:71
 msgid "otherosfs"
 msgstr ""
 
@@ -663,17 +659,17 @@ msgid "More Info"
 msgstr ""
 
 #. home button
-#: ../softwarecenter/view/availablepane.py:98
+#: ../softwarecenter/view/availablepane.py:100
 msgid "Get Free Software"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:189
+#: ../softwarecenter/view/availablepane.py:191
 #: ../softwarecenter/view/installedpane.py:78
 #: ../softwarecenter/view/channelpane.py:83
 msgid "Search Results"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:221
+#: ../softwarecenter/view/availablepane.py:229
 #: ../softwarecenter/view/installedpane.py:146
 #: ../softwarecenter/view/channelpane.py:165
 #, python-format
@@ -682,14 +678,15 @@ msgid_plural "%s matching items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:225
+#: ../softwarecenter/view/availablepane.py:233
+#: ../softwarecenter/view/channelpane.py:169
 #, python-format
 msgid "%s application available"
 msgid_plural "%s applications available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/catview.py:77 ../softwarecenter/view/catview.py:82
+#: ../softwarecenter/view/catview.py:77 ../softwarecenter/view/catview.py:83
 msgid "Departments"
 msgstr ""
 
@@ -707,7 +704,7 @@ msgid "Dependency"
 msgstr ""
 
 #: ../softwarecenter/view/installedpane.py:83
-#: ../softwarecenter/view/viewswitcher.py:179
+#: ../softwarecenter/view/viewswitcher.py:183
 msgid "Installed Software"
 msgstr ""
 
@@ -718,19 +715,16 @@ msgid_plural "%s applications installed"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/channelpane.py:169
-#, python-format
-msgid "%s application"
-msgid_plural "%s applications"
-msgstr[0] ""
-msgstr[1] ""
+#: ../softwarecenter/view/viewswitcher.py:77
+msgid "Software sources"
+msgstr ""
 
-#: ../softwarecenter/view/viewswitcher.py:161
+#: ../softwarecenter/view/viewswitcher.py:165
 msgid "Get Software"
 msgstr ""
 
-#: ../softwarecenter/view/viewswitcher.py:189
-#: ../softwarecenter/view/viewswitcher.py:194
+#: ../softwarecenter/view/viewswitcher.py:193
+#: ../softwarecenter/view/viewswitcher.py:198
 #, python-format
 msgid "In Progress (%i)"
 msgstr ""

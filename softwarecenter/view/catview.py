@@ -77,6 +77,7 @@ class CategoriesView(WebkitWidget):
         atk_desc.set_name(_("Departments"))
         self.categories = []
         self.header = ""
+        self.db = db
         self.icons = icons
         if not root_category:
             self.header = _("Departments")
@@ -218,8 +219,14 @@ class CategoriesView(WebkitWidget):
                 logging.debug("adding tag: %s" % and_elem.text)
                 # query both axi and s-c
                 q1 = xapian.Query("AP"+and_elem.text.lower())
-                q = xapian.Query(xapian.Query.OP_OR, q1
+                q = xapian.Query(xapian.Query.OP_OR, q1,
                                  xapian.Query("XP"+and_elem.text.lower()))
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCPkgnameWildcard":
+                logging.debug("adding tag: %s" % and_elem.text)
+                # query both axi and s-c
+                s = "pkg_fuzzy:%s" % and_elem.text.lower()
+                q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
                 query = xapian.Query(xapian_op, query, q)
             else: 
                 print "UNHANDLED: ", and_elem.tag, and_elem.text
