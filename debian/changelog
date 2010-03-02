@@ -1,3 +1,12 @@
+software-center (1.1.16) UNRELEASED; urgency=low
+
+  * data/software-center.menu.in:
+    - merge "System Tools" into "Accessories"
+    - rename "System Packages" to "System"
+   (as per spec)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 02 Mar 2010 09:46:22 +0100
+
 software-center (1.1.15) lucid; urgency=low
 
   [ Michael Vogt ]

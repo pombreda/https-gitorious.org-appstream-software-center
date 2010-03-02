@@ -14,7 +14,6 @@
              the ones that do not have Settings, so don't display accessibility
              applications here -->
         <Not><Category>Accessibility</Category></Not>
-        <Not><Category>System</Category></Not>
       </And>
     </Include>
   </Menu> <!-- End Accessories -->
@@ -388,19 +387,6 @@
     </Include>
   </Menu> <!-- End Office -->
 
-  <!-- System Tools-->
-  <Menu>
-    <_Name>System</_Name>
-    <Directory>System-Tools.directory</Directory>
-    <Include>
-      <And>
-        <Category>System</Category>
-<!--        <Not><Category>Settings</Category></Not> -->
-<!--        <Not><Category>Game</Category></Not> -->
-      </And>
-    </Include>
-  </Menu>   <!-- End System Tools -->
-
   <!-- Other -->
   <Menu>
     <_Name>Other</_Name>
@@ -423,7 +409,7 @@
 
  <!-- Packages -->
   <Menu>
-    <_Name>System Packages</_Name>
+    <_Name>System</_Name>
     <SCIcon>applications-other</SCIcon>
     <SCDontDisplay />
     <Include>
