@@ -35,6 +35,7 @@
     obj.style.width=progress+"px";
   }
   function thumbMissing() {
+    return;
     obj=document.getElementById("screenshot_thumbnail_img"); 
     obj.style.background= 'url("file:$screenshot_thumbnail_missing")';
     obj.style.visibility = 'visible';
@@ -78,7 +79,7 @@
       font-style:${font_style};
     }
     body.section-get {
-      background-color:#b6bdc4; 
+     
       color: #000;
     }
     h1 {
@@ -191,6 +192,7 @@
  
  <div id="text">
    <h1>$appname</h1>
+   <h2>$summary</h2>
    <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail'>
         <div id='$screenshot_installed' class='screenshot_thumbnail'>
             <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">

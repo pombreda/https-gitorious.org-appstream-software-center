@@ -167,6 +167,8 @@ class AppDetailsView(WebkitWidget):
     # substitute functions called during page display
     def wksub_appname(self):
         return self.app.name
+    def wksub_summary(self):
+        return self.db.get_summary(self.doc)
     def wksub_pkgname(self):
         return self.app.pkgname
     def wksub_body_class(self):
