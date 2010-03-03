@@ -29,10 +29,18 @@ class Distro(object):
     IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
     IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
 
+    def get_codename(self):
+        """ The codename of the distro, e.g. lucid """
+        if not hasattr(self, "_distro_code_name"):
+            self._distro_code_name = subprocess.Popen(
+                ["lsb_release","-c","-s"], 
+                stdout=subprocess.PIPE).communicate()[0].strip()
+        return self._distro_code_name
+
     def get_distro_channel_name(self):
         """ The name in the Release file """
         return "none"
-
+ 
     def get_distro_channel_description(self):
         """ The name in the Release file """
         return "none"
@@ -58,6 +66,7 @@ def _get_distro():
     return instance
 
 def get_distro():
+    """ factory to return the right Distro object """
     return distro_instance
 
 # singelton

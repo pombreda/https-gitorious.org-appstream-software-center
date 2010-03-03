@@ -16,6 +16,11 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - fix parsing when inline translations are available in the xml
   * softwarecenter/view/catview.py:
     - fix tests
+  * softwarecenter/backend/channel.py:
+    - add query for channels that are not yet enabled 
+      (via the app-install-data mechanism)
+  * softwarecenter/distro/__init__.py:
+    - add get_codename
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py:

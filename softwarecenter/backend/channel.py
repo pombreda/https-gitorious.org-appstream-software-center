@@ -116,7 +116,9 @@ class SoftwareChannel(object):
     def _get_channel_query_for_channel(self, channel_name, channel_component):
     
         if channel_component == "partner":
-            channel_query = xapian.Query("XOCpartner")
+            q1 = xapian.Query("XOCpartner")
+            q2 = xapian.Query("AH%s-partner" % self.distro.get_codename())
+            channel_query = xapian.Query(xapian.Query.OP_OR, q1, q2)
         # uncomment the following to limit the distro channel contents to only applications
 #        elif channel_name == self.distro.get_distro_channel_name():
 #            channel_query = xapian.Query(xapian.Query.OP_AND, 
