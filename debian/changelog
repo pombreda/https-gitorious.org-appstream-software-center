@@ -27,6 +27,8 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - add get_codename
   * fix inconsistency in naming (LP: #530368)
   * show (summary, name) for non-apps (LP: #530422)
+  * lp:~mpt/software-center/categorization to improve categorization
+    (many thanks)
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py:
