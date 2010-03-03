@@ -25,6 +25,7 @@ software-center (1.1.16) UNRELEASED; urgency=low
       (via the app-install-data mechanism)
   * softwarecenter/distro/__init__.py:
     - add get_codename
+  * fix inconsistency in naming (LP: #530368)
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py:
