@@ -242,9 +242,7 @@ class AppStore(gtk.GenericTreeModel):
         if column == self.COL_APP_NAME:
             return app.appname
         elif column == self.COL_TEXT:
-            appname = app.appname
-            if not appname:
-                appname = app.pkgname
+            appname = app.appname or app.pkgname
             summary = self.db.get_summary(doc)
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname)
@@ -515,8 +513,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         self.show_ratings = show_ratings
         # get rating icons
         icons = gtk.icon_theme_get_default()
-        self.star_pixbuf = icons.load_icon("sc-emblem-favorite", 16, 0)
-        self.star_not_pixbuf = icons.load_icon("sc-emblem-favorite-not", 16, 0)
+        self.star_pixbuf = icons.load_icon("sc-emblem-favorite", 12, 0)
+        self.star_not_pixbuf = icons.load_icon("sc-emblem-favorite-not", 12, 0)
         # specify the func that calc's distance from margin, based on text dir
         self._calc_x = self._calc_x_ltr
         return
@@ -594,14 +592,17 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         return
 
     def draw_rating_and_reviews(self, window, widget, cell_area, layout, xpad, ypad, w, h, max_star_width, flags):
-        dst_y = cell_area.y+ypad
+        dst_y = cell_area.y+ypad + ( 0 if self.reviews > 0 else 10) # unnamed constant because I can't see a place to put these 
+        
         # draw star rating
         self.draw_rating(window, cell_area, dst_y, max_star_width, xpad, self.rating)
 
+        if self.reviews == 0: return
         # draw number of reviews
         nr_reviews_str = gettext.ngettext("%s review",
                                           "%s reviews",
                                           self.reviews) % self.reviews
+        
         layout.set_markup("<small>%s</small>" % nr_reviews_str)
         lw = self._get_layout_pixel_width(layout)
         dst_x = self._calc_x(cell_area, lw, cell_area.width-xpad-max_star_width+(max_star_width-lw)/2)
