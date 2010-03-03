@@ -407,6 +407,46 @@
         <Category>Graphics</Category>
       </And>
     </Include>
+    <Menu>
+      <_Name>3D</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include><And><Category>3DGraphics</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Drawing</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include><And><Category>VectorGraphics</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Painting &amp; Editing</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include><And><Category>RasterGraphics</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Photography</_Name>
+      <SCIcon>camera-photo</SCIcon>
+      <Include><And><Category>Photography</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Publishing</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include><And><Category>Publishing</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Scanning &amp; OCR</_Name>
+      <SCIcon>scanner</SCIcon>
+      <Include>
+        <Or>
+          <Category>Scanning</Category>
+          <Category>OCR</Category>
+        </Or>
+      </Include>
+    </Menu>
+    <Menu>
+      <_Name>Viewers</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include><And><Category>Viewer</Category></And></Include>
+    </Menu>
   </Menu> <!-- End Graphics -->
 
   <!-- Internet -->
