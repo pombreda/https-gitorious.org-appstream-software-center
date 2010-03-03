@@ -210,12 +210,20 @@ class ViewSwitcherList(gtk.TreeStore):
         """
         return a list of SoftwareChannel objects in display order
         """
+        distro_channel_name = self.distro.get_distro_channel_name()
         channels = []
+        # first, the full distro channel
         channel = SoftwareChannel(self.icons,
-                                  self.distro.get_distro_channel_name(),
+                                  distro_channel_name,
                                   None,
                                   None,
                                   filter_required=True)
+        channels.append(channel)
+        # next, the partner repository
+        channel = SoftwareChannel(self.icons, 
+                                  distro_channel_name,
+                                  None,
+                                  "partner")
         channels.append(channel)
         
         return channels
