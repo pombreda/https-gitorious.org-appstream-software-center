@@ -29,9 +29,6 @@ class NavigationHistory(object):
     def __init__(self, available_pane):
         self.available_pane = available_pane
         # always start at main category view
-        #print available_pane
-        #print available_pane.navigation_bar
-        #print available_pane.navigation_bar.get_parts()
         self._current_nav_item = CategoryViewNavigationItem(available_pane)
         # use stacks to track navigation history
         self._nav_back_stack = []
@@ -43,8 +40,7 @@ class NavigationHistory(object):
         """
         if in_replay_history_mode:
             return
-        print ">>> submit navitem for history: "
-        print dest_nav_item
+        logging.debug("submit navitem for history: %s" % dest_nav_item)
         # TODO: Detect multiple clicks on the same nav button and filter
         #       them out - we don't want them in the history
         dest_nav_item.parent = self
@@ -76,7 +72,7 @@ class NavigationHistory(object):
         if len(self._nav_back_stack) <= 1:
             self.available_pane.back_forward.left.set_sensitive(False)
         nav_item = self._nav_back_stack.pop()
-        print nav_item
+        logging.debug("nav_back: %s" % nav_item)
         self._nav_forward_stack.append(self._current_nav_item)
         self._current_nav_item = nav_item
         nav_item.navigate_to()
