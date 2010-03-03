@@ -29,7 +29,7 @@ from gettext import gettext as _
 from softwarecenter.enums import *
 from softwarecenter.distro import get_distro
 
-from appview import AppView, AppStore
+from appview import AppView, AppStore, AppViewFilter
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
@@ -46,9 +46,8 @@ class ChannelPane(SoftwarePane):
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=True)
-        # state
+        self.channel = None
         self.apps_filter = None
-        self.channel_name = ""
         self.search_terms = ""
         self.current_appview_selection = None
         self.distro = get_distro()
@@ -76,7 +75,9 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        channel_query = xapian.Query("XOL" + self.channel_name)
+        if not self.channel:
+            return
+        channel_query = self.channel.get_channel_query()
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
                                                              channel_query)
@@ -84,18 +85,12 @@ class ChannelPane(SoftwarePane):
                                             self.on_navigation_search, 
                                             "search")
         else:
+            # FIXME: don't replace first part, just update the button in-place
             self.navigation_bar.remove_all(keep_first_part=False)
-            self.navigation_bar.add_with_id(self.channel_name,
+            self.navigation_bar.add_with_id(self.channel.get_channel_display_name(),
                                         self.on_navigation_list,
                                         "list")
             query = xapian.Query(channel_query)
-        # FIXME: abstract this test away somehow
-        if self.channel_name == self.distro.get_distro_channel_name():
-            # show only apps for the main channel, otherwise the list
-            # size explodes (consistency FTW)
-            query = xapian.Query(xapian.Query.OP_AND, 
-                                 query,
-                                 xapian.Query("ATapplication"))
 
         logging.debug("channelpane query: %s" % query)
         # *ugh* deactivate the old model because otherwise it keeps
@@ -109,10 +104,23 @@ class ChannelPane(SoftwarePane):
                              self.icons, 
                              query, 
                              limit=0,
-                             sort=True)
+                             sort=True,
+                             filter=self.apps_filter)
         self.app_view.set_model(new_model)
         self.emit("app-list-changed", len(new_model))
         return False
+        
+    def set_channel(self, channel):
+        """
+        set the current software channel object for display in the channel pane
+        and set up the AppViewFilter if required
+        """
+        self.channel = channel
+        if self.channel.filter_required:
+            self.apps_filter = AppViewFilter(self.db, self.cache)
+            self.apps_filter.set_only_packages_without_applications(True)
+        else:
+            self.apps_filter = None
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
@@ -178,9 +186,6 @@ class ChannelPane(SoftwarePane):
     def is_category_view_showing(self):
         # there is no category view in the channel pane
         return False
-
-    def set_channel_name(self, channel_name):
-        self.channel_name = channel_name;
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

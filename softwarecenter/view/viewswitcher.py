@@ -31,7 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-
+from softwarecenter.backend.channel import SoftwareChannel
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.db.database import StoreDatabase
@@ -44,7 +44,7 @@ class ViewSwitcher(gtk.TreeView):
     __gsignals__ = {
         "view-changed" : (gobject.SIGNAL_RUN_LAST,
                           gobject.TYPE_NONE, 
-                          (int, str),
+                          (int, gobject.TYPE_PYOBJECT),
                          ),
     }
 
@@ -103,8 +103,8 @@ class ViewSwitcher(gtk.TreeView):
         (path, column) = self.get_cursor()
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
-        channel_name = model[path][ViewSwitcherList.COL_CHANNEL_NAME]
-        self.emit("view-changed", action, channel_name)
+        channel = model[path][ViewSwitcherList.COL_CHANNEL]
+        self.emit("view-changed", action, channel)
         
     def get_view(self):
         """return the current activated view number or None if no
@@ -137,7 +137,7 @@ class ViewSwitcherList(gtk.TreeStore):
     (COL_ICON,
      COL_NAME,
      COL_ACTION,
-     COL_CHANNEL_NAME) = range(4)
+     COL_CHANNEL) = range(4)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
@@ -151,7 +151,7 @@ class ViewSwitcherList(gtk.TreeStore):
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
     def __init__(self, datadir, db, icons):
-        gtk.TreeStore.__init__(self, AnimatedImage, str, int, str)
+        gtk.TreeStore.__init__(self, AnimatedImage, str, int, gobject.TYPE_PYOBJECT)
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
@@ -162,27 +162,22 @@ class ViewSwitcherList(gtk.TreeStore):
         self._pending = 0
         # setup the normal stuff
         available_icon = self._get_icon("softwarecenter")
-        available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, ""])
+        available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
         
-        # gather icons for use with channel sources
-        self.dist_icon = self._get_icon("distributor-logo")
-        self.partner_icon = self._get_icon("partner")
-        self.ppa_icon = self._get_icon("ppa")
-        self.generic_repo_icon = self._get_icon("generic-repository")
-        self.unknown_channel_icon = self._get_icon("unknown-channel")
+        # get list of software channels
+        channels = self._get_channels()
         
-        # get list of channel sources of form:
-        #     [icon, label, action, channel_name]
-        channel_sources = self._get_channel_sources()
-        
-        # iterate the channel sources list and add as subnodes of the available node
-        for channel in channel_sources:
-            self.append(available_iter, channel)
+        # iterate the channels and add as subnodes of the available node
+        for channel in channels:
+            self.append(available_iter, [channel.get_channel_icon(),
+                                         channel.get_channel_display_name(),
+                                         self.ACTION_ITEM_CHANNEL,
+                                         channel])
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, ""])
+        installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
         icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, ""])
+        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
@@ -196,12 +191,12 @@ class ViewSwitcherList(gtk.TreeStore):
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
                 self.append(None, [icon, _("In Progress (%i)") % pending, 
-                             self.ACTION_ITEM_PENDING, ""])
+                             self.ACTION_ITEM_PENDING, None])
         else:
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
-
+                    
     def _get_icon(self, icon_name):
         if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
             icon = AnimatedImage(self.icons.load_icon(icon_name, self.ICON_SIZE, 0))
@@ -211,13 +206,17 @@ class ViewSwitcherList(gtk.TreeStore):
                                                       self.ICON_SIZE, 0))
         return icon
         
-    def _get_channel_sources(self):
+    def _get_channels(self):
         """
-        return a list of channel sources, with each entry in the list
-        in the form:
-               [icon, label, action, channel_name]
-        """        
-        channels = []
+        return a list of SoftwareChannel objects in display order
+        ordered according to:
+            Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
+            Unknown channel last
+        """
+        distro_channel_name = self.distro.get_distro_channel_name()
+        
+        # gather the set of software channels and order them
+        other_channel_list = []
         for channel_iter in self.db.xapiandb.allterms("XOL"):
             if len(channel_iter.term) == 3:
                 continue
@@ -232,80 +231,51 @@ class ViewSwitcherList(gtk.TreeStore):
                     break
             logging.debug("channel_name: %s" % channel_name)
             logging.debug("channel_origin: %s" % channel_origin)
-            channels.append((channel_name, channel_origin))
-            
-        channel_sources = []
-        for (channel_name, channel_origin) in self._order_channels(channels):
-            channel_sources.append(
-                [self._get_icon_for_channel(channel_name, channel_origin), 
-                 self._get_display_name_for_channel(channel_name),
-                 self.ACTION_ITEM_CHANNEL,
-                 channel_name])     
-                
-        return channel_sources
+            other_channel_list.append((channel_name, channel_origin))
         
-    def _order_channels(self, channels):
-        """
-        given a list of channels, order them according to:
-            Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
-            Unknown channel last
-        """
         dist_channel = []
-        partner_channel = []
         ppa_channels = []
         other_channels = []
         unknown_channel = []
-        ordered_channels = []
         
-        for (channel_name, channel_origin) in channels:
+        for (channel_name, channel_origin) in other_channel_list:
             if not channel_name:
-                unknown_channel.append((channel_name, channel_origin))
-            elif channel_name == self.distro.get_distro_channel_name():
-                dist_channel.append((channel_name, channel_origin))
+                unknown_channel.append(SoftwareChannel(self.icons, 
+                                                       channel_name,
+                                                       channel_origin,
+                                                       None))
+            elif channel_name == distro_channel_name:
+                dist_channel = (SoftwareChannel(self.icons,
+                                                distro_channel_name,
+                                                None,
+                                                None,
+                                                filter_required=True))
             elif channel_origin and channel_origin.startswith("LP-PPA"):
-                ppa_channels.append((channel_name, channel_origin))
+                ppa_channels.append(SoftwareChannel(self.icons, 
+                                                    channel_name,
+                                                    channel_origin,
+                                                    None))
             # TODO: detect generic repository source (e.g., Google, Inc.)
-            # TODO: detect partner channel
             else:
-                other_channels.append((channel_name, channel_origin))
+                other_channels.append(SoftwareChannel(self.icons, 
+                                                      channel_name,
+                                                      channel_origin,
+                                                      None))
+        # also get the partner repository
+        partner_channel = SoftwareChannel(self.icons, 
+                                          distro_channel_name,
+                                          None,
+                                          "partner")
         
         # set them in order
-        ordered_channels.extend(dist_channel)
-        ordered_channels.extend(partner_channel)
-        ordered_channels.extend(ppa_channels)
-        ordered_channels.extend(other_channels)
-        ordered_channels.extend(unknown_channel)
+        channels = []
+        channels.append(dist_channel)
+        channels.append(partner_channel)
+        channels.extend(ppa_channels)
+        channels.extend(other_channels)
+        channels.extend(unknown_channel)
         
-        return ordered_channels
-        
-    def _get_icon_for_channel(self, channel_name, channel_origin):
-        """
-        return the icon that corresponds to each channel node based
-        on the channel name and its origin string
-        """
-        if not channel_name:
-            channel_icon = self.unknown_channel_icon
-        elif channel_name == self.distro.get_distro_channel_name():
-            channel_icon = self.dist_icon
-        elif channel_origin and channel_origin.startswith("LP-PPA"):
-            channel_icon = self.ppa_icon
-        # TODO: add check for generic repository source (e.g., Google, Inc.)
-        # TODO: add check for partner_icon
-        else:
-            channel_icon = self.unknown_channel_icon
-        return channel_icon
-        
-    def _get_display_name_for_channel(self, channel_name):
-        """
-        return the display name for the corresponding channel node
-        """
-        if not channel_name:
-            channel_display_name = _("Other")
-        elif channel_name == self.distro.get_distro_channel_name():
-            channel_display_name = self.distro.get_distro_channel_description()
-        else:
-            channel_display_name = channel_name
-        return channel_display_name
+        return channels
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
