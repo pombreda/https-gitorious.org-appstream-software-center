@@ -54,8 +54,10 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - add softwarecenter/backend/channel.py 
   * data/ui/SoftwareCenter.ui:
     - in "View" menu, change "Applications" to "Software" (LP: #530377) 
+  * softwarecenter/view/installedpane.py:
+    - hide searchentry field in details view (LP: 528121) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 03 Mar 2010 10:03:52 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 03 Mar 2010 10:11:15 -0500
 
 software-center (1.1.15) lucid; urgency=low
 
