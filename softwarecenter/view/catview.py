@@ -152,17 +152,13 @@ class CategoriesView(WebkitWidget):
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
-        if a.untranslated_name == "System Packages":
+        if a.untranslated_name == "System":
             return 1
-        elif b.untranslated_name == "System Packages":
+        elif b.untranslated_name == "System":
             return -1
-        if a.untranslated_name == "Other":
+        elif a.untranslated_name == "Developer Tools":
             return 1
-        elif b.untranslated_name == "Other":
-            return -1
-        elif a.untranslated_name == "Programming":
-            return 1
-        elif b.untranslated_name == "Programming":
+        elif b.untranslated_name == "Developer Tools":
             return -1
         return cmp(a.name, b.name)
 
