@@ -1,4 +1,4 @@
-software-center (1.1.16) UNRELEASED; urgency=low
+software-center (1.1.16) lucid; urgency=low
 
   [ Matthew McGowan ]
   * softwarecenter/view/widget/backforward.py:
@@ -27,8 +27,9 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - add get_codename
   * fix inconsistency in naming (LP: #530368)
   * show (summary, name) for non-apps (LP: #530422)
-  * lp:~mpt/software-center/categorization to improve categorization
-    (many thanks)
+  * merged lp:~mpt/software-center/categorization to improve 
+    categorization (many thanks)
+  * merged lp:~mvo/software-center/back-forward-nav
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py:
@@ -65,7 +66,7 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - change "Application(s)" to "Item(s)" in the status
       bar text (LP: #530374)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 03 Mar 2010 10:38:36 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 03 Mar 2010 22:32:27 +0100
 
 software-center (1.1.15) lucid; urgency=low
 
