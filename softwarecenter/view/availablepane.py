@@ -257,8 +257,8 @@ class AvailablePane(SoftwarePane):
                                                  "%s matching items",
                                                  length) % length
         else:
-            self._status_text = gettext.ngettext("%s application available",
-                                                 "%s applications available",
+            self._status_text = gettext.ngettext("%s item available",
+                                                 "%s items available",
                                                  length) % length
 
     def _show_category_overview(self):

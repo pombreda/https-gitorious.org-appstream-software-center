@@ -147,8 +147,8 @@ class InstalledPane(SoftwarePane):
                                     "%s matching items",
                                     length) % length
         else:
-            return gettext.ngettext("%s application installed",
-                                    "%s applications installed",
+            return gettext.ngettext("%s item installed",
+                                    "%s items installed",
                                     length) % length
                                     
     def get_current_app(self):
