@@ -34,11 +34,15 @@
   <!-- Development Tools -->
   <Menu>
     <_Name>Developer Tools</_Name>
-    <Directory>Development.directory</Directory>
+    <SCIcon>applications-development</SCIcon>
     <Include>
-      <And>
+      <Or>
         <Category>Development</Category>
-      </And>
+        <SCSection>devel</SCSection>
+        <SCSection>restricted/devel</SCSection>
+        <SCSection>universe/devel</SCSection>
+        <SCSection>multiverse/devel</SCSection>
+      </Or>
       <Filename>emacs.desktop</Filename>
     </Include>
 
@@ -121,7 +125,7 @@
 
     <Menu>
       <_Name>Localization</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>preferences-desktop-locale</SCIcon>
       <Include>
 	<And>
 	  <Category>Translation</Category>
@@ -219,6 +223,7 @@
     <Menu>
       <_Name>Web Development</_Name>
       <Include><And><Category>WebDevelopment</Category></And></Include>
+      <SCIcon>applications-internet</SCIcon>
     </Menu>
 
   </Menu> <!-- End Development Tools -->
@@ -238,7 +243,7 @@
   <!-- Science -->
   <Menu>
     <_Name>Science &amp; Engineering</_Name>
-    <Directory>GnomeScience.directory</Directory>
+    <SCIcon>applications-science</SCIcon>
     <Include>
       <Or>
         <Category>Science</Category>
@@ -247,19 +252,22 @@
     </Include>
     <Menu>
       <_Name>Astronomy</_Name>
+      <SCIcon>weather-clear-night</SCIcon>
       <Include><Category>Astronomy</Category></Include>
     </Menu>
     <Menu>
       <_Name>Biology</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include><Category>Biology</Category></Include>
     </Menu>
     <Menu>
       <_Name>Chemistry</_Name>
-      <Include><Category>Chemistry</Category></Include>
       <SCIcon>applications-science</SCIcon>
+      <Include><Category>Chemistry</Category></Include>
     </Menu>
     <Menu>
       <_Name>Computer Science &amp; Robotics</_Name>
+      <SCIcon>computer</SCIcon>
       <Include>
         <Or>
           <Category>ArtificialIntelligence</Category>
@@ -270,24 +278,29 @@
     </Menu>
     <Menu>
       <_Name>Electronics</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include><Category>Electronics</Category></Include>
     </Menu>
     <Menu>
       <_Name>Engineering</_Name>
+      <SCIcon>applications-engineering</SCIcon>
       <Include><Category>Engineering</Category></Include>
     </Menu>
     <Menu>
       <_Name>Geography</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include><Category>Geography</Category></Include>
     </Menu>
     <Menu>
       <_Name>Geology</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include>
         <Or><Category>Geology</Category><Category>Geoscience</Category></Or>
       </Include>
     </Menu>
     <Menu>
       <_Name>Mathematics</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include>
         <Or>
           <Category>DataVisualization</Category>
@@ -306,6 +319,7 @@
     </Menu>
     <Menu>
       <_Name>Physics</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include><Category>Physics</Category></Include>
     </Menu>
   </Menu> <!-- End Science & Engineering -->
@@ -313,7 +327,7 @@
   <!-- Fonts -->
   <Menu>
     <_Name>Fonts</_Name>
-    <SCIcon>applications-other</SCIcon>
+    <SCIcon>font-x-generic</SCIcon>
     <Include>
       <Or>
         <SCPkgnameWildcard>ttf*</SCPkgnameWildcard>
@@ -333,57 +347,36 @@
     </Include>
     <!-- Sub-categories for the games -->
     <Menu>
-      <_Name>Action</_Name>
-      <Directory>ActionGames.directory</Directory>
-      <Include>
-        <Category>ActionGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <_Name>Adventure</_Name>
-      <Directory>AdventureGames.directory</Directory>
-      <Include>
-        <Category>AdventureGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
       <_Name>Arcade</_Name>
-      <Directory>ArcadeGames.directory</Directory>
+      <SCIcon>applications-other</SCIcon>
       <Include>
         <Category>ArcadeGame</Category>
       </Include>
     </Menu>
     <Menu>
       <_Name>Board Games</_Name>
-      <Directory>BoardGames.directory</Directory>
+      <SCIcon>gnome-glchess</SCIcon>
       <Include>
         <Category>BoardGame</Category>
       </Include>
     </Menu>
     <Menu>
       <_Name>Card Games</_Name>
-      <Directory>CardGames.directory</Directory>
+      <SCIcon>gnome-aisleriot</SCIcon>
       <Include>
         <Category>CardGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <_Name>Kids</_Name>
-      <Directory>KidsGames.directory</Directory>
-      <Include>
-        <Category>KidsGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <_Name>Logic</_Name>
-      <Directory>LogicGames.directory</Directory>
+      <_Name>Puzzles</_Name>
+      <SCIcon>system-run</SCIcon>
       <Include>
         <Category>LogicGame</Category>
       </Include>
     </Menu>
     <Menu>
       <_Name>Role Playing</_Name>
-      <Directory>RolePlayingGames.directory</Directory>
+      <SCIcon>stock_person</SCIcon>
       <Include>
         <Category>RolePlaying</Category>
       </Include>
@@ -400,13 +393,6 @@
       <Directory>SportsGames.directory</Directory>
       <Include>
         <Category>SportsGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <_Name>Strategy</_Name>
-      <Directory>StrategyGames.directory</Directory>
-      <Include>
-        <Category>StrategyGame</Category>
       </Include>
     </Menu>
 
