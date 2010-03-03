@@ -38,6 +38,14 @@ class Ubuntu(Distro):
     #REVIEWS_URL = "http://people.canonical.com/~mvo/reviews/lucid/%s/%s/%s.xml"
     REVIEWS_URL = "http://127.0.0.1:8080/reviews/en/ubuntu/lucid/+binary/%s"
 
+    def get_distro_channel_name(self):
+        """ The name in the Release file """
+        return "Ubuntu"
+
+    def get_distro_channel_description(self):
+        """ The description of the main distro channel """
+        return _("Provided by Ubuntu")
+
     def get_removal_warning_text(self, cache, pkg, appname):
         primary = _("To remove %s, these items must be removed "
                     "as well:" % appname)

@@ -67,6 +67,9 @@ class StoreDatabase(gobject.GObject):
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
+        self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.xapian_parser.add_prefix("pkg_wildcard", "XP")
+        self.xapian_parser.add_prefix("pkg_wildcard", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
 
@@ -217,12 +220,11 @@ if __name__ == "__main__":
 
     db = StoreDatabase("/var/cache/software-center/xapian", apt.Cache())
     db.open()
-    print db.popcon_max
     if len(sys.argv) < 2:
         search = "apt,apport"
     else:
         search = sys.argv[1]
-    query = db.get_query_from_search_entry(search)
+    query = db.get_query_list_from_search_entry(search)
     print query
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
@@ -230,3 +232,11 @@ if __name__ == "__main__":
     for m in matches:
         doc = m[xapian.MSET_DOCUMENT]
         print doc.get_data()
+
+    # test origin
+    query = xapian.Query("XOL"+"Ubuntu")
+    enquire = xapian.Enquire(db.xapiandb)
+    enquire.set_query(query)
+    matches = enquire.get_mset(0, len(db))
+    print "Ubuntu origin: ", len(matches)
+    

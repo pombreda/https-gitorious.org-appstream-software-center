@@ -32,6 +32,22 @@ class Distro(object):
     # base path for the review summary, the JS will append %i.png (with i={1,5})
     REVIEW_SUMMARY_STARS_BASE_PATH = "/usr/share/software-center/images/review-summary"
 
+    def get_codename(self):
+        """ The codename of the distro, e.g. lucid """
+        if not hasattr(self, "_distro_code_name"):
+            self._distro_code_name = subprocess.Popen(
+                ["lsb_release","-c","-s"], 
+                stdout=subprocess.PIPE).communicate()[0].strip()
+        return self._distro_code_name
+
+    def get_distro_channel_name(self):
+        """ The name in the Release file """
+        return "none"
+ 
+    def get_distro_channel_description(self):
+        """ The name in the Release file """
+        return "none"
+
     def get_rdepends_text(self, pkg):
         raise UnimplementedError
 
@@ -41,20 +57,23 @@ class Distro(object):
     def get_license_text(self, component):
         raise UnimplementedError
 
-def get_distro():
+def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
                                  stdout=subprocess.PIPE).communicate()[0].strip()
     logging.debug("get_distro: '%s'" % distro_id)
-    importstr = "softwarecenter.distro.%s" % distro_id
     # start with a import, this gives us only a softwarecenter module
-    module =  __import__(importstr)
-    # go down to the right sub-level module
-    for s in importstr.split(".")[1:]:
-        module =  getattr(module, s)
+    module =  __import__(distro_id, globals(), locals(), [], -1)
     # get the right class and instanciate it
     distro_class = getattr(module, distro_id)
     instance = distro_class()
     return instance
+
+def get_distro():
+    """ factory to return the right Distro object """
+    return distro_instance
+
+# singelton
+distro_instance=_get_distro()
 
 
 if __name__ == "__main__":

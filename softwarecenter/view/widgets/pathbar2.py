@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import rgb
-import gtk
+import atk
 import cairo
-import pango
 import gobject
+import gtk
+import pango
+import rgb
 
 from rgb import to_float as f
 
@@ -29,6 +29,7 @@ from rgb import to_float as f
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
+from gettext import gettext as _
 
 class PathBar(gtk.DrawingArea):
 
@@ -52,6 +53,11 @@ class PathBar(gtk.DrawingArea):
         self.__scroll_xO = 0
 
         self.theme = self.__pick_theme()
+
+        atk_desc = self.get_accessible()
+        # Accessibility name for the pathbar
+        atk_desc.set_name(_("You are here:"))
+        atk_desc.set_role(atk.ROLE_PANEL)
 
         # setup event handling
         self.set_flags(gtk.CAN_FOCUS)
@@ -107,8 +113,8 @@ class PathBar(gtk.DrawingArea):
 #            i = len(self.__parts)-1
 #        return self.__parts[i]
 
-    def append(self, part):
-        prev, did_shrink = self.__append(part)
+    def append(self, part, do_callback=True):
+        prev, did_shrink = self.__append(part, do_callback)
         if not self.get_property("visible"):
             return False
 
@@ -129,6 +135,9 @@ class PathBar(gtk.DrawingArea):
         else:
             self.queue_draw_area(*part.get_allocation_tuple())
         return False
+        
+    def append_no_callback(self, part):
+        self.append(part, do_callback=False)
 
     def remove(self, part):
         if len(self.__parts)-1 < 1:
@@ -154,25 +163,34 @@ class PathBar(gtk.DrawingArea):
             self.queue_draw_area(*self.__parts[-1].get_allocation_tuple())
         return
 
-    def remove_all(self):
+    def remove_all(self, keep_first_part=True):
         """remove all elements"""
-        self.__parts = [self.__parts[0],]  # keep first part though!
-        self.__compose_parts(self.__parts[-1], False)
+        if keep_first_part:
+            self.__parts = [self.__parts[0],]  # keep first part though!
+            self.__compose_parts(self.__parts[-1], False)
+        else:
+            self.__parts = []
         self.id_to_part = {}
         self.queue_draw()
         return
+        
+    def navigate_up(self):
+        if len(self.__parts) > 1:
+            nav_part = self.__parts[len(self.__parts) - 2]
+            self.set_active(nav_part)
+        return
 
-    def navigate_up(self, remove_pathparts=False):
-        index = self.__parts.index(self.__active_part)
-        if index-1 == -1: return None, index-1, len(self.__parts)
-        self.set_active(self.__parts[index-1], remove_pathparts)
-        return self.__parts[index-1], index-1, len(self.__parts)
+#    def navigate_up(self, remove_pathparts=False):
+#        index = self.__parts.index(self.__active_part)
+#        if index-1 == -1: return None, index-1, len(self.__parts)
+#        self.set_active(self.__parts[index-1], remove_pathparts)
+#        return self.__parts[index-1], index-1, len(self.__parts)
 
-    def navigate_down(self):
-        index = self.__parts.index(self.__active_part)
-        if self.__parts[index] == self.__parts[-1]: return None, index+1, len(self.__parts)
-        self.set_active(self.__parts[index+1], False)
-        return self.__parts[index+1], index+1, len(self.__parts)
+#    def navigate_down(self):
+#        index = self.__parts.index(self.__active_part)
+#        if self.__parts[index] == self.__parts[-1]: return None, index+1, len(self.__parts)
+#        self.set_active(self.__parts[index+1], False)
+#        return self.__parts[index+1], index+1, len(self.__parts)
 
     def __set_active(self, part, do_callback):
         prev_active = self.__active_part
@@ -186,7 +204,7 @@ class PathBar(gtk.DrawingArea):
         self.__active_part = part
         return prev_active, redraw
 
-    def __append(self, part):
+    def __append(self, part, do_callback=True):
         # clean up any exisitng scroll callbacks
         if self.__scroller:
             gobject.source_remove(self.__scroller)
@@ -197,7 +215,7 @@ class PathBar(gtk.DrawingArea):
         self.__parts.append(part)
         part.set_pathbar(self)
 
-        self.set_active(part)
+        self.set_active(part, do_callback)
 
         # determin part shapes, and calc modified parts widths
         prev = self.__compose_parts(part, True)
@@ -850,13 +868,66 @@ class PathBar(gtk.DrawingArea):
         self.queue_draw()
         return
 
+# FIXME: stubs currently and not working
+class IAtkComponent(atk.Component):
+    # atk --------------------------------------------------------
+    def contains(x, y, coord_type):
+        # atk stub
+        return False
+    def ref_accessible_at_point(x, y, coord_type):
+        # atk stub
+        pass
+    def get_extents(coord_type):
+        # atk stub
+        (0, 0, 0, 0)
+    def get_position(coord_type):
+        # atk stub
+        (0, 0)
+    def get_size(self):
+        # atk stub
+        (0, 0)
+    def grab_focus(self):
+        # atk stub
+        return False
+    def remove_focus_handler(self, handler_id):
+        # atk stub
+        pass
+    def set_extents(self, x, y, width, height, coord_type):
+        # atk stub
+        return False
+    def set_position(self, x, y, coord_type):
+        # atk stub
+        return False
+    def set_size(self, width, height):
+        # atk stub
+        return False
+    def get_layer(self):
+        # atk stub
+        return atk.LAYER_WIDGET
+    def get_mdi_zorder(self):
+        # atk stub
+        return 1
+    #--------------------------------
 
-class PathPart:
 
-    def __init__(self, label=None, callback=None):
+class PathPart(atk.Object, IAtkComponent):
+
+    def __init__(self, parent, label=None, callback=None):
+        atk.Object.__init__(self)
         self.__requisition = (0,0)
         self.__layout = None
         self.__pbar = None
+
+        # self.set_name() would work as well, *but* we have that
+        # function already for a different purpose, so we need to
+        # explicitely call
+        parent_atk = parent.get_accessible()
+        atk.Object.set_name(self, label)
+        atk.Object.set_role(self, atk.ROLE_PUSH_BUTTON)
+        atk.Object.add_relationship(self, atk.RELATION_MEMBER_OF, parent_atk)
+        atk.Object.set_parent(self, parent_atk)
+        #print parent_atk
+        #print parent_atk.get_n_accessible_children()
 
         self.allocation = [0, 0, 0, 0]
         self.state = gtk.STATE_NORMAL
@@ -882,6 +953,7 @@ class PathPart:
         # some hackery to preserve italics markup
         label = label.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
         self.label = label
+        atk.Object.set_name(self, label)
         return
 
     def set_icon(self, stock_icon, size=gtk.ICON_SIZE_BUTTON):
@@ -939,8 +1011,8 @@ class PathPart:
     def get_layout(self):
         return self.__layout
 
-    def activate(self):
-        self.__pbar.set_active(self)
+    def activate(self, do_callback=True):
+        self.__pbar.set_active(self, do_callback)
         return
 
     def calc_size_requisition(self):
@@ -1245,7 +1317,7 @@ class PathBarThemeHumanClearlooks(PathBarThemeHuman):
             gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
             gtk.STATE_SELECTED: gtk.STATE_NORMAL,
             gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT,
-            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITVE
+            gtk.STATE_INSENSITIVE: gtk.STATE_INSENSITIVE
             }
 
         self.base_hack = None
@@ -1473,7 +1545,7 @@ class NavigationBar(PathBar):
         self.id_to_part = {}
         return
 
-    def add_with_id(self, label, callback, id, icon=None):
+    def add_with_id(self, label, callback, id, icon=None, do_callback=True):
         """
         Add a new button with the given label/callback
 
@@ -1486,11 +1558,14 @@ class NavigationBar(PathBar):
             part = self.id_to_part[id]
             part.set_label(label)
         else:
-            part = PathPart(label, callback)
+            part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
             part.set_pathbar(self)
             self.id_to_part[id] = part
-            gobject.timeout_add(150, self.append, part)
+            if do_callback:
+                gobject.timeout_add(150, self.append, part)
+            else:
+                gobject.timeout_add(150, self.append_no_callback, part)
 
         if icon: part.set_icon(icon)
         return

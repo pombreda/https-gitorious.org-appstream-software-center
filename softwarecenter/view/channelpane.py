@@ -1,7 +1,7 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2010 Canonical
 #
 # Authors:
-#  Michael Vogt
+#  Michael Vogt, Gary Lasker
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -27,14 +27,17 @@ import xapian
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.distro import get_distro
 
 from appview import AppView, AppStore, AppViewFilter
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
-class InstalledPane(SoftwarePane):
-    """Widget that represents the installed panel in software-center
-       It contains a search entry and navigation buttons
+class ChannelPane(SoftwarePane):
+    """Widget that represents the channel pane for display of
+       individual channels (PPAs, partner repositories, etc.)
+       in software-center.
+       It contains a search entry and navigation buttons.
     """
 
     (PAGE_APPLIST,
@@ -42,26 +45,25 @@ class InstalledPane(SoftwarePane):
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
-        # state
-        self.apps_filter = AppViewFilter(db, cache)
-        self.apps_filter.set_installed_only(True)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=True)
+        self.channel = None
+        self.apps_filter = None
+        self.search_terms = ""
         self.current_appview_selection = None
+        self.distro = get_distro()
         # UI
         self._build_ui()
+        
     def _build_ui(self):
-        self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
+        self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
-        # initial refresh
-        self.search_terms = ""
-        self.refresh_apps()
 
-    def _show_installed_overview(self):
+    def _show_channel_overview(self):
         " helper that goes back to the overview page "
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        #self.searchentry.show()
+        self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
@@ -73,31 +75,53 @@ class InstalledPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
+        if not self.channel:
+            return
+        channel_query = self.channel.get_channel_query()
         if self.search_terms:
-            query = self.db.get_query_list_from_search_entry(self.search_terms)
+            query = self.db.get_query_list_from_search_entry(self.search_terms,
+                                                             channel_query)
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
                                             "search")
         else:
-            query = None
-        self.navigation_bar.add_with_id(_("Installed Software"), 
+            # FIXME: don't replace first part, just update the button in-place
+            self.navigation_bar.remove_all(keep_first_part=False)
+            self.navigation_bar.add_with_id(self.channel.get_channel_display_name(),
                                         self.on_navigation_list,
                                         "list")
+            query = xapian.Query(channel_query)
+
+        logging.debug("channelpane query: %s" % query)
         # *ugh* deactivate the old model because otherwise it keeps
-        # getting progress_changed events and eats CPU time until it's
+        # getting progress_changed events and eats CPU time until its
         # garbage collected
         old_model = self.app_view.get_model()
-        if old_model is not None:
-            old_model.active = False
+        old_model.active = False
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
                              query, 
+                             limit=0,
+                             sort=True,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
         self.emit("app-list-changed", len(new_model))
         return False
+        
+    def set_channel(self, channel):
+        """
+        set the current software channel object for display in the channel pane
+        and set up the AppViewFilter if required
+        """
+        self.channel = channel
+        if self.channel.filter_required:
+            self.apps_filter = AppViewFilter(self.db, self.cache)
+            self.apps_filter.set_only_packages_without_applications(True)
+        else:
+            self.apps_filter = None
+        
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
@@ -106,29 +130,32 @@ class InstalledPane(SoftwarePane):
             self._clear_search()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
+        
     def on_db_reopen(self, db):
         self.refresh_apps()
-        self._show_installed_overview()
-    def on_navigation_search(self, pathbar, part):
+        self._show_channel_overview()
+
+    def on_navigation_search(self, button, part):
         logging.debug("on_navigation_search")
         pass
-    def on_navigation_list(self, pathbar, part):
+
+    def on_navigation_list(self, button, part):
         """callback when the navigation button with id 'list' is clicked"""
-        if not pathbar.get_active():
+        if not button.get_active():
             return
         self._clear_search()
-        self._show_installed_overview()
+        self._show_channel_overview()
         # only emit something if the model is there
         model = self.app_view.get_model()
         if model:
             self.emit("app-list-changed", len(model))
 
-    def on_navigation_details(self, pathbar, part):
+    def on_navigation_details(self, button, part):
         """callback when the navigation button with id 'details' is clicked"""
-        if not pathbar.get_active():
+        if not button.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        #self.searchentry.hide()
+        self.searchentry.hide()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
@@ -147,8 +174,8 @@ class InstalledPane(SoftwarePane):
                                     "%s matching items",
                                     length) % length
         else:
-            return gettext.ngettext("%s application installed",
-                                    "%s applications installed",
+            return gettext.ngettext("%s application available",
+                                    "%s applications available",
                                     length) % length
                                     
     def get_current_app(self):
@@ -157,7 +184,7 @@ class InstalledPane(SoftwarePane):
         return self.current_appview_selection
         
     def is_category_view_showing(self):
-        # there is no category view in the installed pane
+        # there is no category view in the channel pane
         return False
 
 if __name__ == "__main__":
@@ -178,7 +205,7 @@ if __name__ == "__main__":
     cache = apt.Cache(apt.progress.OpTextProgress())
     cache.ready = True
 
-    w = InstalledPane(cache, db, icons, datadir)
+    w = ChannelPane(cache, db, icons, datadir)
     w.show()
 
     win = gtk.Window()

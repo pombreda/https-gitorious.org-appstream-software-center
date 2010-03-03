@@ -77,6 +77,7 @@ class CategoriesView(WebkitWidget):
         atk_desc.set_name(_("Departments"))
         self.categories = []
         self.header = ""
+        self.db = db
         self.icons = icons
         if not root_category:
             self.header = _("Departments")
@@ -214,6 +215,19 @@ class CategoriesView(WebkitWidget):
                 logging.debug("adding channel: %s" % and_elem.text)
                 q = xapian.Query("AH"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCPkgname":
+                logging.debug("adding tag: %s" % and_elem.text)
+                # query both axi and s-c
+                q1 = xapian.Query("AP"+and_elem.text.lower())
+                q = xapian.Query(xapian.Query.OP_OR, q1,
+                                 xapian.Query("XP"+and_elem.text.lower()))
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCPkgnameWildcard":
+                logging.debug("adding tag: %s" % and_elem.text)
+                # query both axi and s-c
+                s = "pkg_wildcard:%s" % and_elem.text.lower()
+                q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
+                query = xapian.Query(xapian_op, query, q)
             else: 
                 print "UNHANDLED: ", and_elem.tag, and_elem.text
         return query
@@ -231,8 +245,8 @@ class CategoriesView(WebkitWidget):
                 return xapian.Query("AC"+include.text.lower())
             else:
                 logging.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
-        # null query if nothing should be included
-        return xapian.Query()
+        # empty query matches all
+        return xapian.Query("")
 
     def _parse_menu_tag(self, item):
         name = None
@@ -243,6 +257,10 @@ class CategoriesView(WebkitWidget):
         dont_display = False
         subcategories = []
         for element in item.getchildren():
+            # ignore inline translations, we use gettext for this
+            if (element.tag == "Name" and 
+                '{http://www.w3.org/XML/1998/namespace}lang' in element.attrib):
+                continue
             if element.tag == "Name":
                 untranslated_name = element.text
                 name = gettext.gettext(untranslated_name)
@@ -322,7 +340,7 @@ def category_activated(iconview, category, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
     name = category.name
     query = category.query
-    enquire = xapian.Enquire(db)
+    enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
     for m in matches:
@@ -335,7 +353,9 @@ def category_activated(iconview, category, db):
     print len(matches)
 
 if __name__ == "__main__":
+    import apt
     from softwarecenter.enums import *
+    from softwarecenter.db.database import StoreDatabase
     logging.basicConfig(level=logging.DEBUG)
 
     appdir = "/usr/share/app-install"
@@ -343,7 +363,9 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = xapian.Database(pathname)
+    cache = apt.Cache()
+    db = StoreDatabase(pathname, cache)
+    db.open()
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()

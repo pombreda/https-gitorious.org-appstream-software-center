@@ -113,10 +113,10 @@ class SoftwarePane(gtk.VBox):
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
-        top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
-        self.pack_start(top_hbox, expand=False, padding=self.PADDING)
+        self.top_hbox = gtk.HBox()
+        self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
+        self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
+        self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
@@ -164,17 +164,6 @@ class SoftwarePane(gtk.VBox):
         btns = self.app_view.buttons
         if btns.has_key('action'):
             btns['action'].set_sensitive(True)
-
-    def set_page(self, part):
-        if part.name == "category":
-            self.notebook.set_current_page(self.PAGE_CATEGORY)
-        elif part.name in ("subcat", "search", "list"):
-            self.notebook.set_current_page(self.PAGE_APPLIST)
-        elif part.name == "details":
-            self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        else:
-            print "'%s' not mapped to history" % part.name
-        return
 
     def update_app_view(self):
         """
@@ -226,3 +215,12 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, widget, app):
         " stub implementation "
         pass
+        
+    def on_nav_back_clicked(self, widget, event):
+        " stub implementation "
+        pass
+
+    def on_nav_forward_clicked(self, widget, event):
+        " stub implementation "
+        pass
+

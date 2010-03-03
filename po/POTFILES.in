@@ -14,6 +14,7 @@ softwarecenter/db/database.py
 softwarecenter/db/reviews.py
 softwarecenter/db/update.py
 softwarecenter/distro/__init__.py
+softwarecenter/distro/Debian.py
 softwarecenter/distro/Ubuntu.py
 softwarecenter/view/__init__.py
 softwarecenter/view/appdetailsview.py
@@ -25,4 +26,5 @@ softwarecenter/view/installed_view.py
 softwarecenter/view/installedpane.py
 softwarecenter/view/pendingview.py
 softwarecenter/view/softwarepane.py
+softwarecenter/view/channelpane.py
 softwarecenter/view/viewswitcher.py

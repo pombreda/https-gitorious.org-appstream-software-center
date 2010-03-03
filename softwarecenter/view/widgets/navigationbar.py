@@ -88,5 +88,14 @@ class NavigationBar(gtk.HBox):
         if not id in self.id_to_widget:
             return
         return self.id_to_widget[id].get_label()
+        
+    def set_label(self, new_label, id):
+        """
+        Set the label of the navigation button with the given id to
+        the value specified
+        """
+        if not id in self.id_to_widget:
+            return
+        self.id_to_widget[id].set_label(new_label)
 
     

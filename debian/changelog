@@ -1,9 +1,158 @@
-software-center (1.1.12) UNRELEASED; urgency=low
+software-center (1.1.16) UNRELEASED; urgency=low
 
+  [ Matthew McGowan ]
+  * softwarecenter/view/widget/backforward.py:
+    - add new widget for use in back/forward navigation feature
+
+  [ Michael Vogt ]
+  * data/software-center.menu.in:
+    - merge "System Tools" into "Accessories"
+    - rename "System Packages" to "System"
+    - add "Fonts" section
+    - remove all sub-sections of "System", its one big list again
+    - remove "Other" category and move it into "System"
+   (as per spec)
+  * softwarecenter/db/database.py:
+    - add prefix "pkg_fuzzy"
+  * add .menu term "SCPkgnameWildcard" to support wildcard based
+    pkgname searches
+  * softwarecenter/view/catview.py:
+    - fix parsing when inline translations are available in the xml
+  * softwarecenter/view/catview.py:
+    - fix tests
+  * softwarecenter/backend/channel.py:
+    - add query for channels that are not yet enabled 
+      (via the app-install-data mechanism)
+  * softwarecenter/distro/__init__.py:
+    - add get_codename
+
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel.py:
+    - add to reimplement channels as instances of a new SoftwareChannel
+      class, supports fixing the issues below
+  * softwarecenter/app.py,
+    softwarecenter/view/viewswitcher.py,
+    softwarecenter/view/channelpane.py:
+    - enable Canonical partner channel repository view (LP: #530401)
+    - fix crash when searching while in "Provided by Ubuntu"
+      view (LP: #523781) 
+    - show all software items in the "Provided by Ubuntu"
+      view (LP: #528043)
+    - enable maintenance filter in the "Provided by Ubuntu"
+      view (LP: #528057)
+    - fix navigation button text for the "Provided by Ubuntu"
+      view (LP: #530398)
+  * softwarecenter/view/navhistory.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/widgets/pathbar2.py:
+    - add navhistory.py, implement forward/back history feature for 
+      the "Get Software" section (using Matthew McGowan's 
+      BackForwardButton, many thanks!).  (LP: #423754)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 02 Mar 2010 18:05:58 -0500
+
+software-center (1.1.15) lucid; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/view/widgets/animatedimage.py:
+    - fix crash when image property is not set
+  * updated po/th.po:
+    - thanks to Sira Nokyoonhtong
+  * data/featured.menu.in: updated, based on 
+    https://lists.ubuntu.com/archives/ubuntu-desktop/2010-March/002448.html
+
+  [ Gary Lasker ]
+  * data/ui/SoftwareCenter.ui:
+    - tweak default window width to restore four-column view
+      in the categories screen (LP: #528082)
+  * softwarecenter/view/channelpane.py:
+    - make status bar text for individual channel views
+      consistent with that in the "Get Software" section
+      (LP: #528055)
+  * softwarecenter/view/availablepane.py:
+    - don't show search entry in app details view (LP: #528121)
+    - fix missing status text at startup (LP: #528040) 
+    - fix intermittent attribute error when searching
+      from the main category screen (LP: #524209)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 01 Mar 2010 14:43:54 +0100
+
+software-center (1.1.14) lucid; urgency=low
+
+  * softwarecenter/view/:
+    - add a bunch of missing atk description to the widgets
+  * softwarecenter/view/widgets/pathbar2.py:
+    - make the PathParts subclasses of atk.Objects and add atk
+      descriptions/parent relations
+  * debian/control:
+    - add missing po4a b-d
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 24 Feb 2010 20:56:13 +0100
+
+software-center (1.1.13) lucid; urgency=low
+
+  [ Michael Vogt ]
+  * data/featured.menu.in:
+    - add scribus, blender
+    - fix missing i18n
+  * data/software-center.menu.in:
+    - add a bunch of missing _
+  * softwarecenter/backend/aptd.py:
+    - fix cache reload functionality
+    - fix display of update/external transactions (LP: #514861)
+  * po/help/po4a.conf:
+    - make help translatable via po4a (LP: #439353)
+  * po/help/software-center-doc.pot:
+    - add help pot
+  * setup.py:
+    - build help translations automatically
+
+  [ Gary Lasker ]
+  * softwarecenter/view/viewswitcher.py:
+    - fix ValueError in on_transactions_changed (LP: #523420)
+    - fix AttributeError in do_render (LP: #523341)
+  * softwarecenter/view/installedpane.py:
+    - fix AttributeError in refresh_apps() (LP: #520097)
+  * softwarecenter/view/widgets/pathbar2.py:
+    - fix typo in PathBarThemeHumanClearlooks class,
+      gave an AttributeError in __expose_cb() (LP: #523452) 
+  * softwarecenter/app.py,
+    softwarecenter/backend/aptd.py:
+    - update to use new backend reload API (LP: #496058) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Feb 2010 15:29:53 +0100
+
+software-center (1.1.12) lucid; urgency=low
+
+  [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/spinner  (many thanks)
   * merged lp:~mmcg069/software-center/fixes-and-tweaks  (many thanks)
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 10 Feb 2010 09:56:29 +0100
+  [ Gary Lasker ]
+  * implement standalone presentation of individual software
+    repositories
+  
+  [ Michael Vogt ]
+  * README:
+    - document menu.d/ directory
+  * softwarecenter/view/catview.py:
+    - add SCPkgname xml filter
+  * apt-xapian-index-plugin/software-center.py:
+    - add custom apt-xapian-index plugins for indexing 
+      "XB-Softwarecenter-Appname" in debian/control
+  * apt-xapian-index-plugin/origin.py:
+    - add custom apt-xapian-index plugins for indexing the origins
+  * softwarecenter/distro/Ubuntu.py:
+    - add abstraction for distro_channel_{name,description}
+  * softwarecenter/distro/__init__.py:
+    - make get_distro() return a singleton
+  * softwarecenter/view/channelpane.py:
+    - for the main distro channel, show only apps, not all packages
+  * data/featured.menu.in:
+    - add a "Featured" category
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Feb 2010 10:13:41 +0100
 
 software-center (1.1.11) lucid; urgency=low
 

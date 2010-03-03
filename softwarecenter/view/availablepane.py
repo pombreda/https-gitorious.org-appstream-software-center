@@ -34,6 +34,10 @@ from catview import CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
+from widgets.backforward import BackForwardButton
+
+from navhistory import *
+
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
        It contains a search entry and navigation buttons
@@ -44,6 +48,13 @@ class AvailablePane(SoftwarePane):
     (PAGE_CATEGORY,
      PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(3)
+     
+    # define ID values for the various buttons found in the navigation bar
+    NAV_BUTTON_ID_CATEGORY = "category"
+    NAV_BUTTON_ID_LIST     = "list"
+    NAV_BUTTON_ID_SUBCAT   = "subcat"
+    NAV_BUTTON_ID_DETAILS  = "details"
+    NAV_BUTTON_ID_SEARCH   = "search"
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -62,6 +73,8 @@ class AvailablePane(SoftwarePane):
         self.connect("app-list-changed", self._on_app_list_changed)
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
+        # track navigation history
+        self.nav_history = NavigationHistory(self)
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -85,6 +98,15 @@ class AvailablePane(SoftwarePane):
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.scroll_subcategories.add(self.subcategories_view)
+        # add nav history back/forward buttons
+        self.back_forward = BackForwardButton()
+        self.back_forward.left.set_sensitive(False)
+        self.back_forward.right.set_sensitive(False)
+        self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
+        self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
+        self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
+        # nav buttons first in the panel
+        self.top_hbox.reorder_child(self.back_forward, 0)
         # now a vbox for subcategories and applist 
         apps_vbox = gtk.VPaned()
         apps_vbox.pack1(self.scroll_subcategories, resize=True)
@@ -93,11 +115,13 @@ class AvailablePane(SoftwarePane):
         self.cat_view.connect("category-selected", self.on_category_activated)
         self.notebook.append_page(apps_vbox, gtk.Label("installed"))
         # details
-        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+        self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
+        # set status text
+        self._update_status_text(len(self.db))
         # home button
-        self.navigation_bar.add_with_id(_("Get Free Software"), 
+        self.navigation_bar.add_with_id(_("Get Software"), 
                                         self.on_navigation_category,
-                                        "category")
+                                        self.NAV_BUTTON_ID_CATEGORY)
 
     def _get_query(self):
         """helper that gets the query for the current category/search mode"""
@@ -159,6 +183,7 @@ class AvailablePane(SoftwarePane):
     def _refresh_apps_with_apt_cache(self):
         # build query
         query = self._get_query()
+        logging.debug("availablepane query: %s" % query)
         # *ugh* deactivate the old model because otherwise it keeps
         # getting progress_changed events and eats CPU time until its
         # garbage collected
@@ -178,16 +203,21 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(new_model))
         return False
 
-    def update_navigation_button(self):
+    def update_navigation_button(self, do_callback=True):
         """Update the navigation button"""
         if self.apps_category and not self.apps_search_term:
             cat =  self.apps_category.name
-            self.navigation_bar.add_with_id(
-                cat, self.on_navigation_list, "list")
+            self.navigation_bar.add_with_id(cat, 
+                                            self.on_navigation_list,
+                                            self.NAV_BUTTON_ID_LIST,
+                                            None,
+                                            do_callback)
         elif self.apps_search_term:
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
-                                            "search")
+                                            self.NAV_BUTTON_ID_SEARCH,
+                                            None,
+                                            do_callback)
 
     # status text woo
     def get_status_text(self):
@@ -211,6 +241,12 @@ class AvailablePane(SoftwarePane):
     def _on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text up-to-date by
            keeping track of the app-list-changed signals
+        """
+        self._update_status_text(length)
+                                                 
+    def _update_status_text(self, length):
+        """
+        update the text in the status bar
         """
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
@@ -241,7 +277,7 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_sorted = True
         self.apps_search_term = ""
-        self.navigation_bar.remove_id("search")
+        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
 
     # callbacks
     def on_cache_ready(self, cache):
@@ -253,14 +289,14 @@ class AvailablePane(SoftwarePane):
 
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
-        logging.debug("on_entry_changed: %s" % new_text)
+        logging.debug("on_search_terms_changed: %s" % new_text)
 
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*
-        # we are searching but we are not in a any category
+        # we are searching but we are not in any category
         if not self.apps_category and not new_text:
             # category activate will clear search etc
-            self.navigation_bar.get_button_from_id("category").activate()
+            self.navigation_bar.navigate_up()
             return
 
         # if the user searches in the "all categories" page, reset the specific
@@ -285,79 +321,94 @@ class AvailablePane(SoftwarePane):
         self.refresh_apps()
         self._show_category_overview()
 
-    def on_navigation_category(self, pathbar, part):
+    def on_navigation_category(self, pathbar, part, skip_history=False):
         """callback when the navigation button with id 'category' is clicked"""
-        if not pathbar.get_active():
+        if pathbar and not pathbar.get_active():
             return
-#        self.back_forward.left.set_sensitive(False)
-#        self.back_forward.right.set_sensitive(False)
         # clear the search
         self._clear_search()
         self._show_category_overview()
+        if not skip_history:
+            self.nav_history.navigate(CategoryViewNavigationItem(self))
 
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
-        self.navigation_bar.remove_id("details")
-#        self.back_forward.left.set_sensitive(True)
-#        self.back_forward.right.set_sensitive(False)
+        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        #self.searchentry.show()
+        #TODO: implement this if it is actually needed (may not be), or remove it
+#        self.nav_history.navigate(SearchNavigationItem(self, 
+#                                                       self.apps_category,
+#                                                       self.apps_subcategory,
+#                                                       self.apps_search_term))
+        self.searchentry.show()
 
-    def on_navigation_list(self, pathbar, part):
+    def on_navigation_list(self, pathbar, part, skip_history=False):
         """callback when the navigation button with id 'list' is clicked"""
-        if not pathbar.get_active():
+        if pathbar and not pathbar.get_active():
             return
-        self.navigation_bar.remove_id("subcat")
-        self.navigation_bar.remove_id("details")
-#        self.back_forward.left.set_sensitive(True)
+        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
+        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         if self.apps_subcategory:
             self.apps_subcategory = None
-            self._set_category(self.apps_category)
+            self.set_category(self.apps_category, not skip_history)
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         self.emit("app-list-changed", len(model))
-        #self.searchentry.show()
+        self.searchentry.show()
+        if not skip_history:
+            self.nav_history.navigate(AppListNavigationItem(self, 
+                                                            self.apps_category,
+                                                            self.apps_subcategory,
+                                                            self.apps_search_term))
 
-    def on_navigation_list_subcategory(self, pathbar, part):
-#        self.back_forward.left.set_sensitive(True)
-        if not pathbar.get_active():
+    def on_navigation_list_subcategory(self, pathbar, part, skip_history=False):
+        if pathbar and not pathbar.get_active():
             return
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        #self.searchentry.show()
+        self.searchentry.show()
+        if not skip_history:
+            self.nav_history.navigate(
+                AppListSubcategoryNavigationItem(self, 
+                                                 self.apps_category,
+                                                 self.apps_subcategory,
+                                                 self.apps_search_term))
 
-    def on_navigation_details(self, pathbar, part):
-#        self.back_forward.left.set_sensitive(True)
-#        self.back_forward.right.set_sensitive(False)
+    def on_navigation_details(self, pathbar, part, skip_history=False):
         """callback when the navigation button with id 'details' is clicked"""
-        if not pathbar.get_active():
+        if pathbar and not pathbar.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        #self.searchentry.hide()    # the spec no-longer calls for the search entry to be hidden
+        self.searchentry.hide()
+        if not skip_history:
+            self.nav_history.navigate(AppDetailsNavigationItem(self,
+                                                               self.apps_category,
+                                                               self.apps_subcategory,
+                                                               self.get_current_app()))
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
         logging.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
-        self._set_category(category)
+        self.set_category(category)
         self.navigation_bar.add_with_id(
-            category.name, self.on_navigation_list_subcategory, "subcat")
+            category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
     def on_category_activated(self, cat_view, category):
         #print cat_view, name, query
         logging.debug("on_category_activated: %s %s" % (
                 category.name, category))
         self.apps_category = category
-        self._set_category(category)
+        self.set_category(category)
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
@@ -366,6 +417,12 @@ class AvailablePane(SoftwarePane):
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
             self.current_app_by_category[self.apps_category] = app
+            
+    def on_nav_back_clicked(self, widget, event):
+        self.nav_history.nav_back()
+
+    def on_nav_forward_clicked(self, widget, event):
+        self.nav_history.nav_forward()
         
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
@@ -373,10 +430,8 @@ class AvailablePane(SoftwarePane):
         return (self.notebook.get_current_page() == self.PAGE_CATEGORY or
                 not self.scroll_app_list.props.visible)
 
-    def _set_category(self, category):
-        query = category.query
-        query.name = category.name
-        self.update_navigation_button()
+    def set_category(self, category, do_callback=True):
+        self.update_navigation_button(do_callback)
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
