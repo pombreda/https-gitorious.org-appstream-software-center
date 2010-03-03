@@ -66,7 +66,7 @@ software-center (1.1.16) lucid; urgency=low
     - change "Application(s)" to "Item(s)" in the status
       bar text (LP: #530374)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 03 Mar 2010 22:32:27 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 03 Mar 2010 22:41:20 +0100
 
 software-center (1.1.15) lucid; urgency=low
 
