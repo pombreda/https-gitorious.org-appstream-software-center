@@ -61,7 +61,7 @@ class Review(object):
         return "[Review id=%s text='%s' person='%s']" % (self.id, self.text, self.person)
     def to_xml(self):
         return """<review app_name="%s" package_name="%s" id="%s" language="%s" 
-data="%s" rating="%s" person="%s">
+data="%s" rating="%s" reviewer_name="%s">
 <summary>%s</summary><text>%s</text></review>""" % (
             self.app.appname, self.app.pkgname,
             self.id, self.language, self.date, self.rating, 
@@ -123,7 +123,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
             review.id = review_xml.getAttribute("id")
             review.date = review_xml.getAttribute("date")
             review.rating = review_xml.getAttribute("rating")
-            review.person = review_xml.getAttribute("display_name")
+            review.person = review_xml.getAttribute("reviewer_name")
             review.language = review_xml.getAttribute("language")
             review.summary = review_xml.getElementsByTagName("summary")[0].childNodes[0].data
             review.text = review_xml.getElementsByTagName("text")[0].childNodes[0].data
