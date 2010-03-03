@@ -216,7 +216,10 @@
       </Include>
     </Menu>
 
-
+    <Menu>
+      <_Name>Web Development</_Name>
+      <Include><And><Category>WebDevelopment</Category></And></Include>
+    </Menu>
 
   </Menu> <!-- End Development Tools -->
 
@@ -366,6 +369,22 @@
         <Category>Network</Category>
       </And>
     </Include>
+    <Menu>
+      <_Name>Chat</_Name>
+      <Include><And><Category>InstantMessaging</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>File Sharing</_Name>
+      <Include><And><Category>FileTransfer</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Mail</_Name>
+      <Include><And><Category>Email</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Web Browsers</_Name>
+      <Include><And><Category>WebBrowser</Category></And></Include>
+    </Menu>
   </Menu>   <!-- End Internet -->
 
   <!-- Multimedia -->
