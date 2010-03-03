@@ -1,3 +1,10 @@
+software-center (1.1.16.1) lucid; urgency=low
+
+  * softwarecenter/view/navhistory.py:
+    - fix missing import
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 03 Mar 2010 22:56:11 +0100
+
 software-center (1.1.16) lucid; urgency=low
 
   [ Matthew McGowan ]
