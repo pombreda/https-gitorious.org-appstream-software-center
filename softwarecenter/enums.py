@@ -27,6 +27,7 @@ ICON_PATH = APP_INSTALL_PATH+"/icons/"
 SOFTWARE_CENTER_BASE = "/usr/share/software-center"
 SOFTWARE_CENTER_ICON_PATH = SOFTWARE_CENTER_BASE+"/icons"
 SUBMIT_REVIEW_APP = SOFTWARE_CENTER_BASE+"/submit_review.py"
+REPORT_REVIEW_APP = SOFTWARE_CENTER_BASE+"/report_review.py"
 
 # icon
 MISSING_APP_ICON = "applications-other"

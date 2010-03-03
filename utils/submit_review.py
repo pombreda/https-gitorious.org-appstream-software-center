@@ -305,11 +305,12 @@ class LoginGUI(SimpleGtkbuilderApp):
             self.hbox_status.show()
         else:
             lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
-            self.quit()
+            self.quit(exitcode=1)
 
-    def quit(self):
+    def quit(self, exitcode=0):
         lp_worker_thread.join()
         gtk.main_quit()
+        sys.exit(exitcode)
 
     def run_loop(self):
         # do the launchpad stuff async

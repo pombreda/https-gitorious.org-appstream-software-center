@@ -376,11 +376,23 @@ class AppDetailsView(WebkitWidget):
                "--version", version]
         if self.app.appname:
             cmd += ["--appname", self.app.appname]
-        subprocess.Popen(cmd)
+        p = subprocess.Popen(cmd)
+        glib.child_watch_add(p.pid, self.on_submit_finished)
                          
-    def on_report_abuse_clicked(self):
-        print "on_report_abuse_clicked"
-        dialogs.error(None, "report abuse not implemented yet","")
+    def on_report_abuse_clicked(self, review_id):
+        cmd = [REPORT_REVIEW_APP, 
+               "--review-id", review_id,
+               "--parent-xid", "%s" % get_parent_xid(self)
+              ]
+        p = subprocess.Popen(cmd)
+        glib.child_watch_add(p.pid, self.on_submit_finished)
+
+    def on_submit_finished(self, pid, status):
+        """ called when submit_review or report_review finished """
+        print pid, os.WEXITSTATUS(status)
+        if os.WEXITSTATUS(status) == 0:
+            self.show_app(self.app)
+
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
         self.backend.enable_channel(self.channelfile)
@@ -444,7 +456,6 @@ class AppDetailsView(WebkitWidget):
         self._set_action_button_sensitive(True)
         if not self.app:
             return
-        print self.app
         self.execute_script("showProgress(false);")
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if not self.app or not self.app.pkgname == pkgname:
