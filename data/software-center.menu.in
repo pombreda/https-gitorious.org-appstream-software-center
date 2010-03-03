@@ -33,7 +33,7 @@
 
   <!-- Development Tools -->
   <Menu>
-    <_Name>Development</_Name>
+    <_Name>Developer Tools</_Name>
     <Directory>Development.directory</Directory>
     <Include>
       <And>
@@ -47,7 +47,7 @@
       <_Name>Debugging</_Name>
       <SCIcon>applications-other</SCIcon>
       <Include>
-	<Category>Debugger</Category>
+	<Category>Debugging</Category>
       </Include>
     </Menu>
 
@@ -77,19 +77,6 @@
       <SCIcon>applications-other</SCIcon>
       <Include>
 	<Category>IDE</Category>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>Interpreters</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>interpreters</SCSection>
-	  <SCSection>restricted/interpreters</SCSection>
-	  <SCSection>universe/interpreters</SCSection>
-	  <SCSection>multiverse/interpreters</SCSection>
-	</Or>
       </Include>
     </Menu>
 
@@ -133,7 +120,17 @@
     </Menu>
 
     <Menu>
-      <_Name>CLI Mono</_Name>
+      <_Name>Localization</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include>
+	<And>
+	  <Category>Translation</Category>
+	</And>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Mono/CLI</_Name>
       <SCIcon>applications-other</SCIcon>
       <Include>
         <Or>
@@ -237,7 +234,7 @@
 
   <!-- Science -->
   <Menu>
-    <_Name>Science</_Name>
+    <_Name>Science &amp; Engineering</_Name>
     <Directory>GnomeScience.directory</Directory>
     <Include>
       <And>
@@ -291,21 +288,14 @@
       </Include>
     </Menu>
     <Menu>
-      <_Name>Board</_Name>
+      <_Name>Board Games</_Name>
       <Directory>BoardGames.directory</Directory>
       <Include>
         <Category>BoardGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <_Name>Blocks</_Name>
-      <Directory>BlocksGames.directory</Directory>
-      <Include>
-        <Category>BlocksGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <_Name>Cards</_Name>
+      <_Name>Card Games</_Name>
       <Directory>CardGames.directory</Directory>
       <Include>
         <Category>CardGame</Category>

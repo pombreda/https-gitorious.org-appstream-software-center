@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-02 11:10+0100\n"
+"POT-Creation-Date: 2010-03-03 17:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,11 +48,11 @@ msgid "Ubuntu Software Center"
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:8
-msgid "_All Applications"
+msgid "_All Software"
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:9
-msgid "_Canonical-Maintained Applications"
+msgid "_Canonical-Maintained Software"
 msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:10
@@ -113,280 +113,147 @@ msgid "Action"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:3
-msgid "Admin"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:4
 msgid "Adventure"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:5
+#: ../data/software-center.menu.in.h:4
 msgid "Arcade"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:6
-msgid "Base"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:7
-msgid "Blocks"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:8
+#: ../data/software-center.menu.in.h:5
 msgid "Board"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:9
-msgid "CLI Mono"
+#: ../data/software-center.menu.in.h:6
+msgid "Card Games"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:10
-msgid "Cards"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:11
-msgid "Databases"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:12
-msgid "Debug"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:13
+#: ../data/software-center.menu.in.h:7
 msgid "Debugging"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:14
-msgid "Development"
+#: ../data/software-center.menu.in.h:8
+msgid "Developer Tools"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:15
-msgid "Documentation"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:16
-msgid "Editors"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:17
+#: ../data/software-center.menu.in.h:9
 msgid "Education"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:18
-msgid "Embedded"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:19
+#: ../data/software-center.menu.in.h:10
 msgid "Fonts"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:20
+#: ../data/software-center.menu.in.h:11
 msgid "Games"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:21
-msgid "Gnome"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:22
+#: ../data/software-center.menu.in.h:12
 msgid "Graphic Interface Design"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:23
+#: ../data/software-center.menu.in.h:13
 msgid "Graphics"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:24
-msgid "Hamradio"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:25
+#: ../data/software-center.menu.in.h:14
 msgid "Haskell"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:26
+#: ../data/software-center.menu.in.h:15
 msgid "IDEs"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:27
+#: ../data/software-center.menu.in.h:16
 msgid "Internet"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:28
-msgid "Interpreters"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:29
+#: ../data/software-center.menu.in.h:17
 msgid "Java"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:30
-msgid "KDE"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:31
-msgid "Kernel"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:32
+#: ../data/software-center.menu.in.h:18
 msgid "Kids"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:33
+#: ../data/software-center.menu.in.h:19
 msgid "Libraries"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:34
+#: ../data/software-center.menu.in.h:20
 msgid "Lisp"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:35
+#: ../data/software-center.menu.in.h:21
+msgid "Localization"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:22
 msgid "Logic"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:36
-msgid "Mail"
+#: ../data/software-center.menu.in.h:23
+msgid "Mono/CLI"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:37
-msgid "Mathematics"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:38
+#: ../data/software-center.menu.in.h:24
 msgid "Multimedia"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:39
-msgid "Network"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:40
+#: ../data/software-center.menu.in.h:25
 msgid "OCaml"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:41
+#: ../data/software-center.menu.in.h:26
 msgid "Office"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:42
-#: ../softwarecenter/view/viewswitcher.py:303
-msgid "Other"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:43
-msgid "Other Packages"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:44
+#: ../data/software-center.menu.in.h:27
 msgid "Perl"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:45
+#: ../data/software-center.menu.in.h:28
 msgid "Profiling"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:46
+#: ../data/software-center.menu.in.h:29
 msgid "Python"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:47
+#: ../data/software-center.menu.in.h:30
 msgid "Role Playing"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:48
+#: ../data/software-center.menu.in.h:31
 msgid "Ruby"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:49
-msgid "Science"
+#: ../data/software-center.menu.in.h:32
+msgid "Science &amp; Engineering"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:50
-msgid "Shells"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:51
+#: ../data/software-center.menu.in.h:33
 msgid "Simulation"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:52
-msgid "Sound"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:53
+#: ../data/software-center.menu.in.h:34
 msgid "Sports"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:54
+#: ../data/software-center.menu.in.h:35
 msgid "Strategy"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:55
+#: ../data/software-center.menu.in.h:36
 msgid "System"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:56
-msgid "Tex"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:57
-msgid "Text"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:58
-msgid "Translations"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:59
+#: ../data/software-center.menu.in.h:37
 msgid "Universal Access"
 msgstr ""
 
-#: ../data/software-center.menu.in.h:60
-msgid "Utils"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:61
+#: ../data/software-center.menu.in.h:38
 msgid "Version Control"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:62
-msgid "Video"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:63
-msgid "Web"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:64
-msgid "Web servers"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:65
-msgid "X11"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:66
-msgid "libdevel"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:67
-msgid "localization"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:68
-msgid "metapackages"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:69
-msgid "misc"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:70
-msgid "oldlibs"
-msgstr ""
-
-#: ../data/software-center.menu.in.h:71
-msgid "otherosfs"
 msgstr ""
 
 #: ../softwarecenter/app.py:134
@@ -399,6 +266,14 @@ msgstr ""
 
 #: ../softwarecenter/backend/aptd.py:183
 msgid "Error"
+msgstr ""
+
+#: ../softwarecenter/backend/channel.py:92
+msgid "Canonical Partners"
+msgstr ""
+
+#: ../softwarecenter/backend/channel.py:94
+msgid "Other"
 msgstr ""
 
 #. TRANSLATORS: List of "grey-listed" words sperated with ";"
@@ -628,12 +503,12 @@ msgid "%s - Screenshot"
 msgstr ""
 
 #: ../softwarecenter/view/appdetailsview.py:467
-#: ../softwarecenter/view/appview.py:882
+#: ../softwarecenter/view/appview.py:885
 msgid "Remove"
 msgstr ""
 
 #: ../softwarecenter/view/appdetailsview.py:470
-#: ../softwarecenter/view/appview.py:882
+#: ../softwarecenter/view/appview.py:885
 msgid "Install"
 msgstr ""
 
@@ -647,42 +522,43 @@ msgid "Update Now"
 msgstr ""
 
 #. draw number of reviews
-#: ../softwarecenter/view/appview.py:602
+#: ../softwarecenter/view/appview.py:605
 #, python-format
 msgid "%s review"
 msgid_plural "%s reviews"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/appview.py:883
+#: ../softwarecenter/view/appview.py:886
 msgid "More Info"
 msgstr ""
 
 #. home button
-#: ../softwarecenter/view/availablepane.py:100
-msgid "Get Free Software"
+#: ../softwarecenter/view/availablepane.py:122
+#: ../softwarecenter/view/viewswitcher.py:165
+msgid "Get Software"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:191
+#: ../softwarecenter/view/availablepane.py:216
 #: ../softwarecenter/view/installedpane.py:78
-#: ../softwarecenter/view/channelpane.py:83
+#: ../softwarecenter/view/channelpane.py:84
 msgid "Search Results"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:229
+#: ../softwarecenter/view/availablepane.py:256
 #: ../softwarecenter/view/installedpane.py:146
-#: ../softwarecenter/view/channelpane.py:165
+#: ../softwarecenter/view/channelpane.py:173
 #, python-format
 msgid "%s matching item"
 msgid_plural "%s matching items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:233
-#: ../softwarecenter/view/channelpane.py:169
+#: ../softwarecenter/view/availablepane.py:260
+#: ../softwarecenter/view/channelpane.py:177
 #, python-format
-msgid "%s application available"
-msgid_plural "%s applications available"
+msgid "%s item available"
+msgid_plural "%s items available"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -704,14 +580,14 @@ msgid "Dependency"
 msgstr ""
 
 #: ../softwarecenter/view/installedpane.py:83
-#: ../softwarecenter/view/viewswitcher.py:183
+#: ../softwarecenter/view/viewswitcher.py:178
 msgid "Installed Software"
 msgstr ""
 
 #: ../softwarecenter/view/installedpane.py:150
 #, python-format
-msgid "%s application installed"
-msgid_plural "%s applications installed"
+msgid "%s item installed"
+msgid_plural "%s items installed"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -719,12 +595,8 @@ msgstr[1] ""
 msgid "Software sources"
 msgstr ""
 
-#: ../softwarecenter/view/viewswitcher.py:165
-msgid "Get Software"
-msgstr ""
-
+#: ../softwarecenter/view/viewswitcher.py:188
 #: ../softwarecenter/view/viewswitcher.py:193
-#: ../softwarecenter/view/viewswitcher.py:198
 #, python-format
 msgid "In Progress (%i)"
 msgstr ""
