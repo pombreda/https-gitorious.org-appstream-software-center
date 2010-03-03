@@ -107,6 +107,7 @@ class NavigationItem(object):
         self.available_pane.apps_search_term = self.apps_search_term
         self.available_pane.searchentry.set_text(self.apps_search_term)
         self.available_pane.searchentry.set_position(-1)
+        self.available_pane.app_details.show_app(self.current_app)
         # first part is special and kept in remove_all
         self.available_pane.navigation_bar.remove_all()
         for part in self.parts[1:]:
