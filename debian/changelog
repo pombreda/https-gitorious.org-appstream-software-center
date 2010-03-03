@@ -1,5 +1,9 @@
 software-center (1.1.16) UNRELEASED; urgency=low
 
+  [ Matthew McGowan ]
+  * softwarecenter/view/widget/backforward.py:
+    - add new widget for use in back/forward navigation feature
+
   [ Michael Vogt ]
   * data/software-center.menu.in:
     - merge "System Tools" into "Accessories"
@@ -38,6 +42,13 @@ software-center (1.1.16) UNRELEASED; urgency=low
       view (LP: #528057)
     - fix navigation button text for the "Provided by Ubuntu"
       view (LP: #530398)
+  * softwarecenter/view/navhistory.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/widgets/pathbar2.py:
+    - add navhistory.py, implement forward/back history feature for 
+      the "Get Software" section (using Matthew McGowan's 
+      BackForwardButton, many thanks!).  (LP: #423754)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 02 Mar 2010 18:05:58 -0500
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2010 Canonical
 #
 # Authors:
 #  Michael Vogt, Gary Lasker
