@@ -75,8 +75,6 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        print "in refresh apps:"
-        print self.channel
         if not self.channel:
             return
         channel_query = self.channel.get_channel_query()
@@ -87,6 +85,7 @@ class ChannelPane(SoftwarePane):
                                             self.on_navigation_search, 
                                             "search")
         else:
+            # FIXME: don't replace first part, just update the button in-place
             self.navigation_bar.remove_all(keep_first_part=False)
             self.navigation_bar.add_with_id(self.channel.get_channel_display_name(),
                                         self.on_navigation_list,

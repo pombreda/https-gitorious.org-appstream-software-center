@@ -209,99 +209,73 @@ class ViewSwitcherList(gtk.TreeStore):
     def _get_channels(self):
         """
         return a list of SoftwareChannel objects in display order
+        ordered according to:
+            Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
+            Unknown channel last
         """
         distro_channel_name = self.distro.get_distro_channel_name()
+        
+        # gather the set of software channels and order them
+        other_channel_list = []
+        for channel_iter in self.db.xapiandb.allterms("XOL"):
+            if len(channel_iter.term) == 3:
+                continue
+            channel_name = channel_iter.term[3:]
+            
+            # get origin information for this channel
+            m = self.db.xapiandb.postlist_begin(channel_iter.term)
+            doc = self.db.xapiandb.get_document(m.get_docid())
+            for term_iter in doc.termlist():
+                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
+                    channel_origin = term_iter.term[3:]
+                    break
+            logging.debug("channel_name: %s" % channel_name)
+            logging.debug("channel_origin: %s" % channel_origin)
+            other_channel_list.append((channel_name, channel_origin))
+        
+        dist_channel = []
+        ppa_channels = []
+        other_channels = []
+        unknown_channel = []
+        
+        for (channel_name, channel_origin) in other_channel_list:
+            if not channel_name:
+                unknown_channel.append(SoftwareChannel(self.icons, 
+                                                       channel_name,
+                                                       channel_origin,
+                                                       None))
+            elif channel_name == distro_channel_name:
+                dist_channel = (SoftwareChannel(self.icons,
+                                                distro_channel_name,
+                                                None,
+                                                None,
+                                                filter_required=True))
+            elif channel_origin and channel_origin.startswith("LP-PPA"):
+                ppa_channels.append(SoftwareChannel(self.icons, 
+                                                    channel_name,
+                                                    channel_origin,
+                                                    None))
+            # TODO: detect generic repository source (e.g., Google, Inc.)
+            else:
+                other_channels.append(SoftwareChannel(self.icons, 
+                                                      channel_name,
+                                                      channel_origin,
+                                                      None))
+        # also get the partner repository
+        partner_channel = SoftwareChannel(self.icons, 
+                                          distro_channel_name,
+                                          None,
+                                          "partner")
+        
+        # set them in order
         channels = []
-        # first, the full distro channel
-        channel = SoftwareChannel(self.icons,
-                                  distro_channel_name,
-                                  None,
-                                  None,
-                                  filter_required=True)
-        channels.append(channel)
-        # next, the partner repository
-        channel = SoftwareChannel(self.icons, 
-                                  distro_channel_name,
-                                  None,
-                                  "partner")
-        channels.append(channel)
+        channels.append(dist_channel)
+        channels.append(partner_channel)
+        channels.extend(ppa_channels)
+        channels.extend(other_channels)
+        channels.extend(unknown_channel)
         
         return channels
-        
-        
-#    def _get_channel_sources(self):
-#        """
-#        return a list of channel sources, with each entry in the list
-#        in the form:
-#               [icon, label, action, channel_name]
-#        """        
-#        channels = []
-#        for channel_iter in self.db.xapiandb.allterms("XOL"):
-#            if len(channel_iter.term) == 3:
-#                continue
-#            channel_name = channel_iter.term[3:]
-#            
-#            # get origin information for this channel
-#            m = self.db.xapiandb.postlist_begin(channel_iter.term)
-#            doc = self.db.xapiandb.get_document(m.get_docid())
-#            for term_iter in doc.termlist():
-#                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
-#                    channel_origin = term_iter.term[3:]
-#                    break
-#            logging.debug("channel_name: %s" % channel_name)
-#            logging.debug("channel_origin: %s" % channel_origin)
-#            channels.append((channel_name, channel_origin))
-#            
-#        # find items in the partner repo
-#        for component_iter in self.db.xapiandb.allterms("XOC"):
-#            if len(component_iter.term) == 3:
-#                continue
-#            component_name = component_iter.term[3:]
-#            print "component_name: %s" % component_name
-#            
-#        channel_sources = []
-#        for (channel_name, channel_origin) in self._order_channels(channels):
-#            channel_sources.append(
-#                [self._get_icon_for_channel(channel_name, channel_origin), 
-#                 self._get_display_name_for_channel(channel_name),
-#                 self.ACTION_ITEM_CHANNEL,
-#                 channel_name])     
-#                
-#        return channel_sources
-#        
-#    def _order_channels(self, channels):
-#        """
-#        given a list of channels, order them according to:
-#            Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
-#            Unknown channel last
-#        """
-#        dist_channel = []
-#        partner_channel = []
-#        ppa_channels = []
-#        other_channels = []
-#        unknown_channel = []
-#        ordered_channels = []
-#        
-#        for (channel_name, channel_origin) in channels:
-#            if not channel_name:
-#                unknown_channel.append((channel_name, channel_origin))
-#            elif channel_name == self.distro.get_distro_channel_name():
-#                dist_channel.append((channel_name, channel_origin))
-#            elif channel_origin and channel_origin.startswith("LP-PPA"):
-#                ppa_channels.append((channel_name, channel_origin))
-#            # TODO: detect generic repository source (e.g., Google, Inc.)
-#            # TODO: detect partner channel
-#            else:
-#                other_channels.append((channel_name, channel_origin))
-#        
-#        # set them in order
-#        ordered_channels.extend(dist_channel)
-#        ordered_channels.extend(partner_channel)
-#        ordered_channels.extend(ppa_channels)
-#        ordered_channels.extend(other_channels)
-#        ordered_channels.extend(unknown_channel)
-#        
-#        return ordered_channels
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
