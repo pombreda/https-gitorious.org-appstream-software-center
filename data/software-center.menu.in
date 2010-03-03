@@ -240,12 +240,75 @@
     <_Name>Science &amp; Engineering</_Name>
     <Directory>GnomeScience.directory</Directory>
     <Include>
-      <And>
-        <Category>Education</Category>
+      <Or>
         <Category>Science</Category>
-      </And>
+        <Category>Engineering</Category>
+      </Or>
     </Include>
-  </Menu> <!-- End Science -->
+    <Menu>
+      <_Name>Astronomy</_Name>
+      <Include><Category>Astronomy</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Biology</_Name>
+      <Include><Category>Biology</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Chemistry</_Name>
+      <Include><Category>Chemistry</Category></Include>
+      <SCIcon>applications-science</SCIcon>
+    </Menu>
+    <Menu>
+      <_Name>Computer Science &amp; Robotics</_Name>
+      <Include>
+        <Or>
+          <Category>ArtificialIntelligence</Category>
+          <Category>ComputerScience</Category>
+          <Category>Robotics</Category>
+        </Or>
+      </Include>
+    </Menu>
+    <Menu>
+      <_Name>Electronics</_Name>
+      <Include><Category>Electronics</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Engineering</_Name>
+      <Include><Category>Engineering</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Geography</_Name>
+      <Include><Category>Geography</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Geology</_Name>
+      <Include>
+        <Or><Category>Geology</Category><Category>Geoscience</Category></Or>
+      </Include>
+    </Menu>
+    <Menu>
+      <_Name>Mathematics</_Name>
+      <Include>
+        <Or>
+          <Category>DataVisualization</Category>
+          <Category>Math</Category>
+          <Category>NumericalAnalysis</Category>
+          <SCSection>math</SCSection>
+          <SCSection>restricted/math</SCSection>
+          <SCSection>universe/math</SCSection>
+          <SCSection>multiverse/math</SCSection>
+          <SCSection>gnu-r</SCSection>
+          <SCSection>restricted/gnu-r</SCSection>
+          <SCSection>universe/gnu-r</SCSection>
+          <SCSection>multiverse/gnu-r</SCSection>
+        </Or>
+      </Include>
+    </Menu>
+    <Menu>
+      <_Name>Physics</_Name>
+      <Include><Category>Physics</Category></Include>
+    </Menu>
+  </Menu> <!-- End Science & Engineering -->
 
   <!-- Fonts -->
   <Menu>
