@@ -50,8 +50,12 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - add navhistory.py, implement forward/back history feature for 
       the "Get Software" section (using Matthew McGowan's 
       BackForwardButton, many thanks!).  (LP: #423754)
+  * po/POTFILES.in:
+    - add softwarecenter/backend/channel.py 
+  * data/ui/SoftwareCenter.ui:
+    - in "View" menu, change "Applications" to "Software" (LP: #530377) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 02 Mar 2010 18:05:58 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 03 Mar 2010 10:03:52 -0500
 
 software-center (1.1.15) lucid; urgency=low
 

@@ -246,7 +246,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_view_switcher_changed(self, view_switcher, action, channel):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
-        print "CALLED on_view_switcher_changed with channel: %s" % channel
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_CHANNEL:
