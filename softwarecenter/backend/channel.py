@@ -160,6 +160,6 @@ if __name__ == "__main__":
     distro = get_distro()
     channel = SoftwareChannel(icons, distro.get_distro_channel_name(), None, None, filter_required=True)
     print channel
-    channel = SoftwareChannel(icons, "Ubuntu", None, "partner")
+    channel = SoftwareChannel(icons, distro.get_distro_channel_name(), None, "partner")
     print channel
 

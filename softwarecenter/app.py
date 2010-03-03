@@ -246,6 +246,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_view_switcher_changed(self, view_switcher, action, channel):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
+        print "CALLED on_view_switcher_changed with channel: %s" % channel
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_CHANNEL:
@@ -276,7 +277,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._block_menuitem_view = False
         # switch to new page
         self.notebook_view.set_current_page(action)
-        self.update_app_list_view(channel_name)
+        self.update_app_list_view(channel)
         self.update_status_bar()
         self.update_app_status_menu()
 
