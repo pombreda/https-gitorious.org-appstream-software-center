@@ -21,6 +21,7 @@ import glib
 import glob
 import gobject
 import gtk
+import locale
 import logging
 import os
 import xapian
@@ -160,7 +161,7 @@ class CategoriesView(WebkitWidget):
             return 1
         elif b.untranslated_name == "Developer Tools":
             return -1
-        return cmp(a.name, b.name)
+        return locale.strcoll(a.name, b.name)
 
     def _parse_directory_tag(self, element):
         cp = ConfigParser()
