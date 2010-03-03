@@ -82,6 +82,9 @@ class PathBar(gtk.DrawingArea):
         self.connect("size-allocate", self.__allocation_change_cb)
         return
 
+    def get_parts(self):
+        return self.__parts
+
     def set_active(self, part, do_callback=True):
         part.set_state(gtk.STATE_ACTIVE)
         prev, redraw = self.__set_active(part, do_callback)
@@ -113,12 +116,12 @@ class PathBar(gtk.DrawingArea):
 #            i = len(self.__parts)-1
 #        return self.__parts[i]
 
-    def append(self, part, do_callback=True):
+    def append(self, part, do_callback=True, animate=True):
         prev, did_shrink = self.__append(part, do_callback)
         if not self.get_property("visible"):
             return False
 
-        if self.theme.animate and len(self.__parts) > 1:
+        if animate and self.theme.animate and len(self.__parts) > 1:
             aw = self.theme.arrow_width
 
             # calc draw_area
@@ -1545,7 +1548,7 @@ class NavigationBar(PathBar):
         self.id_to_part = {}
         return
 
-    def add_with_id(self, label, callback, id, icon=None, do_callback=True):
+    def add_with_id(self, label, callback, id, icon=None, do_callback=True, animate=True):
         """
         Add a new button with the given label/callback
 
@@ -1561,13 +1564,19 @@ class NavigationBar(PathBar):
             part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
             part.set_pathbar(self)
+            part.id = id
             self.id_to_part[id] = part
-            if do_callback:
-                gobject.timeout_add(150, self.append, part)
+            # check if animation should be used
+            if animate:
+                if do_callback:
+                    gobject.timeout_add(150, self.append, part)
+                else:
+                    gobject.timeout_add(150, self.append_no_callback, part)
             else:
-                gobject.timeout_add(150, self.append_no_callback, part)
+                self.append(part, do_callback, animate=False)
 
-        if icon: part.set_icon(icon)
+        if icon: 
+            part.set_icon(icon)
         return
 
     def remove_id(self, id):
