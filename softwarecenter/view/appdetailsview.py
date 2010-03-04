@@ -60,7 +60,7 @@ class AppDetailsView(WebkitWidget):
     APP_ICON_PADDING = 8
 
     # FIXME: use relative path here
-    INSTALLED_ICON = "/usr/share/software-center/emblems/software-center-installed.png"
+    INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
@@ -167,6 +167,8 @@ class AppDetailsView(WebkitWidget):
     # substitute functions called during page display
     def wksub_appname(self):
         return self.app.name
+    def wksub_summary(self):
+        return self.db.get_summary(self.doc)
     def wksub_pkgname(self):
         return self.app.pkgname
     def wksub_body_class(self):
@@ -242,7 +244,7 @@ class AppDetailsView(WebkitWidget):
             iconpath = self.tf.name
         return iconpath
     def wksub_screenshot_thumbnail_url(self):
-        url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
+        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname  # changing to use the large image, but this makes the naming all wrong now.
         return url
     def wksub_screenshot_alt(self):
         return _("Application Screenshot")
@@ -467,7 +469,7 @@ class AppDetailsView(WebkitWidget):
                 action_button_label = _("Remove")
                 action_button_value = "remove"
             else:
-                action_button_label = _("Install")
+                action_button_label = _("Install - Free") # will change when payments are introduced, obviously.
                 action_button_value = "install"
         elif self.doc:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)

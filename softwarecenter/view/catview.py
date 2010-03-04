@@ -54,7 +54,7 @@ class Category(object):
 
 class CategoriesView(WebkitWidget):
 
-    CATEGORY_ICON_SIZE = 48
+    CATEGORY_ICON_SIZE = 72
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
