@@ -45,7 +45,7 @@ class Distro(object):
         """ The name in the Release file """
         return "none"
 
-    def get_rdepends_text(self, pkg):
+    def get_installation_status(self, pkg):
         raise UnimplementedError
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
