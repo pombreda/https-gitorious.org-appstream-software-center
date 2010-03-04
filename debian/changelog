@@ -11,9 +11,9 @@ software-center (1.1.17) UNRELEASED; urgency=low
   * merged lp:~mpt/software-center/bug-499893 (thanks)
   * merged  lp:~michaelforrest/software-center/ui-changes (thanks)
   * data/icons/scalable/apps/partner.svg:
-    - add partner icon
+    - add partner icon (LP: #531694)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Mar 2010 11:24:44 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Mar 2010 12:00:49 -0500
 
 software-center (1.1.16.1) lucid; urgency=low
 
