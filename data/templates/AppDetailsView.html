@@ -113,7 +113,7 @@
     }
     #screenshot_thumbnail_loading {
       background: url('file:$iconpath_loading') 50% 50% no-repeat;
-    
+      -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
     }
     #screenshot_thumbnail {
       visibility:hidden; 
@@ -170,7 +170,7 @@
       padding:0;
       margin:1em 0;
     }
-     
+    
     #action_progress_total {
        visibility:hidden;
        border-style: solid;
@@ -222,7 +222,7 @@
     onclick='changeTitle("call:on_button_homepage_clicked")'
     />
 
-  <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail' style="-webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px">
+  <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail'>
      <div id='$screenshot_installed' class='screenshot_thumbnail'>
         <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">
          <div id="screenshot_thumbnail_img" class="screenshot_thumbnail">

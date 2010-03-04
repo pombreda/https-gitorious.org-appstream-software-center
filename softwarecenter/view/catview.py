@@ -54,7 +54,7 @@ class Category(object):
 
 class CategoriesView(WebkitWidget):
 
-    CATEGORY_ICON_SIZE = 72
+    CATEGORY_ICON_SIZE = 64
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -111,6 +111,7 @@ class CategoriesView(WebkitWidget):
         helper for the webkit widget that injects the categories into
         the page when it has finished loading
         """
+        self.execute_script('addFeaturedCategory()')
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
             if cat.iconname:
@@ -119,12 +120,16 @@ class CategoriesView(WebkitWidget):
                 if iconinfo:
                     iconpath = iconinfo.get_filename()
                     logging.debug("icon: %s %s" % (iconinfo, iconpath))
-            # FIXME: this looks funny with german locales
-            s = 'addCategory("%s","%s")' % (cat.name, iconpath)
-            logging.debug("running script '%s'" % s)
-            self.execute_script(s)
+            
+            if cat.untranslated_name != 'Featured':
+              # FIXME: this looks funny with german locales            
+              s = 'addCategory("%s","%s")' % (cat.name, iconpath)
+              logging.debug("running script '%s'" % s)
+              self.execute_script(s)
 
     # substitute stuff
+    def wksub_featured_applications_title(self):
+        return _("Featured Applications")
     def wksub_icon_size(self):
         return self.CATEGORY_ICON_SIZE
     def wksub_header(self):
@@ -148,6 +153,17 @@ class CategoriesView(WebkitWidget):
         return self._get_font_description_property("style").value_nick
     def wksub_font_size(self):
         return self._get_font_description_property("size")/1024
+
+    def wksub_featured_applications_image(self):
+        return self.datadir #"images/featured_applications_background.png"
+    def wksub_button_background_left(self):
+        return "images/button_background_left.png"
+    def wksub_button_background_right(self):
+        return "images/button_background_right.png"
+      
+    def wksub_heading_background_image(self):
+        return "image/heading_background_image.png"
+
 
     # helper code for menu parsing etc
     def _cat_sort_cmp(self, a, b):
@@ -308,6 +324,8 @@ class CategoriesView(WebkitWidget):
                     category = self._parse_menu_tag(child)
                 if category:
                     categories.append(category)
+                    if category.untranslated_name == "Featured":
+                      self.featured_category = category
         # post processing for <OnlyUnallocated>
         # now build the unallocated queries, once for top-level,
         # and for the subcategories. this means that subcategories

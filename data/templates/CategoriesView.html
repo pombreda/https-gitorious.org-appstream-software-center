@@ -35,6 +35,10 @@
     Tr.appendChild(newTd);
     categoryCount += 1;
   }
+  function addFeaturedCategory(){
+    var link = document.getElementById("featured_link");
+    link.setAttribute('onclick', 'changeTitle("call:on_category_clicked:Featured");');
+  }
   function currently_displayed_rows() {
       var cat_inc_count = 1, current_offset_left = 0, check_offset_left;
       while (true) {
@@ -108,14 +112,15 @@
       font-style:${font_style};
     }
     h2 {
-      background-color: #FFFFFF;
-      border-style: solid;
-      border-width: 0 0 1px 0;
-      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;  
-      color: #000;
-      padding: 0.25em 0.5em;
+      color: #4a4a4a;
+      padding: 0.25em 0;
       margin: 0;
-      
+      width:100%;
+      background-image:url('file:${heading_background_image}');
+    }
+    #featured{
+      width:100%;
+      background-image:url('file:${featured_applications_image}');
     }
  /* debug border */
  /* .category_td {border-width:1px;border-style:solid;} */
@@ -139,7 +144,9 @@
  </head>
 
 <body>
-
+   $featured_applications_image
+  <div id="featured"><a href="#" id="featured_link">$featured_applications_title</a></div>
+  <h2>$header</h2>
   <table>
     <tr></tr>
   </table>

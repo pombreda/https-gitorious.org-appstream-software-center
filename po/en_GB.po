@@ -366,6 +366,9 @@ msgstr ""
 msgid "Software Center"
 msgstr "Software Centre"
 
+msgid "Featured Applications"
+msgstr "Featured Applications"                     
+
 #, python-format
 #~ msgid "%s items available"
 #~ msgstr "%s items available"
