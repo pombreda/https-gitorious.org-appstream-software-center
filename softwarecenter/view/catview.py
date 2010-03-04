@@ -120,7 +120,9 @@ class CategoriesView(WebkitWidget):
                     iconpath = iconinfo.get_filename()
                     logging.debug("icon: %s %s" % (iconinfo, iconpath))
             # FIXME: this looks funny with german locales
-            s = 'addCategory("%s","%s")' % (cat.name, iconpath)
+            s = 'addCategory("%s","%s", "%s")' % (cat.name, 
+                                                  cat.untranslated_name,
+                                                  iconpath)
             logging.debug("running script '%s'" % s)
             self.execute_script(s)
 
