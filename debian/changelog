@@ -12,6 +12,7 @@ software-center (1.1.17) UNRELEASED; urgency=low
   
   [ Michael Vogt ]
   * merged lp:~mpt/software-center/bug-499893 (thanks)
+  * merged lp:~mpt/software-center/categorization (thanks)
   * merged lp:~michaelforrest/software-center/ui-changes (thanks)
   * data/icons/scalable/apps/partner.svg:
     - add partner icon (LP: #531694)

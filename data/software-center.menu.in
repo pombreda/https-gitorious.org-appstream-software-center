@@ -502,6 +502,12 @@
     </Include>
   </Menu> <!-- End Office -->
 
+  <Menu>
+    <_Name>Themes &amp; Tweaks</_Name>
+    <SCIcon>preferences-other</SCIcon>
+    <Include><Category>Settings</Category></Include>
+  </Menu>
+
  <!-- System -->
   <Menu>
     <_Name>System</_Name>
