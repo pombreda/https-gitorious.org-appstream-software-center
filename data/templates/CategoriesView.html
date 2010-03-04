@@ -8,7 +8,7 @@
   function changeTitle(title) { 
     document.title = title; 
   }
-  function addCategory(name, img) {
+  function addCategory(name, untranslated_name, img) {
     oT = document.getElementsByTagName("table")[0];
     Tr = document.getElementsByTagName("tr")[0];
     newTd = document.createElement("td");
@@ -102,26 +102,64 @@
  </script>
   <style type="text/css">
     body {
-      background-color:#FFFFFF;
-      margin: 0; 
-      padding: 1em; 
+      padding: 16px;
+      margin:0;
       color:#000;
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
       font-style:${font_style};
+      background:#fff url('file:${featured_applications_image}') repeat-x;
+      border:4px solid white;
     }
+    h1{ float:left; font-weight:normal; color:#333;padding:0; margin:0; }
     h2 {
       color: #4a4a4a;
-      padding: 0.25em 0;
-      margin: 0;
-      width:100%;
-      background-image:url('file:${heading_background_image}');
+      font-weight:normal;
+      font-size:1.15em;      
+      padding:0.1em  0.8em;
+      margin: .1em 0;
+      
+      background-image:url('file:${arrow_image}') no-repeat;
+      background-color:#dad7d3;
+      border-radius-topleft: 5px;
+      border-radius-topright: 5px;
     }
-    #featured{
-      width:100%;
-      background-image:url('file:${featured_applications_image}');
+    h2 img{
+      vertical-align:middle;
     }
+    #basket{
+        float:right;
+        margin-bottom:0.6em;
+     }
+    #featured_link{
+      clear:left;
+      margin: 0.25em 0 0 0;
+    }
+    a.button{ 
+      background:url('file:${button_background_right}') top right no-repeat scroll;
+      color:#fff;
+      text-decoration:none;
+      display:block;
+      float:left;
+      clear:left;
+      height:38px;
+      padding-right:26px;
+
+    }
+    a.button span{
+      background: url('file:${button_background_left}') no-repeat;
+      padding:5px 0 5px 15px;
+      line-height:28px;
+      display:block;
+    }
+    #departments{
+        clear:both;
+        border-radius: 5px;
+        background-color:#f7f7f7;
+        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
+    }
+    
  /* debug border */
  /* .category_td {border-width:1px;border-style:solid;} */
  /* fixed width does not work, it does not ellipsis but overflows the box */
@@ -144,11 +182,18 @@
  </head>
 
 <body>
-   $featured_applications_image
-  <div id="featured"><a href="#" id="featured_link">$featured_applications_title</a></div>
-  <h2>$header</h2>
-  <table>
-    <tr></tr>
-  </table>
+  <div id="header">
+    <h1>$ubuntu_software_center</h1>
+    <img src="${basket_image}" id="basket"/>
+    <a href="#" id="featured_link" class="button">
+      <span>$featured_applications_title</span>
+    </a>
+  </div>
+  <div id="departments">
+    <h2>$header <img src='${arrow_image}'/></h2>
+    <table>
+      <tr></tr>
+    </table>
+  </div>
 </body>
 </html>

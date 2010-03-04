@@ -71,33 +71,12 @@ class Ubuntu(Distro):
                 break
         return (primary, button_text)
 
-    def get_rdepends_text(self, cache, pkg, appname):
+    def get_installation_status(self, cache, pkg, appname):
         s = ""
         if pkg.installed:
             # generic message
-            s = _("%s is installed on this computer.") % appname
-            # show how many packages on the system depend on this
-            installed_rdeps = cache.get_installed_rdepends(pkg)
-            installed_rrecommends = cache.get_installed_rrecommends(pkg)
-            installed_rsuggests = cache.get_installed_rsuggests(pkg)
-            if len(installed_rdeps) > 0:
-                s += " "
-                s += gettext.ngettext(
-                    "It is used by %s installed software package.",
-                    "It is used by %s installed software packages.",
-                    len(installed_rdeps)) % len(installed_rdeps)
-            elif len(installed_rrecommends) > 0:
-                s += " "
-                s += gettext.ngettext(
-                    "It is recommended by %s installed software package.",
-                    "It is recommended by %s installed software packages.",
-                    len(installed_rrecommends)) % len(installed_rrecommends)
-            elif len(installed_rsuggests) > 0:
-                s += " "
-                s += gettext.ngettext(
-                    "It is suggested by %s installed software package.",
-                    "It is suggested by %s installed software packages.",
-                    len(installed_rrecommends)) % len(installed_rrecommends)
+            s = _("Installed")
+            # In future, say "Installed since $date"
         return s
 
     def get_distro_codename(self):

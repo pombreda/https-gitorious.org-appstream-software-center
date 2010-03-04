@@ -120,14 +120,18 @@ class CategoriesView(WebkitWidget):
                 if iconinfo:
                     iconpath = iconinfo.get_filename()
                     logging.debug("icon: %s %s" % (iconinfo, iconpath))
-            
             if cat.untranslated_name != 'Featured':
-              # FIXME: this looks funny with german locales            
-              s = 'addCategory("%s","%s")' % (cat.name, iconpath)
-              logging.debug("running script '%s'" % s)
-              self.execute_script(s)
+              # FIXME: this looks funny with german locales
+              s = 'addCategory("%s","%s", "%s")' % (cat.name, 
+                                                  cat.untranslated_name,
+                                                  iconpath)
+            logging.debug("running script '%s'" % s)
+            self.execute_script(s)
+
 
     # substitute stuff
+    def wksub_ubuntu_software_center(self):
+        return _("Ubuntu Software Center")
     def wksub_featured_applications_title(self):
         return _("Featured Applications")
     def wksub_icon_size(self):
@@ -155,17 +159,23 @@ class CategoriesView(WebkitWidget):
         return self._get_font_description_property("size")/1024
 
     def wksub_featured_applications_image(self):
-        return self.datadir #"images/featured_applications_background.png"
+        return self._image_path("featured_applications_background")
     def wksub_button_background_left(self):
-        return "images/button_background_left.png"
+        return self._image_path("button_background_left")
     def wksub_button_background_right(self):
-        return "images/button_background_right.png"
-      
+        return self._image_path("button_background_right")
     def wksub_heading_background_image(self):
-        return "image/heading_background_image.png"
-
+        return self._image_path("heading_background_image")
+    def wksub_basket_image(self):
+        return self._image_path("basket")
+    def wksub_arrow_image(self):
+        return self._image_path("arrow")
+    
 
     # helper code for menu parsing etc
+    def _image_path(self,name):
+        return os.path.abspath("%s/images/%s.png" % (self.datadir, name)) 
+
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
