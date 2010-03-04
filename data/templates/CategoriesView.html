@@ -8,7 +8,7 @@
   function changeTitle(title) { 
     document.title = title; 
   }
-  function addCategory(name, img) {
+  function addCategory(name, untranslated_name, img) {
     oT = document.getElementsByTagName("table")[0];
     Tr = document.getElementsByTagName("tr")[0];
     newTd = document.createElement("td");
@@ -98,7 +98,7 @@
  </script>
   <style type="text/css">
     body {
-      background-color:#b6bdc4; 
+      background-color:#FFFFFF;
       margin: 0; 
       padding: 1em; 
       color:#000;
@@ -108,14 +108,14 @@
       font-style:${font_style};
     }
     h2 {
-      background-color: #7D91aa;
+      background-color: #FFFFFF;
       border-style: solid;
       border-width: 0 0 1px 0;
-      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;
-      color: #fff;
+      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;  
+      color: #000;
       padding: 0.25em 0.5em;
       margin: 0;
-      text-shadow: #404a57 0 -1px 1px;
+      
     }
  /* debug border */
  /* .category_td {border-width:1px;border-style:solid;} */
@@ -130,14 +130,16 @@
       width: 8em !important;
     }
     .category_td:hover {cursor: pointer; }
-    .category_td:active {background-color: #7D91aa; }
+   
     .category_td p { font-size:90%; text-align:center; }
     .no_drag { -khtml-user-drag:none; }
+    
+  
  </style>
  </head>
 
 <body>
-  <h2>$header</h2>
+
   <table>
     <tr></tr>
   </table>
