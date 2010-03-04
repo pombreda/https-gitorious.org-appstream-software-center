@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-03 21:18+0000\n"
+"POT-Creation-Date: 2010-03-04 19:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -309,22 +309,26 @@ msgid "System"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:52
-msgid "Universal Access"
+msgid "Themes &amp; Tweaks"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:53
-msgid "Version Control"
+msgid "Universal Access"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:54
-msgid "Viewers"
+msgid "Version Control"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:55
-msgid "Web Browsers"
+msgid "Viewers"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:56
+msgid "Web Browsers"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:57
 msgid "Web Development"
 msgstr ""
 
