@@ -15,10 +15,22 @@
 # You should have received a copy of the GNU General Public License along with
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+import copy
+import logging
+
+from xml.sax.saxutils import unescape
+
+# define additional entities for the nav button unescape, needed
+# because only '&amp;', '&lt;', and '&gt;' are included by default
+ESCAPE_ENTITIES = {"&apos;":"'",
+                   '&quot;':'"'}
+
+# FIXME: sucks, move elsewhere
+in_replay_history_mode = False
 
 class NavigationHistory(object):
     """
-    Class to manage navigation history in the "Get Software" section (the
+    class to manage navigation history in the "Get Software" section (the
     available pane).
     """
     
@@ -34,10 +46,12 @@ class NavigationHistory(object):
         """
         append a new NavigationItem to the history stack
         """
-#        print ">>> submit navitem for history: "
-#        print dest_nav_item
+        if in_replay_history_mode:
+            return
+        logging.debug("submit navitem for history: %s" % dest_nav_item)
         # TODO: Detect multiple clicks on the same nav button and filter
         #       them out - we don't want them in the history
+        dest_nav_item.parent = self
         self._nav_back_stack.append(self._current_nav_item)
         self._current_nav_item = dest_nav_item
         # reset navigation forward stack on a direct navigation
@@ -66,180 +80,96 @@ class NavigationHistory(object):
         if len(self._nav_back_stack) <= 1:
             self.available_pane.back_forward.left.set_sensitive(False)
         nav_item = self._nav_back_stack.pop()
+        logging.debug("nav_back: %s" % nav_item)
         self._nav_forward_stack.append(self._current_nav_item)
         self._current_nav_item = nav_item
         nav_item.navigate_to()
         
 class NavigationItem(object):
     """
-    interface class to represent navigation points for use with the
-    NavigationHistory class
+    class to implement navigation points to be managed in the history queues
     """
+
+    def __init__(self, available_pane):
+        self.available_pane = available_pane
+        self.apps_category = available_pane.apps_category
+        self.apps_subcategory = available_pane.apps_subcategory
+        self.apps_search_term = available_pane.apps_search_term
+        self.current_app = available_pane.get_current_app()
+        self.parts = self.available_pane.navigation_bar.get_parts()[:]
     
     def navigate_to(self):
         """
-        stub implementation - navigate to the view that corresponds
-        to this NavigationItem
+        navigate to the view that corresponds to this NavigationItem
         """
-        pass
+        global in_replay_history_mode
+        in_replay_history_mode = True
+        self.available_pane.apps_category = self.apps_category
+        self.available_pane.apps_subcategory = self.apps_subcategory
+        self.available_pane.apps_search_term = self.apps_search_term
+        self.available_pane.searchentry.set_text(self.apps_search_term)
+        self.available_pane.searchentry.set_position(-1)
+        self.available_pane.app_details.show_app(self.current_app)
+        # first part is special and kept in remove_all
+        self.available_pane.navigation_bar.remove_all()
+        for part in self.parts[1:]:
+            self.available_pane.navigation_bar.add_with_id(unescape(part.label, ESCAPE_ENTITIES),
+                                                           part.callback,
+                                                           part.id,
+                                                           do_callback=False,
+                                                           animate=False)
+        self.parts[-1].activate()
+        in_replay_history_mode = False
+        
+    def __str__(self):
+        details = []
+        details.append("\n%s" % type(self))
+        category_name = ""
+        if self.apps_category:
+            category_name = self.apps_category.name
+        details.append("  apps_category.name: %s" % category_name)
+        subcategory_name = ""
+        if self.apps_subcategory:
+            subcategory_name = self.apps_subcategory.name
+        details.append("  apps_subcategory.name: %s" % subcategory_name)
+        details.append("  current_app: %s" % self.current_app)
+        details.append("  apps_search_term: %s" % self.apps_search_term)
+        return '\n'.join(details)
         
 class CategoryViewNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the main category view
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-    def __init__(self, available_pane):
-        self.available_pane = available_pane
-        
-    def navigate_to(self):
-        self.available_pane.on_navigation_category(None, None, skip_history=True)
-        
-    def __str__(self):
-        return "* CategoryViewNavigationItem"
         
 class AppListNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the application list for the
     specified category
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-    def __init__(self, available_pane, apps_category,
-                                       apps_subcategory,
-                                       apps_search_term):
-        self.available_pane = available_pane
-        self.apps_category = apps_category
-        self.apps_subcategory = apps_subcategory
-        self.apps_search_term = apps_search_term
-        
-    def navigate_to(self):
-        self.available_pane.apps_category = self.apps_category
-        self.available_pane.apps_subcategory = self.apps_subcategory
-        self.available_pane.apps_search_term = self.apps_search_term
-        self.available_pane.set_category(self.apps_category, do_callback=False)
-        self.available_pane.on_navigation_list(None, None, skip_history=True)
-        
-    def __str__(self):
-        details = []
-        details.append("* AppListNavigationItem")
-        details.append("\n")
-        details.append("  apps_category.name: %s" % self.apps_category.name)
-        details.append("\n")
-        if (self.apps_subcategory):
-            details.append("  apps_subcategory.name: %s" % self.apps_category.name)
-        else:
-            details.append("  apps_subcategory.name: none")
-        details.append("\n")
-        details.append("  apps_search_term: %s" % self.apps_search_term)
-        return ''.join(details)
             
 class AppListSubcategoryNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the application list for the
     specified category and subcategory
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-    def __init__(self, available_pane, apps_category,
-                                       apps_subcategory,
-                                       apps_search_term):
-        self.available_pane = available_pane
-        self.apps_category = apps_category
-        self.apps_subcategory = apps_subcategory
-        self.apps_search_term = apps_search_term
-        
-    def navigate_to(self):
-        self.available_pane.apps_category = self.apps_category
-        self.available_pane.apps_subcategory = self.apps_subcategory
-        self.available_pane.apps_search_term = self.apps_search_term
-        self.available_pane.set_category(self.apps_subcategory, do_callback=False)
-        # check state of navigation bar and make sure we build up all
-        # buttons as needed
-        self.available_pane.navigation_bar.add_with_id(
-            self.apps_subcategory.name,
-            self.available_pane.on_navigation_list_subcategory,
-            self.available_pane.NAV_BUTTON_ID_SUBCAT,
-            do_callback=False)
-        self.available_pane.on_navigation_list_subcategory(None, None, skip_history=True)
-        
-    def __str__(self):
-        details = []
-        details.append("* AppListSubcategoryNavigationItem")
-        details.append("\n")
-        details.append("  apps_category.name: %s" % self.apps_category.name)
-        details.append("\n")
-        if (self.apps_subcategory):
-            details.append("  apps_subcategory.name: %s" % self.apps_category.name)
-        else:
-            details.append("  apps_subcategory.name: none")
-        details.append("\n")
-        details.append("  apps_search_term: %s" % self.apps_search_term)
-        return ''.join(details)
         
 class AppDetailsNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the details view for the
     specified application
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-    def __init__(self, available_pane, apps_category,
-                                       apps_subcategory,
-                                       current_app):
-        self.available_pane = available_pane
-        self.apps_category = apps_category
-        self.apps_subcategory = apps_subcategory
-        self.current_app = current_app
         
-    def navigate_to(self):
-        self.available_pane.apps_category = self.apps_category
-        self.available_pane.apps_subcategory = self.apps_subcategory
-        if self.available_pane.apps_subcategory:
-            self.available_pane.current_app_by_subcategory[self.available_pane.apps_subcategory] = self.current_app
-        else:
-            self.available_pane.current_app_by_category[self.available_pane.apps_category] = self.current_app
-        self.available_pane.set_category(self.apps_subcategory or self.apps_category, do_callback=False)
-        # check state of navigation bar and make sure we build up all
-        # buttons as needed
-        if (self.apps_category and
-            not self.available_pane.navigation_bar.get_button_from_id(self.available_pane.NAV_BUTTON_ID_LIST)):
-            self.available_pane.navigation_bar.add_with_id(self.apps_category.name,
-                                                           self.available_pane.on_navigation_list,
-                                                           self.available_pane.NAV_BUTTON_ID_LIST,
-                                                           do_callback=False)
-        if (self.apps_subcategory and 
-            not self.available_pane.navigation_bar.get_button_from_id(self.available_pane.NAV_BUTTON_ID_SUBCAT)):
-            self.available_pane.navigation_bar.add_with_id(self.apps_subcategory.name,
-                                                           self.available_pane.on_navigation_list_subcategory,
-                                                           self.available_pane.NAV_BUTTON_ID_SUBCAT,
-                                                           do_callback=False)
-        self.available_pane.navigation_bar.add_with_id(self.current_app.name,
-                                                       self.available_pane.on_navigation_details,
-                                                       self.available_pane.NAV_BUTTON_ID_DETAILS,
-                                                       do_callback=False)
-        self.available_pane.app_details.show_app(self.current_app)
-        self.available_pane.on_navigation_details(None, None, skip_history=True)
-        
-    def __str__(self):
-        details = []
-        details.append("* AppDetailsNavigationItem")
-        details.append("\n")
-        details.append("  apps_category.name: %s" % self.apps_category.name)
-        details.append("\n")
-        if (self.apps_subcategory):
-            details.append("  apps_subcategory.name: %s" % self.apps_category.name)
-        else:
-            details.append("  apps_subcategory.name: none")
-        details.append("\n")
-        details.append("  current_app: %s" % self.current_app)
-        return ''.join(details)
-        
-# TODO: remove this class if not needed
 class SearchNavigationItem(NavigationItem):
     """
     navigation item that corresponds to a search in progress
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-    def __init__(self, available_pane, apps_category,
-                                       apps_subcategory,
-                                       apps_search_term):
-        self.available_pane = available_pane
-        self.apps_category = apps_category
-        self.apps_subcategory = apps_subcategory
-        self.apps_search_term = apps_search_term
-        
-    def navigate_to(self):
-        return
-
