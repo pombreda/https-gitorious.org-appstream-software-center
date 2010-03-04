@@ -62,7 +62,8 @@ LOGIN_STATE_USER_CANCEL = "user-cancel"
 
 # the SUBMIT url
 SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/submit_review"
-REPORT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/report_abuse"
+# the REPORT url
+REPORT_POST_URL = "http://localhost:8080/reviews/%s/+report-review"
 
 # LP to use
 SERVICE_ROOT = EDGE_SERVICE_ROOT
@@ -138,13 +139,13 @@ class LaunchpadlibWorker(threading.Thread):
         while not self.pending_reports.empty():
             logging.debug("POST report")
             (review_id, summary, text) = self.pending_reports.get()
-            data = { 'review_id' : review_id,
-                     'reason' : summary,
+            data = { 'reason' : summary,
                      'text' : text,
                      'token' : self.launchpad.credentials.access_token.key,
                      'token-secret' : self.launchpad.credentials.access_token.secret,
                      }
-            f = urllib.urlopen(REPORT_POST_URL, urllib.urlencode(data))
+            url = REPORT_POST_URL % review_id
+            f = urllib.urlopen(url, urllib.urlencode(data))
             res = f.read()
             print res
             f.close()
