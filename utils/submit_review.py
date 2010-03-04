@@ -61,7 +61,7 @@ LOGIN_STATE_AUTH_FAILURE = "auth-fail"
 LOGIN_STATE_USER_CANCEL = "user-cancel"
 
 # the SUBMIT url
-SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/submit_review"
+SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/+create"
 # the REPORT url
 REPORT_POST_URL = "http://localhost:8080/reviews/%s/+report-review"
 
