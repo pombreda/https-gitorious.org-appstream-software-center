@@ -305,13 +305,12 @@ class LoginGUI(SimpleGtkbuilderApp):
             lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
             self.hbox_status.show()
         else:
-            lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
+            self.on_button_cancel_clicked()
             self.quit(exitcode=1)
 
     def quit(self, exitcode=0):
         lp_worker_thread.join()
         gtk.main_quit()
-        sys.exit(exitcode)
 
     def run_loop(self):
         # do the launchpad stuff async
@@ -319,7 +318,7 @@ class LoginGUI(SimpleGtkbuilderApp):
         # wait for  state change 
         glib.timeout_add(200, self._wait_for_login)
         # parent
-        SimpleGtkbuilderApp.run(self)
+        res = SimpleGtkbuilderApp.run(self)
     
     def login_successful(self):
         """ callback when the login was successful """
@@ -330,6 +329,15 @@ class LoginGUI(SimpleGtkbuilderApp):
         softwarecenter.view.dialogs.error(self.dialog_review_app,
                                           _("Authentication failure"),
                                           _("Sorry, please try again"))
+
+    def on_button_cancel_clicked(self, button=None):
+        # bring it down gracefully
+        lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
+        lp_worker_thread.shutdown()
+        self.dialog_main.hide()
+        while gtk.events_pending():
+            gtk.main_iteration()
+        gtk.main_quit()
 
     def _wait_for_login(self):
         state = lp_worker_thread.login_state
@@ -362,6 +370,7 @@ class SubmitReviewsApp(LoginGUI):
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path("/usr/share/app-install/icons/")
+        self.dialog_main = self.dialog_review_app
 
         # spinner
         self.spinner_status = gtk.Spinner()
@@ -429,7 +438,7 @@ class SubmitReviewsApp(LoginGUI):
             
     def enter_review(self):
         self.hbox_status.hide()
-        self.dialog_review_app.set_sensitive(True)
+        self.table_review_main.set_sensitive(True)
         res = self.dialog_review_app.run()
         self.dialog_review_app.hide()
         if res == gtk.RESPONSE_OK:
@@ -449,12 +458,12 @@ class SubmitReviewsApp(LoginGUI):
 
     def run(self):
         # show main dialog insensitive until we are logged in
-        self.dialog_review_app.set_sensitive(False)
+        self.table_review_main.set_sensitive(False)
         self.label_status.set_text(_("Connecting..."))
         self.spinner_status.start()
         self.dialog_review_app.show()
         # now run the loop
-        self.run_loop()
+        res = self.run_loop()
 
     def login_successful(self):
         self.label_reviewer.set_text(lp_worker_thread.display_name)
@@ -469,11 +478,16 @@ class ReportReviewApp(LoginGUI):
 
     def __init__(self, review_id, parent_xid, datadir):
         LoginGUI.__init__(self, datadir)
+        self.dialog_main = self.dialog_report_app
         
         # spinner
         self.spinner_status = gtk.Spinner()
         self.spinner_status.show()
         self.alignment_report_status.add(self.spinner_status)
+
+        # make button sensitive when textview has content
+        self.textview_report_text.get_buffer().connect(
+            "changed", self._enable_or_disable_report_button)
 
         # data
         self.review_id = review_id
@@ -500,9 +514,15 @@ class ReportReviewApp(LoginGUI):
             self.combobox_report_summary.append_text(r)
         self.combobox_report_summary.set_active(0)
 
+    def _enable_or_disable_report_button(self, buf):
+        if buf.get_char_count() > 0:
+            self.button_post_report.set_sensitive(True)
+        else:
+            self.button_post_report.set_sensitive(False)
+
     def report_abuse(self):
         self.hbox_report_status.hide()
-        self.dialog_report_app.set_sensitive(True)
+        self.vbox_report_main.set_sensitive(True)
         res = self.dialog_report_app.run()
         self.dialog_report_app.hide()
         if res == gtk.RESPONSE_OK:
@@ -520,7 +540,7 @@ class ReportReviewApp(LoginGUI):
         
     def run(self):
         # show main dialog insensitive until we are logged in
-        self.dialog_report_app.set_sensitive(False)
+        self.vbox_report_main.set_sensitive(False)
         self.label_report_status.set_text(_("Connecting..."))
         self.spinner_status.start()
         self.dialog_report_app.show()
@@ -534,11 +554,11 @@ class ReportReviewApp(LoginGUI):
     
 # IMPORTANT: create one (module) global LP worker thread here
 lp_worker_thread = LaunchpadlibWorker()
+# daemon threads make it crash on cancel
+#lp_worker_thread.daemon = True
 
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
-
-    print sys.argv
 
     # run review personality
     if "submit_review" in sys.argv[0]:

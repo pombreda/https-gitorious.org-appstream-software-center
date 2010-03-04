@@ -227,7 +227,7 @@
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
-          <object class="GtkTable" id="table2">
+          <object class="GtkTable" id="table_review_main">
             <property name="visible">True</property>
             <property name="n_rows">6</property>
             <property name="n_columns">2</property>
@@ -549,12 +549,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_cancel">
+              <object class="GtkButton" id="button_review_cancel">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
+                <signal name="clicked" handler="on_button_cancel_clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -586,7 +587,7 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-6">button_cancel</action-widget>
+      <action-widget response="-6">button_review_cancel</action-widget>
       <action-widget response="-5">button_post_review</action-widget>
     </action-widgets>
   </object>
@@ -600,7 +601,7 @@
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
-          <object class="GtkVBox" id="vbox3">
+          <object class="GtkVBox" id="vbox_report_main">
             <property name="visible">True</property>
             <property name="orientation">vertical</property>
             <property name="spacing">12</property>
@@ -771,12 +772,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button2">
+              <object class="GtkButton" id="button_report_cancel">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
+                <signal name="clicked" handler="on_button_cancel_clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -785,9 +787,10 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button1">
+              <object class="GtkButton" id="button_post_report">
                 <property name="label" translatable="yes">Report</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
               </object>
@@ -807,8 +810,8 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">button2</action-widget>
-      <action-widget response="-5">button1</action-widget>
+      <action-widget response="-6">button_report_cancel</action-widget>
+      <action-widget response="-5">button_post_report</action-widget>
     </action-widgets>
   </object>
 </interface>
