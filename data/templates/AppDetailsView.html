@@ -78,21 +78,23 @@
       font-weight:${font_weight};
       font-style:${font_style};
     }
-    body.section-get {
-     
-      color: #000;
-    }
+    #wrap{ width:500px; margin:0 auto; }
+    #header{ padding-left:76px }
     h1 {
       font-size:140%; 
-      margin: 0 0 1em;
+      margin: 0 0 0.1em;
     }
     h2 {
       font-size:80%;
+      margin:0 0 0.3em 0;
+      font-weight:normal;
     }
     #description {
       font-size: 80%;
+      clear:left;
     }
     #icon {
+      margin-left:-76px;
       width:64px;
       height:64px;
       z-index:-1;
@@ -104,51 +106,47 @@
     }
 
     .screenshot_thumbnail {
-      clear:left;
-      width:160px; 
-      height:120px;
+      margin-top:1em;
+      width:500px; 
+      height:375px;
       -khtml-user-drag:none;
     }
     #screenshot_thumbnail_loading {
       background: url('file:$iconpath_loading') 50% 50% no-repeat;
-      float:right;
-      margin: 0 0 1em 1em;
+    
     }
     #screenshot_thumbnail {
       visibility:hidden; 
-      background-color:#b6bdc4;
+      background-color:#FFF;
+      
     }
     #screenshot_thumbnail-installed {
       visibility:hidden; 
       background-color:#fff; 
     }
     #screenshot_thumbnail_img {
+      width:500px; 
+      height:375px;
       visibility:hidden; 
       background:url('${screenshot_thumbnail_url}') no-repeat;
       cursor: -webkit-zoom-in
-      float:right;
       text-align:center;
       vertical-align:middle;
-      display:table-cell;
     }
     .screenshot_a {
       text-decoration:none;
       color:grey;
     }
-    #text {
-      float:left; 
-      padding-left:86px;
+    
+    #installed_icon {       
+      visibility:${installed};
+      -khtml-user-drag:none;
+      vertical-align:middle;
     }
-    #installed_overlay { 
-      z-index:999; 
-      width:24px;
-      height:24px;
-      background: 
-      url('file:${software_installed_icon}'); 
-      position:absolute; 
-      left:40px; 
-      top:40px; 
-      visibility:${installed} 
+    #install_info{
+      padding:0;
+      margin:0;
+      font-size:70%; 
     }
     #package_information { 
       font-size:70%; 
@@ -163,21 +161,16 @@
       font-size:70%; 
     }
     #button_homepage { 
+      display:block;
       visibility:${homepage_button_visibility};
       border:0;
       background:0;
       text-decoration:underline;
       font-size:80%; 
+      padding:0;
+      margin:1em 0;
     }
-    #add_or_remove{
-      border:1px solid #ccc;
-      height:2em;
-    }
-    div#price{
-      float:left;
-    }
-    
-    
+     
     #action_progress_total {
        visibility:hidden;
        border-style: solid;
@@ -191,39 +184,45 @@
        background-color: #ff0000;
        height:16px;
     } 
-    #action_button_description { 
-      font-size:70%; 
-    }
+    
     .action_button { 
+      margin-left:0;
+      margin-top:0.1em;
       visibility:${action_button_visible}; 
-      float:right;
     }
+    #meta{ color: #AAA; width:100%;}
+    #meta td{width:50%}
+    #package_information{ text-align:right; }
  </style>
 
  </head>
 
 <body class="${body_class}">
-
-    <div id="icon">
-      <div id="installed_overlay"></div>
-    </div>
- 
- <div id="text">
-   <h1>$appname</h1>
-   <h2>$summary</h2>
-   <div id="action_button_description">$action_button_description</div>
-   <div id="action_progress_total"><div id="action_progress"></div></div>
-    
-   <div id="add_or_remove">
-     <div id="price">$price</div>
+  <div id="wrap">
+  <div id="header">
+      <div id="icon">
+        
+      </div>
+     <h1>$appname</h1>
+     <h2>$summary</h2>
      <input type="button" id="button_${action_button_value}" 
           class="action_button"
           value="$action_button_label"
-	        onclick='action_button_clicked()'
-	    />
+          onclick='action_button_clicked()'
+      />
+      <label for="button_${action_button_value}" id="install_info">
+        <img id="installed_icon" src="file:${software_installed_icon}"/> $action_button_description
+      </label>
+      <div id="action_progress_total"><div id="action_progress"></div></div>
    </div>
+    
    
-   <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail'>
+   <div id="description">$description</div>
+   <input type="button" id="button_homepage" value="$homepage"
+    onclick='changeTitle("call:on_button_homepage_clicked")'
+    />
+
+  <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail'>
      <div id='$screenshot_installed' class='screenshot_thumbnail'>
         <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">
          <div id="screenshot_thumbnail_img" class="screenshot_thumbnail">
@@ -233,16 +232,15 @@
      </div>
    </div>
 
-   <div id="description">$description</div>
-   <p id="license">$license</p>
- 
-   <input type="button" id="button_homepage" value="$homepage"
-	  onclick='changeTitle("call:on_button_homepage_clicked")'
-	  />
-   <p id="package_information">$package_information</p>
    <p id="maintainance_time">$maintainance_time</p>
- </div>
-
+  
+   <table id="meta">
+     <tr>
+       <td id="license">$license</td>   
+       <td id="package_information">$package_information</td>
+     </td>
+   </table>
+  </div>
 
 </body>
 </html>

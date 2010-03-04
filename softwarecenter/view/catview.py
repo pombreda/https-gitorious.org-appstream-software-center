@@ -21,6 +21,7 @@ import glib
 import glob
 import gobject
 import gtk
+import locale
 import logging
 import os
 import xapian
@@ -152,19 +153,15 @@ class CategoriesView(WebkitWidget):
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
-        if a.untranslated_name == "System Packages":
+        if a.untranslated_name == "System":
             return 1
-        elif b.untranslated_name == "System Packages":
+        elif b.untranslated_name == "System":
             return -1
-        if a.untranslated_name == "Other":
+        elif a.untranslated_name == "Developer Tools":
             return 1
-        elif b.untranslated_name == "Other":
+        elif b.untranslated_name == "Developer Tools":
             return -1
-        elif a.untranslated_name == "Programming":
-            return 1
-        elif b.untranslated_name == "Programming":
-            return -1
-        return cmp(a.name, b.name)
+        return locale.strcoll(a.name, b.name)
 
     def _parse_directory_tag(self, element):
         cp = ConfigParser()
