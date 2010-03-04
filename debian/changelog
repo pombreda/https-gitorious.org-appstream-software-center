@@ -1,5 +1,6 @@
 software-center (1.1.17) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/navhistory.py:
     - unescape the nav button label text (LP: #531689)
     - fix up and just use a single __str__ method (LP: #531780)
@@ -8,6 +9,8 @@ software-center (1.1.17) UNRELEASED; urgency=low
     - fix intermittent AttributeError when a previous
       model does not exist when refreshing the apps view
       (LP: #531820)
+  
+  [ Michael Vogt ]
   * merged lp:~mpt/software-center/bug-499893 (thanks)
   * merged  lp:~michaelforrest/software-center/ui-changes (thanks)
   * data/icons/scalable/apps/partner.svg:
