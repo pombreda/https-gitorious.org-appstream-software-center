@@ -54,7 +54,7 @@ class Category(object):
 
 class CategoriesView(WebkitWidget):
 
-    CATEGORY_ICON_SIZE = 72
+    CATEGORY_ICON_SIZE = 64
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -83,7 +83,9 @@ class CategoriesView(WebkitWidget):
         if not root_category:
             self.header = _("Departments")
             self.categories = self.parse_applications_menu(desktopdir)
+            self.in_subsection = False
         else:
+            self.in_subsection = True
             self.set_subcategory(root_category)
         self.connect("load-finished", self._on_load_finished)
 
@@ -111,6 +113,10 @@ class CategoriesView(WebkitWidget):
         helper for the webkit widget that injects the categories into
         the page when it has finished loading
         """
+        if self.in_subsection:
+            self.execute_script("hide_header();")
+        else:
+            self.execute_script("show_header();")
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
             if cat.iconname:
@@ -119,14 +125,16 @@ class CategoriesView(WebkitWidget):
                 if iconinfo:
                     iconpath = iconinfo.get_filename()
                     logging.debug("icon: %s %s" % (iconinfo, iconpath))
-            # FIXME: this looks funny with german locales
             s = 'addCategory("%s","%s", "%s")' % (cat.name, 
                                                   cat.untranslated_name,
                                                   iconpath)
             logging.debug("running script '%s'" % s)
             self.execute_script(s)
 
+
     # substitute stuff
+    def wksub_ubuntu_software_center(self):
+        return _("Ubuntu Software Center")
     def wksub_icon_size(self):
         return self.CATEGORY_ICON_SIZE
     def wksub_header(self):
@@ -151,7 +159,24 @@ class CategoriesView(WebkitWidget):
     def wksub_font_size(self):
         return self._get_font_description_property("size")/1024
 
+    def wksub_featured_applications_image(self):
+        return self._image_path("featured_applications_background")
+    def wksub_button_background_left(self):
+        return self._image_path("button_background_left")
+    def wksub_button_background_right(self):
+        return self._image_path("button_background_right")
+    def wksub_heading_background_image(self):
+        return self._image_path("heading_background_image")
+    def wksub_basket_image(self):
+        return self._image_path("basket")
+    def wksub_arrow_image(self):
+        return self._image_path("arrow")
+    
+
     # helper code for menu parsing etc
+    def _image_path(self,name):
+        return os.path.abspath("%s/images/%s.png" % (self.datadir, name)) 
+
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name

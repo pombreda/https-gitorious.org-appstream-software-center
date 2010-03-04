@@ -97,7 +97,8 @@ class ChannelPane(SoftwarePane):
         # getting progress_changed events and eats CPU time until its
         # garbage collected
         old_model = self.app_view.get_model()
-        old_model.active = False
+        if old_model is not None:
+            old_model.active = False
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 

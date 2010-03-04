@@ -145,7 +145,7 @@
     }
     #screenshot_thumbnail_loading {
       background: url('file:$iconpath_loading') 50% 50% no-repeat;
-    
+      -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
     }
     #screenshot_thumbnail {
       visibility:hidden; 
@@ -160,7 +160,7 @@
       width:500px; 
       height:375px;
       visibility:hidden; 
-      background:url('${screenshot_thumbnail_url}') no-repeat;
+      background:url('${screenshot_large_url}') no-repeat;
       cursor: -webkit-zoom-in
       text-align:center;
       vertical-align:middle;
@@ -202,7 +202,7 @@
       padding:0;
       margin:1em 0;
     }
-     
+    
     #action_progress_total {
        visibility:hidden;
        border-style: solid;

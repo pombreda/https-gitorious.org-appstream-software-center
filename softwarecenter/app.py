@@ -140,7 +140,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path(ICON_PATH)
-        self.icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
+        self.icons.append_search_path(os.path.join(datadir,"icons"))
+        self.icons.append_search_path(os.path.join(datadir,"emblems"))
         # HACK: make it more friendly for local installs (for mpt)
         self.icons.append_search_path(datadir+"/icons/32x32/status")
         gtk.window_set_default_icon_name("softwarecenter")

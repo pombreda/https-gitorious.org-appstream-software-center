@@ -256,7 +256,10 @@ class AppDetailsView(WebkitWidget):
             iconpath = self.tf.name
         return iconpath
     def wksub_screenshot_thumbnail_url(self):
-        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname  # changing to use the large image, but this makes the naming all wrong now.
+        url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
+        return url
+    def wksub_screenshot_large_url(self):
+        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
         return url
     def wksub_screenshot_alt(self):
         return _("Application Screenshot")
