@@ -2,6 +2,7 @@ software-center (1.1.17) UNRELEASED; urgency=low
 
   * softwarecenter/view/navhistory.py:
     - unescape the nav button label text (LP: #531689)
+  * merged lp:~mpt/software-center/bug-499893 (thanks)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Mar 2010 00:40:12 -0500
 

@@ -288,7 +288,7 @@ class AppDetailsView(WebkitWidget):
         """Add message specific to this package (e.g. how many dependenies"""
         if not self.pkg:
             return ""
-        return self.distro.get_rdepends_text(self.cache, self.pkg, self.app.name)
+        return self.distro.get_installation_status(self.cache, self.pkg, self.app.name)
     def wksub_homepage(self):
         s = _("Website")
         return s
