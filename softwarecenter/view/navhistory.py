@@ -18,6 +18,13 @@
 import copy
 import logging
 
+from xml.sax.saxutils import unescape
+
+# define additional entities for the nav button unescape, needed
+# because only '&amp;', '&lt;', and '&gt;' are included by default
+ESCAPE_ENTITIES = {"&apos;":"'",
+                   '&quot;':'"'}
+
 # FIXME: sucks, move elsewhere
 in_replay_history_mode = False
 
@@ -106,7 +113,11 @@ class NavigationItem(object):
         # first part is special and kept in remove_all
         self.available_pane.navigation_bar.remove_all()
         for part in self.parts[1:]:
-            self.available_pane.navigation_bar.add_with_id(part.label, part.callback, part.id, do_callback=False, animate=False)
+            self.available_pane.navigation_bar.add_with_id(unescape(part.label, ESCAPE_ENTITIES),
+                                                           part.callback,
+                                                           part.id,
+                                                           do_callback=False,
+                                                           animate=False)
         self.parts[-1].activate()
         in_replay_history_mode = False
         

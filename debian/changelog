@@ -1,3 +1,10 @@
+software-center (1.1.17) UNRELEASED; urgency=low
+
+  * softwarecenter/view/navhistory.py:
+    - unescape the nav button label text (LP: #531689)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Mar 2010 00:40:12 -0500
+
 software-center (1.1.16.1) lucid; urgency=low
 
   * softwarecenter/view/navhistory.py:
