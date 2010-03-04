@@ -83,7 +83,9 @@ class CategoriesView(WebkitWidget):
         if not root_category:
             self.header = _("Departments")
             self.categories = self.parse_applications_menu(desktopdir)
+            self.in_subsection = False
         else:
+            self.in_subsection = True
             self.set_subcategory(root_category)
         self.connect("load-finished", self._on_load_finished)
 
@@ -111,6 +113,10 @@ class CategoriesView(WebkitWidget):
         helper for the webkit widget that injects the categories into
         the page when it has finished loading
         """
+        if self.in_subsection:
+            self.execute_script("hide_header();")
+        else:
+            self.execute_script("show_header();")
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
             if cat.iconname:

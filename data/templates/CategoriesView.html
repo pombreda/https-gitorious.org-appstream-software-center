@@ -8,6 +8,12 @@
   function changeTitle(title) { 
     document.title = title; 
   }
+  function show_header() {
+    document.getElementById("header").style.visibility = 'visible';
+  }
+  function hide_header() {
+    document.getElementById("header").style.visibility = 'hidden';
+  }
   function addCategory(name, untranslated_name, img) {
     // handled featured apps special
     if (untranslated_name == "Featured Applications") {
@@ -126,7 +132,6 @@
       font-size:1.2em;      
       padding:0.2em  0.8em;
       margin: .2em 0;
-      
       background-image:url('file:${arrow_image}') no-repeat;
       background-color:#dad7d3;
        -webkit-border-top-left-radius: 5px;
