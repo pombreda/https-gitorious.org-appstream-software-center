@@ -23,7 +23,7 @@ in_replay_history_mode = False
 
 class NavigationHistory(object):
     """
-    Class to manage navigation history in the "Get Software" section (the
+    class to manage navigation history in the "Get Software" section (the
     available pane).
     """
     
@@ -80,8 +80,7 @@ class NavigationHistory(object):
         
 class NavigationItem(object):
     """
-    interface class to represent navigation points for use with the
-    NavigationHistory class
+    class to implement navigation points to be managed in the history queues
     """
 
     def __init__(self, available_pane):
@@ -94,8 +93,7 @@ class NavigationItem(object):
     
     def navigate_to(self):
         """
-        stub implementation - navigate to the view that corresponds
-        to this NavigationItem
+        navigate to the view that corresponds to this NavigationItem
         """
         global in_replay_history_mode
         in_replay_history_mode = True
@@ -112,75 +110,55 @@ class NavigationItem(object):
         self.parts[-1].activate()
         in_replay_history_mode = False
         
+    def __str__(self):
+        details = []
+        details.append("\n%s" % type(self))
+        category_name = ""
+        if self.apps_category:
+            category_name = self.apps_category.name
+        details.append("  apps_category.name: %s" % category_name)
+        subcategory_name = ""
+        if self.apps_subcategory:
+            subcategory_name = self.apps_subcategory.name
+        details.append("  apps_subcategory.name: %s" % subcategory_name)
+        details.append("  current_app: %s" % self.current_app)
+        details.append("  apps_search_term: %s" % self.apps_search_term)
+        return '\n'.join(details)
+        
 class CategoryViewNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the main category view
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-
-    def __str__(self):
-        return "* CategoryViewNavigationItem"
         
 class AppListNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the application list for the
     specified category
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-        
-    def __str__(self):
-        details = []
-        details.append("* AppListNavigationItem")
-        details.append("\n")
-        details.append("  apps_category.name: %s" % self.apps_category.name)
-        details.append("\n")
-        if (self.apps_subcategory):
-            details.append("  apps_subcategory.name: %s" % self.apps_category.name)
-        else:
-            details.append("  apps_subcategory.name: none")
-        details.append("\n")
-        details.append("  apps_search_term: %s" % self.apps_search_term)
-        return ''.join(details)
             
 class AppListSubcategoryNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the application list for the
     specified category and subcategory
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-        
-    def __str__(self):
-        details = []
-        details.append("* AppListSubcategoryNavigationItem")
-        details.append("\n")
-        details.append("  apps_category.name: %s" % self.apps_category.name)
-        details.append("\n")
-        if (self.apps_subcategory):
-            details.append("  apps_subcategory.name: %s" % self.apps_subcategory.name)
-        else:
-            details.append("  apps_subcategory.name: none")
-        details.append("\n")
-        details.append("  apps_search_term: %s" % self.apps_search_term)
-        return ''.join(details)
         
 class AppDetailsNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the details view for the
     specified application
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
-    def __str__(self):
-        details = []
-        details.append("* AppDetailsNavigationItem")
-        details.append("\n")
-        details.append("  apps_category.name: %s" % self.apps_category.name)
-        details.append("\n")
-        if (self.apps_subcategory):
-            details.append("  apps_subcategory.name: %s" % self.apps_category.name)
-        else:
-            details.append("  apps_subcategory.name: none")
-        details.append("\n")
-        details.append("  current_app: %s" % self.current_app)
-        return ''.join(details)
         
-# TODO: remove this class if not needed
 class SearchNavigationItem(NavigationItem):
     """
     navigation item that corresponds to a search in progress
+    Note: all subclasses of NavigationItem are for debug use only and
+          can be collapsed to the NavigationItem class if desired
     """
