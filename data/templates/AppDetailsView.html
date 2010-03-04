@@ -86,6 +86,9 @@
       font-size:140%; 
       margin: 0 0 1em;
     }
+    h2 {
+      font-size:80%;
+    }
     #description {
       font-size: 80%;
     }
@@ -101,12 +104,13 @@
     }
 
     .screenshot_thumbnail {
+      clear:left;
       width:160px; 
       height:120px;
       -khtml-user-drag:none;
     }
     #screenshot_thumbnail_loading {
-    background: url('file:$iconpath_loading') 50% 50% no-repeat;
+      background: url('file:$iconpath_loading') 50% 50% no-repeat;
       float:right;
       margin: 0 0 1em 1em;
     }
@@ -159,8 +163,21 @@
       font-size:70%; 
     }
     #button_homepage { 
-      visibility:${homepage_button_visibility}; 
+      visibility:${homepage_button_visibility};
+      border:0;
+      background:0;
+      text-decoration:underline;
+      font-size:80%; 
     }
+    #add_or_remove{
+      border:1px solid #ccc;
+      height:2em;
+    }
+    div#price{
+      float:left;
+    }
+    
+    
     #action_progress_total {
        visibility:hidden;
        border-style: solid;
@@ -179,6 +196,7 @@
     }
     .action_button { 
       visibility:${action_button_visible}; 
+      float:right;
     }
  </style>
 
@@ -193,26 +211,31 @@
  <div id="text">
    <h1>$appname</h1>
    <h2>$summary</h2>
-   <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail'>
-        <div id='$screenshot_installed' class='screenshot_thumbnail'>
-            <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">
-            <div id="screenshot_thumbnail_img" class="screenshot_thumbnail">
-                <span id="screenshot_thumbnail_img_missing"/>
-            </div>
-            </a>
-        </div>
-   </div>
-   <div id="description">$description</div>
-   <p id="license">$license</p>
-   <p id="price">$price</p>
-   <p id="action_button_description">$action_button_description</p>
+   <div id="action_button_description">$action_button_description</div>
    <div id="action_progress_total"><div id="action_progress"></div></div>
-   <input type="button" id="button_${action_button_value}" 
+    
+   <div id="add_or_remove">
+     <div id="price">$price</div>
+     <input type="button" id="button_${action_button_value}" 
           class="action_button"
           value="$action_button_label"
-	  onclick='action_button_clicked()'
-	  />
+	        onclick='action_button_clicked()'
+	    />
+   </div>
    
+   <div id='screenshot_thumbnail_loading' class='screenshot_thumbnail'>
+     <div id='$screenshot_installed' class='screenshot_thumbnail'>
+        <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' class="screenshot_a">
+         <div id="screenshot_thumbnail_img" class="screenshot_thumbnail">
+            <span id="screenshot_thumbnail_img_missing"/>
+         </div>
+        </a>
+     </div>
+   </div>
+
+   <div id="description">$description</div>
+   <p id="license">$license</p>
+ 
    <input type="button" id="button_homepage" value="$homepage"
 	  onclick='changeTitle("call:on_button_homepage_clicked")'
 	  />

@@ -25,6 +25,8 @@ software-center (1.1.16) UNRELEASED; urgency=low
       (via the app-install-data mechanism)
   * softwarecenter/distro/__init__.py:
     - add get_codename
+  * fix inconsistency in naming (LP: #530368)
+  * show (summary, name) for non-apps (LP: #530422)
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py:
@@ -49,8 +51,19 @@ software-center (1.1.16) UNRELEASED; urgency=low
     - add navhistory.py, implement forward/back history feature for 
       the "Get Software" section (using Matthew McGowan's 
       BackForwardButton, many thanks!).  (LP: #423754)
+  * po/POTFILES.in:
+    - add softwarecenter/backend/channel.py 
+  * data/ui/SoftwareCenter.ui:
+    - in "View" menu, change "Applications" to "Software" (LP: #530377) 
+  * softwarecenter/view/installedpane.py:
+    - hide searchentry field in details view (LP: 528121) 
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - change "Application(s)" to "Item(s)" in the status
+      bar text (LP: #530374)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 02 Mar 2010 18:05:58 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 03 Mar 2010 10:38:36 -0500
 
 software-center (1.1.15) lucid; urgency=low
 

@@ -61,7 +61,7 @@ class InstalledPane(SoftwarePane):
         " helper that goes back to the overview page "
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        #self.searchentry.show()
+        self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
@@ -128,7 +128,7 @@ class InstalledPane(SoftwarePane):
         if not pathbar.get_active():
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        #self.searchentry.hide()
+        self.searchentry.hide()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
@@ -147,8 +147,8 @@ class InstalledPane(SoftwarePane):
                                     "%s matching items",
                                     length) % length
         else:
-            return gettext.ngettext("%s application installed",
-                                    "%s applications installed",
+            return gettext.ngettext("%s item installed",
+                                    "%s items installed",
                                     length) % length
                                     
     def get_current_app(self):

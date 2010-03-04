@@ -209,7 +209,7 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_all">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_All Applications</property>
+                        <property name="label" translatable="yes">_All Software</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <property name="draw_as_radio">True</property>
@@ -220,7 +220,7 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_supported_only">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Canonical-Maintained Applications</property>
+                        <property name="label" translatable="yes">_Canonical-Maintained Software</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
                         <signal name="activate" handler="on_menuitem_view_supported_only_activate"/>
