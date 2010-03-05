@@ -32,7 +32,7 @@
   }
   function updateProgress(progress) {
     obj=document.getElementById("action_progress"); 
-    obj.style.width=progress+"px";
+    obj.style.width=progress+"%";
   }
   function thumbMissing() {
     return;
@@ -204,22 +204,30 @@
     }
     
     #action_progress_total {
+       margin-top:5px;
+       -webkit-border-radius:5px;
        visibility:hidden;
-       border-style: solid;
-       border-color: #00000;
-       width:100px;
-       height:16px;
+       border: 2px solid #dad7d3;
+       width:330px;
+       height:8px;
+       margin-bottom:.7em;
     }
     #action_progress {
+       -webkit-border-radius:3px;
        visibility:hidden;
-       border-color: #ff0000;
-       background-color: #ff0000;
-       height:16px;
+       border-color: #e24912;
+       background-color: #e24912;
+       height:8px;
+      
     } 
+    label{
+      padding-top:-10px;
+    }
     
     .action_button { 
+      font-size:1em;
       margin-left:0;
-      margin-top:0.1em;
+      margin-top:0.2em;
       visibility:${action_button_visible}; 
     }
     .reviews_area {
@@ -253,7 +261,28 @@
     #meta{ color: #AAA; width:100%;}
     #meta td{width:50%}
     #package_information{ text-align:right; }
-
+    #reviews-wrapper h2{
+      padding:-15px;
+      color: #4a4a4a;
+      font-weight:normal;
+      font-size:1em;      
+      padding:0.2em  0.8em;
+      margin: .25em 0;
+     
+      background-color:#dad7d3;
+       -webkit-border-top-left-radius: 5px;
+       -webkit-border-top-right-radius: 5px;
+    }
+    #reviews-wrapper{
+        margin-top:1em;
+        clear:both;
+        border-radius: 5px;
+        background-color:#f7f7f7;
+        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
+    }
+    #reviews-inner{
+      padding:15px;
+    }
  </style>
 
  </head>
@@ -294,26 +323,29 @@
    </div>
 
    <p id="maintainance_time">$maintainance_time</p>
-
-   <p>
-     <h2 class="reviews_area">Reviews</h2>
-     <a class="add_review_link"
-	id="add_review_link_id"
-	href="#" 
-	OnClick="javascript:on_write_new_review_clicked();return false;">
-       $new_review_label_text
-     </a>
-     <p id="reviews">
-       <!-- reviews go here via addReview() -->
-     </p>
-   </p>
-  
    <table id="meta">
      <tr>
        <td id="license">$license</td>   
        <td id="package_information">$package_information</td>
      </td>
    </table>
+
+   <div id="reviews-wrapper">
+     <h2 class="reviews_area">Reviews</h2>
+     <div id="reviews-inner">
+       <a class="add_review_link"
+	        id="add_review_link_id"
+	        href="#" 
+	        OnClick="javascript:on_write_new_review_clicked();return false;"
+       >
+         $new_review_label_text
+       </a>
+       <p id="reviews">
+         <!-- reviews go here via addReview() -->
+       </p>
+      </div> 
+   </div>
+  
   </div>
 
 </body>
