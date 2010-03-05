@@ -8,7 +8,18 @@
   function changeTitle(title) { 
     document.title = title; 
   }
-  function addCategory(name, img) {
+  function show_header() {
+    document.getElementById("header").style.display = 'block';
+  }
+  function hide_header() {
+    document.getElementById("header").style.display = 'none';
+  }
+  function addCategory(name, untranslated_name, img) {
+    // handled featured apps special
+    if (untranslated_name == "Featured Applications") {
+      addFeaturedCategory(name);
+      return;
+    }
     oT = document.getElementsByTagName("table")[0];
     Tr = document.getElementsByTagName("tr")[0];
     newTd = document.createElement("td");
@@ -34,6 +45,12 @@
     newTd.appendChild(newText);
     Tr.appendChild(newTd);
     categoryCount += 1;
+  }
+  function addFeaturedCategory(name){
+    var link = document.getElementById("featured_link");
+    text = document.createTextNode(name)
+    document.getElementById("featured_span").appendChild(text)
+    link.setAttribute('onclick', 'changeTitle("call:on_category_clicked:' + name + '");');
   }
   function currently_displayed_rows() {
       var cat_inc_count = 1, current_offset_left = 0, check_offset_left;
@@ -98,25 +115,64 @@
  </script>
   <style type="text/css">
     body {
-      background-color:#b6bdc4; 
-      margin: 0; 
-      padding: 1em; 
+      padding: 16px;
+      margin:0;
       color:#000;
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
       font-style:${font_style};
+      background:#fff url('file:${featured_applications_image}') repeat-x;
+      border:4px solid white;
     }
+    h1{ float:left; font-weight:normal; color:#333;padding:0; margin:0; }
     h2 {
-      background-color: #7D91aa;
-      border-style: solid;
-      border-width: 0 0 1px 0;
-      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;
-      color: #fff;
-      padding: 0.25em 0.5em;
-      margin: 0;
-      text-shadow: #404a57 0 -1px 1px;
+      color: #4a4a4a;
+      font-weight:normal;
+      font-size:1.2em;      
+      padding:0.2em  0.8em;
+      margin: .2em 0;
+      background-image:url('file:${arrow_image}') no-repeat;
+      background-color:#dad7d3;
+       -webkit-border-top-left-radius: 5px;
+       -webkit-border-top-right-radius: 5px;
     }
+    h2 img{
+      vertical-align:middle;
+    }
+    #basket{
+        float:right;
+        margin-bottom:0.6em;
+     }
+    #featured_link{
+      clear:left;
+      margin: 0.3em 0 0 0;
+    }
+    a.button{ 
+      font-size:1.2em;
+      background:url('file:${button_background_right}') top right no-repeat scroll;
+      color:#fff;
+      text-decoration:none;
+      display:block;
+      float:left;
+      clear:left;
+      height:38px;
+      padding-right:26px;
+
+    }
+    a.button span{
+      background: url('file:${button_background_left}') no-repeat;
+      padding:5px 0 5px 15px;
+      line-height:28px;
+      display:block;
+    }
+    #departments{
+        clear:both;
+        border-radius: 5px;
+        background-color:#f7f7f7;
+        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
+    }
+    
  /* debug border */
  /* .category_td {border-width:1px;border-style:solid;} */
  /* fixed width does not work, it does not ellipsis but overflows the box */
@@ -130,16 +186,27 @@
       width: 8em !important;
     }
     .category_td:hover {cursor: pointer; }
-    .category_td:active {background-color: #7D91aa; }
+   
     .category_td p { font-size:90%; text-align:center; }
     .no_drag { -khtml-user-drag:none; }
+    
+  
  </style>
  </head>
 
 <body>
-  <h2>$header</h2>
-  <table>
-    <tr></tr>
-  </table>
+  <div id="header">
+    <h1>$ubuntu_software_center</h1>
+    <img src="${basket_image}" id="basket"/>
+    <a href="#" id="featured_link" class="button">
+      <span id="featured_span"></span>
+    </a>
+  </div>
+  <div id="departments">
+    <h2>$header</h2>
+    <table>
+      <tr></tr>
+    </table>
+  </div>
 </body>
 </html>

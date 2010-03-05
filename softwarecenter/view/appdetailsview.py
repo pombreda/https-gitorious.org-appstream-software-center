@@ -60,7 +60,7 @@ class AppDetailsView(WebkitWidget):
     APP_ICON_PADDING = 8
 
     # FIXME: use relative path here
-    INSTALLED_ICON = "/usr/share/software-center/emblems/software-center-installed.png"
+    INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
@@ -167,6 +167,8 @@ class AppDetailsView(WebkitWidget):
     # substitute functions called during page display
     def wksub_appname(self):
         return self.app.name
+    def wksub_summary(self):
+        return self.db.get_summary(self.doc)
     def wksub_pkgname(self):
         return self.app.pkgname
     def wksub_body_class(self):
@@ -244,6 +246,9 @@ class AppDetailsView(WebkitWidget):
     def wksub_screenshot_thumbnail_url(self):
         url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
         return url
+    def wksub_screenshot_large_url(self):
+        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
+        return url
     def wksub_screenshot_alt(self):
         return _("Application Screenshot")
     def wksub_software_installed_icon(self):
@@ -288,7 +293,7 @@ class AppDetailsView(WebkitWidget):
         """Add message specific to this package (e.g. how many dependenies"""
         if not self.pkg:
             return ""
-        return self.distro.get_rdepends_text(self.cache, self.pkg, self.app.name)
+        return self.distro.get_installation_status(self.cache, self.pkg, self.app.name)
     def wksub_homepage(self):
         s = _("Website")
         return s
@@ -467,7 +472,7 @@ class AppDetailsView(WebkitWidget):
                 action_button_label = _("Remove")
                 action_button_value = "remove"
             else:
-                action_button_label = _("Install")
+                action_button_label = _("Install - Free") # will change when payments are introduced, obviously.
                 action_button_value = "install"
         elif self.doc:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)

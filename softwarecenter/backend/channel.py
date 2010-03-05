@@ -140,21 +140,14 @@ class SoftwareChannel(object):
     def __str__(self):
         details = []
         details.append("* SoftwareChannel")
-        details.append("\n")
         details.append("  get_channel_name(): %s" % self.get_channel_name())
-        details.append("\n")
         details.append("  get_channel_origin(): %s" % self.get_channel_origin())
-        details.append("\n")
         details.append("  get_channel_component(): %s" % self.get_channel_component())
-        details.append("\n")
         details.append("  get_channel_display_name(): %s" % self.get_channel_display_name())
-        details.append("\n")
         details.append("  get_channel_icon(): %s" % self.get_channel_icon())
-        details.append("\n")
         details.append("  get_channel_query(): %s" % self.get_channel_query())
-        details.append("\n")
         details.append("  filter_required: %s" % self.filter_required)
-        return ''.join(details)
+        return '\n'.join(details)
         
 if __name__ == "__main__":
     import gtk

@@ -460,18 +460,22 @@
     </Include>
     <Menu>
       <_Name>Chat</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include><And><Category>InstantMessaging</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>File Sharing</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include><And><Category>FileTransfer</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>Mail</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include><And><Category>Email</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>Web Browsers</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include><And><Category>WebBrowser</Category></And></Include>
     </Menu>
   </Menu>   <!-- End Internet -->
