@@ -59,11 +59,15 @@ LOGIN_STATE_HAS_USER_AND_PASS = "has-user-pass"
 LOGIN_STATE_SUCCESS = "success"
 LOGIN_STATE_AUTH_FAILURE = "auth-fail"
 LOGIN_STATE_USER_CANCEL = "user-cancel"
+# the submit server is not ready
+LOGIN_STATE_SERVER_NOT_READY = "server-not-ready"
 
 # the SUBMIT url
 SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/+create"
 # the REPORT url
 REPORT_POST_URL = "http://localhost:8080/reviews/%s/+report-review"
+# server status URL
+SERVER_STATUS_URL = "http://localhost:8080/reviews/+server-status"
 
 # LP to use
 SERVICE_ROOT = EDGE_SERVICE_ROOT
@@ -217,9 +221,26 @@ class LaunchpadlibWorker(threading.Thread):
             self.login_state = LOGIN_STATE_AUTH_FAILURE
             self._shutdown = True
             return
-        # if we are here we are in
-        self.login_state = LOGIN_STATE_SUCCESS
+        # check server status
+        if self.verify_server_status():
+            self.login_state = LOGIN_STATE_SUCCESS
+        else:
+            self.login_state = LOGIN_STATE_SERVER_NOT_READY
         logging.debug("/done %s" % self.launchpad)
+
+    def verify_server_status(self):
+        """ verify that the server we want to talk to can be reached
+            this method should be overriden if clients talk to a different
+            server than rnr
+        """
+        try:
+            resp = urllib.urlopen(SERVER_STATUS_URL).read()
+            if resp != "ok":
+                return False
+        except Exception, e:
+            logging.error("exception from '%s': '%s'" % (SERVER_STATUS_URL, e))
+            return False
+        return True
 
 class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
     """ Internal helper that updates the login_state of
@@ -324,6 +345,11 @@ class LoginGUI(SimpleGtkbuilderApp):
         """ callback when the login was successful """
         pass
 
+    def server_not_ready(self):
+        """ callback when the server is not ready (down, read-only etc) """
+        self.spinner_status.hide()
+        self.label_status.set_text(_("Server not ready."))
+
     def login_failure(self):
         """ callback when the login failed """
         softwarecenter.view.dialogs.error(self.dialog_review_app,
@@ -353,6 +379,9 @@ class LoginGUI(SimpleGtkbuilderApp):
             return False
         elif state == LOGIN_STATE_USER_CANCEL:
             return False
+        elif state == LOGIN_STATE_SERVER_NOT_READY:
+            self.server_not_ready()                  
+            return False
         return True
 
 class SubmitReviewsApp(LoginGUI):
@@ -373,6 +402,8 @@ class SubmitReviewsApp(LoginGUI):
         self.dialog_main = self.dialog_review_app
 
         # spinner
+        # label_status is currently the name in the glade file - keept it
+        #self.label_status = self.label_review_status
         self.spinner_status = gtk.Spinner()
         self.spinner_status.show()
         self.alignment_status.add(self.spinner_status)
@@ -480,7 +511,8 @@ class ReportReviewApp(LoginGUI):
         LoginGUI.__init__(self, datadir)
         self.dialog_main = self.dialog_report_app
         
-        # spinner
+        # spinner & status label
+        self.label_status = self.label_report_status
         self.spinner_status = gtk.Spinner()
         self.spinner_status.show()
         self.alignment_report_status.add(self.spinner_status)
