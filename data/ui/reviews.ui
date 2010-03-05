@@ -497,6 +497,7 @@
                   <object class="GtkTextView" id="textview_review">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="border_width">1</property>
                     <property name="wrap_mode">word</property>
                   </object>
                 </child>
@@ -716,6 +717,7 @@
                       <object class="GtkTextView" id="textview_report_text">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="border_width">1</property>
                       </object>
                     </child>
                   </object>
