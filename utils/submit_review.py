@@ -31,6 +31,7 @@ import gtk
 import locale
 import logging
 import os
+import subprocess
 import sys
 import time
 import threading
@@ -68,6 +69,15 @@ SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/+create"
 REPORT_POST_URL = "http://localhost:8080/reviews/%s/+report-review"
 # server status URL
 SERVER_STATUS_URL = "http://localhost:8080/reviews/+server-status"
+
+# urls for login/forgotten passwords, launchpad for now, ubuntu SSO
+# ones we have a API
+# create new 
+NEW_ACCOUNT_URL = "https://login.launchpad.net/+standalone-login"
+#NEW_ACCOUNT_URL = "https://login.ubuntu.com/+new_account"
+# forgotten PW 
+FORGOT_PASSWORD_URL =  "https://login.launchpad.net/+standalone-login"
+#FORGOT_PASSWORD_URL = "https://login.ubuntu.com/+forgot_password"
 
 # LP to use
 SERVICE_ROOT = EDGE_SERVICE_ROOT
@@ -314,20 +324,37 @@ class LoginGUI(SimpleGtkbuilderApp):
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")
     
-    def enter_username_password(self):
-        self.hbox_status.hide()
-        res = self.dialog_review_login.run()
-        self.dialog_review_login.hide()
-        if res == gtk.RESPONSE_OK:
+    def _enter_user_name_password_finished(self):
+        """ run when the user finished with the login dialog box
+            this checks the users choices and sets the appropriate state
+        """
+        has_account = self.radiobutton_review_login_have_account.get_active()
+        new_account = self.radiobutton_review_login_register_new_account.get_active()
+        forgotten_pw = self.radiobutton_review_login_forgot_password.get_active()
+        if has_account:
             username = self.entry_review_login_email.get_text()
             lp_worker_thread.login_username = username
             password = self.entry_review_login_password.get_text()
             lp_worker_thread.login_password = password
             lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
             self.hbox_status.show()
-        else:
+        elif new_account:
+            #print "new_account"
+            subprocess.call(["xdg-open", NEW_ACCOUNT_URL])
+            self.enter_username_password()
+        elif forgotten_pw:
+            #print "forgotten passowrd"
+            subprocess.call(["xdg-open", FORGOT_PASSWORD_URL])
+            self.enter_username_password()
+
+    def enter_username_password(self):
+        self.hbox_status.hide()
+        res = self.dialog_review_login.run()
+        self.dialog_review_login.hide()
+        if res != gtk.RESPONSE_OK:
             self.on_button_cancel_clicked()
-            self.quit(exitcode=1)
+            return self.quit(exitcode=1)
+        self._enter_user_name_password_finished()
 
     def quit(self, exitcode=0):
         lp_worker_thread.join()
