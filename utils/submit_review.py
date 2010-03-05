@@ -347,8 +347,10 @@ class LoginGUI(SimpleGtkbuilderApp):
 
     def server_not_ready(self):
         """ callback when the server is not ready (down, read-only etc) """
-        self.spinner_status.hide()
-        self.label_status.set_text(_("Server not ready."))
+        self.hbox_status.hide()
+        self.label_error.set_text(_("Couldn't connect to the reviews service. "
+                                    "Please try again later."))
+        self.hbox_error.show()
 
     def login_failure(self):
         """ callback when the login failed """
@@ -401,9 +403,9 @@ class SubmitReviewsApp(LoginGUI):
         self.icons.append_search_path("/usr/share/app-install/icons/")
         self.dialog_main = self.dialog_review_app
 
-        # spinner
-        # label_status is currently the name in the glade file - keept it
-        #self.label_status = self.label_review_status
+        # spinner & error
+        self.label_error = self.label_review_error
+        self.hbox_error = self.hbox_review_error
         self.spinner_status = gtk.Spinner()
         self.spinner_status.show()
         self.alignment_status.add(self.spinner_status)
@@ -511,8 +513,10 @@ class ReportReviewApp(LoginGUI):
         LoginGUI.__init__(self, datadir)
         self.dialog_main = self.dialog_report_app
         
-        # spinner & status label
-        self.label_status = self.label_report_status
+        # spinner & error label
+        self.label_error = self.label_report_error
+        self.hbox_error = self.hbox_report_error
+        self.hbox_status = self.hbox_report_status
         self.spinner_status = gtk.Spinner()
         self.spinner_status.show()
         self.alignment_report_status.add(self.spinner_status)
