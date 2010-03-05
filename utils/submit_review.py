@@ -179,6 +179,7 @@ class LaunchpadlibWorker(threading.Thread):
             data = { 'package_name' : review.app.pkgname,
                      'app_name' : review.app.appname,
                      'summary' : review.summary,
+                     'package_version' : review.package_version,
                      'text' : review.text,
                      'date' : review.date,
                      'rating': review.rating,
@@ -511,6 +512,7 @@ class SubmitReviewsApp(LoginGUI):
             review.date = datetime.datetime.now()
             review.language = get_language()
             review.rating = self.rating
+            review.package_version = self.version
             lp_worker_thread.queue_review(review)
         # signal thread to finish
         lp_worker_thread.shutdown()

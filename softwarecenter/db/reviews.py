@@ -54,6 +54,7 @@ class Review(object):
         self.language = None
         self.summary = None
         self.text = None
+        self.package_version = None
         self.date = None
         self.rating = None
         self.person = None
