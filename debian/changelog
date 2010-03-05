@@ -18,6 +18,8 @@ software-center (1.1.17) UNRELEASED; urgency=low
     - add partner icon (LP: #531694)
   * softwarecenter/view/catview.py:
     - do not show header in subsection view
+  * softwarecenter/view/availablepane.py:
+    - fix race in initial part creation (LP: #531798)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Mar 2010 12:00:49 -0500
 
