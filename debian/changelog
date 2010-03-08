@@ -20,8 +20,10 @@ software-center (1.1.17) UNRELEASED; urgency=low
     - do not show header in subsection view
   * softwarecenter/view/availablepane.py:
     - fix race in initial part creation (LP: #531798)
+  * debian/control:
+    - add gnome-app-install transitional package (closes: #572941)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Mar 2010 12:00:49 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 08 Mar 2010 17:38:55 +0100
 
 software-center (1.1.16.1) lucid; urgency=low
 
@@ -493,7 +495,7 @@ software-center (1.1.1) lucid; urgency=low
     - string fixes (thanks to shane fagan), LP: #493618
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Dec 2009 18:32:13 +0100
- 
+
 software-center (1.1debian1) unstable; urgency=low
 
   * Initial upload to Debian (Closes: #558692)
@@ -1224,3 +1226,4 @@ software-store (0.1) karmic; urgency=low
   * Initial release
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 21 Aug 2009 14:52:41 +0200
+
