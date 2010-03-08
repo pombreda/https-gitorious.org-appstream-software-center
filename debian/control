@@ -51,7 +51,7 @@ Description: Utility for browsing, installing, and removing applications
 Package: gnome-app-install
 Architecture: all
 Depends: software-center
-Section: transitional
+Section: oldlibs
 Description: dummy upgrade package for gnome-app-install -> software-center
  This is a transitional package so that gnome-app-install users get
  software-center on upgrades. It can be safely removed.
