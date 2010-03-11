@@ -23,7 +23,7 @@ software-center (1.1.17) UNRELEASED; urgency=low
   * debian/control:
     - add gnome-app-install transitional package (closes: #572941)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 08 Mar 2010 17:38:55 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 11 Mar 2010 16:58:00 +0100
 
 software-center (1.1.16.1) lucid; urgency=low
 
