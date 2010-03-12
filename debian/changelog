@@ -1,4 +1,4 @@
-software-center (1.1.17) UNRELEASED; urgency=low
+software-center (1.1.17) lucid; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/navhistory.py:
