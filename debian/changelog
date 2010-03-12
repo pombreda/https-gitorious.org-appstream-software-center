@@ -1,3 +1,11 @@
+software-center (1.1.18) UNRELEASED; urgency=low
+
+  * data/templates/AppDetailsView.html:
+    - cherry pick progress nice bar improvements from 
+      Michael Forrest (many thanks)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Mar 2010 16:33:32 +0100
+
 software-center (1.1.17) lucid; urgency=low
 
   [ Gary Lasker ]

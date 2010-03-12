@@ -32,7 +32,7 @@
   }
   function updateProgress(progress) {
     obj=document.getElementById("action_progress"); 
-    obj.style.width=progress+"px";
+    obj.style.width=progress+"%";
   }
   function thumbMissing() {
     return;
@@ -172,22 +172,30 @@
     }
     
     #action_progress_total {
+       margin-top:5px;
+       -webkit-border-radius:5px;
        visibility:hidden;
-       border-style: solid;
-       border-color: #00000;
-       width:100px;
-       height:16px;
+       border: 2px solid #dad7d3;
+       width:330px;
+       height:8px;
+       margin-bottom:.7em;
     }
     #action_progress {
+       -webkit-border-radius:3px;
        visibility:hidden;
-       border-color: #ff0000;
-       background-color: #ff0000;
-       height:16px;
+       border-color: #e24912;
+       background-color: #e24912;
+       height:8px;
+      
     } 
+    label{
+      padding-top:-10px;
+    }
     
     .action_button { 
+      font-size:1em;
       margin-left:0;
-      margin-top:0.1em;
+      margin-top:0.2em;
       visibility:${action_button_visible}; 
     }
     #meta{ color: #AAA; width:100%;}
@@ -233,7 +241,6 @@
    </div>
 
    <p id="maintainance_time">$maintainance_time</p>
-  
    <table id="meta">
      <tr>
        <td id="license">$license</td>   
