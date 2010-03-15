@@ -18,6 +18,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import cPickle
 import gio
 import gzip
 import glib
@@ -35,6 +36,7 @@ import softwarecenter.distro
 
 from softwarecenter.db.database import Application
 from softwarecenter.utils import *
+from softwarecenter.backend.paths import *
 
 class ReviewStats(object):
     def __init__(self, app):
@@ -72,12 +74,19 @@ class ReviewLoader(object):
     """A loader that returns a review object list"""
 
     # cache the ReviewStats
-    REVIEW_STATS_CACHE = weakref.WeakValueDictionary()
+    REVIEW_STATS_CACHE = {}
+    REVIEW_STATS_CACHE_FILE = SOFTWARE_CENTER_CACHE_DIR+"/review-stats.p"
 
     def __init__(self, distro=None):
         self.distro = distro
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
+        if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
+            try:
+                self.REVIEW_STATS_CACHE = cPickle.load(open(self.REVIEW_STATS_CACHE_FILE))
+            except:
+                logging.exception("review stats cache load failure")
+                os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
 
     def get_reviews(self, application, callback):
         """run callback f(app, review_list) 
@@ -99,6 +108,14 @@ class ReviewLoader(object):
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
         pass
+
+    def save_review_stats_cache_file(self):
+        """ save review stats cache file in xdg cache dir """
+        cachedir = SOFTWARE_CENTER_CACHE_DIR
+        if not os.path.exists(cachedir):
+            os.makedirs(cachedir)
+        cPickle.dump(self.REVIEW_STATS_CACHE,
+                      open(self.REVIEW_STATS_CACHE_FILE, "w"))
 
 class ReviewLoaderXMLAsync(ReviewLoader):
     """ get xml (or gzip compressed xml) """
@@ -189,6 +206,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
             review_stats[app] = stats
         # update review_stats dict
         self.REVIEW_STATS_CACHE = review_stats
+        self.save_review_stats_cache_file()
         # run callback
         callback()
 

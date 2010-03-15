@@ -221,7 +221,7 @@ class LaunchpadlibWorker(threading.Thread):
         """ internal LP login code """
         logging.debug("lp_login")
         # use cachedir
-        cachedir = os.path.expanduser("~/.cache/software-center")
+        cachedir = SOFTWARE_CENTER_CACHE_DIR
         if not os.path.exists(cachedir):
             os.makedirs(cachedir)
         # login into LP with GUI
