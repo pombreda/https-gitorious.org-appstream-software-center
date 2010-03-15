@@ -48,6 +48,7 @@ from view.softwarepane import SoftwarePane
 
 from backend.config import get_config
 from backend import get_install_backend
+from db.reviews import get_review_loader
 
 from distro import get_distro
 
@@ -104,6 +105,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # distro specific stuff
         self.distro = get_distro()
+        self.review_loader = get_review_loader()
+        self.review_loader.get_review_stats(self.on_review_stats_loaded)
 
         # a main iteration friendly apt cache
         self.cache = AptCache()
@@ -220,6 +223,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.restore_state()
 
     # callbacks
+    def on_review_stats_loaded(self, stats):
+        print "on_review_stats_loaded", stats
+
     def on_app_details_changed(self, widget, app, page):
         self.update_app_status_menu()
         self.update_status_bar()

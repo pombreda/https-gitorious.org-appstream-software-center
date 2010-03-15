@@ -22,6 +22,7 @@ import gio
 import gzip
 import glib
 import locale
+import os
 import json
 import random
 import StringIO
@@ -297,6 +298,22 @@ ipsum dolor sit amet"""
             review.text = self._random_text().replace("\n","")
             reviews.append(review)
         callback(application, reviews)
+    def get_review_stats(self, callback):
+        review_stats = []
+        callback(review_stats)
+
+review_loader = None
+def get_review_loader():
+    """ 
+    factory that returns a reviews loader singelton
+    """
+    global review_loader
+    if not review_loader:
+        if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
+            review_loader = ReviewLoaderIpsum()
+        else:
+            review_loader = ReviewLoaderXMLAsync()
+    return review_loader
 
 if __name__ == "__main__":
     def callback(app, reviews):

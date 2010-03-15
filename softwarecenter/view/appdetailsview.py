@@ -46,13 +46,7 @@ from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
-
-# make review feature testing easy
-if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
-    from softwarecenter.db.reviews import ReviewLoaderIpsum as ReviewLoader
-else:
-    from softwarecenter.db.reviews import ReviewLoaderXMLAsync as ReviewLoader
-
+from softwarecenter.db.reviews import get_review_loader
 
 from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
@@ -89,7 +83,7 @@ class AppDetailsView(WebkitWidget):
         self.datadir = datadir
         self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
                                      stdout=subprocess.PIPE).communicate()[0].strip()
-        self.review_loader = ReviewLoader()
+        self.review_loader = get_review_loader()
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
