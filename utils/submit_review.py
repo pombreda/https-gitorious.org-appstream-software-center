@@ -48,6 +48,7 @@ from urlparse import urljoin
 
 import softwarecenter.view.dialogs
 
+from softwarecenter.backend.paths import *
 from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
