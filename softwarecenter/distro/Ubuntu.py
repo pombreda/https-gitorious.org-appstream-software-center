@@ -35,8 +35,10 @@ class Ubuntu(Distro):
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
 
     # reviews
-    #REVIEWS_URL = "http://people.canonical.com/~mvo/reviews/lucid/%s/%s/%s.xml"
-    REVIEWS_URL = "http://127.0.0.1:8080/reviews/en/ubuntu/lucid/+binary/%s"
+    REVIEWS_SERVER = "http://127.0.0.1:8080"
+    #REVIEWS_SERVER = "http://ec2-75-101-220-128.compute-1.amazonaws.com"
+    REVIEWS_URL = REVIEWS_SERVER+"/reviews/en/ubuntu/lucid/+binary/%s"
+    REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/en/ubuntu/lucid/+review-stats"
 
     def get_distro_channel_name(self):
         """ The name in the Release file """

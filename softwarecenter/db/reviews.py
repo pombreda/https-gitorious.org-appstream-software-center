@@ -38,11 +38,10 @@ from softwarecenter.utils import *
 class ReviewStats(object):
     def __init__(self, app):
         self.app = app
-        self.rating = None
+        self.avg_rating = None
         self.nr_reviews = 0
-        self.nr_ratings = 0
     def __repr__(self):
-        return "[ReviewStats rating='%s' nr_ratings='%s', nr_reviews='%s']" % (self.rating, self.nr_ratings, self.nr_reviews)
+        return "[ReviewStats '%s' rating='%s' nr_reviews='%s']" % (self.app, self.avg_rating, self.nr_reviews)
 
 class Review(object):
     """A individual review object """
@@ -138,6 +137,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         try:
             stream=source.read_finish(result)
         except glib.GError, e:
+            print e, source, result
             # 404 means no review
             if e.code == 404:
                 return callback(app, [])
@@ -151,6 +151,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         stream.read_async(128*1024, self._gio_review_input_callback)
 
     def get_reviews(self, app, callback):
+        """ get a specific review and call callback when its available"""
         url = self.distro.REVIEWS_URL % app.pkgname
         if app.appname:
             url += "/%s" % app.appname
@@ -158,6 +159,54 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         f.read_async(self._gio_review_read_callback)
         f.set_data("app", app)
         f.set_data("callback", callback)
+
+    # review stats code
+    def _gio_review_stats_input_callback(self, source, result):
+        callback = source.get_data("callback")
+        try:
+            xml_str = source.read_finish(result)
+        except glib.GError, e:
+            # ignore read errors, most likely transient
+            return
+        # check for gzip header
+        if xml_str.startswith("\37\213"):
+            gz=gzip.GzipFile(fileobj=StringIO.StringIO(xml_str))
+            xml_str = gz.read()
+        dom = xml.dom.minidom.parseString(xml_str)
+        review_stats = []
+        # FIXME: look at root element like:
+        #  "<review-stats origin="ubuntu" distroseries="lucid" language="en">"
+        # to verify we got the data we expected
+        for review_stats_xml in dom.getElementsByTagName("abstract"):
+            appname = review_stats_xml.getAttribute("app_name")
+            pkgname = review_stats_xml.getAttribute("package_name")
+            app = Application(appname, pkgname)
+            stats = ReviewStats(app)
+            stats.nr_reviews = review_stats_xml.getAttribute("nr_reviews")
+            stats.avg_rating = review_stats_xml.getAttribute("avg_rating")
+            review_stats.append(stats)
+        # run callback
+        callback(review_stats)
+
+    def _gio_review_stats_read_callback(self, source, result):
+        callback = source.get_data("callback")
+        try:
+            stream=source.read_finish(result)
+        except glib.GError, e:
+            print e, source, result
+            raise
+        stream.set_data("callback", callback)
+        # FIXME: static size here as first argument sucks, but it seems
+        #        like there is a bug in the python bindings, I can not pass
+        #        -1 or anything like this
+        stream.read_async(128*1024, self._gio_review_stats_input_callback)
+
+    def get_review_stats(self, callback):
+        """ get the review statists and call callback when its there """
+        url = self.distro.REVIEW_STATS_URL
+        f=gio.File(url)
+        f.set_data("callback", callback)
+        f.read_async(self._gio_review_stats_read_callback)
 
 class ReviewLoaderIpsum(ReviewLoader):
     """ a test review loader that does not do any network io
@@ -251,14 +300,19 @@ ipsum dolor sit amet"""
 
 if __name__ == "__main__":
     def callback(app, reviews):
+        print "app callback:"
         print app, reviews
+    def stats_callback(stats):
+        print "stats:"
+        print stats
     from softwarecenter.db.database import Application
     app = Application("7zip",None)
-    loader = ReviewLoaderIpsum()
-    print loader.get_reviews(app, callback)
-    print loader.get_review_stats(app)
+    #loader = ReviewLoaderIpsum()
+    #print loader.get_reviews(app, callback)
+    #print loader.get_review_stats(app)
     app = Application("totem","totem")
     loader = ReviewLoaderXMLAsync()
+    loader.get_review_stats(stats_callback)
     loader.get_reviews(app, callback)
     import gtk
     gtk.main()

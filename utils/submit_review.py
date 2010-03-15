@@ -52,6 +52,7 @@ from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from softwarecenter.distro import get_distro
 
 # the various states that the login can be in
 LOGIN_STATE_UNKNOWN = "unkown"
@@ -63,12 +64,16 @@ LOGIN_STATE_USER_CANCEL = "user-cancel"
 # the submit server is not ready
 LOGIN_STATE_SERVER_NOT_READY = "server-not-ready"
 
+# get current distro and set default server root
+distro = get_distro()
+SERVER_ROOT=distro.REVIEWS_SERVER
+
 # the SUBMIT url
-SUBMIT_POST_URL = "http://localhost:8080/reviews/en/ubuntu/lucid/+create"
+SUBMIT_POST_URL = SERVER_ROOT+"/reviews/en/ubuntu/lucid/+create"
 # the REPORT url
-REPORT_POST_URL = "http://localhost:8080/reviews/%s/+report-review"
+REPORT_POST_URL = SERVER_ROOT+"/reviews/%s/+report-review"
 # server status URL
-SERVER_STATUS_URL = "http://localhost:8080/reviews/+server-status"
+SERVER_STATUS_URL = SERVER_ROOT+"/reviews/+server-status"
 
 # urls for login/forgotten passwords, launchpad for now, ubuntu SSO
 # ones we have a API
@@ -625,11 +630,15 @@ lp_worker_thread = LaunchpadlibWorker()
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
 
+    # common options for optparse go here
+    parser = OptionParser()
+    parser.add_option("", "--datadir", 
+                      default="/usr/share/software-center/")
+
     # run review personality
     if "submit_review" in sys.argv[0]:
         print "submit_review mode"
         # check options
-        parser = OptionParser()
         parser.add_option("-a", "--appname")
         parser.add_option("-p", "--pkgname")
         parser.add_option("-i", "--iconname")
@@ -637,8 +646,6 @@ if __name__ == "__main__":
         parser.add_option("", "--parent-xid")
         parser.add_option("", "--debug",
                           action="store_true", default=False)
-        parser.add_option("", "--datadir", 
-                          default="/usr/share/software-center/")
         (options, args) = parser.parse_args()
 
         if not (options.pkgname and options.version):
@@ -648,9 +655,9 @@ if __name__ == "__main__":
             logging.basicConfig(level=logging.DEBUG)                        
 
         # initialize and run
-        app = Application(options.appname, options.pkgname)
+        theapp = Application(options.appname, options.pkgname)
         review_app = SubmitReviewsApp(datadir=options.datadir,
-                                      app=app, 
+                                      app=theapp, 
                                       parent_xid=options.parent_xid,
                                       iconname=options.iconname,
                                       version=options.version)
@@ -660,13 +667,10 @@ if __name__ == "__main__":
     # run "report" personality
     if "report_review" in sys.argv[0]:
         # check options
-        parser = OptionParser()
         parser.add_option("", "--review-id") 
         parser.add_option("", "--parent-xid")
         parser.add_option("", "--debug",
                           action="store_true", default=False)
-        parser.add_option("", "--datadir", 
-                          default="/usr/share/software-center/")
         (options, args) = parser.parse_args()
 
         if not (options.review_id):
