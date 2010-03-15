@@ -106,7 +106,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # distro specific stuff
         self.distro = get_distro()
         self.review_loader = get_review_loader()
-        self.review_loader.get_review_stats(self.on_review_stats_loaded)
+        # FIXME: add some kind of throttle, I-M-S here
+        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
 
         # a main iteration friendly apt cache
         self.cache = AptCache()
@@ -223,8 +224,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.restore_state()
 
     # callbacks
-    def on_review_stats_loaded(self, stats):
-        print "on_review_stats_loaded", stats
+    def on_review_stats_loaded(self):
+        print "*** on_review_stats_loaded ***"
 
     def on_app_details_changed(self, widget, app, page):
         self.update_app_status_menu()

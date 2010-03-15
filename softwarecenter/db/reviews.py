@@ -94,10 +94,11 @@ class ReviewLoader(object):
         # check cache
         if application in self.REVIEW_STATS_CACHE:
             return self.REVIEW_STATS_CACHE[application]
-        # create new and add to cache
-        stats = ReviewStats(application)
-        self.REVIEW_STATS_CACHE[application]= stats
-        return stats
+        return None
+
+    def refresh_review_stats(self, callback):
+        """ get the review statists and call callback when its there """
+        pass
 
 class ReviewLoaderXMLAsync(ReviewLoader):
     """ get xml (or gzip compressed xml) """
@@ -174,7 +175,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
             gz=gzip.GzipFile(fileobj=StringIO.StringIO(xml_str))
             xml_str = gz.read()
         dom = xml.dom.minidom.parseString(xml_str)
-        review_stats = []
+        review_stats = {}
         # FIXME: look at root element like:
         #  "<review-stats origin="ubuntu" distroseries="lucid" language="en">"
         # to verify we got the data we expected
@@ -183,11 +184,13 @@ class ReviewLoaderXMLAsync(ReviewLoader):
             pkgname = review_stats_xml.getAttribute("package_name")
             app = Application(appname, pkgname)
             stats = ReviewStats(app)
-            stats.nr_reviews = review_stats_xml.getAttribute("nr_reviews")
-            stats.avg_rating = review_stats_xml.getAttribute("avg_rating")
-            review_stats.append(stats)
+            stats.nr_reviews = int(review_stats_xml.getAttribute("nr_reviews"))
+            stats.avg_rating = float(review_stats_xml.getAttribute("avg_rating"))
+            review_stats[app] = stats
+        # update review_stats dict
+        self.REVIEW_STATS_CACHE = review_stats
         # run callback
-        callback(review_stats)
+        callback()
 
     def _gio_review_stats_read_callback(self, source, result):
         callback = source.get_data("callback")
@@ -202,7 +205,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         #        -1 or anything like this
         stream.read_async(128*1024, self._gio_review_stats_input_callback)
 
-    def get_review_stats(self, callback):
+    def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
         url = self.distro.REVIEW_STATS_URL
         f=gio.File(url)
@@ -298,7 +301,7 @@ ipsum dolor sit amet"""
             review.text = self._random_text().replace("\n","")
             reviews.append(review)
         callback(application, reviews)
-    def get_review_stats(self, callback):
+    def refresh_review_stats(self, callback):
         review_stats = []
         callback(review_stats)
 

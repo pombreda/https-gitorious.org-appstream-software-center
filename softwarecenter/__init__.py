@@ -25,19 +25,15 @@ class Application(object):
         
         There is also a __cmp__ method and a name property
     """
-    def __init__(self, appname, pkgname, popcon=0):
+    def __init__(self, appname, pkgname):
         self.appname = appname
         self.pkgname = pkgname
-        self._popcon = popcon
     @property
     def name(self):
         """Show user visible name"""
         if self.appname:
             return self.appname
         return self.pkgname
-    @property
-    def popcon(self):
-        return self._popcon
     # special methods
     def __hash__(self):
         return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
