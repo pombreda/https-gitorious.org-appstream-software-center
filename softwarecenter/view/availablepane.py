@@ -122,12 +122,8 @@ class AvailablePane(SoftwarePane):
         # home button
         self.navigation_bar.add_with_id(_("Get Software"), 
                                         self.on_navigation_category,
-                                        self.NAV_BUTTON_ID_CATEGORY)
-        # FIXME: find a better way for this
-        # make sure the navigation bar has the button (it adds it with
-        # a slight delay) - otherwise history nav will fail
-        while gtk.events_pending():
-            gtk.main_iteration()
+                                        self.NAV_BUTTON_ID_CATEGORY,
+                                        animate=False)
 
     def _get_query(self):
         """helper that gets the query for the current category/search mode"""

@@ -1,4 +1,12 @@
-software-center (1.1.17) UNRELEASED; urgency=low
+software-center (1.1.18) UNRELEASED; urgency=low
+
+  * data/templates/AppDetailsView.html:
+    - cherry pick progress nice bar improvements from 
+      Michael Forrest (many thanks)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Mar 2010 16:33:32 +0100
+
+software-center (1.1.17) lucid; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/navhistory.py:
@@ -18,8 +26,12 @@ software-center (1.1.17) UNRELEASED; urgency=low
     - add partner icon (LP: #531694)
   * softwarecenter/view/catview.py:
     - do not show header in subsection view
+  * softwarecenter/view/availablepane.py:
+    - fix race in initial part creation (LP: #531798)
+  * debian/control:
+    - add gnome-app-install transitional package (closes: #572941)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Mar 2010 12:00:49 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 11 Mar 2010 16:58:00 +0100
 
 software-center (1.1.16.1) lucid; urgency=low
 
@@ -491,7 +503,7 @@ software-center (1.1.1) lucid; urgency=low
     - string fixes (thanks to shane fagan), LP: #493618
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Dec 2009 18:32:13 +0100
- 
+
 software-center (1.1debian1) unstable; urgency=low
 
   * Initial upload to Debian (Closes: #558692)
@@ -1222,3 +1234,4 @@ software-store (0.1) karmic; urgency=low
   * Initial release
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 21 Aug 2009 14:52:41 +0200
+
