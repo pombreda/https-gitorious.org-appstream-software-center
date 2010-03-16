@@ -4,6 +4,9 @@ software-center (1.1.18) UNRELEASED; urgency=low
   * data/templates/AppDetailsView.html:
     - cherry pick progress nice bar improvements from 
       Michael Forrest (many thanks)
+  * softwarecenter/view/appdetailsview.py:
+    - show correct maintenance status for non applications
+      (LP: #538172)
 
   [ Gary Lasker ]
   * data/ui/SoftwareCenter.ui:
