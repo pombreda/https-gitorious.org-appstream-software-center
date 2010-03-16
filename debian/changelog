@@ -13,10 +13,12 @@ software-center (1.1.18) UNRELEASED; urgency=low
     - don't translate available pane notebook labels
       (LP: #539371)
   * softwarecenter/view/viewswitcher.py:
-   - when collapsing a node in the left pane (e.g. "Get Software"),
-     select the node (LP: 532774) 
+    - when collapsing a node in the left pane (e.g. "Get Software"),
+      select the node (LP: 532774) 
+  * softwarecenter/view/appview.py:
+    - tweak padding in list view buttons (LP: #537524)  
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Mar 2010 15:08:44 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Mar 2010 16:13:19 -0400
 
 software-center (1.1.17) lucid; urgency=low
 

@@ -316,7 +316,7 @@ class AppStore(gtk.GenericTreeModel):
 
 class CellRendererButton:
 
-    def __init__(self, layout, markup, alt_markup=None, xpad=20, ypad=6):
+    def __init__(self, layout, markup, alt_markup=None, xpad=14, ypad=4):
         if not alt_markup:
             w, h, mx, amx = self._calc_markup_params(layout, markup, xpad, ypad)
         else:
