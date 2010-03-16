@@ -54,8 +54,8 @@ class Review(object):
         # the review items that the object fills in
         self.id = None
         self.language = None
-        self.summary = None
-        self.text = None
+        self.summary = ""
+        self.text = ""
         self.package_version = None
         self.date = None
         self.rating = None
@@ -144,8 +144,12 @@ class ReviewLoaderXMLAsync(ReviewLoader):
             review.rating = review_xml.getAttribute("rating")
             review.person = review_xml.getAttribute("reviewer_name")
             review.language = review_xml.getAttribute("language")
-            review.summary = review_xml.getElementsByTagName("summary")[0].childNodes[0].data
-            review.text = review_xml.getElementsByTagName("text")[0].childNodes[0].data
+            summary_elements = review_xml.getElementsByTagName("summary")
+            if summary_elements and summary_elements[0].childNodes:
+                review.summary = summary_elements[0].childNodes[0].data
+            review_elements = review_xml.getElementsByTagName("text")
+            if review_elements and review_elements[0].childNodes:
+                review.text = review_elements[0].childNodes[0].data
             reviews.append(review)
         # run callback
         callback(app, reviews)
@@ -174,6 +178,7 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         url = self.distro.REVIEWS_URL % app.pkgname
         if app.appname:
             url += "/%s" % app.appname
+        logging.debug("looking for review at '%s'" % url)
         f=gio.File(url)
         f.read_async(self._gio_review_read_callback)
         f.set_data("app", app)
@@ -194,15 +199,15 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         dom = xml.dom.minidom.parseString(xml_str)
         review_stats = {}
         # FIXME: look at root element like:
-        #  "<review-stats origin="ubuntu" distroseries="lucid" language="en">"
+        #  "<review-statistics origin="ubuntu" distroseries="lucid" language="en">"
         # to verify we got the data we expected
-        for review_stats_xml in dom.getElementsByTagName("abstract"):
+        for review_stats_xml in dom.getElementsByTagName("review"):
             appname = review_stats_xml.getAttribute("app_name")
             pkgname = review_stats_xml.getAttribute("package_name")
             app = Application(appname, pkgname)
             stats = ReviewStats(app)
-            stats.nr_reviews = int(review_stats_xml.getAttribute("nr_reviews"))
-            stats.avg_rating = float(review_stats_xml.getAttribute("avg_rating"))
+            stats.nr_reviews = int(review_stats_xml.getAttribute("count"))
+            stats.avg_rating = float(review_stats_xml.getAttribute("average"))
             review_stats[app] = stats
         # update review_stats dict
         self.REVIEW_STATS_CACHE = review_stats
