@@ -1,10 +1,16 @@
 software-center (1.1.18) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * data/templates/AppDetailsView.html:
     - cherry pick progress nice bar improvements from 
       Michael Forrest (many thanks)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Mar 2010 16:33:32 +0100
+  [ Gary Lasker ]
+  * data/ui/SoftwareCenter.ui:
+    - don't translate available pane notebook labels
+      (LP: #539371)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Mar 2010 10:12:37 -0400
 
 software-center (1.1.17) lucid; urgency=low
 

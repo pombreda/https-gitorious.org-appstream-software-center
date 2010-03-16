@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-04 20:51+0100\n"
+"POT-Creation-Date: 2010-03-16 10:03-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,7 +44,7 @@ msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:7
 #: ../data/ubuntu-software-center.desktop.in.h:3
-#: ../softwarecenter/view/catview.py:131
+#: ../softwarecenter/view/catview.py:137
 msgid "Ubuntu Software Center"
 msgstr ""
 
@@ -78,22 +78,6 @@ msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:15
 msgid "_View"
-msgstr ""
-
-#: ../data/ui/SoftwareCenter.ui.h:16
-msgid "available"
-msgstr ""
-
-#: ../data/ui/SoftwareCenter.ui.h:17
-msgid "channel"
-msgstr ""
-
-#: ../data/ui/SoftwareCenter.ui.h:18
-msgid "installed"
-msgstr ""
-
-#: ../data/ui/SoftwareCenter.ui.h:19
-msgid "pending"
 msgstr ""
 
 #: ../data/ubuntu-software-center.desktop.in.h:1
@@ -310,22 +294,26 @@ msgid "System"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:52
-msgid "Universal Access"
+msgid "Themes &amp; Tweaks"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:53
-msgid "Version Control"
+msgid "Universal Access"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:54
-msgid "Viewers"
+msgid "Version Control"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:55
-msgid "Web Browsers"
+msgid "Viewers"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:56
+msgid "Web Browsers"
+msgstr ""
+
+#: ../data/software-center.menu.in.h:57
 msgid "Web Development"
 msgstr ""
 
@@ -568,13 +556,13 @@ msgstr ""
 msgid "Get Software"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:222
+#: ../softwarecenter/view/availablepane.py:218
 #: ../softwarecenter/view/installedpane.py:78
 #: ../softwarecenter/view/channelpane.py:84
 msgid "Search Results"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:261
+#: ../softwarecenter/view/availablepane.py:257
 #: ../softwarecenter/view/installedpane.py:146
 #: ../softwarecenter/view/channelpane.py:174
 #, python-format
@@ -583,7 +571,7 @@ msgid_plural "%s matching items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:265
+#: ../softwarecenter/view/availablepane.py:261
 #: ../softwarecenter/view/channelpane.py:178
 #, python-format
 msgid "%s item available"
