@@ -127,13 +127,30 @@ class AppDetailsView(WebkitWidget):
 
         # get apt cache data
         pkgname = self.db.get_pkgname(self.doc)
-        self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.pkg = None
         if (self.cache.has_key(pkgname) and
             self.cache[pkgname].candidate):
             self.pkg = self.cache[pkgname]
         if self.pkg:
             self.homepage_url = self.pkg.candidate.homepage
+
+        # setup component
+        self.component = self._get_component(self.pkg)
+
+    def _get_component(self, pkg):
+        """ 
+        get the component (main, universe, ..) for the given pkg object
+        
+        this uses the data from apt, if there is none it uses the 
+        data from the app-install-data files
+        """
+        if not pkg or not pkg.candidate:
+            return self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        for origin in pkg.candidate.origins:
+            if (origin.origin == "Ubuntu" and 
+                origin.trusted and 
+                origin.component):
+                return origin.component
     
     def show_app(self, app):
         logging.debug("AppDetailsView.show_app '%s'" % app)
@@ -557,6 +574,7 @@ if __name__ == "__main__":
     #view.show_app("3D Chess", "3dchess")
     #view.show_app("Movie Player", "totem")
     view.show_app(Application("ACE", "unace"))
+    #view.show_app(Application("", "2vcard"))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")

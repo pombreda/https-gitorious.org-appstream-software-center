@@ -1,4 +1,26 @@
-software-center (1.1.17) UNRELEASED; urgency=low
+software-center (1.1.18) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * data/templates/AppDetailsView.html:
+    - cherry pick progress nice bar improvements from 
+      Michael Forrest (many thanks)
+  * softwarecenter/view/appdetailsview.py:
+    - show correct maintenance status for non applications
+      (LP: #538172)
+
+  [ Gary Lasker ]
+  * data/ui/SoftwareCenter.ui:
+    - don't translate available pane notebook labels
+      (LP: #539371)
+  * softwarecenter/view/viewswitcher.py:
+    - when collapsing a node in the left pane (e.g. "Get Software"),
+      select the node (LP: 532774) 
+  * softwarecenter/view/appview.py:
+    - tweak padding in list view buttons (LP: #537524)  
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Mar 2010 16:13:19 -0400
+
+software-center (1.1.17) lucid; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/navhistory.py:

@@ -87,12 +87,12 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("cursor-changed", self.on_cursor_changed)
         
     def on_treeview_row_expanded(self, widget, iter, path):
-        #behaviour overrides
+        # do nothing on a node expansion
         pass
         
     def on_treeview_row_collapsed(self, widget, iter, path):
-        #behaviour overrides
-        pass
+        # on a node collapse, select the node
+        self.set_cursor(path)
     
     def on_treeview_selected(self, path):
         if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
