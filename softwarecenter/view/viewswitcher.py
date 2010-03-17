@@ -181,6 +181,7 @@ class ViewSwitcherList(gtk.TreeStore):
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
+        print "on_transactions_changed '%s'" % total_transactions
         pending = len(total_transactions)
         if pending > 0:
             for row in self:
@@ -196,6 +197,7 @@ class ViewSwitcherList(gtk.TreeStore):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
+            print "UPDATE channels here"
                     
     def _get_icon(self, icon_name):
         if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
