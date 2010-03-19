@@ -18,6 +18,12 @@
 
 import logging
 import time
+import xml.sax.saxutils
+
+# define additional entities for the unescape method, needed
+# because only '&amp;', '&lt;', and '&gt;' are included by default
+ESCAPE_ENTITIES = {"&apos;":"'",
+                   '&quot;':'"'}
 
 class ExecutionTime(object):
     """
@@ -69,6 +75,12 @@ def decode_xml_char_reference(s):
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
+def unescape(text):
+    """
+    unescapes the given text
+    """
+    return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
+
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print s
