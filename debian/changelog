@@ -17,8 +17,13 @@ software-center (1.1.18) UNRELEASED; urgency=low
       select the node (LP: 532774) 
   * softwarecenter/view/appview.py:
     - tweak padding in list view buttons (LP: #537524)  
+  * data/templates/AppDetailsView.html,
+    data/templates/CategoriesView.html:
+    - set following items as not draggable; screenshot thumbnail
+      in details view, "Featured Applications" icon and general
+      images in categories view (LP: 530163)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Mar 2010 16:13:19 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Mar 2010 16:09:29 -0400
 
 software-center (1.1.17) lucid; urgency=low
 
