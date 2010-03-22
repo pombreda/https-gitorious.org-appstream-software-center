@@ -21,9 +21,9 @@ software-center (1.1.18) UNRELEASED; urgency=low
     data/templates/CategoriesView.html:
     - set following items as not draggable; screenshot thumbnail
       in details view, "Featured Applications" icon and general
-      images in categories view (LP: 530163)
+      images in categories view (LP: #530163)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Mar 2010 16:09:29 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Mar 2010 16:32:47 -0400
 
 software-center (1.1.17) lucid; urgency=low
 
