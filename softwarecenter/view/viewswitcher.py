@@ -164,11 +164,20 @@ class ViewSwitcherList(gtk.TreeStore):
         available_icon = self._get_icon("softwarecenter")
         available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
         
+        # check current set of channel origins
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("TIME self._get_origins_from_cache"):
+            origins = self._get_origins_from_cache()
+        
+        for origin in origins:
+            print "origin is: %s" % origin
+        
         # get list of software channels
         channels = self._get_channels()
         
         # iterate the channels and add as subnodes of the available node
         for channel in channels:
+            print channel
             self.append(available_iter, [channel.get_channel_icon(),
                                          channel.get_channel_display_name(),
                                          self.ACTION_ITEM_CHANNEL,
@@ -197,7 +206,7 @@ class ViewSwitcherList(gtk.TreeStore):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
-            print "UPDATE channels here"
+            print "UPDATE channels here?"
                     
     def _get_icon(self, icon_name):
         if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
@@ -207,6 +216,17 @@ class ViewSwitcherList(gtk.TreeStore):
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
         return icon
+        
+    def _get_origins_from_cache(self):
+        """
+        return a set of the current channel origins from the apt.Cache
+        """
+        origins = set()
+        for pkg in apt.Cache():
+            for item in pkg.candidate.origins:
+                if item.origin:
+                    origins.add(item.origin)
+        return origins
         
     def _get_channels(self):
         """

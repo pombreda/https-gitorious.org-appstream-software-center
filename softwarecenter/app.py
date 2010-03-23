@@ -464,6 +464,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # we need to reopen when the database finished updating
             self.db.reopen()
             self.window_rebuilding.hide()
+            # Update the viewswitcher channel list
+            print "on_database_rebuilding_handler: Update the viewswitcher channel list here"
 
     def setup_database_rebuilding_listener(self):
         """

@@ -17,8 +17,11 @@ software-center (1.1.18) UNRELEASED; urgency=low
       select the node (LP: 532774) 
   * softwarecenter/view/appview.py:
     - tweak padding in list view buttons (LP: #537524)  
+  * softwarecenter/view/viewswitcher.py:
+    - keep channel items in the navigation pane up-to-date
+      (LP: 535055) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Mar 2010 16:13:19 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 23 Mar 2010 10:54:26 -0400
 
 software-center (1.1.17) lucid; urgency=low
 
