@@ -727,8 +727,8 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             # check if the current app has an action that is in progress
             if self.props.action_in_progress < 0:
                 # draw rating with the number of reviews
-                self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad,
-                    w, h, max_star_width, flags)
+                if self.show_ratings:
+                    self.draw_rating_and_reviews(window, widget, cell_area, layout, xpad, ypad, w, h, max_star_width, flags)
             else:
                 self.draw_progress(window, widget, cell_area, layout, dst_x, ypad, flags)
 

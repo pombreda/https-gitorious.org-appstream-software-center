@@ -11,6 +11,11 @@ software-center (1.1.18) UNRELEASED; urgency=low
     - use "ubuntu-almost-fixed-height-mode" when available
       to speed up the treeview drawing significantly
       (LP: #514879)
+  * softwarecenter/view/softwarepane.py:
+    - set show_ratings to "false" because ratings&reviews are
+      cancelt for lucid (LP: #538129)
+  * softwarecenter/view/appview.py:
+    - only show active pane ratings if show_ratings is true
 
   [ Gary Lasker ]
   * data/ui/SoftwareCenter.ui:
