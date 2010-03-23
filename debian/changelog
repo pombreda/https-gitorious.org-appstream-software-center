@@ -1,3 +1,10 @@
+software-center (1.1.19) UNRELEASED; urgency=low
+
+  * softwarecenter/view/channelpane.py:
+    - hide ratings in channel pane also (LP: #538129)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 23 Mar 2010 12:38:14 -0400
+
 software-center (1.1.18) lucid; urgency=low
 
   [ Michael Vogt ]
