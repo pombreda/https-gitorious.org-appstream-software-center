@@ -45,7 +45,7 @@ class ChannelPane(SoftwarePane):
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=True)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         self.channel = None
         self.apps_filter = None
         self.search_terms = ""

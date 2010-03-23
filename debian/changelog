@@ -1,10 +1,12 @@
 software-center (1.1.19) UNRELEASED; urgency=low
 
+  * softwarecenter/view/channelpane.py:
+    - hide ratings in channel pane also (LP: #538129)
   * softwarecenter/view/viewswitcher.py:
-    - keep channel items in the navigation pane up-to-date
-      (LP: 535055)
+    - keep list of channel items in the navigation pane
+      up-to-date (LP: 535055)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 23 Mar 2010 11:36:26 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 23 Mar 2010 12:38:14 -0400
 
 software-center (1.1.18) lucid; urgency=low
 
