@@ -251,6 +251,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # setup debconf only if we have a pkg
             trans.set_debconf_frontend("gnome", reply_handler=lambda t: True,
                                        error_handler=self._on_trans_error)
+            trans.set_remove_obsoleted_depends(True, 
+                                               reply_handler=lambda t: True,
+                                               error_handler=self._on_trans_error)
             
         # set proxy and run
         self.set_http_proxy(trans)

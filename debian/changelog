@@ -7,6 +7,10 @@ software-center (1.1.18) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - show correct maintenance status for non applications
       (LP: #538172)
+  * softwarecenter/view/appview.py:
+    - use "ubuntu-almost-fixed-height-mode" when available
+      to speed up the treeview drawing significantly
+      (LP: #514879)
 
   [ Gary Lasker ]
   * data/ui/SoftwareCenter.ui:
@@ -23,7 +27,7 @@ software-center (1.1.18) UNRELEASED; urgency=low
       in details view, "Featured Applications" icon and general
       images in categories view (LP: #530163)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 22 Mar 2010 16:32:47 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Mar 2010 10:13:26 +0100
 
 software-center (1.1.17) lucid; urgency=low
 

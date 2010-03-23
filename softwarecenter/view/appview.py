@@ -834,10 +834,15 @@ class AppView(gtk.TreeView):
         self.buttons = {}
         self.focal_btn = None
 
-        # FIXME: mvo this makes everything sluggish but its the only
-        #        way to make the rows grow (sluggish because gtk will
-        #        use a lot of the handlers to validate the treeview)
-        #self.set_fixed_height_mode(True)
+        # if this hacked mode is available everything will be fast
+        # and we can set fixed_height mode and still have growing rows
+        # (see upstream gnome #607447)
+        try:
+            self.set_property("ubuntu-almost-fixed-height-mode", True)
+            self.set_fixed_height_mode(True)
+        except:
+            logging.warn("ubuntu-almost-fixed-height-mode extension not available")
+
         self.set_headers_visible(False)
         tp = CellRendererPixbufWithOverlay("software-center-installed")
         column = gtk.TreeViewColumn("Icon", tp,
@@ -933,6 +938,7 @@ class AppView(gtk.TreeView):
         row = rows[0][0]
         # update active app, use row-ref as argument
         model._set_active_app(row)
+        #self.queue_draw()
         # emit selected signal
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
