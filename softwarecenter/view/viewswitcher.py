@@ -164,16 +164,29 @@ class ViewSwitcherList(gtk.TreeStore):
         available_icon = self._get_icon("softwarecenter")
         available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
         
-        # check current set of channel origins
-        from softwarecenter.utils import ExecutionTime
-        with ExecutionTime("TIME self._get_origins_from_cache"):
-            origins = self._get_origins_from_cache()
-        
-        for origin in origins:
-            print "origin is: %s" % origin
-        
         # get list of software channels
-        channels = self._get_channels()
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("TIME self._get_channels()"):
+            channels = self._get_channels()
+        
+        # check current set of channel origins in the apt cache to see if anything
+        # has changed, and refresh the channel list if needed
+        with ExecutionTime("TIME self._get_origins_from_cache()"):
+            cache_origins = self._get_origins_from_cache()
+        
+        for origin in cache_origins:
+            print "cache origin is: %s" % origin
+            
+        db_origins = set()
+        for channel in channels:
+            if channel.get_channel_origin():
+                db_origins.add(channel.get_channel_origin())
+                
+        for origin in db_origins:
+            print "db origin is: %s" % origin
+            
+        if cache_origins != db_origins:
+            print "origins in cache do not match origins in xapian, must do an update-apt-xapian-database"
         
         # iterate the channels and add as subnodes of the available node
         for channel in channels:
@@ -269,7 +282,7 @@ class ViewSwitcherList(gtk.TreeStore):
             elif channel_name == distro_channel_name:
                 dist_channel = (SoftwareChannel(self.icons,
                                                 distro_channel_name,
-                                                None,
+                                                channel_origin,
                                                 None,
                                                 filter_required=True))
             elif channel_origin and channel_origin.startswith("LP-PPA"):
