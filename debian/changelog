@@ -1,4 +1,4 @@
-software-center (1.1.18) UNRELEASED; urgency=low
+software-center (1.1.18) lucid; urgency=low
 
   [ Michael Vogt ]
   * data/templates/AppDetailsView.html:
