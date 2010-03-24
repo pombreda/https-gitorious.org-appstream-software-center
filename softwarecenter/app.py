@@ -365,6 +365,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # return code of 1 means that it changed
         if ret == 1:
             self.run_update_cache()
+            print "STUB: channels have changed, must to an update-apt-xapian-index here"
+            print "      ...or, is this simply incorporated into the aptdaemon process, that is, self.backend.reload()?"
         self.window_main.set_sensitive(True)
 
     def on_menuitem_about_activate(self, widget):
@@ -465,7 +467,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db.reopen()
             self.window_rebuilding.hide()
             # Update the viewswitcher channel list
-            print "on_database_rebuilding_handler: Update the viewswitcher channel list here"
+            print "STUB: on_database_rebuilding_handler: Update the viewswitcher channel list here?"
 
     def setup_database_rebuilding_listener(self):
         """

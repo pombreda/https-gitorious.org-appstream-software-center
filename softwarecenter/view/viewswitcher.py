@@ -188,7 +188,6 @@ class ViewSwitcherList(gtk.TreeStore):
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
-        print "on_transactions_changed '%s'" % total_transactions
         pending = len(total_transactions)
         if pending > 0:
             for row in self:
@@ -204,7 +203,6 @@ class ViewSwitcherList(gtk.TreeStore):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
-            print "UPDATE channels here?"
                     
     def _get_icon(self, icon_name):
         if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
@@ -324,7 +322,7 @@ class ViewSwitcherList(gtk.TreeStore):
             print "db origin is: %s" % origin
             
         if cache_origins != db_origins:
-            print "origins in cache do not match origins in xapian, must do an update-apt-xapian-database"
+            print "STUB: origins in cache do not match origins in xapian, must do an update-apt-xapian-database"
         return False
 
 if __name__ == "__main__":
