@@ -208,8 +208,8 @@ class CategoriesView(WebkitWidget):
             icon = cp.get("Desktop Entry","Icon")
         except Exception, e:
             icon = "applications-other"
-            if gettext_domain:
-                name = gettext.dgettext(gettext_domain, untranslated_name)
+        if gettext_domain:
+            name = gettext.dgettext(gettext_domain, untranslated_name)
         return (untranslated_name, name, gettext_domain, icon)
 
     def _parse_and_or_not_tag(self, element, query, xapian_op):

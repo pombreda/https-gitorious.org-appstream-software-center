@@ -1,7 +1,12 @@
 software-center (1.1.19) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/channelpane.py:
     - hide ratings in channel pane also (LP: #538129)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/catview.py:
+    - fix i18n bug in category list (LP: #545102)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 23 Mar 2010 12:38:14 -0400
 
