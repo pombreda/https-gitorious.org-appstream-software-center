@@ -171,7 +171,7 @@ class ViewSwitcherList(gtk.TreeStore):
             
         # kick off a background check for changes that may have been made
         # in the channels list
-        glib.timeout_add(1000, lambda: self._check_channels_updated(channels))
+        glib.timeout_add(1000, lambda: self._check_for_channel_updates(channels))
 
         # iterate the channels and add as subnodes of the available node
         for channel in channels:
@@ -301,7 +301,7 @@ class ViewSwitcherList(gtk.TreeStore):
                     origins.add(item.origin)
         return origins
         
-    def _check_channels_updated(self, channels):
+    def _check_for_channel_updates(self, channels):
         """ 
         check current set of channel origins in the apt cache to see if anything
         has changed, and refresh the channel list if needed
