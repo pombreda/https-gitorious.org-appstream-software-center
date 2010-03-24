@@ -297,6 +297,8 @@ class ViewSwitcherList(gtk.TreeStore):
         origins = set()
         for pkg in apt.Cache():
             for item in pkg.candidate.origins:
+                while gtk.events_pending():
+                    gtk.main_iteration()
                 if item.origin:
                     origins.add(item.origin)
         return origins
