@@ -301,6 +301,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """
         if self.active_pane:
             state = self.active_pane.searchentry.is_focus()
+            self.menuitem_search.set_sensitive(not state)
         else:
             state = False
         edit_menu_items = [self.menuitem_undo, 
