@@ -168,26 +168,11 @@ class ViewSwitcherList(gtk.TreeStore):
         from softwarecenter.utils import ExecutionTime
         with ExecutionTime("TIME self._get_channels()"):
             channels = self._get_channels()
-        
-        # check current set of channel origins in the apt cache to see if anything
-        # has changed, and refresh the channel list if needed
-        with ExecutionTime("TIME self._get_origins_from_cache()"):
-            cache_origins = self._get_origins_from_cache()
-        
-        for origin in cache_origins:
-            print "cache origin is: %s" % origin
             
-        db_origins = set()
-        for channel in channels:
-            if channel.get_channel_origin():
-                db_origins.add(channel.get_channel_origin())
-                
-        for origin in db_origins:
-            print "db origin is: %s" % origin
-            
-        if cache_origins != db_origins:
-            print "origins in cache do not match origins in xapian, must do an update-apt-xapian-database"
-        
+        # kick off a background check for changes that may have been made
+        # in the channels list
+        glib.timeout_add(1000, lambda: self._check_channels_updated(channels))
+
         # iterate the channels and add as subnodes of the available node
         for channel in channels:
             print channel
@@ -229,17 +214,6 @@ class ViewSwitcherList(gtk.TreeStore):
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
         return icon
-        
-    def _get_origins_from_cache(self):
-        """
-        return a set of the current channel origins from the apt.Cache
-        """
-        origins = set()
-        for pkg in apt.Cache():
-            for item in pkg.candidate.origins:
-                if item.origin:
-                    origins.add(item.origin)
-        return origins
         
     def _get_channels(self):
         """
@@ -317,6 +291,41 @@ class ViewSwitcherList(gtk.TreeStore):
         channels.extend(unknown_channel)
         
         return channels
+        
+    def _get_origins_from_cache(self):
+        """
+        return a set of the current channel origins from the apt.Cache itself
+        """
+        origins = set()
+        for pkg in apt.Cache():
+            for item in pkg.candidate.origins:
+                if item.origin:
+                    origins.add(item.origin)
+        return origins
+        
+    def _check_channels_updated(self, channels):
+        """ 
+        check current set of channel origins in the apt cache to see if anything
+        has changed, and refresh the channel list if needed
+        """
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("TIME self._get_origins_from_cache()"):
+            cache_origins = self._get_origins_from_cache()
+        
+        for origin in cache_origins:
+            print "cache origin is: %s" % origin
+            
+        db_origins = set()
+        for channel in channels:
+            if channel.get_channel_origin():
+                db_origins.add(channel.get_channel_origin())
+                
+        for origin in db_origins:
+            print "db origin is: %s" % origin
+            
+        if cache_origins != db_origins:
+            print "origins in cache do not match origins in xapian, must do an update-apt-xapian-database"
+        return False
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
