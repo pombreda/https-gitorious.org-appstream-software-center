@@ -147,7 +147,7 @@
       <guisubmenu>Administration</guisubmenu></menuchoice>.
     </para>
     <para>
-      If you are using Ubuntu Netbook Remix,
+      If you are using Ubuntu Netbook Edition,
       an application appears in its category on the home screen.
     </para>
     <para>
@@ -214,11 +214,14 @@
       </listitem>
     </itemizedlist>
     <para>
-      You can use <menuchoice><guimenu>System</guimenu>
-      <guisubmenu>Preferences</guisubmenu>
-      <guimenuitem>Main Menu</guimenuitem></menuchoice> to hide unwanted
-      items from the <guimenu>Applications</guimenu> menu without
-      removing the actual programs.
+      You can use the <guilabel>Main Menu</guilabel> settings to hide unwanted
+      items without removing them from the computer.
+      In Ubuntu, you can find <guilabel>Main Menu</guilabel> inside
+      <menuchoice><guimenu>System</guimenu>
+      <guisubmenu>Preferences</guisubmenu></menuchoice>.
+      In Ubuntu Netbook Edition, it is in
+      <menuchoice><guimenu>Settings</guimenu>
+      <guisubmenu>Preferences</guisubmenu></menuchoice>.
     </para>
     <itemizedlist>
       <listitem>
