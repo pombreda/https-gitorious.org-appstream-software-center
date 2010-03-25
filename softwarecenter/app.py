@@ -233,7 +233,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_app_selected(self, widget, app):
         self.update_app_status_menu()
-        self.menuitem_copy.set_sensitive(True)
 
     def on_window_main_delete_event(self, widget, event):
         self.save_state()
@@ -299,23 +298,34 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """
         Check whether the search field is focused and if so, focus some items
         """
-        if self.active_pane:
-            state = self.active_pane.searchentry.is_focus()
-            if self.active_pane.searchentry.flags() & gtk.VISIBLE:
-                self.menuitem_search.set_sensitive(not state)
-            else:
-                self.menuitem_search.set_sensitive(False)
-        else:
-            state = False
-        edit_menu_items = [self.menuitem_undo, 
-                           self.menuitem_redo, 
+        edit_menu_items = [self.menuitem_undo,
+                           self.menuitem_redo,
                            self.menuitem_cut, 
-                           self.menuitem_copy, 
-                           self.menuitem_paste, 
-                           self.menuitem_delete, 
-                           self.menuitem_select_all]
+                           self.menuitem_copy,
+                           self.menuitem_paste,
+                           self.menuitem_delete,
+                           self.menuitem_select_all,
+                           self.menuitem_search]
         for item in edit_menu_items:
-            item.set_sensitive(state)
+            item.set_sensitive(False)
+        if self.active_pane.searchentry.flags() & gtk.VISIBLE:
+            # undo, redo, cut, copy, paste, delete, select_all sensitive iff searchentry is focused (and other more specific conditions)
+            if self.active_pane.searchentry.is_focus():
+                if len(self.active_pane.searchentry._undo_stack) > 1:
+                    self.menuitem_undo.set_sensitive(True)
+                if len(self.active_pane.searchentry._redo_stack) > 0:
+                    self.menuitem_redo.set_sensitive(True)
+                if len(self.active_pane.searchentry.get_selection_bounds()) != 0:
+                    if self.active_pane.searchentry.get_selection_bounds()[0] != self.active_pane.searchentry.get_selection_bounds()[1]:
+                        self.menuitem_cut.set_sensitive(True)
+                        self.menuitem_copy.set_sensitive(True)
+                self.menuitem_paste.set_sensitive(True)
+                if len(self.active_pane.searchentry.get_text()) != 0:
+                    self.menuitem_delete.set_sensitive(True)
+                    self.menuitem_select_all.set_sensitive(True)
+            # search sensitive iff searchentry is not focused
+            else:
+                self.menuitem_search.set_sensitive(True)
 
     def on_menuitem_undo_activate(self, menuitem):
         self.active_pane.searchentry.undo()
