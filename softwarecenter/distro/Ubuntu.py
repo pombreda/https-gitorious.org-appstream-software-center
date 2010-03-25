@@ -165,7 +165,7 @@ class Ubuntu(Distro):
                
         # if we couldn't fiure a support date, use a generic maintenance
         # string without the date
-        if channel:
+        if channel or component == "partner":
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the third party "
                      "vendor.") % appname
