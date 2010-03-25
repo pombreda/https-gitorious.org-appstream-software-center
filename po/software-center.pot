@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-16 10:03-0400\n"
+"POT-Creation-Date: 2010-03-25 09:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -317,6 +317,10 @@ msgstr ""
 msgid "Web Development"
 msgstr ""
 
+#: ../data/featured.menu.in.h:1
+msgid "Featured Applications"
+msgstr ""
+
 #: ../softwarecenter/app.py:134
 msgid "Sorry, can not open the software database"
 msgstr ""
@@ -325,7 +329,7 @@ msgstr ""
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:183
+#: ../softwarecenter/backend/aptd.py:184
 msgid "Error"
 msgstr ""
 
@@ -466,71 +470,71 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:183
+#: ../softwarecenter/view/appdetailsview.py:200
 #, python-format
 msgid ""
 "This software is available from the '%s' source, which you are not currently "
 "using."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:188
+#: ../softwarecenter/view/appdetailsview.py:205
 msgid ""
 "To show information about this item, the software catalog needs updating."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:191
+#: ../softwarecenter/view/appdetailsview.py:208
 #, python-format
 msgid "Sorry, '%s' is not available for this type of computer (%s)."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:253
-#: ../softwarecenter/view/appdetailsview.py:257
+#: ../softwarecenter/view/appdetailsview.py:270
+#: ../softwarecenter/view/appdetailsview.py:274
 msgid "Application Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:283
+#: ../softwarecenter/view/appdetailsview.py:300
 #, python-format
 msgid "Version: %s (%s)"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:298
+#: ../softwarecenter/view/appdetailsview.py:315
 msgid "Website"
 msgstr ""
 
 #. TRANSLATORS: This text will be showed as price of the software
-#: ../softwarecenter/view/appdetailsview.py:304
+#: ../softwarecenter/view/appdetailsview.py:321
 msgid "Free"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:305
+#: ../softwarecenter/view/appdetailsview.py:322
 #, python-format
 msgid "Price: %s"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:319
+#: ../softwarecenter/view/appdetailsview.py:336
 msgid "No screenshot available"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:351
+#: ../softwarecenter/view/appdetailsview.py:368
 #, python-format
 msgid "%s - Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:472
-#: ../softwarecenter/view/appview.py:888
+#: ../softwarecenter/view/appdetailsview.py:489
+#: ../softwarecenter/view/appview.py:893
 msgid "Remove"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:475
+#: ../softwarecenter/view/appdetailsview.py:492
 msgid "Install - Free"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarecenter/view/appdetailsview.py:485
+#: ../softwarecenter/view/appdetailsview.py:502
 msgid "Use This Source"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:488
+#: ../softwarecenter/view/appdetailsview.py:505
 msgid "Update Now"
 msgstr ""
 
@@ -542,11 +546,11 @@ msgid_plural "%s reviews"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/appview.py:888
+#: ../softwarecenter/view/appview.py:893
 msgid "Install"
 msgstr ""
 
-#: ../softwarecenter/view/appview.py:889
+#: ../softwarecenter/view/appview.py:894
 msgid "More Info"
 msgstr ""
 
