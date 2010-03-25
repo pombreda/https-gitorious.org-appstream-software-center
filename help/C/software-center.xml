@@ -6,8 +6,8 @@
 <!--<?yelp:chunk-depth 4?>-->
 <!--
       (Do not remove this comment block.)
-  Version: 0.1
-  Last modified: Sep 7, 2009
+  Version: 2.0
+  Last modified: Mar 25, 2010
   Maintainers:
                Michael Vogt <mvo@ubuntu.com>
                
@@ -91,18 +91,18 @@
     <orderedlist>
       <listitem>
         <para>
-          In the <guilabel>Get Free Software</guilabel> section,
+          In the <guilabel>Get Software</guilabel> section,
           find the program you want to install.
           If you already know its name, try typing the name in the search field.
           Or try searching for the type of program you want
           (like &#8220;spreadsheet&#8221;).
-          Otherwise, browse the Software Center departments to find the program.
+          Otherwise, browse the list of departments to find the program.
         </para>
       </listitem>
       <listitem>
         <para>
-          Click the program in the list, and click the arrow button to go to the
-          screen for the program.
+          Select the program in the list, and choose
+          <guilabel>More Info</guilabel>.
         </para>
       </listitem>
       <listitem>
@@ -118,9 +118,8 @@
       and the speed of your computer and Internet connection.
     </para>
     <para>
-      While a program is being installed,
-      it appears in the Software Center&#8217;s <guilabel>In Progress</guilabel> section.
-      As soon as it disappears, the program is installed.
+      When the screen changes to say &#8220;Installed&#8221;,
+      the software is ready to use.
     </para>
     <itemizedlist>
       <listitem><para><xref linkend="launching" endterm="launching-title"/></para></listitem>
@@ -176,13 +175,7 @@
       </listitem>
       <listitem>
         <para>
-          Click the program in the list, and click the arrow button to go to the
-          screen for the program.
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Click the <guilabel>Remove</guilabel> button.
+          Select the program in the list, and choose <guilabel>Remove</guilabel>.
           You may need to enter your Ubuntu password.
         </para>
       </listitem>
@@ -271,7 +264,7 @@
     >What if a program I want isn&#8217;t in the Software Center?</title>
     <para>
       First, check that <menuchoice><guimenu>View</guimenu>
-      <guimenuitem>All Applications</guimenuitem></menuchoice> is selected.
+      <guimenuitem>All Software</guimenuitem></menuchoice> is selected.
       That ensures you can see all the software available in the Software Center.
     </para>
     <para>
@@ -290,7 +283,7 @@
     <title id="bugs-title"
     >What if a program doesn&#8217;t work?</title>
     <para>
-      With thousands of applications in the Software Center,
+      With tens of thousands of programs in the Software Center,
       there&#8217;s always the chance that a few of them won&#8217;t work
       properly on your computer.
     </para>
