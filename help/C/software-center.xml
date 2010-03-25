@@ -231,9 +231,9 @@
     </itemizedlist>
   </chapter>
   <chapter id="canonical-maintained">
-    <title>What does &#8220;Canonical-maintained&#8221; mean?</title>
+    <title>What is &#8220;Canonical-maintained&#8221;?</title>
     <para>
-      Some of the software available in the Ubuntu Software Center is
+      Some of the software available in Ubuntu Software Center is
       maintained by Canonical.
       Canonical engineers ensure that security fixes and other critical updates
       are provided for these programs.
@@ -241,6 +241,17 @@
     <para>
       Other software is maintained by the Ubuntu developer community.
       Any updates are provided on a best-effort basis.
+    </para>
+  </chapter>
+  <chapter id="canonical-partners">
+    <title>What is &#8220;Canonical Partners&#8221;?</title>
+    <para>
+      <guilabel>Canonical Partners</guilabel> shows software from vendors who
+      have worked with Canonical to make their software available for Ubuntu.
+    </para>
+    <para>
+      You can install this software in the same way as any other software in
+      Ubuntu Software Center.
     </para>
   </chapter>
   <chapter id="why-free">
