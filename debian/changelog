@@ -1,12 +1,49 @@
-software-center (1.1.19) UNRELEASED; urgency=low
+software-center (1.1.21) UNRELEASED; urgency=low
 
-  * softwarecenter/view/channelpane.py:
-    - hide ratings in channel pane also (LP: #538129)
+  [ Michael Vogt ]
+  * merged from lp:~vish.../software-center/3newicons, 
+    many thanks
+  * softwarecenter/view/catview.py:
+    - fix icon size in sub-categories to match icon theme size
+
+  [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
     - keep list of channel items in the navigation pane
       up-to-date (LP: 535055)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 23 Mar 2010 12:38:14 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 25 Mar 2010 19:54:11 -0400
+
+software-center (1.1.20) lucid; urgency=low
+
+  * merged lp:~mpt/software-center/help-2.0, many thanks!
+  * softwarecenter/distro/Ubuntu.py:
+    - show correct maintenance status for packages in the partner 
+      channel 
+  * softwarecenter/app.py:
+    - use glib.timeout_add_seconds()
+  * softwarecenter/distro/__init__.py, softwarecenter/distro/Ubuntu.py:
+    - add/implement "is_supported()"
+  * softwarecenter/view/appview.py:
+    - fix supported only view for packages
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 17:53:43 +0100
+
+software-center (1.1.19) lucid; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/channelpane.py:
+    - hide ratings in channel pane also (LP: #538129)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/catview.py:
+    - fix i18n bug in category list (LP: #545102)
+  * merge lp:~kiwinote/software-center/use_new_icons, many
+    thanks!
+  * fix i18n issue in featured application (LP: #545095)
+  * merge  lp:~kiwinote/software-center/bug530187, many thanks to
+    "Kiwinote" (LP: #530187)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 09:48:54 +0100
 
 software-center (1.1.18) lucid; urgency=low
 

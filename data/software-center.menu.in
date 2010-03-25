@@ -49,7 +49,7 @@
     <!-- package sub-sections, see spec-->
     <Menu>
       <_Name>Debugging</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-debugging</SCIcon>
       <Include>
 	<Category>Debugging</Category>
       </Include>
@@ -57,7 +57,7 @@
 
     <Menu>
       <_Name>Graphic Interface Design</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-interfacedesign</SCIcon>
       <Include>
 	<Category>GUIDesigner</Category>
       </Include>
@@ -65,7 +65,7 @@
 
     <Menu>
       <_Name>Haskell</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-haskell</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>haskell</SCSection>
@@ -86,7 +86,7 @@
 
     <Menu>
       <_Name>Java</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-java</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>java</SCSection>
@@ -135,7 +135,7 @@
 
     <Menu>
       <_Name>Mono/CLI</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-monodevelopment</SCIcon>
       <Include>
         <Or>
           <SCSection>cli-mono</SCSection>
@@ -182,7 +182,7 @@
 
     <Menu>
       <_Name>Python</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-python</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>python</SCSection>
@@ -195,7 +195,7 @@
 
     <Menu>
       <_Name>Ruby</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-ruby</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>ruby</SCSection>
@@ -257,7 +257,7 @@
     </Menu>
     <Menu>
       <_Name>Biology</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-biology</SCIcon>
       <Include><Category>Biology</Category></Include>
     </Menu>
     <Menu>
@@ -278,7 +278,7 @@
     </Menu>
     <Menu>
       <_Name>Electronics</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-electronics</SCIcon>
       <Include><Category>Electronics</Category></Include>
     </Menu>
     <Menu>
@@ -288,19 +288,19 @@
     </Menu>
     <Menu>
       <_Name>Geography</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-geography</SCIcon>
       <Include><Category>Geography</Category></Include>
     </Menu>
     <Menu>
       <_Name>Geology</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-geology</SCIcon>
       <Include>
         <Or><Category>Geology</Category><Category>Geoscience</Category></Or>
       </Include>
     </Menu>
     <Menu>
       <_Name>Mathematics</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-mathematics</SCIcon>
       <Include>
         <Or>
           <Category>DataVisualization</Category>
@@ -319,7 +319,7 @@
     </Menu>
     <Menu>
       <_Name>Physics</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-physics</SCIcon>
       <Include><Category>Physics</Category></Include>
     </Menu>
   </Menu> <!-- End Science & Engineering -->
@@ -327,7 +327,7 @@
   <!-- Fonts -->
   <Menu>
     <_Name>Fonts</_Name>
-    <SCIcon>font-x-generic</SCIcon>
+    <SCIcon>applications-fonts</SCIcon>
     <Include>
       <Or>
         <SCPkgnameWildcard>ttf*</SCPkgnameWildcard>
@@ -355,28 +355,28 @@
     </Menu>
     <Menu>
       <_Name>Board Games</_Name>
-      <SCIcon>gnome-glchess</SCIcon>
+      <SCIcon>applications-boardgames</SCIcon>
       <Include>
         <Category>BoardGame</Category>
       </Include>
     </Menu>
     <Menu>
       <_Name>Card Games</_Name>
-      <SCIcon>gnome-aisleriot</SCIcon>
+      <SCIcon>applications-cardgames</SCIcon>
       <Include>
         <Category>CardGame</Category>
       </Include>
     </Menu>
     <Menu>
       <_Name>Puzzles</_Name>
-      <SCIcon>system-run</SCIcon>
+      <SCIcon>applications-puzzles</SCIcon>
       <Include>
         <Category>LogicGame</Category>
       </Include>
     </Menu>
     <Menu>
       <_Name>Role Playing</_Name>
-      <SCIcon>stock_person</SCIcon>
+      <SCIcon>applications-roleplaying</SCIcon>
       <Include>
         <Category>RolePlaying</Category>
       </Include>
@@ -384,6 +384,7 @@
     <Menu>
       <_Name>Simulation</_Name>
       <Directory>SimulationGames.directory</Directory>
+      <SCIcon>applications-simulation</SCIcon>
       <Include>
         <Category>Simulation</Category>
       </Include>
@@ -391,6 +392,7 @@
     <Menu>
       <_Name>Sports</_Name>
       <Directory>SportsGames.directory</Directory>
+      <SCIcon>applications-sports</SCIcon>
       <Include>
         <Category>SportsGame</Category>
       </Include>
@@ -409,27 +411,27 @@
     </Include>
     <Menu>
       <_Name>3D</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-3D</SCIcon>
       <Include><And><Category>3DGraphics</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>Drawing</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-drawing</SCIcon>
       <Include><And><Category>VectorGraphics</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>Painting &amp; Editing</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-painting</SCIcon>
       <Include><And><Category>RasterGraphics</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>Photography</_Name>
-      <SCIcon>camera-photo</SCIcon>
+      <SCIcon>applications-photography</SCIcon>
       <Include><And><Category>Photography</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>Publishing</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-publishing</SCIcon>
       <Include><And><Category>Publishing</Category></And></Include>
     </Menu>
     <Menu>
@@ -460,22 +462,22 @@
     </Include>
     <Menu>
       <_Name>Chat</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-chat</SCIcon>
       <Include><And><Category>InstantMessaging</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>File Sharing</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-filesharing</SCIcon>
       <Include><And><Category>FileTransfer</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>Mail</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-mail</SCIcon>
       <Include><And><Category>Email</Category></And></Include>
     </Menu>
     <Menu>
       <_Name>Web Browsers</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-webbrowsers</SCIcon>
       <Include><And><Category>WebBrowser</Category></And></Include>
     </Menu>
   </Menu>   <!-- End Internet -->

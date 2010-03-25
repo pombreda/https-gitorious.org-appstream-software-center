@@ -22,8 +22,9 @@ import locale
 import subprocess
 
 from apt.utils import *
-from softwarecenter.distro import Distro
 from gettext import gettext as _
+from softwarecenter.distro import Distro
+from softwarecenter.enums import *
 
 class Ubuntu(Distro):
 
@@ -95,6 +96,20 @@ class Ubuntu(Distro):
         s = _("License: %s") % li
         return s
 
+    def is_supported(self, cache, doc, pkgname):
+        section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        if section == "main" and section == "restricted":
+            return True
+        if cache.has_key(pkgname) and cache[pkgname].candidate:
+            for origin in cache[pkgname].candidate.origins:
+                if (origin.origin == "Ubuntu" and 
+                    origin.trusted and 
+                    (origin.component == "main" or
+                     origin.component == "restricted")):
+                    return True
+        return False
+
+
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
         # try to figure out the support dates of the release and make
         # sure to look only for stuff in "Ubuntu" and "distro_codename"
@@ -165,7 +180,7 @@ class Ubuntu(Distro):
                
         # if we couldn't fiure a support date, use a generic maintenance
         # string without the date
-        if channel:
+        if channel or component == "partner":
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the third party "
                      "vendor.") % appname
