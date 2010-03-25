@@ -1,4 +1,4 @@
-software-center (1.1.19) UNRELEASED; urgency=low
+software-center (1.1.19) lucid; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/channelpane.py:
@@ -13,7 +13,7 @@ software-center (1.1.19) UNRELEASED; urgency=low
   * merge  lp:~kiwinote/software-center/bug530187, many thanks to
     "Kiwinote" (LP: #530187)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 23 Mar 2010 12:38:14 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 09:48:54 +0100
 
 software-center (1.1.18) lucid; urgency=low
 
