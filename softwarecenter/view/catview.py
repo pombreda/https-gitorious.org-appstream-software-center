@@ -55,6 +55,7 @@ class Category(object):
 class CategoriesView(WebkitWidget):
 
     CATEGORY_ICON_SIZE = 64
+    SUB_CATEGORY_ICON_SIZE = 48
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -120,8 +121,11 @@ class CategoriesView(WebkitWidget):
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
             if cat.iconname:
-                iconinfo = self.icons.lookup_icon(cat.iconname, 
-                                                  self.CATEGORY_ICON_SIZE, 0)
+                if self.in_subsection:
+                    size = self.SUB_CATEGORY_ICON_SIZE
+                else:
+                    size = self.CATEGORY_ICON_SIZE
+                iconinfo = self.icons.lookup_icon(cat.iconname, size, 0)
                 if iconinfo:
                     iconpath = iconinfo.get_filename()
                     logging.debug("icon: %s %s" % (iconinfo, iconpath))
@@ -136,7 +140,10 @@ class CategoriesView(WebkitWidget):
     def wksub_ubuntu_software_center(self):
         return _("Ubuntu Software Center")
     def wksub_icon_size(self):
-        return self.CATEGORY_ICON_SIZE
+        if self.in_subsection:
+            return self.SUB_CATEGORY_ICON_SIZE
+        else:
+            return self.CATEGORY_ICON_SIZE
     def wksub_header(self):
         return self.header
     def wksub_text_direction(self):

@@ -2,6 +2,8 @@ software-center (1.1.21) UNRELEASED; urgency=low
 
   * merged from lp:~vish.../software-center/3newicons, 
     many thanks
+  * softwarecenter/view/catview.py:
+    - fix icon size in sub-categories to match icon theme size
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
 
