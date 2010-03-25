@@ -57,33 +57,32 @@
       </author>
     </authorgroup>
     <abstract>
-    	<para>This manual explains how to use <application>Software Center</application>.</para>
+      <para>How to install and remove software in Ubuntu.</para>
     </abstract> 
   </bookinfo> 
   <!-- ============= Document Body ============================= -->
 
   <!-- ============= Introduction ============================== -->
   <chapter id="introduction">
-    <title>What is the Ubuntu Software Center?</title>
+    <title>What is Ubuntu Software Center?</title>
     <para>
-      The Ubuntu Software Center is a virtual catalog of thousands of free
-      applications available for Ubuntu &#8212;
-      software to make your computer more useful.
+      Ubuntu Software Center is a virtual catalog of thousands of free
+      applications and other software to make your Ubuntu computer more useful.
     </para>
     <para>
-      You can find applications by category or by searching,
-      and you can install an application with the click of a button.
+      You can find software by category or by searching,
+      and you can install an item with the click of a button.
     </para>
     <para>
-      The Software Center also lets you examine the applications installed on the
+      The Center also lets you examine the software installed on the
       computer already,
-      and remove those you no longer need.
+      and remove anything you no longer need.
     </para>
   </chapter>
   <chapter id="installing">
-    <title>Installing a program</title>
+    <title>Installing software</title>
     <para>
-      To install a program from the Software Center,
+      To install something with Ubuntu Software Center,
       you need administrator access and a working Internet connection.
       (If you set up Ubuntu on this computer yourself,
       you have administrator access automatically.)
@@ -92,29 +91,29 @@
       <listitem>
         <para>
           In the <guilabel>Get Software</guilabel> section,
-          find the program you want to install.
+          find the thing you want to install.
           If you already know its name, try typing the name in the search field.
           Or try searching for the type of program you want
           (like &#8220;spreadsheet&#8221;).
-          Otherwise, browse the list of departments to find the program.
+          Otherwise, browse the list of departments.
         </para>
       </listitem>
       <listitem>
         <para>
-          Select the program in the list, and choose
+          Select the item in the list, and choose
           <guilabel>More Info</guilabel>.
         </para>
       </listitem>
       <listitem>
         <para>
-          Click the <guilabel>Install</guilabel> button.
+          Choose <guilabel>Install</guilabel>.
           You may need to enter your Ubuntu password
           before the installation can begin.
         </para>
       </listitem>
     </orderedlist>
     <para>
-      How long a program takes to install depends on how large it is,
+      How long something takes to install depends on how large it is,
       and the speed of your computer and Internet connection.
     </para>
     <para>
@@ -141,7 +140,7 @@
       <guisubmenu>Office</guisubmenu></menuchoice>.
     </para>
     <para>
-      Utilities for configuring the computer system may appear inside
+      Utilities for changing settings may appear inside
       <menuchoice><guimenu>System</guimenu>
       <guisubmenu>Preferences</guisubmenu></menuchoice> or
       <menuchoice><guimenu>System</guimenu>
@@ -160,9 +159,9 @@
     </para>
   </chapter>
   <chapter id="removing">
-    <title id="removing-title">Removing a program</title>
+    <title id="removing-title">Removing software</title>
     <para>
-      To remove a program, you need administrator access.
+      To remove software, you need administrator access.
       (If you set up Ubuntu on this computer yourself,
       you have administrator access automatically.)
     </para>
@@ -170,19 +169,19 @@
       <listitem>
         <para>
           In the <guilabel>Installed Software</guilabel> section,
-          find the program you want to remove.
+          find the item you want to remove.
         </para>
       </listitem>
       <listitem>
         <para>
-          Select the program in the list, and choose <guilabel>Remove</guilabel>.
+          Select the item in the list, and choose <guilabel>Remove</guilabel>.
           You may need to enter your Ubuntu password.
         </para>
       </listitem>
     </orderedlist>
     <para>
       If a program is open when you remove it,
-      usually it will stay open after it is removed.
+      usually it will stay open even after it is removed.
       As soon as you close it, it will no longer be available.
     </para>
     <itemizedlist>
@@ -193,8 +192,8 @@
     <title id="metapackages-title"
     >Why is it asking me to remove several programs together?</title>
     <para>
-      Sometimes if you try to remove one program,
-      the Software Center will warn you that other programs will be removed too.
+      Sometimes if you try to remove one item,
+      the Software Center will warn you that other items will be removed too.
       There are two main reasons this happens.
     </para>
     <itemizedlist>
@@ -209,7 +208,7 @@
           Multiple applications are sometimes provided as a single package.
           If any of them are installed, all of them are installed.
           And if any of them are removed, all of them are removed.
-          The Software Center cannot remove them individually,
+          Ubuntu Software Center cannot remove them individually,
           because it has no instructions on how to separate them.
         </para>
       </listitem>
@@ -244,31 +243,30 @@
   <chapter id="why-free">
     <title id="why-free-title">Why are all the programs free?</title>
     <para>
-      Currently, all software in the Ubuntu Software Center is free of charge.
+      Currently, all software in Ubuntu Software Center is free of charge.
     </para>
     <para>
       Most of this software is developed as <firstterm>open source</firstterm>,
       which means anyone is allowed to alter it and redistribute it for any
       price.
       Ubuntu developers, Debian developers, and others
-      package the software available in the Software Center,
+      package the software available in Ubuntu Software Center,
       and make it available to you for free.
     </para>
     <para>
-      In a future version of Ubuntu, the Software Center will also allow software
+      In a future version of Ubuntu, the Center will also allow software
       purchases.
     </para>
   </chapter>
   <chapter id="missing">
     <title id="missing-title"
-    >What if a program I want isn&#8217;t in the Software Center?</title>
+    >What if a program I want isn&#8217;t available?</title>
     <para>
       First, check that <menuchoice><guimenu>View</guimenu>
       <guimenuitem>All Software</guimenuitem></menuchoice> is selected.
-      That ensures you can see all the software available in the Software Center.
     </para>
     <para>
-      If a program isn&#8217;t in the Software Center,
+      If the software you want still isn&#8217;t there,
       but you know that it runs on Ubuntu,
       try contacting the original developers of the program
       to ask if they can help make it available.
@@ -283,7 +281,7 @@
     <title id="bugs-title"
     >What if a program doesn&#8217;t work?</title>
     <para>
-      With tens of thousands of programs in the Software Center,
+      With tens of thousands of programs in Ubuntu Software Center,
       there&#8217;s always the chance that a few of them won&#8217;t work
       properly on your computer.
     </para>
@@ -294,7 +292,7 @@
       their <guimenu>Help</guimenu> menu.
     </para>
     <para>
-      Otherwise, look through the Software Center for another program to do what you want.
+      Otherwise, look through the Center for another program to do what you want.
     </para>
     <itemizedlist>
      <listitem><para><xref linkend="removing" endterm="removing-title"/></para></listitem>
