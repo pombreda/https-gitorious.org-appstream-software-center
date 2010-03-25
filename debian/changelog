@@ -1,4 +1,4 @@
-software-center (1.1.20) UNRELEASED; urgency=low
+software-center (1.1.20) lucid; urgency=low
 
   * merged lp:~mpt/software-center/help-2.0, many thanks!
   * softwarecenter/distro/Ubuntu.py:
@@ -11,7 +11,7 @@ software-center (1.1.20) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - fix supported only view for packages
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 14:49:19 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 17:53:43 +0100
 
 software-center (1.1.19) lucid; urgency=low
 
