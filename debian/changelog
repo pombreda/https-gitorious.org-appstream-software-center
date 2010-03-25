@@ -10,6 +10,8 @@ software-center (1.1.19) UNRELEASED; urgency=low
   * merge lp:~kiwinote/software-center/use_new_icons, many
     thanks!
   * fix i18n issue in featured application (LP: #545095)
+  * merge  lp:~kiwinote/software-center/bug530187, many thanks to
+    "Kiwinote" (LP: #530187)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 23 Mar 2010 12:38:14 -0400
 
