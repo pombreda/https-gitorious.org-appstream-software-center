@@ -54,6 +54,13 @@ class Distro(object):
     def get_license_text(self, component):
         raise UnimplementedError
 
+    def is_supported(self, cache, doc, pkgname):
+        """ 
+        return True if the given document and pkgname is supported by 
+        the distribution
+        """
+        raise UnimplementError
+
 def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
                                  stdout=subprocess.PIPE).communicate()[0].strip()

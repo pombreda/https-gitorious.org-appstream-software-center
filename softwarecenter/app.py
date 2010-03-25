@@ -380,7 +380,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # run yelp
         p = subprocess.Popen(["yelp","ghelp:software-center"])
         # collect the exit status (otherwise we leave zombies)
-        glib.timeout_add(1000, lambda p: p.poll() == None, p)
+        glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
         if not self._block_menuitem_view and self.active_pane.apps_filter.get_supported_only():
