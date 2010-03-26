@@ -929,6 +929,7 @@ class AppView(gtk.TreeView):
     def _on_cursor_changed(self, view):
         # trigger callback, if we do it here get_selection() returns
         # the previous selected row for some reason
+        print "called _on_cursor_changed with view: %s" % view
         gobject.timeout_add(10, self._app_selected_timeout_cb, view)
 
     def _app_selected_timeout_cb(self, view):
@@ -980,6 +981,7 @@ class AppView(gtk.TreeView):
         x, y = int(event.x), int(event.y)
         for btn_id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
+            print "btn.get_param('sensitive'): %s" % btn.get_param('sensitive')
             if rr.point_in(x, y) and btn.get_param('sensitive'):
                 self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_ACTIVE)
@@ -1011,7 +1013,7 @@ class AppView(gtk.TreeView):
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
             print "ACTIVATED ACTION BUTTON"
-            print "setting btn insensitive: %s" % btn
+            print "in app_activated_cb: set button insensitive: %s" % btn
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
             if installed:
