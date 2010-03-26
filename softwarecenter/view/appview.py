@@ -954,6 +954,14 @@ class AppView(gtk.TreeView):
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
         popcon = model[row][AppStore.COL_POPCON]
+        if self.buttons.has_key('action'):
+            action_button = self.buttons['action']
+            if self.is_action_in_progress():
+                print "set button not sensitive"
+                action_button.set_sensitive(False)
+            else:
+                print "set button sensitive"
+                action_button.set_sensitive(True)
         self.emit("application-selected", Application(name, pkgname, popcon))
         return False
 
@@ -1011,6 +1019,7 @@ class AppView(gtk.TreeView):
             btn.set_shadow(gtk.SHADOW_OUT)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
+            print "ACTIVATED ACTION BUTTON"
             print "setting btn insensitive: %s" % btn
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
