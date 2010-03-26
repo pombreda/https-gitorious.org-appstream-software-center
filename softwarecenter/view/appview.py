@@ -733,15 +733,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             else:
                 self.draw_progress(window, widget, cell_area, layout, dst_x, ypad, flags)
 
-            # check if the current app is in progress
-            # XXX: this code breaks button state changes, can the setting of button sensitivity be done elswhere?
-            # With regard to the authenticate dialog, is there a callback we can connect to, 
-            # to know if the authentication has been cancelled?
-#            if self.props.action_in_progress == True:
-#                btn.set_sensitive(False)
-#            else:
-#                btn.set_sensitive(True)
-
         # More Info button
         btn = widget.buttons['info']
         dst_x = self._calc_x(cell_area, btn.get_param('width'), xpad)
