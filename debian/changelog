@@ -1,3 +1,10 @@
+software-center (1.1.22) UNRELEASED; urgency=low
+
+  * apt-xapian-index-plugin/*.py:
+    - fix deprecation warnings (LP: #548665)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 26 Mar 2010 17:44:15 +0100
+
 software-center (1.1.21) lucid; urgency=low
 
   * merged from lp:~vish.../software-center/3newicons, 
