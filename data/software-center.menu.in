@@ -49,7 +49,7 @@
     <!-- package sub-sections, see spec-->
     <Menu>
       <_Name>Debugging</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-debugging</SCIcon>
       <Include>
 	<Category>Debugging</Category>
       </Include>
@@ -57,7 +57,7 @@
 
     <Menu>
       <_Name>Graphic Interface Design</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-interfacedesign</SCIcon>
       <Include>
 	<Category>GUIDesigner</Category>
       </Include>
@@ -65,7 +65,7 @@
 
     <Menu>
       <_Name>Haskell</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-haskell</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>haskell</SCSection>

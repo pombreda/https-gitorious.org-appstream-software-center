@@ -37,6 +37,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
+from softwarecenter.distro import get_distro
 
 from gettext import gettext as _
 
@@ -1038,6 +1039,7 @@ class AppViewFilter(object):
     (like installed_only) or archive section
     """
     def __init__(self, db, cache):
+        self.distro = get_distro()
         self.db = db
         self.cache = cache
         self.supported_only = False
@@ -1080,12 +1082,8 @@ class AppViewFilter(object):
             if (self.cache.has_key(pkgname) and
                 self.cache[pkgname].isInstalled):
                 return False
-        # FIXME: add special property to the desktop file instead?
-        #        what about in the future when we support pkgs without
-        #        desktop files?
         if self.supported_only:
-            section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-            if section != "main" and section != "restricted":
+            if not self.distro.is_supported(self.cache, doc, pkgname):
                 return False
         return True
 
