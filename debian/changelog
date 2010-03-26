@@ -1,11 +1,29 @@
 software-center (1.1.21) UNRELEASED; urgency=low
 
+  * softwarecenter/db/update.py:
+    - fix crash when locale is not supported
+  * apt-xapian-index-plugin/*.py:
+    - fix deprecation warnings (LP: #548665)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
+
+software-center (1.1.21) lucid; urgency=low
+
   * merged from lp:~vish.../software-center/3newicons, 
     many thanks
   * softwarecenter/view/catview.py:
     - fix icon size in sub-categories to match icon theme size
+  * softwarecenter/view/catview.py:
+    - fix another i18n issue with the translated categories,
+      thanks to Ricardo Pérez López for noticing it (LP: #545102)
+  * debian/control:
+    - depend on latest aptdaemon to handle the cache when the dpkg
+      journal is dirty
+  * softwarecenter/backend/aptd.py:
+    - ensure unused dependency removal (for direct dependencies only)
+      via aptdaemon
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 26 Mar 2010 10:18:49 +0100
 
 software-center (1.1.20) lucid; urgency=low
 

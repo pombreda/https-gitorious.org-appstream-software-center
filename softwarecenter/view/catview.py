@@ -26,19 +26,21 @@ import logging
 import os
 import xapian
 
-from widgets.wkwidget import WebkitWidget
 
-from gettext import gettext as _
-from xml.etree import ElementTree as ET
 from ConfigParser import ConfigParser
+from gettext import gettext as _
+from widgets.wkwidget import WebkitWidget
+from xml.etree import ElementTree as ET
+
+from xml.sax.saxutils import escape as xml_escape
+from xml.sax.saxutils import unescape as xml_unescape
+
+from softwarecenter.utils import *
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
  COL_CAT_QUERY,
  COL_CAT_MARKUP) = range(4)
-
-def encode_for_xml(unicode_data, encoding="ascii"):
-    return unicode_data.encode(encoding, 'xmlcharrefreplace')
 
 class Category(object):
     """represents a menu category"""
@@ -294,7 +296,11 @@ class CategoriesView(WebkitWidget):
                 continue
             if element.tag == "Name":
                 untranslated_name = element.text
-                name = gettext.gettext(untranslated_name)
+                # gettext/xml writes stuff from software-center.menu
+                # out into the pot as escaped xml, so we need to escape
+                # the name first, get the translation and unscape it again
+                escaped_name = xml_escape(untranslated_name)
+                name = xml_unescape(gettext.gettext(escaped_name))
             elif element.tag == "SCIcon":
                 icon = element.text
             elif element.tag == "Directory":
