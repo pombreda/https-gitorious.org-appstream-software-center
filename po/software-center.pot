@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-25 09:32+0100\n"
+"POT-Creation-Date: 2010-03-25 20:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,7 +44,7 @@ msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:7
 #: ../data/ubuntu-software-center.desktop.in.h:3
-#: ../softwarecenter/view/catview.py:137
+#: ../softwarecenter/view/catview.py:140
 msgid "Ubuntu Software Center"
 msgstr ""
 
@@ -350,16 +350,16 @@ msgstr ""
 msgid "app;application;package;program;programme;suite;tool"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:39 ../softwarecenter/distro/Ubuntu.py:46
+#: ../softwarecenter/distro/Debian.py:39 ../softwarecenter/distro/Ubuntu.py:47
 #, python-format
 msgid "To remove %s, these items must be removed as well:"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:41 ../softwarecenter/distro/Ubuntu.py:48
+#: ../softwarecenter/distro/Debian.py:41 ../softwarecenter/distro/Ubuntu.py:49
 msgid "Remove All"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:48 ../softwarecenter/distro/Ubuntu.py:55
+#: ../softwarecenter/distro/Debian.py:48 ../softwarecenter/distro/Ubuntu.py:56
 #, python-format
 msgid ""
 "If you uninstall %s, future updates will not include new items in <b>%s</b> "
@@ -367,7 +367,7 @@ msgid ""
 msgstr ""
 
 #: ../softwarecenter/distro/Debian.py:51 ../softwarecenter/distro/Debian.py:62
-#: ../softwarecenter/distro/Ubuntu.py:58 ../softwarecenter/distro/Ubuntu.py:69
+#: ../softwarecenter/distro/Ubuntu.py:59 ../softwarecenter/distro/Ubuntu.py:70
 msgid "Remove Anyway"
 msgstr ""
 
@@ -379,15 +379,15 @@ msgid ""
 msgstr ""
 
 #. generic message
-#: ../softwarecenter/distro/Debian.py:71 ../softwarecenter/distro/Ubuntu.py:78
+#: ../softwarecenter/distro/Debian.py:71 ../softwarecenter/distro/Ubuntu.py:79
 msgid "Installed"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:83 ../softwarecenter/distro/Ubuntu.py:90
+#: ../softwarecenter/distro/Debian.py:83 ../softwarecenter/distro/Ubuntu.py:91
 msgid "Unknown"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:85 ../softwarecenter/distro/Ubuntu.py:92
+#: ../softwarecenter/distro/Debian.py:85 ../softwarecenter/distro/Ubuntu.py:93
 msgid "Open Source"
 msgstr ""
 
@@ -395,73 +395,73 @@ msgstr ""
 msgid "Open Source with proprietary parts"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:89 ../softwarecenter/distro/Ubuntu.py:94
+#: ../softwarecenter/distro/Debian.py:89 ../softwarecenter/distro/Ubuntu.py:95
 msgid "Proprietary"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:90 ../softwarecenter/distro/Ubuntu.py:95
+#: ../softwarecenter/distro/Debian.py:90 ../softwarecenter/distro/Ubuntu.py:96
 #, python-format
 msgid "License: %s"
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:43
+#: ../softwarecenter/distro/Ubuntu.py:44
 msgid "Provided by Ubuntu"
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:65
+#: ../softwarecenter/distro/Ubuntu.py:66
 #, python-format
 msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:142
-#: ../softwarecenter/distro/Ubuntu.py:154
+#: ../softwarecenter/distro/Ubuntu.py:157
+#: ../softwarecenter/distro/Ubuntu.py:169
 #, python-format
 msgid ""
 "Canonical does no longer provide updates for %s in Ubuntu %s. Updates may be "
 "available in a newer version of Ubuntu."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:147
+#: ../softwarecenter/distro/Ubuntu.py:162
 #, python-format
 msgid ""
 "Canonical provides critical updates for %(appname)s until %"
 "(support_end_month_str)s %(support_end_year)s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:159
+#: ../softwarecenter/distro/Ubuntu.py:174
 #, python-format
 msgid ""
 "Canonical provides critical updates supplied by the developers of %(appname)"
 "s until %(support_end_month_str)s %(support_end_year)s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:169
+#: ../softwarecenter/distro/Ubuntu.py:184
 #, python-format
 msgid ""
 "Canonical does not provide updates for %s. Some updates may be provided by "
 "the third party vendor."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:173
+#: ../softwarecenter/distro/Ubuntu.py:188
 #, python-format
 msgid "Canonical provides critical updates for %s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:175
+#: ../softwarecenter/distro/Ubuntu.py:190
 #, python-format
 msgid "Canonical provides critical updates supplied by the developers of %s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:178
+#: ../softwarecenter/distro/Ubuntu.py:193
 #, python-format
 msgid ""
 "Canonical does not provide updates for %s. Some updates may be provided by "
 "the Ubuntu community."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:181
+#: ../softwarecenter/distro/Ubuntu.py:196
 #, python-format
 msgid "Application %s has an unknown maintenance status."
 msgstr ""
@@ -521,7 +521,7 @@ msgid "%s - Screenshot"
 msgstr ""
 
 #: ../softwarecenter/view/appdetailsview.py:489
-#: ../softwarecenter/view/appview.py:893
+#: ../softwarecenter/view/appview.py:894
 msgid "Remove"
 msgstr ""
 
@@ -539,18 +539,18 @@ msgid "Update Now"
 msgstr ""
 
 #. draw number of reviews
-#: ../softwarecenter/view/appview.py:607
+#: ../softwarecenter/view/appview.py:608
 #, python-format
 msgid "%s review"
 msgid_plural "%s reviews"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/appview.py:893
+#: ../softwarecenter/view/appview.py:894
 msgid "Install"
 msgstr ""
 
-#: ../softwarecenter/view/appview.py:894
+#: ../softwarecenter/view/appview.py:895
 msgid "More Info"
 msgstr ""
 
