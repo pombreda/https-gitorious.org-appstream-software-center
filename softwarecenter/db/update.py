@@ -57,15 +57,18 @@ class DesktopConfigParser(RawConfigParser):
                 if value != translated_value:
                     return translated_value
         # then try the i18n version of the key (in [de_DE] or
-        # [de]
-        locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
-        if locale:
-            if self.has_option_desktop("%s[%s]" % (key, locale)):
-                return self.get(self.DE, "%s[%s]" % (key, locale))
-            if "_" in locale:
-                locale_short = locale.split("_")[0]
-                if self.has_option_desktop("%s[%s]" % (key, locale_short)):
-                    return self.get(self.DE, "%s[%s]" % (key, locale_short))
+        # [de]) but ignore errors and return the untranslated one then
+        try:
+            locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
+            if locale:
+                if self.has_option_desktop("%s[%s]" % (key, locale)):
+                    return self.get(self.DE, "%s[%s]" % (key, locale))
+                if "_" in locale:
+                    locale_short = locale.split("_")[0]
+                    if self.has_option_desktop("%s[%s]" % (key, locale_short)):
+                        return self.get(self.DE, "%s[%s]" % (key, locale_short))
+        except ValueError,e :
+            pass
         # and then the untranslated field
         return self.get(self.DE, key)
     def has_option_desktop(self, key):

@@ -23,7 +23,7 @@ class OriginPlugin:
         the timestamp shows that this plugin is currently not needed, then the
         long initialisation can just be skipped.
         """
-        file = apt.apt_pkg.Config.FindFile("Dir::Cache::pkgcache")
+        file = apt.apt_pkg.Config.find_file("Dir::Cache::pkgcache")
         return dict(timestamp = os.path.getmtime(file))
 
     def init(self, info, progress):

@@ -1,3 +1,12 @@
+software-center (1.1.21) UNRELEASED; urgency=low
+
+  * softwarecenter/db/update.py:
+    - fix crash when locale is not supported
+  * apt-xapian-index-plugin/*.py:
+    - fix deprecation warnings (LP: #548665)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
+
 software-center (1.1.21) lucid; urgency=low
 
   * merged from lp:~vish.../software-center/3newicons, 
