@@ -286,11 +286,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.install()
+        self.menuitem_install.set_sensitive(False)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.remove()
+        self.menuitem_remove.set_sensitive(False)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -419,11 +421,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         if (not self.active_pane.is_category_view_showing() and 
             self.cache.has_key(app.pkgname)):
-            pkg = self.cache[app.pkgname]
-            installed = bool(pkg.installed)
-            self.menuitem_install.set_sensitive(not installed)
-            self.menuitem_remove.set_sensitive(installed)
-            self.menuitem_copy_web_link.set_sensitive(True)
+            if self.active_pane.app_view.is_action_in_progress():
+                self.menuitem_install.set_sensitive(False)
+                self.menuitem_remove.set_sensitive(False)
+                self.menuitem_copy_web_link.set_sensitive(False)
+            else:
+                pkg = self.cache[app.pkgname]
+                installed = bool(pkg.installed)
+                self.menuitem_install.set_sensitive(not installed)
+                self.menuitem_remove.set_sensitive(installed)
+                self.menuitem_copy_web_link.set_sensitive(True)
         else:
             # clear menu items if category view or if the package is not
             # in the cache

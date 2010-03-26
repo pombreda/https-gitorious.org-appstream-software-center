@@ -882,6 +882,16 @@ class AppView(gtk.TreeView):
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
 
+    def is_action_in_progress(self):
+        """
+        return True if an install or remove of the current package
+        is in progress
+        """
+        (path, column) = self.get_cursor()
+        model = self.get_model()
+        action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
+        print "is_action_in_progress(): %s" % action_in_progress
+        return action_in_progress
 
     def _on_realize(self, widget, tr):
         # tell the cellrenderer the text direction for renderering purposes
@@ -1000,6 +1010,7 @@ class AppView(gtk.TreeView):
             btn.set_shadow(gtk.SHADOW_OUT)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
+            print "setting btn insensitive: %s" % btn
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
             if installed:
@@ -1007,6 +1018,8 @@ class AppView(gtk.TreeView):
             else:
                 perform_action = "install"
             self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
+            # also emit an event here that causes an update_app_status_menu in app.py
+            #    p.s. need a new event?
         return False
 
     def _xy_is_over_focal_row(self, x, y):

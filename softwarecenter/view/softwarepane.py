@@ -158,12 +158,18 @@ class SoftwarePane(gtk.VBox):
         btns = self.app_view.buttons
         if btns.has_key('action'):
             btns['action'].set_sensitive(True)
+            
+        # only re-enable the button if this selected row matches the package
+        # for which the transaction has finished
 
     def on_transaction_stopped(self, backend):
         """ callback when an application install/remove transaction has stopped """
         btns = self.app_view.buttons
         if btns.has_key('action'):
             btns['action'].set_sensitive(True)
+            
+        # only re-enable the button if this selected row matches the package
+        # for which the transaction has finished
 
     def update_app_view(self):
         """
