@@ -9,7 +9,6 @@
 	<SCPkgname>stellarium</SCPkgname>
 	<SCPkgname>gnome-do</SCPkgname>
 	<SCPkgname>deja-dup</SCPkgname>
-	<SCPkgname>eclipse</SCPkgname>
 	<SCPkgname>gimp</SCPkgname>
 	<SCPkgname>inkscape</SCPkgname>
 	<SCPkgname>blender</SCPkgname>
@@ -24,7 +23,8 @@
 	<SCPkgname>gtg</SCPkgname>
 	<SCPkgname>freeciv</SCPkgname>
 	<SCPkgname>supertuxcart</SCPkgname>
-	<SCPkgname>chromium-bsu</SCPkgname>
+	<SCPkgname>tumiki-fighters</SCPkgname>
+	<SCPkgname>tuxpaint</SCPkgname>
       </Or>
     </Include>
   </Menu>
