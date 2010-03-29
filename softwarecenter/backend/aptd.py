@@ -97,6 +97,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 logging.error("enable_component: '%s'" % e)
                 return
+            raise
         # now update the cache
         self.reload()
 

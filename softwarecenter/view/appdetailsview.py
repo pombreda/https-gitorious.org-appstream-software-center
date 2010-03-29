@@ -364,9 +364,9 @@ class AppDetailsView(WebkitWidget):
         self._set_action_button_sensitive(False)
 
     def on_button_enable_component_clicked(self):
-        #print "on_enable_channel_clicked"
         component = self._get_component()
-        self.backend.enable_componentl(component)
+        #print "on_enable_component_clicked", component
+        self.backend.enable_component(component)
         self._set_action_button_sensitive(False)
 
     def on_screenshot_thumbnail_clicked(self):
@@ -524,7 +524,10 @@ class AppDetailsView(WebkitWidget):
         check if the given doc refers to a component (like universe)
         that is currently not enabled
         """
-        component = self._get_component()
+        # if there is no component accociated, it can not be unavailable
+        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        if not component:
+            return False
         distro_codename = self.distro.get_codename()
         available = self.cache.component_available(distro_codename, component)
         return (not available)
