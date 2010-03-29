@@ -457,6 +457,7 @@ class AppDetailsView(WebkitWidget):
             logging.debug("thumb_query_info_async_callback")
             try:
                 result = source.query_info_finish(result)
+                self.execute_script("showThumbnail();")
             except glib.GError, e:
                 logging.debug("no thumb available")
                 glib.timeout_add(200, run_thumb_missing_js)
@@ -467,7 +468,8 @@ class AppDetailsView(WebkitWidget):
             # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
             if self.get_load_status() != 2:
                 return True
-            self.execute_script("thumbMissing();")
+            # we don't show "thumb-missing" anymore
+            #self.execute_script("thumbMissing();"
             return False
         # use gio (its so nice)
         url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname

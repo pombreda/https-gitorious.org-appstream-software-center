@@ -4,6 +4,8 @@ software-center (1.1.21) UNRELEASED; urgency=low
     - fix crash when locale is not supported
   * apt-xapian-index-plugin/*.py:
     - fix deprecation warnings (LP: #548665)
+  * merge branch from michaelforrest that does not empty box
+    for unavailalbe screenshots
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
 
