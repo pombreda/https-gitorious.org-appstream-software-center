@@ -364,8 +364,8 @@ class AppDetailsView(WebkitWidget):
         self.set_action_button_sensitive(False)
 
     def on_button_enable_component_clicked(self):
-        component = self._get_component()
         #print "on_enable_component_clicked", component
+        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.backend.enable_component(component)
         self.set_action_button_sensitive(False)
 
@@ -509,6 +509,7 @@ class AppDetailsView(WebkitWidget):
                 action_button_value = "install"
         elif self.doc:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
             if channel:
                 path = APP_INSTALL_CHANNELS_PATH + channel +".list"
                 if os.path.exists(path):
@@ -518,7 +519,7 @@ class AppDetailsView(WebkitWidget):
                     action_button_label = _("Use This Source")
                     action_button_value = "enable_channel"
             # check if it comes from a non-enabled component
-            elif self._unavailable_component():
+            elif self._unavailable_component(component):
                 # FIXME: use a proper message here, but we are in string freeze
                 action_button_label = _("Use This Source")
                 action_button_value = "enable_component"
@@ -527,13 +528,13 @@ class AppDetailsView(WebkitWidget):
                 action_button_value = "reload"
         return (action_button_label, action_button_value)
 
-    def _unavailable_component(self):
+    def _unavailable_component(self, component):
         """ 
         check if the given doc refers to a component (like universe)
         that is currently not enabled
         """
         # if there is no component accociated, it can not be unavailable
-        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        logging.debug("component: '%s'" % component)
         if not component:
             return False
         distro_codename = self.distro.get_codename()
@@ -601,9 +602,9 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
-    #view.show_app("3D Chess", "3dchess")
+    view.show_app(Application("3D Chess", "3dchess"))
     #view.show_app("Movie Player", "totem")
-    view.show_app(Application("ACE", "unace"))
+    #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 
     #view.show_app("AMOR")

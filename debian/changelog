@@ -1,16 +1,11 @@
-software-center (1.1.21) UNRELEASED; urgency=low
+software-center (1.1.22) UNRELEASED; urgency=low
 
   * softwarecenter/db/update.py:
     - fix crash when locale is not supported
   * apt-xapian-index-plugin/*.py:
     - fix deprecation warnings (LP: #548665)
-  * merge branch from michaelforrest that does not empty box
-    for unavailalbe screenshots
-  * allow enabling components via "Use this source" button when
-    a software-item is in a component that is not yet enabled (like
-    "universe" on the live-cd)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 29 Mar 2010 16:01:21 +0200
 
 software-center (1.1.21) lucid; urgency=low
 
@@ -29,6 +24,20 @@ software-center (1.1.21) lucid; urgency=low
       via aptdaemon
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 26 Mar 2010 10:18:49 +0100
+
+software-center (1.1.21) UNRELEASED; urgency=low
+
+  * softwarecenter/db/update.py:
+    - fix crash when locale is not supported
+  * apt-xapian-index-plugin/*.py:
+    - fix deprecation warnings (LP: #548665)
+  * merge branch from michaelforrest that does not empty box
+    for unavailalbe screenshots
+  * allow enabling components via "Use this source" button when
+    a software-item is in a component that is not yet enabled (like
+    "universe" on the live-cd)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
 
 software-center (1.1.20) lucid; urgency=low
 
