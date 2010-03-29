@@ -356,18 +356,18 @@ class AppDetailsView(WebkitWidget):
     # callbacks
     def on_button_reload_clicked(self):
         self.backend.reload()
-        self._set_action_button_sensitive(False)
+        self.set_action_button_sensitive(False)
 
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
         self.backend.enable_channel(self.channelfile)
-        self._set_action_button_sensitive(False)
+        self.set_action_button_sensitive(False)
 
     def on_button_enable_component_clicked(self):
         component = self._get_component()
         #print "on_enable_component_clicked", component
         self.backend.enable_component(component)
-        self._set_action_button_sensitive(False)
+        self.set_action_button_sensitive(False)
 
     def on_screenshot_thumbnail_clicked(self):
         url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
@@ -401,30 +401,38 @@ class AppDetailsView(WebkitWidget):
             
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
-                self._set_action_button_sensitive(True)
+                self.set_action_button_sensitive(True)
                 return
         self.remove()
 
     def on_button_install_clicked(self):
         self.install()
+        
+    def set_action_button_sensitive(self, enabled):
+        if self.get_load_status() != 2:
+            return
+        if enabled:
+            self.execute_script("enable_action_button();")
+        else:
+            self.execute_script("disable_action_button();")
 
     # public interface
     def install(self):
         self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
-        self._set_action_button_sensitive(False)
+        self.set_action_button_sensitive(False)
     def remove(self):
         self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
-        self._set_action_button_sensitive(False)
+        self.set_action_button_sensitive(False)
     def upgrade(self):
         self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
-        self._set_action_button_sensitive(False)
+        self.set_action_button_sensitive(False)
 
     # internal callback
     def _on_cache_ready(self, cache):
         logging.debug("on_cache_ready")
         self.show_app(self.app)
     def _on_transaction_stopped(self, backend):
-        self._set_action_button_sensitive(True)
+        self.set_action_button_sensitive(True)
         if not self.app:
             return
         print self.app
@@ -544,11 +552,6 @@ class AppDetailsView(WebkitWidget):
             if arch == self.arch:
                 return True
         return False
-    def _set_action_button_sensitive(self, enabled):
-        if enabled:
-            self.execute_script("enable_action_button();")
-        else:
-            self.execute_script("disable_action_button();")
 
     def _url_launch_app(self):
         """return the most suitable program for opening a url"""
