@@ -159,7 +159,7 @@ class StoreDatabase(gobject.GObject):
         # from the apt cache
         if not summary and self._aptcache.ready: 
             pkgname = self.get_pkgname(doc)
-            if (self._aptcache.has_key(pkgname) and 
+            if (self._aptpkgname in cache and 
                 self._aptcache[pkgname].candidate):
                 return  self._aptcache[pkgname].candidate.summary
         return summary

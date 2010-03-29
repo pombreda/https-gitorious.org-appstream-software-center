@@ -128,7 +128,7 @@ class AppDetailsView(WebkitWidget):
         # get apt cache data
         pkgname = self.db.get_pkgname(self.doc)
         self.pkg = None
-        if (self.cache.has_key(pkgname) and
+        if (pkgname in self.cache and
             self.cache[pkgname].candidate):
             self.pkg = self.cache[pkgname]
         if self.pkg:
@@ -189,8 +189,8 @@ class AppDetailsView(WebkitWidget):
     def wksub_pkgname(self):
         return self.app.pkgname
     def wksub_body_class(self):
-        if (self.cache.has_key(self.app.pkgname) and
-            self.cache[self.app.pkgname].isInstalled):
+        if (self.app.pkgname in self.cache and
+            self.cache[self.app.pkgname].is_installed):
             return "section-installed"
         return "section-get"
     def wksub_description(self):
@@ -245,8 +245,8 @@ class AppDetailsView(WebkitWidget):
         return description
 
     def wksub_iconpath_loading(self):
-        if (self.cache.has_key(self.app.pkgname) and
-            self.cache[self.app.pkgname].isInstalled):
+        if (self.app.pkgname in self.cache and
+            self.cache[self.app.pkgname].is_installed):
             return self.IMAGE_LOADING_INSTALLED
         return self.IMAGE_LOADING
     def wksub_iconpath(self):
@@ -326,8 +326,8 @@ class AppDetailsView(WebkitWidget):
             return "visible"
         return "hidden"
     def wksub_screenshot_installed(self):
-        if (self.cache.has_key(self.app.pkgname) and
-            self.cache[self.app.pkgname].isInstalled):
+        if (self.app.pkgname in self.cache and
+            self.cache[self.app.pkgname].is_installed):
             return "screenshot_thumbnail-installed"
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):

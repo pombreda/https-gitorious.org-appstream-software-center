@@ -270,12 +270,12 @@ class AppStore(gtk.GenericTreeModel):
             return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         elif column == self.COL_INSTALLED:
             pkgname = app.pkgname
-            if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
+            if pkgname in self.cache and self.cache[pkgname].is_installed:
                 return True
             return False
         elif column == self.COL_AVAILABLE:
             pkgname = app.pkgname
-            return self.cache.has_key(pkgname)
+            return pkgname in self.cache
         elif column == self.COL_PKGNAME:
             pkgname = app.pkgname
             return pkgname
@@ -1064,12 +1064,12 @@ class AppViewFilter(object):
                 for m in self.db.xapiandb.postlist("AP"+pkgname):
                     return False
         if self.installed_only:
-            if (not self.cache.has_key(pkgname) or
-                not self.cache[pkgname].isInstalled):
+            if (not pkgname in self.cache or
+                not self.cache[pkgname].is_installed):
                 return False
         if self.not_installed_only:
-            if (self.cache.has_key(pkgname) and
-                self.cache[pkgname].isInstalled):
+            if (pkgname in self.cache and
+                self.cache[pkgname].is_installed):
                 return False
         if self.supported_only:
             if not self.distro.is_supported(self.cache, doc, pkgname):

@@ -100,7 +100,7 @@ class Ubuntu(Distro):
         section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         if section == "main" and section == "restricted":
             return True
-        if cache.has_key(pkgname) and cache[pkgname].candidate:
+        if pkgname in cache and cache[pkgname].candidate:
             for origin in cache[pkgname].candidate.origins:
                 if (origin.origin == "Ubuntu" and 
                     origin.trusted and 
@@ -133,7 +133,7 @@ class Ubuntu(Distro):
             support_month = 18
 
             # see if we have a "Supported" entry in the pkg record
-            if (cache.has_key(pkgname) and
+            if (pkgname in cache and
                 cache[pkgname].candidate):
                 support_time = cache[pkgname].candidate.record.get("Supported")
                 if support_time:

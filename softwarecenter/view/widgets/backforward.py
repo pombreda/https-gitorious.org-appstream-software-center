@@ -63,7 +63,7 @@ class BackForwardButton(gtk.HBox):
     def _pick_theme(self, name=None):
         name = name or gtk.settings_get_default().get_property("gtk-theme-name")
         themes = pathbar2.PathBarThemes.DICT
-        if themes.has_key(name):
+        if name in themes:
             return themes[name]()
         print "No styling hints for %s are available" % name
         return pathbar2.PathBarThemeHuman()

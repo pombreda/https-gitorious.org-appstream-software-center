@@ -30,7 +30,7 @@ class InstalledFilter(object):
     def __init__(self, cache):
         self.cache = cache
     def filter(self, pkgname):
-        if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
+        if pkgname in self.cache and self.cache[pkgname].is_installed:
             return True
         return False
 

@@ -1,5 +1,5 @@
 
 VERSION='1.1.21debian1'
-CODENAME='lucid'
+CODENAME='unstable'
 DISTRO='Debian'
 RELEASE='unstable'

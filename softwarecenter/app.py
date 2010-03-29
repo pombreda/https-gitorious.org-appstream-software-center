@@ -426,7 +426,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             return False
         # update menu items
         if (not self.active_pane.is_category_view_showing() and 
-            self.cache.has_key(app.pkgname)):
+            app.pkgname in self.cache):
             pkg = self.cache[app.pkgname]
             installed = bool(pkg.installed)
             self.menuitem_install.set_sensitive(not installed)

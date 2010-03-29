@@ -233,7 +233,7 @@ class ViewSwitcherList(gtk.TreeStore):
             logging.debug("channel_origin: %s" % channel_origin)
             other_channel_list.append((channel_name, channel_origin))
         
-        dist_channel = []
+        dist_channel = None
         ppa_channels = []
         other_channels = []
         unknown_channel = []
@@ -275,7 +275,8 @@ class ViewSwitcherList(gtk.TreeStore):
         
         # set them in order
         channels = []
-        channels.append(dist_channel)
+        if dist_channel is not None:
+            channels.append(dist_channel)
         channels.append(partner_channel)
         channels.extend(ppa_channels)
         channels.extend(other_channels)
