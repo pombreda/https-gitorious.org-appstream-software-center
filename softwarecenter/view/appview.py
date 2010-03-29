@@ -869,6 +869,10 @@ class AppView(gtk.TreeView):
         self.connect("button-press-event", self._on_button_press_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
+        
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
     def is_action_in_progress(self):
         """
@@ -1014,6 +1018,16 @@ class AppView(gtk.TreeView):
             # also emit an event here that causes an update_app_status_menu in app.py
             #    p.s. need a new event?
         return False
+        
+    def _on_transaction_finished(self, backend, success):
+        """ callback when an application install/remove transaction has finished """
+        if self.buttons.has_key('action'):
+            self.buttons['action'].set_sensitive(True)
+
+    def _on_transaction_stopped(self, backend):
+        """ callback when an application install/remove transaction has stopped """
+        if self.buttons.has_key('action'):
+            self.buttons['action'].set_sensitive(True)
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)
