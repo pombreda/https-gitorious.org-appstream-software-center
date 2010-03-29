@@ -1015,8 +1015,6 @@ class AppView(gtk.TreeView):
             else:
                 perform_action = "install"
             self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
-            # also emit an event here that causes an update_app_status_menu in app.py
-            #    p.s. need a new event?
         return False
         
     def _on_transaction_finished(self, backend, success):

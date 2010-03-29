@@ -108,9 +108,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.backend = get_install_backend()
-        self.backend.connect("transaction-finished", 
-                             lambda backend, result, self: self.cache.open(), 
-                             self)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -287,12 +286,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.install()
         self.menuitem_install.set_sensitive(False)
+        if self.active_pane.app_view.buttons.has_key('action'):
+            self.active_pane.app_view.buttons['action'].set_sensitive(False)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.remove()
         self.menuitem_remove.set_sensitive(False)
+        if self.active_pane.app_view.buttons.has_key('action'):
+            self.active_pane.app_view.buttons['action'].set_sensitive(False)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -393,6 +396,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
+            
+    def _on_transaction_finished(self, backend, success):
+        """ callback when an application install/remove transaction has finished """
+        self.cache.open()
+        self.update_app_status_menu()
+
+    def _on_transaction_stopped(self, backend):
+        """ callback when an application install/remove transaction has stopped """
+        self.update_app_status_menu()
 
     # helper
 
