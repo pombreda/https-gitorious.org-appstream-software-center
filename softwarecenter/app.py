@@ -158,6 +158,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.available_pane.app_view.connect("application-request-action",
+                                             self.on_app_request_action)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -172,6 +174,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_CHANNEL)
         self.channel_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.available_pane.app_view.connect("application-request-action",
+                                             self.on_app_request_action)
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_CHANNEL)
@@ -186,6 +190,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_INSTALLED)
         self.installed_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.available_pane.app_view.connect("application-request-action",
+                                             self.on_app_request_action)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_INSTALLED)
@@ -233,6 +239,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_app_selected(self, widget, app):
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
+        
+    def on_app_request_action(self, appview, app, action):
+        self.menuitem_install.set_sensitive(False)
+        self.menuitem_remove.set_sensitive(False)
 
     def on_window_main_delete_event(self, widget, event):
         self.save_state()
