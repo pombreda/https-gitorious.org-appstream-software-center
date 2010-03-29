@@ -91,6 +91,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                       error_handler=self._on_trans_error)
 
     def enable_component(self, component):
+        logging.debug("enable_component: %s" % component)
         try:
             self.aptd_client.enable_component(component)
         except dbus.exceptions.DBusException, e:
