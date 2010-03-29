@@ -298,6 +298,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.menuitem_install.set_sensitive(False)
         if self.active_pane.app_view.buttons.has_key('action'):
             self.active_pane.app_view.buttons['action'].set_sensitive(False)
+        self.active_pane.app_details.set_action_button_sensitive(False)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
@@ -306,6 +307,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.menuitem_remove.set_sensitive(False)
         if self.active_pane.app_view.buttons.has_key('action'):
             self.active_pane.app_view.buttons['action'].set_sensitive(False)
+        self.active_pane.app_details.set_action_button_sensitive(False)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
