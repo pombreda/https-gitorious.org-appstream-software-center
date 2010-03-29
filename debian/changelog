@@ -6,6 +6,8 @@ software-center (1.1.21debian1) unstable; urgency=low
       + fix crash when locale is not supported
     - apt-xapian-index-plugin/*.py:
       + fix deprecation warnings (LP: #548665)
+  * softwarecenter/view/appview.py:
+    - Add from __future__ import with_statement for Python 2.5
 
  -- Julian Andres Klode <jak@debian.org>  Mon, 29 Mar 2010 14:51:38 +0200
 
