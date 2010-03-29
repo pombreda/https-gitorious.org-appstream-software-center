@@ -333,7 +333,6 @@ class CellRendererButton:
             'region_rect': gtk.gdk.region_rectangle(gtk.gdk.Rectangle(0,0,0,0)),
             'xpad': xpad,
             'ypad': ypad,
-            'sensitive': True,
             'state': gtk.STATE_NORMAL,
             'shadow': gtk.SHADOW_OUT,
             'layout_x': mx,
@@ -379,16 +378,13 @@ class CellRendererButton:
         return ink_extends[3]
 
     def set_state(self, state_type):
-        if self.params['sensitive']:
-            self.params['state'] = state_type
+        self.params['state'] = state_type
         return
 
     def set_shadow(self, shadow_type):
-        if self.params['sensitive']:
-            self.params['shadow'] = shadow_type
+        self.params['shadow'] = shadow_type
 
     def set_sensitive(self, is_sensitive):
-        self.params['sensitive'] = is_sensitive
         if not is_sensitive:
             self.set_state(gtk.STATE_INSENSITIVE)
             self.set_shadow(gtk.SHADOW_OUT)
@@ -882,7 +878,6 @@ class AppView(gtk.TreeView):
         (path, column) = self.get_cursor()
         model = self.get_model()
         action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
-        print "is_action_in_progress(): %s" % action_in_progress
         return action_in_progress
 
     def _on_realize(self, widget, tr):
@@ -914,13 +909,14 @@ class AppView(gtk.TreeView):
         self.window.set_cursor(None)
         for id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
-            if rr.point_in(x, y) and btn.get_param('sensitive'):
-                self.window.set_cursor(self._cursor_hand)
-                if btn.get_param('state') != gtk.STATE_PRELIGHT:
-                    btn.set_state(gtk.STATE_PRELIGHT)
-            elif btn.get_param('sensitive'):
-                if btn.get_param('state') != gtk.STATE_NORMAL:
-                    btn.set_state(gtk.STATE_NORMAL)
+            if btn.get_param('state') != gtk.STATE_INSENSITIVE:
+                if rr.point_in(x, y):
+                    self.window.set_cursor(self._cursor_hand)
+                    if btn.get_param('state') != gtk.STATE_PRELIGHT:
+                        btn.set_state(gtk.STATE_PRELIGHT)
+                else:
+                    if btn.get_param('state') != gtk.STATE_NORMAL:
+                        btn.set_state(gtk.STATE_NORMAL)
 
         store = tree.get_model()
         store.row_changed(path[0], store.get_iter(path[0]))
@@ -929,7 +925,6 @@ class AppView(gtk.TreeView):
     def _on_cursor_changed(self, view):
         # trigger callback, if we do it here get_selection() returns
         # the previous selected row for some reason
-        print "called _on_cursor_changed with view: %s" % view
         gobject.timeout_add(10, self._app_selected_timeout_cb, view)
 
     def _app_selected_timeout_cb(self, view):
@@ -949,10 +944,8 @@ class AppView(gtk.TreeView):
         if self.buttons.has_key('action'):
             action_button = self.buttons['action']
             if self.is_action_in_progress():
-                print "set button not sensitive"
                 action_button.set_sensitive(False)
             else:
-                print "set button sensitive"
                 action_button.set_sensitive(True)
         self.emit("application-selected", Application(name, pkgname, popcon))
         return False
@@ -981,8 +974,7 @@ class AppView(gtk.TreeView):
         x, y = int(event.x), int(event.y)
         for btn_id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
-            print "btn.get_param('sensitive'): %s" % btn.get_param('sensitive')
-            if rr.point_in(x, y) and btn.get_param('sensitive'):
+            if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
                 self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_ACTIVE)
                 btn.set_shadow(gtk.SHADOW_IN)
@@ -1012,8 +1004,6 @@ class AppView(gtk.TreeView):
             btn.set_shadow(gtk.SHADOW_OUT)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
-            print "ACTIVATED ACTION BUTTON"
-            print "in app_activated_cb: set button insensitive: %s" % btn
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
             if installed:
