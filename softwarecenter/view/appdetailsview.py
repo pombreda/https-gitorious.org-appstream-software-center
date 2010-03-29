@@ -443,6 +443,7 @@ class AppDetailsView(WebkitWidget):
         # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
         if self.get_load_status() != 2:
             return
+        self.set_action_button_sensitive(False)
         self.execute_script("showProgress(true);")
         if pkgname in backend.pending_transactions:
             self.execute_script("updateProgress(%s);" % progress)
