@@ -1,3 +1,10 @@
+software-center (1.1.21debian2) unstable; urgency=low
+
+  * softwarecenter/db/database.py:
+    - Fix a typo introduced in the last upload which caused exceptions.
+
+ -- Julian Andres Klode <jak@debian.org>  Mon, 29 Mar 2010 16:18:50 +0200
+
 software-center (1.1.21debian1) unstable; urgency=low
 
   * Merge with Ubuntu.
