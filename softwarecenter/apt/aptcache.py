@@ -32,7 +32,7 @@ import time
 
 from gettext import gettext as _
 
-class GtkMainIterationProgress(apt.progress.OpProgress):
+class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
     def update(self, percent):
         while gtk.events_pending():

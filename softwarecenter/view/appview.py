@@ -1105,7 +1105,7 @@ if __name__ == "__main__":
     pathname = os.path.join(xapian_base_path, "xapian")
 
     # the store
-    cache = apt.Cache(apt.progress.OpTextProgress())
+    cache = apt.Cache(apt.progress.text.OpProgress())
     db = StoreDatabase(pathname, cache)
     db.open()
 
