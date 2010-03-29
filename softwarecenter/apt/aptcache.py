@@ -132,6 +132,16 @@ class AptCache(gobject.GObject):
         return self._get_installed_rdepends_by_type(pkg, self.RECOMMENDS_TYPES)
     def get_installed_rsuggests(self, pkg):
         return self._get_installed_rdepends_by_type(pkg, self.SUGGESTS_TYPES)
+    def component_available(self, distro_codename, component):
+        """ check if the given component is enabled """
+        # FIXME: test for more properties here?
+        for it in self._cache._cache.FileList:
+            if (it.Component != "" and 
+                it.Component == component and
+                it.Archive != "" and 
+                it.Archive == distro_codename):
+                return True
+        return False
 
 if __name__ == "__main__":
     c = AptCache()

@@ -6,6 +6,9 @@ software-center (1.1.21) UNRELEASED; urgency=low
     - fix deprecation warnings (LP: #548665)
   * merge branch from michaelforrest that does not empty box
     for unavailalbe screenshots
+  * allow enabling components via "Use this source" button when
+    a software-item is in a component that is not yet enabled (like
+    "universe" on the live-cd)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
 
