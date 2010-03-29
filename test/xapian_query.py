@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     search_term = sys.argv[1]
 
-    xapian_base_path = "/var/cache/app-install"
+    xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
     db = xapian.Database(pathname)
 

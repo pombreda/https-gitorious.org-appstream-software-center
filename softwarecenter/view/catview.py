@@ -21,23 +21,26 @@ import glib
 import glob
 import gobject
 import gtk
+import locale
 import logging
 import os
 import xapian
 
-from widgets.wkwidget import WebkitWidget
 
-from gettext import gettext as _
-from xml.etree import ElementTree as ET
 from ConfigParser import ConfigParser
+from gettext import gettext as _
+from widgets.wkwidget import WebkitWidget
+from xml.etree import ElementTree as ET
+
+from xml.sax.saxutils import escape as xml_escape
+from xml.sax.saxutils import unescape as xml_unescape
+
+from softwarecenter.utils import *
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
  COL_CAT_QUERY,
  COL_CAT_MARKUP) = range(4)
-
-def encode_for_xml(unicode_data, encoding="ascii"):
-    return unicode_data.encode(encoding, 'xmlcharrefreplace')
 
 class Category(object):
     """represents a menu category"""
@@ -53,7 +56,8 @@ class Category(object):
 
 class CategoriesView(WebkitWidget):
 
-    CATEGORY_ICON_SIZE = 48
+    CATEGORY_ICON_SIZE = 64
+    SUB_CATEGORY_ICON_SIZE = 48
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -77,11 +81,14 @@ class CategoriesView(WebkitWidget):
         atk_desc.set_name(_("Departments"))
         self.categories = []
         self.header = ""
+        self.db = db
         self.icons = icons
         if not root_category:
             self.header = _("Departments")
             self.categories = self.parse_applications_menu(desktopdir)
+            self.in_subsection = False
         else:
+            self.in_subsection = True
             self.set_subcategory(root_category)
         self.connect("load-finished", self._on_load_finished)
 
@@ -109,22 +116,36 @@ class CategoriesView(WebkitWidget):
         helper for the webkit widget that injects the categories into
         the page when it has finished loading
         """
+        if self.in_subsection:
+            self.execute_script("hide_header();")
+        else:
+            self.execute_script("show_header();")
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
             if cat.iconname:
-                iconinfo = self.icons.lookup_icon(cat.iconname, 
-                                                  self.CATEGORY_ICON_SIZE, 0)
+                if self.in_subsection:
+                    size = self.SUB_CATEGORY_ICON_SIZE
+                else:
+                    size = self.CATEGORY_ICON_SIZE
+                iconinfo = self.icons.lookup_icon(cat.iconname, size, 0)
                 if iconinfo:
                     iconpath = iconinfo.get_filename()
                     logging.debug("icon: %s %s" % (iconinfo, iconpath))
-            # FIXME: this looks funny with german locales
-            s = 'addCategory("%s","%s")' % (cat.name, iconpath)
+            s = 'addCategory("%s","%s", "%s")' % (cat.name, 
+                                                  cat.untranslated_name,
+                                                  iconpath)
             logging.debug("running script '%s'" % s)
             self.execute_script(s)
 
+
     # substitute stuff
+    def wksub_ubuntu_software_center(self):
+        return _("Ubuntu Software Center")
     def wksub_icon_size(self):
-        return self.CATEGORY_ICON_SIZE
+        if self.in_subsection:
+            return self.SUB_CATEGORY_ICON_SIZE
+        else:
+            return self.CATEGORY_ICON_SIZE
     def wksub_header(self):
         return self.header
     def wksub_text_direction(self):
@@ -147,23 +168,36 @@ class CategoriesView(WebkitWidget):
     def wksub_font_size(self):
         return self._get_font_description_property("size")/1024
 
+    def wksub_featured_applications_image(self):
+        return self._image_path("featured_applications_background")
+    def wksub_button_background_left(self):
+        return self._image_path("button_background_left")
+    def wksub_button_background_right(self):
+        return self._image_path("button_background_right")
+    def wksub_heading_background_image(self):
+        return self._image_path("heading_background_image")
+    def wksub_basket_image(self):
+        return self._image_path("basket")
+    def wksub_arrow_image(self):
+        return self._image_path("arrow")
+    
+
     # helper code for menu parsing etc
+    def _image_path(self,name):
+        return os.path.abspath("%s/images/%s.png" % (self.datadir, name)) 
+
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
-        if a.untranslated_name == "System Packages":
+        if a.untranslated_name == "System":
             return 1
-        elif b.untranslated_name == "System Packages":
+        elif b.untranslated_name == "System":
             return -1
-        if a.untranslated_name == "Other":
+        elif a.untranslated_name == "Developer Tools":
             return 1
-        elif b.untranslated_name == "Other":
+        elif b.untranslated_name == "Developer Tools":
             return -1
-        elif a.untranslated_name == "Programming":
-            return 1
-        elif b.untranslated_name == "Programming":
-            return -1
-        return cmp(a.name, b.name)
+        return locale.strcoll(a.name, b.name)
 
     def _parse_directory_tag(self, element):
         cp = ConfigParser()
@@ -183,8 +217,8 @@ class CategoriesView(WebkitWidget):
             icon = cp.get("Desktop Entry","Icon")
         except Exception, e:
             icon = "applications-other"
-            if gettext_domain:
-                name = gettext.dgettext(gettext_domain, untranslated_name)
+        if gettext_domain:
+            name = gettext.dgettext(gettext_domain, untranslated_name)
         return (untranslated_name, name, gettext_domain, icon)
 
     def _parse_and_or_not_tag(self, element, query, xapian_op):
@@ -214,6 +248,19 @@ class CategoriesView(WebkitWidget):
                 logging.debug("adding channel: %s" % and_elem.text)
                 q = xapian.Query("AH"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCPkgname":
+                logging.debug("adding tag: %s" % and_elem.text)
+                # query both axi and s-c
+                q1 = xapian.Query("AP"+and_elem.text.lower())
+                q = xapian.Query(xapian.Query.OP_OR, q1,
+                                 xapian.Query("XP"+and_elem.text.lower()))
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCPkgnameWildcard":
+                logging.debug("adding tag: %s" % and_elem.text)
+                # query both axi and s-c
+                s = "pkg_wildcard:%s" % and_elem.text.lower()
+                q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
+                query = xapian.Query(xapian_op, query, q)
             else: 
                 print "UNHANDLED: ", and_elem.tag, and_elem.text
         return query
@@ -231,8 +278,8 @@ class CategoriesView(WebkitWidget):
                 return xapian.Query("AC"+include.text.lower())
             else:
                 logging.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
-        # null query if nothing should be included
-        return xapian.Query()
+        # empty query matches all
+        return xapian.Query("")
 
     def _parse_menu_tag(self, item):
         name = None
@@ -243,9 +290,17 @@ class CategoriesView(WebkitWidget):
         dont_display = False
         subcategories = []
         for element in item.getchildren():
+            # ignore inline translations, we use gettext for this
+            if (element.tag == "Name" and 
+                '{http://www.w3.org/XML/1998/namespace}lang' in element.attrib):
+                continue
             if element.tag == "Name":
                 untranslated_name = element.text
-                name = gettext.gettext(untranslated_name)
+                # gettext/xml writes stuff from software-center.menu
+                # out into the pot as escaped xml, so we need to escape
+                # the name first, get the translation and unscape it again
+                escaped_name = xml_escape(untranslated_name)
+                name = xml_unescape(gettext.gettext(escaped_name))
             elif element.tag == "SCIcon":
                 icon = element.text
             elif element.tag == "Directory":
@@ -322,7 +377,7 @@ def category_activated(iconview, category, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
     name = category.name
     query = category.query
-    enquire = xapian.Enquire(db)
+    enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
     for m in matches:
@@ -335,7 +390,9 @@ def category_activated(iconview, category, db):
     print len(matches)
 
 if __name__ == "__main__":
+    import apt
     from softwarecenter.enums import *
+    from softwarecenter.db.database import StoreDatabase
     logging.basicConfig(level=logging.DEBUG)
 
     appdir = "/usr/share/app-install"
@@ -343,7 +400,9 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = xapian.Database(pathname)
+    cache = apt.Cache()
+    db = StoreDatabase(pathname, cache)
+    db.open()
 
     # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()

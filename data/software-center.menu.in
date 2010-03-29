@@ -4,7 +4,7 @@
 
   <!-- Accessories submenu -->
   <Menu>
-    <Name>Accessories</Name>
+    <_Name>Accessories</_Name>
     <Directory>Utility.directory</Directory>
     <Include>
       <And>
@@ -14,14 +14,13 @@
              the ones that do not have Settings, so don't display accessibility
              applications here -->
         <Not><Category>Accessibility</Category></Not>
-        <Not><Category>System</Category></Not>
       </And>
     </Include>
   </Menu> <!-- End Accessories -->
 
   <!-- Accessibility submenu -->
   <Menu>
-    <Name>Universal Access</Name>
+    <_Name>Universal Access</_Name>
     <Directory>Utility-Accessibility.directory</Directory>
     <Include>
       <And>
@@ -31,29 +30,34 @@
     </Include>
   </Menu> <!-- End Accessibility -->
 
+
   <!-- Development Tools -->
   <Menu>
-    <Name>Development</Name>
-    <Directory>Development.directory</Directory>
+    <_Name>Developer Tools</_Name>
+    <SCIcon>applications-development</SCIcon>
     <Include>
-      <And>
+      <Or>
         <Category>Development</Category>
-      </And>
+        <SCSection>devel</SCSection>
+        <SCSection>restricted/devel</SCSection>
+        <SCSection>universe/devel</SCSection>
+        <SCSection>multiverse/devel</SCSection>
+      </Or>
       <Filename>emacs.desktop</Filename>
     </Include>
 
     <!-- package sub-sections, see spec-->
     <Menu>
       <_Name>Debugging</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-debugging</SCIcon>
       <Include>
-	<Category>Debugger</Category>
+	<Category>Debugging</Category>
       </Include>
     </Menu>
 
     <Menu>
       <_Name>Graphic Interface Design</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-interfacedesign</SCIcon>
       <Include>
 	<Category>GUIDesigner</Category>
       </Include>
@@ -61,7 +65,7 @@
 
     <Menu>
       <_Name>Haskell</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-haskell</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>haskell</SCSection>
@@ -81,21 +85,8 @@
     </Menu>
 
     <Menu>
-      <_Name>Interpreters</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>interpreters</SCSection>
-	  <SCSection>restricted/interpreters</SCSection>
-	  <SCSection>universe/interpreters</SCSection>
-	  <SCSection>multiverse/interpreters</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-    <Menu>
       <_Name>Java</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-java</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>java</SCSection>
@@ -133,8 +124,18 @@
     </Menu>
 
     <Menu>
-      <_Name>CLI Mono</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <_Name>Localization</_Name>
+      <SCIcon>preferences-desktop-locale</SCIcon>
+      <Include>
+	<And>
+	  <Category>Translation</Category>
+	</And>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <_Name>Mono/CLI</_Name>
+      <SCIcon>applications-monodevelopment</SCIcon>
       <Include>
         <Or>
           <SCSection>cli-mono</SCSection>
@@ -181,7 +182,7 @@
 
     <Menu>
       <_Name>Python</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-python</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>python</SCSection>
@@ -194,7 +195,7 @@
 
     <Menu>
       <_Name>Ruby</_Name>
-      <SCIcon>applications-other</SCIcon>
+      <SCIcon>applications-ruby</SCIcon>
       <Include>
 	<Or>
 	  <SCSection>ruby</SCSection>
@@ -219,13 +220,17 @@
       </Include>
     </Menu>
 
-
+    <Menu>
+      <_Name>Web Development</_Name>
+      <Include><And><Category>WebDevelopment</Category></And></Include>
+      <SCIcon>applications-internet</SCIcon>
+    </Menu>
 
   </Menu> <!-- End Development Tools -->
 
   <!-- Education -->
   <Menu>
-    <Name>Education</Name>
+    <_Name>Education</_Name>
     <Directory>Education.directory</Directory>
     <Include>
       <And>
@@ -237,19 +242,103 @@
 
   <!-- Science -->
   <Menu>
-    <Name>Science</Name>
-    <Directory>GnomeScience.directory</Directory>
+    <_Name>Science &amp; Engineering</_Name>
+    <SCIcon>applications-science</SCIcon>
     <Include>
-      <And>
-        <Category>Education</Category>
+      <Or>
         <Category>Science</Category>
-      </And>
+        <Category>Engineering</Category>
+      </Or>
     </Include>
-  </Menu> <!-- End Science -->
+    <Menu>
+      <_Name>Astronomy</_Name>
+      <SCIcon>weather-clear-night</SCIcon>
+      <Include><Category>Astronomy</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Biology</_Name>
+      <SCIcon>applications-biology</SCIcon>
+      <Include><Category>Biology</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Chemistry</_Name>
+      <SCIcon>applications-science</SCIcon>
+      <Include><Category>Chemistry</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Computer Science &amp; Robotics</_Name>
+      <SCIcon>computer</SCIcon>
+      <Include>
+        <Or>
+          <Category>ArtificialIntelligence</Category>
+          <Category>ComputerScience</Category>
+          <Category>Robotics</Category>
+        </Or>
+      </Include>
+    </Menu>
+    <Menu>
+      <_Name>Electronics</_Name>
+      <SCIcon>applications-electronics</SCIcon>
+      <Include><Category>Electronics</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Engineering</_Name>
+      <SCIcon>applications-engineering</SCIcon>
+      <Include><Category>Engineering</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Geography</_Name>
+      <SCIcon>applications-geography</SCIcon>
+      <Include><Category>Geography</Category></Include>
+    </Menu>
+    <Menu>
+      <_Name>Geology</_Name>
+      <SCIcon>applications-geology</SCIcon>
+      <Include>
+        <Or><Category>Geology</Category><Category>Geoscience</Category></Or>
+      </Include>
+    </Menu>
+    <Menu>
+      <_Name>Mathematics</_Name>
+      <SCIcon>applications-mathematics</SCIcon>
+      <Include>
+        <Or>
+          <Category>DataVisualization</Category>
+          <Category>Math</Category>
+          <Category>NumericalAnalysis</Category>
+          <SCSection>math</SCSection>
+          <SCSection>restricted/math</SCSection>
+          <SCSection>universe/math</SCSection>
+          <SCSection>multiverse/math</SCSection>
+          <SCSection>gnu-r</SCSection>
+          <SCSection>restricted/gnu-r</SCSection>
+          <SCSection>universe/gnu-r</SCSection>
+          <SCSection>multiverse/gnu-r</SCSection>
+        </Or>
+      </Include>
+    </Menu>
+    <Menu>
+      <_Name>Physics</_Name>
+      <SCIcon>applications-physics</SCIcon>
+      <Include><Category>Physics</Category></Include>
+    </Menu>
+  </Menu> <!-- End Science & Engineering -->
+
+  <!-- Fonts -->
+  <Menu>
+    <_Name>Fonts</_Name>
+    <SCIcon>applications-fonts</SCIcon>
+    <Include>
+      <Or>
+        <SCPkgnameWildcard>ttf*</SCPkgnameWildcard>
+        <SCPkgnameWildcard>otf*</SCPkgnameWildcard>
+      </Or>
+    </Include>
+  </Menu>
 
   <!-- Games -->
   <Menu>
-    <Name>Games</Name>
+    <_Name>Games</_Name>
     <Directory>Game.directory</Directory>
     <Include>
       <And>
@@ -258,87 +347,54 @@
     </Include>
     <!-- Sub-categories for the games -->
     <Menu>
-      <Name>Action</Name>
-      <Directory>ActionGames.directory</Directory>
-      <Include>
-        <Category>ActionGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <Name>Adventure</Name>
-      <Directory>AdventureGames.directory</Directory>
-      <Include>
-        <Category>AdventureGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <Name>Arcade</Name>
-      <Directory>ArcadeGames.directory</Directory>
+      <_Name>Arcade</_Name>
+      <SCIcon>applications-other</SCIcon>
       <Include>
         <Category>ArcadeGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Board</Name>
-      <Directory>BoardGames.directory</Directory>
+      <_Name>Board Games</_Name>
+      <SCIcon>applications-boardgames</SCIcon>
       <Include>
         <Category>BoardGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Blocks</Name>
-      <Directory>BlocksGames.directory</Directory>
-      <Include>
-        <Category>BlocksGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <Name>Cards</Name>
-      <Directory>CardGames.directory</Directory>
+      <_Name>Card Games</_Name>
+      <SCIcon>applications-cardgames</SCIcon>
       <Include>
         <Category>CardGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Kids</Name>
-      <Directory>KidsGames.directory</Directory>
-      <Include>
-        <Category>KidsGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <Name>Logic</Name>
-      <Directory>LogicGames.directory</Directory>
+      <_Name>Puzzles</_Name>
+      <SCIcon>applications-puzzles</SCIcon>
       <Include>
         <Category>LogicGame</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Role Playing</Name>
-      <Directory>RolePlayingGames.directory</Directory>
+      <_Name>Role Playing</_Name>
+      <SCIcon>applications-roleplaying</SCIcon>
       <Include>
         <Category>RolePlaying</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Simulation</Name>
+      <_Name>Simulation</_Name>
       <Directory>SimulationGames.directory</Directory>
+      <SCIcon>applications-simulation</SCIcon>
       <Include>
         <Category>Simulation</Category>
       </Include>
     </Menu>
     <Menu>
-      <Name>Sports</Name>
+      <_Name>Sports</_Name>
       <Directory>SportsGames.directory</Directory>
+      <SCIcon>applications-sports</SCIcon>
       <Include>
         <Category>SportsGame</Category>
-      </Include>
-    </Menu>
-    <Menu>
-      <Name>Strategy</Name>
-      <Directory>StrategyGames.directory</Directory>
-      <Include>
-        <Category>StrategyGame</Category>
       </Include>
     </Menu>
 
@@ -346,29 +402,89 @@
 
   <!-- Graphics -->
   <Menu>
-    <Name>Graphics</Name>
+    <_Name>Graphics</_Name>
     <Directory>Graphics.directory</Directory>
     <Include>
       <And>
         <Category>Graphics</Category>
       </And>
     </Include>
+    <Menu>
+      <_Name>3D</_Name>
+      <SCIcon>applications-3D</SCIcon>
+      <Include><And><Category>3DGraphics</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Drawing</_Name>
+      <SCIcon>applications-drawing</SCIcon>
+      <Include><And><Category>VectorGraphics</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Painting &amp; Editing</_Name>
+      <SCIcon>applications-painting</SCIcon>
+      <Include><And><Category>RasterGraphics</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Photography</_Name>
+      <SCIcon>applications-photography</SCIcon>
+      <Include><And><Category>Photography</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Publishing</_Name>
+      <SCIcon>applications-publishing</SCIcon>
+      <Include><And><Category>Publishing</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Scanning &amp; OCR</_Name>
+      <SCIcon>scanner</SCIcon>
+      <Include>
+        <Or>
+          <Category>Scanning</Category>
+          <Category>OCR</Category>
+        </Or>
+      </Include>
+    </Menu>
+    <Menu>
+      <_Name>Viewers</_Name>
+      <SCIcon>applications-other</SCIcon>
+      <Include><And><Category>Viewer</Category></And></Include>
+    </Menu>
   </Menu> <!-- End Graphics -->
 
   <!-- Internet -->
   <Menu>
-    <Name>Internet</Name>
+    <_Name>Internet</_Name>
     <Directory>Network.directory</Directory>
     <Include>
       <And>
         <Category>Network</Category>
       </And>
     </Include>
+    <Menu>
+      <_Name>Chat</_Name>
+      <SCIcon>applications-chat</SCIcon>
+      <Include><And><Category>InstantMessaging</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>File Sharing</_Name>
+      <SCIcon>applications-filesharing</SCIcon>
+      <Include><And><Category>FileTransfer</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Mail</_Name>
+      <SCIcon>applications-mail</SCIcon>
+      <Include><And><Category>Email</Category></And></Include>
+    </Menu>
+    <Menu>
+      <_Name>Web Browsers</_Name>
+      <SCIcon>applications-webbrowsers</SCIcon>
+      <Include><And><Category>WebBrowser</Category></And></Include>
+    </Menu>
   </Menu>   <!-- End Internet -->
 
   <!-- Multimedia -->
   <Menu>
-    <Name>Multimedia</Name>
+    <_Name>Multimedia</_Name>
     <Directory>AudioVideo.directory</Directory>
     <Include>
       <And>
@@ -379,7 +495,7 @@
 
   <!-- Office -->
   <Menu>
-    <Name>Office</Name>
+    <_Name>Office</_Name>
     <Directory>Office.directory</Directory>
     <Include>
       <And>
@@ -388,559 +504,19 @@
     </Include>
   </Menu> <!-- End Office -->
 
-  <!-- System Tools-->
   <Menu>
-    <Name>System</Name>
-    <Directory>System-Tools.directory</Directory>
-    <Include>
-      <And>
-        <Category>System</Category>
-<!--        <Not><Category>Settings</Category></Not> -->
-<!--        <Not><Category>Game</Category></Not> -->
-      </And>
-    </Include>
-  </Menu>   <!-- End System Tools -->
+    <_Name>Themes &amp; Tweaks</_Name>
+    <SCIcon>preferences-other</SCIcon>
+    <Include><Category>Settings</Category></Include>
+  </Menu>
 
-  <!-- Other -->
+ <!-- System -->
   <Menu>
-    <Name>Other</Name>
-    <Directory>X-GNOME-Other.directory</Directory>
+    <_Name>System</_Name>
+    <SCIcon>applications-other</SCIcon>
     <OnlyUnallocated/>
     <Include>
-      <And>
-        <Category>Application</Category>
-        <Not><Category>Core</Category></Not>
-<!--        <Not><Category>Settings</Category></Not> -->
-        <Not><Category>Screensaver</Category></Not>
-      </And>
     </Include>
-  </Menu> <!-- End Other -->
-
-
-
-
-
-
- <!-- Packages -->
-  <Menu>
-    <_Name>System Packages</_Name>
-    <SCIcon>applications-other</SCIcon>
-    <SCDontDisplay />
-    <Include>
-      <And>
-        <Not><SCType>application</SCType></Not>
-      </And>
-    </Include>
-
-    <Menu>
-      <_Name>Admin</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-        <Or>
-          <SCSection>admin</SCSection>
-          <SCSection>restricted/admin</SCSection>
-          <SCSection>universe/admin</SCSection>
-          <SCSection>multiverse/admin</SCSection>
-        </Or>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>Base</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-        <Or>
-          <SCSection>base</SCSection>
-          <SCSection>restricted/base</SCSection>
-          <SCSection>universe/base</SCSection>
-          <SCSection>multiverse/base</SCSection>
-        </Or>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>Databases</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-        <Or>
-          <SCSection>database</SCSection>
-          <SCSection>restricted/database</SCSection>
-          <SCSection>universe/database</SCSection>
-          <SCSection>multiverse/database</SCSection>
-        </Or>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>Debug</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-        <Or>
-          <SCSection>debug</SCSection>
-          <SCSection>restricted/debug</SCSection>
-          <SCSection>universe/debug</SCSection>
-          <SCSection>multiverse/debug</SCSection>
-        </Or>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>Development</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-        <Or>
-          <SCSection>devel</SCSection>
-          <SCSection>restricted/devel</SCSection>
-          <SCSection>universe/devel</SCSection>
-          <SCSection>multiverse/devel</SCSection>
-        </Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Documentation</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>doc</SCSection>
-	  <SCSection>restricted/doc</SCSection>
-	  <SCSection>universe/doc</SCSection>
-	  <SCSection>multiverse/doc</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Editors</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>editors</SCSection>
-	  <SCSection>restricted/editors</SCSection>
-	  <SCSection>universe/editors</SCSection>
-	  <SCSection>multiverse/editors</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Embedded</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>embedded</SCSection>
-	  <SCSection>restricted/embedded</SCSection>
-	  <SCSection>universe/embedded</SCSection>
-	  <SCSection>multiverse/embedded</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Fonts</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>fonts</SCSection>
-	  <SCSection>restricted/fonts</SCSection>
-	  <SCSection>universe/fonts</SCSection>
-	  <SCSection>multiverse/fonts</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Games</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>games</SCSection>
-	  <SCSection>restricted/games</SCSection>
-	  <SCSection>universe/games</SCSection>
-	  <SCSection>multiverse/games</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Gnome</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>gnome</SCSection>
-	  <SCSection>restricted/gnome</SCSection>
-	  <SCSection>universe/gnome</SCSection>
-	  <SCSection>multiverse/gnome</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Graphics</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>graphics</SCSection>
-	  <SCSection>restricted/graphics</SCSection>
-	  <SCSection>universe/graphics</SCSection>
-	  <SCSection>multiverse/graphics</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Hamradio</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>hamradio</SCSection>
-	  <SCSection>restricted/hamradio</SCSection>
-	  <SCSection>universe/hamradio</SCSection>
-	  <SCSection>multiverse/hamradio</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Web servers</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>httpd</SCSection>
-	  <SCSection>restricted/httpd</SCSection>
-	  <SCSection>universe/httpd</SCSection>
-	  <SCSection>multiverse/httpd</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>KDE</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>kde</SCSection>
-	  <SCSection>restricted/kde</SCSection>
-	  <SCSection>universe/kde</SCSection>
-	  <SCSection>multiverse/kde</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-    
-
-    <Menu>
-      <_Name>Kernel</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>kernel</SCSection>
-	  <SCSection>restricted/kernel</SCSection>
-	  <SCSection>universe/kernel</SCSection>
-	  <SCSection>multiverse/kernel</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>libdevel</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>libdevel</SCSection>
-	  <SCSection>restricted/libdevel</SCSection>
-	  <SCSection>universe/libdevel</SCSection>
-	  <SCSection>multiverse/libdevel</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Libraries</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>libs</SCSection>
-	  <SCSection>restricted/libs</SCSection>
-	  <SCSection>universe/libs</SCSection>
-	  <SCSection>multiverse/libs</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>localization</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>localization</SCSection>
-	  <SCSection>restricted/localization</SCSection>
-	  <SCSection>universe/localization</SCSection>
-	  <SCSection>multiverse/localization</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Mail</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>mail</SCSection>
-	  <SCSection>restricted/mail</SCSection>
-	  <SCSection>universe/mail</SCSection>
-	  <SCSection>multiverse/mail</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-    
-
-    <Menu>
-      <_Name>Mathematics</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>math</SCSection>
-	  <SCSection>restricted/math</SCSection>
-	  <SCSection>universe/math</SCSection>
-	  <SCSection>multiverse/math</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>metapackages</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>metapackages</SCSection>
-	  <SCSection>restricted/metapackages</SCSection>
-	  <SCSection>universe/metapackages</SCSection>
-	  <SCSection>multiverse/metapackages</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>misc</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>misc</SCSection>
-	  <SCSection>restricted/misc</SCSection>
-	  <SCSection>universe/misc</SCSection>
-	  <SCSection>multiverse/misc</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>Network</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-        <Or>
-          <SCSection>net</SCSection>
-          <SCSection>restricted/net</SCSection>
-          <SCSection>universe/net</SCSection>
-          <SCSection>multiverse/net</SCSection>
-        </Or>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>oldlibs</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>oldlibs</SCSection>
-	  <SCSection>restricted/oldlibs</SCSection>
-	  <SCSection>universe/oldlibs</SCSection>
-	  <SCSection>multiverse/oldlibs</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>otherosfs</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>otherosfs</SCSection>
-	  <SCSection>restricted/otherosfs</SCSection>
-	  <SCSection>universe/otherosfs</SCSection>
-	  <SCSection>multiverse/otherosfs</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-
-    <Menu>
-      <_Name>Science</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>science</SCSection>
-	  <SCSection>restricted/science</SCSection>
-	  <SCSection>universe/science</SCSection>
-	  <SCSection>multiverse/science</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Shells</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>shells</SCSection>
-	  <SCSection>restricted/shells</SCSection>
-	  <SCSection>universe/shells</SCSection>
-	  <SCSection>multiverse/shells</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Sound</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>sound</SCSection>
-	  <SCSection>restricted/sound</SCSection>
-	  <SCSection>universe/sound</SCSection>
-	  <SCSection>multiverse/sound</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Tex</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>tex</SCSection>
-	  <SCSection>restricted/tex</SCSection>
-	  <SCSection>universe/tex</SCSection>
-	  <SCSection>multiverse/tex</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Text</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>text</SCSection>
-	  <SCSection>restricted/text</SCSection>
-	  <SCSection>universe/text</SCSection>
-	  <SCSection>multiverse/text</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Translations</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>translations</SCSection>
-	  <SCSection>restricted/translations</SCSection>
-	  <SCSection>universe/translations</SCSection>
-	  <SCSection>multiverse/translations</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Utils</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>utils</SCSection>
-	  <SCSection>restricted/utils</SCSection>
-	  <SCSection>universe/utils</SCSection>
-	  <SCSection>multiverse/utils</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-    <Menu>
-      <_Name>Video</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>video</SCSection>
-	  <SCSection>restricted/video</SCSection>
-	  <SCSection>universe/video</SCSection>
-	  <SCSection>multiverse/video</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>Web</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>web</SCSection>
-	  <SCSection>restricted/web</SCSection>
-	  <SCSection>universe/web</SCSection>
-	  <SCSection>multiverse/web</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-
-
-    <Menu>
-      <_Name>X11</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-	<Or>
-	  <SCSection>x11</SCSection>
-	  <SCSection>restricted/x11</SCSection>
-	  <SCSection>universe/x11</SCSection>
-	  <SCSection>multiverse/x11</SCSection>
-	</Or>
-      </Include>
-    </Menu>
-    
-    <!-- Only unallocated ones -->
-    <Menu>
-      <_Name>Other Packages</_Name>
-      <SCIcon>applications-other</SCIcon>
-      <Include>
-        <And>
-          <Not><SCType>application</SCType></Not>
-        </And>
-      </Include>
-      <OnlyUnallocated/>
-    </Menu>
-
   </Menu> <!-- End Packages -->
 
 </Menu>

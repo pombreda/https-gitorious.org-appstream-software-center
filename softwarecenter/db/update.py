@@ -57,15 +57,18 @@ class DesktopConfigParser(RawConfigParser):
                 if value != translated_value:
                     return translated_value
         # then try the i18n version of the key (in [de_DE] or
-        # [de]
-        locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
-        if locale:
-            if self.has_option_desktop("%s[%s]" % (key, locale)):
-                return self.get(self.DE, "%s[%s]" % (key, locale))
-            if "_" in locale:
-                locale_short = locale.split("_")[0]
-                if self.has_option_desktop("%s[%s]" % (key, locale_short)):
-                    return self.get(self.DE, "%s[%s]" % (key, locale_short))
+        # [de]) but ignore errors and return the untranslated one then
+        try:
+            locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
+            if locale:
+                if self.has_option_desktop("%s[%s]" % (key, locale)):
+                    return self.get(self.DE, "%s[%s]" % (key, locale))
+                if "_" in locale:
+                    locale_short = locale.split("_")[0]
+                    if self.has_option_desktop("%s[%s]" % (key, locale_short)):
+                        return self.get(self.DE, "%s[%s]" % (key, locale_short))
+        except ValueError,e :
+            pass
         # and then the untranslated field
         return self.get(self.DE, key)
     def has_option_desktop(self, key):
@@ -82,6 +85,13 @@ class DesktopConfigParser(RawConfigParser):
         except NoOptionError:
             pass
         return categories
+
+def index_name(doc, name, term_generator):
+    """ index the name of the application """
+    doc.add_value(XAPIAN_VALUE_APPNAME, name)
+    doc.add_term("AA"+name)
+    w = globals()["WEIGHT_DESKTOP_NAME"]
+    term_generator.index_text_without_positions(name, w)
 
 def update(db, cache, datadir=APP_INSTALL_PATH):
     " index the desktop files in $datadir/desktop/*.desktop "
@@ -105,8 +115,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 logging.debug("duplicated name '%s' (%s)" % (name, desktopf))
             seen.add(name)
             doc.set_data(name)
-            doc.add_value(XAPIAN_VALUE_APPNAME, name)
-            doc.add_term("AA"+name)
+            index_name(doc, name, term_generator)
             # check if we should ignore this file
             if parser.has_option_desktop("X-AppInstall-Ignore"):
                 ignore = parser.get_desktop("X-AppInstall-Ignore")
@@ -161,8 +170,10 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 doc.add_value(XAPIAN_VALUE_POPCON, 
                               xapian.sortable_serialise(popcon))
                 popcon_max = max(popcon_max, popcon)
+
             # comment goes into the summary data if there is one,
-            # other wise we try GenericName
+            # other wise we try GenericName and if nothing else,
+            # the summary of the package
             if parser.has_option_desktop("Comment"):
                 s = parser.get_desktop("Comment")
                 doc.add_value(XAPIAN_VALUE_SUMMARY, s)
@@ -178,18 +189,25 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
             term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)
 
             # now add search data from the desktop file
-            for key in ["Name","Generic Name","Comment"]:
+            for key in ["GenericName","Comment"]:
                 if not parser.has_option_desktop(key):
                     continue
                 s = parser.get_desktop(key)
                 w = globals()["WEIGHT_DESKTOP_"+key.replace(" ","").upper()]
-                term_generator.index_text_without_positions(s)
+                term_generator.index_text_without_positions(s, w)
             # add data from the apt cache
             if pkgname in cache and cache[pkgname].candidate:
                 s = cache[pkgname].candidate.summary
                 term_generator.index_text_without_positions(s, WEIGHT_APT_SUMMARY)
                 s = cache[pkgname].candidate.description
                 term_generator.index_text_without_positions(s, WEIGHT_APT_DESCRIPTION)
+                for origin in cache[pkgname].candidate.origins:
+                    doc.add_term("XOA"+origin.archive)
+                    doc.add_term("XOC"+origin.component)
+                    doc.add_term("XOL"+origin.label)
+                    doc.add_term("XOO"+origin.origin)
+                    doc.add_term("XOS"+origin.site)
+
             # add our keywords (with high priority)
             if parser.has_option_desktop("X-AppInstall-Keywords"):
                 keywords = parser.get_desktop("X-AppInstall-Keywords")

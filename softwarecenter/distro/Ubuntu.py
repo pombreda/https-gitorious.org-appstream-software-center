@@ -22,8 +22,9 @@ import locale
 import subprocess
 
 from apt.utils import *
-from softwarecenter.distro import Distro
 from gettext import gettext as _
+from softwarecenter.distro import Distro
+from softwarecenter.enums import *
 
 class Ubuntu(Distro):
 
@@ -33,6 +34,14 @@ class Ubuntu(Distro):
     # screenshot handling
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
+
+    def get_distro_channel_name(self):
+        """ The name in the Release file """
+        return "Ubuntu"
+
+    def get_distro_channel_description(self):
+        """ The description of the main distro channel """
+        return _("Provided by Ubuntu")
 
     def get_removal_warning_text(self, cache, pkg, appname):
         primary = _("To remove %s, these items must be removed "
@@ -63,33 +72,12 @@ class Ubuntu(Distro):
                 break
         return (primary, button_text)
 
-    def get_rdepends_text(self, cache, pkg, appname):
+    def get_installation_status(self, cache, pkg, appname):
         s = ""
         if pkg.installed:
             # generic message
-            s = _("%s is installed on this computer.") % appname
-            # show how many packages on the system depend on this
-            installed_rdeps = cache.get_installed_rdepends(pkg)
-            installed_rrecommends = cache.get_installed_rrecommends(pkg)
-            installed_rsuggests = cache.get_installed_rsuggests(pkg)
-            if len(installed_rdeps) > 0:
-                s += " "
-                s += gettext.ngettext(
-                    "It is used by %s installed software package.",
-                    "It is used by %s installed software packages.",
-                    len(installed_rdeps)) % len(installed_rdeps)
-            elif len(installed_rrecommends) > 0:
-                s += " "
-                s += gettext.ngettext(
-                    "It is recommended by %s installed software package.",
-                    "It is recommended by %s installed software packages.",
-                    len(installed_rrecommends)) % len(installed_rrecommends)
-            elif len(installed_rsuggests) > 0:
-                s += " "
-                s += gettext.ngettext(
-                    "It is suggested by %s installed software package.",
-                    "It is suggested by %s installed software packages.",
-                    len(installed_rrecommends)) % len(installed_rrecommends)
+            s = _("Installed")
+            # In future, say "Installed since $date"
         return s
 
     def get_distro_codename(self):
@@ -107,6 +95,20 @@ class Ubuntu(Distro):
             li = _("Proprietary")
         s = _("License: %s") % li
         return s
+
+    def is_supported(self, cache, doc, pkgname):
+        section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        if section == "main" and section == "restricted":
+            return True
+        if cache.has_key(pkgname) and cache[pkgname].candidate:
+            for origin in cache[pkgname].candidate.origins:
+                if (origin.origin == "Ubuntu" and 
+                    origin.trusted and 
+                    (origin.component == "main" or
+                     origin.component == "restricted")):
+                    return True
+        return False
+
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
         # try to figure out the support dates of the release and make
@@ -178,7 +180,7 @@ class Ubuntu(Distro):
                
         # if we couldn't fiure a support date, use a generic maintenance
         # string without the date
-        if channel:
+        if channel or component == "partner":
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the third party "
                      "vendor.") % appname

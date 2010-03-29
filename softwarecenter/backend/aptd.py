@@ -60,6 +60,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     # public methods
     def upgrade(self, pkgname, appname, iconname):
+        """ upgrade a single package """
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.upgrade_packages([pkgname],
@@ -67,14 +68,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                           error_handler=self._on_trans_error)
 
     def remove(self, pkgname, appname, iconname):
+        """ remove a single package """
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.remove_packages([pkgname], wait=False, 
-                                         remove_unused_dependencies=True,
                                          reply_handler=reply_handler,
                                          error_handler=self._on_trans_error)
 
     def install(self, pkgname, appname, iconname):
+        """ install a single package """
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.install_packages([pkgname],
@@ -82,10 +84,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                           error_handler=self._on_trans_error)
 
     def reload(self):
+        """ reload package list """
         reply_handler = lambda trans: self._run_transaction(trans, None, None,
                                                             None)
-        trans = self.aptd_client.update_cache(reply_handler=reply_handler,
-                                             error_handler=self._on_trans_error)
+        self.aptd_client.update_cache(reply_handler=reply_handler,
+                                      error_handler=self._on_trans_error)
 
     def enable_channel(self, channelfile):
         import aptsources.sourceslist
@@ -105,7 +108,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     "Added by software-center", sourcepart)
             except dbus.exceptions.DBusException, e:
                 if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                    logging.error("add_repository: '%s'" % e)
                     return
+        # now update the cache
         self.reload()
 
     # internal helpers
@@ -130,11 +135,18 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 pkgname = trans.meta_data["sc_pkgname"]
                 self.pending_transactions[pkgname] = trans.progress
             except KeyError:
-                pass
+                # if its not a transaction from us (sc_pkgname) still
+                # add it with the tid as key to get accurate results
+                # (the key of pending_transactions is never directly
+                #  exposed in the UI)
+                self.pending_transactions[trans.tid] = trans.progress
         self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
-        """ internal helper that gets called on transaction progress """
+        """ 
+        internal helper that gets called on our package transaction progress 
+        (only showing pkg progress currently)
+        """
         try:
             pkgname = trans.meta_data["sc_pkgname"]
             self.pending_transactions[pkgname] = progress
@@ -209,24 +221,19 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         else:
             transaction.cancel()
 
+    def set_http_proxy(self, trans):
+        """ set http proxy based on gconf and attach it to a transaction """
+        http_proxy = get_http_proxy_string_from_gconf()
+        if http_proxy:
+            trans.set_http_proxy(http_proxy, reply_handler=lambda t: True,
+                                 error_handler=self._on_trans_error)
+
     def _run_transaction(self, trans, pkgname, appname, iconname):
-        def set_debconf(trans):
-            trans.set_debconf_frontend("gnome", reply_handler=set_http_proxy,
-                                       error_handler=self._on_trans_error)
-        def set_http_proxy(trans):
-            http_proxy = get_http_proxy_string_from_gconf()
-            if http_proxy:
-                trans.set_http_proxy(http_proxy, reply_handler=run,
-                                     error_handler=self._on_trans_error)
-            else:
-                run(trans)
-        def run(trans):
-            trans.run(error_handler=self._on_trans_error,
-                      reply_handler=self._on_trans_reply)
+        # connect signals
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
-        # set appname/iconname only if we actually have one
+        # set appname/iconname/pkgname only if we actually have one
         if appname:
             trans.set_meta_data(sc_appname=appname, 
                                 reply_handler=lambda t: True,
@@ -235,13 +242,27 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             trans.set_meta_data(sc_iconname=iconname,
                                 reply_handler=lambda t: True,
                                 error_handler=self._on_trans_error)
-        # we always have a pkgname
-        trans.set_meta_data(sc_pkgname=pkgname,
-                            reply_handler=set_debconf,
-                            error_handler=self._on_trans_error)
-        
+        # we do not always have a pkgname, e.g. "cache_update" does not
+        if pkgname:
+            trans.set_meta_data(sc_pkgname=pkgname,
+                                reply_handler=lambda t: True,
+                                error_handler=self._on_trans_error)
+            # setup debconf only if we have a pkg
+            trans.set_debconf_frontend("gnome", reply_handler=lambda t: True,
+                                       error_handler=self._on_trans_error)
+            # set this once the new aptdaemon 0.2.x API can be used
+            trans.set_remove_obsoleted_depends(True, 
+                                               reply_handler=lambda t: True,
+                                               error_handler=self._on_trans_error)
+            
+        # set proxy and run
+        self.set_http_proxy(trans)
+        trans.run(error_handler=self._on_trans_error,
+                  reply_handler=self._on_trans_reply)
 
 if __name__ == "__main__":
-    c = client.AptClient()
-    c.remove_packages(["4g8"], remove_unused_dependencies=True)
+    #c = client.AptClient()
+    #c.remove_packages(["4g8"], remove_unused_dependencies=True)
+    backend = AptdaemonBackend()
+    backend.reload()
 

@@ -25,6 +25,8 @@
 import gtk
 import gobject
 
+from gettext import gettext as _
+
 class SearchEntry(gtk.Entry):
 
     # FIMXE: we need "can-undo", "can-redo" signals
@@ -54,6 +56,11 @@ class SearchEntry(gtk.Entry):
         theme = settings.get_property("gtk-theme-name")
         self._a11y = (theme.startswith("HighContrast") or
                       theme.startswith("LowContrast"))
+        
+        # set sensible atk name
+        atk_desc = self.get_accessible()
+        atk_desc.set_name(_("Search"))
+
         # data
         self._timeout_id = 0
         self._undo_stack = [""]

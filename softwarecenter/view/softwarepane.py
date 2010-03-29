@@ -56,7 +56,7 @@ def wait_for_apt_cache_ready(f):
         f(*args, **kwargs)
         return False
     return wrapper
-            
+
 
 class SoftwarePane(gtk.VBox):
     """ Common base class for InstalledPane and AvailablePane """
@@ -65,11 +65,11 @@ class SoftwarePane(gtk.VBox):
         "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
                               gobject.TYPE_NONE, 
                               (int, ),
-                             )
+                             ),
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
@@ -102,6 +102,8 @@ class SoftwarePane(gtk.VBox):
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
                                        gtk.POLICY_AUTOMATIC)
         self.scroll_details.add(self.app_details)
+        self.app_details.backend.connect("transaction-finished", self.on_transaction_finished)
+        self.app_details.backend.connect("transaction-stopped", self.on_transaction_stopped)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -111,10 +113,10 @@ class SoftwarePane(gtk.VBox):
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
-        top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
-        self.pack_start(top_hbox, expand=False, padding=self.PADDING)
+        self.top_hbox = gtk.HBox()
+        self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
+        self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
+        self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
@@ -150,6 +152,18 @@ class SoftwarePane(gtk.VBox):
             action_func()
         else:
             logging.error("can not find action '%s'" % action)
+            
+    def on_transaction_finished(self, backend, success):
+        """ callback when an application install/remove transaction has finished """
+        btns = self.app_view.buttons
+        if btns.has_key('action'):
+            btns['action'].set_sensitive(True)
+
+    def on_transaction_stopped(self, backend):
+        """ callback when an application install/remove transaction has stopped """
+        btns = self.app_view.buttons
+        if btns.has_key('action'):
+            btns['action'].set_sensitive(True)
 
     def update_app_view(self):
         """
@@ -201,3 +215,12 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, widget, app):
         " stub implementation "
         pass
+        
+    def on_nav_back_clicked(self, widget, event):
+        " stub implementation "
+        pass
+
+    def on_nav_forward_clicked(self, widget, event):
+        " stub implementation "
+        pass
+

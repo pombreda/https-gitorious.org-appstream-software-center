@@ -29,7 +29,23 @@ class Distro(object):
     IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
     IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
 
-    def get_rdepends_text(self, pkg):
+    def get_codename(self):
+        """ The codename of the distro, e.g. lucid """
+        if not hasattr(self, "_distro_code_name"):
+            self._distro_code_name = subprocess.Popen(
+                ["lsb_release","-c","-s"], 
+                stdout=subprocess.PIPE).communicate()[0].strip()
+        return self._distro_code_name
+
+    def get_distro_channel_name(self):
+        """ The name in the Release file """
+        return "none"
+ 
+    def get_distro_channel_description(self):
+        """ The name in the Release file """
+        return "none"
+
+    def get_installation_status(self, pkg):
         raise UnimplementedError
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
@@ -38,20 +54,30 @@ class Distro(object):
     def get_license_text(self, component):
         raise UnimplementedError
 
-def get_distro():
+    def is_supported(self, cache, doc, pkgname):
+        """ 
+        return True if the given document and pkgname is supported by 
+        the distribution
+        """
+        raise UnimplementError
+
+def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
                                  stdout=subprocess.PIPE).communicate()[0].strip()
     logging.debug("get_distro: '%s'" % distro_id)
-    importstr = "softwarecenter.distro.%s" % distro_id
     # start with a import, this gives us only a softwarecenter module
-    module =  __import__(importstr)
-    # go down to the right sub-level module
-    for s in importstr.split(".")[1:]:
-        module =  getattr(module, s)
+    module =  __import__(distro_id, globals(), locals(), [], -1)
     # get the right class and instanciate it
     distro_class = getattr(module, distro_id)
     instance = distro_class()
     return instance
+
+def get_distro():
+    """ factory to return the right Distro object """
+    return distro_instance
+
+# singelton
+distro_instance=_get_distro()
 
 
 if __name__ == "__main__":

@@ -60,7 +60,7 @@ class AppDetailsView(WebkitWidget):
     APP_ICON_PADDING = 8
 
     # FIXME: use relative path here
-    INSTALLED_ICON = "/usr/share/software-center/emblems/software-center-installed.png"
+    INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
@@ -127,13 +127,30 @@ class AppDetailsView(WebkitWidget):
 
         # get apt cache data
         pkgname = self.db.get_pkgname(self.doc)
-        self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         self.pkg = None
         if (self.cache.has_key(pkgname) and
             self.cache[pkgname].candidate):
             self.pkg = self.cache[pkgname]
         if self.pkg:
             self.homepage_url = self.pkg.candidate.homepage
+
+        # setup component
+        self.component = self._get_component(self.pkg)
+
+    def _get_component(self, pkg):
+        """ 
+        get the component (main, universe, ..) for the given pkg object
+        
+        this uses the data from apt, if there is none it uses the 
+        data from the app-install-data files
+        """
+        if not pkg or not pkg.candidate:
+            return self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        for origin in pkg.candidate.origins:
+            if (origin.origin == "Ubuntu" and 
+                origin.trusted and 
+                origin.component):
+                return origin.component
     
     def show_app(self, app):
         logging.debug("AppDetailsView.show_app '%s'" % app)
@@ -167,6 +184,8 @@ class AppDetailsView(WebkitWidget):
     # substitute functions called during page display
     def wksub_appname(self):
         return self.app.name
+    def wksub_summary(self):
+        return self.db.get_summary(self.doc)
     def wksub_pkgname(self):
         return self.app.pkgname
     def wksub_body_class(self):
@@ -244,6 +263,9 @@ class AppDetailsView(WebkitWidget):
     def wksub_screenshot_thumbnail_url(self):
         url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
         return url
+    def wksub_screenshot_large_url(self):
+        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
+        return url
     def wksub_screenshot_alt(self):
         return _("Application Screenshot")
     def wksub_software_installed_icon(self):
@@ -288,7 +310,7 @@ class AppDetailsView(WebkitWidget):
         """Add message specific to this package (e.g. how many dependenies"""
         if not self.pkg:
             return ""
-        return self.distro.get_rdepends_text(self.cache, self.pkg, self.app.name)
+        return self.distro.get_installation_status(self.cache, self.pkg, self.app.name)
     def wksub_homepage(self):
         s = _("Website")
         return s
@@ -338,7 +360,6 @@ class AppDetailsView(WebkitWidget):
 
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
-        # FIXME: move this to utilities or something
         self.backend.enable_channel(self.channelfile)
         self._set_action_button_sensitive(False)
 
@@ -468,7 +489,7 @@ class AppDetailsView(WebkitWidget):
                 action_button_label = _("Remove")
                 action_button_value = "remove"
             else:
-                action_button_label = _("Install")
+                action_button_label = _("Install - Free") # will change when payments are introduced, obviously.
                 action_button_value = "install"
         elif self.doc:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
@@ -553,6 +574,7 @@ if __name__ == "__main__":
     #view.show_app("3D Chess", "3dchess")
     #view.show_app("Movie Player", "totem")
     view.show_app(Application("ACE", "unace"))
+    #view.show_app(Application("", "2vcard"))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")

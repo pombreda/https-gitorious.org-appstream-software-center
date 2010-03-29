@@ -5,7 +5,7 @@
   <object class="GtkWindow" id="window_main">
     <property name="title" translatable="yes">Ubuntu Software Center</property>
     <property name="window_position">center</property>
-    <property name="default_width">850</property>
+    <property name="default_width">870</property>
     <property name="default_height">500</property>
     <property name="icon_name">softwarecenter</property>
     <signal name="delete_event" handler="on_window_main_delete_event"/>
@@ -209,7 +209,7 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_all">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_All Applications</property>
+                        <property name="label" translatable="yes">_All Software</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <property name="draw_as_radio">True</property>
@@ -220,7 +220,7 @@
                     <child>
                       <object class="GtkRadioMenuItem" id="menuitem_view_supported_only">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Canonical-Maintained Applications</property>
+                        <property name="label" translatable="yes">_Canonical-Maintained Software</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
                         <signal name="activate" handler="on_menuitem_view_supported_only_activate"/>
@@ -281,7 +281,7 @@
                 <property name="visible">True</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow_viewswitcher">
-                    <property name="width_request">200</property>
+                    <property name="width_request">220</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="hscrollbar_policy">automatic</property>
@@ -314,9 +314,30 @@
                 <child type="tab">
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">available</property>
+                    <property name="label">available</property>
                   </object>
                   <packing>
+                    <property name="tab_fill">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkAlignment" id="alignment_channel">
+                    <property name="visible">True</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child type="tab">
+                  <object class="GtkLabel" id="label5">
+                    <property name="visible">True</property>
+                    <property name="label">channel</property>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
                     <property name="tab_fill">False</property>
                   </packing>
                 </child>
@@ -334,7 +355,7 @@
                 <child type="tab">
                   <object class="GtkLabel" id="label2">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">installed</property>
+                    <property name="label">installed</property>
                   </object>
                   <packing>
                     <property name="position">1</property>
@@ -381,7 +402,7 @@
                 <child type="tab">
                   <object class="GtkLabel" id="label4">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">pending</property>
+                    <property name="label">pending</property>
                   </object>
                   <packing>
                     <property name="position">3</property>
