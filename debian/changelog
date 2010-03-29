@@ -9,6 +9,9 @@ software-center (1.1.21debian1) unstable; urgency=low
   * softwarecenter/view/appview.py:
     - Add from __future__ import with_statement for Python 2.5
   * Update to new python-apt API and stop using has_key (Closes: #572073).
+  * debian/control:
+    - Depend on python-xdg (Closes: #574779)
+    - Recommend software-properties-gtk (Closes: #575202)
 
  -- Julian Andres Klode <jak@debian.org>  Mon, 29 Mar 2010 14:51:38 +0200
 

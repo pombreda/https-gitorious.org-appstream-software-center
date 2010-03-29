@@ -32,9 +32,11 @@ Depends: ${python:Depends},
          policykit-1-gnome | policykit-1-kde,
          python-gtk2,
          python-webkit,
+         python-xdg,
          python-gconf,
          aptdaemon (>= 0.11+bzr322)
-Recommends: lsb-release, python-launchpad-integration, apt-xapian-index
+Recommends: lsb-release, python-launchpad-integration, apt-xapian-index,
+            software-properties-gtk
 Conflicts: software-store, gnome-app-install
 Replaces: software-store, gnome-app-install
 Provides: software-store, gnome-app-install
