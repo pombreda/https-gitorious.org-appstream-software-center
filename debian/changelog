@@ -1,11 +1,32 @@
 software-center (1.1.22) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/db/update.py:
     - fix crash when locale is not supported
   * apt-xapian-index-plugin/*.py:
     - fix deprecation warnings (LP: #548665)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 29 Mar 2010 16:01:21 +0200
+  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/appdetailsview.py,
+    softwarecenter/backend/aptd.py:
+    - maintain install/remove button sensitivity based on
+      status of individual rows to restore the ability
+      to do multiple simultaneous install/removes (LP: #529529)
+    - keep all install/remove menu items and buttons in
+      sync (LP: #551417)
+    - set "Install" button in details view insensitive when
+      switching to it from the list view during an install
+      (LP: #541844)
+    - use correct color for the list view "Install" button
+      when it is insensitive (LP: #550915)
+  * softwarecenter/view/appdetailsview.py:
+    - don't try to execute enable_action_button() if the
+      details view page has not yet been loaded (LP: #551419)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 29 Mar 2010 23:25:01 -0400
 
 software-center (1.1.21) lucid; urgency=low
 
