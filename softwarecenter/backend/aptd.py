@@ -93,7 +93,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def enable_component(self, component):
         logging.debug("enable_component: %s" % component)
         try:
-            self.aptd_client.enable_component(component)
+            self.aptd_client.enable_distro_component(component)
         except dbus.exceptions.DBusException, e:
             if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 logging.error("enable_component: '%s'" % e)
