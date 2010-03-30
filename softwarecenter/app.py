@@ -108,6 +108,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.backend = get_install_backend()
+        self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
@@ -158,8 +159,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
-        self.available_pane.app_view.connect("application-request-action",
-                                             self.on_app_request_action)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -174,8 +173,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_CHANNEL)
         self.channel_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
-        self.available_pane.app_view.connect("application-request-action",
-                                             self.on_app_request_action)
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_CHANNEL)
@@ -190,8 +187,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_INSTALLED)
         self.installed_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
-        self.available_pane.app_view.connect("application-request-action",
-                                             self.on_app_request_action)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_INSTALLED)
@@ -239,10 +234,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_app_selected(self, widget, app):
         self.update_app_status_menu()
         self.menuitem_copy.set_sensitive(True)
-        
-    def on_app_request_action(self, appview, app, action):
-        self.menuitem_install.set_sensitive(False)
-        self.menuitem_remove.set_sensitive(False)
 
     def on_window_main_delete_event(self, widget, event):
         self.save_state()
@@ -295,19 +286,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.install()
-        self.menuitem_install.set_sensitive(False)
-        if self.active_pane.app_view.buttons.has_key('action'):
-            self.active_pane.app_view.buttons['action'].set_sensitive(False)
-        self.active_pane.app_details.set_action_button_sensitive(False)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
         self.active_pane.app_details.remove()
-        self.menuitem_remove.set_sensitive(False)
-        if self.active_pane.app_view.buttons.has_key('action'):
-            self.active_pane.app_view.buttons['action'].set_sensitive(False)
-        self.active_pane.app_details.set_action_button_sensitive(False)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -408,6 +391,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
+            
+    def _on_transaction_started(self, backend):
+        self.menuitem_install.set_sensitive(False)
+        self.menuitem_remove.set_sensitive(False)
             
     def _on_transaction_finished(self, backend, success):
         """ callback when an application install/remove transaction has finished """

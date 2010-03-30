@@ -871,6 +871,7 @@ class AppView(gtk.TreeView):
         self.connect("motion-notify-event", self._on_motion, tr, column)
         
         self.backend = get_install_backend()
+        self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
@@ -1016,6 +1017,11 @@ class AppView(gtk.TreeView):
                 perform_action = "install"
             self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
         return False
+        
+    def _on_transaction_started(self, backend):
+        """ callback when an application install/remove transaction has started """
+        if self.buttons.has_key('action'):
+            self.buttons['action'].set_sensitive(False)
         
     def _on_transaction_finished(self, backend, success):
         """ callback when an application install/remove transaction has finished """
