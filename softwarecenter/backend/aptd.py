@@ -49,6 +49,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     'transaction-progress-changed':(gobject.SIGNAL_RUN_FIRST,
                                                     gobject.TYPE_NONE,
                                                     (str,int,)),
+                    # the number/names of the available channels changed
+                    'channels-changed':(gobject.SIGNAL_RUN_FIRST,
+                                        gobject.TYPE_NONE,
+                                        (bool,)),
                     }
 
     def __init__(self):
@@ -59,7 +63,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self._progress_signal = None
     
     def _axi_finished(self, res):
-        self.emit("transaction-finished", res)
+        self.emit("channels-changed", res)
 
     # public methods
     def update_xapian_index(self):
@@ -72,7 +76,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # we don't really care for updates at this point
         #axi.connect_to_signal("UpdateProgress", progress)
         # first arg is force, second update_only
-        axi.update_async(False, True)
+        axi.update_async(True, True)
 
     def upgrade(self, pkgname, appname, iconname):
         """ upgrade a single package """

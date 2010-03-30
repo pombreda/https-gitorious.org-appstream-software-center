@@ -156,23 +156,16 @@ class ViewSwitcherList(gtk.TreeStore):
         self.datadir = datadir
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed", self.on_transactions_changed)
+        self.backend.connect("channels-changed", self.on_channels_changed)
         self.db = db
         self.distro = get_distro()
         # pending transactions
         self._pending = 0
         # setup the normal stuff
         available_icon = self._get_icon("softwarecenter")
-        available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
+        self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
 
-        # get list of software channels
-        channels = self._get_channels()
-
-        # iterate the channels and add as subnodes of the available node
-        for channel in channels:
-            self.append(available_iter, [channel.get_channel_icon(),
-                                         channel.get_channel_display_name(),
-                                         self.ACTION_ITEM_CHANNEL,
-                                         channel])
+        self._update_channel_list()
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
@@ -181,7 +174,13 @@ class ViewSwitcherList(gtk.TreeStore):
         
         # kick off a background check for changes that may have been made
         # in the channels list
-        glib.timeout_add(300, lambda: self._check_for_channel_updates(channels))
+        glib.timeout_add(300, lambda: self._check_for_channel_updates(self.channels))
+
+    def on_channels_changed(self, backend, res):
+        logging.debug("on_channels_changed %s" % res)
+        if res:
+            self.db.open()
+            self._update_channel_list()
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
@@ -209,7 +208,25 @@ class ViewSwitcherList(gtk.TreeStore):
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
         return icon
+
+    def _update_channel_list(self):
+        # clear old channel list
+        child = self.iter_children(self.available_iter)
+        while child:
+            next = self.iter_next(child)
+            self.remove(child)
+            child = next
+
+        # get list of software channels
+        self.channels = self._get_channels()
         
+        # iterate the channels and add as subnodes of the available node
+        for channel in self.channels:
+            self.append(self.available_iter, [channel.get_channel_icon(),
+                                              channel.get_channel_display_name(),
+                                              self.ACTION_ITEM_CHANNEL,
+                                              channel])
+
     def _get_channels(self):
         """
         return a list of SoftwareChannel objects in display order
