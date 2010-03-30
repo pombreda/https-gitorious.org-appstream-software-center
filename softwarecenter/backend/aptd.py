@@ -57,8 +57,23 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
         self._progress_signal = None
+    
+    def _axi_finished(self, res):
+        self.emit("transaction-finished", res)
 
     # public methods
+    def update_xapian_index(self):
+        logging.debug("update_xapian_index")
+        system_bus = dbus.SystemBus()
+        axi = dbus.Interface(
+            system_bus.get_object("org.debian.AptXapianIndex","/"),
+            "org.debian.AptXapianIndex")
+        axi.connect_to_signal("UpdateFinished", self._axi_finished)
+        # we don't really care for updates at this point
+        #axi.connect_to_signal("UpdateProgress", progress)
+        # first arg is force, second update_only
+        axi.update_async(False, True)
+
     def upgrade(self, pkgname, appname, iconname):
         """ upgrade a single package """
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,

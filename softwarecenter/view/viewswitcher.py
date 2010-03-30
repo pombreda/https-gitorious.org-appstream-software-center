@@ -163,10 +163,10 @@ class ViewSwitcherList(gtk.TreeStore):
         # setup the normal stuff
         available_icon = self._get_icon("softwarecenter")
         available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
-        
+
         # get list of software channels
         channels = self._get_channels()
-        
+
         # iterate the channels and add as subnodes of the available node
         for channel in channels:
             self.append(available_iter, [channel.get_channel_icon(),
@@ -178,6 +178,10 @@ class ViewSwitcherList(gtk.TreeStore):
         installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
+        
+        # kick off a background check for changes that may have been made
+        # in the channels list
+        glib.timeout_add(300, lambda: self._check_for_channel_updates(channels))
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
@@ -247,7 +251,7 @@ class ViewSwitcherList(gtk.TreeStore):
             elif channel_name == distro_channel_name:
                 dist_channel = (SoftwareChannel(self.icons,
                                                 distro_channel_name,
-                                                None,
+                                                channel_origin,
                                                 None,
                                                 filter_required=True))
             elif channel_origin and channel_origin.startswith("LP-PPA"):
@@ -282,6 +286,27 @@ class ViewSwitcherList(gtk.TreeStore):
         channels.extend(unknown_channel)
         
         return channels
+        
+    def _check_for_channel_updates(self, channels):
+        """ 
+        check current set of channel origins in the apt cache to see if anything
+        has changed, and refresh the channel list if needed
+        """
+        if not self.db._aptcache.ready:
+            glib.timeout_add(300, lambda: self._check_for_channel_updates(channels))
+            return False
+        cache_origins = self.db._aptcache.get_origins()
+        db_origins = set()
+        for channel in channels:
+            origin = channel.get_channel_origin()
+            if origin:
+                db_origins.add(origin)
+        logging.debug("cache_origins: %s" % cache_origins)
+        logging.debug("db_origins: %s" % cache_origins)
+        if cache_origins != db_origins:
+            logging.debug("running update_xapian_index")
+            self.backend.update_xapian_index()
+        return False
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
