@@ -1,4 +1,4 @@
-software-center (1.1.22) UNRELEASED; urgency=low
+software-center (1.1.22) lucid; urgency=low
 
   * softwarecenter/db/update.py:
     - fix crash when locale is not supported
@@ -6,8 +6,10 @@ software-center (1.1.22) UNRELEASED; urgency=low
     - fix deprecation warnings (LP: #548665)
   * merged lp:~gary-lasker/software-center/channel-reloads, many
     thanks!
+  * when the sources.list changes, detect that and update the list
+    dynamically (software-center-non-applications spec)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 29 Mar 2010 16:01:21 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 30 Mar 2010 16:50:34 +0200
 
 software-center (1.1.21) lucid; urgency=low
 
