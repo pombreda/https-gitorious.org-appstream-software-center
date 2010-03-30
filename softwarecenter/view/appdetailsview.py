@@ -137,7 +137,7 @@ class AppDetailsView(WebkitWidget):
         # setup component
         self.component = self._get_component(self.pkg)
 
-    def _get_component(self, pkg):
+    def _get_component(self, pkg=None):
         """ 
         get the component (main, universe, ..) for the given pkg object
         
@@ -363,6 +363,12 @@ class AppDetailsView(WebkitWidget):
         self.backend.enable_channel(self.channelfile)
         self._set_action_button_sensitive(False)
 
+    def on_button_enable_component_clicked(self):
+        #print "on_enable_component_clicked", component
+        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        self.backend.enable_component(component)
+        self._set_action_button_sensitive(False)
+
     def on_screenshot_thumbnail_clicked(self):
         url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
         title = _("%s - Screenshot") % self.app.name
@@ -457,6 +463,7 @@ class AppDetailsView(WebkitWidget):
             logging.debug("thumb_query_info_async_callback")
             try:
                 result = source.query_info_finish(result)
+                self.execute_script("showThumbnail();")
             except glib.GError, e:
                 logging.debug("no thumb available")
                 glib.timeout_add(200, run_thumb_missing_js)
@@ -467,7 +474,8 @@ class AppDetailsView(WebkitWidget):
             # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
             if self.get_load_status() != 2:
                 return True
-            self.execute_script("thumbMissing();")
+            # we don't show "thumb-missing" anymore
+            #self.execute_script("thumbMissing();"
             return False
         # use gio (its so nice)
         url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
@@ -493,6 +501,7 @@ class AppDetailsView(WebkitWidget):
                 action_button_value = "install"
         elif self.doc:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
             if channel:
                 path = APP_INSTALL_CHANNELS_PATH + channel +".list"
                 if os.path.exists(path):
@@ -501,10 +510,28 @@ class AppDetailsView(WebkitWidget):
                     # FIXME: deal with the EULA stuff
                     action_button_label = _("Use This Source")
                     action_button_value = "enable_channel"
+            # check if it comes from a non-enabled component
+            elif self._unavailable_component(component):
+                # FIXME: use a proper message here, but we are in string freeze
+                action_button_label = _("Use This Source")
+                action_button_value = "enable_component"
             elif self._available_for_our_arch():
                 action_button_label = _("Update Now")
                 action_button_value = "reload"
         return (action_button_label, action_button_value)
+
+    def _unavailable_component(self, component):
+        """ 
+        check if the given doc refers to a component (like universe)
+        that is currently not enabled
+        """
+        # if there is no component accociated, it can not be unavailable
+        logging.debug("component: '%s'" % component)
+        if not component:
+            return False
+        distro_codename = self.distro.get_codename()
+        available = self.cache.component_available(distro_codename, component)
+        return (not available)
 
     def _available_for_our_arch(self):
         """ check if the given package is available for our arch """
@@ -555,7 +582,8 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    cache = apt.Cache()
+    from softwarecenter.apt.aptcache import AptCache
+    cache = AptCache()
     db = StoreDatabase(pathname, cache)
     db.open()
 
@@ -571,9 +599,9 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
-    #view.show_app("3D Chess", "3dchess")
+    view.show_app(Application("3D Chess", "3dchess"))
     #view.show_app("Movie Player", "totem")
-    view.show_app(Application("ACE", "unace"))
+    #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 
     #view.show_app("AMOR")

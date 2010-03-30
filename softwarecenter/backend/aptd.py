@@ -90,6 +90,18 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self.aptd_client.update_cache(reply_handler=reply_handler,
                                       error_handler=self._on_trans_error)
 
+    def enable_component(self, component):
+        logging.debug("enable_component: %s" % component)
+        try:
+            self.aptd_client.enable_component(component)
+        except dbus.exceptions.DBusException, e:
+            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                logging.error("enable_component: '%s'" % e)
+                return
+            raise
+        # now update the cache
+        self.reload()
+
     def enable_channel(self, channelfile):
         import aptsources.sourceslist
 
