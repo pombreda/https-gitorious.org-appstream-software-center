@@ -18,13 +18,10 @@
 
 
 
-import rgb
 import gtk
 import cairo
 import gobject
-import pathbar2
-
-from rgb import to_float as f
+import pathbar_common
 
 # pi constants
 M_PI = 3.1415926535897931
@@ -55,21 +52,6 @@ class BackForwardButton(gtk.HBox):
         self.pack_start(self.left)
         self.pack_start(sep, False)
         self.pack_end(self.right)
-
-        self.theme = self._pick_theme()
-        self.connect("realize", self._on_realize)
-        return
-
-    def _pick_theme(self, name=None):
-        name = name or gtk.settings_get_default().get_property("gtk-theme-name")
-        themes = pathbar2.PathBarThemes.DICT
-        if themes.has_key(name):
-            return themes[name]()
-        print "No styling hints for %s are available" % name
-        return pathbar2.PathBarThemeHuman()
-
-    def _on_realize(self, widget):
-        self.theme.load(self.style)
         return
 
 
@@ -77,15 +59,20 @@ class SeparatorPart(gtk.DrawingArea):
 
     def __init__(self):
         gtk.DrawingArea.__init__(self)
-        self.set_size_request(1, -1)
+        self.theme = pathbar_common.PathBarStyle(self.style)
+        self.set_size_request(self.theme['xthickness'], -1)
         self.connect("expose-event", self._on_expose)
         return
 
     def _on_expose(self, widget, event):
+        parent = self.get_parent()
+        if not parent: return
+        self.set_size_request(self.theme['xthickness'], -1)
         cr = widget.window.cairo_create()
         a = event.area
-        cr.rectangle(a.x, a.y+1, a.width, a.height-2)
-        cr.set_source_rgba(0, 0, 0, 0.45)
+        cr.rectangle(a.x, a.y+1, a.width, a.height-1)
+        dark = self.theme.dark_line[self.state]
+        cr.set_source_rgba(*dark.tofloats())
         cr.fill()
         del cr
         return
@@ -94,14 +81,16 @@ class SeparatorPart(gtk.DrawingArea):
 class ButtonPart(gtk.DrawingArea):
 
     ARROW_SIZE = (12,12)
-    DEFAULT_SIZE = (30, 28)
+    DEFAULT_SIZE = (31, 29)
 
     def __init__(self, arrow_type, signal_name):
         gtk.DrawingArea.__init__(self)
         self.set_size_request(*self.DEFAULT_SIZE)
+        self.shape = pathbar_common.SHAPE_RECTANGLE
         self.button_down = False
         self.shadow_type = gtk.SHADOW_OUT
         self.arrow_type = arrow_type
+        self.theme = pathbar_common.PathBarStyle(self.style)
         self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK|
                         gtk.gdk.BUTTON_PRESS_MASK|
@@ -110,6 +99,7 @@ class ButtonPart(gtk.DrawingArea):
         self.connect("leave-notify-event", self._on_leave)
         self.connect("button-press-event", self._on_press)
         self.connect("button-release-event", self._on_release, signal_name)
+        self.connect("style-set", self._on_style_set)
         return
 
     def set_sensitive(self, is_sensitive):
@@ -160,50 +150,25 @@ class ButtonPart(gtk.DrawingArea):
             self.set_state(gtk.STATE_NORMAL)
         return
 
-#    def expose_gtk(self, widget, area, x, y, width, height):
-#        # button background
-#        widget.style.paint_box(widget.window,
-#                               self.state,
-#                               self.shadow_type,
-#                               area,
-#                               widget,
-#                               "button",
-#                               x,
-#                               y,
-#                               width,
-#                               height)
+    def _on_style_set(self, widget, oldstyle):
+        # when alloc.width == 1, this is typical of an unallocated widget,
+        # lets not break a sweat for nothing...
+        if self.allocation.width == 1:
+            return
 
-#        # arrow
-#        aw, ah = self.ARROW_SIZE
-#        widget.style.paint_arrow(widget.window,
-#                                 self.state,
-#                                 self.shadow_type,
-#                                 area,
-#                                 widget,
-#                                 "button",
-#                                 self.arrow_type,
-#                                 True,
-#                                 (area.width - aw)/2,
-#                                 (area.height - ah)/2,
-#                                 aw,
-#                                 ah)
-#        return
+        self.theme = pathbar_common.PathBarStyle(self.style)
+        self.queue_draw()
+        return
 
-    def expose_pathbar(self, widget, area, x, y, width, height):
+    def expose_pathbar(self, widget, area, x, y, w, h):
         # background
         cr = widget.window.cairo_create()
         cr.rectangle(area)
         cr.clip()
 
-        cr.translate(x, y)
-
-        self._draw_bg(cr,
-                      width,
-                      height,
-                      self.state,
-                      self.style,
-                      self.get_parent().theme,
-                      self.get_parent().theme.curvature)
+        self.theme.draw_part_bg_ltr(cr,
+                                    self,
+                                    x, y, w, h)
         del cr
 
         # arrow
@@ -216,61 +181,10 @@ class ButtonPart(gtk.DrawingArea):
                                  "button",
                                  self.arrow_type,
                                  True,
-                                 (area.width - aw)/2,
-                                 (area.height - ah)/2,
+                                 int((area.width-1 - aw)*0.5+0.5),
+                                 int((area.height - ah)*0.5+0.5),
                                  aw,
                                  ah)
-        return
-
-    def _draw_bg(self, cr, w, h, state, style, theme, r):
-        # outer slight bevel or focal highlight
-        self._draw_rect(cr, 0, 0, w, h, r)
-        cr.set_source_rgba(0, 0, 0, 0.055)
-        cr.fill()
-        
-        # colour scheme dicts
-        bg = theme.bg_colors
-        outer = theme.dark_line_colors
-        inner = theme.light_line_colors
-        
-        # bg linear vertical gradient
-        if state != gtk.STATE_PRELIGHT:
-            color1, color2 = bg[state]
-        else:
-            if self.state == gtk.STATE_ACTIVE:
-                color1, color2 = bg[theme.PRELIT_NORMAL]
-            else:
-                color1, color2 = bg[theme.PRELIT_ACTIVE]
-
-        self._draw_rect(cr, 1, 1, w-1, h-1, r)
-        lin = cairo.LinearGradient(0, 0, 0, h-1)
-        lin.add_color_stop_rgb(0.0, *color1)
-        lin.add_color_stop_rgb(1.0, *color2)
-        cr.set_source(lin)
-        cr.fill()
-
-        cr.set_line_width(1.0)
-        # strong outline
-        self._draw_rect(cr, 1.5, 1.5, w-1.5, h-1.5, r)
-        cr.set_source_rgb(*outer[state])
-        cr.stroke()
-
-        # inner bevel/highlight
-        if theme.light_line_colors[state]:
-            self._draw_rect(cr, 2.5, 2.5, w-2.5, h-2.5, r)
-            r, g, b = inner[state]
-            cr.set_source_rgba(r, g, b, 0.6)
-            cr.stroke()
-        return
-
-    def _draw_rect(self, cr, x, y, w, h, r):
-        global M_PI, PI_OVER_180
-        cr.new_sub_path()
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
-        cr.close_path()
         return
 
 
@@ -303,8 +217,8 @@ class ButtonPartRight(ButtonPart):
         area = event.area
         expose_func(widget,
                     area,
-                    area.x - 10,
+                    area.x-10,
                     area.y,
-                    area.width + 10,
+                    area.width+10,
                     area.height)
         return
