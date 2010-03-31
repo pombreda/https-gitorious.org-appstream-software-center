@@ -9,6 +9,8 @@ software-center (1.1.23) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
     - run a-x-i when channels are added/removed
+  * softwarecenter/view/viewswitcher.py:
+    - fix UI glitch when new channels are found
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 31 Mar 2010 11:08:23 +0200
 
