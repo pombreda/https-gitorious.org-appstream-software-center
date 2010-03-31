@@ -287,6 +287,7 @@ class AppDetailsView(WebkitWidget):
         if not self._available_for_our_arch():
             return "hidden"
         if (not self.channelfile and 
+            not self._unavailable_component() and
             not self.pkg):
             return "hidden"
         return "visible"
@@ -503,7 +504,6 @@ class AppDetailsView(WebkitWidget):
                 action_button_value = "install"
         elif self.doc:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
             if channel:
                 path = APP_INSTALL_CHANNELS_PATH + channel +".list"
                 if os.path.exists(path):
@@ -513,7 +513,7 @@ class AppDetailsView(WebkitWidget):
                     action_button_label = _("Use This Source")
                     action_button_value = "enable_channel"
             # check if it comes from a non-enabled component
-            elif self._unavailable_component(component):
+            elif self._unavailable_component():
                 # FIXME: use a proper message here, but we are in string freeze
                 action_button_label = _("Use This Source")
                 action_button_value = "enable_component"
@@ -522,13 +522,15 @@ class AppDetailsView(WebkitWidget):
                 action_button_value = "reload"
         return (action_button_label, action_button_value)
 
-    def _unavailable_component(self, component):
+    def _unavailable_component(self):
         """ 
         check if the given doc refers to a component (like universe)
         that is currently not enabled
         """
-        # if there is no component accociated, it can not be unavailable
+        # FIXME: use self.component here instead?
+        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         logging.debug("component: '%s'" % component)
+        # if there is no component accociated, it can not be unavailable
         if not component:
             return False
         distro_codename = self.distro.get_codename()
