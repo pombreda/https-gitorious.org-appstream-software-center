@@ -59,7 +59,7 @@ class SeparatorPart(gtk.DrawingArea):
 
     def __init__(self):
         gtk.DrawingArea.__init__(self)
-        self.theme = pathbar_common.PathBarStyle(self.style)
+        self.theme = pathbar_common.PathBarStyle()
         self.set_size_request(self.theme['xthickness'], -1)
         self.connect("expose-event", self._on_expose)
         return
@@ -90,7 +90,7 @@ class ButtonPart(gtk.DrawingArea):
         self.button_down = False
         self.shadow_type = gtk.SHADOW_OUT
         self.arrow_type = arrow_type
-        self.theme = pathbar_common.PathBarStyle(self.style)
+        self.theme = pathbar_common.PathBarStyle()
         self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK|
                         gtk.gdk.BUTTON_PRESS_MASK|
