@@ -11,6 +11,8 @@ software-center (1.1.23) UNRELEASED; urgency=low
     - run a-x-i when channels are added/removed
   * softwarecenter/view/viewswitcher.py:
     - fix UI glitch when new channels are found
+  * softwarecenter/view/appdetailsview.py:
+    - fix display of software unavailable for the given architecture
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 31 Mar 2010 11:08:23 +0200
 

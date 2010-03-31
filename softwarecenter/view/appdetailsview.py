@@ -196,12 +196,13 @@ class AppDetailsView(WebkitWidget):
     def wksub_description(self):
         # if we do not have a package in our apt data explain why
         if not self.pkg:
-            if self.channelname:
+            available_for_arch = self._available_for_our_arch()
+            if self.channelname and available_for_arch:
                 return _("This software is available from the '%s' source, "
                          "which you are not currently using.") % self.channelname
             # if we have no pkg, check if its available for the given
             # architecture
-            if self._available_for_our_arch():
+            if available_for_arch:
                 return _("To show information about this item, "
                          "the software catalog needs updating.")
             else:
@@ -283,9 +284,10 @@ class AppDetailsView(WebkitWidget):
         self.action_button_value = self._get_action_button_label_and_value()[1]
         return self.action_button_value
     def wksub_action_button_visible(self):
+        if not self._available_for_our_arch():
+            return "hidden"
         if (not self.channelfile and 
-            not self.pkg and 
-            not self._available_for_our_arch()):
+            not self.pkg):
             return "hidden"
         return "visible"
     def wksub_homepage_button_visibility(self):
@@ -540,8 +542,13 @@ class AppDetailsView(WebkitWidget):
         # on all architectures we know about
         if not arches:
             return True
-        # check the arch field
-        for arch in map(string.strip, arches.split(",")):
+        # check the arch field and support both "," and ";"
+        sep = ","
+        if ";" in arches:
+            sep = ";"
+        elif "," in arches:
+            sep = ","
+        for arch in map(string.strip, arches.split(sep)):
             if arch == self.arch:
                 return True
         return False
