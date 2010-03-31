@@ -29,7 +29,7 @@ import os
 if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
     from widgets.navigationbar import NavigationBar
 else:
-    from widgets.pathbar2 import NavigationBar
+    from widgets.pathbar_gtk_atk import NavigationBar
 
 from widgets.searchentry import SearchEntry
 
