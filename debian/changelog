@@ -1,3 +1,12 @@
+software-center (1.1.23) UNRELEASED; urgency=low
+
+  * softwarecenter/app.py,
+    softwarecenter/view/viewswitcher.py:
+    - persist the state of the "Get Software" node expansion
+      between sessions (LP: #552307)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 30 Mar 2010 23:58:52 -0400
+
 software-center (1.1.22) lucid; urgency=low
 
   * softwarecenter/db/update.py:

@@ -547,6 +547,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
+        if (self.config.has_option("general", "available-node-expanded") and
+            self.config.getboolean("general", "available-node-expanded")):
+            self.view_switcher.expand_available_node()
 
     def save_state(self):
         logging.debug("save_state")
@@ -563,6 +566,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # size only matters when non-maximized
             size = self.window_main.get_size() 
             self.config.set("general","size", "%s, %s" % (size[0], size[1]))
+        available_node_expanded = self.view_switcher.is_available_node_expanded()
+        if available_node_expanded:
+            self.config.set("general", "available-node-expanded", "True")
+        else:
+            self.config.set("general", "available-node-expanded", "False")
         self.config.write()
 
     def run(self, args):

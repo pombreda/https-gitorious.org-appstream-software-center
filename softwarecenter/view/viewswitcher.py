@@ -130,6 +130,18 @@ class ViewSwitcher(gtk.TreeView):
             self.window.set_cursor(None)
         else:
             self.window.set_cursor(self.cursor_hand)
+            
+    def expand_available_node(self):
+        """ expand the available pane node in the viewswitcher pane """
+        model = self.get_model()
+        available_path = model.get_path(model.available_iter)
+        self.expand_row(available_path, False)
+            
+    def is_available_node_expanded(self):
+        """ return True if the available pane node in the viewswitcher pane is expanded """
+        model = self.get_model()
+        available_path = model.get_path(model.available_iter)
+        return self.row_expanded(available_path)
 
 class ViewSwitcherList(gtk.TreeStore):
     
