@@ -17,11 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
+import atk
 import gtk
 import cairo
 import gobject
 import pathbar_common
+
+from gettext import gettext as _
+
 
 # pi constants
 M_PI = 3.1415926535897931
@@ -43,15 +46,52 @@ class BackForwardButton(gtk.HBox):
         sep = SeparatorPart()
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
+            # ltr
             self.left = ButtonPartLeft('left-clicked')
             self.right = ButtonPartRight('right-clicked')
+            self.set_button_atk_info_ltr()
         else:
+            # rtl
             self.left = ButtonPartRight('left-clicked')
             self.right = ButtonPartLeft('right-clicked')
+            self.set_button_atk_info_rtl()
+
+        atk_obj = self.get_accessible()
+        atk_obj.set_name(_('History Navigation'))
+        atk_obj.set_description(_('Click either the back or forwards buttons to navigate your viewed pages history'))
+        atk_obj.set_role(atk.ROLE_PANEL)
 
         self.pack_start(self.left)
         self.pack_start(sep, False)
         self.pack_end(self.right)
+        return
+
+    def set_button_atk_info_ltr(self):
+        # left button
+        atk_obj = self.left.get_accessible()
+        atk_obj.set_name(_('Back Button'))
+        atk_obj.set_description(_('Click here to navigated backwards through your viewed pages history'))
+        atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
+
+        # right button
+        atk_obj = self.right.get_accessible()
+        atk_obj.set_name(_('Forward Button'))
+        atk_obj.set_description(_('Click here to navigated forwards through your viewed pages history'))
+        atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
+        return
+
+    def set_button_atk_info_rtl(self):
+        # right button
+        atk_obj = self.right.get_accessible()
+        atk_obj.set_name(_('Back Button'))
+        atk_obj.set_description(_('Click here to navigated backwards through your viewed pages history'))
+        atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
+
+        # left button
+        atk_obj = self.left.get_accessible()
+        atk_obj.set_name(_('Forward Button'))
+        atk_obj.set_description(_('Click here to navigated forwards through your viewed pages history'))
+        atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
         return
 
 
@@ -61,6 +101,10 @@ class SeparatorPart(gtk.DrawingArea):
         gtk.DrawingArea.__init__(self)
         self.theme = pathbar_common.PathBarStyle()
         self.set_size_request(self.theme['xthickness'], -1)
+
+        atk_obj = self.get_accessible()
+        atk_obj.set_role(atk.ROLE_SEPARATOR)
+
         self.connect("expose-event", self._on_expose)
         return
 
