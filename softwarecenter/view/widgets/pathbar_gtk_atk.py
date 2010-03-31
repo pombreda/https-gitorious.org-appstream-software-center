@@ -183,9 +183,12 @@ class PathBar(gtk.HBox):
         return
 
     def _on_size_allocate(self, widget, allocation):
+        print 'AllocatedWidth:', allocation.width
         if self._width < allocation.width and self._out_of_width:
+            print 'GrowCheck'
             self._grow_check(allocation)
         elif self._width >= allocation.width:
+            print 'ShrinkCheck'
             self._shrink_check(allocation)
         return
 
@@ -250,9 +253,11 @@ class PathBar(gtk.HBox):
         for part in parts:
             part.destroy()
 
+        self._width = 0
         if keep_first_part:
             root = self.get_parts()[0]
             root.set_shape(pathbar_common.SHAPE_RECTANGLE)
+            self._width = root.get_size_request()[0]
         return
 
     def navigate_up(self):
@@ -279,10 +284,10 @@ class PathPart(gtk.EventBox):
         self._layout_points = 0,0,0,0
         self._size_requisition = 0,0
 
+        self.shape = pathbar_common.SHAPE_RECTANGLE
         self.layout = None
         self.set_label(label)
         self.callback = callback
-        self.shape = pathbar_common.SHAPE_RECTANGLE
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -359,6 +364,9 @@ class PathPart(gtk.EventBox):
             self._make_layout()
         else:
             self.layout.set_markup(self.label)
+        self._calc_layout_points()
+        self._calc_size(self.shape)
+        self.queue_draw()
         return
 
     def set_shape(self, shape):
@@ -377,6 +385,10 @@ class PathPart(gtk.EventBox):
         self._draw_width = w+theme['arrow_width']
         self.set_size_request(w, -1)
         return
+
+#    def set_pathbar(self, pathbar):
+#        self._parent = pathbar
+#        return
 
     def get_draw_width(self):
         return self._draw_width
@@ -408,7 +420,8 @@ class NavigationBar(PathBar):
 
         # check if we have the button of that id or need a new one
         if id in self.id_to_part:
-            pass
+            part = self.id_to_part[id]
+            part.set_label(label)
         else:
             part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
@@ -434,9 +447,11 @@ class NavigationBar(PathBar):
         return
 
     def remove_all(self):
+        if len(self.get_parts()) == 1: return
         root = self.get_children()[0]
         self.id_to_part = {root.get_name(): root}
         PathBar.remove_all(self)
+        print 'RemoveAll'
         return
 
     def get_button_from_id(self, id):
