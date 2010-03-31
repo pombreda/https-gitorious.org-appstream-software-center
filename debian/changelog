@@ -1,5 +1,6 @@
 software-center (1.1.23) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/app.py,
     softwarecenter/view/viewswitcher.py:
     - persist the state of the "Get Software" node expansion
@@ -21,9 +22,17 @@ software-center (1.1.23) UNRELEASED; urgency=low
       when it is insensitive (LP: #550915)
   * softwarecenter/view/appdetailsview.py:
     - don't try to execute enable_action_button() if the
-      details view page has not yet been loaded (LP: #551419) 
+      details view page has not yet been loaded (LP: #551419)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 31 Mar 2010 00:28:35 -0400
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - run a-x-i when channels are added/removed
+  * softwarecenter/view/viewswitcher.py:
+    - fix UI glitch when new channels are found
+  * softwarecenter/view/appdetailsview.py:
+    - fix display of software unavailable for the given architecture
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 31 Mar 2010 14:02:46 -0400
 
 software-center (1.1.22) lucid; urgency=low
 

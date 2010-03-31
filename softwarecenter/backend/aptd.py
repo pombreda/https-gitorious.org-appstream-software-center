@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2009-2010 Canonical
 #
 # Authors:
 #  Michael Vogt
@@ -235,6 +235,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self.emit("transaction-progress-changed", pkgname, 100)
         except KeyError:
             pass
+        # if it was a cache-reload, trigger a-x-i update
+        if trans.role == enums.ROLE_UPDATE_CACHE:
+            self.update_xapian_index()
+        # send appropriate signals
         self.emit("transactions-changed", self.pending_transactions)
         self.emit("transaction-finished", enum != enums.EXIT_FAILED)
 

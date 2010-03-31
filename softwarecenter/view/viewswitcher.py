@@ -177,6 +177,7 @@ class ViewSwitcherList(gtk.TreeStore):
         available_icon = self._get_icon("softwarecenter")
         self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
 
+        # do initial channel list update
         self._update_channel_list()
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
@@ -222,12 +223,19 @@ class ViewSwitcherList(gtk.TreeStore):
         return icon
 
     def _update_channel_list(self):
-        # clear old channel list
+
+        # check what needs to be cleared. we need to append first, kill
+        # afterward because otherwise a row without children is collapsed
+        # by the view.
+        # 
+        # normally GtkTreeIters have a limited life-cycle and are no
+        # longer valid after the model changed, fortunately with the
+        # gtk.TreeStore (that we use) they are persisent
         child = self.iter_children(self.available_iter)
+        iters_to_kill = set()
         while child:
-            next = self.iter_next(child)
-            self.remove(child)
-            child = next
+            iters_to_kill.add(child)
+            child = self.iter_next(child)
 
         # get list of software channels
         self.channels = self._get_channels()
@@ -238,6 +246,9 @@ class ViewSwitcherList(gtk.TreeStore):
                                               channel.get_channel_display_name(),
                                               self.ACTION_ITEM_CHANNEL,
                                               channel])
+        # delete the old ones
+        for child in iters_to_kill:
+            self.remove(child)
 
     def _get_channels(self):
         """
