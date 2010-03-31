@@ -1,11 +1,16 @@
 software-center (1.1.23) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/app.py,
     softwarecenter/view/viewswitcher.py:
     - persist the state of the "Get Software" node expansion
       between sessions (LP: #552307)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 30 Mar 2010 23:58:52 -0400
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - run a-x-i when channels are added/removed
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 31 Mar 2010 11:08:23 +0200
 
 software-center (1.1.22) lucid; urgency=low
 
