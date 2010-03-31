@@ -1,12 +1,9 @@
-software-center (1.1.22) UNRELEASED; urgency=low
+software-center (1.1.23) UNRELEASED; urgency=low
 
-  [ Michael Vogt ]
-  * softwarecenter/db/update.py:
-    - fix crash when locale is not supported
-  * apt-xapian-index-plugin/*.py:
-    - fix deprecation warnings (LP: #548665)
-
-  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/view/viewswitcher.py:
+    - persist the state of the "Get Software" node expansion
+      between sessions (LP: #552307)
   * softwarecenter/app.py,
     softwarecenter/view/softwarepane.py,
     softwarecenter/view/appview.py,
@@ -24,9 +21,22 @@ software-center (1.1.22) UNRELEASED; urgency=low
       when it is insensitive (LP: #550915)
   * softwarecenter/view/appdetailsview.py:
     - don't try to execute enable_action_button() if the
-      details view page has not yet been loaded (LP: #551419)
+      details view page has not yet been loaded (LP: #551419) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 29 Mar 2010 23:25:01 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 31 Mar 2010 00:28:35 -0400
+
+software-center (1.1.22) lucid; urgency=low
+
+  * softwarecenter/db/update.py:
+    - fix crash when locale is not supported
+  * apt-xapian-index-plugin/*.py:
+    - fix deprecation warnings (LP: #548665)
+  * merged lp:~gary-lasker/software-center/channel-reloads, many
+    thanks!
+  * when the sources.list changes, detect that and update the list
+    dynamically (software-center-non-applications spec)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 30 Mar 2010 16:50:34 +0200
 
 software-center (1.1.21) lucid; urgency=low
 

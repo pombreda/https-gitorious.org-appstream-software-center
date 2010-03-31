@@ -126,6 +126,20 @@ class AptCache(gobject.GObject):
                     pkg.isAutoRemovable):
                     installed_auto_deps.add(dep_name)
         return installed_auto_deps
+    def get_origins(self):
+        """
+        return a set of the current channel origins from the apt.Cache itself
+        """
+        origins = set()
+        for pkg in self._cache:
+            if not pkg.candidate:
+                continue
+            for item in pkg.candidate.origins:
+                while gtk.events_pending():
+                    gtk.main_iteration()
+                if item.origin:
+                    origins.add(item.origin)
+        return origins
     def get_installed_rdepends(self, pkg):
         return self._get_installed_rdepends_by_type(pkg, self.DEPENDENCY_TYPES)
     def get_installed_rrecommends(self, pkg):

@@ -52,6 +52,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     'transaction-progress-changed':(gobject.SIGNAL_RUN_FIRST,
                                                     gobject.TYPE_NONE,
                                                     (str,int,)),
+                    # the number/names of the available channels changed
+                    'channels-changed':(gobject.SIGNAL_RUN_FIRST,
+                                        gobject.TYPE_NONE,
+                                        (bool,)),
                     }
 
     def __init__(self):
@@ -60,8 +64,23 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
         self._progress_signal = None
+    
+    def _axi_finished(self, res):
+        self.emit("channels-changed", res)
 
     # public methods
+    def update_xapian_index(self):
+        logging.debug("update_xapian_index")
+        system_bus = dbus.SystemBus()
+        axi = dbus.Interface(
+            system_bus.get_object("org.debian.AptXapianIndex","/"),
+            "org.debian.AptXapianIndex")
+        axi.connect_to_signal("UpdateFinished", self._axi_finished)
+        # we don't really care for updates at this point
+        #axi.connect_to_signal("UpdateProgress", progress)
+        # first arg is force, second update_only
+        axi.update_async(True, True)
+
     def upgrade(self, pkgname, appname, iconname):
         """ upgrade a single package """
         self.emit("transaction-started")
@@ -99,7 +118,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def enable_component(self, component):
         logging.debug("enable_component: %s" % component)
         try:
-            self.aptd_client.enable_component(component)
+            self.aptd_client.enable_distro_component(component)
         except dbus.exceptions.DBusException, e:
             if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 logging.error("enable_component: '%s'" % e)

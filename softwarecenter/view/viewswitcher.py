@@ -130,6 +130,18 @@ class ViewSwitcher(gtk.TreeView):
             self.window.set_cursor(None)
         else:
             self.window.set_cursor(self.cursor_hand)
+            
+    def expand_available_node(self):
+        """ expand the available pane node in the viewswitcher pane """
+        model = self.get_model()
+        available_path = model.get_path(model.available_iter)
+        self.expand_row(available_path, False)
+            
+    def is_available_node_expanded(self):
+        """ return True if the available pane node in the viewswitcher pane is expanded """
+        model = self.get_model()
+        available_path = model.get_path(model.available_iter)
+        return self.row_expanded(available_path)
 
 class ViewSwitcherList(gtk.TreeStore):
     
@@ -156,28 +168,31 @@ class ViewSwitcherList(gtk.TreeStore):
         self.datadir = datadir
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed", self.on_transactions_changed)
+        self.backend.connect("channels-changed", self.on_channels_changed)
         self.db = db
         self.distro = get_distro()
         # pending transactions
         self._pending = 0
         # setup the normal stuff
         available_icon = self._get_icon("softwarecenter")
-        available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
-        
-        # get list of software channels
-        channels = self._get_channels()
-        
-        # iterate the channels and add as subnodes of the available node
-        for channel in channels:
-            self.append(available_iter, [channel.get_channel_icon(),
-                                         channel.get_channel_display_name(),
-                                         self.ACTION_ITEM_CHANNEL,
-                                         channel])
+        self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
+
+        self._update_channel_list()
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
+        
+        # kick off a background check for changes that may have been made
+        # in the channels list
+        glib.timeout_add(300, lambda: self._check_for_channel_updates(self.channels))
+
+    def on_channels_changed(self, backend, res):
+        logging.debug("on_channels_changed %s" % res)
+        if res:
+            self.db.open()
+            self._update_channel_list()
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
@@ -205,7 +220,25 @@ class ViewSwitcherList(gtk.TreeStore):
             icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
                                                       self.ICON_SIZE, 0))
         return icon
+
+    def _update_channel_list(self):
+        # clear old channel list
+        child = self.iter_children(self.available_iter)
+        while child:
+            next = self.iter_next(child)
+            self.remove(child)
+            child = next
+
+        # get list of software channels
+        self.channels = self._get_channels()
         
+        # iterate the channels and add as subnodes of the available node
+        for channel in self.channels:
+            self.append(self.available_iter, [channel.get_channel_icon(),
+                                              channel.get_channel_display_name(),
+                                              self.ACTION_ITEM_CHANNEL,
+                                              channel])
+
     def _get_channels(self):
         """
         return a list of SoftwareChannel objects in display order
@@ -247,7 +280,7 @@ class ViewSwitcherList(gtk.TreeStore):
             elif channel_name == distro_channel_name:
                 dist_channel = (SoftwareChannel(self.icons,
                                                 distro_channel_name,
-                                                None,
+                                                channel_origin,
                                                 None,
                                                 filter_required=True))
             elif channel_origin and channel_origin.startswith("LP-PPA"):
@@ -282,6 +315,27 @@ class ViewSwitcherList(gtk.TreeStore):
         channels.extend(unknown_channel)
         
         return channels
+        
+    def _check_for_channel_updates(self, channels):
+        """ 
+        check current set of channel origins in the apt cache to see if anything
+        has changed, and refresh the channel list if needed
+        """
+        if not self.db._aptcache.ready:
+            glib.timeout_add(300, lambda: self._check_for_channel_updates(channels))
+            return False
+        cache_origins = self.db._aptcache.get_origins()
+        db_origins = set()
+        for channel in channels:
+            origin = channel.get_channel_origin()
+            if origin:
+                db_origins.add(origin)
+        logging.debug("cache_origins: %s" % cache_origins)
+        logging.debug("db_origins: %s" % cache_origins)
+        if cache_origins != db_origins:
+            logging.debug("running update_xapian_index")
+            self.backend.update_xapian_index()
+        return False
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
