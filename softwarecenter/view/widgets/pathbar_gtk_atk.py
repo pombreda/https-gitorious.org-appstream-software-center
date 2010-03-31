@@ -349,6 +349,10 @@ class PathPart(gtk.EventBox):
         self.set_size_request(w, h)
         return
 
+    def activate(self, do_callback=True):
+        self._parent.set_active(self, do_callback)
+        return
+
     def set_label(self, label):
         self.label = gobject.markup_escape_text(label.strip())
         if not self.layout:

@@ -110,7 +110,7 @@ class NavigationItem(object):
         for part in self.parts[1:]:
             self.available_pane.navigation_bar.add_with_id(unescape(part.label),
                                                            part.callback,
-                                                           part.id,
+                                                           part.get_name(),
                                                            do_callback=False,
                                                            animate=False)
         self.parts[-1].activate()
