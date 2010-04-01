@@ -1,4 +1,4 @@
-software-center (1.1.24) UNRELEASED; urgency=low
+software-center (1.1.24) lucid; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/appview.py:
@@ -8,10 +8,6 @@ software-center (1.1.24) UNRELEASED; urgency=low
     - make the app details view better accessible with orca/accersier
 
   [ Gary Lasker ]
-  * softwarecenter/app.py,
-    softwarecenter/view/viewswitcher.py:
-    - persist the state of the "Get Software" node expansion
-      between sessions (LP: #552307)
   * softwarecenter/app.py,
     softwarecenter/view/softwarepane.py,
     softwarecenter/view/appview.py,
