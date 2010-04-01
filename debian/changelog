@@ -1,10 +1,35 @@
 software-center (1.1.24) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/view/appview.py:
     - make the applist better accessible by providing a text only
       description of the selected item (LP: #455307)
   * data/templates/AppDetailsView.html:
     - make the app details view better accessible with orca/accersier
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/view/viewswitcher.py:
+    - persist the state of the "Get Software" node expansion
+      between sessions (LP: #552307)
+  * softwarecenter/app.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/appdetailsview.py,
+    softwarecenter/backend/aptd.py:
+    - maintain install/remove button sensitivity based on
+      status of individual rows to restore the ability
+      to do multiple simultaneous install/removes (LP: #529529)
+    - keep all install/remove menu items and buttons in
+      sync (LP: #551417)
+    - set "Install" button in details view insensitive when
+      switching to it from the list view during an install
+      (LP: #541844)
+    - use correct color for the list view "Install" button
+      when it is insensitive (LP: #550915)
+  * softwarecenter/view/appdetailsview.py:
+    - don't try to execute enable_action_button() if the
+      details view page has not yet been loaded (LP: #551419)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 01 Apr 2010 11:22:00 +0200
 

@@ -108,9 +108,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.backend = get_install_backend()
-        self.backend.connect("transaction-finished", 
-                             lambda backend, result, self: self.cache.open(), 
-                             self)
+        self.backend.connect("transaction-started", self._on_transaction_started)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -391,6 +391,19 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
+            
+    def _on_transaction_started(self, backend):
+        self.menuitem_install.set_sensitive(False)
+        self.menuitem_remove.set_sensitive(False)
+            
+    def _on_transaction_finished(self, backend, success):
+        """ callback when an application install/remove transaction has finished """
+        self.cache.open()
+        self.update_app_status_menu()
+
+    def _on_transaction_stopped(self, backend):
+        """ callback when an application install/remove transaction has stopped """
+        self.update_app_status_menu()
 
     # helper
 
@@ -419,11 +432,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         if (not self.active_pane.is_category_view_showing() and 
             self.cache.has_key(app.pkgname)):
-            pkg = self.cache[app.pkgname]
-            installed = bool(pkg.installed)
-            self.menuitem_install.set_sensitive(not installed)
-            self.menuitem_remove.set_sensitive(installed)
-            self.menuitem_copy_web_link.set_sensitive(True)
+            if self.active_pane.app_view.is_action_in_progress():
+                self.menuitem_install.set_sensitive(False)
+                self.menuitem_remove.set_sensitive(False)
+                self.menuitem_copy_web_link.set_sensitive(False)
+            else:
+                pkg = self.cache[app.pkgname]
+                installed = bool(pkg.installed)
+                self.menuitem_install.set_sensitive(not installed)
+                self.menuitem_remove.set_sensitive(installed)
+                self.menuitem_copy_web_link.set_sensitive(True)
         else:
             # clear menu items if category view or if the package is not
             # in the cache

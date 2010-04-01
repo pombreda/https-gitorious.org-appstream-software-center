@@ -37,7 +37,10 @@ from gettext import gettext as _
 class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     """ software center specific code that interacts with aptdaemon """
 
-    __gsignals__ = {'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
+    __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            ()),
+                    'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             (bool,)),
                     'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
@@ -80,6 +83,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     def upgrade(self, pkgname, appname, iconname):
         """ upgrade a single package """
+        self.emit("transaction-started")
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.upgrade_packages([pkgname],
@@ -88,6 +92,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     def remove(self, pkgname, appname, iconname):
         """ remove a single package """
+        self.emit("transaction-started")
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.remove_packages([pkgname], wait=False, 
@@ -96,6 +101,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     def install(self, pkgname, appname, iconname):
         """ install a single package """
+        self.emit("transaction-started")
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.install_packages([pkgname],

@@ -85,6 +85,7 @@ class AppDetailsView(WebkitWidget):
         atk_desc.set_name(_("Description"))
         # aptdaemon
         self.backend = get_install_backend()
+        self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # data
@@ -414,18 +415,17 @@ class AppDetailsView(WebkitWidget):
     # public interface
     def install(self):
         self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
-        self._set_action_button_sensitive(False)
     def remove(self):
         self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
-        self._set_action_button_sensitive(False)
     def upgrade(self):
         self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
-        self._set_action_button_sensitive(False)
 
     # internal callback
     def _on_cache_ready(self, cache):
         logging.debug("on_cache_ready")
         self.show_app(self.app)
+    def _on_transaction_started(self, backend):
+        self._set_action_button_sensitive(False)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)
         if not self.app:
@@ -438,6 +438,7 @@ class AppDetailsView(WebkitWidget):
         # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
         if self.get_load_status() != 2:
             return
+        self._set_action_button_sensitive(False)
         self.execute_script("showProgress(true);")
         if pkgname in backend.pending_transactions:
             self.execute_script("updateProgress(%s);" % progress)
@@ -555,6 +556,8 @@ class AppDetailsView(WebkitWidget):
                 return True
         return False
     def _set_action_button_sensitive(self, enabled):
+        if self.get_load_status() != 2:
+            return
         if enabled:
             self.execute_script("enable_action_button();")
         else:
