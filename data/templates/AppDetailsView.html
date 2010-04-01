@@ -182,10 +182,11 @@
       <div id="icon">
         
       </div>
-     <h1>$appname</h1>
-     <h2>$summary</h2>
+     <h1 tabindex="0">$appname</h1>
+     <h2 tabindex="0">$summary</h2>
      <input type="button" id="button_${action_button_value}" 
           class="action_button"
+	  alt="$action_button_label"
           value="$action_button_label"
           onclick='action_button_clicked()'
       />
@@ -196,7 +197,7 @@
    </div>
     
    
-   <div id="description">$description</div>
+   <div id="description"><p tabindex="0">$description</p></div>
    <input type="button" id="button_homepage" value="$homepage"
     onclick='changeTitle("call:on_button_homepage_clicked")'
     />
@@ -207,11 +208,11 @@
        </a>
      </div>
   </div>
-   <p id="maintainance_time">$maintainance_time</p>
+   <p tabindex="0" id="maintainance_time">$maintainance_time</p>
    <table id="meta">
-     <tr>
-       <td id="license">$license</td>   
-       <td id="package_information">$package_information</td>
+     <tr >
+       <td tabindex="0" id="license">$license</td>   
+       <td tabindex="0" id="package_information">$package_information</td>
      </td>
    </table>
   </div>

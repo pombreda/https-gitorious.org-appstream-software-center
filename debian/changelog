@@ -3,6 +3,8 @@ software-center (1.1.24) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - make the applist better accessible by providing a text only
       description of the selected item (LP: #455307)
+  * data/templates/AppDetailsView.html:
+    - make the app details view better accessible with orca/accersier
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 01 Apr 2010 11:22:00 +0200
 
