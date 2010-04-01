@@ -196,12 +196,13 @@ class AppDetailsView(WebkitWidget):
     def wksub_description(self):
         # if we do not have a package in our apt data explain why
         if not self.pkg:
-            if self.channelname:
+            available_for_arch = self._available_for_our_arch()
+            if self.channelname and available_for_arch:
                 return _("This software is available from the '%s' source, "
                          "which you are not currently using.") % self.channelname
             # if we have no pkg, check if its available for the given
             # architecture
-            if self._available_for_our_arch():
+            if available_for_arch:
                 return _("To show information about this item, "
                          "the software catalog needs updating.")
             else:
@@ -283,9 +284,11 @@ class AppDetailsView(WebkitWidget):
         self.action_button_value = self._get_action_button_label_and_value()[1]
         return self.action_button_value
     def wksub_action_button_visible(self):
+        if not self._available_for_our_arch():
+            return "hidden"
         if (not self.channelfile and 
-            not self.pkg and 
-            not self._available_for_our_arch()):
+            not self._unavailable_component() and
+            not self.pkg):
             return "hidden"
         return "visible"
     def wksub_homepage_button_visibility(self):
@@ -501,7 +504,6 @@ class AppDetailsView(WebkitWidget):
                 action_button_value = "install"
         elif self.doc:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
             if channel:
                 path = APP_INSTALL_CHANNELS_PATH + channel +".list"
                 if os.path.exists(path):
@@ -511,7 +513,7 @@ class AppDetailsView(WebkitWidget):
                     action_button_label = _("Use This Source")
                     action_button_value = "enable_channel"
             # check if it comes from a non-enabled component
-            elif self._unavailable_component(component):
+            elif self._unavailable_component():
                 # FIXME: use a proper message here, but we are in string freeze
                 action_button_label = _("Use This Source")
                 action_button_value = "enable_component"
@@ -520,13 +522,15 @@ class AppDetailsView(WebkitWidget):
                 action_button_value = "reload"
         return (action_button_label, action_button_value)
 
-    def _unavailable_component(self, component):
+    def _unavailable_component(self):
         """ 
         check if the given doc refers to a component (like universe)
         that is currently not enabled
         """
-        # if there is no component accociated, it can not be unavailable
+        # FIXME: use self.component here instead?
+        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         logging.debug("component: '%s'" % component)
+        # if there is no component accociated, it can not be unavailable
         if not component:
             return False
         distro_codename = self.distro.get_codename()
@@ -540,8 +544,13 @@ class AppDetailsView(WebkitWidget):
         # on all architectures we know about
         if not arches:
             return True
-        # check the arch field
-        for arch in map(string.strip, arches.split(",")):
+        # check the arch field and support both "," and ";"
+        sep = ","
+        if ";" in arches:
+            sep = ";"
+        elif "," in arches:
+            sep = ","
+        for arch in map(string.strip, arches.split(sep)):
             if arch == self.arch:
                 return True
         return False
