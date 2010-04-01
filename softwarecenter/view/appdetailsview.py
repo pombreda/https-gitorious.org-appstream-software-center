@@ -193,6 +193,43 @@ class AppDetailsView(WebkitWidget):
             self.cache[self.app.pkgname].isInstalled):
             return "section-installed"
         return "section-get"
+    def _htmlize_package_desc(self, desc):
+        inside_p = False
+        inside_li = False
+        indent_len = None
+        for line in desc.splitlines():
+            stripped_line = line.strip()
+            if not inside_p and stripped_line:
+                yield "<p>"
+                inside_p = True
+            if stripped_line:
+                match = re.match("^(\s*[-*])", line)
+                if match:
+                    if inside_li:
+                        yield "</li>"
+                    yield "<li>"
+                    inside_li = True
+                    indent_len = len(match.group(1))
+                    stripped_line = line[indent_len:].strip()
+                    yield stripped_line
+                elif inside_li:
+                    if not line.startswith(" " * indent_len):
+                        yield "</li>"
+                        inside_li = False
+                    yield stripped_line
+                else:
+                    yield stripped_line
+            else:
+                if inside_li:
+                    yield "</li>"
+                    inside_li = False
+                if inside_p:
+                    yield "</p>"
+                    inside_p = True
+        if inside_li:
+            yield "</li>"
+        if inside_p:
+            yield "</p>"
     def wksub_description(self):
         # if we do not have a package in our apt data explain why
         if not self.pkg:
@@ -212,25 +249,20 @@ class AppDetailsView(WebkitWidget):
 
         # format for html
         description = self.pkg.description
-        print description
-
+        logging.debug("Description (text) %r", description)
         # format bullets (*-) as lists
-        regx = re.compile("\n\s*([*-]+) (.*)")
-        description = re.sub(regx, r'<li>\2</li>', description)
+        description = "\n".join(self._htmlize_package_desc(description))
         description = self.add_ul_tags(description)
-        print description
-        
         #line breaks
         descr_html = ""
         for para in description.split("\n\n"):
             descr_html += '<p tabindex="0">%s</p>' % para
         description = descr_html
-        print description
-        
         # urls
         regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
-        
-        return re.sub(regx, r'<a href="\1">\1</a>', description)
+        description = re.sub(regx, r'<a href="\1">\1</a>', description)
+        logging.debug("Description (HTML) %r", description)
+        return description
 
     def add_ul_tags(self, description):
         """ add <ul></ul> around a bunch of <li></li> lists
