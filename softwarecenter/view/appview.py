@@ -51,6 +51,7 @@ class AppStore(gtk.GenericTreeModel):
 
     (COL_APP_NAME,
      COL_TEXT,
+     COL_MARKUP,
      COL_ICON,
      COL_INSTALLED,
      COL_AVAILABLE,
@@ -58,9 +59,10 @@ class AppStore(gtk.GenericTreeModel):
      COL_POPCON,
      COL_IS_ACTIVE,
      COL_ACTION_IN_PROGRESS,
-     ) = range(9)
+     ) = range(10)
 
     column_type = (str,
+                   str,
                    str,
                    gtk.gdk.Pixbuf,
                    bool,
@@ -243,6 +245,10 @@ class AppStore(gtk.GenericTreeModel):
         if column == self.COL_APP_NAME:
             return app.appname
         elif column == self.COL_TEXT:
+            appname = app.appname
+            summary = self.db.get_summary(doc)
+            return "%s\n%s" % (appname, summary)
+        elif column == self.COL_MARKUP:
             appname = app.appname
             summary = self.db.get_summary(doc)
             # SPECIAL CASE: the spec says that when there is no appname, 
@@ -845,6 +851,18 @@ class AppView(gtk.TreeView):
             logging.warn("ubuntu-almost-fixed-height-mode extension not available")
 
         self.set_headers_visible(False)
+
+        # a11y: this is a fake cell renderer with a zero size
+        # we use it so that orca and other a11y tools get proper text to read
+        # it needs to be the first one, because that is what the tools look
+        # at by default
+        tt = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Name", tt, text=AppStore.COL_TEXT)
+        column.set_fixed_width(0)
+        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        self.append_column(column)
+
+        # the columns that are actually visible
         tp = CellRendererPixbufWithOverlay("software-center-installed")
         column = gtk.TreeViewColumn("Icon", tp,
                                     pixbuf=AppStore.COL_ICON,
@@ -858,7 +876,7 @@ class AppView(gtk.TreeView):
         tr.set_property('ypad', 2)
 
         column = gtk.TreeViewColumn("Apps", tr, 
-                                    markup=AppStore.COL_TEXT,
+                                    markup=AppStore.COL_MARKUP,
                                     rating=AppStore.COL_POPCON,
                                     isactive=AppStore.COL_IS_ACTIVE,
                                     installed=AppStore.COL_INSTALLED, 
