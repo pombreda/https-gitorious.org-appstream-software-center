@@ -432,7 +432,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         if (not self.active_pane.is_category_view_showing() and 
             self.cache.has_key(app.pkgname)):
-            if self.active_pane.app_view.is_action_in_progress():
+            if self.active_pane.app_view.is_action_in_progress_for_selected_app():
                 self.menuitem_install.set_sensitive(False)
                 self.menuitem_remove.set_sensitive(False)
                 self.menuitem_copy_web_link.set_sensitive(False)

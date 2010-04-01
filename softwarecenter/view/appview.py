@@ -893,7 +893,7 @@ class AppView(gtk.TreeView):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
-    def is_action_in_progress(self):
+    def is_action_in_progress_for_selected_app(self):
         """
         return True if an install or remove of the current package
         is in progress
@@ -966,7 +966,7 @@ class AppView(gtk.TreeView):
         popcon = model[row][AppStore.COL_POPCON]
         if self.buttons.has_key('action'):
             action_button = self.buttons['action']
-            if self.is_action_in_progress():
+            if self.is_action_in_progress_for_selected_app():
                 action_button.set_sensitive(False)
             else:
                 action_button.set_sensitive(True)
