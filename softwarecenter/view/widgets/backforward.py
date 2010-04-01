@@ -99,7 +99,7 @@ class SeparatorPart(gtk.DrawingArea):
 
     def __init__(self):
         gtk.DrawingArea.__init__(self)
-        self.theme = pathbar_common.PathBarStyle()
+        self.theme = pathbar_common.PathBarStyle(self)
         self.set_size_request(self.theme['xthickness'], -1)
 
         atk_obj = self.get_accessible()
@@ -114,7 +114,7 @@ class SeparatorPart(gtk.DrawingArea):
         self.set_size_request(self.theme['xthickness'], -1)
         cr = widget.window.cairo_create()
         a = event.area
-        cr.rectangle(a.x, a.y+1, a.width, a.height-1)
+        cr.rectangle(a.x, a.y, a.width, a.height)
         dark = self.theme.dark_line[self.state]
         cr.set_source_rgba(*dark.tofloats())
         cr.fill()
@@ -134,7 +134,7 @@ class ButtonPart(gtk.DrawingArea):
         self.button_down = False
         self.shadow_type = gtk.SHADOW_OUT
         self.arrow_type = arrow_type
-        self.theme = pathbar_common.PathBarStyle()
+        self.theme = pathbar_common.PathBarStyle(self)
         self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK|
                         gtk.gdk.BUTTON_PRESS_MASK|
@@ -200,7 +200,7 @@ class ButtonPart(gtk.DrawingArea):
         if self.allocation.width == 1:
             return
 
-        self.theme = pathbar_common.PathBarStyle(self.style)
+        self.theme = pathbar_common.PathBarStyle(self)
         self.queue_draw()
         return
 
@@ -210,9 +210,9 @@ class ButtonPart(gtk.DrawingArea):
         cr.rectangle(area)
         cr.clip()
 
-        self.theme.draw_part_bg_ltr(cr,
-                                    self,
-                                    x, y, w, h)
+        self.theme.paint_bg(cr,
+                            self,
+                            x, y, w, h)
         del cr
 
         # arrow

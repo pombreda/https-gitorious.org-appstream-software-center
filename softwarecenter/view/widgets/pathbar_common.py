@@ -34,11 +34,8 @@ SHAPE_END_CAP = 3
 
 class PathBarStyle:
 
-    def __init__(self):
-        self.shape_map = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                          SHAPE_START_ARROW: self._shape_start_arrow_ltr,
-                          SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
-                          SHAPE_END_CAP:     self._shape_end_cap_ltr}
+    def __init__(self, pathbar):
+        self.shape_map = self._load_shape_map(pathbar)
 
         gtk_settings = gtk.settings_get_default()
         theme = self._load_theme(gtk_settings)
@@ -57,6 +54,19 @@ class PathBarStyle:
             return self.properties[item]
         print 'Key does not exist in the style profile:', item
         return None
+
+    def _load_shape_map(self, pathbar):
+        if pathbar.get_direction() != gtk.TEXT_DIR_RTL:
+            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
+                     SHAPE_START_ARROW: self._shape_start_arrow_ltr,
+                     SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
+                     SHAPE_END_CAP:     self._shape_end_cap_ltr}
+        else:
+            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
+                     SHAPE_START_ARROW: self._shape_start_arrow_rtl,
+                     SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
+                     SHAPE_END_CAP:     self._shape_end_cap_rtl}
+        return shmap
 
     def _load_theme(self, gtksettings):
         name = gtksettings.get_property("gtk-theme-name")
@@ -146,46 +156,7 @@ class PathBarStyle:
                               SHAPE_END_CAP:     self._shape_end_cap_rtl}
         return
 
-    def draw_part_bg_ltr(self, cr, part, x, y, w, h, sxO=0):
-        shape = self.shape_map[part.shape]
-        state = part.state
-        r = self["curvature"]
-        aw = self["arrow_width"]
-
-        cr.save()
-        cr.translate(x-sxO+0.5, y+0.5)
-
-        # outer slight bevel or focal highlight
-        shape(cr, 0, 0, w, h, r, aw)
-        cr.set_source_rgba(0, 0, 0, 0.05)
-        cr.fill()
-
-        # bg linear vertical gradient
-        color1, color2 = self.gradients[state]
-
-        shape(cr, 1, 1, w-1, h-1, r, aw)
-        lin = cairo.LinearGradient(0, 0, 0, h-1)
-        lin.add_color_stop_rgb(0.0, *color1.tofloats())
-        lin.add_color_stop_rgb(1.0, *color2.tofloats())
-        cr.set_source(lin)
-        cr.fill()
-
-        cr.set_line_width(1.0)
-        # strong outline
-        shape(cr, 1, 1, w-1, h-1, r, aw)
-        cr.set_source_rgb(*self.dark_line[state].tofloats())
-        cr.stroke()
-
-        # inner bevel/highlight
-        if r == 0: w += 1
-        shape(cr, 2, 2, w-2, h-2, r, aw)
-        cr.set_source_rgb(*self.light_line[state].tofloats())
-        cr.stroke()
-
-        cr.restore()
-        return
-
-    def part_draw_bg_ltr(self, cr, part, x, y, w, h, sxO=0):
+    def paint_bg(self, cr, part, x, y, w, h, sxO=0):
         shape = self.shape_map[part.shape]
         state = part.state
         r = self["curvature"]
@@ -242,7 +213,7 @@ class PathBarStyle:
 #                                  layout)
 #        return
 
-    def part_draw_layout(self, widget, window, part, x, y, w, h, sxO=0):
+    def paint_layout(self, widget, window, part, x, y, w, h, sxO=0):
         # draw layout
         layout = part.get_layout()
         widget.style.paint_layout(window,

@@ -39,7 +39,7 @@ class PathBar(gtk.HBox):
         self._out_of_width = False
         self._button_press_origin = None
 
-        self.theme = pathbar_common.PathBarStyle()
+        self.theme = pathbar_common.PathBarStyle(self)
 
         # Accessibility info
         atk_desc = self.get_accessible()
@@ -142,6 +142,11 @@ class PathBar(gtk.HBox):
 
     def _part_button_release(self, part, event):
         if event.button != 1: return
+
+        part_region = gtk.gdk.region_rectangle(part.allocation)
+        if not part_region.point_in(*self.window.get_pointer()[:2]):
+            self._button_press_origin = None
+            return
         if part != self._button_press_origin: return
         if self._active_part:
             self._active_part.set_state(gtk.STATE_NORMAL)
@@ -164,7 +169,8 @@ class PathBar(gtk.HBox):
         a = part.get_allocation()
         x, y, h = a.x, a.y, a.height
         w = part.get_draw_width()
-        self.queue_draw_area(x, y, w, h)
+        xo = part.get_draw_xoffset()
+        self.queue_draw_area(x+xo, y, w, h)
         return
 
     def _on_expose_event(self, widget, event):
@@ -176,9 +182,10 @@ class PathBar(gtk.HBox):
             a = part.get_allocation()
             x, y, w, h = a.x, a.y, a.width, a.height
             w = part.get_draw_width()
-            self.theme.part_draw_bg_ltr(cr, part, x, y, w, h)
+            xo = part.get_draw_xoffset()
+            self.theme.paint_bg(cr, part, x+xo, y, w, h)
             x, y, w, h = part.get_layout_points()
-            self.theme.part_draw_layout(widget, widget.window, part, a.x+x, a.y+y, w, h)
+            self.theme.paint_layout(widget, widget.window, part, a.x+x, a.y+y, w, h)
         return
 
     def _on_size_allocate(self, widget, allocation):
@@ -282,6 +289,7 @@ class PathPart(gtk.EventBox):
         part_atk.set_role(atk.ROLE_PUSH_BUTTON)
 
         self._parent = parent
+        self._draw_shift = 0
         self._draw_width = 0
         self._layout_points = 0,0,0,0
         self._size_requisition = 0,0
@@ -327,22 +335,33 @@ class PathPart(gtk.EventBox):
         x = self._parent.theme['xpad']
         y = self._parent.theme['ypad']
         w, h = self.layout.get_pixel_extents()[1][2:]
-
         self._layout_points = [x, y, w, h]
         return
 
     def _adjust_width(self, shape, w):
         arrow_width = self._parent.theme['arrow_width']
-        if shape == pathbar_common.SHAPE_START_ARROW:
+        if shape == pathbar_common.SHAPE_RECTANGLE:
+            return w
+
+        elif shape == pathbar_common.SHAPE_START_ARROW:
             self._draw_width += arrow_width
+            if self.get_direction() == gtk.TEXT_DIR_RTL:
+                self._draw_xoffset -= arrow_width
+                self._layout_points[2] += self._parent.theme['xpad']
+
         elif shape == pathbar_common.SHAPE_END_CAP:
-            w += self._parent.theme['arrow_width']
+            w += arrow_width
             self._draw_width = w
-            self._layout_points[0] += arrow_width
+            if self.get_direction() != gtk.TEXT_DIR_RTL:
+                self._layout_points[0] += arrow_width
+
         elif shape == pathbar_common.SHAPE_MID_ARROW:
             w += arrow_width
             self._draw_width += 2*arrow_width
-            self._layout_points[0] += arrow_width
+            if self.get_direction() == gtk.TEXT_DIR_RTL:
+                self._draw_xoffset -= arrow_width
+            else:
+                self._layout_points[0] += arrow_width
         return w
 
     def _calc_size(self, shape):
@@ -350,6 +369,7 @@ class PathPart(gtk.EventBox):
         w += 2*self._parent.theme['xpad']
         h += 2*self._parent.theme['ypad']
 
+        self._draw_xoffset = 0
         self._draw_width = w
         w = self._adjust_width(shape, w)
         self._best_width = w
@@ -357,7 +377,6 @@ class PathPart(gtk.EventBox):
         return
 
     def do_callback(self):
-        print self.callback
         self.callback(self._parent, self)
         return
 
@@ -391,6 +410,9 @@ class PathPart(gtk.EventBox):
 
     def get_draw_width(self):
         return self._draw_width
+
+    def get_draw_xoffset(self):
+        return self._draw_xoffset
 
     def get_best_width(self):
         return self._best_width
