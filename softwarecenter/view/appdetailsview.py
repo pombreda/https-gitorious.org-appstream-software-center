@@ -212,16 +212,20 @@ class AppDetailsView(WebkitWidget):
 
         # format for html
         description = self.pkg.description
-        #print description
+        print description
 
         # format bullets (*-) as lists
         regx = re.compile("\n\s*([*-]+) (.*)")
         description = re.sub(regx, r'<li>\2</li>', description)
         description = self.add_ul_tags(description)
+        print description
         
         #line breaks
-        regx = re.compile("(\n\n)")
-        description = re.sub(regx, r'<p></p>', description)
+        descr_html = ""
+        for para in description.split("\n\n"):
+            descr_html += '<p tabindex="0">%s</p>' % para
+        description = descr_html
+        print description
         
         # urls
         regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
@@ -229,20 +233,16 @@ class AppDetailsView(WebkitWidget):
         return re.sub(regx, r'<a href="\1">\1</a>', description)
 
     def add_ul_tags(self, description):
-        n = description.find("<li>")
-        if not n == -1:
-            description[n:n+3].replace("<li>", "<ul><li>")
-            description = description[0:n] + description[n:n+3].replace("<li>", "<ul><li>") + description[n+3:]
-            description_list_tmp = []
-            len_description = range(len(description))
-            len_description.reverse()
-        
-            for letter in len_description:
-                description_list_tmp.append(description[letter])
-                
-            description_list_tmp = "".join(description_list_tmp)
-            n = len(description) - description_list_tmp.find(">il/<")
-            return description[0:n] + description[n-5:n].replace("</li>", "</li></ul>") + description[n:]
+        """ add <ul></ul> around a bunch of <li></li> lists
+        """
+        first_li = description.find("<li>")
+        last_li =  description.rfind("</li>")
+        if first_li >= 0 and last_li >= 0:
+            last_li += len("</li>")
+            return '%s<ul tabindex="0">%s</ul>%s' % (
+                description[:first_li],
+                description[first_li:last_li],
+                description[last_li:])
         return description
 
     def wksub_iconpath_loading(self):
@@ -608,8 +608,8 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
-    view.show_app(Application("3D Chess", "3dchess"))
-    #view.show_app("Movie Player", "totem")
+    #view.show_app(Application("3D Chess", "3dchess"))
+    view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 
