@@ -76,7 +76,6 @@ class PathBar(gtk.HBox):
         for part in parts:
             bw = part.get_best_width()
             w = part.get_size_request()[0]
-            print part, bw, w
             if w < bw:
                 dw = bw - w
                 if dw <= underhang:
@@ -183,12 +182,9 @@ class PathBar(gtk.HBox):
         return
 
     def _on_size_allocate(self, widget, allocation):
-        print 'AllocatedWidth:', allocation.width
         if self._width < allocation.width and self._out_of_width:
-            print 'GrowCheck'
             self._grow_check(allocation)
         elif self._width >= allocation.width:
-            print 'ShrinkCheck'
             self._shrink_check(allocation)
         return
 
@@ -206,7 +202,7 @@ class PathBar(gtk.HBox):
             self._active_part.set_state(gtk.STATE_NORMAL)
             self._part_queue_draw(self._active_part)
 
-        part.set_state(gtk.STATE_ACTIVE)
+        part.set_state(gtk.STATE_SELECTED)
         self._part_queue_draw(part)
         self._active_part = part
         if do_callback and part.callback:
@@ -218,7 +214,6 @@ class PathBar(gtk.HBox):
 
     def set_active_no_callback(self, part):
         self.set_active(part, False)
-        part.set_state(gtk.STATE_SELECTED)
         return
 
     def append(self, part, do_callback=True, animate=True):
@@ -232,6 +227,11 @@ class PathBar(gtk.HBox):
         self.pack_start(part, False)
         self._part_connect_signals(part)
         part.show()
+
+        if do_callback:
+            self.set_active(part)
+        else:
+            self.set_active_no_callback(part)
         return
 
     def append_no_callback(self, part):
@@ -245,10 +245,11 @@ class PathBar(gtk.HBox):
         self._compose_on_remove(parts[-2])
         return
 
-    def remove_all(self, keep_first_part=True):
+    def remove_all(self, keep_first_part=True, do_callback=True):
         parts = self.get_children()
+        if len(parts) < 1: return
         if keep_first_part:
-            if len(parts) == 1: return
+            if len(parts) <= 1: return
             parts = parts[1:]
         for part in parts:
             part.destroy()
@@ -258,6 +259,7 @@ class PathBar(gtk.HBox):
             root = self.get_parts()[0]
             root.set_shape(pathbar_common.SHAPE_RECTANGLE)
             self._width = root.get_size_request()[0]
+            if do_callback: root.callback(self, root)
         return
 
     def navigate_up(self):
@@ -354,8 +356,9 @@ class PathPart(gtk.EventBox):
         self.set_size_request(w, h)
         return
 
-    def activate(self, do_callback=True):
-        self._parent.set_active(self, do_callback)
+    def do_callback(self):
+        print self.callback
+        self.callback(self._parent, self)
         return
 
     def set_label(self, label):
@@ -386,10 +389,6 @@ class PathPart(gtk.EventBox):
         self.set_size_request(w, -1)
         return
 
-#    def set_pathbar(self, pathbar):
-#        self._parent = pathbar
-#        return
-
     def get_draw_width(self):
         return self._draw_width
 
@@ -404,13 +403,16 @@ class PathPart(gtk.EventBox):
 
 
 class NavigationBar(PathBar):
+
+    APPEND_DELAY = 50
+
     def __init__(self, group=None):
         PathBar.__init__(self)
         self.set_size_request(-1, 28)
         self.id_to_part = {}
         return
 
-    def add_with_id(self, label, callback, id, icon=None, do_callback=True, animate=True):
+    def add_with_id(self, label, callback, id, do_callback=True, animate=True):
         """
         Add a new button with the given label/callback
 
@@ -425,7 +427,6 @@ class NavigationBar(PathBar):
         else:
             part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
-            self.set_active_no_callback(part)
 #            part.id = id
             self.id_to_part[id] = part
             # check if animation should be used
@@ -435,7 +436,10 @@ class NavigationBar(PathBar):
 #                else:
 #                    gobject.timeout_add(150, self.append_no_callback, part)
 #            else:
-            self.append(part, do_callback, animate=False)
+            gobject.timeout_add(self.APPEND_DELAY,
+                                self.append,
+                                part,
+                                do_callback)
         return
 
     def remove_id(self, id):
@@ -446,12 +450,11 @@ class NavigationBar(PathBar):
         self.remove(part)
         return
 
-    def remove_all(self):
-        if len(self.get_parts()) == 1: return
+    def remove_all(self, keep_first_part=True, do_callback=True):
+        if len(self.get_parts()) <= 1: return
         root = self.get_children()[0]
         self.id_to_part = {root.get_name(): root}
-        PathBar.remove_all(self)
-        print 'RemoveAll'
+        PathBar.remove_all(self, do_callback=do_callback)
         return
 
     def get_button_from_id(self, id):

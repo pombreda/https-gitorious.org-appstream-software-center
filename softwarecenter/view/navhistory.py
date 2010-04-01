@@ -91,7 +91,7 @@ class NavigationItem(object):
         self.apps_subcategory = available_pane.apps_subcategory
         self.apps_search_term = available_pane.apps_search_term
         self.current_app = available_pane.get_current_app()
-        self.parts = self.available_pane.navigation_bar.get_parts()[:]
+        self.parts = self.available_pane.navigation_bar.get_parts()
 
     def navigate_to(self):
         """
@@ -106,15 +106,21 @@ class NavigationItem(object):
         self.available_pane.searchentry.set_position(-1)
         self.available_pane.app_details.show_app(self.current_app)
         # first part is special and kept in remove_all
-        self.available_pane.navigation_bar.remove_all()
-        for part in self.parts[1:]:
-            self.available_pane.navigation_bar.add_with_id(unescape(part.label),
-                                                           part.callback,
-                                                           part.get_name(),
-                                                           do_callback=False,
-                                                           animate=False)
-        self.parts[-1].activate()
+        self.available_pane.navigation_bar.remove_all(keep_first_part=True,
+                                                      do_callback=False)
+
+        for part in self.parts:
+                self.available_pane.navigation_bar.add_with_id(unescape(part.label),
+                                                               part.callback,
+                                                               part.get_name(),
+                                                               do_callback=False,
+                                                               animate=False)
+        if self.parts:
+            self.parts[-1].do_callback()
+        else:
+            self.available_pane.navigation_bar.get_parts()[0].do_callback()
         in_replay_history_mode = False
+        print
         
     def __str__(self):
         details = []

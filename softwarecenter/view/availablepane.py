@@ -73,10 +73,10 @@ class AvailablePane(SoftwarePane):
         self.connect("app-list-changed", self._on_app_list_changed)
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
-        # UI
-        self._build_ui()
         # track navigation history
         self.nav_history = NavigationHistory(self)
+        # UI
+        self._build_ui()
 
     def _build_ui(self):
         # categories, appview and details into the notebook in the bottom
@@ -123,6 +123,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.add_with_id(_("Get Software"), 
                                         self.on_navigation_category,
                                         self.NAV_BUTTON_ID_CATEGORY,
+                                        do_callback=False,
                                         animate=False)
 
     def _get_query(self):
@@ -207,18 +208,18 @@ class AvailablePane(SoftwarePane):
         return False
 
     def update_navigation_button(self):
+        print 'UpdateNavButton'
         """Update the navigation button"""
         if self.apps_category and not self.apps_search_term:
             cat =  self.apps_category.name
             self.navigation_bar.add_with_id(cat, 
                                             self.on_navigation_list,
-                                            self.NAV_BUTTON_ID_LIST,
-                                            None)
+                                            self.NAV_BUTTON_ID_LIST, False)
+
         elif self.apps_search_term:
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
-                                            self.NAV_BUTTON_ID_SEARCH,
-                                            None)
+                                            self.NAV_BUTTON_ID_SEARCH, False)
 
     # status text woo
     def get_status_text(self):
@@ -340,6 +341,7 @@ class AvailablePane(SoftwarePane):
         self.searchentry.show()
 
     def on_navigation_list(self, pathbar, part):
+        print 'NavigateList'
         """callback when the navigation button with id 'list' is clicked"""
         if pathbar and not pathbar.get_active():
             return
