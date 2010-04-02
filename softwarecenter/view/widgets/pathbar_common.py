@@ -219,7 +219,7 @@ class PathBarStyle:
         widget.style.paint_layout(window,
                                   self.text_states[part.state],
                                   False,
-                                  (x, y, w, h),   # clip area
+                                  None, #(x, y, w, h),   # clip area
                                   widget,
                                   None,
                                   x, y,
@@ -878,7 +878,7 @@ class ThemeRegistry:
             print 'Styling hints found for %s...' % theme_name
             return self.REGISTRY[theme_name]()
         print "No styling hints for %s were found... using Human hints." % theme_name
-        return Ambiance()
+        return Clearlooks()
 
 
 def color_from_gdkcolor(gdkcolor):

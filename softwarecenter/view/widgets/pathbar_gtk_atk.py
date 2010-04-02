@@ -31,7 +31,6 @@ class PathBar(gtk.HBox):
     def __init__(self, group=None):
         gtk.HBox.__init__(self)
         self.set_redraw_on_allocate(False)
-        self.set_reallocate_redraws(False)
 
         self._width = 0
         self._queue = []
@@ -67,10 +66,11 @@ class PathBar(gtk.HBox):
                 part.set_width(w-overhang)
                 break
         self._out_of_width = True
+        self.queue_draw()
         return
 
     def _grow_check(self, allocation):
-        underhang = allocation.width - self._width
+        w_freed = allocation.width - self._width
         parts = self.get_children()
         parts.reverse()
         for part in parts:
@@ -78,15 +78,18 @@ class PathBar(gtk.HBox):
             w = part.get_size_request()[0]
             if w < bw:
                 dw = bw - w
-                if dw <= underhang:
-                    underhang -= dw
-                    part.set_width(bw)
+                if dw <= w_freed:
+                    w_freed -= dw
+                    part.restore_best_width()
                 else:
-                    part.set_width(w + underhang)
-                    underhang = 0
+                    part.set_width(w + w_freed)
+                    w_freed = 0
                     break
-        self._width = allocation.width - underhang
-        self._out_of_width = False
+
+        self._width = allocation.width - w_freed
+        if self._width < allocation.width:
+            self._out_of_width = False
+        self.queue_draw()
         return
 
     def _compose_on_append(self, last_part):
@@ -193,12 +196,17 @@ class PathBar(gtk.HBox):
             self._grow_check(allocation)
         elif self._width >= allocation.width:
             self._shrink_check(allocation)
+        if self.has_parts():
+            self._part_queue_draw(self.get_parts()[-1])
         return
 
     def _append_on_realize(self, widget):
         for part, do_callback, animate in self._queue:
             self.append(part, do_callback, animate)
         return
+
+    def has_parts(self):
+        return len(self.get_children()) > 0
 
     def get_parts(self):
         return self.get_children()
@@ -246,7 +254,7 @@ class PathBar(gtk.HBox):
 
     def remove(self, part):
         parts = self.get_children()
-        if len(parts) == 1: return  # protect last part
+        if len(parts) <= 1: return  # protect last part
         self._width -= part.get_size_request()[0]
         part.destroy()
         self._compose_on_remove(parts[-2])
@@ -281,6 +289,7 @@ class PathPart(gtk.EventBox):
 
     def __init__(self, parent, label, callback=None):
         gtk.EventBox.__init__(self)
+        self.set_redraw_on_allocate(False)
         self.set_visible_window(False)
 
         part_atk = self.get_accessible()
@@ -291,13 +300,15 @@ class PathPart(gtk.EventBox):
         self._parent = parent
         self._draw_shift = 0
         self._draw_width = 0
+        self._best_width = 0
         self._layout_points = 0,0,0,0
         self._size_requisition = 0,0
 
+        self.label = None
         self.shape = pathbar_common.SHAPE_RECTANGLE
         self.layout = None
-        self.set_label(label)
         self.callback = callback
+        self.set_label(label)
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -311,16 +322,7 @@ class PathPart(gtk.EventBox):
     def __repr__(self):
         BOLD = "\033[1m"
         RESET = "\033[0;0m"
-        if self.shape == pathbar_common.SHAPE_RECTANGLE:
-            s = '[ %s ]'
-        elif self.shape == pathbar_common.SHAPE_START_ARROW:
-            s = '[ %s }'
-        elif self.shape == pathbar_common.SHAPE_MID_ARROW:
-            s = '%s }'
-        elif self.shape == pathbar_common.SHAPE_END_CAP:
-            s = '%s ]'
-        s = BOLD + s + RESET
-        return s % self.label
+        return BOLD + self.label + RESET
 
     def _make_layout(self):
         pc = self._parent.get_pango_context()
@@ -328,6 +330,10 @@ class PathPart(gtk.EventBox):
         layout.set_markup(self.label)
         layout.set_ellipsize(pango.ELLIPSIZE_END)
         self.layout = layout
+        return
+
+    def _set_best_width(self, best_width):
+        self._best_width = best_width
         return
 
     def _calc_layout_points(self):
@@ -339,6 +345,9 @@ class PathPart(gtk.EventBox):
         return
 
     def _adjust_width(self, shape, w):
+        self._draw_xoffset = 0
+        self._draw_width = w
+
         arrow_width = self._parent.theme['arrow_width']
         if shape == pathbar_common.SHAPE_RECTANGLE:
             return w
@@ -347,11 +356,10 @@ class PathPart(gtk.EventBox):
             self._draw_width += arrow_width
             if self.get_direction() == gtk.TEXT_DIR_RTL:
                 self._draw_xoffset -= arrow_width
-                self._layout_points[2] += self._parent.theme['xpad']
 
         elif shape == pathbar_common.SHAPE_END_CAP:
             w += arrow_width
-            self._draw_width = w
+            self._draw_width += arrow_width
             if self.get_direction() != gtk.TEXT_DIR_RTL:
                 self._layout_points[0] += arrow_width
 
@@ -369,10 +377,9 @@ class PathPart(gtk.EventBox):
         w += 2*self._parent.theme['xpad']
         h += 2*self._parent.theme['ypad']
 
-        self._draw_xoffset = 0
-        self._draw_width = w
         w = self._adjust_width(shape, w)
-        self._best_width = w
+        if not self.get_best_width():
+            self._set_best_width(w)
         self.set_size_request(w, h)
         return
 
@@ -381,30 +388,49 @@ class PathPart(gtk.EventBox):
         return
 
     def set_label(self, label):
+        if label == self.label: return
         self.label = gobject.markup_escape_text(label.strip())
         if not self.layout:
             self._make_layout()
         else:
             self.layout.set_markup(self.label)
+
         self._calc_layout_points()
         self._calc_size(self.shape)
-        self.queue_draw()
         return
 
     def set_shape(self, shape):
         self.shape = shape
         self._calc_layout_points()
         self._calc_size(shape)
-        self.queue_draw()
         return
 
     def set_width(self, w):
         theme = self._parent.theme
         lw = w-theme['arrow_width']
-        if self.shape == pathbar_common.SHAPE_MID_ARROW:
+        if self.shape != pathbar_common.SHAPE_START_ARROW:
             lw -= theme['xpad']
+        if self.shape == pathbar_common.SHAPE_MID_ARROW:
+            lw -= theme['arrow_width']
         self.layout.set_width(lw*pango.SCALE)
+
         self._draw_width = w+theme['arrow_width']
+        self.set_size_request(w, -1)
+        return
+
+    def restore_best_width(self):
+        w = self.get_best_width()
+        arrow_width = self._parent.theme['arrow_width']
+
+        if self.shape == pathbar_common.SHAPE_MID_ARROW:
+            w += arrow_width
+        if self.shape == pathbar_common.SHAPE_END_CAP and \
+            self.get_direction() == gtk.TEXT_DIR_RTL:
+            self._draw_xoffset -= arrow_width
+            self._layout_points[0] -= arrow_width
+
+        self.layout.set_width(-1)
+        self._draw_width = w+arrow_width
         self.set_size_request(w, -1)
         return
 
@@ -426,7 +452,7 @@ class PathPart(gtk.EventBox):
 
 class NavigationBar(PathBar):
 
-    APPEND_DELAY = 50
+    APPEND_DELAY = 150
 
     def __init__(self, group=None):
         PathBar.__init__(self)
@@ -487,55 +513,51 @@ class NavigationBar(PathBar):
             return None
         return self.id_to_part[id]
 
-    def get_label(self, id):
-        """
-        Return the label of the navigation button with the given id
-        """
-        if not id in self.id_to_part:
-            return
 
 
-#class Test:
+class Test:
 
-#    def __init__(self):
-#        self.counter = 0
-#        w = gtk.Window()
-#        w.connect("destroy", gtk.main_quit)
-#        w.set_size_request(512, -1)
-#        w.set_border_width(3)
+    def __init__(self):
+        self.counter = 0
+        w = gtk.Window()
+        w.connect("destroy", gtk.main_quit)
+        w.set_size_request(384, -1)
+        w.set_default_size(512, -1)
+        w.set_border_width(3)
 
-#        vb = gtk.VBox()
-#        w.add(vb)
+        vb = gtk.VBox()
+        w.add(vb)
 
-#        pb = PathBar()
-#        vb.pack_start(pb, False)
-#        part = PathPart(pb, 'Get Free Software?')
-#        pb.append(part)
+        pb = PathBar()
+        vb.pack_start(pb, False)
+        part = PathPart(pb, 'Get Free Software?')
+        pb.append(part)
 
-#        add = gtk.Button(stock=gtk.STOCK_ADD)
-#        rem = gtk.Button(stock=gtk.STOCK_REMOVE)
-#        self.entry = gtk.Entry()
+        add = gtk.Button(stock=gtk.STOCK_ADD)
+        rem = gtk.Button(stock=gtk.STOCK_REMOVE)
+        self.entry = gtk.Entry()
 
-#        vb.pack_start(add, False)
-#        vb.pack_start(self.entry, False)
-#        vb.pack_start(rem, False)
-#        add.connect('clicked', self.add_cb, pb)
-#        rem.connect('clicked', self.rem_cb, pb)
+        vb.pack_start(add, False)
+        vb.pack_start(self.entry, False)
+        vb.pack_start(rem, False)
+        add.connect('clicked', self.add_cb, pb)
+        rem.connect('clicked', self.rem_cb, pb)
 
-#        w.show_all()
-#        gtk.main()
-#        return
+        w.show_all()
+        gtk.main()
+        return
 
-#    def add_cb(self, widget, pb):
-#        text = self.entry.get_text() or ('unnammed%s' % self.counter)
-#        part = PathPart(pb, text)
-#        pb.append(part)
-#        self.counter += 1
-#        return
+    def add_cb(self, widget, pb):
+        text = self.entry.get_text() or ('unnammed%s' % self.counter)
+        part = PathPart(pb, text)
+        pb.append(part)
+        self.counter += 1
+        return
 
-#    def rem_cb(self, widget, pb):
-#        last = pb.get_children()[-1]
-#        pb.remove(last)
-#        return
+    def rem_cb(self, widget, pb):
+        last = pb.get_children()[-1]
+        pb.remove(last)
+        return
 
-#Test()
+if __name__ == '__main__':
+    Test()
