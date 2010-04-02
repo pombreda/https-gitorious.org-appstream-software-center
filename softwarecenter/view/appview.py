@@ -900,7 +900,9 @@ class AppView(gtk.TreeView):
         """
         (path, column) = self.get_cursor()
         model = self.get_model()
-        action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
+        action_in_progress = False
+        if path:
+            action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
         return action_in_progress
 
     def _on_realize(self, widget, tr):
