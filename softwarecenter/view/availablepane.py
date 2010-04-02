@@ -123,7 +123,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.add_with_id(_("Get Software"), 
                                         self.on_navigation_category,
                                         self.NAV_BUTTON_ID_CATEGORY,
-                                        do_callback=False,
+                                        do_callback=True,
                                         animate=False)
 
     def _get_query(self):
@@ -213,12 +213,12 @@ class AvailablePane(SoftwarePane):
             cat =  self.apps_category.name
             self.navigation_bar.add_with_id(cat, 
                                             self.on_navigation_list,
-                                            self.NAV_BUTTON_ID_LIST, False)
+                                            self.NAV_BUTTON_ID_LIST, True)
 
         elif self.apps_search_term:
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
-                                            self.NAV_BUTTON_ID_SEARCH, False)
+                                            self.NAV_BUTTON_ID_SEARCH, True)
 
     # status text woo
     def get_status_text(self):
@@ -322,47 +322,36 @@ class AvailablePane(SoftwarePane):
         self.refresh_apps()
         self._show_category_overview()
 
-    def on_navigation_category(self, pathbar, part):
-        """callback when the navigation button with id 'category' is clicked"""
-        if pathbar and not pathbar.get_active():
-            return
-        print 'NavigateCategory'
-        # clear the search
+    def display_category(self):
         self._clear_search()
         self._show_category_overview()
-        self.nav_history.navigate(CategoryViewNavigationItem(self))
+        return
 
-    def on_navigation_search(self, pathbar, part):
-        """ callback when the navigation button with id 'search' is clicked"""
+    def display_search(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        self.nav_history.navigate(SearchNavigationItem(self))
         self.searchentry.show()
+        return
 
-    def on_navigation_list(self, pathbar, part):
-        """callback when the navigation button with id 'list' is clicked"""
-        if pathbar and not pathbar.get_active():
-            return
-        print 'NavigateList'
+    def display_list(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
+
         if self.apps_subcategory:
             self.apps_subcategory = None
         self.set_category(self.apps_category)
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
+
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         self.emit("app-list-changed", len(model))
         self.searchentry.show()
-        self.nav_history.navigate(AppListNavigationItem(self))
+        return
 
-    def on_navigation_list_subcategory(self, pathbar, part):
-        if pathbar and not pathbar.get_active():
-            return
-        print 'NavigateSubCategory'
+    def display_list_subcat(self):
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
@@ -371,14 +360,36 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.emit("app-list-changed", len(self.app_view.get_model()))
         self.searchentry.show()
+        return
+
+    def display_details(self):
+        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.searchentry.hide()
+        return
+
+    def on_navigation_category(self, pathbar, part):
+        """callback when the navigation button with id 'category' is clicked"""
+        # clear the search
+        self.display_category()
+        self.nav_history.navigate(CategoryViewNavigationItem(self))
+
+    def on_navigation_search(self, pathbar, part):
+        """ callback when the navigation button with id 'search' is clicked"""
+        self.display_search()
+        self.nav_history.navigate(SearchNavigationItem(self))
+
+    def on_navigation_list(self, pathbar, part):
+        """callback when the navigation button with id 'list' is clicked"""
+        self.display_list()
+        self.nav_history.navigate(AppListNavigationItem(self))
+
+    def on_navigation_list_subcategory(self, pathbar, part):
+        self.display_list_subcat()
         self.nav_history.navigate(AppListSubcategoryNavigationItem(self))
 
     def on_navigation_details(self, pathbar, part):
         """callback when the navigation button with id 'details' is clicked"""
-        if pathbar and not pathbar.get_active():
-            return
-        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.searchentry.hide()
+        self.display_details()
         self.nav_history.navigate(AppDetailsNavigationItem(self))
 
     def on_subcategory_activated(self, cat_view, category):
@@ -417,9 +428,13 @@ class AvailablePane(SoftwarePane):
                 not self.scroll_app_list.props.visible)
 
     def set_category(self, category):
+        def _cb():
+            self.refresh_apps()
+            self.notebook.set_current_page(self.PAGE_APPLIST)
+            return False
+
         self.update_navigation_button()
-        self.refresh_apps()
-        self.notebook.set_current_page(self.PAGE_APPLIST)
+        gobject.idle_add(_cb)
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

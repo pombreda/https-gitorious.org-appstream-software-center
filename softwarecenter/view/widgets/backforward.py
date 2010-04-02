@@ -126,7 +126,7 @@ class SeparatorPart(gtk.DrawingArea):
 class ButtonPart(gtk.DrawingArea):
 
     ARROW_SIZE = (12,12)
-    DEFAULT_SIZE = (31, 29)
+    DEFAULT_SIZE = (30, 27)
 
     def __init__(self, arrow_type, signal_name):
         gtk.DrawingArea.__init__(self)
@@ -226,8 +226,8 @@ class ButtonPart(gtk.DrawingArea):
                                  "button",
                                  self.arrow_type,
                                  True,
-                                 int((area.width-1 - aw)*0.5+0.5),
-                                 int((area.height - ah)*0.5+0.5),
+                                 (area.width-1 - aw)/2,
+                                 (area.height - ah)/2,
                                  aw,
                                  ah)
         return

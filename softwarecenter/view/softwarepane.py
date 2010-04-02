@@ -102,8 +102,7 @@ class SoftwarePane(gtk.VBox):
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
                                        gtk.POLICY_AUTOMATIC)
         self.scroll_details.add(self.app_details)
-        self.app_details.backend.connect("transaction-finished", self.on_transaction_finished)
-        self.app_details.backend.connect("transaction-stopped", self.on_transaction_stopped)
+
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -152,18 +151,6 @@ class SoftwarePane(gtk.VBox):
             action_func()
         else:
             logging.error("can not find action '%s'" % action)
-            
-    def on_transaction_finished(self, backend, success):
-        """ callback when an application install/remove transaction has finished """
-        btns = self.app_view.buttons
-        if btns.has_key('action'):
-            btns['action'].set_sensitive(True)
-
-    def on_transaction_stopped(self, backend):
-        """ callback when an application install/remove transaction has stopped """
-        btns = self.app_view.buttons
-        if btns.has_key('action'):
-            btns['action'].set_sensitive(True)
 
     def update_app_view(self):
         """

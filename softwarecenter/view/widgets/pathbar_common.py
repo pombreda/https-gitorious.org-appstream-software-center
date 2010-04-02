@@ -512,7 +512,7 @@ class DustSand:
             'curvature': 2.5,
             'min_part_width': 48,
             'xpad': 8,
-            'ypad': 7,
+            'ypad': 4,
             'xthickness': 1,
             'ythickness': 1,
             'spacing': 5,

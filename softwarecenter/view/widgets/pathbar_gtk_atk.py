@@ -325,6 +325,9 @@ class PathPart(gtk.EventBox):
                         gtk.gdk.LEAVE_NOTIFY_MASK)
         return
 
+    def __repr__(self):
+        return self.label
+
     def _make_layout(self):
         pc = self._parent.get_pango_context()
         layout = pango.Layout(pc)
@@ -445,7 +448,9 @@ class PathPart(gtk.EventBox):
         return self._best_width
 
     def get_layout_points(self):
-        return self._layout_points
+        x, y, w, h = self._layout_points
+        y = int(max((self.allocation.height-h)*0.5+0.5, y))
+        return x, y, w, h
 
     def get_layout(self):
         return self.layout
@@ -457,7 +462,6 @@ class NavigationBar(PathBar):
 
     def __init__(self, group=None):
         PathBar.__init__(self)
-        self.set_size_request(-1, 28)
         self.id_to_part = {}
         return
 
@@ -485,10 +489,11 @@ class NavigationBar(PathBar):
 #                else:
 #                    gobject.timeout_add(150, self.append_no_callback, part)
 #            else:
-            gobject.timeout_add(self.APPEND_DELAY,
-                                self.append,
-                                part,
-                                do_callback)
+#            gobject.timeout_add(self.APPEND_DELAY,
+#                                self.append,
+#                                part,
+#                                do_callback)
+            self.append(part, do_callback)
         return
 
     def remove_id(self, id):

@@ -339,7 +339,6 @@ class CellRendererButton:
             'region_rect': gtk.gdk.region_rectangle(gtk.gdk.Rectangle(0,0,0,0)),
             'xpad': xpad,
             'ypad': ypad,
-            'sensitive': True,
             'state': gtk.STATE_NORMAL,
             'shadow': gtk.SHADOW_OUT,
             'layout_x': mx,
@@ -385,16 +384,13 @@ class CellRendererButton:
         return ink_extends[3]
 
     def set_state(self, state_type):
-        if self.params['sensitive']:
-            self.params['state'] = state_type
+        self.params['state'] = state_type
         return
 
     def set_shadow(self, shadow_type):
-        if self.params['sensitive']:
-            self.params['shadow'] = shadow_type
+        self.params['shadow'] = shadow_type
 
     def set_sensitive(self, is_sensitive):
-        self.params['sensitive'] = is_sensitive
         if not is_sensitive:
             self.set_state(gtk.STATE_INSENSITIVE)
             self.set_shadow(gtk.SHADOW_OUT)
@@ -739,15 +735,6 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             else:
                 self.draw_progress(window, widget, cell_area, layout, dst_x, ypad, flags)
 
-            # check if the current app is in progress
-            # XXX: this code breaks button state changes, can the setting of button sensitivity be done elswhere?
-            # With regard to the authenticate dialog, is there a callback we can connect to, 
-            # to know if the authentication has been cancelled?
-#            if self.props.action_in_progress == True:
-#                btn.set_sensitive(False)
-#            else:
-#                btn.set_sensitive(True)
-
         # More Info button
         btn = widget.buttons['info']
         dst_x = self._calc_x(cell_area, btn.get_param('width'), xpad)
@@ -900,7 +887,21 @@ class AppView(gtk.TreeView):
         self.connect("button-press-event", self._on_button_press_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
+        
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-started", self._on_transaction_started)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
+    def is_action_in_progress_for_selected_app(self):
+        """
+        return True if an install or remove of the current package
+        is in progress
+        """
+        (path, column) = self.get_cursor()
+        model = self.get_model()
+        action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
+        return action_in_progress
 
     def _on_realize(self, widget, tr):
         # tell the cellrenderer the text direction for renderering purposes
@@ -931,13 +932,14 @@ class AppView(gtk.TreeView):
         self.window.set_cursor(None)
         for id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
-            if rr.point_in(x, y) and btn.get_param('sensitive'):
-                self.window.set_cursor(self._cursor_hand)
-                if btn.get_param('state') != gtk.STATE_PRELIGHT:
-                    btn.set_state(gtk.STATE_PRELIGHT)
-            elif btn.get_param('sensitive'):
-                if btn.get_param('state') != gtk.STATE_NORMAL:
-                    btn.set_state(gtk.STATE_NORMAL)
+            if btn.get_param('state') != gtk.STATE_INSENSITIVE:
+                if rr.point_in(x, y):
+                    self.window.set_cursor(self._cursor_hand)
+                    if btn.get_param('state') != gtk.STATE_PRELIGHT:
+                        btn.set_state(gtk.STATE_PRELIGHT)
+                else:
+                    if btn.get_param('state') != gtk.STATE_NORMAL:
+                        btn.set_state(gtk.STATE_NORMAL)
 
         store = tree.get_model()
         store.row_changed(path[0], store.get_iter(path[0]))
@@ -962,6 +964,12 @@ class AppView(gtk.TreeView):
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
         popcon = model[row][AppStore.COL_POPCON]
+        if self.buttons.has_key('action'):
+            action_button = self.buttons['action']
+            if self.is_action_in_progress_for_selected_app():
+                action_button.set_sensitive(False)
+            else:
+                action_button.set_sensitive(True)
         self.emit("application-selected", Application(name, pkgname, popcon))
         return False
 
@@ -989,7 +997,7 @@ class AppView(gtk.TreeView):
         x, y = int(event.x), int(event.y)
         for btn_id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
-            if rr.point_in(x, y) and btn.get_param('sensitive'):
+            if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
                 self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_ACTIVE)
                 btn.set_shadow(gtk.SHADOW_IN)
@@ -1027,6 +1035,21 @@ class AppView(gtk.TreeView):
                 perform_action = "install"
             self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
         return False
+        
+    def _on_transaction_started(self, backend):
+        """ callback when an application install/remove transaction has started """
+        if self.buttons.has_key('action'):
+            self.buttons['action'].set_sensitive(False)
+        
+    def _on_transaction_finished(self, backend, success):
+        """ callback when an application install/remove transaction has finished """
+        if self.buttons.has_key('action'):
+            self.buttons['action'].set_sensitive(True)
+
+    def _on_transaction_stopped(self, backend):
+        """ callback when an application install/remove transaction has stopped """
+        if self.buttons.has_key('action'):
+            self.buttons['action'].set_sensitive(True)
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)

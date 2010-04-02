@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 import copy
+import gobject
 import logging
 
 from softwarecenter.utils import unescape
@@ -28,58 +29,49 @@ class NavigationHistory(object):
     class to manage navigation history in the "Get Software" section (the
     available pane).
     """
-    
+
     def __init__(self, available_pane):
         self.available_pane = available_pane
-        # always start at main category view
-        self._current_nav_item = CategoryViewNavigationItem(available_pane)
         # use stacks to track navigation history
-        self._nav_back_stack = []
-        self._nav_forward_stack = []
-        
-    def navigate(self, dest_nav_item):
+        self._nav_stack = NavigationStack()
+
+    def navigate(self, nav_item):
         """
         append a new NavigationItem to the history stack
         """
         if in_replay_history_mode:
             return
-        logging.debug("submit navitem for history: %s" % dest_nav_item)
-        # TODO: Detect multiple clicks on the same nav button and filter
-        #       them out - we don't want them in the history
-        dest_nav_item.parent = self
-        self._nav_back_stack.append(self._current_nav_item)
-        self._current_nav_item = dest_nav_item
-        # reset navigation forward stack on a direct navigation
-        self._nav_forward_stack = []
-        # update buttons
-        self.available_pane.back_forward.left.set_sensitive(True)
+
+        nav_item.parent = self
+        self._nav_stack.append(nav_item)
+
+        if self._nav_stack.cursor > 0:
+            self.available_pane.back_forward.left.set_sensitive(True)
         self.available_pane.back_forward.right.set_sensitive(False)
 
     def nav_forward(self):
         """
         navigate forward one item in the history stack
         """
-        self.available_pane.back_forward.left.set_sensitive(True)
-        if len(self._nav_forward_stack) <= 1:
-            self.available_pane.back_forward.right.set_sensitive(False)
-        nav_item = self._nav_forward_stack.pop()
-        self._nav_back_stack.append(self._current_nav_item)
-        self._current_nav_item = nav_item
+        nav_item = self._nav_stack.step_forward()
         nav_item.navigate_to()
-    
+
+        if self._nav_stack.at_end():
+            self.available_pane.back_forward.right.set_sensitive(False)
+        self.available_pane.back_forward.left.set_sensitive(True)
+
     def nav_back(self):
         """
         navigate back one item in the history stack
         """
-        self.available_pane.back_forward.right.set_sensitive(True)
-        if len(self._nav_back_stack) <= 1:
-            self.available_pane.back_forward.left.set_sensitive(False)
-        nav_item = self._nav_back_stack.pop()
-        logging.debug("nav_back: %s" % nav_item)
-        self._nav_forward_stack.append(self._current_nav_item)
-        self._current_nav_item = nav_item
+        nav_item = self._nav_stack.step_back()
         nav_item.navigate_to()
-        
+
+        if self._nav_stack.at_start():
+            self.available_pane.back_forward.left.set_sensitive(False)
+        self.available_pane.back_forward.right.set_sensitive(True)
+
+
 class NavigationItem(object):
     """
     class to implement navigation points to be managed in the history queues
@@ -105,22 +97,21 @@ class NavigationItem(object):
         self.available_pane.searchentry.set_text(self.apps_search_term)
         self.available_pane.searchentry.set_position(-1)
         self.available_pane.app_details.show_app(self.current_app)
-        # first part is special and kept in remove_all
-        self.available_pane.navigation_bar.remove_all(keep_first_part=True,
-                                                      do_callback=False)
+        self.available_pane.navigation_bar.remove_all(do_callback=False)
 
-        for part in self.parts:
-                self.available_pane.navigation_bar.add_with_id(unescape(part.label),
-                                                               part.callback,
-                                                               part.get_name(),
-                                                               do_callback=False,
-                                                               animate=False)
-        if self.parts:
-            self.parts[-1].do_callback()
-        else:
-            self.available_pane.navigation_bar.get_parts()[0].do_callback()
+        for part in self.parts[1:]:
+            self.available_pane.navigation_bar.add_with_id(unescape(part.label),
+                                                           part.callback,
+                                                           part.get_name(),
+                                                           do_callback=False,
+                                                           animate=False)
 
+        gobject.idle_add(self._display_callback_cb)
         in_replay_history_mode = False
+
+    def _display_callback_cb(self):
+        self.display_callback()
+        return False
 
     def __str__(self):
         details = []
@@ -137,13 +128,81 @@ class NavigationItem(object):
         details.append("  apps_search_term: %s" % self.apps_search_term)
         return '\n'.join(details)
 
+
+class NavigationStack(object):
+
+    def __init__(self):
+        self.stack = []
+        self.cursor = 0
+        self._prev_label = None
+        return
+
+    def __getitem__(self, item):
+        return self.stack[item]
+
+    def __len__(self):
+        return len(self.stack)
+
+    def __repr__(self):
+        BOLD = "\033[1m"
+        RESET = "\033[0;0m"
+        s = '['
+        for i, item in enumerate(self.stack):
+            if i != self.cursor:
+                s += str(item.parts[-1].label) + ', '
+            else:
+                s += BOLD + str(item.parts[-1].label) + RESET + ', '
+        return s + ']'
+
+    def _isok(self, item):
+        if len(self.stack) == 0: return True
+        pre_item = self.stack[-1]
+        if pre_item.parts[-1].label == item.parts[-1].label:
+            if pre_item.apps_search_term != item.apps_search_term:
+                return True
+            return False
+        return True
+
+    def append(self, item):
+        if not self._isok(item): return
+        self.stack.append(item)
+        self.cursor = len(self.stack)-1
+        print 'A:', repr(self)
+        return
+
+    def step_back(self):
+        self.cursor -= 1
+        print 'B:', repr(self)
+        return self.stack[self.cursor]
+
+    def step_forward(self):
+        self.cursor += 1
+        print 'B:', repr(self)
+        return self.stack[self.cursor]
+
+    def at_end(self):
+        return self.cursor == len(self.stack)-1
+
+    def at_start(self):
+        return self.cursor == 0
+
+    def clip_history(self):
+        print repr(self)
+        self.stack = self.stack[:self.cursor]
+        print repr(self)
+        return
+
+
 class CategoryViewNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the main category view
     Note: all subclasses of NavigationItem are for debug use only and
           can be collapsed to the NavigationItem class if desired
     """
-        
+    def __init__(self, available_pane):
+        NavigationItem.__init__(self, available_pane)
+        self.display_callback = self.available_pane.display_category
+
 class AppListNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the application list for the
@@ -151,7 +210,10 @@ class AppListNavigationItem(NavigationItem):
     Note: all subclasses of NavigationItem are for debug use only and
           can be collapsed to the NavigationItem class if desired
     """
-            
+    def __init__(self, available_pane):
+        NavigationItem.__init__(self, available_pane)
+        self.display_callback = self.available_pane.display_list
+
 class AppListSubcategoryNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the application list for the
@@ -159,7 +221,10 @@ class AppListSubcategoryNavigationItem(NavigationItem):
     Note: all subclasses of NavigationItem are for debug use only and
           can be collapsed to the NavigationItem class if desired
     """
-        
+    def __init__(self, available_pane):
+        NavigationItem.__init__(self, available_pane)
+        self.display_callback = self.available_pane.display_list_subcat
+
 class AppDetailsNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the details view for the
@@ -167,10 +232,16 @@ class AppDetailsNavigationItem(NavigationItem):
     Note: all subclasses of NavigationItem are for debug use only and
           can be collapsed to the NavigationItem class if desired
     """
-        
+    def __init__(self, available_pane):
+        NavigationItem.__init__(self, available_pane)
+        self.display_callback = self.available_pane.display_details
+
 class SearchNavigationItem(NavigationItem):
     """
     navigation item that corresponds to a search in progress
     Note: all subclasses of NavigationItem are for debug use only and
           can be collapsed to the NavigationItem class if desired
     """
+    def __init__(self, available_pane):
+        NavigationItem.__init__(self, available_pane)
+        self.display_callback = self.available_pane.display_search
