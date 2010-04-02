@@ -515,7 +515,6 @@ class NavigationBar(PathBar):
         return self.id_to_part[id]
 
 
-
 class Test:
 
     def __init__(self):

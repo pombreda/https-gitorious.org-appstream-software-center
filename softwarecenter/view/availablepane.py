@@ -326,6 +326,7 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'category' is clicked"""
         if pathbar and not pathbar.get_active():
             return
+        print 'NavigateCategory'
         # clear the search
         self._clear_search()
         self._show_category_overview()
@@ -343,6 +344,7 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'list' is clicked"""
         if pathbar and not pathbar.get_active():
             return
+        print 'NavigateList'
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         if self.apps_subcategory:
@@ -360,6 +362,7 @@ class AvailablePane(SoftwarePane):
     def on_navigation_list_subcategory(self, pathbar, part):
         if pathbar and not pathbar.get_active():
             return
+        print 'NavigateSubCategory'
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()

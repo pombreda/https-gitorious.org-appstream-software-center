@@ -96,49 +96,49 @@ class PathBarStyle:
         return
 
     def _shape_mid_arrow_ltr(self, cr, x, y, w, h, r, aw):
-        cr.move_to(-1, y)
+        cr.move_to(0, y)
         # arrow head
         cr.line_to(w-aw, y)
         cr.line_to(w-x+1, (h+y)/2)
         cr.line_to(w-aw, h)
-        cr.line_to(-1, h)
+        cr.line_to(0, h)
         cr.close_path()
         return
 
     def _shape_end_cap_ltr(self, cr, x, y, w, h, r, aw):
         global M_PI, PI_OVER_180
-        cr.move_to(-1, y)
+        cr.move_to(0, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(-1, h)
+        cr.line_to(0, h)
         cr.close_path()
         return
 
     def _shape_start_arrow_rtl(self, cr, x, y, w, h, r, aw):
         global M_PI, PI_OVER_180
         cr.new_sub_path()
-        cr.move_to(x, (h+y)*0.5)
-        cr.line_to(aw-1, y)
+        cr.move_to(x, (h+y)/2)
+        cr.line_to(aw, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(aw-1, h)
+        cr.line_to(aw, h)
         cr.close_path()
         return
 
     def _shape_mid_arrow_rtl(self, cr, x, y, w, h, r, aw):
-        cr.move_to(x, (h+y)*0.5)
-        cr.line_to(aw-1, y)
-        cr.line_to(w+1, y)
-        cr.line_to(w+1, h)
-        cr.line_to(aw-1, h)
+        cr.move_to(x, (h+y)/2)
+        cr.line_to(aw, y)
+        cr.line_to(w, y)
+        cr.line_to(w, h)
+        cr.line_to(aw, h)
         cr.close_path()
         return
 
     def _shape_end_cap_rtl(self, cr, x, y, w, h, r, aw):
         global M_PI, PI_OVER_180
         cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        cr.line_to(w+1, y)
-        cr.line_to(w+1, h)
+        cr.line_to(w, y)
+        cr.line_to(w, h)
         cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
         cr.close_path()
         return
@@ -163,7 +163,7 @@ class PathBarStyle:
         aw = self["arrow_width"]
 
         cr.save()
-        cr.rectangle(x, y, w, h)
+        cr.rectangle(x, y, w+1, h)
         cr.clip()
         cr.translate(x+0.5, y+0.5)
 

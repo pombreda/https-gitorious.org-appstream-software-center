@@ -119,8 +119,8 @@ class NavigationItem(object):
             self.parts[-1].do_callback()
         else:
             self.available_pane.navigation_bar.get_parts()[0].do_callback()
+
         in_replay_history_mode = False
-        print
 
     def __str__(self):
         details = []
