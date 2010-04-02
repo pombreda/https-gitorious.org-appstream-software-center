@@ -214,7 +214,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # default focus
         self.available_pane.searchentry.grab_focus()
-        self.window_main.set_size_request(560, 360)
+        self.window_main.set_size_request(560, 350)
 
         # restore state
         self.config = get_config()
