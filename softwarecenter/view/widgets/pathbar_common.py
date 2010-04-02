@@ -284,13 +284,16 @@ class PathBarColor:
         return PathBarColor(r,g,b)
 
 
-class Human:
+class Theme:
 
     def build_palette(self, gtksettings):
         style = gtk.rc_get_style_by_paths(gtksettings,
                                           'GtkWindow',
                                           'GtkWindow',
                                           gtk.Window)
+
+        style = style or gtk.widget_get_default_style()
+
         # build pathbar color palette
         self.fg =    PathBarColorArray(style.fg)
         self.bg =    PathBarColorArray(style.bg)
@@ -300,6 +303,9 @@ class Human:
         self.mid =   PathBarColorArray(style.base)
         self.dark =  PathBarColorArray(style.base)
         return
+
+
+class Human(Theme):
 
     def get_properties(self, gtksettings):
         props = {
@@ -405,22 +411,7 @@ class Clearlooks(Human):
         return palette
 
 
-class InHuman:
-
-    def build_palette(self, gtksettings):
-        style = gtk.rc_get_style_by_paths(gtksettings,
-                                          'GtkWindow',
-                                          'GtkWindow',
-                                          gtk.Window)
-        # build pathbar color palette
-        self.fg =    PathBarColorArray(style.fg)
-        self.bg =    PathBarColorArray(style.bg)
-        self.text =  PathBarColorArray(style.text)
-        self.base =  PathBarColorArray(style.base)
-        self.light = PathBarColorArray(style.base)
-        self.mid =   PathBarColorArray(style.base)
-        self.dark =  PathBarColorArray(style.base)
-        return
+class InHuman(Theme):
 
     def get_properties(self, gtksettings):
         props = {
@@ -490,22 +481,7 @@ class InHuman:
         return states
 
 
-class DustSand:
-
-    def build_palette(self, gtksettings):
-        style = gtk.rc_get_style_by_paths(gtksettings,
-                                          'GtkWindow',
-                                          'GtkWindow',
-                                          gtk.Window)
-        # build pathbar color palette
-        self.fg =    PathBarColorArray(style.fg)
-        self.bg =    PathBarColorArray(style.bg)
-        self.text =  PathBarColorArray(style.text)
-        self.base =  PathBarColorArray(style.base)
-        self.light = PathBarColorArray(style.base)
-        self.mid =   PathBarColorArray(style.base)
-        self.dark =  PathBarColorArray(style.base)
-        return
+class DustSand(Theme):
 
     def get_properties(self, gtksettings):
         props = {
@@ -663,22 +639,7 @@ class Radiance(Ambiance):
         return palette
 
 
-class NewWave:
-
-    def build_palette(self, gtksettings):
-        style = gtk.rc_get_style_by_paths(gtksettings,
-                                          'GtkWindow',
-                                          'GtkWindow',
-                                          gtk.Window)
-        # build pathbar color palette
-        self.fg =    PathBarColorArray(style.fg)
-        self.bg =    PathBarColorArray(style.bg)
-        self.text =  PathBarColorArray(style.text)
-        self.base =  PathBarColorArray(style.base)
-        self.light = PathBarColorArray(style.base)
-        self.mid =   PathBarColorArray(style.base)
-        self.dark =  PathBarColorArray(style.base)
-        return
+class NewWave(Theme):
 
     def get_properties(self, gtksettings):
         props = {
@@ -755,22 +716,7 @@ class NewWave:
         return states
 
 
-class Hicolor:
-
-    def build_palette(self, gtksettings):
-        style = gtk.rc_get_style_by_paths(gtksettings,
-                                          'GtkWindow',
-                                          'GtkWindow',
-                                          gtk.Window)
-        # build pathbar color palette
-        self.fg =    PathBarColorArray(style.fg)
-        self.bg =    PathBarColorArray(style.bg)
-        self.text =  PathBarColorArray(style.text)
-        self.base =  PathBarColorArray(style.base)
-        self.light = PathBarColorArray(style.base)
-        self.mid =   PathBarColorArray(style.base)
-        self.dark =  PathBarColorArray(style.base)
-        return
+class Hicolor(Theme):
 
     def get_properties(self, gtksettings):
         props = {

@@ -258,7 +258,7 @@ class AppStore(gtk.GenericTreeModel):
                 summary = app.pkgname
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname)
-            s = "%s\n<small>%s</small>" % (
+            s = "<b>%s</b>\n<small>%s</small>" % (
                 gobject.markup_escape_text(appname),
                 gobject.markup_escape_text(summary))
             return s

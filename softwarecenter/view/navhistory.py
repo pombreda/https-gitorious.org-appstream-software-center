@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-import copy
+
 import gobject
 import logging
 
@@ -30,10 +30,13 @@ class NavigationHistory(object):
     available pane).
     """
 
+    MAX_NAV_ITEMS = 20  # limit number of history items
+
+
     def __init__(self, available_pane):
         self.available_pane = available_pane
         # use stacks to track navigation history
-        self._nav_stack = NavigationStack()
+        self._nav_stack = NavigationStack(self.MAX_NAV_ITEMS)
 
     def navigate(self, nav_item):
         """
@@ -131,7 +134,8 @@ class NavigationItem(object):
 
 class NavigationStack(object):
 
-    def __init__(self):
+    def __init__(self, max_length):
+        self.max_length = max_length
         self.stack = []
         self.cursor = 0
         self._prev_label = None
@@ -165,6 +169,8 @@ class NavigationStack(object):
 
     def append(self, item):
         if not self._isok(item): return
+        if len(self.stack) + 1 > self.max_length:
+            self.stack.pop(0)
         self.stack.append(item)
         self.cursor = len(self.stack)-1
         print 'A:', repr(self)
