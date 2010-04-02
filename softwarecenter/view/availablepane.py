@@ -48,7 +48,7 @@ class AvailablePane(SoftwarePane):
     (PAGE_CATEGORY,
      PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(3)
-     
+
     # define ID values for the various buttons found in the navigation bar
     NAV_BUTTON_ID_CATEGORY = "category"
     NAV_BUTTON_ID_LIST     = "list"
@@ -80,7 +80,7 @@ class AvailablePane(SoftwarePane):
 
     def _build_ui(self):
         # categories, appview and details into the notebook in the bottom
-        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH, 
+        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
                                        self.db,
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
@@ -88,8 +88,8 @@ class AvailablePane(SoftwarePane):
         scroll_categories.add(self.cat_view)
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
         # sub-categories view
-        self.subcategories_view = CategoriesView(self.datadir, 
-                                                 APP_INSTALL_PATH, 
+        self.subcategories_view = CategoriesView(self.datadir,
+                                                 APP_INSTALL_PATH,
                                                  self.db,
                                                  self.icons,
                                                  self.cat_view.categories[0])
@@ -108,7 +108,7 @@ class AvailablePane(SoftwarePane):
         self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
         # nav buttons first in the panel
         self.top_hbox.reorder_child(self.back_forward, 0)
-        # now a vbox for subcategories and applist 
+        # now a vbox for subcategories and applist
         apps_vbox = gtk.VPaned()
         apps_vbox.pack1(self.scroll_subcategories, resize=True)
         apps_vbox.pack2(self.scroll_app_list)
@@ -120,7 +120,7 @@ class AvailablePane(SoftwarePane):
         # set status text
         self._update_status_text(len(self.db))
         # home button
-        self.navigation_bar.add_with_id(_("Get Software"), 
+        self.navigation_bar.add_with_id(_("Get Software"),
                                         self.on_navigation_category,
                                         self.NAV_BUTTON_ID_CATEGORY,
                                         do_callback=True,
@@ -138,7 +138,7 @@ class AvailablePane(SoftwarePane):
         elif self.apps_category:
             cat_query = self.apps_category.query
         # mix category with the search terms and return query
-        return self.db.get_query_list_from_search_entry(self.apps_search_term, 
+        return self.db.get_query_list_from_search_entry(self.apps_search_term,
                                                         cat_query)
 
     def _in_no_display_category(self):
@@ -151,7 +151,7 @@ class AvailablePane(SoftwarePane):
     def _show_hide_subcategories(self):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
-        if (self.apps_category and 
+        if (self.apps_category and
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
             self.scroll_subcategories.show()
@@ -164,16 +164,16 @@ class AvailablePane(SoftwarePane):
         # not hide it
         model = self.app_view.get_model()
         if (model and
-            len(model) == 0 and 
+            len(model) == 0 and
             self.apps_category and
-            self.apps_category.subcategories and 
+            self.apps_category.subcategories and
             not self.apps_subcategory):
             self.scroll_app_list.hide()
         else:
             self.scroll_app_list.show()
 
     def refresh_apps(self):
-        """refresh the applist after search changes and update the 
+        """refresh the applist after search changes and update the
            navigation bar
         """
         logging.debug("refresh_apps")
@@ -195,9 +195,9 @@ class AvailablePane(SoftwarePane):
             old_model.active = False
         # create new model and attach it
         new_model = AppStore(self.cache,
-                             self.db, 
-                             self.icons, 
-                             query, 
+                             self.db,
+                             self.icons,
+                             query,
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
                              filter=self.apps_filter)
@@ -211,13 +211,13 @@ class AvailablePane(SoftwarePane):
         """Update the navigation button"""
         if self.apps_category and not self.apps_search_term:
             cat =  self.apps_category.name
-            self.navigation_bar.add_with_id(cat, 
+            self.navigation_bar.add_with_id(cat,
                                             self.on_navigation_list,
                                             self.NAV_BUTTON_ID_LIST, True)
 
         elif self.apps_search_term:
             self.navigation_bar.add_with_id(_("Search Results"),
-                                            self.on_navigation_search, 
+                                            self.on_navigation_search,
                                             self.NAV_BUTTON_ID_SEARCH, True)
 
     # status text woo
@@ -228,7 +228,7 @@ class AvailablePane(SoftwarePane):
             self._in_no_display_category()):
             return ""
         return self._status_text
-        
+
     def get_current_app(self):
         """return the current active application object"""
         if self.is_category_view_showing():
@@ -238,13 +238,13 @@ class AvailablePane(SoftwarePane):
                 return self.current_app_by_subcategory.get(self.apps_subcategory)
             else:
                 return self.current_app_by_category.get(self.apps_category)
-    
+
     def _on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text up-to-date by
            keeping track of the app-list-changed signals
         """
         self._update_status_text(length)
-                                                 
+
     def _update_status_text(self, length):
         """
         update the text in the status bar
@@ -283,8 +283,8 @@ class AvailablePane(SoftwarePane):
     # callbacks
     def on_cache_ready(self, cache):
         """ refresh the application list when the cache is re-opened """
-        # just re-draw in the available pane, nothing but the 
-        # "is-installed" overlay icon will change when something 
+        # just re-draw in the available pane, nothing but the
+        # "is-installed" overlay icon will change when something
         # is installed or removed in the available pane
         self.app_view.queue_draw()
 
@@ -406,7 +406,7 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_category = category
         self.set_category(category)
-        
+
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
@@ -414,13 +414,13 @@ class AvailablePane(SoftwarePane):
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
             self.current_app_by_category[self.apps_category] = app
-            
+
     def on_nav_back_clicked(self, widget, event):
         self.nav_history.nav_back()
 
     def on_nav_forward_clicked(self, widget, event):
         self.nav_history.nav_forward()
-        
+
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
         # sub-category page that has no visible applications
