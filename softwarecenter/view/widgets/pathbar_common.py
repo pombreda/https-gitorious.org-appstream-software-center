@@ -163,7 +163,10 @@ class PathBarStyle:
         aw = self["arrow_width"]
 
         cr.save()
+        cr.rectangle(x, y, w, h)
+        cr.clip()
         cr.translate(x+0.5, y+0.5)
+
         w -= 1
         h -= 1
 
@@ -191,35 +194,13 @@ class PathBarStyle:
         cr.restore()
         return
 
-#    def draw_part_layout(self, widget, window, part, x, y, h, sxO=0):
-#        # draw layout
-#        layout = part.get_layout()
-#        lw, lh = layout.get_pixel_size()
-#        dst_x = x + self['xpad'] - int(sxO)
-#        dst_y = (h - lh)/2+1
-
-#        shape = part.shape
-#        if shape == SHAPE_MID_ARROW or shape == SHAPE_END_CAP:
-#            dst_x += 0.75*self['arrow_width']
-
-#        widget.style.paint_layout(window,
-#                                  self.text_states[part.state],
-#                                  False,
-#                                  (dst_x, dst_y, lw+4, lh),   # clip area
-#                                  widget,
-#                                  None,
-#                                  dst_x,
-#                                  dst_y,
-#                                  layout)
-#        return
-
     def paint_layout(self, widget, window, part, x, y, w, h, sxO=0):
         # draw layout
         layout = part.get_layout()
         widget.style.paint_layout(window,
                                   self.text_states[part.state],
                                   False,
-                                  None, #(x, y, w, h),   # clip area
+                                  (x, y, w, h),   # clip area
                                   widget,
                                   None,
                                   x, y,
@@ -878,7 +859,7 @@ class ThemeRegistry:
             print 'Styling hints found for %s...' % theme_name
             return self.REGISTRY[theme_name]()
         print "No styling hints for %s were found... using Human hints." % theme_name
-        return Clearlooks()
+        return Ambiance()
 
 
 def color_from_gdkcolor(gdkcolor):

@@ -208,7 +208,6 @@ class AvailablePane(SoftwarePane):
         return False
 
     def update_navigation_button(self):
-        print 'UpdateNavButton'
         """Update the navigation button"""
         if self.apps_category and not self.apps_search_term:
             cat =  self.apps_category.name
@@ -341,7 +340,6 @@ class AvailablePane(SoftwarePane):
         self.searchentry.show()
 
     def on_navigation_list(self, pathbar, part):
-        print 'NavigateList'
         """callback when the navigation button with id 'list' is clicked"""
         if pathbar and not pathbar.get_active():
             return

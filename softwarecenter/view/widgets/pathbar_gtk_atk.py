@@ -48,6 +48,7 @@ class PathBar(gtk.HBox):
         self.set_events(gtk.gdk.EXPOSURE_MASK)
         self.connect('expose-event', self._on_expose_event)
         self.connect('size-allocate', self._on_size_allocate)
+        self.connect('style-set', self._on_style_set)
         self.connect('realize', self._append_on_realize)
         return
 
@@ -196,8 +197,13 @@ class PathBar(gtk.HBox):
             self._grow_check(allocation)
         elif self._width >= allocation.width:
             self._shrink_check(allocation)
-        if self.has_parts():
-            self._part_queue_draw(self.get_parts()[-1])
+        for part in self.get_parts():
+            self._part_queue_draw(part)
+        return
+
+    def _on_style_set(self, widget, old_style):
+        self.theme = pathbar_common.PathBarStyle(self)
+        self.queue_draw()
         return
 
     def _append_on_realize(self, widget):
@@ -294,7 +300,7 @@ class PathPart(gtk.EventBox):
 
         part_atk = self.get_accessible()
         part_atk.set_name(label)
-        part_atk.set_description(_('Click here to navigate to the %s page' % label))
+        part_atk.set_description(_('Navigates to the %s page.' % label))
         part_atk.set_role(atk.ROLE_PUSH_BUTTON)
 
         self._parent = parent
@@ -318,11 +324,6 @@ class PathPart(gtk.EventBox):
                         gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK)
         return
-
-    def __repr__(self):
-        BOLD = "\033[1m"
-        RESET = "\033[0;0m"
-        return BOLD + self.label + RESET
 
     def _make_layout(self):
         pc = self._parent.get_pango_context()

@@ -43,6 +43,7 @@ class BackForwardButton(gtk.HBox):
 
     def __init__(self):
         gtk.HBox.__init__(self)
+
         sep = SeparatorPart()
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
@@ -58,7 +59,7 @@ class BackForwardButton(gtk.HBox):
 
         atk_obj = self.get_accessible()
         atk_obj.set_name(_('History Navigation'))
-        atk_obj.set_description(_('Click either the back or forwards buttons to navigate your viewed pages history'))
+        atk_obj.set_description(_('Navigate forwards and backwards.'))
         atk_obj.set_role(atk.ROLE_PANEL)
 
         self.pack_start(self.left)
@@ -70,13 +71,13 @@ class BackForwardButton(gtk.HBox):
         # left button
         atk_obj = self.left.get_accessible()
         atk_obj.set_name(_('Back Button'))
-        atk_obj.set_description(_('Click here to navigated backwards through your viewed pages history'))
+        atk_obj.set_description(_('Navigates back.'))
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
 
         # right button
         atk_obj = self.right.get_accessible()
         atk_obj.set_name(_('Forward Button'))
-        atk_obj.set_description(_('Click here to navigated forwards through your viewed pages history'))
+        atk_obj.set_description(_('Navigates forward.'))
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
         return
 
@@ -84,13 +85,13 @@ class BackForwardButton(gtk.HBox):
         # right button
         atk_obj = self.right.get_accessible()
         atk_obj.set_name(_('Back Button'))
-        atk_obj.set_description(_('Click here to navigated backwards through your viewed pages history'))
+        atk_obj.set_description(_('Navigates back.'))
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
 
         # left button
         atk_obj = self.left.get_accessible()
         atk_obj.set_name(_('Forward Button'))
-        atk_obj.set_description(_('Click here to navigated forwards through your viewed pages history'))
+        atk_obj.set_description(_('Navigates forward.'))
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
         return
 

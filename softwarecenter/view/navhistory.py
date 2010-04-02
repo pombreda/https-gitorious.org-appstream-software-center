@@ -54,7 +54,7 @@ class NavigationHistory(object):
         # update buttons
         self.available_pane.back_forward.left.set_sensitive(True)
         self.available_pane.back_forward.right.set_sensitive(False)
-        
+
     def nav_forward(self):
         """
         navigate forward one item in the history stack
@@ -121,7 +121,7 @@ class NavigationItem(object):
             self.available_pane.navigation_bar.get_parts()[0].do_callback()
         in_replay_history_mode = False
         print
-        
+
     def __str__(self):
         details = []
         details.append("\n%s" % type(self))
@@ -136,7 +136,7 @@ class NavigationItem(object):
         details.append("  current_app: %s" % self.current_app)
         details.append("  apps_search_term: %s" % self.apps_search_term)
         return '\n'.join(details)
-        
+
 class CategoryViewNavigationItem(NavigationItem):
     """
     navigation item that corresponds to the main category view
