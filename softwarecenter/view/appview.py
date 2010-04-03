@@ -96,6 +96,7 @@ class AppStore(gtk.GenericTreeModel):
                     data further. A python function that gets a pkgname
         """
         gtk.GenericTreeModel.__init__(self)
+        self.search_query = search_query
         self.cache = cache
         self.db = db
         self.icons = icons

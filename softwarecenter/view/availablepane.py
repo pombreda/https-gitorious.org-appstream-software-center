@@ -186,13 +186,20 @@ class AvailablePane(SoftwarePane):
     def _refresh_apps_with_apt_cache(self):
         # build query
         query = self._get_query()
-        logging.debug("availablepane query: %s" % query)
-        # *ugh* deactivate the old model because otherwise it keeps
-        # getting progress_changed events and eats CPU time until its
-        # garbage collected
+
         old_model = self.app_view.get_model()
         if old_model is not None:
-            old_model.active = False
+            # check if new AppStore query == old query.  if yes, do nothing
+            if isinstance(old_model, AppStore) and \
+                str(old_model.search_query) == str(query):
+                return
+            else:
+                # *ugh* deactivate the old model because otherwise it keeps
+                # getting progress_changed events and eats CPU time until its
+                # garbage collected
+                old_model.active = False
+
+        logging.debug("availablepane query: %s" % query)
         # create new model and attach it
         new_model = AppStore(self.cache,
                              self.db,
