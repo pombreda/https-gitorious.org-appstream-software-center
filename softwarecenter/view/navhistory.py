@@ -100,19 +100,23 @@ class NavigationItem(object):
         self.available_pane.searchentry.set_text(self.apps_search_term)
         self.available_pane.searchentry.set_position(-1)
         self.available_pane.app_details.show_app(self.current_app)
-        self.available_pane.navigation_bar.remove_all(do_callback=False)
+
+        nav_bar = self.available_pane.navigation_bar
+        nav_bar.remove_all(do_callback=False)
 
         for part in self.parts[1:]:
-            self.available_pane.navigation_bar.add_with_id(unescape(part.label),
-                                                           part.callback,
-                                                           part.get_name(),
-                                                           do_callback=False,
-                                                           animate=False)
+            nav_bar.add_with_id(unescape(part.label),
+                                part.callback,
+                                part.get_name(),
+                                do_callback=False,
+                                animate=False)
 
-        gobject.idle_add(self._display_callback_cb)
+        gobject.idle_add(self._display_callback_cb, nav_bar)
         in_replay_history_mode = False
 
-    def _display_callback_cb(self):
+    def _display_callback_cb(self, nav_bar):
+        last_part = nav_bar.get_parts()[-1]
+        nav_bar.set_active(last_part, do_callback=False)
         self.display_callback()
         return False
 
@@ -138,11 +142,7 @@ class NavigationStack(object):
         self.max_length = max_length
         self.stack = []
         self.cursor = 0
-        self._prev_label = None
         return
-
-    def __getitem__(self, item):
-        return self.stack[item]
 
     def __len__(self):
         return len(self.stack)
