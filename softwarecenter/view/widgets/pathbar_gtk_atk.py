@@ -166,6 +166,7 @@ class PathBar(gtk.HBox):
         # react to spacebar, enter, numpad-enter
         if event.keyval in (32, 65293, 65421):
             part.set_state(gtk.STATE_ACTIVE)
+            self._part_queue_draw(part)
         return
 
     def _part_key_release(self, part, event):
@@ -173,6 +174,7 @@ class PathBar(gtk.HBox):
         if event.keyval in (32, 65293, 65421):
             self.set_active(part)
             part.set_state(gtk.STATE_SELECTED)
+            self._part_queue_draw(part)
         return
 
     def _part_focus_in(self, part, event):
@@ -229,8 +231,6 @@ class PathBar(gtk.HBox):
 
             theme.paint_layout(widget, part, a.x+x, a.y+y, w, h)
 
-
-
         del cr
         return
 
@@ -258,6 +258,11 @@ class PathBar(gtk.HBox):
 
     def get_parts(self):
         return self.get_children()
+
+    def get_last(self):
+        if self.get_children():
+            return self.get_children()[-1]
+        return None
 
     def set_active(self, part, do_callback=True):
         if part == self._active_part: return

@@ -192,6 +192,9 @@ class AvailablePane(SoftwarePane):
             # check if new AppStore query == old query.  if yes, do nothing
             if isinstance(old_model, AppStore) and \
                 str(old_model.search_query) == str(query):
+                # check if we show subcategoriy
+                self._show_hide_applist()
+                self.emit("app-list-changed", len(old_model))
                 return
             else:
                 # *ugh* deactivate the old model because otherwise it keeps
@@ -286,6 +289,12 @@ class AvailablePane(SoftwarePane):
         self.apps_sorted = True
         self.apps_search_term = ""
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
+
+    def _check_nav_history(self, display_cb):
+        if self.navigation_bar.get_last().label != self.nav_history.get_last_label():
+            nav_item = NavigationItem(self, display_cb)
+            self.nav_history.navigate_no_cursor_step(nav_item)
+        return
 
     # callbacks
     def on_cache_ready(self, cache):
@@ -409,6 +418,9 @@ class AvailablePane(SoftwarePane):
         logging.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
+
+        #self._check_nav_history(self.display_list)
+
         self.navigation_bar.add_with_id(
             category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
@@ -422,9 +434,12 @@ class AvailablePane(SoftwarePane):
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
+
         if self.apps_subcategory:
+            #self._check_nav_history(self.display_list_subcat)
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
+            #self._check_nav_history(self.display_list)
             self.current_app_by_category[self.apps_category] = app
 
     def on_nav_back_clicked(self, widget, event):

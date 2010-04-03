@@ -30,7 +30,7 @@ class NavigationHistory(object):
     available pane).
     """
 
-    MAX_NAV_ITEMS = 20  # limit number of NavItems allowed in the NavStack
+    MAX_NAV_ITEMS = 10  # limit number of NavItems allowed in the NavStack
 
 
     def __init__(self, available_pane):
@@ -51,6 +51,14 @@ class NavigationHistory(object):
         if self._nav_stack.cursor > 0:
             self.available_pane.back_forward.left.set_sensitive(True)
         self.available_pane.back_forward.right.set_sensitive(False)
+
+    def navigate_no_cursor_step(self, nav_item):
+        if in_replay_history_mode:
+            return
+
+        nav_item.parent = self
+        self._nav_stack.append_no_cursor_step(nav_item)
+        return
 
     def nav_forward(self):
         """
@@ -78,6 +86,12 @@ class NavigationHistory(object):
                 self.available_pane.back_forward.right.grab_focus()
             self.available_pane.back_forward.left.set_sensitive(False)
 
+    def get_last_label(self):
+        if self._nav_stack.stack:
+            if self._nav_stack[-1].parts:
+                return self._nav_stack[-1].parts[-1].label
+        return None
+
 
 class NavigationItem(object):
     """
@@ -92,7 +106,6 @@ class NavigationItem(object):
         self.apps_search_term = available_pane.apps_search_term
         self.current_app = available_pane.get_current_app()
         self.parts = self.available_pane.navigation_bar.get_parts()
-        print self.available_pane.app_view.get_cursor()
 
     def navigate_to(self):
         """
@@ -100,12 +113,13 @@ class NavigationItem(object):
         """
         global in_replay_history_mode
         in_replay_history_mode = True
-        self.available_pane.apps_category = self.apps_category
-        self.available_pane.apps_subcategory = self.apps_subcategory
-        self.available_pane.apps_search_term = self.apps_search_term
-        self.available_pane.searchentry.set_text(self.apps_search_term)
-        self.available_pane.searchentry.set_position(-1)
-        self.available_pane.app_details.show_app(self.current_app)
+        available_pane = self.available_pane
+        available_pane.apps_category = self.apps_category
+        available_pane.apps_subcategory = self.apps_subcategory
+        available_pane.apps_search_term = self.apps_search_term
+        available_pane.searchentry.set_text(self.apps_search_term)
+        available_pane.searchentry.set_position(-1)
+        available_pane.app_details.show_app(self.current_app)
 
         nav_bar = self.available_pane.navigation_bar
         nav_bar.remove_all(do_callback=False)
@@ -164,6 +178,9 @@ class NavigationStack(object):
                 s += BOLD + str(item.parts[-1].label) + RESET + ', '
         return s + ']'
 
+    def __getitem__(self, item):
+        return self.stack[item]
+
     def _isok(self, item):
         if len(self.stack) == 0: return True
         pre_item = self.stack[-1]
@@ -183,6 +200,16 @@ class NavigationStack(object):
         self.stack.append(item)
         self.cursor = len(self.stack)-1
         print 'A:', repr(self)
+        return
+
+    def append_no_cursor_step(self, item):
+        if not self._isok(item):
+            print 'a:', repr(self)
+            return
+        if len(self.stack) + 1 > self.max_length:
+            self.stack.pop(0)
+        self.stack.append(item)
+        print 'a:', repr(self)
         return
 
     def step_back(self):
