@@ -169,7 +169,10 @@ class NavigationStack(object):
         return True
 
     def append(self, item):
-        if not self._isok(item): return
+        if not self._isok(item):
+            self.cursor = len(self.stack)-1
+            print 'A:', repr(self)
+            return
         if len(self.stack) + 1 > self.max_length:
             self.stack.pop(0)
         self.stack.append(item)

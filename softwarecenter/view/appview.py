@@ -951,7 +951,9 @@ class AppView(gtk.TreeView):
     def _on_cursor_changed(self, view):
         # trigger callback, if we do it here get_selection() returns
         # the previous selected row for some reason
-        gobject.timeout_add(10, self._app_selected_timeout_cb, view)
+
+        # mvo: can we make this timeout 1? The AppView is much nicer this way...
+        gobject.timeout_add(1, self._app_selected_timeout_cb, view)
 
     def _app_selected_timeout_cb(self, view):
         selection = view.get_selection()
