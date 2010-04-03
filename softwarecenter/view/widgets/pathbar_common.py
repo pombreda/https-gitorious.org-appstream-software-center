@@ -318,7 +318,7 @@ class Human(Theme):
             'curvature': 2.5,
             'min_part_width': 48,
             'xpad': 8,
-            'ypad': 7,
+            'ypad': 4,
             'xthickness': 1,
             'ythickness': 1,
             'spacing': 5,
@@ -424,7 +424,7 @@ class InHuman(Theme):
             'curvature': 2.5,
             'min_part_width': 48,
             'xpad': 8,
-            'ypad': 7,
+            'ypad': 4,
             'xthickness': 1,
             'ythickness': 1,
             'spacing': 5,
@@ -652,7 +652,7 @@ class NewWave(Theme):
             'curvature': 2,
             'min_part_width': 48,
             'xpad': 8,
-            'ypad': 7,
+            'ypad': 4,
             'xthickness': 1,
             'ythickness': 1,
             'spacing': 4,
@@ -811,7 +811,7 @@ class ThemeRegistry:
             print 'Styling hints found for %s...' % theme_name
             return self.REGISTRY[theme_name]()
         print "No styling hints for %s were found... using Human hints." % theme_name
-        return Ambiance()
+        return Clearlooks()
 
 
 def color_from_gdkcolor(gdkcolor):

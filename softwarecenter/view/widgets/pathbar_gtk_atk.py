@@ -245,6 +245,8 @@ class PathBar(gtk.HBox):
 
     def _on_style_set(self, widget, old_style):
         self.theme = pathbar_common.PathBarStyle(self)
+        for part in self.get_children():
+            part.recalc_dimensions()
         self.queue_draw()
         return
 
@@ -502,6 +504,11 @@ class PathPart(gtk.EventBox):
     def get_layout(self):
         return self.layout
 
+    def recalc_dimensions(self):
+        self.layout = None
+        self._calc_layout_points()
+        self._calc_size(self.shape)
+        return
 
 class NavigationBar(PathBar):
 

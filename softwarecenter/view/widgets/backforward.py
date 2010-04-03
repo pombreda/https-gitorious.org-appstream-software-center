@@ -43,7 +43,7 @@ class BackForwardButton(gtk.HBox):
 
     def __init__(self):
         gtk.HBox.__init__(self)
-
+        self.theme = pathbar_common.PathBarStyle(self)
         sep = SeparatorPart()
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
@@ -65,6 +65,8 @@ class BackForwardButton(gtk.HBox):
         self.pack_start(self.left)
         self.pack_start(sep, False)
         self.pack_end(self.right)
+
+        sep.connect_after("style-set", self._on_style_set)
         return
 
     def set_button_atk_info_ltr(self):
@@ -95,6 +97,21 @@ class BackForwardButton(gtk.HBox):
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
         return
 
+    def _on_style_set(self, widget, oldstyle):
+        # when alloc.width == 1, this is typical of an unallocated widget,
+        # lets not break a sweat for nothing...
+        if self.allocation.width == 1:
+            return
+
+        old_xthickness = self.theme['xthickness']
+        self.theme = pathbar_common.PathBarStyle(self)
+        if old_xthickness > self.theme['xthickness']:
+            a = self.allocation
+            self.queue_draw_area(a.x, a.y,
+                                 a.width+self.theme['xthickness'], a.height)
+        else:
+            self.queue_draw()
+        return
 
 class SeparatorPart(gtk.DrawingArea):
 
@@ -107,19 +124,22 @@ class SeparatorPart(gtk.DrawingArea):
         atk_obj.set_role(atk.ROLE_SEPARATOR)
 
         self.connect("expose-event", self._on_expose)
+        self.connect("style-set", self._on_style_set)
         return
 
     def _on_expose(self, widget, event):
         parent = self.get_parent()
         if not parent: return
-        self.set_size_request(self.theme['xthickness'], -1)
         cr = widget.window.cairo_create()
-        a = event.area
-        cr.rectangle(a.x, a.y, a.width, a.height)
-        dark = self.theme.dark_line[self.state]
-        cr.set_source_rgba(*dark.tofloats())
+        cr.rectangle(event.area)
+        cr.set_source_rgb(*self.theme.dark_line[self.state].tofloats())
         cr.fill()
         del cr
+        return
+
+    def _on_style_set(self, widget, old_style):
+        self.theme = pathbar_common.PathBarStyle(self)
+        self.set_size_request(self.theme['xthickness'], -1)
         return
 
 
@@ -135,7 +155,6 @@ class ButtonPart(gtk.DrawingArea):
         self.button_down = False
         self.shadow_type = gtk.SHADOW_OUT
         self.arrow_type = arrow_type
-        self.theme = pathbar_common.PathBarStyle(self)
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
@@ -151,7 +170,6 @@ class ButtonPart(gtk.DrawingArea):
         self.connect('focus-in-event', self._on_focus_in)
         self.connect('focus-out-event', self._on_focus_out)
         self.connect("button-release-event", self._on_release, signal_name)
-        self.connect("style-set", self._on_style_set)
         return
 
     def set_sensitive(self, is_sensitive):
@@ -223,25 +241,16 @@ class ButtonPart(gtk.DrawingArea):
             self.set_state(gtk.STATE_NORMAL)
         return
 
-    def _on_style_set(self, widget, oldstyle):
-        # when alloc.width == 1, this is typical of an unallocated widget,
-        # lets not break a sweat for nothing...
-        if self.allocation.width == 1:
-            return
-
-        self.theme = pathbar_common.PathBarStyle(self)
-        self.queue_draw()
-        return
-
     def expose_pathbar(self, widget, area, x, y, w, h, xo=0, wo=0):
+        if not self.parent: return
         # background
         cr = widget.window.cairo_create()
         cr.rectangle(area)
         cr.clip()
 
-        self.theme.paint_bg(cr,
-                            self,
-                            x, y, w, h)
+        self.parent.theme.paint_bg(cr,
+                                   self,
+                                   x, y, w, h)
         del cr
 
         # arrow
