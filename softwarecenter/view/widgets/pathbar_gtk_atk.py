@@ -182,6 +182,8 @@ class PathBar(gtk.HBox):
         parts.reverse()
 
         cr = widget.window.cairo_create()
+        cr.rectangle(event.area)
+        cr.clip()
         for part in parts:
             a = part.get_allocation()
             x, y, w, h = a.x, a.y, a.width, a.height
