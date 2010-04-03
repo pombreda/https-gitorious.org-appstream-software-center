@@ -80,8 +80,9 @@ class NavigationItem(object):
     class to implement navigation points to be managed in the history queues
     """
 
-    def __init__(self, available_pane):
+    def __init__(self, available_pane, update_available_pane_cb):
         self.available_pane = available_pane
+        self.update_available_pane = update_available_pane_cb
         self.apps_category = available_pane.apps_category
         self.apps_subcategory = available_pane.apps_subcategory
         self.apps_search_term = available_pane.apps_search_term
@@ -111,13 +112,13 @@ class NavigationItem(object):
                                 do_callback=False,
                                 animate=False)
 
-        gobject.idle_add(self._display_callback_cb, nav_bar)
+        gobject.idle_add(self._update_available_pane_cb, nav_bar)
         in_replay_history_mode = False
 
-    def _display_callback_cb(self, nav_bar):
+    def _update_available_pane_cb(self, nav_bar):
         last_part = nav_bar.get_parts()[-1]
-        nav_bar.set_active(last_part, do_callback=False)
-        self.display_callback()
+        nav_bar.set_active_no_callback(last_part)
+        self.update_available_pane()
         return False
 
     def __str__(self):
@@ -191,57 +192,3 @@ class NavigationStack(object):
 
     def at_start(self):
         return self.cursor == 0
-
-
-class CategoryViewNavigationItem(NavigationItem):
-    """
-    navigation item that corresponds to the main category view
-    Note: all subclasses of NavigationItem are for debug use only and
-          can be collapsed to the NavigationItem class if desired
-    """
-    def __init__(self, available_pane):
-        NavigationItem.__init__(self, available_pane)
-        self.display_callback = self.available_pane.display_category
-
-class AppListNavigationItem(NavigationItem):
-    """
-    navigation item that corresponds to the application list for the
-    specified category
-    Note: all subclasses of NavigationItem are for debug use only and
-          can be collapsed to the NavigationItem class if desired
-    """
-    def __init__(self, available_pane):
-        NavigationItem.__init__(self, available_pane)
-        self.display_callback = self.available_pane.display_list
-
-class AppListSubcategoryNavigationItem(NavigationItem):
-    """
-    navigation item that corresponds to the application list for the
-    specified category and subcategory
-    Note: all subclasses of NavigationItem are for debug use only and
-          can be collapsed to the NavigationItem class if desired
-    """
-    def __init__(self, available_pane):
-        NavigationItem.__init__(self, available_pane)
-        self.display_callback = self.available_pane.display_list_subcat
-
-class AppDetailsNavigationItem(NavigationItem):
-    """
-    navigation item that corresponds to the details view for the
-    specified application
-    Note: all subclasses of NavigationItem are for debug use only and
-          can be collapsed to the NavigationItem class if desired
-    """
-    def __init__(self, available_pane):
-        NavigationItem.__init__(self, available_pane)
-        self.display_callback = self.available_pane.display_details
-
-class SearchNavigationItem(NavigationItem):
-    """
-    navigation item that corresponds to a search in progress
-    Note: all subclasses of NavigationItem are for debug use only and
-          can be collapsed to the NavigationItem class if desired
-    """
-    def __init__(self, available_pane):
-        NavigationItem.__init__(self, available_pane)
-        self.display_callback = self.available_pane.display_search

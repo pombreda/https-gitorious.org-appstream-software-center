@@ -371,26 +371,31 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'category' is clicked"""
         # clear the search
         self.display_category()
-        self.nav_history.navigate(CategoryViewNavigationItem(self))
+        nav_item = NavigationItem(self, self.display_category)
+        self.nav_history.navigate(nav_item)
 
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
         self.display_search()
-        self.nav_history.navigate(SearchNavigationItem(self))
+        nav_item = NavigationItem(self, self.display_search)
+        self.nav_history.navigate(nav_item)
 
     def on_navigation_list(self, pathbar, part):
         """callback when the navigation button with id 'list' is clicked"""
         self.display_list()
-        self.nav_history.navigate(AppListNavigationItem(self))
+        nav_item = NavigationItem(self, self.display_list)
+        self.nav_history.navigate(nav_item)
 
     def on_navigation_list_subcategory(self, pathbar, part):
         self.display_list_subcat()
-        self.nav_history.navigate(AppListSubcategoryNavigationItem(self))
+        nav_item = NavigationItem(self, self.display_list_subcat)
+        self.nav_history.navigate(nav_item)
 
     def on_navigation_details(self, pathbar, part):
         """callback when the navigation button with id 'details' is clicked"""
         self.display_details()
-        self.nav_history.navigate(AppDetailsNavigationItem(self))
+        nav_item = NavigationItem(self, self.display_details)
+        self.nav_history.navigate(nav_item)
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
