@@ -30,7 +30,7 @@ class NavigationHistory(object):
     available pane).
     """
 
-    MAX_NAV_ITEMS = 20  # limit number of history items
+    MAX_NAV_ITEMS = 20  # limit number of NavItems allowed in the NavStack
 
 
     def __init__(self, available_pane):
@@ -191,12 +191,6 @@ class NavigationStack(object):
 
     def at_start(self):
         return self.cursor == 0
-
-    def clip_history(self):
-        print repr(self)
-        self.stack = self.stack[:self.cursor]
-        print repr(self)
-        return
 
 
 class CategoryViewNavigationItem(NavigationItem):
