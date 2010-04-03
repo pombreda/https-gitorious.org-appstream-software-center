@@ -162,11 +162,36 @@ class PathBar(gtk.HBox):
         self._part_queue_draw(part)
         return
 
+    def _part_key_press(self, part, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421):
+            part.set_state(gtk.STATE_ACTIVE)
+        return
+
+    def _part_key_release(self, part, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421):
+            self.set_active(part)
+            part.set_state(gtk.STATE_SELECTED)
+        return
+
+    def _part_focus_in(self, part, event):
+        self._part_queue_draw(part)
+        return
+
+    def _part_focus_out(self, part, event):
+        self._part_queue_draw(part)
+        return
+
     def _part_connect_signals(self, part):
         part.connect('enter-notify-event', self._part_enter_notify)
         part.connect('leave-notify-event', self._part_leave_notify)
         part.connect("button-press-event", self._part_button_press)
         part.connect("button-release-event", self._part_button_release)
+        part.connect("key-press-event", self._part_key_press)
+        part.connect("key-release-event", self._part_key_release)
+        part.connect('focus-in-event', self._part_focus_in)
+        part.connect('focus-out-event', self._part_focus_out)
         return
 
     def _part_queue_draw(self, part):
@@ -178,6 +203,7 @@ class PathBar(gtk.HBox):
         return
 
     def _on_expose_event(self, widget, event):
+        theme = self.theme
         parts = self.get_children()
         parts.reverse()
 
@@ -189,9 +215,23 @@ class PathBar(gtk.HBox):
             x, y, w, h = a.x, a.y, a.width, a.height
             w = part.get_draw_width()
             xo = part.get_draw_xoffset()
-            self.theme.paint_bg(cr, part, x+xo, y, w, h)
+            theme.paint_bg(cr, part, x+xo, y, w, h)
+
             x, y, w, h = part.get_layout_points()
-            self.theme.paint_layout(widget, widget.window, part, a.x+x, a.y+y, w, h)
+
+            if part.has_focus():
+                self.style.paint_focus(self.window,
+                                       part.state,
+                                       (a.x+x-4, a.y+y-2, w+8, h+4),
+                                       self,
+                                       'button',
+                                       a.x+x-4, a.y+y-2, w+8, h+4)
+
+            theme.paint_layout(widget, part, a.x+x, a.y+y, w, h)
+
+
+
+        del cr
         return
 
     def _on_size_allocate(self, widget, allocation):

@@ -38,14 +38,14 @@ class PathBarStyle:
         self.shape_map = self._load_shape_map(pathbar)
 
         gtk_settings = gtk.settings_get_default()
-        theme = self._load_theme(gtk_settings)
-        theme.build_palette(gtk_settings)
-        self.properties = theme.get_properties(gtk_settings)
-        self.gradients = theme.get_grad_palette()
-        self.dark_line = theme.get_dark_line_palette()
-        self.light_line = theme.get_light_line_palette()
-        self.text = theme.get_text_palette()
-        self.text_states = theme.get_text_states()
+        self.theme = self._load_theme(gtk_settings)
+        self.theme.build_palette(gtk_settings)
+        self.properties = self.theme.get_properties(gtk_settings)
+        self.gradients = self.theme.get_grad_palette()
+        self.dark_line = self.theme.get_dark_line_palette()
+        self.light_line = self.theme.get_light_line_palette()
+        self.text = self.theme.get_text_palette()
+        self.text_states = self.theme.get_text_states()
         self.base_color = None
         return
 
@@ -194,10 +194,10 @@ class PathBarStyle:
         cr.restore()
         return
 
-    def paint_layout(self, widget, window, part, x, y, w, h, sxO=0):
+    def paint_layout(self, widget, part, x, y, w, h, sxO=0):
         # draw layout
         layout = part.get_layout()
-        widget.style.paint_layout(window,
+        widget.style.paint_layout(widget.window,
                                   self.text_states[part.state],
                                   False,
                                   (x, y, w, h),   # clip area
@@ -205,6 +205,12 @@ class PathBarStyle:
                                   None,
                                   x, y,
                                   layout)
+        return
+
+    def paint_focus(self, cr, x, y, w, h):
+        self._shape_rectangle(cr, 4, 4, w-4, h-4, self["curvature"], 0)
+        cr.set_source_rgb(*self.theme.bg[gtk.STATE_SELECTED].tofloats())
+        cr.stroke()
         return
 
 

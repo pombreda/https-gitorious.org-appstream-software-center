@@ -59,9 +59,11 @@ class NavigationHistory(object):
         nav_item = self._nav_stack.step_forward()
         nav_item.navigate_to()
 
-        if self._nav_stack.at_end():
-            self.available_pane.back_forward.right.set_sensitive(False)
         self.available_pane.back_forward.left.set_sensitive(True)
+        if self._nav_stack.at_end():
+            if self.available_pane.back_forward.right.has_focus():
+                self.available_pane.back_forward.left.grab_focus()
+            self.available_pane.back_forward.right.set_sensitive(False)
 
     def nav_back(self):
         """
@@ -70,9 +72,11 @@ class NavigationHistory(object):
         nav_item = self._nav_stack.step_back()
         nav_item.navigate_to()
 
-        if self._nav_stack.at_start():
-            self.available_pane.back_forward.left.set_sensitive(False)
         self.available_pane.back_forward.right.set_sensitive(True)
+        if self._nav_stack.at_start():
+            if self.available_pane.back_forward.left.has_focus():
+                self.available_pane.back_forward.right.grab_focus()
+            self.available_pane.back_forward.left.set_sensitive(False)
 
 
 class NavigationItem(object):
@@ -88,6 +92,7 @@ class NavigationItem(object):
         self.apps_search_term = available_pane.apps_search_term
         self.current_app = available_pane.get_current_app()
         self.parts = self.available_pane.navigation_bar.get_parts()
+        print self.available_pane.app_view.get_cursor()
 
     def navigate_to(self):
         """

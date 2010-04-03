@@ -126,7 +126,7 @@ class SeparatorPart(gtk.DrawingArea):
 class ButtonPart(gtk.DrawingArea):
 
     ARROW_SIZE = (12,12)
-    DEFAULT_SIZE = (30, 27)
+    DEFAULT_SIZE = (31, 27)
 
     def __init__(self, arrow_type, signal_name):
         gtk.DrawingArea.__init__(self)
@@ -136,13 +136,20 @@ class ButtonPart(gtk.DrawingArea):
         self.shadow_type = gtk.SHADOW_OUT
         self.arrow_type = arrow_type
         self.theme = pathbar_common.PathBarStyle(self)
+
+        self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK|
                         gtk.gdk.BUTTON_PRESS_MASK|
                         gtk.gdk.BUTTON_RELEASE_MASK)
+
         self.connect("enter-notify-event", self._on_enter)
         self.connect("leave-notify-event", self._on_leave)
         self.connect("button-press-event", self._on_press)
+        self.connect("key-press-event", self._on_key_press)
+        self.connect("key-release-event", self._on_key_release, signal_name)
+        self.connect('focus-in-event', self._on_focus_in)
+        self.connect('focus-out-event', self._on_focus_out)
         self.connect("button-release-event", self._on_release, signal_name)
         self.connect("style-set", self._on_style_set)
         return
@@ -170,9 +177,30 @@ class ButtonPart(gtk.DrawingArea):
             self.set_active(True)
         return
 
+    def _on_key_press(self, widget, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421):
+            self.set_state(gtk.STATE_ACTIVE)
+        return
+
+    def _on_key_release(self, widget, event, signal_name):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421):
+            self.set_state(gtk.STATE_SELECTED)
+            self.get_parent().emit(signal_name, event)
+        return
+
     def _on_leave(self, widget, event):
         if self.state == gtk.STATE_INSENSITIVE: return
         self.set_active(False)
+        return
+
+    def _on_focus_in(self, widget, event):
+        self.queue_draw()
+        return
+
+    def _on_focus_out(self, widget, event):
+        self.queue_draw()
         return
 
     def _on_press(self, widget, event):
@@ -205,7 +233,7 @@ class ButtonPart(gtk.DrawingArea):
         self.queue_draw()
         return
 
-    def expose_pathbar(self, widget, area, x, y, w, h):
+    def expose_pathbar(self, widget, area, x, y, w, h, xo=0, wo=0):
         # background
         cr = widget.window.cairo_create()
         cr.rectangle(area)
@@ -217,19 +245,28 @@ class ButtonPart(gtk.DrawingArea):
         del cr
 
         # arrow
+        if self.has_focus():
+            self.style.paint_focus(self.window,
+                                   self.state,
+                                   (x+4+xo, y+4, w-8+wo, h-8),
+                                   self,
+                                   'button',
+                                   x+4+xo, y+4,
+                                   w-8+wo, h-8)
+
         aw, ah = self.ARROW_SIZE
-        widget.style.paint_arrow(widget.window,
-                                 self.state,
-                                 self.shadow_type,
-                                 area,
-                                 widget,
-                                 "button",
-                                 self.arrow_type,
-                                 True,
-                                 (area.width-1 - aw)/2,
-                                 (area.height - ah)/2,
-                                 aw,
-                                 ah)
+        ax, ay = (area.width - aw)/2, (area.height - ah)/2,
+
+        self.style.paint_arrow(self.window,
+                               self.state,
+                               self.shadow_type,
+                               (ax, ay, aw, ah),
+                               self,
+                               "button",
+                               self.arrow_type,
+                               True,
+                               ax, ay,
+                               aw, ah)
         return
 
 
@@ -247,7 +284,8 @@ class ButtonPartLeft(ButtonPart):
                     area.x,
                     area.y,
                     area.width + 10,
-                    area.height)
+                    area.height,
+                    wo=-10)
         return
 
 
@@ -265,5 +303,7 @@ class ButtonPartRight(ButtonPart):
                     area.x-10,
                     area.y,
                     area.width+10,
-                    area.height)
+                    area.height,
+                    xo=10,
+                    wo=-10)
         return
