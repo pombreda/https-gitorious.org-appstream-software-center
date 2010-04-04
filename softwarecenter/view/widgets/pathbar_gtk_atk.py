@@ -28,12 +28,18 @@ from gettext import gettext as _
 
 class PathBar(gtk.HBox):
 
+    ANIMATE_FPS = 50
+    ANIMATE_DURATION = 150
+
     def __init__(self, group=None):
         gtk.HBox.__init__(self)
         self.set_redraw_on_allocate(False)
 
         self._width = 0
         self._queue = []
+        self._scroll_xO = 0
+        self._no_draw = False
+        self._scroller = None
         self._active_part = None
         self._out_of_width = False
         self._button_press_origin = None
@@ -205,6 +211,13 @@ class PathBar(gtk.HBox):
         return
 
     def _on_expose_event(self, widget, event):
+        if self._scroll_xO:
+            self._expose_scroll(widget, event)
+        else:
+            self._expose_normal(widget, event)
+        return False
+
+    def _expose_normal(self, widget, event):
         theme = self.theme
         parts = self.get_children()
         parts.reverse()
@@ -212,25 +225,57 @@ class PathBar(gtk.HBox):
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
         cr.clip()
+
         for part in parts:
-            a = part.get_allocation()
-            x, y, w, h = a.x, a.y, a.width, a.height
-            w = part.get_draw_width()
-            xo = part.get_draw_xoffset()
-            theme.paint_bg(cr, part, x+xo, y, w, h)
+            if not part.invisible:
+                a = part.get_allocation()
+                x, y, w, h = a.x, a.y, a.width, a.height
+                w = part.get_draw_width()
+                xo = part.get_draw_xoffset()
+                theme.paint_bg(cr, part, x+xo, y, w, h)
 
-            x, y, w, h = part.get_layout_points()
+                x, y, w, h = part.get_layout_points()
 
-            if part.has_focus():
-                self.style.paint_focus(self.window,
-                                       part.state,
-                                       (a.x+x-4, a.y+y-2, w+8, h+4),
-                                       self,
-                                       'button',
-                                       a.x+x-4, a.y+y-2, w+8, h+4)
+                if part.has_focus():
+                    self.style.paint_focus(self.window,
+                                           part.state,
+                                           (a.x+x-4, a.y+y-2, w+8, h+4),
+                                           self,
+                                           'button',
+                                           a.x+x-4, a.y+y-2, w+8, h+4)
 
-            theme.paint_layout(widget, part, a.x+x, a.y+y, w, h)
+                theme.paint_layout(widget, part, a.x+x, a.y+y, w, h)
+            else:
+                part.invisible = False
 
+        del cr
+        return
+
+    def _expose_scroll(self, widget, event):
+        parts = self.get_children()
+        if len(parts) < 2: return
+        part1, part0 = parts[-2:]
+
+        sxO = self._scroll_xO
+        theme = self.theme
+
+        cr = widget.window.cairo_create()
+        cr.rectangle(event.area)
+        cr.clip()
+
+        a = part0.get_allocation()
+        x, y, w, h = a.x, a.y, a.width, a.height
+        w = part0.get_draw_width()
+        xo = part0.get_draw_xoffset()
+        theme.paint_bg(cr, part0, x+xo-sxO, y, w, h)
+        x, y, w, h = part0.get_layout_points()
+        theme.paint_layout(widget, part0, a.x+x-int(sxO), a.y+y, w, h)
+
+        a = part1.get_allocation()
+        x, y, w, h = a.x, a.y, a.width, a.height
+        w = part1.get_draw_width()
+        xo = part1.get_draw_xoffset()
+        theme.paint_bg(cr, part1, x+xo, y, w, h)
         del cr
         return
 
@@ -254,6 +299,36 @@ class PathBar(gtk.HBox):
         for part, do_callback, animate in self._queue:
             self.append(part, do_callback, animate)
         return
+
+    def _scroll_out_init(self, part):
+        draw_area = part.get_allocation()
+
+        self._scroller = gobject.timeout_add(
+            int(1000.0 / self.ANIMATE_FPS),  # interval
+            self._scroll_out_cb,
+            part.get_size_request()[0],
+            self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
+            gobject.get_current_time(),
+            (draw_area.x, draw_area.y,
+            draw_area.width, draw_area.height))
+        return False
+
+    def _scroll_out_cb(self, distance, duration, start_t, draw_area):
+        cur_t = gobject.get_current_time()
+        xO = distance - distance*((cur_t - start_t) / duration)
+
+        if xO > 0:
+            self._scroll_xO = xO
+            self.queue_draw_area(*draw_area)
+
+        else:   # final frame
+            self._scroll_xO = 0
+            # redraw the entire widget
+            # incase some timeouts are skipped due to high system load
+            self.queue_draw()
+            self._scroller = None
+            return False
+        return True
 
     def has_parts(self):
         return len(self.get_children()) > 0
@@ -296,12 +371,16 @@ class PathBar(gtk.HBox):
 
         self.pack_start(part, False)
         self._part_connect_signals(part)
-        part.show()
 
         if do_callback:
             self.set_active(part)
         else:
             self.set_active_no_callback(part)
+
+        if animate and self.theme['enable-animations']:
+            part.invisible = True
+            gobject.idle_add(self._scroll_out_init, part)
+        part.show()
         return
 
     def append_no_callback(self, part):
@@ -352,6 +431,7 @@ class PathPart(gtk.EventBox):
         part_atk.set_description(_('Navigates to the %s page.' % label))
         part_atk.set_role(atk.ROLE_PUSH_BUTTON)
 
+        self.invisible = False
         self._parent = parent
         self._draw_shift = 0
         self._draw_width = 0
@@ -516,6 +596,7 @@ class NavigationBar(PathBar):
 
     def __init__(self, group=None):
         PathBar.__init__(self)
+        self.set_size_request(-1, 26)
         self.id_to_part = {}
         return
 
@@ -534,20 +615,8 @@ class NavigationBar(PathBar):
         else:
             part = PathPart(parent=self, label=label, callback=callback)
             part.set_name(id)
-#            part.id = id
             self.id_to_part[id] = part
-            # check if animation should be used
-#            if animate:
-#                if do_callback:
-#                    gobject.timeout_add(150, self.append, part)
-#                else:
-#                    gobject.timeout_add(150, self.append_no_callback, part)
-#            else:
-#            gobject.timeout_add(self.APPEND_DELAY,
-#                                self.append,
-#                                part,
-#                                do_callback)
-            self.append(part, do_callback)
+            self.append(part, do_callback, animate)
         return
 
     def remove_id(self, id):

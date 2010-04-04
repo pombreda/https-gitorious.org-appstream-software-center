@@ -165,7 +165,7 @@ class PathBarStyle:
         cr.save()
         cr.rectangle(x, y, w+1, h)
         cr.clip()
-        cr.translate(x+0.5, y+0.5)
+        cr.translate(x+0.5-sxO, y+0.5)
 
         w -= 1
         h -= 1

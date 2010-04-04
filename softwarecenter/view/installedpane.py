@@ -82,7 +82,8 @@ class InstalledPane(SoftwarePane):
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
                                         self.on_navigation_list,
-                                        "list")
+                                        "list",
+                                        animate=False)
         # *ugh* deactivate the old model because otherwise it keeps
         # getting progress_changed events and eats CPU time until it's
         # garbage collected
