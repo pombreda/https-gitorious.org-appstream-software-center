@@ -194,13 +194,13 @@ class PathBarStyle:
         cr.restore()
         return
 
-    def paint_layout(self, widget, part, x, y, w, h, sxO=0):
+    def paint_layout(self, widget, part, x, y, sxO=0):
         # draw layout
         layout = part.get_layout()
         widget.style.paint_layout(widget.window,
                                   self.text_states[part.state],
                                   False,
-                                  (x, y, w, h),   # clip area
+                                  None,   # clip area
                                   widget,
                                   None,
                                   x, y,

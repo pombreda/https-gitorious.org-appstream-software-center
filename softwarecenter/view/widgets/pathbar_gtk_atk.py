@@ -245,7 +245,7 @@ class PathBar(gtk.HBox):
                                            'button',
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
-                theme.paint_layout(widget, part, a.x+x, a.y+y, w, h)
+                theme.paint_layout(widget, part, a.x+x, a.y+y)
             else:
                 part.invisible = False
 
@@ -270,7 +270,7 @@ class PathBar(gtk.HBox):
         xo = part0.get_draw_xoffset()
         theme.paint_bg(cr, part0, x+xo-sxO, y, w, h)
         x, y, w, h = part0.get_layout_points()
-        theme.paint_layout(widget, part0, a.x+x-int(sxO), a.y+y, w, h)
+        theme.paint_layout(widget, part0, a.x+x-int(sxO), a.y+y)
 
         a = part1.get_allocation()
         x, y, w, h = a.x, a.y, a.width, a.height
@@ -289,10 +289,10 @@ class PathBar(gtk.HBox):
         if self._animate[0] and self.theme['enable-animations']:
             part = self._animate[1]
             part.invisible = True
+            self._animate = False, None
             gobject.idle_add(self._scroll_out_init, part)
         else:
-            for part in self.get_parts():
-                self._part_queue_draw(part)
+            self.queue_draw()
         return
 
     def _on_style_set(self, widget, old_style):
@@ -332,7 +332,7 @@ class PathBar(gtk.HBox):
             self._scroll_xO = 0
             # redraw the entire widget
             # incase some timeouts are skipped due to high system load
-            self.queue_draw()
+            self.queue_draw_area(*draw_area)
             self._scroller = None
             return False
         return True
