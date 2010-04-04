@@ -216,7 +216,7 @@ class PathBar(gtk.HBox):
             self._expose_scroll(widget, event)
         else:
             self._expose_normal(widget, event)
-        return False
+        return
 
     def _expose_normal(self, widget, event):
         theme = self.theme
@@ -257,7 +257,11 @@ class PathBar(gtk.HBox):
         if len(parts) < 2: return
         part1, part0 = parts[-2:]
 
-        sxO = self._scroll_xO
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
+            sxO = self._scroll_xO
+        else:
+            sxO = -self._scroll_xO
+
         theme = self.theme
 
         cr = widget.window.cairo_create()
@@ -309,9 +313,8 @@ class PathBar(gtk.HBox):
 
     def _scroll_out_init(self, part):
         draw_area = part.get_allocation()
-
         self._scroller = gobject.timeout_add(
-            int(1000.0 / self.ANIMATE_FPS),  # interval
+            max(int(1000.0 / self.ANIMATE_FPS), 10),  # interval
             self._scroll_out_cb,
             part.get_size_request()[0],
             self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
@@ -323,6 +326,7 @@ class PathBar(gtk.HBox):
     def _scroll_out_cb(self, distance, duration, start_t, draw_area):
         cur_t = gobject.get_current_time()
         xO = distance - distance*((cur_t - start_t) / duration)
+        print xO
 
         if xO > 0:
             self._scroll_xO = xO
