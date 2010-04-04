@@ -29,7 +29,7 @@ from gettext import gettext as _
 class PathBar(gtk.HBox):
 
     ANIMATE_FPS = 50
-    ANIMATE_DELAY = 100
+    ANIMATE_DELAY = 150
     ANIMATE_DURATION = 150
 
     def __init__(self, group=None):
@@ -224,6 +224,7 @@ class PathBar(gtk.HBox):
         theme = self.theme
         parts = self.get_children()
         parts.reverse()
+        region = gtk.gdk.region_rectangle(event.area)
 
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
@@ -232,9 +233,9 @@ class PathBar(gtk.HBox):
         for part in parts:
             if not part.invisible:
                 a = part.get_allocation()
+                xo = part.get_draw_xoffset()
                 x, y, w, h = a.x, a.y, a.width, a.height
                 w = part.get_draw_width()
-                xo = part.get_draw_xoffset()
                 theme.paint_bg(cr, part, x+xo, y, w, h)
 
                 x, y, w, h = part.get_layout_points()
@@ -250,14 +251,13 @@ class PathBar(gtk.HBox):
                 theme.paint_layout(widget, part, a.x+x, a.y+y)
             else:
                 part.invisible = False
-
         del cr
         return
 
     def _expose_scroll(self, widget, event):
         parts = self.get_children()
         if len(parts) < 2: return
-        part1, part0 = parts[-2:]
+        static_tail, scroller = parts[-2:]
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             sxO = self._scroll_xO
@@ -270,19 +270,19 @@ class PathBar(gtk.HBox):
         cr.rectangle(event.area)
         cr.clip()
 
-        a = part0.get_allocation()
+        a = scroller.get_allocation()
         x, y, w, h = a.x, a.y, a.width, a.height
-        w = part0.get_draw_width()
-        xo = part0.get_draw_xoffset()
-        theme.paint_bg(cr, part0, x+xo-sxO, y, w, h)
-        x, y, w, h = part0.get_layout_points()
-        theme.paint_layout(widget, part0, a.x+x-int(sxO), a.y+y)
+        w = scroller.get_draw_width()
+        xo = scroller.get_draw_xoffset()
+        theme.paint_bg(cr, scroller, x+xo-sxO, y, w, h)
+        x, y, w, h = scroller.get_layout_points()
+        theme.paint_layout(widget, scroller, a.x+x-int(sxO), a.y+y)
 
-        a = part1.get_allocation()
+        a = static_tail.get_allocation()
         x, y, w, h = a.x, a.y, a.width, a.height
-        w = part1.get_draw_width()
-        xo = part1.get_draw_xoffset()
-        theme.paint_bg(cr, part1, x+xo, y, w, h)
+        w = static_tail.get_draw_width()
+        xo = static_tail.get_draw_xoffset()
+        theme.paint_bg(cr, static_tail, x+xo, y, w, h)
         del cr
         return
 
@@ -377,6 +377,10 @@ class PathBar(gtk.HBox):
         if not self.get_property('visible'):
             self._queue.append([part, do_callback, animate])
             return
+
+        if self._scroller:
+            gobject.source_remove(self._scroller)
+        self._scroll_xO = 0
 
         self._compose_on_append(part)
         self._width += part.get_size_request()[0]
