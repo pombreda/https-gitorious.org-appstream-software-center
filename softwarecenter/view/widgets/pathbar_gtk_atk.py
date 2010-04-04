@@ -37,6 +37,7 @@ class PathBar(gtk.HBox):
 
         self._width = 0
         self._queue = []
+        self._animate = False, None
         self._scroll_xO = 0
         self._no_draw = False
         self._scroller = None
@@ -284,8 +285,14 @@ class PathBar(gtk.HBox):
             self._grow_check(allocation)
         elif self._width >= allocation.width:
             self._shrink_check(allocation)
-        for part in self.get_parts():
-            self._part_queue_draw(part)
+
+        if self._animate[0] and self.theme['enable-animations']:
+            part = self._animate[1]
+            part.invisible = True
+            gobject.idle_add(self._scroll_out_init, part)
+        else:
+            for part in self.get_parts():
+                self._part_queue_draw(part)
         return
 
     def _on_style_set(self, widget, old_style):
@@ -377,9 +384,7 @@ class PathBar(gtk.HBox):
         else:
             self.set_active_no_callback(part)
 
-        if animate and self.theme['enable-animations']:
-            part.invisible = True
-            gobject.idle_add(self._scroll_out_init, part)
+        self._animate = animate, part
         part.show()
         return
 
