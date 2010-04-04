@@ -29,6 +29,7 @@ from gettext import gettext as _
 class PathBar(gtk.HBox):
 
     ANIMATE_FPS = 50
+    ANIMATE_DELAY = 100
     ANIMATE_DURATION = 150
 
     def __init__(self, group=None):
@@ -37,13 +38,14 @@ class PathBar(gtk.HBox):
 
         self._width = 0
         self._queue = []
+        self._active_part = None
+        self._out_of_width = False
+        self._button_press_origin = None
+
         self._animate = False, None
         self._scroll_xO = 0
         self._no_draw = False
         self._scroller = None
-        self._active_part = None
-        self._out_of_width = False
-        self._button_press_origin = None
 
         self.theme = pathbar_common.PathBarStyle(self)
 
@@ -294,7 +296,7 @@ class PathBar(gtk.HBox):
             part = self._animate[1]
             part.invisible = True
             self._animate = False, None
-            gobject.idle_add(self._scroll_out_init, part)
+            gobject.timeout_add(self.ANIMATE_DELAY, self._scroll_out_init, part)
         else:
             self.queue_draw()
         return
@@ -326,7 +328,6 @@ class PathBar(gtk.HBox):
     def _scroll_out_cb(self, distance, duration, start_t, draw_area):
         cur_t = gobject.get_current_time()
         xO = distance - distance*((cur_t - start_t) / duration)
-        print xO
 
         if xO > 0:
             self._scroll_xO = xO
@@ -342,7 +343,7 @@ class PathBar(gtk.HBox):
         return True
 
     def has_parts(self):
-        return len(self.get_children()) > 0
+        return self.get_children() == True
 
     def get_parts(self):
         return self.get_children()
@@ -382,14 +383,13 @@ class PathBar(gtk.HBox):
 
         self.pack_start(part, False)
         self._part_connect_signals(part)
+        self._animate = animate, part
+        part.show()
 
         if do_callback:
             self.set_active(part)
         else:
             self.set_active_no_callback(part)
-
-        self._animate = animate, part
-        part.show()
         return
 
     def append_no_callback(self, part):
@@ -605,7 +605,6 @@ class NavigationBar(PathBar):
 
     def __init__(self, group=None):
         PathBar.__init__(self)
-        self.set_size_request(-1, 26)
         self.id_to_part = {}
         return
 

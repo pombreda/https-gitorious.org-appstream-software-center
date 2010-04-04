@@ -50,6 +50,7 @@ class InstalledPane(SoftwarePane):
         # UI
         self._build_ui()
     def _build_ui(self):
+        self.navigation_bar.set_size_request(26, -1)
         self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
