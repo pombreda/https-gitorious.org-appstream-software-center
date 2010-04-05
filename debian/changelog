@@ -2,9 +2,9 @@ software-center (1.1.25) UNRELEASED; urgency=low
 
   * softwarecenter/view/viewswitcher.py:
     - fix intermittent AttributeError if a model doesn't
-      exist when checking node expanded state (LP: 554388)
+      exist when checking node expanded state (LP: #554388)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Apr 2010 00:33:43 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Apr 2010 00:48:39 -0400
 
 software-center (1.1.24) lucid; urgency=low
 
