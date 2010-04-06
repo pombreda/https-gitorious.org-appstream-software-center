@@ -10,6 +10,10 @@ software-center (1.1.25) UNRELEASED; urgency=low
     - add file monitor to detect changes in the dpkg status
       when apt is run outside of software-center (LP: #432555)
 
+  [ Zygmunt Krynicki ]
+  * softwarecenter/view/appdetailsview.py:
+    - use package name when application name is not available (LP: #549011)
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Apr 2010 10:14:43 +0200
 
 software-center (1.1.24) lucid; urgency=low
