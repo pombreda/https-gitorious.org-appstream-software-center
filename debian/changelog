@@ -1,10 +1,16 @@
 software-center (1.1.25) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
     - fix intermittent AttributeError if a model doesn't
       exist when checking node expanded state (LP: #554388)
+  
+  [ Michael Vogt ]
+  * softwarecenter/apt/aptcache.py:
+    - add file monitor to detect changes in the dpkg status
+      when apt is run outside of software-center (LP: #432555)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Apr 2010 00:48:39 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Apr 2010 10:14:43 +0200
 
 software-center (1.1.24) lucid; urgency=low
 

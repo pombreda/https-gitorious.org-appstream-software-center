@@ -23,6 +23,7 @@ import apt_pkg
 import datetime
 import locale
 import gettext
+import gio
 import glib
 import gobject
 import gtk
@@ -48,6 +49,10 @@ class AptCache(gobject.GObject):
     RECOMMENDS_TYPES = ("Recommends",)
     SUGGESTS_TYPES = ("Suggests",)
 
+    # stamp file to monitor (provided by update-notifier via
+    # APT::Update::Post-Invoke-Success)
+    APT_FINISHED_STAMP = "/var/lib/update-notifier/dpkg-run-stamp"
+
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
                                      ()),
@@ -60,7 +65,16 @@ class AptCache(gobject.GObject):
         gobject.GObject.__init__(self)
         self._cache = None
         self._ready = False
+        # async open cache
         glib.timeout_add(100, self.open)
+        # setup monitor watch for install/remove changes
+        self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
+        self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(
+            gio.FILE_MONITOR_NONE)
+        self.apt_finished_monitor.connect(
+            "changed", self._on_apt_finished_stamp_changed)
+    def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
+        glib.timeout_add_seconds(10, self.open)
     @property
     def ready(self):
         return self._ready

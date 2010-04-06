@@ -33,7 +33,7 @@ Depends: ${python:Depends},
 	 python-webkit,
 	 python-gconf,
 	 aptdaemon (>= 0.11+bzr322)
-Recommends: lsb-release, python-launchpad-integration, apt-xapian-index
+Recommends: lsb-release, python-launchpad-integration, apt-xapian-index, update-notifier
 Conflicts: software-store
 Replaces: software-store
 Provides: software-store
