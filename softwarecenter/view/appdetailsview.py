@@ -309,7 +309,7 @@ class AppDetailsView(WebkitWidget):
     def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
         return self.distro.get_maintenance_status(self.cache,
-            self.app.appname, self.app.pkgname, self.component, self.channelfile)
+            self.app.appname or self.app.pkgname, self.app.pkgname, self.component, self.channelfile)
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
         if not self.pkg:
