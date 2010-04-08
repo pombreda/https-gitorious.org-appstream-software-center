@@ -4,9 +4,6 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - fix intermittent AttributeError if a model doesn't
       exist when checking node expanded state (LP: #554388)
-  * softwarecenter/view/viewswitcher.py:
-    - fix nasty list view errors when disabling partner
-      repository (LP: 556995)
   
   [ Michael Vogt ]
   * softwarecenter/apt/aptcache.py:
@@ -17,7 +14,7 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - use package name when application name is not available (LP: #549011)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Apr 2010 17:54:20 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Apr 2010 17:59:34 -0400
 
 software-center (1.1.24) lucid; urgency=low
 
