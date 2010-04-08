@@ -88,7 +88,7 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("row-collapsed", self.on_treeview_row_collapsed)
         self.connect("cursor-changed", self.on_cursor_changed)
 
-        self.get_model().connect("channels-replaced", self._on_channels_replaced)
+        self.get_model().connect("channels-refreshed", self._on_channels_refreshed)
         
     def on_treeview_row_expanded(self, widget, iter, path):
         # do nothing on a node expansion
@@ -151,14 +151,13 @@ class ViewSwitcher(gtk.TreeView):
             expanded = self.row_expanded(available_path)
         return expanded
 
-    def _on_channels_replaced(self, model):
+    def _on_channels_refreshed(self, model):
         print "restore selected item: %s" % self.selected_channel_name
         model = self.get_model()
-        if model:
-            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name)
-            print "channel_iter_to_select: %s" % channel_iter_to_select
-            if channel_iter_to_select:
-                self.set_cursor(model.get_path(channel_iter_to_select))
+        channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name)
+        print "channel_iter_to_select: %s" % channel_iter_to_select
+        if channel_iter_to_select:
+            self.set_cursor(model.get_path(channel_iter_to_select))
 
 class ViewSwitcherList(gtk.TreeStore):
     
@@ -179,7 +178,7 @@ class ViewSwitcherList(gtk.TreeStore):
 
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
-    __gsignals__ = {'channels-replaced':(gobject.SIGNAL_RUN_FIRST,
+    __gsignals__ = {'channels-refreshed':(gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
                                      ())}
 
@@ -283,7 +282,7 @@ class ViewSwitcherList(gtk.TreeStore):
         for child in iters_to_kill:
             self.remove(child)
 
-        self.emit("channels-replaced")
+        self.emit("channels-refreshed")
 
     def _get_channels(self):
         """
