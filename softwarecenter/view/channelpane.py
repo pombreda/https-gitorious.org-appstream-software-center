@@ -86,6 +86,7 @@ class ChannelPane(SoftwarePane):
                                             "search")
         else:
             # FIXME: don't replace first part, just update the button in-place
+            print ">>> in channelpane refresh_apps"
             self.navigation_bar.remove_all(keep_first_part=False)
             self.navigation_bar.add_with_id(self.channel.get_channel_display_name(),
                                         self.on_navigation_list,
@@ -114,14 +115,14 @@ class ChannelPane(SoftwarePane):
     def set_channel(self, channel):
         """
         set the current software channel object for display in the channel pane
-        and set up the AppViewFilter if required
+        and set up the needed filter
         """
         self.channel = channel
         if self.channel.filter_required:
             self.apps_filter = AppViewFilter(self.db, self.cache)
             self.apps_filter.set_only_packages_without_applications(True)
         else:
-            self.apps_filter = None
+            self.apps_filter = ChannelFilter(self.db, self.cache)
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
@@ -187,6 +188,23 @@ class ChannelPane(SoftwarePane):
     def is_category_view_showing(self):
         # there is no category view in the channel pane
         return False
+
+class ChannelFilter(object):
+    """
+    Filter that can be hooked into AppStore to filter out apps that are
+    in Xapian but do not appear in the package cache.  This is to handle the
+    situation where the cache is updated but Xapian has not had a chance to
+    catch up yet.
+    """
+    def __init__(self, db, cache):
+        self.db = db
+        self.cache = cache
+    def supported_option_available(self):
+        return False
+    def filter(self, doc, pkgname):
+        """return True if the package should be displayed"""
+        print "ChannelFilter: pkgname: %s, self.cache.has_key(pkgname): %s" % (pkgname, self.cache.has_key(pkgname))
+        return self.cache.has_key(pkgname)
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

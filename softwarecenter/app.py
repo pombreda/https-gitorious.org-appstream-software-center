@@ -267,7 +267,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # set menu state
         if self.active_pane:
             self._block_menuitem_view = True
-            if not self.active_pane.apps_filter:
+            if not self.active_pane.apps_filter.supported_option_available():
                 self.menuitem_view_all.set_sensitive(False)
                 self.menuitem_view_supported_only.set_sensitive(False)
             elif self.active_pane.apps_filter.get_supported_only():

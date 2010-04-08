@@ -1082,6 +1082,8 @@ class AppViewFilter(object):
         self.not_installed_only = v
     def get_supported_only(self):
         return self.supported_only
+    def supported_option_available(self):
+        return True
     def set_only_packages_without_applications(self, v):
         """
         only show packages that are not displayed as applications
