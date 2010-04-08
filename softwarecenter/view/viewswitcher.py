@@ -152,10 +152,12 @@ class ViewSwitcher(gtk.TreeView):
         return expanded
 
     def _on_channels_refreshed(self, model):
-        print "restore selected item: %s" % self.selected_channel_name
+        """
+        when channels are refreshed, the viewswitcher channel is unselected so
+        we need to reselect it
+        """
         model = self.get_model()
         channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name)
-        print "channel_iter_to_select: %s" % channel_iter_to_select
         if channel_iter_to_select:
             self.set_cursor(model.get_path(channel_iter_to_select))
 
@@ -217,7 +219,6 @@ class ViewSwitcherList(gtk.TreeStore):
 
     def on_transactions_changed(self, backend, total_transactions):
         logging.debug("on_transactions_changed '%s'" % total_transactions)
-        print "on_transactions_changed '%s'" % total_transactions
         pending = len(total_transactions)
         if pending > 0:
             for row in self:
@@ -262,7 +263,6 @@ class ViewSwitcherList(gtk.TreeStore):
         # normally GtkTreeIters have a limited life-cycle and are no
         # longer valid after the model changed, fortunately with the
         # gtk.TreeStore (that we use) they are persisent
-        print ">>> called update_channel_list"
         child = self.iter_children(self.available_iter)
         iters_to_kill = set()
         while child:
