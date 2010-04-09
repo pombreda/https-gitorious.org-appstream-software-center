@@ -156,6 +156,7 @@ class StoreDatabase(gobject.GObject):
     def get_summary(self, doc):
         """ get human readable summary of the given document """
         summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
+        channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
         # if we do not have the summary in the xapian db, get it
         # from the apt cache
         if not summary and self._aptcache.ready: 
@@ -163,6 +164,9 @@ class StoreDatabase(gobject.GObject):
             if (self._aptcache.has_key(pkgname) and 
                 self._aptcache[pkgname].candidate):
                 return  self._aptcache[pkgname].candidate.summary
+            elif channel:
+                # FIXME: print something if available for our arch
+                pass
             else:
                 return _("Sorry, '%s' is not available for this type of computer (%s).") % (pkgname, get_current_arch())
         return summary
