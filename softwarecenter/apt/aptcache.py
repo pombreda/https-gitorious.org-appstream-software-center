@@ -92,7 +92,7 @@ class AptCache(gobject.GObject):
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
-        return self.cache.__contains__(k)
+        return self._cache.__contains__(k)
     def has_key(self, key):
         return self._cache.has_key(key)
     def _get_installed_rdepends_by_type(self, pkg, type):
