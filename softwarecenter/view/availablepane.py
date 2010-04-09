@@ -109,12 +109,12 @@ class AvailablePane(SoftwarePane):
         # nav buttons first in the panel
         self.top_hbox.reorder_child(self.back_forward, 0)
         # now a vbox for subcategories and applist
-        apps_vbox = gtk.VPaned()
-        apps_vbox.pack1(self.scroll_subcategories, resize=True)
-        apps_vbox.pack2(self.scroll_app_list)
+        self.apps_vbox = gtk.VPaned()
+        self.apps_vbox.pack1(self.scroll_subcategories, resize=True)
+        self.apps_vbox.pack2(self.scroll_app_list)
         # app list
         self.cat_view.connect("category-selected", self.on_category_activated)
-        self.notebook.append_page(apps_vbox, gtk.Label("installed"))
+        self.notebook.append_page(self.apps_vbox, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
         # set status text
@@ -205,6 +205,10 @@ class AvailablePane(SoftwarePane):
         logging.debug("availablepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
+        if self.app_view.window:
+            self.app_view.window.set_cursor(self.busy_cursor)
+            self.subcategories_view.window.set_cursor(self.busy_cursor)
+            self.apps_vbox.window.set_cursor(self.busy_cursor)
         new_model = AppStore(self.cache,
                              self.db,
                              self.icons,
@@ -223,6 +227,10 @@ class AvailablePane(SoftwarePane):
         # check if we show subcategoriy
         self._show_hide_applist()
         self.emit("app-list-changed", len(new_model))
+        if self.app_view.window:
+            self.app_view.window.set_cursor(None)
+            self.subcategories_view.window.set_cursor(None)
+            self.apps_vbox.window.set_cursor(None)
         return False
 
     def update_navigation_button(self):
