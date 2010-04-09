@@ -10,6 +10,8 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - fix intermittent AttributeError in row selection
       (LP: #552224)
+  * softwarecenter/view/availablepane.py:
+    - fix double call to set_category method
   
   [ Michael Vogt ]
   * softwarecenter/apt/aptcache.py:
@@ -33,7 +35,7 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - use package name when application name is not available (LP: #549011)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Apr 2010 18:22:01 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Apr 2010 19:51:11 -0400
 
 software-center (1.1.24) lucid; urgency=low
 

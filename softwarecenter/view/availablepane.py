@@ -451,7 +451,7 @@ class AvailablePane(SoftwarePane):
         logging.debug("on_category_activated: %s %s" % (
                 category.name, category))
         self.apps_category = category
-        self.set_category(category)
+        self.update_navigation_button()
 
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
