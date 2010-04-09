@@ -4,6 +4,9 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - fix intermittent AttributeError if a model doesn't
       exist when checking node expanded state (LP: #554388)
+  * softwarecenter/view/viewswitcher.py:
+    - fix nasty list view errors when disabling partner
+      repository (LP: #556995)
   
   [ Michael Vogt ]
   * softwarecenter/apt/aptcache.py:
