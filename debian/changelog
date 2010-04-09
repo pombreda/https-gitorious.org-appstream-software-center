@@ -9,6 +9,9 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/apt/aptcache.py:
     - add file monitor to detect changes in the dpkg status
       when apt is run outside of software-center (LP: #432555)
+  * softwarecenter/view/appdetailsview.py:
+    - only show "needs updating" message if we have a component
+      associated with the software-item (LP: #542892)
 
   [ Zygmunt Krynicki ]
   * softwarecenter/view/appdetailsview.py:

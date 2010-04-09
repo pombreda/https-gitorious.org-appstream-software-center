@@ -201,15 +201,17 @@ class AppDetailsView(WebkitWidget):
             if self.channelname and available_for_arch:
                 return _("This software is available from the '%s' source, "
                          "which you are not currently using.") % self.channelname
-            # if we have no pkg, check if its available for the given
-            # architecture
-            if available_for_arch:
+            # if we have no pkg in the apt cache, check if its available for
+            # the given architecture and if it has a component associated
+            if available_for_arch and self.component:
                 return _("To show information about this item, "
                          "the software catalog needs updating.")
-            else:
-                return _("Sorry, '%s' is not available for "
-                         "this type of computer (%s).") % (
-                        self.app.name, self.arch)
+            
+            # if we don't have a package and it has no arch/component its
+            # not available for us
+            return _("Sorry, '%s' is not available for "
+                     "this type of computer (%s).") % (
+                self.app.name, self.arch)
 
         # format for html
         description = self.pkg.description
@@ -430,7 +432,6 @@ class AppDetailsView(WebkitWidget):
         self._set_action_button_sensitive(True)
         if not self.app:
             return
-        print self.app
         self.execute_script("showProgress(false);")
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if not self.app or not self.app.pkgname == pkgname:
