@@ -114,6 +114,7 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
+        # FIXME: do the sorting/adding in a seperate thread?
         if not search_query:
             # limit to applications
             for m in db.xapiandb.postlist("ATapplication"):
@@ -124,6 +125,9 @@ class AppStore(gtk.GenericTreeModel):
                 pkgname = db.get_pkgname(doc)
                 popcon = db.get_popcon(doc)
                 self.apps.append(Application(appname, pkgname, popcon))
+                # keep the UI going
+                while gtk.events_pending():
+                    gtk.main_iteration()
             self.apps.sort()
             for (i, app) in enumerate(self.apps):
                 self.app_index_map[app] = i
@@ -169,6 +173,9 @@ class AppStore(gtk.GenericTreeModel):
                         if not sort:
                             self.app_index_map[app] = app_index
                             app_index = app_index + 1
+                    # keep the UI going
+                    while gtk.events_pending():
+                        gtk.main_iteration()
             if sort:
                 self.apps.sort()
                 for (i, app) in enumerate(self.apps):

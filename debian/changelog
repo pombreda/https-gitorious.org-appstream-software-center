@@ -21,6 +21,8 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/pathbar-atk
     this makes the pathbar on top fully accessible with e.g.
     orca (LP: #526384)
+  * softwarecenter/view/appview.py:
+    - avoid blocking if a operation takes long
 
   [ Zygmunt Krynicki ]
   * softwarecenter/view/appdetailsview.py:
