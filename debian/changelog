@@ -18,6 +18,9 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/db/database.py:
     - when we have no package and no information no how to get it, 
       display unavailable message instead of a empty summary line
+  * merged lp:~mmcg069/software-center/pathbar-atk
+    this makes the pathbar on top fully accessible with e.g.
+    orca (LP: #526384)
 
   [ Zygmunt Krynicki ]
   * softwarecenter/view/appdetailsview.py:

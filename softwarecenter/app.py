@@ -214,7 +214,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # default focus
         self.available_pane.searchentry.grab_focus()
-        
+        self.window_main.set_size_request(600, 400)
+
         # restore state
         self.config = get_config()
         self.restore_state()
@@ -561,7 +562,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def restore_state(self):
         if self.config.has_option("general", "size"):
             (x, y) = self.config.get("general", "size").split(",")
-            self.window_main.resize(int(x), int(y))
+            self.window_main.set_default_size(int(x), int(y))
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()

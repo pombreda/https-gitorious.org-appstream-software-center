@@ -50,6 +50,7 @@ class InstalledPane(SoftwarePane):
         # UI
         self._build_ui()
     def _build_ui(self):
+        self.navigation_bar.set_size_request(26, -1)
         self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
@@ -82,7 +83,8 @@ class InstalledPane(SoftwarePane):
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
                                         self.on_navigation_list,
-                                        "list")
+                                        "list",
+                                        animate=False)
         # *ugh* deactivate the old model because otherwise it keeps
         # getting progress_changed events and eats CPU time until it's
         # garbage collected

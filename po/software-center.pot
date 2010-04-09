@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-25 20:56+0100\n"
+"POT-Creation-Date: 2010-04-09 15:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,7 +44,7 @@ msgstr ""
 
 #: ../data/ui/SoftwareCenter.ui.h:7
 #: ../data/ubuntu-software-center.desktop.in.h:3
-#: ../softwarecenter/view/catview.py:140
+#: ../softwarecenter/view/catview.py:143
 msgid "Ubuntu Software Center"
 msgstr ""
 
@@ -329,7 +329,7 @@ msgstr ""
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:184
+#: ../softwarecenter/backend/aptd.py:219
 msgid "Error"
 msgstr ""
 
@@ -346,8 +346,16 @@ msgstr ""
 #. provide a list of words in your language that people are likely
 #. to include in a search but that should normally be ignored in
 #. the search.
-#: ../softwarecenter/db/database.py:38
+#: ../softwarecenter/db/database.py:39
 msgid "app;application;package;program;programme;suite;tool"
+msgstr ""
+
+#. if we don't have a package and it has no arch/component its
+#. not available for us
+#: ../softwarecenter/db/database.py:171
+#: ../softwarecenter/view/appdetailsview.py:212
+#, python-format
+msgid "Sorry, '%s' is not available for this type of computer (%s)."
 msgstr ""
 
 #: ../softwarecenter/distro/Debian.py:39 ../softwarecenter/distro/Ubuntu.py:47
@@ -470,120 +478,117 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:200
+#: ../softwarecenter/view/appdetailsview.py:202
 #, python-format
 msgid ""
 "This software is available from the '%s' source, which you are not currently "
 "using."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:205
+#: ../softwarecenter/view/appdetailsview.py:207
 msgid ""
 "To show information about this item, the software catalog needs updating."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:208
-#, python-format
-msgid "Sorry, '%s' is not available for this type of computer (%s)."
-msgstr ""
-
-#: ../softwarecenter/view/appdetailsview.py:270
 #: ../softwarecenter/view/appdetailsview.py:274
+#: ../softwarecenter/view/appdetailsview.py:278
 msgid "Application Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:300
+#: ../softwarecenter/view/appdetailsview.py:306
 #, python-format
 msgid "Version: %s (%s)"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:315
+#: ../softwarecenter/view/appdetailsview.py:321
 msgid "Website"
 msgstr ""
 
 #. TRANSLATORS: This text will be showed as price of the software
-#: ../softwarecenter/view/appdetailsview.py:321
+#: ../softwarecenter/view/appdetailsview.py:327
 msgid "Free"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:322
+#: ../softwarecenter/view/appdetailsview.py:328
 #, python-format
 msgid "Price: %s"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:336
+#: ../softwarecenter/view/appdetailsview.py:342
 msgid "No screenshot available"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:368
+#: ../softwarecenter/view/appdetailsview.py:380
 #, python-format
 msgid "%s - Screenshot"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:489
-#: ../softwarecenter/view/appview.py:894
+#: ../softwarecenter/view/appdetailsview.py:502
+#: ../softwarecenter/view/appview.py:916
 msgid "Remove"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:492
+#: ../softwarecenter/view/appdetailsview.py:505
 msgid "Install - Free"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
-#: ../softwarecenter/view/appdetailsview.py:502
+#. FIXME: use a proper message here, but we are in string freeze
+#: ../softwarecenter/view/appdetailsview.py:515
+#: ../softwarecenter/view/appdetailsview.py:520
 msgid "Use This Source"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview.py:505
+#: ../softwarecenter/view/appdetailsview.py:523
 msgid "Update Now"
 msgstr ""
 
 #. draw number of reviews
-#: ../softwarecenter/view/appview.py:608
+#: ../softwarecenter/view/appview.py:611
 #, python-format
 msgid "%s review"
 msgid_plural "%s reviews"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/appview.py:894
+#: ../softwarecenter/view/appview.py:916
 msgid "Install"
 msgstr ""
 
-#: ../softwarecenter/view/appview.py:895
+#: ../softwarecenter/view/appview.py:917
 msgid "More Info"
 msgstr ""
 
 #. home button
 #: ../softwarecenter/view/availablepane.py:123
-#: ../softwarecenter/view/viewswitcher.py:165
+#: ../softwarecenter/view/viewswitcher.py:200
 msgid "Get Software"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:218
-#: ../softwarecenter/view/installedpane.py:78
-#: ../softwarecenter/view/channelpane.py:84
+#: ../softwarecenter/view/availablepane.py:222
+#: ../softwarecenter/view/installedpane.py:79
+#: ../softwarecenter/view/channelpane.py:85
 msgid "Search Results"
 msgstr ""
 
-#: ../softwarecenter/view/availablepane.py:257
-#: ../softwarecenter/view/installedpane.py:146
-#: ../softwarecenter/view/channelpane.py:174
+#: ../softwarecenter/view/availablepane.py:260
+#: ../softwarecenter/view/installedpane.py:148
+#: ../softwarecenter/view/channelpane.py:178
 #, python-format
 msgid "%s matching item"
 msgid_plural "%s matching items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:261
-#: ../softwarecenter/view/channelpane.py:178
+#: ../softwarecenter/view/availablepane.py:264
+#: ../softwarecenter/view/channelpane.py:182
 #, python-format
 msgid "%s item available"
 msgid_plural "%s items available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/catview.py:78 ../softwarecenter/view/catview.py:84
+#: ../softwarecenter/view/catview.py:81 ../softwarecenter/view/catview.py:87
 msgid "Departments"
 msgstr ""
 
@@ -600,12 +605,12 @@ msgstr ""
 msgid "Dependency"
 msgstr ""
 
-#: ../softwarecenter/view/installedpane.py:83
-#: ../softwarecenter/view/viewswitcher.py:178
+#: ../softwarecenter/view/installedpane.py:84
+#: ../softwarecenter/view/viewswitcher.py:206
 msgid "Installed Software"
 msgstr ""
 
-#: ../softwarecenter/view/installedpane.py:150
+#: ../softwarecenter/view/installedpane.py:152
 #, python-format
 msgid "%s item installed"
 msgid_plural "%s items installed"
@@ -616,8 +621,45 @@ msgstr[1] ""
 msgid "Software sources"
 msgstr ""
 
-#: ../softwarecenter/view/viewswitcher.py:188
-#: ../softwarecenter/view/viewswitcher.py:193
+#: ../softwarecenter/view/viewswitcher.py:226
+#: ../softwarecenter/view/viewswitcher.py:231
 #, python-format
 msgid "In Progress (%i)"
+msgstr ""
+
+#: ../softwarecenter/view/widgets/backforward.py:61
+msgid "History Navigation"
+msgstr ""
+
+#: ../softwarecenter/view/widgets/backforward.py:62
+msgid "Navigate forwards and backwards."
+msgstr ""
+
+#: ../softwarecenter/view/widgets/backforward.py:75
+#: ../softwarecenter/view/widgets/backforward.py:89
+msgid "Back Button"
+msgstr ""
+
+#: ../softwarecenter/view/widgets/backforward.py:76
+#: ../softwarecenter/view/widgets/backforward.py:90
+msgid "Navigates back."
+msgstr ""
+
+#: ../softwarecenter/view/widgets/backforward.py:81
+#: ../softwarecenter/view/widgets/backforward.py:95
+msgid "Forward Button"
+msgstr ""
+
+#: ../softwarecenter/view/widgets/backforward.py:82
+#: ../softwarecenter/view/widgets/backforward.py:96
+msgid "Navigates forward."
+msgstr ""
+
+#: ../softwarecenter/view/widgets/pathbar_gtk_atk.py:54
+msgid "You are here:"
+msgstr ""
+
+#: ../softwarecenter/view/widgets/pathbar_gtk_atk.py:444
+#, python-format
+msgid "Navigates to the %s page."
 msgstr ""

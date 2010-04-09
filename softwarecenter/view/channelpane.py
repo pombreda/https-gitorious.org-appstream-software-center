@@ -23,6 +23,7 @@ import logging
 import os
 import sys
 import xapian
+import gobject
 
 from gettext import gettext as _
 
@@ -98,6 +99,10 @@ class ChannelPane(SoftwarePane):
         old_model = self.app_view.get_model()
         if old_model is not None:
             old_model.active = False
+        gobject.idle_add(self._make_new_model, query)
+        return False
+
+    def _make_new_model(self, query):
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
@@ -109,7 +114,7 @@ class ChannelPane(SoftwarePane):
         self.app_view.set_model(new_model)
         self.emit("app-list-changed", len(new_model))
         return False
-        
+
     def set_channel(self, channel):
         """
         set the current software channel object for display in the channel pane

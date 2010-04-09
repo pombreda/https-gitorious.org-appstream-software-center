@@ -96,6 +96,7 @@ class AppStore(gtk.GenericTreeModel):
                     data further. A python function that gets a pkgname
         """
         gtk.GenericTreeModel.__init__(self)
+        self.search_query = search_query
         self.cache = cache
         self.db = db
         self.icons = icons
@@ -900,7 +901,9 @@ class AppView(gtk.TreeView):
         """
         (path, column) = self.get_cursor()
         model = self.get_model()
-        action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
+        action_in_progress = False
+        if path:
+            action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
         return action_in_progress
 
     def _on_realize(self, widget, tr):
@@ -948,14 +951,16 @@ class AppView(gtk.TreeView):
     def _on_cursor_changed(self, view):
         # trigger callback, if we do it here get_selection() returns
         # the previous selected row for some reason
-        gobject.timeout_add(10, self._app_selected_timeout_cb, view)
+        #   without the timeout a row gets multiple times selected
+        #   and "wobbles" when switching between categories
+        gobject.timeout_add(1, self._app_selected_timeout_cb, view)
 
     def _app_selected_timeout_cb(self, view):
         selection = view.get_selection()
         model, it = selection.get_selected()
         model, rows = selection.get_selected_rows()
-        if not rows: return
-
+        if not rows: 
+            return False
         row = rows[0][0]
         # update active app, use row-ref as argument
         model._set_active_app(row)
@@ -963,6 +968,7 @@ class AppView(gtk.TreeView):
         # emit selected signal
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
+        #print name, pkgname
         popcon = model[row][AppStore.COL_POPCON]
         if self.buttons.has_key('action'):
             action_button = self.buttons['action']
