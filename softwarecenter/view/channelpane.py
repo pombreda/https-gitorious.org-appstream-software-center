@@ -78,6 +78,7 @@ class ChannelPane(SoftwarePane):
         """
         if not self.channel:
             return
+        self.refresh_seq_nr += 1
         channel_query = self.channel.get_channel_query()
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
@@ -99,10 +100,11 @@ class ChannelPane(SoftwarePane):
         old_model = self.app_view.get_model()
         if old_model is not None:
             old_model.active = False
-        gobject.idle_add(self._make_new_model, query)
+            self.app_view.set_model(None)
+        gobject.idle_add(self._make_new_model, query, self.refresh_seq_nr)
         return False
 
-    def _make_new_model(self, query):
+    def _make_new_model(self, query, seq_nr):
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
@@ -111,7 +113,12 @@ class ChannelPane(SoftwarePane):
                              limit=0,
                              sort=True,
                              filter=self.apps_filter)
-        self.app_view.set_model(new_model)
+        # between request of the new model and actual delivery other
+        # events may have happend
+        if seq_nr == self.refresh_seq_nr:
+            self.app_view.set_model(new_model)
+        else:
+            logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
         self.emit("app-list-changed", len(new_model))
         return False
 
