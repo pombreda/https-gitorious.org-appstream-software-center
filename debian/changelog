@@ -19,8 +19,10 @@ software-center (1.1.25) UNRELEASED; urgency=low
     - when we have no package and no information no how to get it, 
       display unavailable message instead of a empty summary line
   * merged lp:~mmcg069/software-center/pathbar-atk
-    this makes the pathbar on top fully accessible with e.g.
-    orca (LP: #526384)
+    - this makes the pathbar on top fully accessible with e.g.
+      orca (LP: #526384). Also fixes intermittent TypeError bug
+      (LP: #558895) and nav button visual artifact when selecting
+      a channel (LP: #531724).  Many thanks!
   * softwarecenter/view/appview.py:
     - avoid blocking if a operation takes long
 
@@ -28,7 +30,7 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - use package name when application name is not available (LP: #549011)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Apr 2010 10:14:43 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Apr 2010 17:28:50 -0400
 
 software-center (1.1.24) lucid; urgency=low
 
