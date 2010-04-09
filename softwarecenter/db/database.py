@@ -24,6 +24,7 @@ import xapian
 
 from softwarecenter import Application
 
+from softwarecenter.utils import *
 from softwarecenter.enums import *
 from gettext import gettext as _
 
@@ -162,6 +163,8 @@ class StoreDatabase(gobject.GObject):
             if (self._aptcache.has_key(pkgname) and 
                 self._aptcache[pkgname].candidate):
                 return  self._aptcache[pkgname].candidate.summary
+            else:
+                return _("Sorry, '%s' is not available for this type of computer (%s).") % (pkgname, get_current_arch())
         return summary
 
     def get_pkgname(self, doc):

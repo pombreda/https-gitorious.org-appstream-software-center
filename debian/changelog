@@ -12,6 +12,9 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - only show "needs updating" message if we have a component
       associated with the software-item (LP: #542892)
+  * softwarecenter/db/database.py:
+    - when we have no package and no information no how to get it, 
+      display unavailable message instead of a empty summary line
 
   [ Zygmunt Krynicki ]
   * softwarecenter/view/appdetailsview.py:

@@ -41,6 +41,7 @@ if os.path.exists("./softwarecenter/enums.py"):
 
 from softwarecenter import Application
 from softwarecenter.enums import *
+from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend import get_install_backend
@@ -78,8 +79,7 @@ class AppDetailsView(WebkitWidget):
         self.cache.connect("cache-ready", self._on_cache_ready)
 
         self.datadir = datadir
-        self.arch = subprocess.Popen(["dpkg","--print-architecture"], 
-                                     stdout=subprocess.PIPE).communicate()[0].strip()
+        self.arch = get_current_arch()
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))

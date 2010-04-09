@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import apt
+import apt_pkg
 import logging
 import time
 import xml.sax.saxutils
@@ -80,6 +82,9 @@ def unescape(text):
     unescapes the given text
     """
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
+
+def get_current_arch():
+    return apt_pkg.Config.Find("Apt::Architecture")
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
