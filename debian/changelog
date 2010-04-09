@@ -7,6 +7,9 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - fix nasty list view errors when disabling partner
       repository (LP: #556995)
+  * softwarecenter/view/appview.py:
+    - fix intermittent AttributeError in row selection
+      (LP: #552224)
   
   [ Michael Vogt ]
   * softwarecenter/apt/aptcache.py:
@@ -30,7 +33,7 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - use package name when application name is not available (LP: #549011)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Apr 2010 17:28:50 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Apr 2010 18:22:01 -0400
 
 software-center (1.1.24) lucid; urgency=low
 

@@ -964,6 +964,8 @@ class AppView(gtk.TreeView):
 
     def _app_selected_timeout_cb(self, view):
         selection = view.get_selection()
+        if not selection:
+            return False
         model, it = selection.get_selected()
         model, rows = selection.get_selected_rows()
         if not rows: 
