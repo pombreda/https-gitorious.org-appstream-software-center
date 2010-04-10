@@ -150,8 +150,8 @@ class ChannelPane(SoftwarePane):
         self._show_channel_overview()
 
     def on_navigation_search(self, button, part):
-        logging.debug("on_navigation_search")
-        pass
+        """ callback when the navigation button with id 'search' is clicked"""
+        self.display_search()
 
     def on_navigation_list(self, button, part):
         """callback when the navigation button with id 'list' is clicked"""
@@ -175,6 +175,12 @@ class ChannelPane(SoftwarePane):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
+
+    def display_search(self):
+        self.navigation_bar.remove_id("details")
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.emit("app-list-changed", len(self.app_view.get_model()))
+        self.searchentry.show()
     
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
