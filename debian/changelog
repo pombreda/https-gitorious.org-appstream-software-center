@@ -17,6 +17,10 @@ software-center (1.1.25) UNRELEASED; urgency=low
     - fix bug where clicking the "Search Results" navigation
       button in the "Installed View" or in a PPA/channel
       view has no effect (LP: #559732)
+  * softwarecenter/view/channelpane.py:
+    - fix bug where selecting a new PPA/channel while
+      a search is in effect in the current PPA/channel
+      does not display the new PPA/channel (LP: #559742)
   
   [ Michael Vogt ]
   * softwarecenter/apt/aptcache.py:
@@ -40,7 +44,7 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - use package name when application name is not available (LP: #549011)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Apr 2010 21:31:27 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Apr 2010 22:20:47 -0400
 
 software-center (1.1.24) lucid; urgency=low
 

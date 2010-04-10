@@ -135,6 +135,8 @@ class ChannelPane(SoftwarePane):
             self.apps_filter.set_only_packages_without_applications(True)
         else:
             self.apps_filter = None
+        # when displaying a new channel, clear any search in progress
+        self.search_terms = ""
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
