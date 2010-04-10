@@ -853,7 +853,7 @@ class AppView(gtk.TreeView):
         # at by default
         tt = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Name", tt, text=AppStore.COL_TEXT)
-        column.set_fixed_width(0)
+        column.set_fixed_width(1)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
 

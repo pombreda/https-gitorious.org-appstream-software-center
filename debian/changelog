@@ -1,4 +1,4 @@
-software-center (1.1.25) UNRELEASED; urgency=low
+software-center (1.1.25) lucid; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
@@ -44,7 +44,7 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - use package name when application name is not available (LP: #549011)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Apr 2010 22:20:47 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 10 Apr 2010 16:29:10 +0200
 
 software-center (1.1.24) lucid; urgency=low
 
