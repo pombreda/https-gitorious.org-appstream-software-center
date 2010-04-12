@@ -78,6 +78,7 @@ class ChannelPane(SoftwarePane):
         """
         if not self.channel:
             return
+        self.refresh_seq_nr += 1
         channel_query = self.channel.get_channel_query()
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
@@ -99,11 +100,13 @@ class ChannelPane(SoftwarePane):
         old_model = self.app_view.get_model()
         if old_model is not None:
             old_model.active = False
-        gobject.idle_add(self._make_new_model, query)
+            self.app_view.set_model(None)
+        gobject.idle_add(self._make_new_model, query, self.refresh_seq_nr)
         return False
 
-    def _make_new_model(self, query):
+    def _make_new_model(self, query, seq_nr):
         # get a new store and attach it to the view
+        self.scroll_app_list.window.set_cursor(self.busy_cursor)
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
@@ -111,8 +114,14 @@ class ChannelPane(SoftwarePane):
                              limit=0,
                              sort=True,
                              filter=self.apps_filter)
-        self.app_view.set_model(new_model)
-        self.emit("app-list-changed", len(new_model))
+        # between request of the new model and actual delivery other
+        # events may have happend
+        self.scroll_app_list.window.set_cursor(None)
+        if seq_nr == self.refresh_seq_nr:
+            self.app_view.set_model(new_model)
+            self.emit("app-list-changed", len(new_model))
+        else:
+            logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
         return False
 
     def set_channel(self, channel):
@@ -126,6 +135,8 @@ class ChannelPane(SoftwarePane):
             self.apps_filter.set_only_packages_without_applications(True)
         else:
             self.apps_filter = None
+        # when displaying a new channel, clear any search in progress
+        self.search_terms = ""
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
@@ -141,8 +152,8 @@ class ChannelPane(SoftwarePane):
         self._show_channel_overview()
 
     def on_navigation_search(self, button, part):
-        logging.debug("on_navigation_search")
-        pass
+        """ callback when the navigation button with id 'search' is clicked"""
+        self.display_search()
 
     def on_navigation_list(self, button, part):
         """callback when the navigation button with id 'list' is clicked"""
@@ -166,6 +177,12 @@ class ChannelPane(SoftwarePane):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
+
+    def display_search(self):
+        self.navigation_bar.remove_id("details")
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.emit("app-list-changed", len(self.app_view.get_model()))
+        self.searchentry.show()
     
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -173,7 +190,11 @@ class ChannelPane(SoftwarePane):
         if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
             return ""
         # otherwise, show status based on search or not
-        length = len(self.app_view.get_model())
+        model = self.app_view.get_model()
+        if model:
+            length = len(self.app_view.get_model())
+        else:
+            length = 0
         if len(self.searchentry.get_text()) > 0:
             return gettext.ngettext("%s matching item",
                                     "%s matching items",

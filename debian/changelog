@@ -1,4 +1,4 @@
-software-center (1.1.25) UNRELEASED; urgency=low
+software-center (1.1.25) lucid; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
@@ -7,6 +7,20 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - fix nasty list view errors when disabling partner
       repository (LP: #556995)
+  * softwarecenter/view/appview.py:
+    - fix intermittent AttributeError in row selection
+      (LP: #552224)
+  * softwarecenter/view/availablepane.py:
+    - fix double call to set_category method
+  * softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - fix bug where clicking the "Search Results" navigation
+      button in the "Installed View" or in a PPA/channel
+      view has no effect (LP: #559732)
+  * softwarecenter/view/channelpane.py:
+    - fix bug where selecting a new PPA/channel while
+      a search is in effect in the current PPA/channel
+      does not display the new PPA/channel (LP: #559742)
   
   [ Michael Vogt ]
   * softwarecenter/apt/aptcache.py:
@@ -19,8 +33,10 @@ software-center (1.1.25) UNRELEASED; urgency=low
     - when we have no package and no information no how to get it, 
       display unavailable message instead of a empty summary line
   * merged lp:~mmcg069/software-center/pathbar-atk
-    this makes the pathbar on top fully accessible with e.g.
-    orca (LP: #526384)
+    - this makes the pathbar on top fully accessible with e.g.
+      orca (LP: #526384). Also fixes intermittent TypeError bug
+      (LP: #558895) and nav button visual artifact when selecting
+      a channel (LP: #531724).  Many thanks!
   * softwarecenter/view/appview.py:
     - avoid blocking if a operation takes long
 
@@ -28,7 +44,7 @@ software-center (1.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - use package name when application name is not available (LP: #549011)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 06 Apr 2010 10:14:43 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 10 Apr 2010 16:29:10 +0200
 
 software-center (1.1.24) lucid; urgency=low
 

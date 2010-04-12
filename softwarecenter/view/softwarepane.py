@@ -78,6 +78,12 @@ class SoftwarePane(gtk.VBox):
         self.db.connect("reopen", self.on_db_reopen)
         self.icons = icons
         self.datadir = datadir
+        # refreshes can happen out-of-bound so we need to be sure
+        # that we only set the new model (when its available) if
+        # the refresh_seq_nr of the ready model matches that of the
+        # request (e.g. people click on ubuntu channel, get impatient, click
+        # on partner channel)
+        self.refresh_seq_nr = 0
         # common UI elements (applist and appdetails) 
         # its the job of the Child class to put it into a good location
         # list
@@ -165,7 +171,7 @@ class SoftwarePane(gtk.VBox):
         if selection:
             selected_iter = selection.get_selected()[1]
         current_app = self.get_current_app()
-        if (model and 
+        if (model is not None and 
             model.get_iter_root() is not None 
             and selected_iter is None):
             index=0

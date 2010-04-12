@@ -853,7 +853,7 @@ class AppView(gtk.TreeView):
         # at by default
         tt = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Name", tt, text=AppStore.COL_TEXT)
-        column.set_fixed_width(0)
+        column.set_fixed_width(1)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
 
@@ -964,6 +964,8 @@ class AppView(gtk.TreeView):
 
     def _app_selected_timeout_cb(self, view):
         selection = view.get_selection()
+        if not selection:
+            return False
         model, it = selection.get_selected()
         model, rows = selection.get_selected_rows()
         if not rows: 
