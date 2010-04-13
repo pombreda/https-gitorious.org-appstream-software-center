@@ -151,7 +151,12 @@ class SoftwarePane(gtk.VBox):
     def on_application_request_action(self, appview, app, action):
         """callback when an app action is requested from the appview"""
         logging.debug("on_application_action_requested: '%s' %s" % (app, action))
+        # FIXME: move the action-code below out of the appdetails and
+        #        into some controller class
+        # init the app_details here with the given app because we
+        # reuse it 
         self.app_details.init_app(app)
+        # action_func is "install" or "remove" of self.app_details
         action_func = getattr(self.app_details, action)
         if callable(action_func):
             action_func()

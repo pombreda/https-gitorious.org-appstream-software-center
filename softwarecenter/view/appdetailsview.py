@@ -394,6 +394,15 @@ class AppDetailsView(WebkitWidget):
         self.upgrade()
 
     def on_button_remove_clicked(self):
+        self.remove()
+
+    def on_button_install_clicked(self):
+        self.install()
+
+    # public interface
+    def install(self):
+        self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
+    def remove(self):
         # generic removal text
         # FIXME: this text is not accurate, we look at recommends as
         #        well as part of the rdepends, but those do not need to
@@ -409,15 +418,6 @@ class AppDetailsView(WebkitWidget):
                                         button_text, iconpath, depends):
                 self._set_action_button_sensitive(True)
                 return
-        self.remove()
-
-    def on_button_install_clicked(self):
-        self.install()
-
-    # public interface
-    def install(self):
-        self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
-    def remove(self):
         self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
     def upgrade(self):
         self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
