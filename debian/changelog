@@ -1,3 +1,12 @@
+software-center (1.1.26) UNRELEASED; urgency=low
+
+  * softwarecenter/app.py,
+    softwarecenter/view/softwarepane.py:
+  - correctly refresh the availablepane view on a
+    change to software sources (LP: 559539)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Apr 2010 00:49:39 -0400
+
 software-center (1.1.25) lucid; urgency=low
 
   [ Gary Lasker ]
