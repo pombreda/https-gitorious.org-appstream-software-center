@@ -80,7 +80,7 @@ class AppStore(gtk.GenericTreeModel):
      SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
 
     def __init__(self, cache, db, icons, search_query=None, limit=200,
-                 sort=False, filter=None):
+                 sort=False, exact=False, filter=None):
         """
         Initalize a AppStore.
 
@@ -131,6 +131,35 @@ class AppStore(gtk.GenericTreeModel):
             self.apps.sort()
             for (i, app) in enumerate(self.apps):
                 self.app_index_map[app] = i
+        elif exact:
+            # Exact refers to searching exact package names in an exact order.
+            # It requires the output of database.get_query_list_from_search_
+            # entry('str with non-trailing comma'). This is used for custom
+            # package lists. Note that, by specification, exact search ignores
+            # requested sorting.
+            assert (type(search_query) == list or type(search_query) == tuple)
+            
+            enquire = xapian.Enquire(db.xapiandb)
+            for i, query in enumerate(search_query):
+                enquire.set_query(query)
+                matches = enquire.get_mset(0, 1) # Takes only one result
+                for m in matches: # so this only runs through once
+                    doc = m[xapian.MSET_DOCUMENT]
+                    app = Application(doc.get_value(XAPIAN_VALUE_APPNAME),
+                                      doc.get_value(XAPIAN_VALUE_PKGNAME))
+                # Preserve pkgnames not found in the current chaannel
+                if len(matches) == 0:
+                    # Find and remove a AP search prefix to get the
+                    # original package name.
+                    pkgname = ""
+                    for term in query:
+                        if term[:2] == "AP":
+                            pkgname = term[2:]
+                            break
+                    app = Application("", pkgname)
+                self.app_index_map[app] = i
+                self.pkgname_index_map[app.pkgname] = [i]
+                self.apps.append(app)
         else:
             # we support single and list search_queries,
             # if list we append them one by one
