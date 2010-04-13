@@ -32,6 +32,7 @@ else:
     from widgets.pathbar_gtk_atk import NavigationBar
 
 from widgets.searchentry import SearchEntry
+from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
 from appdetailsview import AppDetailsView
@@ -127,6 +128,9 @@ class SoftwarePane(gtk.VBox):
         self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
         self.pack_start(self.notebook)
+        # a bar at the bottom (hidden by default) for contextual actions
+        self.action_bar = ActionBar()
+        self.pack_start(self.action_bar, expand=False, padding=self.PADDING)
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
