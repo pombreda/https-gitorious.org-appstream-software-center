@@ -211,12 +211,15 @@ class AvailablePane(SoftwarePane):
             self.app_view.window.set_cursor(self.busy_cursor)
             self.subcategories_view.window.set_cursor(self.busy_cursor)
             self.apps_vbox.window.set_cursor(self.busy_cursor)
+        # In custom list mode, search should yield the exact package name.
+        self.apps_filter.set_only_packages_without_applications(self.custom_list_mode)
         new_model = AppStore(self.cache,
                              self.db,
                              self.icons,
                              query,
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
+                             exact=self.custom_list_mode,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
         # events may have happend
