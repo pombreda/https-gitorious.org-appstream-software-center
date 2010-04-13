@@ -300,7 +300,13 @@ class AvailablePane(SoftwarePane):
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
             length = len(self.db)
 
-        if len(self.searchentry.get_text()) > 0:
+        if self.custom_list_mode:
+            appstore = self.app_view.get_model()
+            existing = len(appstore.existing_apps)
+            self._status_text = gettext.ngettext("%s item",
+                                                 "%s items",
+                                                 existing) % existing
+        elif len(self.searchentry.get_text()) > 0:
             self._status_text = gettext.ngettext("%s matching item",
                                                  "%s matching items",
                                                  length) % length
