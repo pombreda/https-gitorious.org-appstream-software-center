@@ -111,6 +111,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("channels-changed", self.on_channels_changed)
 
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -405,6 +406,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _on_transaction_stopped(self, backend):
         """ callback when an application install/remove transaction has stopped """
         self.update_app_status_menu()
+
+    def on_channels_changed(self, backend, res):
+        """ callback when the set of software channels has changed """
+        logging.debug("on_channels_changed %s" % res)
+        if res:
+            self.db.open()
+            # reset the navigation history because software items stored
+            # in the history stack might no longer be available
+            self.available_pane.reset_navigation_history()
+            # refresh the available_pane views to reflect any changes
+            self.available_pane.refresh_apps()
+            self.available_pane.update_app_view()
+            self.update_app_status_menu()
+            self.update_status_bar()
 
     # helper
 

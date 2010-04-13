@@ -1,3 +1,24 @@
+software-center (1.1.26) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/view/softwarepane.py:
+    - correctly refresh the availablepane view on a
+      change to software sources (LP: #559539)
+  * softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/navhistory.py:
+    - clear navigation history on a software channel refresh
+      because packages in the history stack might no longer
+      be available
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/appdetailsview.py:
+    - fix displaying removal warning when listview interface buttons
+      are used (LP: #561018)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Apr 2010 12:53:12 -0400
+
 software-center (1.1.25) lucid; urgency=low
 
   [ Gary Lasker ]

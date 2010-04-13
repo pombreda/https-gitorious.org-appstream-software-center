@@ -92,6 +92,12 @@ class NavigationHistory(object):
                 return self._nav_stack[-1].parts[-1].label
         return None
 
+    def reset(self):
+        """
+        reset the navigation history by clearing the history stack
+        """
+        self._nav_stack.reset()
+
 
 class NavigationItem(object):
     """
@@ -230,3 +236,7 @@ class NavigationStack(object):
 
     def at_start(self):
         return self.cursor == 0
+
+    def reset(self):
+        self.stack = []
+        self.cursor = 0

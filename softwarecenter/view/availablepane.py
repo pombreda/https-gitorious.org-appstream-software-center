@@ -269,6 +269,14 @@ class AvailablePane(SoftwarePane):
             else:
                 return self.current_app_by_category.get(self.apps_category)
 
+    def reset_navigation_history(self):
+        """
+        reset the navigation history and set the history buttons insensitive
+        """
+        self.nav_history.reset()
+        self.back_forward.left.set_sensitive(False)
+        self.back_forward.right.set_sensitive(False)
+
     def _on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text up-to-date by
            keeping track of the app-list-changed signals
