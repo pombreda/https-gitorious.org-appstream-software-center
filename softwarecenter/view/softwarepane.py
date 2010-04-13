@@ -165,18 +165,20 @@ class SoftwarePane(gtk.VBox):
         first app in the list is selected.  If a row is already selected,
         nothing is done.
         """
+        selected_iter = None
         selection = self.app_view.get_selection()
-        (model, it) = selection.get_selected()
+        model = self.app_view.get_model()
+        if selection:
+            selected_iter = selection.get_selected()[1]
         current_app = self.get_current_app()
-        if (model is not None and
-            model.get_iter_root() is not None
-            and it is None):
+        if (model is not None and 
+            model.get_iter_root() is not None 
+            and selected_iter is None):
             index=0
             vadj = self.scroll_app_list.get_vadjustment()
             if current_app:
-                app_map = self.app_view.get_model().app_index_map
-                if current_app in app_map:
-                    index = app_map.get(current_app)
+                if current_app in model.app_index_map:
+                    index = model.app_index_map.get(current_app)
             # re-select item
             if vadj:
                 self.app_view.set_cursor(index)
