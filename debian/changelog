@@ -1,4 +1,4 @@
-software-center (1.1.26) UNRELEASED; urgency=low
+software-center (1.1.26) lucid; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/app.py,
@@ -17,7 +17,7 @@ software-center (1.1.26) UNRELEASED; urgency=low
     - fix displaying removal warning when listview interface buttons
       are used (LP: #561018)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Apr 2010 12:53:12 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 13 Apr 2010 22:57:30 +0200
 
 software-center (1.1.25) lucid; urgency=low
 
