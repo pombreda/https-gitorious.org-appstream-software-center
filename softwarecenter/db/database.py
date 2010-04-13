@@ -99,7 +99,7 @@ class StoreDatabase(gobject.GObject):
                     return None
                 elif pkgname and pkgname not in added:
                     added.append(pkgname)
-                    queries.append(xapian.Query("XP"+pkgname))
+                    queries.append(xapian.Query("AP"+pkgname))
             return queries
         return None
 
