@@ -1061,10 +1061,12 @@ class AppView(gtk.TreeView):
 
     def _on_row_activated(self, view, path, column):
         model = view.get_model()
-        name = model[path][AppStore.COL_APP_NAME]
-        pkgname = model[path][AppStore.COL_PKGNAME]
-        popcon = model[path][AppStore.COL_POPCON]
-        self.emit("application-activated", Application(name, pkgname, popcon))
+        exists = model[path][AppStore.COL_EXISTS]
+        if exists:
+            name = model[path][AppStore.COL_APP_NAME]
+            pkgname = model[path][AppStore.COL_PKGNAME]
+            popcon = model[path][AppStore.COL_POPCON]
+            self.emit("application-activated", Application(name, pkgname, popcon))
 
     def _on_button_press_event(self, view, event, col):
         if event.button != 1:
