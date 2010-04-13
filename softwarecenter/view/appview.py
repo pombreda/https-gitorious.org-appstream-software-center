@@ -947,7 +947,7 @@ class AppView(gtk.TreeView):
                                     installed=AppStore.COL_INSTALLED, 
                                     available=AppStore.COL_AVAILABLE,
                                     action_in_progress=AppStore.COL_ACTION_IN_PROGRESS,
-                                    exists=AppStore.COL_EXISTS))
+                                    exists=AppStore.COL_EXISTS)
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
