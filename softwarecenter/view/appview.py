@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
+import __builtin__
 import apt
 import gettext
 import glib
@@ -215,6 +216,15 @@ class AppStore(gtk.GenericTreeModel):
                 if not app.pkgname in self.pkgname_index_map:
                     self.pkgname_index_map[app.pkgname] = []
                 self.pkgname_index_map[app.pkgname].append(i)
+
+        # Quantitative data on stored packages. These are used for quick
+        # reference with custom lists, but are calculated for all stores
+        # for consistancy.
+        exists = lambda app: self.cache.has_key(app.pkgname)
+        installable = lambda app: not self.cache[app.pkgname].isInstalled
+        self.existing_apps = __builtin__.filter(exists, self.apps)
+        self.installable_apps = __builtin__.filter(installable,
+                                                   self.existing_apps)
 
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
