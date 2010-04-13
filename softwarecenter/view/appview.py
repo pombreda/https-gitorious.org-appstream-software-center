@@ -279,7 +279,42 @@ class AppStore(gtk.GenericTreeModel):
         except IndexError:
             logging.exception("on_get_value: rowref=%s apps=%s" % (rowref, self.apps))
             return
-        doc = self.db.get_xapian_document(app.appname, app.pkgname)
+        try:
+            doc = self.db.get_xapian_document(app.appname, app.pkgname)
+        except IndexError:
+            # This occurs when using custom lists, which keep missing package
+            # names in the record. In this case a "Not found" cell should be
+            # rendered, with all data but package name absent and the text
+            # markup colored gray.
+            if column == self.COL_APP_NAME:
+                return _("Not found")
+            elif column == self.COL_TEXT:
+                return "%s\n" % app.pkgname
+            elif column == self.COL_MARKUP:
+                s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
+                    gobject.markup_escape_text(_("Not found")),
+                    gobject.markup_escape_text(app.pkgname))
+                return s
+            elif column == self.COL_ICON:
+                return self.icons.load_icon(MISSING_PKG_ICON,
+                                            self.ICON_SIZE, 0)
+            elif column == self.COL_INSTALLED:
+                return False
+            elif column == self.COL_AVAILABLE:
+                return False
+            elif column == self.COL_PKGNAME:
+                return app.pkgname
+            elif column == self.COL_POPCON:
+                return 0
+            elif column == self.COL_IS_ACTIVE:
+                # This ensures the missing package will not expand
+                return False
+            elif column == self.COL_EXISTS:
+                return False
+            elif column == self.COL_ACTION_IN_PROGRESS:
+                return -1
+
+        # Otherwise the app should return app data normally.
         if column == self.COL_APP_NAME:
             return app.appname
         elif column == self.COL_TEXT:
