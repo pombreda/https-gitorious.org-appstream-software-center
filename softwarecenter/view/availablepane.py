@@ -246,7 +246,11 @@ class AvailablePane(SoftwarePane):
                                             animate=True)
 
         elif self.apps_search_term:
-            self.navigation_bar.add_with_id(_("Search Results"),
+            if self.custom_list_mode:
+                tail_label = _("Custom List")
+            else:
+                tail_label = _("Search Results")
+            self.navigation_bar.add_with_id(tail_label,
                                             self.on_navigation_search,
                                             self.NAV_BUTTON_ID_SEARCH, 
                                             do_callback=True,
