@@ -56,6 +56,9 @@ class AvailablePane(SoftwarePane):
     NAV_BUTTON_ID_DETAILS  = "details"
     NAV_BUTTON_ID_SEARCH   = "search"
 
+    # constant for use in action bar (see update_action_bar)
+    _INSTALL_BTN_ID = 0
+
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
@@ -315,6 +318,32 @@ class AvailablePane(SoftwarePane):
                                                  "%s items available",
                                                  length) % length
 
+    def update_action_bar(self):
+        '''
+        update buttons in the action bar
+        '''
+        if self.custom_list_mode:
+            appstore = self.app_view.get_model()
+            installable = len(appstore.installable_apps)
+            button_text = gettext.ngettext("Install %s item",
+                                           "Install %s items",
+                                           installable) % installable
+            button = self.action_bar.get_button(self._INSTALL_BTN_ID)
+            if button and installable:
+                # Install all already offered. Update offer.
+                if button.get_label() != button_text:
+                    button.set_label(button_text)
+            elif installable:
+                # Install all not yet offered. Offer.
+                self.action_bar.add_button(self._INSTALL_BTN_ID, button_text,
+                                           lambda: 0) #placeholder
+            else:
+                # Install offered, but nothing to install. Clear offer.
+                self.action_bar.clear()
+        else:
+            # Ensure bar is hidden.
+            self.action_bar.clear()
+
     def _show_category_overview(self):
         " helper that shows the category overview "
         # reset category query
@@ -377,6 +406,7 @@ class AvailablePane(SoftwarePane):
             self.custom_list_mode = "," in new_text[:-1]
         self.update_navigation_button()
         self.refresh_apps()
+        self.update_action_bar()
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
     def on_db_reopen(self, db):
