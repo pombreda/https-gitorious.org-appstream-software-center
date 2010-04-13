@@ -412,6 +412,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         logging.debug("on_channels_changed %s" % res)
         if res:
             self.db.open()
+            # must reset the navigation history because software items stored
+            # in the history stack might no longer be available
+            self.available_pane.reset_navigation_history()
+            # refresh the view
             self.active_pane.refresh_apps()
             self.update_app_list_view()
             self.update_app_status_menu()
