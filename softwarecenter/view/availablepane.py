@@ -73,6 +73,8 @@ class AvailablePane(SoftwarePane):
         self.connect("app-list-changed", self._on_app_list_changed)
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
+        # search mode
+        self.custom_list_mode = False
         # track navigation history
         self.nav_history = NavigationHistory(self)
         # UI
@@ -357,6 +359,9 @@ class AvailablePane(SoftwarePane):
             self.apps_search_term = new_text
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
+            # enter custom list mode if search has non-trailing
+            # comma per custom list spec.
+            self.custom_list_mode = "," in new_text[:-1]
         self.update_navigation_button()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
