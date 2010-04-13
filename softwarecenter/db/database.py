@@ -90,6 +90,8 @@ class StoreDatabase(gobject.GObject):
         https://wiki.ubuntu.com/SoftwareCenter?action=show&redirect=SoftwareStore#Searching%20for%20multiple%20package%20names
         """
         # expand "," to APpkgname AND
+        # (ignore trailing comma)
+        search_term = search_term.rstrip(",")
         if "," in search_term:
             queries = []
             added = []
