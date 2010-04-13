@@ -410,9 +410,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_channels_changed(self, backend, res):
         """ callback when the set of software channels has changed """
         logging.debug("on_channels_changed %s" % res)
-        print "CALLED on_channels_changed %s" % res
         if res:
             self.db.open()
+            self.active_pane.refresh_apps()
             self.update_app_list_view()
             self.update_app_status_menu()
             self.update_status_bar()
