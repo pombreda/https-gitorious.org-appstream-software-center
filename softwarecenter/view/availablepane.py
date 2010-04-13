@@ -56,7 +56,7 @@ class AvailablePane(SoftwarePane):
     NAV_BUTTON_ID_DETAILS  = "details"
     NAV_BUTTON_ID_SEARCH   = "search"
 
-    # constant for use in action bar (see update_action_bar)
+    # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
 
     def __init__(self, cache, db, distro, icons, datadir):
@@ -294,6 +294,7 @@ class AvailablePane(SoftwarePane):
            keeping track of the app-list-changed signals
         """
         self._update_status_text(length)
+        self._update_action_bar()
 
     def _update_status_text(self, length):
         """
@@ -318,16 +319,16 @@ class AvailablePane(SoftwarePane):
                                                  "%s items available",
                                                  length) % length
 
-    def update_action_bar(self):
+    def _update_action_bar(self):
         '''
         update buttons in the action bar
         '''
         if self.custom_list_mode:
             appstore = self.app_view.get_model()
-            installable = len(appstore.installable_apps)
+            installable = appstore.installable_apps
             button_text = gettext.ngettext("Install %s item",
                                            "Install %s items",
-                                           installable) % installable
+                                           len(installable)) % len(installable)
             button = self.action_bar.get_button(self._INSTALL_BTN_ID)
             if button and installable:
                 # Install all already offered. Update offer.
@@ -336,7 +337,7 @@ class AvailablePane(SoftwarePane):
             elif installable:
                 # Install all not yet offered. Offer.
                 self.action_bar.add_button(self._INSTALL_BTN_ID, button_text,
-                                           lambda: 0) #placeholder
+                                           appstore.install_all)
             else:
                 # Install offered, but nothing to install. Clear offer.
                 self.action_bar.clear()
@@ -406,7 +407,6 @@ class AvailablePane(SoftwarePane):
             self.custom_list_mode = "," in new_text[:-1]
         self.update_navigation_button()
         self.refresh_apps()
-        self.update_action_bar()
         self.notebook.set_current_page(self.PAGE_APPLIST)
 
     def on_db_reopen(self, db):

@@ -230,6 +230,11 @@ class AppStore(gtk.GenericTreeModel):
         """ apply filter and return True if the package is filtered out """
         pkgname = self.db.get_pkgname(doc)
         return not filter.filter(doc, pkgname)
+
+    def install_all(self):
+        """ installs all installable apps in the store """
+        self.backend.install_multiple(self.installable_apps)
+
     # internal helper
     def _get_searches_sort_mode(self):
         mode = self.SEARCHES_SORTED_BY_POPCON
