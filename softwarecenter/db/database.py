@@ -91,15 +91,16 @@ class StoreDatabase(gobject.GObject):
         """
         # expand "," to APpkgname AND
         if "," in search_term:
-            query = xapian.Query()
+            queries = []
+            added = []
             for pkgname in search_term.split(","):
                 # not a pkgname
                 if not re.match("[0-9a-z\.\-]+", pkgname):
                     return None
-                if pkgname:
-                    query = xapian.Query(xapian.Query.OP_OR, query, 
-                                         xapian.Query("XP"+pkgname))
-            return query
+                elif pkgname and pkgname not in added:
+                    added.append(pkgname)
+                    queries.append(xapian.Query("XP"+pkgname))
+            return queries
         return None
 
     def get_query_list_from_search_entry(self, search_term, category_query=None):
@@ -134,9 +135,9 @@ class StoreDatabase(gobject.GObject):
         
         # check if we need to do comma expansion instead of a regular
         # query
-        query = self._comma_expansion(search_term)
-        if query:
-            return _add_category_to_query(query)
+        queries = self._comma_expansion(search_term)
+        if queries:
+            return map(_add_category_to_query, queries)
 
         # get a pkg query
         pkg_query = xapian.Query()
