@@ -59,7 +59,7 @@ class AppStore(gtk.GenericTreeModel):
      COL_POPCON,
      COL_IS_ACTIVE,
      COL_ACTION_IN_PROGRESS,
-     ) = range(10)
+     COL_EXISTS) = range(11)
 
     column_type = (str,
                    str,
@@ -70,7 +70,8 @@ class AppStore(gtk.GenericTreeModel):
                    str,
                    int,
                    bool,
-                   int)
+                   int,
+                   bool)
 
     ICON_SIZE = 24
     MAX_STARS = 5
@@ -329,6 +330,8 @@ class AppStore(gtk.GenericTreeModel):
                 return self.backend.pending_transactions[app.pkgname]
             else:
                 return -1
+        elif column == self.COL_EXISTS:
+            return True
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -542,6 +545,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         'action_in_progress': (gobject.TYPE_INT, 'Action Progress', 'Action progress', -1, 100, -1,
                      gobject.PARAM_READWRITE),
+
+        'exists': (bool, 'exists', 'Is the app found in current channel', False,
+                   gobject.PARAM_READWRITE),
         }
 
     # class constants
@@ -905,7 +911,8 @@ class AppView(gtk.TreeView):
                                     isactive=AppStore.COL_IS_ACTIVE,
                                     installed=AppStore.COL_INSTALLED, 
                                     available=AppStore.COL_AVAILABLE,
-                                    action_in_progress=AppStore.COL_ACTION_IN_PROGRESS)
+                                    action_in_progress=AppStore.COL_ACTION_IN_PROGRESS,
+                                    exists=AppStore.COL_EXISTS))
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
