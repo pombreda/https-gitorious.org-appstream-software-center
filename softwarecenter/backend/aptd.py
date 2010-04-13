@@ -108,6 +108,17 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                           reply_handler=reply_handler,
                                           error_handler=self._on_trans_error)
 
+    # TODO: An implementation that installs them separately
+    # with icons and names handled would be better
+    def install_multiple(self, pkgnames):
+        """ install several packages """
+        self.emit("transaction-started")
+        reply_handler = lambda trans: self._run_transaction(trans, None,
+                                                            None, None)
+        self.aptd_client.install_packages(pkgnames,
+                                          reply_handler=reply_handler,
+                                          error_handler=self._on_trans_error)
+
     def reload(self):
         """ reload package list """
         reply_handler = lambda trans: self._run_transaction(trans, None, None,
