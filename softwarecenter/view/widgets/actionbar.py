@@ -52,7 +52,7 @@ class ActionBar(gtk.Alignment):
         result -- A function to be called on button click
         result_args -- Any arguments for the result function
         """
-        overwrite = self._get_id(id)
+        overwrite = self.get_button(id)
         if overwrite:
             self._elems.remove(overwrite)
         btn = gtk.Button(label)
@@ -108,12 +108,6 @@ class ActionBar(gtk.Alignment):
     def _hide(self):
         super(ActionBar, self).hide()
         self._visible = False
-
-    def _get_id(self, id):
-        children = self._elems.get_children()
-        for child in children:
-            if child.id == id:
-                return child
 
     def _callback(self, function, args):
         # Disposes of the 'widget' argument that
