@@ -10,6 +10,8 @@ software-center (1.1.27) UNRELEASED; urgency=low
       don't know the status of the freeness there (LP: #552830)
   * merged lp:~vish.../software-center/avoidmonochromeicon, many thanks
   * re-enable action button if confirm dialog got canceled (LP: #562810)
+  * merged lp:~zkrynicki/software-center/improve-html, many thanks
+    (final bits for LP: #455320), add simple test
 
   [ Matthew McGowan ]
   * softwarecenter/view/availablepane.py:
