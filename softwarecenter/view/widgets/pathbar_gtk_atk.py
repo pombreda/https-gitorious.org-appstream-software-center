@@ -338,7 +338,7 @@ class PathBar(gtk.HBox):
             self._scroll_xO = 0
             # redraw the entire widget
             # incase some timeouts are skipped due to high system load
-            self.queue_draw_area(*draw_area)
+            self.queue_draw()
             self._scroller = None
             return False
         return True
@@ -623,7 +623,6 @@ class NavigationBar(PathBar):
         If there is the same id already, replace the existing one
         with the new one
         """
-
         # check if we have the button of that id or need a new one
         if id in self.id_to_part:
             part = self.id_to_part[id]

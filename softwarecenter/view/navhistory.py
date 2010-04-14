@@ -225,12 +225,18 @@ class NavigationStack(object):
         return
 
     def step_back(self):
-        self.cursor -= 1
+        if self.cursor > 0:
+            self.cursor -= 1
+        else:
+            self.cursor = 0
         logging.debug('B:%s' % repr(self))
         return self.stack[self.cursor]
 
     def step_forward(self):
-        self.cursor += 1
+        if self.cursor < len(self.stack)-1:
+            self.cursor += 1
+        else:
+            self.cursor = len(self.stack)-1
         logging.debug('B:%s' % repr(self))
         return self.stack[self.cursor]
 
