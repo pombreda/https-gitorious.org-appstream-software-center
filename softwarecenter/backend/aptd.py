@@ -110,12 +110,13 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     # TODO: An implementation that installs them separately
     # with icons and names handled would be better
-    def install_multiple(self, apps):
+    def install_multiple(self, pkgnames, appnames, iconnames):
         """ install several packages """
         self.emit("transaction-started")
-        reply_handler = lambda trans: self._run_transaction(trans, None,
-                                                            None, None)
-        pkgnames = [app.pkgname for app in apps]
+        reply_handler = lambda trans: self._run_transaction(trans,
+                                                          ','.join(pkgnames),
+                                                          ','.join(appnames),
+                                                          ','.join(iconnames))
         self.aptd_client.install_packages(pkgnames,
                                           reply_handler=reply_handler,
                                           error_handler=self._on_trans_error)
@@ -181,14 +182,16 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             trans = client.get_transaction(tid, error_handler=lambda x: True)
             # FIXME: add a bit more data here
             try:
-                pkgname = trans.meta_data["sc_pkgname"]
-                self.pending_transactions[pkgname] = trans.progress
+                pkgnames = trans.meta_data["sc_pkgname"]
+                for pkgname in pkgnames.split(","):
+                    self.pending_transactions[pkgname] = trans.progress
             except KeyError:
                 # if its not a transaction from us (sc_pkgname) still
                 # add it with the tid as key to get accurate results
                 # (the key of pending_transactions is never directly
                 #  exposed in the UI)
-                self.pending_transactions[trans.tid] = trans.progress
+                for pkgname in trans.tid.split(","):
+                    self.pending_transactions[pkgname] = trans.progress
         self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
@@ -197,9 +200,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         (only showing pkg progress currently)
         """
         try:
-            pkgname = trans.meta_data["sc_pkgname"]
-            self.pending_transactions[pkgname] = progress
-            self.emit("transaction-progress-changed", pkgname, progress)
+            pkgnames = trans.meta_data["sc_pkgname"]
+            for pkgname in pkgnames:
+                self.pending_transactions[pkgname] = progress
+                self.emit("transaction-progress-changed", pkgname, progress)
         except KeyError:
             pass
 

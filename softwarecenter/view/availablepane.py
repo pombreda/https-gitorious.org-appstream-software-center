@@ -360,7 +360,12 @@ class AvailablePane(SoftwarePane):
 
     def _install_current_appstore(self):
         appstore = self.app_view.get_model()
-        self.backend.install_multiple(appstore.installable_apps)
+        pkgnames = []
+        appnames = []
+        for app in appstore.installable_apps:
+            pkgnames.append(app.pkgname)
+            appnames.append(app.appname)
+        self.backend.install_multiple(pkgnames, appnames, [])
 
     def _show_category_overview(self):
         " helper that shows the category overview "
