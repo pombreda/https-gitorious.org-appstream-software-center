@@ -9,18 +9,19 @@ software-center (1.1.27) UNRELEASED; urgency=low
     - do not show "Free" for packages from the partner repository, we 
       don't know the status of the freeness there (LP: #552830)
   * merged lp:~vish.../software-center/avoidmonochromeicon, many thanks
-  
+  * re-enable action button if confirm dialog got canceled (LP: #562810)
+
   [ Matthew McGowan ]
   * softwarecenter/view/availablepane.py:
     - ensure we have a model before sending changed signal (LP: #560967)
-  
+
   [ Gary Lasker ]
   * softwarecenter/view/navhistory.py:
     - clear forward navigation history items from the
       stack on an direct navigation, fixes regression
       (LP: #563128) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Apr 2010 17:14:40 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 14 Apr 2010 21:59:27 +0200
 
 software-center (1.1.26) lucid; urgency=low
 

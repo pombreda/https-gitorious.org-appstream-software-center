@@ -913,6 +913,9 @@ class AppView(gtk.TreeView):
             action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
         return action_in_progress
 
+    def get_button(self, key):
+        return self.buttons[key]
+
     def _on_realize(self, widget, tr):
         # tell the cellrenderer the text direction for renderering purposes
         tr.set_direction(self.get_direction())
