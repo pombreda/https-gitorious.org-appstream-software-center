@@ -82,7 +82,12 @@ def confirm_remove(parent, primary, cache, button_text, icon_path, depends=None)
     dialog.set_resizable(True)
     dialog.add_button(_("Cancel"), gtk.RESPONSE_CANCEL)
     dialog.add_button(button_text, gtk.RESPONSE_ACCEPT)
-    dialog.get_image().set_from_file(icon_path)
+
+    # fixes launchpad bug #560021
+    pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 32, 32)
+    image = dialog.get_image()
+    image.set_from_pixbuf(pixbuf)
+
     dialog.set_markup(primary)
     # add the dependencies
     if depends:

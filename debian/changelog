@@ -14,6 +14,8 @@ software-center (1.1.27) UNRELEASED; urgency=low
   [ Matthew McGowan ]
   * softwarecenter/view/availablepane.py:
     - ensure we have a model before sending changed signal (LP: #560967)
+  * softwarecenter/view/dialogs.py:
+    - ensure image size does not grow out of proportion (LP: #560021)
 
   [ Gary Lasker ]
   * softwarecenter/view/navhistory.py:
