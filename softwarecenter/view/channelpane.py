@@ -106,7 +106,8 @@ class ChannelPane(SoftwarePane):
 
     def _make_new_model(self, query, seq_nr):
         # get a new store and attach it to the view
-        self.scroll_app_list.window.set_cursor(self.busy_cursor)
+        if self.scroll_app_list.window:
+            self.scroll_app_list.window.set_cursor(self.busy_cursor)
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
@@ -116,7 +117,8 @@ class ChannelPane(SoftwarePane):
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
         # events may have happend
-        self.scroll_app_list.window.set_cursor(None)
+        if self.scroll_app_list.window:
+            self.scroll_app_list.window.set_cursor(None)
         if seq_nr == self.refresh_seq_nr:
             self.app_view.set_model(new_model)
             self.emit("app-list-changed", len(new_model))
