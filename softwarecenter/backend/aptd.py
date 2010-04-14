@@ -108,11 +108,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                           reply_handler=reply_handler,
                                           error_handler=self._on_trans_error)
 
-    # TODO: An implementation that installs them separately
-    # with icons and names handled would be better
     def install_multiple(self, pkgnames, appnames, iconnames):
         """ install several packages """
         self.emit("transaction-started")
+        # Bundled trans data is represented by interspersing with commas.
         reply_handler = lambda trans: self._run_transaction(trans,
                                                           ','.join(pkgnames),
                                                           ','.join(appnames),
