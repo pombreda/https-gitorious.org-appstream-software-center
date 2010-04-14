@@ -1,7 +1,7 @@
 software-center (1.1.27) UNRELEASED; urgency=low
 
   * softwarecenter/view/channelpane.py:
-    - fix crash when gdk window is not (yet) available
+    - fix crash when gdk window is not (yet) available (LP: #560320)
   * softwarecenter/view/appdetailsview.py, 
     softwarecenter/distro/__init__.py,
     softwarecenter/distro/Ubuntu.py:
