@@ -16,6 +16,10 @@ software-center (1.1.27) UNRELEASED; urgency=low
     - ensure we have a model before sending changed signal (LP: #560967)
   * softwarecenter/view/dialogs.py:
     - ensure image size does not grow out of proportion (LP: #560021)
+  * softwarecenter/view/appview.py:
+    - make rows more dynamic (LP: #557798)
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix resizing bugs in style-set events
 
   [ Gary Lasker ]
   * softwarecenter/view/navhistory.py:

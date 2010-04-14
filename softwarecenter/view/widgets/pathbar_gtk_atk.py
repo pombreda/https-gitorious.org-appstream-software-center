@@ -303,6 +303,7 @@ class PathBar(gtk.HBox):
 
     def _on_style_set(self, widget, old_style):
         self.theme = pathbar_common.PathBarStyle(self)
+        self.set_size_request(-1, -1)
         for part in self.get_children():
             part.recalc_dimensions()
         self.queue_draw()
@@ -521,12 +522,14 @@ class PathPart(gtk.EventBox):
     def _calc_size(self, shape):
         lx, ly, w, h = self.layout.get_pixel_extents()[1]
         w += 2*self._parent.theme['xpad']
-        h += 2*self._parent.theme['ypad']
+        h += 2*self._parent.theme['ypad'] + 2   # plus 2, so height is same as gtk.Entry at given font size
 
         w = self._adjust_width(shape, w)
         if not self.get_best_width():
             self._set_best_width(w)
-        self.set_size_request(w, h)
+        self.set_size_request(w, -1)
+        if h > self._parent.allocation.height:
+            self._parent.set_size_request(-1, h)
         return
 
     def do_callback(self):
@@ -599,6 +602,7 @@ class PathPart(gtk.EventBox):
 
     def recalc_dimensions(self):
         self.layout = None
+        self.set_size_request(-1, -1)
         self._calc_layout_points()
         self._calc_size(self.shape)
         return
