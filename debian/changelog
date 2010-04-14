@@ -1,4 +1,4 @@
-software-center (1.1.27) UNRELEASED; urgency=low
+software-center (2.0) lucid; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/channelpane.py:
@@ -32,7 +32,7 @@ software-center (1.1.27) UNRELEASED; urgency=low
     - ensure we have a model before sending app-list-changed
       signal (LP: #560716)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Apr 2010 18:58:38 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Apr 2010 01:25:12 +0200
 
 software-center (1.1.26) lucid; urgency=low
 
