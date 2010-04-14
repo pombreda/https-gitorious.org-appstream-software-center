@@ -118,7 +118,7 @@ class ActionBar(gtk.Alignment):
 
 if __name__ == "__main__":
     win = gtk.Window()
-    win.set_size_request(600,400)
+    win.set_size_request(600, 400)
     box = gtk.VBox()
     control_box = gtk.HBox()
     tree = gtk.TreeView()
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         global btns
         btns += 1
         bar.add_button(btns, "Perform %i action" % btns, perform, btns)
-        
+
     def rmv_func(*args):
         global btns
         if btns > 0:
