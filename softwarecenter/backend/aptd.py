@@ -201,7 +201,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         try:
             pkgnames = trans.meta_data["sc_pkgname"]
-            for pkgname in pkgnames:
+            for pkgname in pkgnames.split(","):
                 self.pending_transactions[pkgname] = progress
                 self.emit("transaction-progress-changed", pkgname, progress)
         except KeyError:
