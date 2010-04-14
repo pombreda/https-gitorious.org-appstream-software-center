@@ -336,7 +336,7 @@ class AvailablePane(SoftwarePane):
         '''
         update buttons in the action bar
         '''
-        if self.custom_list_mode:
+        if self.custom_list_mode and self.apps_search_term:
             appstore = self.app_view.get_model()
             installable = appstore.installable_apps
             button_text = gettext.ngettext("Install %s item",
@@ -403,6 +403,7 @@ class AvailablePane(SoftwarePane):
         # we are searching but we are not in any category
         if not self.apps_category and not new_text:
             # category activate will clear search etc
+            self.apps_search_term = ""
             self.navigation_bar.navigate_up()
             return
 
