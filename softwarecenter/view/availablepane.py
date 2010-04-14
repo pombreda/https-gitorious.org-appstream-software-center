@@ -207,7 +207,9 @@ class AvailablePane(SoftwarePane):
         seq_nr = self.refresh_seq_nr
         if self.app_view.window:
             self.app_view.window.set_cursor(self.busy_cursor)
+        if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(self.busy_cursor)
+        if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(self.busy_cursor)
         new_model = AppStore(self.cache,
                              self.db,
@@ -229,7 +231,9 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(new_model))
         if self.app_view.window:
             self.app_view.window.set_cursor(None)
+        if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(None)
+        if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(None)
         return False
 
