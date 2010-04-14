@@ -361,9 +361,12 @@ class AvailablePane(SoftwarePane):
             self.action_bar.clear()
 
     def _install_current_appstore(self):
-        appstore = self.app_view.get_model()
+        '''
+        Function that installs all applications displayed in the pane.
+        '''
         pkgnames = []
         appnames = []
+        appstore = self.app_view.get_model()
         for app in appstore.installable_apps:
             pkgnames.append(app.pkgname)
             appnames.append(app.appname)
