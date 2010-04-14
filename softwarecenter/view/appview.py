@@ -216,7 +216,9 @@ class AppStore(gtk.GenericTreeModel):
                 if not app.pkgname in self.pkgname_index_map:
                     self.pkgname_index_map[app.pkgname] = []
                 self.pkgname_index_map[app.pkgname].append(i)
+        self.refresh_metadata()
 
+    def refresh_metadata(self):
         # Quantitative data on stored packages. These are used for quick
         # reference with custom lists, but are calculated for all stores
         # for consistancy.
@@ -230,10 +232,6 @@ class AppStore(gtk.GenericTreeModel):
         """ apply filter and return True if the package is filtered out """
         pkgname = self.db.get_pkgname(doc)
         return not filter.filter(doc, pkgname)
-
-    def install_all(self):
-        """ installs all installable apps in the store """
-        self.backend.install_multiple(self.installable_apps)
 
     # internal helper
     def _get_searches_sort_mode(self):

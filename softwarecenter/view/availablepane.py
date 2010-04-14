@@ -28,6 +28,7 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.backend import get_install_backend
 
 from appview import AppView, AppStore, AppViewFilter
 from catview import CategoriesView
@@ -80,6 +81,9 @@ class AvailablePane(SoftwarePane):
         self.custom_list_mode = False
         # track navigation history
         self.nav_history = NavigationHistory(self)
+        # install backend
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
         # UI
         self._build_ui()
 
@@ -289,9 +293,18 @@ class AvailablePane(SoftwarePane):
         self.back_forward.left.set_sensitive(False)
         self.back_forward.right.set_sensitive(False)
 
+    def _on_transaction_finished(self, *args):
+        """internal helper that keeps the action bar up-to-date by
+           keeping track of the transaction-finished signals
+        """
+        appstore = self.app_view.get_model()
+        appstore.refresh_metadata()
+        self._update_action_bar()
+
     def _on_app_list_changed(self, pane, length):
-        """internal helper that keeps the status text up-to-date by
-           keeping track of the app-list-changed signals
+        """internal helper that keeps the status text and the action
+           bar up-to-date by keeping track of the app-list-changed
+           signals
         """
         self._update_status_text(length)
         self._update_action_bar()
@@ -337,13 +350,17 @@ class AvailablePane(SoftwarePane):
             elif installable:
                 # Install all not yet offered. Offer.
                 self.action_bar.add_button(self._INSTALL_BTN_ID, button_text,
-                                           appstore.install_all)
+                                           self._install_current_appstore)
             else:
                 # Install offered, but nothing to install. Clear offer.
                 self.action_bar.clear()
         else:
             # Ensure bar is hidden.
             self.action_bar.clear()
+
+    def _install_current_appstore(self):
+        appstore = self.app_view.get_model()
+        self.backend.install_multiple(appstore.installable_apps)
 
     def _show_category_overview(self):
         " helper that shows the category overview "
