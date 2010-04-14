@@ -50,7 +50,10 @@ def htmlize_package_desc(desc):
     indent_len = None
     for line in desc.splitlines():
         stripped_line = line.strip()
-        if not inside_p and stripped_line and not _is_bullet(line):
+        if (not inside_p and 
+            not inside_li and 
+            not _is_bullet(line) and
+            stripped_line):
             yield '<p tabindex="0">'
             inside_p = True
         if stripped_line:
