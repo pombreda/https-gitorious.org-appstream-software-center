@@ -17,10 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import gtk
 import cairo
 import colorsys
-
+import gtk
+import logging
 
 # pi constants
 M_PI = 3.1415926535897931
@@ -52,7 +52,7 @@ class PathBarStyle:
     def __getitem__(self, item):
         if self.properties.has_key(item):
             return self.properties[item]
-        print 'Key does not exist in the style profile:', item
+        logging.warn('Key does not exist in the style profile: %s' % item)
         return None
 
     def _load_shape_map(self, pathbar):
@@ -246,7 +246,7 @@ class PathBarColor:
         try:
             from clutter import Color
         except Exception, e:
-            print 'Error parsing color:', e
+            logging.exception('Error parsing color: %s' % e)
             raise SystemExit
         r,g,b = self.tofloats()
         return Color(int(r*255), int(g*255), int(b*255))
@@ -808,9 +808,9 @@ class ThemeRegistry:
 
     def retrieve(self, theme_name):
         if self.REGISTRY.has_key(theme_name):
-            print 'Styling hints found for %s...' % theme_name
+            logging.debug("Styling hints found for %s..." % theme_name)
             return self.REGISTRY[theme_name]()
-        print "No styling hints for %s were found... using Human hints." % theme_name
+        logging.warn("No styling hints for %s were found... using Human hints." % theme_name)
         return Clearlooks()
 
 
