@@ -183,7 +183,12 @@ class ChannelPane(SoftwarePane):
     def display_search(self):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        self.emit("app-list-changed", len(self.app_view.get_model()))
+        model = self.app_view.get_model()
+        if model:
+            length = len(self.app_view.get_model())
+        else:
+            length = 0
+        self.emit("app-list-changed", length)
         self.searchentry.show()
     
     def get_status_text(self):

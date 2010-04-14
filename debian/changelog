@@ -28,8 +28,11 @@ software-center (1.1.27) UNRELEASED; urgency=low
     - clear forward navigation history items from the
       stack on an direct navigation, fixes regression
       (LP: #563128) 
+  * softwarecenter/view/channelpane.py:
+    - ensure we have a model before sending app-list-changed
+      signal (LP: #560716)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 14 Apr 2010 21:59:27 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Apr 2010 18:58:38 -0400
 
 software-center (1.1.26) lucid; urgency=low
 
