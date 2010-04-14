@@ -223,7 +223,9 @@ class AppStore(gtk.GenericTreeModel):
         # reference with custom lists, but are calculated for all stores
         # for consistancy.
         exists = lambda app: self.cache.has_key(app.pkgname)
-        installable = lambda app: not self.cache[app.pkgname].isInstalled
+        installable = lambda app: (not self.cache[app.pkgname].isInstalled
+                                   and app.pkgname not in
+                                   self.backend.pending_transactions)
         self.existing_apps = __builtin__.filter(exists, self.apps)
         self.installable_apps = __builtin__.filter(installable,
                                                    self.existing_apps)

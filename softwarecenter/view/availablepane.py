@@ -83,7 +83,8 @@ class AvailablePane(SoftwarePane):
         self.nav_history = NavigationHistory(self)
         # install backend
         self.backend = get_install_backend()
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
+        self.backend.connect("transactions-changed",
+                             self._on_transactions_changed)
         # UI
         self._build_ui()
 
@@ -293,13 +294,14 @@ class AvailablePane(SoftwarePane):
         self.back_forward.left.set_sensitive(False)
         self.back_forward.right.set_sensitive(False)
 
-    def _on_transaction_finished(self, *args):
+    def _on_transactions_changed(self, *args):
         """internal helper that keeps the action bar up-to-date by
-           keeping track of the transaction-finished signals
+           keeping track of the transaction-started signals
         """
-        appstore = self.app_view.get_model()
-        appstore.refresh_metadata()
-        self._update_action_bar()
+        if self.custom_list_mode:
+            appstore = self.app_view.get_model()
+            appstore.refresh_metadata()
+            self._update_action_bar()
 
     def _on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text and the action

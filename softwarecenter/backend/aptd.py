@@ -311,7 +311,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             trans.set_remove_obsoleted_depends(True, 
                                                reply_handler=lambda t: True,
                                                error_handler=self._on_trans_error)
-            
+
         # set proxy and run
         self.set_http_proxy(trans)
         trans.run(error_handler=self._on_trans_error,
