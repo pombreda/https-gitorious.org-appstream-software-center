@@ -252,7 +252,7 @@
     </Include>
     <Menu>
       <_Name>Astronomy</_Name>
-      <SCIcon>weather-clear-night</SCIcon>
+      <SCIcon>applications-astronomy</SCIcon>
       <Include><Category>Astronomy</Category></Include>
     </Menu>
     <Menu>
