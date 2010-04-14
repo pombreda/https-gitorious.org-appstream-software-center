@@ -379,7 +379,9 @@ class AvailablePane(SoftwarePane):
     def display_search(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        self.emit("app-list-changed", len(self.app_view.get_model()))
+        model = self.app_view.get_model()
+        if model:
+            self.emit("app-list-changed", len(model))
         self.searchentry.show()
         return
 
