@@ -51,6 +51,14 @@ class Distro(object):
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
         raise UnimplementedError
 
+    def get_price(self, doc):
+        """ get the price for the given software 
+
+        :param doc: The xapian document that contains the information
+        :return: None if the price should not be displayed, a string otherwise
+        """
+        return None
+
     def get_license_text(self, component):
         raise UnimplementedError
 

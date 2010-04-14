@@ -323,8 +323,7 @@ class AppDetailsView(WebkitWidget):
     def wksub_license(self):
         return self.distro.get_license_text(self.component)
     def wksub_price(self):
-        #TRANSLATORS: This text will be showed as price of the software
-        price = _("Free")
+        price = self.distro.get_price(self.doc)
         s = _("Price: %s") % price
         return s
     def wksub_installed(self):
@@ -502,7 +501,17 @@ class AppDetailsView(WebkitWidget):
                 action_button_label = _("Remove")
                 action_button_value = "remove"
             else:
-                action_button_label = _("Install - Free") # will change when payments are introduced, obviously.
+                price = self.distro.get_price(self.doc)
+                # we don't have price information
+                if price is None:
+                    action_button_label = _("Install")
+                # its free
+                elif price == _("Free"):
+                    action_button_label = _("Install - Free")
+                else:
+                    # FIXME: string freeze, so d
+                    #action_button_label = _("Install - %s") % price
+                    logging.error("Can not handle price %s" % price)
                 action_button_value = "install"
         elif self.doc:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
