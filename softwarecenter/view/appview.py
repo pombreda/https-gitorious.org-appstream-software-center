@@ -162,6 +162,8 @@ class AppStore(gtk.GenericTreeModel):
                 self.app_index_map[app] = i
                 self.pkgname_index_map[app.pkgname] = [i]
                 self.apps.append(app)
+
+                self.refresh_metadata()
         else:
             # we support single and list search_queries,
             # if list we append them one by one
@@ -216,7 +218,6 @@ class AppStore(gtk.GenericTreeModel):
                 if not app.pkgname in self.pkgname_index_map:
                     self.pkgname_index_map[app.pkgname] = []
                 self.pkgname_index_map[app.pkgname].append(i)
-        self.refresh_metadata()
 
     def refresh_metadata(self):
         # Quantitative data on stored packages. These are used for quick
