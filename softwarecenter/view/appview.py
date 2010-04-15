@@ -222,8 +222,7 @@ class AppStore(gtk.GenericTreeModel):
 
     def refresh_metadata(self):
         # Quantitative data on stored packages. These are used for quick
-        # reference with custom lists, but are calculated for all stores
-        # for consistancy.
+        # reference in custom lists.
         exists = lambda app: self.cache.has_key(app.pkgname)
         installable = lambda app: (not self.cache[app.pkgname].isInstalled
                                    and app.pkgname not in
