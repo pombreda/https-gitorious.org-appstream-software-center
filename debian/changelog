@@ -1,3 +1,39 @@
+software-center (2.0) lucid; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/view/channelpane.py:
+    - fix crash when gdk window is not (yet) available (LP: #560320)
+  * softwarecenter/view/appdetailsview.py, 
+    softwarecenter/distro/__init__.py,
+    softwarecenter/distro/Ubuntu.py:
+    - do not show "Free" for packages from the partner repository, we 
+      don't know the status of the freeness there (LP: #552830)
+  * merged lp:~vish.../software-center/avoidmonochromeicon, many thanks
+  * re-enable action button if confirm dialog got canceled (LP: #562810)
+  * merged lp:~zkrynicki/software-center/improve-html, many thanks
+    (final bits for LP: #455320), add simple test
+
+  [ Matthew McGowan ]
+  * softwarecenter/view/availablepane.py:
+    - ensure we have a model before sending changed signal (LP: #560967)
+  * softwarecenter/view/dialogs.py:
+    - ensure image size does not grow out of proportion (LP: #560021)
+  * softwarecenter/view/appview.py:
+    - make rows more dynamic (LP: #557798)
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix resizing bugs in style-set events
+
+  [ Gary Lasker ]
+  * softwarecenter/view/navhistory.py:
+    - clear forward navigation history items from the
+      stack on an direct navigation, fixes regression
+      (LP: #563128) 
+  * softwarecenter/view/channelpane.py:
+    - ensure we have a model before sending app-list-changed
+      signal (LP: #560716)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Apr 2010 01:25:12 +0200
+
 software-center (1.1.26) lucid; urgency=low
 
   [ Gary Lasker ]

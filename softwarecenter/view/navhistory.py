@@ -30,7 +30,7 @@ class NavigationHistory(object):
     available pane).
     """
 
-    MAX_NAV_ITEMS = 10  # limit number of NavItems allowed in the NavStack
+    MAX_NAV_ITEMS = 25  # limit number of NavItems allowed in the NavStack
 
 
     def __init__(self, available_pane):
@@ -44,6 +44,9 @@ class NavigationHistory(object):
         """
         if in_replay_history_mode:
             return
+
+        # reset navigation forward stack items on a direct navigation
+        self._nav_stack.clear_forward_items()
 
         nav_item.parent = self
         self._nav_stack.append(nav_item)
@@ -222,14 +225,23 @@ class NavigationStack(object):
         return
 
     def step_back(self):
-        self.cursor -= 1
+        if self.cursor > 0:
+            self.cursor -= 1
+        else:
+            self.cursor = 0
         logging.debug('B:%s' % repr(self))
         return self.stack[self.cursor]
 
     def step_forward(self):
-        self.cursor += 1
+        if self.cursor < len(self.stack)-1:
+            self.cursor += 1
+        else:
+            self.cursor = len(self.stack)-1
         logging.debug('B:%s' % repr(self))
         return self.stack[self.cursor]
+
+    def clear_forward_items(self):
+        self.stack = self.stack[:(self.cursor + 1)]
 
     def at_end(self):
         return self.cursor == len(self.stack)-1

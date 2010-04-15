@@ -217,7 +217,9 @@ class AvailablePane(SoftwarePane):
         seq_nr = self.refresh_seq_nr
         if self.app_view.window:
             self.app_view.window.set_cursor(self.busy_cursor)
+        if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(self.busy_cursor)
+        if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(self.busy_cursor)
         # In custom list mode, search should yield the exact package name.
         self.apps_filter.set_only_packages_without_applications(self.custom_list_mode)
@@ -242,7 +244,9 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(new_model))
         if self.app_view.window:
             self.app_view.window.set_cursor(None)
+        if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(None)
+        if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(None)
         return False
 
@@ -451,7 +455,10 @@ class AvailablePane(SoftwarePane):
     def display_search(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        self.emit("app-list-changed", len(self.app_view.get_model()))
+        list_length = 0
+        if self.app_view.get_model():
+            list_length = len(self.app_view.get_model())
+        self.emit("app-list-changed", list_length)
         self.searchentry.show()
         return
 

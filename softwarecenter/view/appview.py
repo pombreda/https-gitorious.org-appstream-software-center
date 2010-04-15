@@ -28,6 +28,7 @@ import logging
 import math
 import os
 import pango
+import string
 import sys
 import time
 import xapian
@@ -601,22 +602,25 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                    gobject.PARAM_READWRITE),
         }
 
-    # class constants
-    DEFAULT_HEIGHT = 38
-    BUTTON_HEIGHT = 32
-
     def __init__(self, show_ratings):
         self.__gobject_init__()
+
+        # height defaults
+        self.base_height = 0
+        self.button_height = 0
+
         self.markup = None
         self.rating = 0
         self.reviews = 0
         self.isactive = False
         self.installed = False
         self.show_ratings = show_ratings
+
         # get rating icons
         icons = gtk.icon_theme_get_default()
         self.star_pixbuf = icons.load_icon("sc-emblem-favorite", 12, 0)
         self.star_not_pixbuf = icons.load_icon("sc-emblem-favorite-not", 12, 0)
+
         # specify the func that calc's distance from margin, based on text dir
         self._calc_x = self._calc_x_ltr
         return
@@ -627,6 +631,14 @@ class CellRendererAppView(gtk.GenericCellRenderer):
             self._calc_x = self._calc_x_ltr
         else:
             self._calc_x = self._calc_x_rtl
+        return
+
+    def set_base_height(self, base_height):
+        self.base_height = base_height
+        return
+
+    def set_button_height(self, button_height):
+        self.button_height = button_height
         return
 
     def do_set_property(self, pspec, value):
@@ -752,7 +764,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         percent = self.props.action_in_progress * 0.01
         w = widget.buttons['action'].get_param('width')
         h = 22  # pixel height. should be the same height of CellRendererProgress progressbar
-        dst_y = cell_area.y + (self.DEFAULT_HEIGHT-h)/2
+        dst_y = cell_area.y + (self.base_height-h)/2
 
         # progress trough border
         widget.style.paint_flat_box(window, gtk.STATE_ACTIVE, gtk.SHADOW_IN,
@@ -817,7 +829,7 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         # Install/Remove button
         # only draw a install/remove button if the app is actually available
         if self.available:
-            btn = widget.buttons['action']
+            btn = widget.get_button('action')
             btn.set_use_alt_markup(self.installed)
             dst_x = self._calc_x(cell_area, btn.get_param('width'), cell_area.width-xpad-btn.get_param('width'))
             btn.draw(window, widget, layout, dst_x, cell_area.y)
@@ -836,9 +848,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         return
 
     def on_get_size(self, widget, cell_area):
-        h = self.DEFAULT_HEIGHT
+        h = self.base_height
         if self.isactive:
-            h += self.BUTTON_HEIGHT
+            h += self.button_height
         return -1, -1, -1, h
 
 gobject.type_register(CellRendererAppView)
@@ -876,9 +888,12 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
         return getattr(self, pspec.name)
     def do_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
+
         # always render icon app icon centered with respect to an unexpanded CellRendererAppView
-        area = (cell_area.x+(cell_area.width-AppStore.ICON_SIZE)/2,
-                cell_area.y+(CellRendererAppView.DEFAULT_HEIGHT-AppStore.ICON_SIZE)/2,
+        ypad = self.get_property('ypad')
+
+        area = (cell_area.x,
+                cell_area.y+ypad,
                 AppStore.ICON_SIZE,
                 AppStore.ICON_SIZE)
 
@@ -945,6 +960,8 @@ class AppView(gtk.TreeView):
 
         # the columns that are actually visible
         tp = CellRendererPixbufWithOverlay("software-center-installed")
+        tp.set_property('ypad', 2)
+
         column = gtk.TreeViewColumn("Icon", tp,
                                     pixbuf=AppStore.COL_ICON,
                                     overlay=AppStore.COL_INSTALLED)
@@ -978,11 +995,11 @@ class AppView(gtk.TreeView):
         self.connect("row-activated", self._on_row_activated)
 
         # button and motion are "special"
-        self.connect("realize", self._on_realize, tr)
+        self.connect("style-set", self._on_style_set, tr)
         self.connect("button-press-event", self._on_button_press_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
-        
+
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
@@ -1000,22 +1017,22 @@ class AppView(gtk.TreeView):
             action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
         return action_in_progress
 
-    def _on_realize(self, widget, tr):
-        # tell the cellrenderer the text direction for renderering purposes
-        tr.set_direction(self.get_direction())
+    def get_button(self, key):
+        return self.buttons[key]
 
-        pc = widget.get_pango_context()
-        layout = pango.Layout(pc)
+    def _get_default_font_size(self):
+        raw_font_name = gtk.settings_get_default().get_property("gtk-font-name")
+        (font_name, font_size) = string.rsplit(raw_font_name, maxsplit=1)
+        try:
+            return int(font_size)
+        except:
+            logging.warn("could not parse font size for font description: %s" % font_name)
+        #default size of default gtk font_name ("Sans 10")
+        return 10
 
-        action_btn = CellRendererButton(layout, markup=_("Install"), alt_markup=_("Remove"))
-        info_btn = CellRendererButton(layout, _("More Info"))
-
-        yO = tr.DEFAULT_HEIGHT+(tr.BUTTON_HEIGHT-action_btn.get_param('height'))/2
-        action_btn.set_param('y_offset_const', yO)
-        info_btn.set_param('y_offset_const', yO)
-
-        self.buttons['action'] = action_btn
-        self.buttons['info'] = info_btn
+    def _on_style_set(self, widget, old_style, tr):
+        self._configure_cell_and_button_geometry(tr)
+        return
 
     def _on_motion(self, tree, event, tr, col):
         x, y = int(event.x), int(event.y)
@@ -1161,6 +1178,30 @@ class AppView(gtk.TreeView):
         if not res:
             return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
+
+    def _configure_cell_and_button_geometry(self, tr):
+        # tell the cellrenderer the text direction for renderering purposes
+        tr.set_direction(self.get_direction())
+
+        pc = self.get_pango_context()
+        layout = pango.Layout(pc)
+
+        font_size = self._get_default_font_size()
+        tr.set_base_height(max(int(3.5*font_size), 32))    # 32, the pixbufoverlay height
+
+        action_btn = CellRendererButton(layout, markup=_("Install"), alt_markup=_("Remove"))
+        info_btn = CellRendererButton(layout, _("More Info"))
+
+        max_h = max(action_btn.get_param('height'), info_btn.get_param('height'))
+        tr.set_button_height(max_h+tr.get_property('ypad')*2)
+
+        yO = tr.base_height+tr.get_property('ypad')
+        action_btn.set_param('y_offset_const', yO)
+        info_btn.set_param('y_offset_const', yO)
+
+        self.buttons['action'] = action_btn
+        self.buttons['info'] = info_btn
+        return
 
 
 # XXX should we use a xapian.MatchDecider instead?
