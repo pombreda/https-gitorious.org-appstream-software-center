@@ -96,6 +96,7 @@ class StoreDatabase(gobject.GObject):
             queries = []
             added = []
             for pkgname in search_term.split(","):
+                pkgname = pkgname.lower()
                 # not a pkgname
                 if not re.match("[0-9a-z\.\-]+", pkgname):
                     return None
