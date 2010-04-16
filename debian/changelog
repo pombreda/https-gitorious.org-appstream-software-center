@@ -1,3 +1,12 @@
+software-center (2.0.1) UNRELEASED; urgency=low
+
+  [ Olivier Tilloy ]
+  * When computing the size of a PathPart, always set the requested height
+    of the parent PathBar. This prevents the navigation bar from
+    "disappearing" (its height was somehow set to 1) (LP: #564042)
+
+ -- Michael Vogt <egon@top.ping.de>  Fri, 16 Apr 2010 19:40:19 +0200
+
 software-center (2.0) lucid; urgency=low
 
   [ Michael Vogt ]
