@@ -115,9 +115,9 @@ class ViewSwitcher(gtk.TreeView):
         model = self.get_model()
         self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
         action = model[path][ViewSwitcherList.COL_ACTION]
-        if action in self._permanent_views:
-            self._previous_permanent_view = action
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
+        if action in self._permanent_views:
+            self._previous_permanent_view = path
         self.emit("view-changed", action, channel)
         
     def get_view(self):
@@ -177,7 +177,7 @@ class ViewSwitcher(gtk.TreeView):
             # The view that was selected has been deleted, switch back to
             # the previously selected permanent view.
             if self._previous_permanent_view is not None:
-                self.set_view(self._previous_permanent_view)
+                self.set_cursor(self._previous_permanent_view)
 
 class ViewSwitcherList(gtk.TreeStore):
     
