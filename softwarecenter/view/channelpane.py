@@ -186,9 +186,7 @@ class ChannelPane(SoftwarePane):
         model = self.app_view.get_model()
         if model:
             length = len(self.app_view.get_model())
-        else:
-            length = 0
-        self.emit("app-list-changed", length)
+            self.emit("app-list-changed", length)
         self.searchentry.show()
     
     def get_status_text(self):
@@ -198,10 +196,9 @@ class ChannelPane(SoftwarePane):
             return ""
         # otherwise, show status based on search or not
         model = self.app_view.get_model()
-        if model:
-            length = len(self.app_view.get_model())
-        else:
-            length = 0
+        if not model:
+            return ""
+        length = len(self.app_view.get_model())
         if len(self.searchentry.get_text()) > 0:
             return gettext.ngettext("%s matching item",
                                     "%s matching items",

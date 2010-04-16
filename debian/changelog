@@ -12,6 +12,12 @@ software-center (2.0.1) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - fix displaying duplicated entries in the partner channel
       (LP: #564789)
+  * softwarecenter/view/availablepane.py, 
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - only send size information signals if we actually have a model
+      (LP: #564756)
+    
 
  -- Michael Vogt <egon@top.ping.de>  Fri, 16 Apr 2010 19:40:19 +0200
 
