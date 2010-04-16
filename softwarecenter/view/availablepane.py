@@ -397,9 +397,8 @@ class AvailablePane(SoftwarePane):
             self.refresh_apps()
 
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        model = self.app_view.get_model()
-        if model is not None:
-            self.emit("app-list-changed", len(model))
+        # do not emit app-list-changed here, this is done async when
+        # the new model is ready
         self.searchentry.show()
         return
 
@@ -461,6 +460,7 @@ class AvailablePane(SoftwarePane):
             category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
     def on_category_activated(self, cat_view, category):
+        """ callback when a category is selected """
         #print cat_view, name, query
         logging.debug("on_category_activated: %s %s" % (
                 category.name, category))
