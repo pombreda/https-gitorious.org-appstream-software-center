@@ -173,7 +173,7 @@ class ViewSwitcher(gtk.TreeView):
             self.set_cursor(model.get_path(channel_iter_to_select))
 
     def _on_row_deleted(self, widget, path):
-        if self.get_view() is None:
+        if self.get_cursor()[0] is None:
             # The view that was selected has been deleted, switch back to
             # the previously selected permanent view.
             if self._previous_permanent_view is not None:
