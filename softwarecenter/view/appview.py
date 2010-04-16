@@ -596,8 +596,14 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         dst_x = self._calc_x(cell_area, lw, xpad)
         dst_y = cell_area.y + ypad
 
+        # important! ensures correct text rendering, esp. when using hicolor theme
+        if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
+            state = gtk.STATE_SELECTED
+        else:
+            state = gtk.STATE_NORMAL
+
         widget.style.paint_layout(window,
-                                  flags,
+                                  state,
                                   True,
                                   cell_area,
                                   widget,
