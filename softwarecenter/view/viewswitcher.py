@@ -89,6 +89,7 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("cursor-changed", self.on_cursor_changed)
 
         self.get_model().connect("channels-refreshed", self._on_channels_refreshed)
+        self.get_model().connect("row-deleted", self._on_row_deleted)
         
     def on_treeview_row_expanded(self, widget, iter, path):
         # do nothing on a node expansion
@@ -160,6 +161,18 @@ class ViewSwitcher(gtk.TreeView):
         channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name)
         if channel_iter_to_select:
             self.set_cursor(model.get_path(channel_iter_to_select))
+
+    def _on_row_deleted(self, widget, path):
+        if self.get_view() is None:
+            # The view that was selected has been deleted, switch back to
+            # the "Get Software" view by default.
+            # FIXME: according to the specification:
+            # "If the section disappears while being displayed, the Center
+            #  should return to the section that was previously being
+            #  displayed."
+            # To achieve this, the previously selected section needs to be
+            # remembered.
+            self.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
 class ViewSwitcherList(gtk.TreeStore):
     
