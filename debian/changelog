@@ -1,4 +1,4 @@
-software-center (2.0.1) UNRELEASED; urgency=low
+software-center (2.0.1) lucid; urgency=low
 
   [ Olivier Tilloy ]
   * When computing the size of a PathPart, always set the requested height
