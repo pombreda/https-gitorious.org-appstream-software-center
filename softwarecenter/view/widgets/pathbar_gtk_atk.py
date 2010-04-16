@@ -528,8 +528,7 @@ class PathPart(gtk.EventBox):
         if not self.get_best_width():
             self._set_best_width(w)
         self.set_size_request(w, -1)
-        if h > self._parent.allocation.height:
-            self._parent.set_size_request(-1, h)
+        self._parent.set_size_request(-1, h)
         return
 
     def do_callback(self):
