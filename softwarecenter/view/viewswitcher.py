@@ -72,6 +72,12 @@ class ViewSwitcher(gtk.TreeView):
         column.set_attributes(tr, markup=store.COL_NAME)
         self.append_column(column)
 
+        # Remember the previously selected permanent view
+        self._permanent_views = (ViewSwitcherList.ACTION_ITEM_AVAILABLE,
+                                 ViewSwitcherList.ACTION_ITEM_INSTALLED,
+                                 ViewSwitcherList.ACTION_ITEM_CHANNEL)
+        self._previous_permanent_view = None
+
         # set sensible atk name
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Software sources"))
@@ -109,6 +115,8 @@ class ViewSwitcher(gtk.TreeView):
         model = self.get_model()
         self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
         action = model[path][ViewSwitcherList.COL_ACTION]
+        if action in self._permanent_views:
+            self._previous_permanent_view = action
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
         self.emit("view-changed", action, channel)
         
@@ -126,9 +134,11 @@ class ViewSwitcher(gtk.TreeView):
         if not path:
             return None
         return path[0]
+
     def set_view(self, action):
         self.set_cursor((action,))
         self.emit("view-changed", action, None)
+
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
         path = self.get_path_at_pos(int(event.x), int(event.y))
@@ -165,14 +175,9 @@ class ViewSwitcher(gtk.TreeView):
     def _on_row_deleted(self, widget, path):
         if self.get_view() is None:
             # The view that was selected has been deleted, switch back to
-            # the "Get Software" view by default.
-            # FIXME: according to the specification:
-            # "If the section disappears while being displayed, the Center
-            #  should return to the section that was previously being
-            #  displayed."
-            # To achieve this, the previously selected section needs to be
-            # remembered.
-            self.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
+            # the previously selected permanent view.
+            if self._previous_permanent_view is not None:
+                self.set_view(self._previous_permanent_view)
 
 class ViewSwitcherList(gtk.TreeStore):
     
