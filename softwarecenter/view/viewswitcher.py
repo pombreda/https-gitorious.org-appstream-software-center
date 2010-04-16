@@ -349,7 +349,8 @@ class ViewSwitcherList(gtk.TreeStore):
         partner_channel = SoftwareChannel(self.icons, 
                                           distro_channel_name,
                                           None,
-                                          "partner")
+                                          "partner", 
+                                          filter_required=True)
         
         # set them in order
         channels = []

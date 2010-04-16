@@ -9,6 +9,9 @@ software-center (2.0.1) UNRELEASED; urgency=low
   * cherry r730 lp:~mmcg069/software-center/minor-change/changes:
     - fix CellRendererAppView text rendering when using hicolor gtk theme
     (LP: #564694)
+  * softwarecenter/view/viewswitcher.py:
+    - fix displaying duplicated entries in the partner channel
+      (LP: #564789)
 
  -- Michael Vogt <egon@top.ping.de>  Fri, 16 Apr 2010 19:40:19 +0200
 
