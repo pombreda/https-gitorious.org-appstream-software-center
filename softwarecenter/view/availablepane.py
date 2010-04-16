@@ -340,6 +340,11 @@ class AvailablePane(SoftwarePane):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: %s" % new_text)
 
+        # we got the signal after we already switched to a details
+        # page, ignore it
+        if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
+            return
+
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*
         # we are searching but we are not in any category

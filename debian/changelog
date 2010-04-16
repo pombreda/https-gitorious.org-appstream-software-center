@@ -17,9 +17,12 @@ software-center (2.0.1) UNRELEASED; urgency=low
     softwarecenter/view/installedpane.py:
     - only send size information signals if we actually have a model
       (LP: #564756)
-    
+  * softwarecenter/view/availablepane.py:
+    - if we get a "search-terms-changed" signal while in the applicatin
+      details page it got delivered asynchronously and must be discarded
+      (LP: #563524)
 
- -- Michael Vogt <egon@top.ping.de>  Fri, 16 Apr 2010 19:40:19 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Apr 2010 23:27:14 +0200
 
 software-center (2.0) lucid; urgency=low
 
