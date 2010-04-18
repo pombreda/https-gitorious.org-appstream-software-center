@@ -99,6 +99,10 @@ class ActionBar(gtk.Alignment):
         """Not Implemented: Do not call."""
         raise NotImplementedError
 
+    def remove(self, widget):
+        """Not Implemented: Do not call."""
+        raise NotImplementedError
+
     # Internal methods
 
     def _show(self):
