@@ -1,3 +1,11 @@
+software-center (2.0.2) lucid; urgency=low
+
+  * softwarecenter/view/appview.py:
+    - improve responsiveness of the listview by caching the 
+      rendered icons (LP: #556290)
+
+ -- Michael Vogt <egon@top.ping.de>  Sun, 18 Apr 2010 13:21:01 +0200
+
 software-center (2.0.1) lucid; urgency=low
 
   [ Olivier Tilloy ]
