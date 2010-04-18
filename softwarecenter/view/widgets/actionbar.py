@@ -99,6 +99,10 @@ class ActionBar(gtk.Alignment):
         """Not Implemented: Do not call."""
         raise NotImplementedError
 
+    def remove(self, widget):
+        """Not Implemented: Do not call."""
+        raise NotImplementedError
+
     # Internal methods
 
     def _show(self):
@@ -118,7 +122,7 @@ class ActionBar(gtk.Alignment):
 
 if __name__ == "__main__":
     win = gtk.Window()
-    win.set_size_request(600,400)
+    win.set_size_request(600, 400)
     box = gtk.VBox()
     control_box = gtk.HBox()
     tree = gtk.TreeView()
