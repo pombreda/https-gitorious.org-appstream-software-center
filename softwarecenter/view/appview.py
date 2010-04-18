@@ -166,6 +166,7 @@ class AppStore(gtk.GenericTreeModel):
                             pkgname = term[2:]
                             break
                     app = Application("", pkgname)
+                    app.exists = False
                 self.app_index_map[app] = i
                 self.pkgname_index_map[app.pkgname] = [i]
                 self.apps.append(app)
