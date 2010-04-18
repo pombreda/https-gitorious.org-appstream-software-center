@@ -105,6 +105,8 @@ class AppStore(gtk.GenericTreeModel):
         self.cache = cache
         self.db = db
         self.icons = icons
+        # invalidate the cache on icon theme changes
+        self.icons.connect("changed", lambda theme: _app_icon_cache.clear())
         self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         self.apps = []
         # this is used to re-set the cursor
@@ -286,7 +288,8 @@ class AppStore(gtk.GenericTreeModel):
                     # icons.load_icon takes between 0.001 to 0.01s on my
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
-                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
+                    with ExecutionTime("load_icon"):
+                        icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
                     _app_icon_cache[icon_name] = icon
                     return icon
             except glib.GError, e:
