@@ -43,6 +43,9 @@ from softwarecenter.distro import get_distro
 
 from gettext import gettext as _
 
+# cache icons to speed up rendering
+_app_icon_cache = {}
+
 class AppStore(gtk.GenericTreeModel):
     """
     A subclass GenericTreeModel that reads its data from a xapian
@@ -103,6 +106,9 @@ class AppStore(gtk.GenericTreeModel):
         self.cache = cache
         self.db = db
         self.icons = icons
+        # invalidate the cache on icon theme changes
+        self.icons.connect("changed", lambda theme: _app_icon_cache.clear())
+        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         self.apps = []
         # this is used to re-set the cursor
         self.app_index_map = {}
@@ -356,11 +362,18 @@ class AppStore(gtk.GenericTreeModel):
                 icon_name = doc.get_value(XAPIAN_VALUE_ICON)
                 if icon_name:
                     icon_name = os.path.splitext(icon_name)[0]
+                    if icon_name in _app_icon_cache:
+                        return _app_icon_cache[icon_name]
+                    # icons.load_icon takes between 0.001 to 0.01s on my
+                    # machine, this is a significant burden because get_value
+                    # is called *a lot*. caching is the only option
                     icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
+                    _app_icon_cache[icon_name] = icon
                     return icon
             except glib.GError, e:
                 logging.debug("get_icon returned '%s'" % e)
-            return self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+                _app_icon_cache[icon_name] = self._appicon_missing_icon
+            return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:
             pkgname = app.pkgname
             if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
@@ -681,8 +694,14 @@ class CellRendererAppView(gtk.GenericCellRenderer):
         dst_x = self._calc_x(cell_area, lw, xpad)
         dst_y = cell_area.y + ypad
 
+        # important! ensures correct text rendering, esp. when using hicolor theme
+        if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
+            state = gtk.STATE_SELECTED
+        else:
+            state = gtk.STATE_NORMAL
+
         widget.style.paint_layout(window,
-                                  flags,
+                                  state,
                                   True,
                                   cell_area,
                                   widget,

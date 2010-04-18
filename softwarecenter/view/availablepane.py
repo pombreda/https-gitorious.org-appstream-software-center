@@ -413,6 +413,11 @@ class AvailablePane(SoftwarePane):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: %s" % new_text)
 
+        # we got the signal after we already switched to a details
+        # page, ignore it
+        if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
+            return
+
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*
         # we are searching but we are not in any category
@@ -456,10 +461,9 @@ class AvailablePane(SoftwarePane):
     def display_search(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        list_length = 0
         if self.app_view.get_model():
             list_length = len(self.app_view.get_model())
-        self.emit("app-list-changed", list_length)
+            self.emit("app-list-changed", list_length)
         self.searchentry.show()
         return
 
@@ -475,9 +479,8 @@ class AvailablePane(SoftwarePane):
             self.refresh_apps()
 
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        model = self.app_view.get_model()
-        if model is not None:
-            self.emit("app-list-changed", len(model))
+        # do not emit app-list-changed here, this is done async when
+        # the new model is ready
         self.searchentry.show()
         return
 
@@ -539,6 +542,7 @@ class AvailablePane(SoftwarePane):
             category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
     def on_category_activated(self, cat_view, category):
+        """ callback when a category is selected """
         #print cat_view, name, query
         logging.debug("on_category_activated: %s %s" % (
                 category.name, category))

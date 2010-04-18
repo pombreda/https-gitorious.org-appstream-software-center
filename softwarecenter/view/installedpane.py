@@ -151,7 +151,10 @@ class InstalledPane(SoftwarePane):
         if self.notebook.get_current_page() == self.PAGE_APP_DETAILS:
             return ""
         # otherwise, show status based on search or not
-        length = len(self.app_view.get_model())
+        model = self.app_view.get_model()
+        if not model:
+            return ""
+        length = len(model)
         if len(self.searchentry.get_text()) > 0:
             return gettext.ngettext("%s matching item",
                                     "%s matching items",
