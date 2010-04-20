@@ -362,16 +362,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
              "/usr/bin/software-properties-gtk", 
              "-n", 
              "-t", str(self.window_main.window.xid)])
-        # wait for it to finish
-        ret = None
-        while ret is None:
-            while gtk.events_pending():
-                gtk.main_iteration()
-            ret = p.poll()
-        # return code of 1 means that it changed
+        glib.idle_add(self._poll_software_sources_subprocess, p)
+
+    def _poll_software_sources_subprocess(self, popen):
+        ret = popen.poll()
+        if ret is None:
+            return True
+        # A return code of 1 means that the sources have changed
         if ret == 1:
             self.run_update_cache()
         self.window_main.set_sensitive(True)
+        return False
 
     def on_menuitem_about_activate(self, widget):
         self.aboutdialog.set_version(VERSION)
