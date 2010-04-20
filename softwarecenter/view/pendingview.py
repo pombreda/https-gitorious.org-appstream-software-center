@@ -179,6 +179,7 @@ class PendingView(gtk.TreeView):
         tp = gtk.CellRendererProgress()
         tp.set_property("xpad", self.CANCEL_XPAD)
         tp.set_property("ypad", self.CANCEL_YPAD)
+        tp.set_property("text", "")
         column = gtk.TreeViewColumn("Progress", tp, 
                                     value=PendingStore.COL_PROGRESS)
         column.set_min_width(200)
