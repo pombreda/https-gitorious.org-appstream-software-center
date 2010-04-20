@@ -1,7 +1,12 @@
 software-center (2.0.3) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * debian/control:
     - updated Vcs-Bzr location to point to lucid branch
+
+  [ Olivier Tilloy ]
+  * data/templates/AppDetailsView.html:
+    - fix missing padding for small details window sizes (LP: #560026)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 17:55:55 +0200
 
