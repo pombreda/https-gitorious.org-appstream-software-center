@@ -362,16 +362,19 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
              "/usr/bin/software-properties-gtk", 
              "-n", 
              "-t", str(self.window_main.window.xid)])
-        glib.idle_add(self._poll_software_sources_subprocess, p)
+        # Monitor the subprocess regularly
+        glib.timeout_add(100, self._poll_software_sources_subprocess, p)
 
     def _poll_software_sources_subprocess(self, popen):
         ret = popen.poll()
         if ret is None:
+            # Keep monitoring
             return True
         # A return code of 1 means that the sources have changed
         if ret == 1:
             self.run_update_cache()
         self.window_main.set_sensitive(True)
+        # Stop monitoring
         return False
 
     def on_menuitem_about_activate(self, widget):
