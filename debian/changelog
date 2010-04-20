@@ -1,3 +1,11 @@
+software-center (2.1.0) UNRELEASED; urgency=low
+
+  [ Olivier Tilloy ]
+  * fix LP: #564785:
+    "each row has a progress bar (which itself never contains any text)"
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
+
 software-center (2.0.2) lucid; urgency=low
 
   * softwarecenter/view/appview.py:
