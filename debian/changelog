@@ -1,3 +1,10 @@
+software-center (2.0.3) UNRELEASED; urgency=low
+
+  * debian/control:
+    - updated Vcs-Bzr location to point to lucid branch
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 17:55:55 +0200
+
 software-center (2.0.2) lucid; urgency=low
 
   * softwarecenter/view/appview.py:
