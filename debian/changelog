@@ -3,6 +3,7 @@ software-center (2.1.0) UNRELEASED; urgency=low
   [ Olivier Tilloy ]
   * fix LP: #564785:
     "each row has a progress bar (which itself never contains any text)"
+  * show download completion status (LP: #460888)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
