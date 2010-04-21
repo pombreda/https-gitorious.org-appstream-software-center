@@ -14,6 +14,9 @@ software-center (2.0.3) UNRELEASED; urgency=low
   * softwarecenter/app.py:
     - avoid 100% usage when waiting for software-sources to finish
       (LP: #459521)
+  * softwarecenter/view/navhistory.py:
+    - keep the search terms updated to ensure the navigation history
+      always has the latest used search terms (LP: #537512)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 17:55:55 +0200
 
