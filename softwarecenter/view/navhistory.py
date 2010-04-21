@@ -35,8 +35,18 @@ class NavigationHistory(object):
 
     def __init__(self, available_pane):
         self.available_pane = available_pane
+        # this is a bit ugly, but the way the available pane works
+        # is that it adds the item on the first search and saves the
+        # terms then. for subsequent searches (that do not go to a 
+        # different page) we need to update the search terms here
+        available_pane.searchentry.connect("terms-changed",
+                                           self.on_search_terms_changed)
         # use stacks to track navigation history
         self._nav_stack = NavigationStack(self.MAX_NAV_ITEMS)
+
+    def on_search_terms_changed(self, entry, terms):
+        # The search terms changed, update them in the current navigation item
+        self._nav_stack[self._nav_stack.cursor].apps_search_term = terms
 
     def navigate(self, nav_item):
         """
