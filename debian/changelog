@@ -6,6 +6,25 @@ software-center (2.1.0) UNRELEASED; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
+software-center (2.0.3) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * debian/control:
+    - updated Vcs-Bzr location to point to lucid branch
+
+  [ Olivier Tilloy ]
+  * data/templates/AppDetailsView.html:
+    - fix missing padding for small details window sizes (LP: #560026)
+  * softwarecenter/view/widgets/searchentry.py:
+   - Set the search entry's text color to black when not empty.
+     This makes it readable on dark themes with a light text color by  
+     default (LP: #500174)
+  * softwarecenter/app.py:
+    - avoid 100% usage when waiting for software-sources to finish
+      (LP: #459521)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 17:55:55 +0200
+
 software-center (2.0.2) lucid; urgency=low
 
   * softwarecenter/view/appview.py:
