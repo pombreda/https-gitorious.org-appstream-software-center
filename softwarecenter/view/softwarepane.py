@@ -122,6 +122,7 @@ class SoftwarePane(gtk.VBox):
         self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
+        self.pack_start(gtk.HSeparator(), expand=False)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
