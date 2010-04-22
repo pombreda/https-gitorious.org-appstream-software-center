@@ -25,10 +25,9 @@ class Application(object):
         
         There is also a __cmp__ method and a name property
     """
-    def __init__(self, appname, pkgname, popcon=0, exists=True):
+    def __init__(self, appname, pkgname, popcon=0):
         self.appname = appname
         self.pkgname = pkgname
-        self.exists = exists
         self._popcon = popcon
     @property
     def name(self):

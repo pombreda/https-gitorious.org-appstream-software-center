@@ -167,7 +167,6 @@ class AppStore(gtk.GenericTreeModel):
                             pkgname = term[2:]
                             break
                     app = Application("", pkgname)
-                    app.exists = False
                 self.app_index_map[app] = i
                 self.pkgname_index_map[app.pkgname] = [i]
                 self.apps.append(app)
@@ -231,9 +230,8 @@ class AppStore(gtk.GenericTreeModel):
     def refresh_metadata(self):
         # Quantitative data on stored packages. These are used for quick
         # reference in custom lists.
-        exists = lambda app: app.exists
-        installable = lambda app: (self.cache.has_key(app.pkgname)
-                                   and not self.cache[app.pkgname].isInstalled
+        exists = lambda app: self.cache.has_key(app.pkgname)
+        installable = lambda app: (not self.cache[app.pkgname].isInstalled
                                    and app.pkgname not in
                                    self.backend.pending_transactions)
         self.existing_apps = __builtin__.filter(exists, self.apps)
