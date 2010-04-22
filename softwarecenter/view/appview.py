@@ -937,6 +937,42 @@ class AppView(gtk.TreeView):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
+    def set_model(self, new_model):
+        # Only allow use of an AppStore model
+        if type(new_model) != AppStore:
+            return
+        model = self.get_model()
+
+        # If there is no current model, simply set the new one.
+        if not model:
+            super(AppView, self).set_model(new_model)
+        # Otherwise update the current model where possible, preventing
+        # a jarring flash effect for repeated model updates, and expand
+        # and crop apps using the new model.
+        else:
+            to_update = min(len(model), len(new_model))
+            for i in range(to_update):
+                model.apps[i] = new_model.apps[i]
+                model.row_changed(i, model.get_iter(i))
+
+            to_remove = max(0, len(model) - len(new_model))
+            for i in range(to_remove):
+                model.apps.pop()
+                model.row_deleted(len(model))
+
+            to_add = max(0, len(new_model) - len(model))
+            apps_to_add = new_model.apps[len(new_model) - to_add:]
+            for app in apps_to_add:
+                path = len(model)
+                model.apps.append(app)
+                model.row_inserted(path, model.get_iter(path))
+
+            if model.apps:
+                # Select the first item and scroll to the top
+                self.emit("application-selected", model.apps[0])
+                self.get_vadjustment().set_value(0)
+                self.set_cursor(0)
+
     def is_action_in_progress_for_selected_app(self):
         """
         return True if an install or remove of the current package
