@@ -222,7 +222,6 @@ class AvailablePane(SoftwarePane):
         if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(self.busy_cursor)
         # In custom list mode, search should yield the exact package name.
-        self.apps_filter.set_only_packages_without_applications(self.custom_list_mode)
         new_model = AppStore(self.cache,
                              self.db,
                              self.icons,
