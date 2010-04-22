@@ -193,6 +193,37 @@ class AppStore(gtk.GenericTreeModel):
                     self.pkgname_index_map[app.pkgname] = []
                 self.pkgname_index_map[app.pkgname].append(i)
 
+    def update(self, appstore):
+        """ update this appstore to match data from another """
+        # Updating instead of replacing prevents a distracting white
+        # flash. First, match list of apps.
+        to_update = min(len(self), len(appstore))
+        for i in range(to_update):
+            self.apps[i] = appstore.apps[i]
+            self.row_changed(i, self.get_iter(i))
+
+        to_remove = max(0, len(self) - len(appstore))
+        for i in range(to_remove):
+            self.apps.pop()
+            self.row_deleted(len(self))
+
+        to_add = max(0, len(appstore) - len(self))
+        apps_to_add = appstore.apps[len(appstore) - to_add:]
+        for app in apps_to_add:
+            path = len(self)
+            self.apps.append(app)
+            self.row_inserted(path, self.get_iter(path))
+
+        # Next, match data about the store.
+        self.cache = appstore.cache
+        self.db = appstore.db
+        self.icons = appstore.icons
+        self.search_query = appstore.search_query
+        self.sorted = appstore.sorted
+        self.filter = appstore.filter
+        self.app_index_map = appstore.app_index_map
+        self.pkgname_index_map = appstore.pkgname_index_map
+
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = self.db.get_pkgname(doc)
@@ -946,27 +977,9 @@ class AppView(gtk.TreeView):
         # If there is no current model, simply set the new one.
         if not model:
             super(AppView, self).set_model(new_model)
-        # Otherwise update the current model where possible, preventing
-        # a jarring flash effect for repeated model updates, and expand
-        # and crop apps using the new model.
+        # Otherwise update the current model using the new data.
         else:
-            to_update = min(len(model), len(new_model))
-            for i in range(to_update):
-                model.apps[i] = new_model.apps[i]
-                model.row_changed(i, model.get_iter(i))
-
-            to_remove = max(0, len(model) - len(new_model))
-            for i in range(to_remove):
-                model.apps.pop()
-                model.row_deleted(len(model))
-
-            to_add = max(0, len(new_model) - len(model))
-            apps_to_add = new_model.apps[len(new_model) - to_add:]
-            for app in apps_to_add:
-                path = len(model)
-                model.apps.append(app)
-                model.row_inserted(path, model.get_iter(path))
-
+            model.update(new_model)
             if model.apps:
                 # Select the first item and scroll to the top
                 self.emit("application-selected", model.apps[0])
