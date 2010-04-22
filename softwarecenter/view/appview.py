@@ -116,6 +116,7 @@ class AppStore(gtk.GenericTreeModel):
         self.pkgname_index_map = {}
         self.sorted = sort
         self.filter = filter
+        self.exact = exact
         self.active = True
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
