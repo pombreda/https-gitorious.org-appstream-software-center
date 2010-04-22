@@ -21,6 +21,7 @@ import logging
 import gtk
 import gobject
 import apt
+import apt_pkg
 import os
 import sys
 
@@ -29,6 +30,8 @@ from aptdaemon.enums import *
 
 from softwarecenter.enums import *
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+
+from gettext import gettext as _
 
 class PendingStore(gtk.ListStore, TransactionsWatcher):
 
@@ -107,7 +110,8 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             except Exception:
                 icon = self.icons.load_icon(MISSING_APP_ICON,
                                             self.ICON_SIZE, 0)
-        status_text = self._render_status_text(appname, trans.status)
+        status = get_status_string_from_enum(trans.status)
+        status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
         self.append([trans.tid, icon, appname, status_text, trans.progress,
                     cancel_icon])
@@ -135,6 +139,13 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         for row in self:
             if row[self.COL_TID] == trans.tid:
                 row[self.COL_PROGRESS] = progress
+                if trans.status == STATUS_DOWNLOADING:
+                    name = row[self.COL_NAME]
+                    current_bytes = apt_pkg.SizeToStr(trans.progress_details[2])
+                    total_bytes = apt_pkg.SizeToStr(trans.progress_details[3])
+                    status = _("Downloaded %sB of %sB") % \
+                             (current_bytes, total_bytes)
+                    row[self.COL_STATUS] = self._render_status_text(name, status)
 
     def _on_status_changed(self, trans, status):
         #print "_on_progress_changed: ", trans, status
@@ -143,13 +154,13 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                 # FIXME: the spaces around %s are poor mans padding because
                 #        setting xpad on the cell-renderer seems to not work
                 name = row[self.COL_NAME]
-                row[self.COL_STATUS] = self._render_status_text(name, status)
+                st = get_status_string_from_enum(status)
+                row[self.COL_STATUS] = self._render_status_text(name, st)
 
     def _render_status_text(self, name, status):
         if not name:
             name = ""
-        return "%s\n<small>%s</small>" % (name,
-                                          get_status_string_from_enum(status))
+        return "%s\n<small>%s</small>" % (name, status)
 
 
 class PendingView(gtk.TreeView):
