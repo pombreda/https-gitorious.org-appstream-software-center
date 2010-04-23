@@ -170,24 +170,13 @@ class SoftwarePane(gtk.VBox):
         first app in the list is selected.  If a row is already selected,
         nothing is done.
         """
-        selected_iter = None
-        selection = self.app_view.get_selection()
         model = self.app_view.get_model()
-        if selection:
-            selected_iter = selection.get_selected()[1]
         current_app = self.get_current_app()
-        if (model is not None and 
-            model.get_iter_root() is not None 
-            and selected_iter is None):
-            index=0
-            vadj = self.scroll_app_list.get_vadjustment()
-            if current_app:
-                if current_app in model.app_index_map:
-                    index = model.app_index_map.get(current_app)
-            # re-select item
-            if vadj:
-                self.app_view.set_cursor(index)
-                vadj.value_changed()
+
+        index = 0
+        if current_app in model.app_index_map:
+            index =  model.app_index_map.get(current_app)
+        self.app_view.set_cursor(index)
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
