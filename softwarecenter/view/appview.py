@@ -416,7 +416,7 @@ class CellRendererButton:
         if not is_sensitive:
             self.set_state(gtk.STATE_INSENSITIVE)
             self.set_shadow(gtk.SHADOW_OUT)
-        else:
+        elif self.params['state'] == gtk.STATE_INSENSITIVE:
             self.set_state(gtk.STATE_NORMAL)
             self.set_shadow(gtk.SHADOW_OUT)
         return
