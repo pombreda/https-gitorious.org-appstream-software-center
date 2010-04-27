@@ -65,6 +65,7 @@ class AptCache(gobject.GObject):
         gobject.GObject.__init__(self)
         self._cache = None
         self._ready = False
+        self._timeout_id = None
         # async open cache
         glib.timeout_add(100, self.open)
         # setup monitor watch for install/remove changes
@@ -74,7 +75,12 @@ class AptCache(gobject.GObject):
         self.apt_finished_monitor.connect(
             "changed", self._on_apt_finished_stamp_changed)
     def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
-        glib.timeout_add_seconds(10, self.open)
+        if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+            return 
+        if self._timeout_id:
+            glib.source_remove(self._timeout_id)
+            self._timeout_id = None
+        self._timeout_id = glib.timeout_add_seconds(10, self.open)
     @property
     def ready(self):
         return self._ready

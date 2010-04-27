@@ -29,6 +29,8 @@ software-center (2.0.3) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * debian/control:
     - updated Vcs-Bzr location to point to lucid branch
+  * softwarecenter/apt/aptcache.py:
+    - fix flickering when a application is instaleld (LP: #563163)
 
   [ Olivier Tilloy ]
   * data/templates/AppDetailsView.html:
