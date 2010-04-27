@@ -1078,6 +1078,8 @@ class AppView(gtk.TreeView):
             if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
                 btn.set_state(gtk.STATE_NORMAL)
                 btn.set_shadow(gtk.SHADOW_OUT)
+                if self.focal_btn is not btn:
+                    break
                 model = view.get_model()
                 appname = model[path][AppStore.COL_APP_NAME]
                 pkgname = model[path][AppStore.COL_PKGNAME]
