@@ -980,11 +980,6 @@ class AppView(gtk.TreeView):
         # Otherwise update the current model using the new data.
         else:
             model.update(new_model)
-            if model.apps:
-                # Select the first item and scroll to the top
-                self.emit("application-selected", model.apps[0])
-                self.get_vadjustment().set_value(0)
-                self.set_cursor(0)
 
     def is_action_in_progress_for_selected_app(self):
         """
