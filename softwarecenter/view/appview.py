@@ -982,10 +982,11 @@ class AppView(gtk.TreeView):
             rr = btn.get_param('region_rect')
             if btn.get_param('state') != gtk.STATE_INSENSITIVE:
                 if rr.point_in(x, y):
-                    self.window.set_cursor(self._cursor_hand)
                     if self.focal_btn is btn:
+                        self.window.set_cursor(self._cursor_hand)
                         btn.set_state(gtk.STATE_ACTIVE)
                     elif not self.pressed:
+                        self.window.set_cursor(self._cursor_hand)
                         btn.set_state(gtk.STATE_PRELIGHT)
                 else:
                     if btn.get_param('state') != gtk.STATE_NORMAL:
@@ -1081,6 +1082,7 @@ class AppView(gtk.TreeView):
             if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
                 btn.set_state(gtk.STATE_NORMAL)
                 btn.set_shadow(gtk.SHADOW_OUT)
+                self.window.set_cursor(self._cursor_hand)
                 if self.focal_btn is not btn:
                     break
                 model = view.get_model()
