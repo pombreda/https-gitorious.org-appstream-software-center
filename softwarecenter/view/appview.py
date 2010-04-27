@@ -929,6 +929,7 @@ class AppView(gtk.TreeView):
         # button and motion are "special"
         self.connect("style-set", self._on_style_set, tr)
         self.connect("button-press-event", self._on_button_press_event, column)
+        self.connect("button-release-event", self._on_button_release_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
 
@@ -1052,7 +1053,29 @@ class AppView(gtk.TreeView):
                 self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_ACTIVE)
                 btn.set_shadow(gtk.SHADOW_IN)
+                break
 
+    def _on_button_release_event(self, view, event, col):
+        if event.button != 1:
+            return
+        res = view.get_path_at_pos(int(event.x), int(event.y))
+        if not res:
+            return
+        (path, column, wx, wy) = res
+        if path is None:
+            return
+        # only act when the selection is already there
+        selection = view.get_selection()
+        if not selection.path_is_selected(path):
+            return
+
+        x, y = int(event.x), int(event.y)
+        for btn_id, btn in self.buttons.iteritems():
+            rr = btn.get_param('region_rect')
+            if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
+                self.focal_btn = btn_id
+                btn.set_state(gtk.STATE_NORMAL)
+                btn.set_shadow(gtk.SHADOW_OUT)
                 model = view.get_model()
                 appname = model[path][AppStore.COL_APP_NAME]
                 pkgname = model[path][AppStore.COL_PKGNAME]
@@ -1074,8 +1097,6 @@ class AppView(gtk.TreeView):
 
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
         if btn_id == 'info':
-            btn.set_state(gtk.STATE_NORMAL)
-            btn.set_shadow(gtk.SHADOW_OUT)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
             btn.set_sensitive(False)
