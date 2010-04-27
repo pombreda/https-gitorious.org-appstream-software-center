@@ -7,9 +7,11 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * add "bottom border" effect (LP: #439621)
   
   [ Jacob Johan Edwards ]
-  * merge lp:~j-johan-edwards/software-center/smooth_search, this 
+  * merged lp:~j-johan-edwards/software-center/smooth_search, this 
     massively improves the search and stops it from flickering
     (LP: #570682)
+  * merged lp:~j-johan-edwards/software-center/action_bar that provides
+    the foundation for the "custom packages list" branch
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
