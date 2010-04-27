@@ -16,6 +16,11 @@ software-center (2.1.0) UNRELEASED; urgency=low
   [ Julian Andres Klode ]
   * merged lp:~juliank/software-center/debian that include fixes and
     updates for the new python-apt 0.8 API
+  
+  [ Kiwinote ]
+  * data/featured.menu.in:
+    - Update featured applications list per Desktop team (LP: #548534)
+    - Feature 'fretsonfire-game' rather than 'fretsonfire' (LP: #538646)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
