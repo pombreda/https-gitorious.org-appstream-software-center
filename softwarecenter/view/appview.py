@@ -193,6 +193,37 @@ class AppStore(gtk.GenericTreeModel):
                     self.pkgname_index_map[app.pkgname] = []
                 self.pkgname_index_map[app.pkgname].append(i)
 
+    def update(self, appstore):
+        """ update this appstore to match data from another """
+        # Updating instead of replacing prevents a distracting white
+        # flash. First, match list of apps.
+        to_update = min(len(self), len(appstore))
+        for i in range(to_update):
+            self.apps[i] = appstore.apps[i]
+            self.row_changed(i, self.get_iter(i))
+
+        to_remove = max(0, len(self) - len(appstore))
+        for i in range(to_remove):
+            self.apps.pop()
+            self.row_deleted(len(self))
+
+        to_add = max(0, len(appstore) - len(self))
+        apps_to_add = appstore.apps[len(appstore) - to_add:]
+        for app in apps_to_add:
+            path = len(self)
+            self.apps.append(app)
+            self.row_inserted(path, self.get_iter(path))
+
+        # Next, match data about the store.
+        self.cache = appstore.cache
+        self.db = appstore.db
+        self.icons = appstore.icons
+        self.search_query = appstore.search_query
+        self.sorted = appstore.sorted
+        self.filter = appstore.filter
+        self.app_index_map = appstore.app_index_map
+        self.pkgname_index_map = appstore.pkgname_index_map
+
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = self.db.get_pkgname(doc)
@@ -936,6 +967,19 @@ class AppView(gtk.TreeView):
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+
+    def set_model(self, new_model):
+        # Only allow use of an AppStore model
+        if type(new_model) != AppStore:
+            return
+        model = self.get_model()
+
+        # If there is no current model, simply set the new one.
+        if not model:
+            super(AppView, self).set_model(new_model)
+        # Otherwise update the current model using the new data.
+        else:
+            model.update(new_model)
 
     def is_action_in_progress_for_selected_app(self):
         """
