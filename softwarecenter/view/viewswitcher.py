@@ -311,7 +311,7 @@ class ViewSwitcherList(gtk.TreeStore):
             logging.debug("channel_origin: %s" % channel_origin)
             other_channel_list.append((channel_name, channel_origin))
         
-        dist_channel = []
+        dist_channel = None
         ppa_channels = []
         other_channels = []
         unknown_channel = []
@@ -354,7 +354,8 @@ class ViewSwitcherList(gtk.TreeStore):
         
         # set them in order
         channels = []
-        channels.append(dist_channel)
+        if dist_channel is not None:
+            channels.append(dist_channel)
         channels.append(partner_channel)
         channels.extend(ppa_channels)
         channels.extend(other_channels)
@@ -399,7 +400,7 @@ if __name__ == "__main__":
 
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
-    cache = apt.Cache(apt.progress.OpTextProgress())
+    cache = apt.Cache(apt.progress.text.OpProgress())
     db = StoreDatabase(pathname, cache)
     db.open()
 

@@ -12,6 +12,10 @@ software-center (2.1.0) UNRELEASED; urgency=low
     (LP: #570682)
   * merged lp:~j-johan-edwards/software-center/action_bar that provides
     the foundation for the "custom packages list" branch
+  
+  [ Julian Andres Klode ]
+  * merged lp:~juliank/software-center/debian that include fixes and
+    updates for the new python-apt 0.8 API
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
@@ -237,6 +241,31 @@ software-center (1.1.22) lucid; urgency=low
     dynamically (software-center-non-applications spec)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 30 Mar 2010 16:50:34 +0200
+
+software-center (1.1.21debian2) unstable; urgency=low
+
+  * softwarecenter/db/database.py:
+    - Fix a typo introduced in the last upload which caused exceptions.
+  * Complete the python-apt API fixes (Closes: #572073).
+
+ -- Julian Andres Klode <jak@debian.org>  Mon, 29 Mar 2010 16:18:50 +0200
+
+software-center (1.1.21debian1) unstable; urgency=low
+
+  * Merge with Ubuntu.
+  * Backport from Ubuntu bzr:
+    - softwarecenter/db/update.py:
+      + fix crash when locale is not supported
+    - apt-xapian-index-plugin/*.py:
+      + fix deprecation warnings (LP: #548665)
+  * softwarecenter/view/appview.py:
+    - Add from __future__ import with_statement for Python 2.5
+  * Update to new python-apt API and stop using has_key (Closes: #572073).
+  * debian/control:
+    - Depend on python-xdg (Closes: #574779)
+    - Recommend software-properties-gtk (Closes: #575202)
+
+ -- Julian Andres Klode <jak@debian.org>  Mon, 29 Mar 2010 14:51:38 +0200
 
 software-center (1.1.21) lucid; urgency=low
 
@@ -543,6 +572,23 @@ software-center (1.1.12) lucid; urgency=low
     - add a "Featured" category
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Feb 2010 10:13:41 +0100
+
+software-center (1.1.11debian1) unstable; urgency=low
+
+  * Merge 1.1.11.
+  * softwarecenter/db/update.py:
+    - Use logging.warning instead of logging.exception (Closes: #568941)
+  * debian/rules:
+    - Replace Ubuntu by Debian in some files when not building on Ubuntu.
+    - Use system-software-install as the icon on Debian.
+  * debian/control:
+    - Build depend on dpkg-dev >= 1.15.1 to use dpkg-vendor.
+  * softwarecenter/app.py:
+    - When not running on Ubuntu, remove the Views menu.
+  * softwarecenter/apt/aptcache.py:
+    - Use dep_type_untranslated instead of UntranslatedDepType if available.
+
+ -- Julian Andres Klode <jak@debian.org>  Thu, 11 Feb 2010 18:37:35 +0100
 
 software-center (1.1.11) lucid; urgency=low
 

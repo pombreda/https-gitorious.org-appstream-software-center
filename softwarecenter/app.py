@@ -105,6 +105,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # distro specific stuff
         self.distro = get_distro()
 
+        # Disable software-properties if it does not exist
+        if not os.path.exists("/usr/bin/software-properties-gtk"):
+            sources = self.builder.get_object("menuitem_software_sources")
+            sources.set_sensitive(False)
+
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.backend = get_install_backend()
@@ -451,7 +456,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             return False
         # update menu items
         if (not self.active_pane.is_category_view_showing() and 
-            self.cache.has_key(app.pkgname)):
+            app.pkgname in self.cache):
             if self.active_pane.app_view.is_action_in_progress_for_selected_app():
                 self.menuitem_install.set_sensitive(False)
                 self.menuitem_remove.set_sensitive(False)

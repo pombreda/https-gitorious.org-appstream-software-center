@@ -12,10 +12,33 @@ override_dh_auto_install:
 	# Move the scripts to $(SHARE) and relink them again later.
 	mv debian/tmp/usr/*bin/* debian/tmp/$(share)
 	rmdir debian/tmp/usr/*bin
+
+
+override_dh_install:
+	dh_install --fail-missing
+
 	dh_link $(share)/software-center usr/bin/software-center \
 	        $(share)/update-software-center usr/sbin/update-software-center
+
+	# Drop Ubuntu stuff if not on Ubuntu
+	# TODO: We should do this on the 'upstream' level, e.g. in setup.py.
+	set -e; if ! dpkg-vendor --derives-from Ubuntu; then \
+		cd debian/software-center; sed -i 's/Ubuntu/Debian/g' \
+			usr/share/software-center/ui/SoftwareCenter.ui \
+			usr/share/applications/ubuntu-software-center.desktop; \
+		cd usr/share/applications; \
+		mv ubuntu-software-center.desktop software-center.desktop; \
+		cd ../icons/; \
+		rm hicolor/*/apps/softwarecenter.*; \
+		for size in 16x16 24x24 32x32; do \
+			ln -sf ../../../gnome/$$size/apps/system-software-install.png \
+			       hicolor/$$size/apps/softwarecenter.png; \
+		done; \
+		ln -sf ../../../gnome/scalable/apps/system-software-install.svg \
+		       hicolor/scalable/apps/softwarecenter.svg; \
+	fi;
+
 	# Remove empty directories.
-	find debian/tmp/usr -type d -empty -delete
-	dh_install --fail-missing
+	find debian/*/usr -type d -empty -delete
 
 .PHONY: override_dh_auto_install

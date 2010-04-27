@@ -524,7 +524,7 @@ if __name__ == "__main__":
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
-    cache = apt.Cache(apt.progress.OpTextProgress())
+    cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
     w = AvailablePane(cache, db, icons, datadir)

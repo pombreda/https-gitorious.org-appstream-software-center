@@ -188,7 +188,7 @@ if __name__ == "__main__":
     db = xapian.Database(pathname)
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
-    cache = apt.Cache(apt.progress.OpTextProgress())
+    cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
     w = InstalledPane(cache, db, icons, datadir)
