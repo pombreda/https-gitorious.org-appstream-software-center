@@ -982,7 +982,8 @@ class AppView(gtk.TreeView):
             if btn.get_param('state') != gtk.STATE_INSENSITIVE:
                 if rr.point_in(x, y):
                     self.window.set_cursor(self._cursor_hand)
-                    if btn.get_param('state') != gtk.STATE_PRELIGHT:
+                    if btn.get_param('state') not in (gtk.STATE_PRELIGHT,
+                                                      gtk.STATE_ACTIVE):
                         btn.set_state(gtk.STATE_PRELIGHT)
                 else:
                     if btn.get_param('state') != gtk.STATE_NORMAL:
