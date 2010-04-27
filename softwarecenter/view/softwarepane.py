@@ -174,7 +174,7 @@ class SoftwarePane(gtk.VBox):
         current_app = self.get_current_app()
 
         index = 0
-        if current_app in model.app_index_map:
+        if model and current_app in model.app_index_map:
             index =  model.app_index_map.get(current_app)
         self.app_view.set_cursor(index)
 
