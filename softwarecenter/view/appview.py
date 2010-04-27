@@ -982,8 +982,9 @@ class AppView(gtk.TreeView):
             if btn.get_param('state') != gtk.STATE_INSENSITIVE:
                 if rr.point_in(x, y):
                     self.window.set_cursor(self._cursor_hand)
-                    if btn.get_param('state') not in (gtk.STATE_PRELIGHT,
-                                                      gtk.STATE_ACTIVE):
+                    if self.focal_btn is btn:
+                        btn.set_state(gtk.STATE_ACTIVE)
+                    else:
                         btn.set_state(gtk.STATE_PRELIGHT)
                 else:
                     if btn.get_param('state') != gtk.STATE_NORMAL:
@@ -1051,10 +1052,11 @@ class AppView(gtk.TreeView):
         for btn_id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
             if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
-                self.focal_btn = btn_id
+                self.focal_btn = btn
                 btn.set_state(gtk.STATE_ACTIVE)
                 btn.set_shadow(gtk.SHADOW_IN)
-                break
+                return
+        self.focal_btn = None
 
     def _on_button_release_event(self, view, event, col):
         if event.button != 1:
@@ -1074,7 +1076,6 @@ class AppView(gtk.TreeView):
         for btn_id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
             if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
-                self.focal_btn = btn_id
                 btn.set_state(gtk.STATE_NORMAL)
                 btn.set_shadow(gtk.SHADOW_OUT)
                 model = view.get_model()
@@ -1095,6 +1096,7 @@ class AppView(gtk.TreeView):
                                     view.get_model(),
                                     path)
                 break
+        self.focal_btn = None
 
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
         if btn_id == 'info':
