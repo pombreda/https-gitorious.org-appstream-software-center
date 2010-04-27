@@ -18,6 +18,9 @@ software-center (2.0.3) UNRELEASED; urgency=low
     - keep the search terms updated to ensure the navigation history
       always has the latest used search terms (LP: #537512)
 
+  [ Jacob Johan Edwards ]
+  * do not flicker when search results are updated (LP: #570682)
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 17:55:55 +0200
 
 software-center (2.0.2) lucid; urgency=low
