@@ -868,6 +868,7 @@ class AppView(gtk.TreeView):
     def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
         self.buttons = {}
+        self.pressed = False
         self.focal_btn = None
 
         # if this hacked mode is available everything will be fast
@@ -984,7 +985,7 @@ class AppView(gtk.TreeView):
                     self.window.set_cursor(self._cursor_hand)
                     if self.focal_btn is btn:
                         btn.set_state(gtk.STATE_ACTIVE)
-                    else:
+                    elif not self.pressed:
                         btn.set_state(gtk.STATE_PRELIGHT)
                 else:
                     if btn.get_param('state') != gtk.STATE_NORMAL:
@@ -1037,6 +1038,7 @@ class AppView(gtk.TreeView):
     def _on_button_press_event(self, view, event, col):
         if event.button != 1:
             return
+        self.pressed = True
         res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
@@ -1061,6 +1063,7 @@ class AppView(gtk.TreeView):
     def _on_button_release_event(self, view, event, col):
         if event.button != 1:
             return
+        self.pressed = False
         res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
