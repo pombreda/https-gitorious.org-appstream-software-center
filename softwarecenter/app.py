@@ -45,6 +45,7 @@ from view.installedpane import InstalledPane
 from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
+from view.historypane import HistoryPane
 
 from backend.config import get_config
 from backend import get_install_backend
@@ -74,9 +75,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     (NOTEBOOK_PAGE_AVAILABLE,
      NOTEBOOK_PAGE_INSTALLED,
+     NOTEBOOK_PAGE_HISTORY,
      NOTEBOOK_PAGE_SEPARATOR_1,
      NOTEBOOK_PAGE_PENDING,
-     NOTEBOOK_PAGE_CHANNEL) = range(5)
+     NOTEBOOK_PAGE_CHANNEL) = range(6)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
@@ -198,6 +200,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                     self.NOTEBOOK_PAGE_INSTALLED)
         self.alignment_installed.add(self.installed_pane)
 
+        # history pane
+        self.history_pane = HistoryPane(self.cache, self.db,
+                                        self.distro,
+                                        self.icons, datadir)
+        self.alignment_history.add(self.history_pane)
+
         # pending view
         self.pending_view = PendingView(self.icons)
         self.scrolledwindow_transactions.add(self.pending_view)
@@ -261,6 +269,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane = self.channel_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
+        elif action == self.NOTEBOOK_PAGE_HISTORY:
+            self.active_pane = self.history_pane
         elif action == self.NOTEBOOK_PAGE_PENDING:
             self.active_pane = None
         elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:

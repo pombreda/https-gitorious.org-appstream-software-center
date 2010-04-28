@@ -119,6 +119,7 @@ class ViewSwitcher(gtk.TreeView):
            ViewSwitcherList.ACTION_ITEM_AVAILABLE
            ViewSwitcherList.ACTION_ITEM_CHANNEL
            ViewSwitcherList.ACTION_ITEM_INSTALLED
+           ViewSwitcherList.ACTION_ITEM_HISTORY
            ViewSwitcherList.ACTION_ITEM_PENDING
         """
         (path, column) = self.get_cursor()
@@ -172,9 +173,10 @@ class ViewSwitcherList(gtk.TreeStore):
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
      ACTION_ITEM_INSTALLED,
+     ACTION_ITEM_HISTORY,
      ACTION_ITEM_SEPARATOR_1,
      ACTION_ITEM_PENDING,
-     ACTION_ITEM_CHANNEL) = range(5)
+     ACTION_ITEM_CHANNEL) = range(6)
 
     ICON_SIZE = 24
 
@@ -204,6 +206,8 @@ class ViewSwitcherList(gtk.TreeStore):
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
+        icon = self._get_icon("clock")
+        history_iter = self.append(None, [icon, _("History"), self.ACTION_ITEM_HISTORY, None])
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
         
