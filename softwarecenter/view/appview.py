@@ -123,77 +123,65 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
-        # FIXME: do the sorting/adding in a seperate thread?
+        # no search query means "all"
         if not search_query:
-            # limit to applications
-            for m in db.xapiandb.postlist("ATapplication"):
-                doc = db.xapiandb.get_document(m.docid)
-                if filter and self.is_filtered_out(filter, doc):
-                    continue
+            search_query = xapian.Query("ATapplication")
+            self.sorted = True
+            limit = 0
+
+        # we support single and list search_queries,
+        # if list we append them one by one
+        if isinstance(search_query, xapian.Query):
+            search_query = [search_query]
+        already_added = set()
+        for q in search_query:
+            logging.debug("using query: '%s'" % q)
+            enquire = xapian.Enquire(db.xapiandb)
+            enquire.set_query(q)
+            # set search order mode
+            if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
+                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+            elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
+                self.sorted=sort=True
+            if limit == 0:
+                matches = enquire.get_mset(0, len(db))
+            else:
+                matches = enquire.get_mset(0, limit)
+            logging.debug("found ~%i matches" % matches.get_matches_estimated())
+            app_index = 0
+            for m in matches:
+                doc = m[xapian.MSET_DOCUMENT]
+                if "APPVIEW_DEBUG_TERMS" in os.environ:
+                    print doc.get_value(XAPIAN_VALUE_APPNAME)
+                    for t in doc.termlist():
+                        print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
+                    print "\n"
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
                 pkgname = db.get_pkgname(doc)
+                if filter and self.is_filtered_out(filter, doc):
+                    continue
+                # when doing multiple queries we need to ensure
+                # we don't add duplicates
                 popcon = db.get_popcon(doc)
-                self.apps.append(Application(appname, pkgname, popcon))
+                app = Application(appname, pkgname, popcon)
+                if not app in already_added:
+                    self.apps.append(app)
+                    already_added.add(app)
+                    if not sort:
+                        self.app_index_map[app] = app_index
+                        app_index = app_index + 1
                 # keep the UI going
                 while gtk.events_pending():
                     gtk.main_iteration()
+        if self.sorted:
             self.apps.sort()
             for (i, app) in enumerate(self.apps):
                 self.app_index_map[app] = i
-        else:
-            # we support single and list search_queries,
-            # if list we append them one by one
-            if isinstance(search_query, xapian.Query):
-                search_query = [search_query]
-            already_added = set()
-            for q in search_query:
-                logging.debug("using query: '%s'" % q)
-                enquire = xapian.Enquire(db.xapiandb)
-                enquire.set_query(q)
-                # set search order mode
-                if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
-                    enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
-                elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
-                    self.sorted=sort=True
-                if limit == 0:
-                    matches = enquire.get_mset(0, len(db))
-                else:
-                    matches = enquire.get_mset(0, limit)
-                logging.debug("found ~%i matches" % matches.get_matches_estimated())
-                app_index = 0
-                for m in matches:
-                    doc = m[xapian.MSET_DOCUMENT]
-                    if "APPVIEW_DEBUG_TERMS" in os.environ:
-                        print doc.get_value(XAPIAN_VALUE_APPNAME)
-                        for t in doc.termlist():
-                            print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
-                        print "\n"
-                    appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-                    pkgname = db.get_pkgname(doc)
-                    if filter and self.is_filtered_out(filter, doc):
-                        continue
-                    # when doing multiple queries we need to ensure
-                    # we don't add duplicates
-                    popcon = db.get_popcon(doc)
-                    app = Application(appname, pkgname, popcon)
-                    if not app in already_added:
-                        self.apps.append(app)
-                        already_added.add(app)
-                        if not sort:
-                            self.app_index_map[app] = app_index
-                            app_index = app_index + 1
-                    # keep the UI going
-                    while gtk.events_pending():
-                        gtk.main_iteration()
-            if sort:
-                self.apps.sort()
-                for (i, app) in enumerate(self.apps):
-                    self.app_index_map[app] = i
-            # build the pkgname map
-            for (i, app) in enumerate(self.apps):
-                if not app.pkgname in self.pkgname_index_map:
-                    self.pkgname_index_map[app.pkgname] = []
-                self.pkgname_index_map[app.pkgname].append(i)
+        # build the pkgname map
+        for (i, app) in enumerate(self.apps):
+            if not app.pkgname in self.pkgname_index_map:
+                self.pkgname_index_map[app.pkgname] = []
+            self.pkgname_index_map[app.pkgname].append(i)
 
     def update(self, appstore):
         """ update this appstore to match data from another """
