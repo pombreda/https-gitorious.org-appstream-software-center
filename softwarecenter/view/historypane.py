@@ -46,3 +46,16 @@ class HistoryPane(gtk.VBox):
     def get_current_app(self):
         return None
 
+if __name__ == '__main__':
+    widget = HistoryPane(None, None, None, None, None)
+    widget.show()
+
+    window = gtk.Window()
+    window.add(widget)
+    window.set_size_request(600, 500)
+    window.set_position(gtk.WIN_POS_CENTER)
+    window.show_all()
+    window.connect('destroy', gtk.main_quit)
+
+    gtk.main()
+
