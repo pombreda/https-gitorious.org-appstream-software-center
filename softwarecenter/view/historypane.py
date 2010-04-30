@@ -46,7 +46,12 @@ class HistoryPane(gtk.VBox):
 
         self.view = gtk.TreeView()
         self.view.show()
-        self.pack_start(self.view)
+        self.scrolled_view = gtk.ScrolledWindow()
+        self.scrolled_view.set_policy(gtk.POLICY_AUTOMATIC,
+                                      gtk.POLICY_AUTOMATIC)
+        self.scrolled_view.show()
+        self.scrolled_view.add(self.view)
+        self.pack_start(self.scrolled_view)
 
         self.store = gtk.TreeStore(*self.COL_TYPES)
         self.populate_store()
