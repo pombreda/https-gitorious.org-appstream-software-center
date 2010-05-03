@@ -82,8 +82,12 @@ class AppStore(gtk.GenericTreeModel):
     (SEARCHES_SORTED_BY_POPCON,
      SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
      SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
+    
+    # the default result size for a search
+    DEFAULT_SEARCH_LIMIT = 200
 
-    def __init__(self, cache, db, icons, search_query=None, limit=200,
+    def __init__(self, cache, db, icons, search_query=None, 
+                 limit=DEFAULT_SEARCH_LIMIT,
                  sort=False, filter=None):
         """
         Initalize a AppStore.
@@ -973,13 +977,16 @@ class AppView(gtk.TreeView):
         if type(new_model) != AppStore:
             return
         model = self.get_model()
-
         # If there is no current model, simply set the new one.
         if not model:
-            super(AppView, self).set_model(new_model)
+            return super(AppView, self).set_model(new_model)
+        # if the changes are too big set a new model instead of using
+        # "update" - the rational is that GtkTreeView is really slow
+        # if thousands of rows are added at once on a "connected" model
+        if abs(len(new_model)-len(model)) > AppStore.DEFAULT_SEARCH_LIMIT:
+            return super(AppView, self).set_model(new_model)
         # Otherwise update the current model using the new data.
-        else:
-            model.update(new_model)
+        model.update(new_model)
 
     def is_action_in_progress_for_selected_app(self):
         """
