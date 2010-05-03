@@ -290,7 +290,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
         # set appname/iconname/pkgname only if we actually have one
-        if appname:
+        if appname and "," not in appname:
             trans.set_meta_data(sc_appname=appname, 
                                 reply_handler=lambda t: True,
                                 error_handler=self._on_trans_error)
