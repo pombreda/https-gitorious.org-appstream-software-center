@@ -441,7 +441,7 @@ class AvailablePane(SoftwarePane):
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
             # enter custom list mode if search has non-trailing
             # comma per custom list spec.
-            self.custom_list_mode = "," in new_text[:-1]
+            self.custom_list_mode = "," in new_text.rstrip(',')
         self.update_navigation_button()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -600,7 +600,7 @@ if __name__ == "__main__":
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
-    cache = apt.Cache(apt.progress.OpTextProgress())
+    cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
     w = AvailablePane(cache, db, icons, datadir)

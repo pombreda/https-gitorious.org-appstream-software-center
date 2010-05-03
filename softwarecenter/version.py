@@ -1,5 +1,5 @@
 
-VERSION='1.1.21'
-CODENAME='UNRELEASED'
-DISTRO='Ubuntu'
-RELEASE='10.04'
+VERSION='1.1.21debian1'
+CODENAME='unstable'
+DISTRO='Debian'
+RELEASE='unstable'

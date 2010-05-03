@@ -22,7 +22,7 @@ if __name__ == "__main__":
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         appname = doc.get_value(XAPIAN_VALUE_APPNAME)
         summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
-        if cache.has_key(pkgname) and cache[pkgname].isInstalled:
+        if pkgname in cache and cache[pkgname].is_installed:
             installed.append("%s: %s [%s]" % (appname, summary, pkgname))
 
     print "\n".join(sorted(installed, 

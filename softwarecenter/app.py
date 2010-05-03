@@ -105,6 +105,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # distro specific stuff
         self.distro = get_distro()
 
+        # Disable software-properties if it does not exist
+        if not os.path.exists("/usr/bin/software-properties-gtk"):
+            sources = self.builder.get_object("menuitem_software_sources")
+            sources.set_sensitive(False)
+
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.backend = get_install_backend()
@@ -362,16 +367,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
              "/usr/bin/software-properties-gtk", 
              "-n", 
              "-t", str(self.window_main.window.xid)])
-        # wait for it to finish
-        ret = None
-        while ret is None:
-            while gtk.events_pending():
-                gtk.main_iteration()
-            ret = p.poll()
-        # return code of 1 means that it changed
+        # Monitor the subprocess regularly
+        glib.timeout_add(100, self._poll_software_sources_subprocess, p)
+
+    def _poll_software_sources_subprocess(self, popen):
+        ret = popen.poll()
+        if ret is None:
+            # Keep monitoring
+            return True
+        # A return code of 1 means that the sources have changed
         if ret == 1:
             self.run_update_cache()
         self.window_main.set_sensitive(True)
+        # Stop monitoring
+        return False
 
     def on_menuitem_about_activate(self, widget):
         self.aboutdialog.set_version(VERSION)
@@ -447,7 +456,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             return False
         # update menu items
         if (not self.active_pane.is_category_view_showing() and 
-            self.cache.has_key(app.pkgname)):
+            app.pkgname in self.cache):
             if self.active_pane.app_view.is_action_in_progress_for_selected_app():
                 self.menuitem_install.set_sensitive(False)
                 self.menuitem_remove.set_sensitive(False)

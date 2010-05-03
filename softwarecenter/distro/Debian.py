@@ -35,6 +35,14 @@ class Debian(Distro):
     SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
     SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%s"
 
+    def get_distro_channel_name(self):
+        """ The name in the Release file """
+        return "Debian"
+
+    def get_distro_channel_description(self):
+        """ The description of the main distro channel """
+        return _("Provided by Debian")
+
     def get_removal_warning_text(self, cache, pkg, appname):
         primary = _("To remove %s, these items must be removed "
                     "as well:" % appname)

@@ -32,7 +32,7 @@ class Transaction(object):
     def __init__(self, sec):
         self.start_date = sec["Start-Date"]
         for k in self.PKGACTIONS+["Error"]:
-            if sec.has_key(k):
+            if k in sec:
                 setattr(self, k.lower(), map(string.strip, sec[k].split(",")))
             else:
                 setattr(self, k.lower(), [])
@@ -48,7 +48,7 @@ class AptHistory(object):
     def __init__(self, history_file=None):
         self.history_file = history_file
         if not history_file:
-            self.history_file = apt_pkg.Config.FindFile("Dir::Log::History")
+            self.history_file = apt_pkg.config.find_file("Dir::Log::History")
             #self.history_file = "/var/log/apt/history.log.1.gz"
         if self.history_file.endswith(".gz"):
             f = gzip.open(self.history_file)
@@ -81,7 +81,7 @@ class AptHistory(object):
            (this can be rather slow)
         """
         # FIXME: try to be more clever here with date/file timestamps
-        term = apt_pkg.Config.FindFile("Dir::Log::Terminal")
+        term = apt_pkg.config.find_file("Dir::Log::Terminal")
         term_lines = self._find_in_terminal_log(date, open(term))
         # now search the older history
         if not term_lines:

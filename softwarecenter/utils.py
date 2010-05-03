@@ -40,7 +40,8 @@ class ExecutionTime(object):
     def __enter__(self):
         self.now = time.time()
     def __exit__(self, type, value, stack):
-        print "%s: %s" % (self.info, time.time() - self.now)
+        logger = logging.getLogger("softwarecenter.performance")
+        logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
 def htmlize_package_desc(desc):
     def _is_bullet(line):

@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from __future__ import with_statement
+
 
 import __builtin__
 import apt
@@ -84,9 +86,13 @@ class AppStore(gtk.GenericTreeModel):
     (SEARCHES_SORTED_BY_POPCON,
      SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
      SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
+    
+    # the default result size for a search
+    DEFAULT_SEARCH_LIMIT = 200
 
-    def __init__(self, cache, db, icons, search_query=None, limit=200,
-                 sort=False, exact=False, filter=None):
+    def __init__(self, cache, db, icons, search_query=None, 
+                 limit=DEFAULT_SEARCH_LIMIT,
+                 sort=False, filter=None, exact=False):
         """
         Initalize a AppStore.
 
@@ -100,6 +106,8 @@ class AppStore(gtk.GenericTreeModel):
                    (default is to use relevance sort)
         - `filter`: filter functions that can be used to filter the
                     data further. A python function that gets a pkgname
+        - `exact`: If true, indexes of queries without matches will be
+                    maintained in the store.
         """
         gtk.GenericTreeModel.__init__(self)
         self.search_query = search_query
@@ -124,108 +132,161 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
-        # FIXME: do the sorting/adding in a seperate thread?
+        # no search query means "all"
         if not search_query:
-            # limit to applications
-            for m in db.xapiandb.postlist("ATapplication"):
-                doc = db.xapiandb.get_document(m.docid)
-                if filter and self.is_filtered_out(filter, doc):
-                    continue
+            search_query = xapian.Query("ATapplication")
+            self.sorted = True
+            limit = 0
+
+        # we support single and list search_queries,
+        # if list we append them one by one
+        if isinstance(search_query, xapian.Query):
+            search_query = [search_query]
+        already_added = set()
+        for q in search_query:
+            logging.debug("using query: '%s'" % q)
+            enquire = xapian.Enquire(db.xapiandb)
+            enquire.set_query(q)
+            # set search order mode
+            if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
+                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+            elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
+                self.sorted=sort=True
+            if limit == 0:
+                matches = enquire.get_mset(0, len(db))
+            else:
+                matches = enquire.get_mset(0, limit)
+            logging.debug("found ~%i matches" % matches.get_matches_estimated())
+            app_index = 0
+            for m in matches:
+                doc = m[xapian.MSET_DOCUMENT]
+                if "APPVIEW_DEBUG_TERMS" in os.environ:
+                    print doc.get_value(XAPIAN_VALUE_APPNAME)
+                    for t in doc.termlist():
+                        print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
+                    print "\n"
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
                 pkgname = db.get_pkgname(doc)
+                if filter and self.is_filtered_out(filter, doc):
+                    continue
+                # when doing multiple queries we need to ensure
+                # we don't add duplicates
                 popcon = db.get_popcon(doc)
-                self.apps.append(Application(appname, pkgname, popcon))
+                app = Application(appname, pkgname, popcon)
+                if not app in already_added:
+                    self.apps.append(app)
+                    already_added.add(app)
+                    if not sort:
+                        self.app_index_map[app] = app_index
+                        app_index = app_index + 1
                 # keep the UI going
                 while gtk.events_pending():
                     gtk.main_iteration()
+            if len(matches) == 0 and self.exact:
+                # Find and remove a AP search prefix to get the
+                # original package name of the xapian query.
+                pkgname = ""
+                for term in q:
+                    if term[:2] == "AP":
+                        pkgname = term[2:]
+                        break
+                app = Application("", pkgname)
+                self.app_index_map[app] = app_index
+                self.apps.append(app)
+        if self.sorted:
             self.apps.sort()
             for (i, app) in enumerate(self.apps):
                 self.app_index_map[app] = i
-        elif exact:
-            # Exact refers to searching exact package names in an exact order.
-            # It requires the output of database.get_query_list_from_search_
-            # entry('str with non-trailing comma'). This is used for custom
-            # package lists. Note that, by specification, exact search ignores
-            # requested sorting.
-            assert (type(search_query) == list or type(search_query) == tuple)
-            
-            enquire = xapian.Enquire(db.xapiandb)
-            for i, query in enumerate(search_query):
-                enquire.set_query(query)
-                matches = enquire.get_mset(0, 1) # Takes only one result
-                for m in matches: # so this only runs through once
-                    doc = m[xapian.MSET_DOCUMENT]
-                    app = Application(doc.get_value(XAPIAN_VALUE_APPNAME),
-                                      doc.get_value(XAPIAN_VALUE_PKGNAME))
-                # Preserve pkgnames not found in the current chaannel
-                if len(matches) == 0:
-                    # Find and remove a AP search prefix to get the
-                    # original package name.
-                    pkgname = ""
-                    for term in query:
-                        if term[:2] == "AP":
-                            pkgname = term[2:]
-                            break
-                    app = Application("", pkgname)
-                self.app_index_map[app] = i
-                self.pkgname_index_map[app.pkgname] = [i]
-                self.apps.append(app)
+        # build the pkgname map
+        for (i, app) in enumerate(self.apps):
+            if not app.pkgname in self.pkgname_index_map:
+                self.pkgname_index_map[app.pkgname] = []
+            self.pkgname_index_map[app.pkgname].append(i)
+        if self.exact:
+            self.refresh_metadata()
 
-                self.refresh_metadata()
-        else:
-            # we support single and list search_queries,
-            # if list we append them one by one
-            if isinstance(search_query, xapian.Query):
-                search_query = [search_query]
-            already_added = set()
-            for q in search_query:
-                logging.debug("using query: '%s'" % q)
-                enquire = xapian.Enquire(db.xapiandb)
-                enquire.set_query(q)
-                # set search order mode
-                if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
-                    enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
-                elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
-                    self.sorted=sort=True
-                if limit == 0:
-                    matches = enquire.get_mset(0, len(db))
-                else:
-                    matches = enquire.get_mset(0, limit)
-                logging.debug("found ~%i matches" % matches.get_matches_estimated())
-                app_index = 0
-                for m in matches:
-                    doc = m[xapian.MSET_DOCUMENT]
-                    if "APPVIEW_DEBUG_TERMS" in os.environ:
-                        print doc.get_value(XAPIAN_VALUE_APPNAME)
-                        for t in doc.termlist():
-                            print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
-                        print "\n"
-                    appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-                    pkgname = db.get_pkgname(doc)
-                    if filter and self.is_filtered_out(filter, doc):
-                        continue
-                    # when doing multiple queries we need to ensure
-                    # we don't add duplicates
-                    popcon = db.get_popcon(doc)
-                    app = Application(appname, pkgname, popcon)
-                    if not app in already_added:
-                        self.apps.append(app)
-                        already_added.add(app)
-                        if not sort:
-                            self.app_index_map[app] = app_index
-                            app_index = app_index + 1
-                    # keep the UI going
-                    while gtk.events_pending():
-                        gtk.main_iteration()
-            if sort:
-                self.apps.sort()
-                for (i, app) in enumerate(self.apps):
-                    self.app_index_map[app] = i
-            # build the pkgname map
-            for (i, app) in enumerate(self.apps):
-                if not app.pkgname in self.pkgname_index_map:
-                    self.pkgname_index_map[app.pkgname] = []
-                self.pkgname_index_map[app.pkgname].append(i)
+    # internal API
+    def _append_app(self, app):
+        """ append a application to the current store, keep 
+            index maps up-to-date
+        """
+        self.apps.append(app)
+        i = len(self.apps) - 1
+        self.app_index_map[app] = i
+        self.pkgname_index_map[app.pkgname] = i
+        self.row_inserted(i, self.get_iter(i))
+
+    def _insert_app_sorted(self, app):
+        """ insert a application into a already sorted store
+            at the right place
+        """
+        #print "adding: ", app
+        l = 0
+        r = len(self.apps) - 1
+        while r >= l:
+            m = (r+l) / 2
+            #print "it: ", l, r, m
+            if app < self.apps[m]:
+                r = m - 1
+            else:
+                l = m + 1
+        # we have a element 
+        #print "found at ", l, r, m
+        self._insert_app(app, l)
+
+    def _insert_app(self, app, i):
+        """ insert application at the given position and update
+            the index maps
+        """
+        #print "old: ", [x.pkgname for x in self.apps]
+        self.apps.insert(i, app)
+        self.app_index_map[app] = i
+        if not app.pkgname in self.pkgname_index_map:
+            self.pkgname_index_map[app.pkgname] = []
+        self.pkgname_index_map[app.pkgname].append(i)
+        self.row_inserted(i, self.get_iter(i))
+        #print "new: ", [x.pkgname for x in self.apps]
+
+    # external API
+    def clear(self):
+        self.apps = []
+        self.app_index_map.clear()
+        self.pkgname_index_map.clear()
+
+    def update(self, appstore):
+        """ update this appstore to match data from another """
+        # Updating instead of replacing prevents a distracting white
+        # flash. First, match list of apps.
+        to_update = min(len(self), len(appstore))
+        for i in range(to_update):
+            self.apps[i] = appstore.apps[i]
+            self.row_changed(i, self.get_iter(i))
+
+        to_remove = max(0, len(self) - len(appstore))
+        for i in range(to_remove):
+            self.apps.pop()
+            self.row_deleted(len(self))
+
+        to_add = max(0, len(appstore) - len(self))
+        apps_to_add = appstore.apps[len(appstore) - to_add:]
+        for app in apps_to_add:
+            path = len(self)
+            self.apps.append(app)
+            self.row_inserted(path, self.get_iter(path))
+
+        # Next, match data about the store.
+        self.cache = appstore.cache
+        self.db = appstore.db
+        self.icons = appstore.icons
+        self.search_query = appstore.search_query
+        self.sorted = appstore.sorted
+        self.filter = appstore.filter
+        self.app_index_map = appstore.app_index_map
+        self.pkgname_index_map = appstore.pkgname_index_map
+        self.exact = appstore.exact
+        if self.exact:
+            self.existing_apps = appstore.existing_apps
+            self.installable_apps = appstore.installable_apps
 
     def refresh_metadata(self):
         # Quantitative data on stored packages. These are used for quick
@@ -242,7 +303,6 @@ class AppStore(gtk.GenericTreeModel):
         """ apply filter and return True if the package is filtered out """
         pkgname = self.db.get_pkgname(doc)
         return not filter.filter(doc, pkgname)
-
     # internal helper
     def _get_searches_sort_mode(self):
         mode = self.SEARCHES_SORTED_BY_POPCON
@@ -377,12 +437,12 @@ class AppStore(gtk.GenericTreeModel):
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:
             pkgname = app.pkgname
-            if self.cache.has_key(pkgname) and self.cache[pkgname].isInstalled:
+            if pkgname in self.cache and self.cache[pkgname].is_installed:
                 return True
             return False
         elif column == self.COL_AVAILABLE:
             pkgname = app.pkgname
-            return self.cache.has_key(pkgname)
+            return pkgname in self.cache
         elif column == self.COL_PKGNAME:
             pkgname = app.pkgname
             return pkgname
@@ -1024,6 +1084,21 @@ class AppView(gtk.TreeView):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
+    def set_model(self, new_model):
+        # Only allow use of an AppStore model
+        if type(new_model) != AppStore:
+            return
+        model = self.get_model()
+        # If there is no current model, simply set the new one.
+        if not model:
+            return super(AppView, self).set_model(new_model)
+        # if the changes are too big set a new model instead of using
+        # "update" - the rational is that GtkTreeView is really slow
+        # if thousands of rows are added at once on a "connected" model
+        if abs(len(new_model)-len(model)) > AppStore.DEFAULT_SEARCH_LIMIT:
+            return super(AppView, self).set_model(new_model)
+        return model.update(new_model)
+
     def is_action_in_progress_for_selected_app(self):
         """
         return True if an install or remove of the current package
@@ -1267,12 +1342,12 @@ class AppViewFilter(object):
                 for m in self.db.xapiandb.postlist("AP"+pkgname):
                     return False
         if self.installed_only:
-            if (not self.cache.has_key(pkgname) or
-                not self.cache[pkgname].isInstalled):
+            if (not pkgname in self.cache or
+                not self.cache[pkgname].is_installed):
                 return False
         if self.not_installed_only:
-            if (self.cache.has_key(pkgname) and
-                self.cache[pkgname].isInstalled):
+            if (pkgname in self.cache and
+                self.cache[pkgname].is_installed):
                 return False
         if self.supported_only:
             if not self.distro.is_supported(self.cache, doc, pkgname):
@@ -1308,7 +1383,8 @@ if __name__ == "__main__":
     pathname = os.path.join(xapian_base_path, "xapian")
 
     # the store
-    cache = apt.Cache(apt.progress.OpTextProgress())
+    from softwarecenter.apt.aptcache import AptCache
+    cache = AptCache()
     db = StoreDatabase(pathname, cache)
     db.open()
 

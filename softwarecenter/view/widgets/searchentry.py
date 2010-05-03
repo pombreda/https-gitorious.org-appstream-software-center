@@ -138,12 +138,15 @@ class SearchEntry(gtk.Entry):
             self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, None)
         # Based on the Rhythmbox code
         yellowish = gtk.gdk.Color(63479, 63479, 48830)
+        black = gtk.gdk.Color(0, 0, 0)
         if self._a11y == True:
             return
         if self.get_text() == "":
             self.modify_base(gtk.STATE_NORMAL, None)
+            self.modify_text(gtk.STATE_NORMAL, None)
         else:
             self.modify_base(gtk.STATE_NORMAL, yellowish)
+            self.modify_text(gtk.STATE_NORMAL, black)
 
 def on_entry_changed(self, terms):
     print terms

@@ -97,6 +97,9 @@ class StoreDatabase(gobject.GObject):
             added = []
             for pkgname in search_term.split(","):
                 pkgname = pkgname.lower()
+                # double comma, ignore term
+                if pkgname == '':
+                    continue
                 # not a pkgname
                 if not re.match("[0-9a-z\.\-]+", pkgname):
                     return None
@@ -165,7 +168,7 @@ class StoreDatabase(gobject.GObject):
         # from the apt cache
         if not summary and self._aptcache.ready: 
             pkgname = self.get_pkgname(doc)
-            if (self._aptcache.has_key(pkgname) and 
+            if (pkgname in self._aptcache and 
                 self._aptcache[pkgname].candidate):
                 return  self._aptcache[pkgname].candidate.summary
             elif channel:

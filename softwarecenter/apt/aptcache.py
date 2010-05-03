@@ -33,7 +33,7 @@ import time
 
 from gettext import gettext as _
 
-class GtkMainIterationProgress(apt.progress.OpProgress):
+class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
     def update(self, percent):
         while gtk.events_pending():
@@ -65,6 +65,7 @@ class AptCache(gobject.GObject):
         gobject.GObject.__init__(self)
         self._cache = None
         self._ready = False
+        self._timeout_id = None
         # async open cache
         glib.timeout_add(100, self.open)
         # setup monitor watch for install/remove changes
@@ -74,7 +75,12 @@ class AptCache(gobject.GObject):
         self.apt_finished_monitor.connect(
             "changed", self._on_apt_finished_stamp_changed)
     def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
-        glib.timeout_add_seconds(10, self.open)
+        if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+            return 
+        if self._timeout_id:
+            glib.source_remove(self._timeout_id)
+            self._timeout_id = None
+        self._timeout_id = glib.timeout_add_seconds(10, self.open)
     @property
     def ready(self):
         return self._ready
@@ -87,37 +93,38 @@ class AptCache(gobject.GObject):
             self._cache.open(GtkMainIterationProgress())
         self._ready = True
         self.emit("cache-ready")
+    def has_key(self, key):
+        return self._cache.has_key(key)
     def __getitem__(self, key):
         return self._cache[key]
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
         return self._cache.__contains__(k)
-    def has_key(self, key):
-        return self._cache.has_key(key)
     def _get_installed_rdepends_by_type(self, pkg, type):
         installed_rdeps = set()
-        for rdep in pkg._pkg.RevDependsList:
-            if rdep.UntranslatedDepType in type:
-                rdep_name = rdep.ParentPkg.Name
-                if (self._cache.has_key(rdep_name) and
-                    self._cache[rdep_name].isInstalled):
-                    installed_rdeps.add(rdep.ParentPkg.Name)
+        for rdep in pkg._pkg.rev_depends_list:
+            dep_type = rdep.dep_type_untranslated
+            if dep_type in type:
+                rdep_name = rdep.parent_pkg.name
+                if (rdep_name in self._cache and
+                    self._cache[rdep_name].is_installed):
+                    installed_rdeps.add(rdep.parent_pkg.name)
         return installed_rdeps
     def _installed_dependencies(self, pkg_name, all_deps=None):
         """ recursively return all installed dependencies of a given pkg """
         #print "_installed_dependencies", pkg_name, all_deps
         if not all_deps:
             all_deps = set()
-        if not self._cache.has_key(pkg_name):
+        if pkg_name not in self._cache:
             return all_deps
-        cur = self._cache[pkg_name]._pkg.CurrentVer
+        cur = self._cache[pkg_name]._pkg.current_ver
         if not cur:
             return all_deps
         for t in self.DEPENDENCY_TYPES+self.RECOMMENDS_TYPES:
             try:
-                for dep in cur.DependsList[t]:
-                    dep_name = dep[0].TargetPkg.Name
+                for dep in cur.depends_list[t]:
+                    dep_name = dep[0].target_pkg.name
                     if not dep_name in all_deps:
                         all_deps.add(dep_name)
                         all_deps |= self._installed_dependencies(dep_name, all_deps)
@@ -134,10 +141,13 @@ class AptCache(gobject.GObject):
         installed_auto_deps = set()
         deps = self._installed_dependencies(pkg.name)
         for dep_name in deps:
-            if self._cache.has_key(dep_name):
+            try:
                 pkg = self._cache[dep_name]
-                if (pkg.isInstalled and 
-                    pkg.isAutoRemovable):
+            except KeyError:
+                continue
+            else:
+                if (pkg.is_installed and 
+                    pkg.is_auto_removable):
                     installed_auto_deps.add(dep_name)
         return installed_auto_deps
     def get_origins(self):
@@ -179,7 +189,7 @@ if __name__ == "__main__":
 
     print "unused deps of 4g8"
     pkg = c["4g8"]
-    pkg.markDelete()
+    pkg.mark_delete()
     print c.get_installed_automatic_depends_for_pkg(pkg)
 
     pkg = c["unace"]
