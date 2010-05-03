@@ -192,7 +192,24 @@ class AppStore(gtk.GenericTreeModel):
         self.app_index_map[app] = len(self.apps) - 1
         self.pkgname_index_map[app.pkgname] = len(self.apps) - 1
 
+    def _insert_app_sorted(self, app):
+        """ insert a application into a already sorted store
+            at the right place
+        """
+        # NAIVE implementation
+        for (i, i_app) in enumerate(self.apps):
+            if i_app > app:
+                self.apps.insert(i, app)
+                return
+        # not found, needs inserting last
+        self._append_app(app)
+
     # external API
+    def clear(self):
+        self.apps = []
+        self.app_index_map.clear()
+        self.pkgname_index_map.clear()
+
     def update(self, appstore):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white

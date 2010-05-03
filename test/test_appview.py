@@ -55,11 +55,12 @@ class testAppStore(unittest.TestCase):
 
     def test_internal_append_app(self):
         """ test if the interal _append_app works """
-        app = Application("the foobar app", "foo")
         store = AppStore(
             self.cache, self.db, self.mock_icons, sort=True, 
             filter=self.mock_filter)
         len_now = len(store)
+        # the _append_app() is the function we test
+        app = Application("the foobar app", "foo")
         store._append_app(app)
         self.assertTrue(len(store) == (len_now + 1))
         # test that it was inserted as the last element
@@ -70,6 +71,26 @@ class testAppStore(unittest.TestCase):
         # test that the pkgname_index_map points to the right index too
         self.assertEqual(store.apps[store.pkgname_index_map["foo"]], app)
         self.assertEqual(store.apps[store.pkgname_index_map["foo"]].pkgname, "foo")
+
+    def test_internal_insert_app_sorted(self):
+        """ test if the interal _insert_app_sorted works """
+        store = AppStore(
+            self.cache, self.db, self.mock_icons, sort=True, 
+            filter=self.mock_filter)
+        # create a store with some entries
+        store.clear()
+        for s in ["bb","dd","gg","hh"]:
+            app = Application(s, s)
+            store._append_app(app)
+        # now test _insert_app_sorted
+        test_data = [ (1, "cc"),    
+                      (3, "ee"),
+                      (0, "aa"),
+                      (-1, "zz") ]
+        for (pos, s) in test_data:
+            app = Application(s, s)
+            store._insert_app_sorted(app)
+            self.assertEqual(store.apps[pos], app)
 
 
 if __name__ == "__main__":
