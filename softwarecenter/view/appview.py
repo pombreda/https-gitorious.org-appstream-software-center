@@ -198,14 +198,32 @@ class AppStore(gtk.GenericTreeModel):
         """ insert a application into a already sorted store
             at the right place
         """
-        # NAIVE implementation
-        for (i, i_app) in enumerate(self.apps):
-            if i_app > app:
-                self.apps.insert(i, app)
-                self.row_inserted(i, self.get_iter(i))
-                return
-        # not found, needs inserting last
-        self._append_app(app)
+        #print "adding: ", app
+        l = 0
+        r = len(self.apps) - 1
+        while r >= l:
+            m = (r+l) / 2
+            #print "it: ", l, r, m
+            if app < self.apps[m]:
+                r = m - 1
+            else:
+                l = m + 1
+        # we have a element 
+        #print "found at ", l, r, m
+        self._insert_app(app, l)
+
+    def _insert_app(self, app, i):
+        """ insert application at the given position and update
+            the index maps
+        """
+        #print "old: ", [x.pkgname for x in self.apps]
+        self.apps.insert(i, app)
+        self.app_index_map[app] = i
+        if not app.pkgname in self.pkgname_index_map:
+            self.pkgname_index_map[app.pkgname] = []
+        self.pkgname_index_map[app.pkgname].append(i)
+        self.row_inserted(i, self.get_iter(i))
+        #print "new: ", [x.pkgname for x in self.apps]
 
     # external API
     def clear(self):

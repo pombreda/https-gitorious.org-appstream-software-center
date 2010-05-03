@@ -79,19 +79,26 @@ class testAppStore(unittest.TestCase):
             filter=self.mock_filter)
         # create a store with some entries
         store.clear()
-        for s in ["bb","dd","gg","hh"]:
+        for s in ["bb","dd","gg","ii"]:
             app = Application(s, s)
             store._append_app(app)
         # now test _insert_app_sorted
-        test_data = [ (1, "cc"),    
-                      (3, "ee"),
-                      (0, "aa"),
-                      (-1, "zz") ]
+        test_data = [ (-2, "hh"),
+                      ( 1, "cc"),    
+                      ( 3, "ee"),
+                      ( 0, "aa"),
+                      (-1, "zz"),
+                      (-2, "jj"),
+                      (-2, "kk"),
+                      ( 5, "ff"),
+                    ]
         for (pos, s) in test_data:
             app = Application(s, s)
             store._insert_app_sorted(app)
             self.assertEqual(store.apps[pos], app)
 
+        
+        
 
 if __name__ == "__main__":
     import logging
