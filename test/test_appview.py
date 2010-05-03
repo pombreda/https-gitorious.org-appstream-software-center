@@ -8,11 +8,13 @@ import apt
 import unittest
 import shutil
 
+from softwarecenter import Application
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.view.appview import AppStore
-
 from softwarecenter.enums import *
+
+import xapian
 
 class MockAppViewFilter(object):
     def filter(self, doc, pkgname):
@@ -25,6 +27,7 @@ class MockIconCache(object):
         return None
 
 class testAppStore(unittest.TestCase):
+    """ tests the AppStore GtkTreeViewModel """
 
     def setUp(self):
         xapian_base_path = XAPIAN_BASE_PATH
@@ -36,10 +39,37 @@ class testAppStore(unittest.TestCase):
         self.mock_filter = MockAppViewFilter()
 
     def test_init(self):
+        """ test basic init of the AppStore model """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, sort=True, filter=mock_filter)
+            self.cache, self.db, self.mock_icons, sort=True, 
+            filter=self.mock_filter)
         self.assertTrue(len(store) > 0)
 
+    def test_search(self):
+        """ test if searching works """
+        search_query = xapian.Query("APsoftware-center")
+        store = AppStore(
+            self.cache, self.db, self.mock_icons, search_query=search_query,
+            sort=True, filter=self.mock_filter)
+        self.assertTrue(len(store) == 1)
+
+    def test_internal_append_app(self):
+        """ test if the interal _append_app works """
+        app = Application("the foobar app", "foo")
+        store = AppStore(
+            self.cache, self.db, self.mock_icons, sort=True, 
+            filter=self.mock_filter)
+        len_now = len(store)
+        store._append_app(app)
+        self.assertTrue(len(store) == (len_now + 1))
+        # test that it was inserted as the last element
+        self.assertEqual(store.apps[-1].pkgname, "foo")
+        # test that the app_index_map points to the right index integer
+        # in the store
+        self.assertEqual(store.apps[store.app_index_map[app]], app)
+        # test that the pkgname_index_map points to the right index too
+        self.assertEqual(store.apps[store.pkgname_index_map["foo"]], app)
+        self.assertEqual(store.apps[store.pkgname_index_map["foo"]].pkgname, "foo")
 
 
 if __name__ == "__main__":

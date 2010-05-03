@@ -183,6 +183,16 @@ class AppStore(gtk.GenericTreeModel):
                 self.pkgname_index_map[app.pkgname] = []
             self.pkgname_index_map[app.pkgname].append(i)
 
+    # internal API
+    def _append_app(self, app):
+        """ append a application to the current store, keep 
+            index maps up-to-date
+        """
+        self.apps.append(app)
+        self.app_index_map[app] = len(self.apps) - 1
+        self.pkgname_index_map[app.pkgname] = len(self.apps) - 1
+
+    # external API
     def update(self, appstore):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white
