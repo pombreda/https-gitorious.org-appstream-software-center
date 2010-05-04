@@ -131,6 +131,10 @@ class ActionBar(gtk.HBox):
         self._show()
 
     def unset_label(self):
+        """
+        Removes the currently set label, hiding the actionbar if no
+        buttons are displayed.
+        """
         # Destroy all event boxes holding text segments.
         while len(self._label):
             last = self._label.get_children()[-1]
