@@ -16,10 +16,13 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import gio
 import gtk
 
 import apt_pkg
 apt_pkg.init_config()
+
+from debian_bundle import deb822
 
 import datetime
 
@@ -54,14 +57,50 @@ class HistoryPane(gtk.VBox):
         self.pack_start(self.scrolled_view)
 
         self.store = gtk.TreeStore(*self.COL_TYPES)
-        self.populate_store()
         self.view.set_model(self.store)
+        self.filename = apt_pkg.Config.FindFile("Dir::Log::History")
+        self.last = None
+        self.parse_history_log()
+
+        self.logfile = gio.File(self.filename)
+        self.monitor = self.logfile.monitor_file()
+        self.monitor.connect("changed", self._on_apt_history_changed)
 
         self.column = gtk.TreeViewColumn(_('Date'))
         self.view.append_column(self.column)
         self.cell = gtk.CellRendererText()
         self.column.pack_start(self.cell)
         self.column.set_cell_data_func(self.cell, self.render_cell)
+
+    def _on_apt_history_changed(self, monitor, afile, other_file, event):
+        if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+            self.parse_history_log()
+
+    def parse_history_log(self):
+        fd = open(self.filename)
+        date = None
+        day = self.store.get_iter_first()
+        if day is not None:
+            date = self.store.get_value(day, self.COL_WHEN)
+        for stanza in deb822.Deb822.iter_paragraphs(fd):
+            when = datetime.datetime.strptime(stanza['Start-Date'], '%Y-%m-%d %H:%M:%S')
+            if self.last is not None and when <= self.last:
+                continue
+            for action in (self.INSTALL, self.REMOVE):
+                if not stanza.has_key(action):
+                    continue
+                if when.date() != date:
+                    date = when.date()
+                    day = self.store.prepend(None, (date, None, None))
+                packages = stanza[action].split(', ')
+                # Drop the version numbers
+                pkgnames = [p.split()[0] for p in packages]
+                for pkgname in pkgnames:
+                    row = (when, action, pkgname)
+                    self.store.append(day, row)
+
+        fd.close()
+        self.last = when
 
     def is_category_view_showing(self):
         # There is no category view in the installed pane.
@@ -77,31 +116,6 @@ class HistoryPane(gtk.VBox):
 
     def get_current_app(self):
         return None
-
-    def populate_store(self):
-        # re-populate store from scratch
-        filename = apt_pkg.Config.FindFile("Dir::Log::History")
-        fd = open(filename)
-        tagfile = apt_pkg.ParseTagFile(fd)
-        date = None
-        day = None
-        while tagfile.Step():
-            section = tagfile.Section
-            for action in (self.INSTALL, self.REMOVE):
-                if section.has_key(action):
-                    when = datetime.datetime.strptime(section['Start-Date'], '%Y-%m-%d %H:%M:%S')
-                    packages = section[action].split(', ')
-                    # Drop the version numbers
-                    pkgnames = [p.split()[0] for p in packages]
-                    for pkgname in pkgnames:
-                        # FIXME: a package is not necessarily an application, we
-                        # need to filter out those that are not.
-                        row = (when, action, pkgname)
-                        if when.date() != date:
-                            date = when.date()
-                            day = self.store.prepend(None, (date, None, None))
-                        self.store.append(day, row)
-        fd.close()
 
     def render_cell(self, column, cell, store, iter):
         when = store.get_value(iter, self.COL_WHEN)
