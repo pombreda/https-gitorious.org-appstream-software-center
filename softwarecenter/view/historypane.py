@@ -34,6 +34,7 @@ class HistoryPane(gtk.VBox):
     (COL_WHEN, COL_ACTION, COL_APP) = range(3)
     COL_TYPES = (object, str, str)
 
+    ALL = 0
     INSTALL = 'Install'
     REMOVE = 'Remove'
 
@@ -57,7 +58,10 @@ class HistoryPane(gtk.VBox):
         self.pack_start(self.scrolled_view)
 
         self.store = gtk.TreeStore(*self.COL_TYPES)
-        self.view.set_model(self.store)
+        self.filter = self.ALL
+        self.store_filter = self.store.filter_new()
+        self.store_filter.set_visible_func(self.filter_row)
+        self.view.set_model(self.store_filter)
         self.filename = apt_pkg.Config.FindFile("Dir::Log::History")
         self.last = None
         self.parse_history_log()
@@ -101,6 +105,7 @@ class HistoryPane(gtk.VBox):
 
         fd.close()
         self.last = when
+        self.store_filter.refilter()
 
     def is_category_view_showing(self):
         # There is no category view in the installed pane.
@@ -116,6 +121,19 @@ class HistoryPane(gtk.VBox):
 
     def get_current_app(self):
         return None
+
+    def filter_row(self, store, iter):
+        if self.filter == self.ALL:
+            return True
+        elif not store.iter_has_child(iter):
+            return (self.filter == store.get_value(iter, self.COL_ACTION))
+        else:
+            i = store.iter_children(iter)
+            while i is not None:
+                if store.get_value(i, self.COL_ACTION) == self.filter:
+                    return True
+                i = store.iter_next(i)
+            return False
 
     def render_cell(self, column, cell, store, iter):
         when = store.get_value(iter, self.COL_WHEN)
