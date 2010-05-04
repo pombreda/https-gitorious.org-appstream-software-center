@@ -168,7 +168,18 @@ class HistoryPane(gtk.VBox):
             elif action == self.REMOVED:
                 text = _('%s removed %s') % (app, when.time().strftime('%X'))
         elif isinstance(when, datetime.date):
-            text = when.strftime('%x')
+            today = datetime.date.today()
+            monday = today - datetime.timedelta(days=today.weekday())
+            if when >= monday:
+                # Current week, display the name of the day
+                text = when.strftime(_('%A'))
+            else:
+                if when.year == today.year:
+                    # Current year, display the day and month
+                    text = when.strftime(_('%d %B'))
+                else:
+                    # Display the full date: day, month, year
+                    text = when.strftime(_('%d %B %Y'))
         cell.set_property('text', text)
 
 
