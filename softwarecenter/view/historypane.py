@@ -32,11 +32,9 @@ from gettext import gettext as _
 class HistoryPane(gtk.VBox):
 
     (COL_WHEN, COL_ACTION, COL_APP) = range(3)
-    COL_TYPES = (object, str, str)
+    COL_TYPES = (object, int, str)
 
-    ALL = 0
-    INSTALL = 'Install'
-    REMOVE = 'Remove'
+    (ALL, INSTALLED, REMOVED) = range(3)
 
     def __init__(self, cache, db, distro, icons, datadir):
         gtk.VBox.__init__(self)
@@ -48,6 +46,26 @@ class HistoryPane(gtk.VBox):
 
         self.apps_filter = None
 
+        self.toolbar = gtk.Toolbar()
+        self.toolbar.show()
+        self.toolbar.set_style(gtk.TOOLBAR_TEXT)
+        self.pack_start(self.toolbar, False)
+
+        all_action = gtk.RadioAction('filter_all', _('All Changes'), None, None, self.ALL)
+        all_action.connect('changed', self.change_filter)
+        all_button = all_action.create_tool_item()
+        self.toolbar.insert(all_button, 0)
+
+        installs_action = gtk.RadioAction('filter_installs', _('All Installations'), None, None, self.INSTALLED)
+        installs_action.set_group(all_action)
+        installs_button = installs_action.create_tool_item()
+        self.toolbar.insert(installs_button, 1)
+
+        removals_action = gtk.RadioAction('filter_removals', _('All Removals'), None, None, self.REMOVED)
+        removals_action.set_group(all_action)
+        removals_button = removals_action.create_tool_item()
+        self.toolbar.insert(removals_button, 2)
+
         self.view = gtk.TreeView()
         self.view.show()
         self.scrolled_view = gtk.ScrolledWindow()
@@ -58,10 +76,10 @@ class HistoryPane(gtk.VBox):
         self.pack_start(self.scrolled_view)
 
         self.store = gtk.TreeStore(*self.COL_TYPES)
-        self.filter = self.ALL
         self.store_filter = self.store.filter_new()
         self.store_filter.set_visible_func(self.filter_row)
         self.view.set_model(self.store_filter)
+        all_action.set_active(True)
         self.filename = apt_pkg.Config.FindFile("Dir::Log::History")
         self.last = None
         self.parse_history_log()
@@ -81,6 +99,7 @@ class HistoryPane(gtk.VBox):
             self.parse_history_log()
 
     def parse_history_log(self):
+        actions = {self.INSTALLED: 'Install', self.REMOVED: 'Remove'}
         fd = open(self.filename)
         date = None
         day = self.store.get_iter_first()
@@ -90,13 +109,13 @@ class HistoryPane(gtk.VBox):
             when = datetime.datetime.strptime(stanza['Start-Date'], '%Y-%m-%d %H:%M:%S')
             if self.last is not None and when <= self.last:
                 continue
-            for action in (self.INSTALL, self.REMOVE):
-                if not stanza.has_key(action):
+            for action, key in actions.iteritems():
+                if not stanza.has_key(key):
                     continue
                 if when.date() != date:
                     date = when.date()
-                    day = self.store.prepend(None, (date, None, None))
-                packages = stanza[action].split(', ')
+                    day = self.store.prepend(None, (date, self.ALL, None))
+                packages = stanza[key].split(', ')
                 # Drop the version numbers
                 pkgnames = [p.split()[0] for p in packages]
                 for pkgname in pkgnames:
@@ -122,6 +141,10 @@ class HistoryPane(gtk.VBox):
     def get_current_app(self):
         return None
 
+    def change_filter(self, action, current):
+        self.filter = action.get_current_value()
+        self.store_filter.refilter()
+
     def filter_row(self, store, iter):
         if self.filter == self.ALL:
             return True
@@ -140,9 +163,9 @@ class HistoryPane(gtk.VBox):
         if isinstance(when, datetime.datetime):
             action = store.get_value(iter, self.COL_ACTION)
             app = store.get_value(iter, self.COL_APP)
-            if action == self.INSTALL:
+            if action == self.INSTALLED:
                 text = _('%s installed %s') % (app, when.time().strftime('%X'))
-            elif action == self.REMOVE:
+            elif action == self.REMOVED:
                 text = _('%s removed %s') % (app, when.time().strftime('%X'))
         elif isinstance(when, datetime.date):
             text = when.strftime('%x')
