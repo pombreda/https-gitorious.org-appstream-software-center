@@ -49,6 +49,8 @@ class HistoryPane(gtk.VBox):
 
     (ALL, INSTALLED, REMOVED) = range(3)
 
+    ICON_SIZE = 24
+
     def __init__(self, cache, db, distro, icons, datadir):
         gtk.VBox.__init__(self)
         self.cache = cache
@@ -61,7 +63,8 @@ class HistoryPane(gtk.VBox):
 
         # Icon cache, invalidated upon icon theme changes
         self._app_icon_cache = {}
-        self.icons.connect('changed', lambda theme: self._app_icon_cache.clear())
+        self._reset_icon_cache()
+        self.icons.connect('changed', self._reset_icon_cache)
 
         self.toolbar = gtk.Toolbar()
         self.toolbar.show()
@@ -114,6 +117,14 @@ class HistoryPane(gtk.VBox):
         self.cell_text = gtk.CellRendererText()
         self.column.pack_start(self.cell_text)
         self.column.set_cell_data_func(self.cell_text, self.render_cell_text)
+
+    def _reset_icon_cache(self, theme=None):
+        self._app_icon_cache.clear()
+        try:
+            missing = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+        except glib.GError:
+            missing = None
+        self._app_icon_cache[MISSING_APP_ICON] = missing
 
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
         if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
@@ -206,7 +217,10 @@ class HistoryPane(gtk.VBox):
             if icon_name in self._app_icon_cache:
                 icon = self._app_icon_cache[icon_name]
             else:
-                icon = self.icons.load_icon(icon_name, 24, 0)
+                try:
+                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
+                except glib.GError:
+                    icon = self._app_icon_cache[MISSING_APP_ICON]
                 self._app_icon_cache[icon_name] = icon
             cell.set_property('pixbuf', icon)
 
