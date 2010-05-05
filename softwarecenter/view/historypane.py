@@ -31,6 +31,7 @@ import datetime
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.view.widgets.searchentry import SearchEntry
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
 
@@ -50,6 +51,7 @@ class HistoryPane(gtk.VBox):
     (ALL, INSTALLED, REMOVED) = range(3)
 
     ICON_SIZE = 24
+    PADDING = 6
 
     def __init__(self, cache, db, distro, icons, datadir):
         gtk.VBox.__init__(self)
@@ -66,10 +68,26 @@ class HistoryPane(gtk.VBox):
         self._reset_icon_cache()
         self.icons.connect('changed', self._reset_icon_cache)
 
+        self.header = gtk.HBox()
+        self.header.show()
+        self.pack_start(self.header, expand=False, padding=self.PADDING)
+
+        self.title = gtk.Label()
+        self.title.show()
+        self.title.set_alignment(0, 0)
+        self.title.set_markup(_('<span size="x-large">History</span>'))
+        self.header.pack_start(self.title, padding=self.PADDING)
+
+        self.search_entry = SearchEntry()
+        self.search_entry.show()
+        self.header.pack_start(self.search_entry, padding=self.PADDING)
+
+        self.pack_start(gtk.HSeparator(), expand=False)
+
         self.toolbar = gtk.Toolbar()
         self.toolbar.show()
         self.toolbar.set_style(gtk.TOOLBAR_TEXT)
-        self.pack_start(self.toolbar, False)
+        self.pack_start(self.toolbar, expand=False)
 
         all_action = gtk.RadioAction('filter_all', _('All Changes'), None, None, self.ALL)
         all_action.connect('changed', self.change_filter)
