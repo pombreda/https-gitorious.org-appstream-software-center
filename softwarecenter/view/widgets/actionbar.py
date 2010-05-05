@@ -22,15 +22,17 @@ import pango
 
 class ActionBar(gtk.HBox):
     """
-    This is a gtk box wrapped so that all child widgets align to the
-    right. The widget does not show by default when its parent calls
-    show_all(), but rather autoshows and autohides when buttons are
-    added and removed.
+    This is a gtk box wrapped so that all child widgets, save one, align
+    to the right. The widget does not show by default when its parent
+    calls show_all(), but rather autoshows and autohides when buttons
+    (or a left-aligned label) are added and removed. 
 
-    The widget is only intended to hold buttons, for which it has
-    specific methods; general add and pack are not implemented.
+    The widget is only intended to hold buttons and a label, for which
+    it has specific methods; general add and pack are not implemented.
 
     See: https://wiki.ubuntu.com/SoftwareCenter#Main%20window
+    https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
+    https://wiki.ubuntu.com/SoftwareCenter#software-list-view-disclosure
     """
 
     def __init__(self):
