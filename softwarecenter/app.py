@@ -204,6 +204,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.history_pane = HistoryPane(self.cache, self.db,
                                         self.distro,
                                         self.icons, datadir)
+        self.history_pane.connect("app-list-changed", 
+                                  self.on_app_list_changed,
+                                  self.NOTEBOOK_PAGE_HISTORY)
         self.alignment_history.add(self.history_pane)
 
         # pending view

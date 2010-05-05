@@ -16,6 +16,7 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import gobject
 import gio
 import gtk
 
@@ -30,6 +31,13 @@ from gettext import gettext as _
 
 
 class HistoryPane(gtk.VBox):
+
+    __gsignals__ = {
+        "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_NONE, 
+                              (int, ),
+                             ),
+    }
 
     (COL_WHEN, COL_ACTION, COL_APP) = range(3)
     COL_TYPES = (object, int, str)
@@ -76,6 +84,7 @@ class HistoryPane(gtk.VBox):
         self.pack_start(self.scrolled_view)
 
         self.store = gtk.TreeStore(*self.COL_TYPES)
+        self.visible_changes = 0
         self.store_filter = self.store.filter_new()
         self.store_filter.set_visible_func(self.filter_row)
         self.view.set_model(self.store_filter)
@@ -124,7 +133,7 @@ class HistoryPane(gtk.VBox):
 
         fd.close()
         self.last = when
-        self.store_filter.refilter()
+        self.update_view()
 
     def is_category_view_showing(self):
         # There is no category view in the installed pane.
@@ -135,19 +144,26 @@ class HistoryPane(gtk.VBox):
         pass
 
     def get_status_text(self):
-        n = 0
-        day = self.store_filter.get_iter_first()
-        while day is not None:
-            n += self.store_filter.iter_n_children(day)
-            day = self.store_filter.iter_next(day)
-        return _('%d changes') % n
+        return _('%d changes') % self.visible_changes
 
     def get_current_app(self):
         return None
 
     def change_filter(self, action, current):
         self.filter = action.get_current_value()
+        self.update_view()
+
+    def update_view(self):
         self.store_filter.refilter()
+
+        # Compute the number of visible changes
+        self.visible_changes = 0
+        day = self.store_filter.get_iter_first()
+        while day is not None:
+            self.visible_changes += self.store_filter.iter_n_children(day)
+            day = self.store_filter.iter_next(day)
+
+        self.emit('app-list-changed', self.visible_changes)
 
     def filter_row(self, store, iter):
         if self.filter == self.ALL:
