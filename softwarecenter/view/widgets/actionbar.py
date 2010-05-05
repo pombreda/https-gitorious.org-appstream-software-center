@@ -45,7 +45,7 @@ class ActionBar(gtk.HBox):
                                           expand=False, padding=10)
         super(ActionBar, self).pack_start(self._btn_bin)
 
-        # Don"t show_all() default.
+        # Don't show_all() by default.
         self.set_no_show_all(True)
         self._label.show_all()
         self._btn_bin.show_all()
@@ -139,6 +139,7 @@ class ActionBar(gtk.HBox):
         while len(self._label):
             last = self._label.get_children()[-1]
             self._label.remove(last)
+        self.window.set_cursor(None)
         # Then hide if there's nothing else visible.
         if not len(self._btns):
             self._hide()
