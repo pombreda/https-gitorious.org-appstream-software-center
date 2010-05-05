@@ -25,11 +25,14 @@ apt_pkg.init_config()
 
 from debian_bundle import deb822
 
+import os.path
 import datetime
 
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.database import StoreDatabase
 
 
 class HistoryPane(gtk.VBox):
@@ -189,7 +192,14 @@ class HistoryPane(gtk.VBox):
             cell.set_visible(False)
         else:
             cell.set_visible(True)
-            icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
+            icon_name = MISSING_APP_ICON
+            for m in self.db.xapiandb.postlist("AP" + app):
+                doc = self.db.xapiandb.get_document(m.docid)
+                icon_value = doc.get_value(XAPIAN_VALUE_ICON)
+                if icon_value:
+                    icon_name = os.path.splitext(icon_value)[0]
+                break
+            icon = self.icons.load_icon(icon_name, 24, 0)
             cell.set_property('pixbuf', icon)
 
     def render_cell_text(self, column, cell, store, iter):
@@ -218,10 +228,16 @@ class HistoryPane(gtk.VBox):
 
 
 if __name__ == '__main__':
+    cache = AptCache()
+
+    db_path = os.path.join(XAPIAN_BASE_PATH, "xapian")
+    db = StoreDatabase(db_path, cache)
+    db.open()
+
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
-    widget = HistoryPane(None, None, None, icons, None)
+    widget = HistoryPane(cache, db, None, icons, None)
     widget.show()
 
     window = gtk.Window()
