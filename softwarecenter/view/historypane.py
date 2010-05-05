@@ -59,6 +59,10 @@ class HistoryPane(gtk.VBox):
 
         self.apps_filter = None
 
+        # Icon cache, invalidated upon icon theme changes
+        self._app_icon_cache = {}
+        self.icons.connect('changed', lambda theme: self._app_icon_cache.clear())
+
         self.toolbar = gtk.Toolbar()
         self.toolbar.show()
         self.toolbar.set_style(gtk.TOOLBAR_TEXT)
@@ -199,7 +203,11 @@ class HistoryPane(gtk.VBox):
                 if icon_value:
                     icon_name = os.path.splitext(icon_value)[0]
                 break
-            icon = self.icons.load_icon(icon_name, 24, 0)
+            if icon_name in self._app_icon_cache:
+                icon = self._app_icon_cache[icon_name]
+            else:
+                icon = self.icons.load_icon(icon_name, 24, 0)
+                self._app_icon_cache[icon_name] = icon
             cell.set_property('pixbuf', icon)
 
     def render_cell_text(self, column, cell, store, iter):
