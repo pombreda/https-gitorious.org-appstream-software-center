@@ -135,8 +135,12 @@ class HistoryPane(gtk.VBox):
         pass
 
     def get_status_text(self):
-        # TODO
-        return ''
+        n = 0
+        day = self.store_filter.get_iter_first()
+        while day is not None:
+            n += self.store_filter.iter_n_children(day)
+            day = self.store_filter.iter_next(day)
+        return _('%d changes') % n
 
     def get_current_app(self):
         return None
