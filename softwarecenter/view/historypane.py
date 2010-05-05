@@ -235,7 +235,7 @@ if __name__ == '__main__':
     db.open()
 
     icons = gtk.icon_theme_get_default()
-    icons.append_search_path("/usr/share/app-install/icons/")
+    icons.append_search_path(ICON_PATH)
 
     widget = HistoryPane(cache, db, None, icons, None)
     widget.show()
