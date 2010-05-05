@@ -29,6 +29,8 @@ import datetime
 
 from gettext import gettext as _
 
+from softwarecenter.enums import *
+
 
 class HistoryPane(gtk.VBox):
 
@@ -99,9 +101,12 @@ class HistoryPane(gtk.VBox):
 
         self.column = gtk.TreeViewColumn(_('Date'))
         self.view.append_column(self.column)
-        self.cell = gtk.CellRendererText()
-        self.column.pack_start(self.cell)
-        self.column.set_cell_data_func(self.cell, self.render_cell)
+        self.cell_icon = gtk.CellRendererPixbuf()
+        self.column.pack_start(self.cell_icon, False)
+        self.column.set_cell_data_func(self.cell_icon, self.render_cell_icon)
+        self.cell_text = gtk.CellRendererText()
+        self.column.pack_start(self.cell_text)
+        self.column.set_cell_data_func(self.cell_text, self.render_cell_text)
 
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
         if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
@@ -178,7 +183,16 @@ class HistoryPane(gtk.VBox):
                 i = store.iter_next(i)
             return False
 
-    def render_cell(self, column, cell, store, iter):
+    def render_cell_icon(self, column, cell, store, iter):
+        app = store.get_value(iter, self.COL_APP)
+        if app is None:
+            cell.set_visible(False)
+        else:
+            cell.set_visible(True)
+            icon = self.icons.load_icon(MISSING_APP_ICON, 24, 0)
+            cell.set_property('pixbuf', icon)
+
+    def render_cell_text(self, column, cell, store, iter):
         when = store.get_value(iter, self.COL_WHEN)
         if isinstance(when, datetime.datetime):
             action = store.get_value(iter, self.COL_ACTION)
@@ -204,7 +218,10 @@ class HistoryPane(gtk.VBox):
 
 
 if __name__ == '__main__':
-    widget = HistoryPane(None, None, None, None, None)
+    icons = gtk.icon_theme_get_default()
+    icons.append_search_path("/usr/share/app-install/icons/")
+
+    widget = HistoryPane(None, None, None, icons, None)
     widget.show()
 
     window = gtk.Window()
