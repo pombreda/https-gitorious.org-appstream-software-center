@@ -78,9 +78,10 @@ class HistoryPane(gtk.VBox):
         self.title.set_markup(_('<span size="x-large">History</span>'))
         self.header.pack_start(self.title, padding=self.PADDING)
 
-        self.search_entry = SearchEntry()
-        self.search_entry.show()
-        self.header.pack_start(self.search_entry, padding=self.PADDING)
+        self.searchentry = SearchEntry()
+        self.searchentry.connect('terms-changed', self.on_search_terms_changed)
+        self.searchentry.show()
+        self.header.pack_start(self.searchentry, padding=self.PADDING)
 
         self.pack_start(gtk.HSeparator(), expand=False)
 
@@ -187,6 +188,9 @@ class HistoryPane(gtk.VBox):
     def get_status_text(self):
         return _('%d changes') % self.visible_changes
 
+    def on_search_terms_changed(self, entry, terms):
+        self.update_view()
+
     def get_current_app(self):
         return None
 
@@ -206,15 +210,20 @@ class HistoryPane(gtk.VBox):
 
         self.emit('app-list-changed', self.visible_changes)
 
+    def _row_matches(self, store, iter):
+        # Whether a child row matches the current filter and the search entry
+        pkg = store.get_value(iter, self.COL_PKG) or ''
+        filter_values = (self.ALL, store.get_value(iter, self.COL_ACTION))
+        return self.filter in filter_values and (self.searchentry.get_text() in pkg)
+
     def filter_row(self, store, iter):
-        if self.filter == self.ALL:
-            return True
-        elif not store.iter_has_child(iter):
-            return (self.filter == store.get_value(iter, self.COL_ACTION))
+        pkg = store.get_value(iter, self.COL_PKG)
+        if pkg is not None:
+            return self._row_matches(store, iter)
         else:
             i = store.iter_children(iter)
             while i is not None:
-                if store.get_value(i, self.COL_ACTION) == self.filter:
+                if self._row_matches(store, i):
                     return True
                 i = store.iter_next(i)
             return False
