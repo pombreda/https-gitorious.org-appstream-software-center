@@ -44,7 +44,7 @@ class HistoryPane(gtk.VBox):
                              ),
     }
 
-    (COL_WHEN, COL_ACTION, COL_APP) = range(3)
+    (COL_WHEN, COL_ACTION, COL_PKG) = range(3)
     COL_TYPES = (object, int, str)
 
     (ALL, INSTALLED, REMOVED) = range(3)
@@ -187,13 +187,13 @@ class HistoryPane(gtk.VBox):
             return False
 
     def render_cell_icon(self, column, cell, store, iter):
-        app = store.get_value(iter, self.COL_APP)
-        if app is None:
+        pkg = store.get_value(iter, self.COL_PKG)
+        if pkg is None:
             cell.set_visible(False)
         else:
             cell.set_visible(True)
             icon_name = MISSING_APP_ICON
-            for m in self.db.xapiandb.postlist("AP" + app):
+            for m in self.db.xapiandb.postlist("AP" + pkg):
                 doc = self.db.xapiandb.get_document(m.docid)
                 icon_value = doc.get_value(XAPIAN_VALUE_ICON)
                 if icon_value:
@@ -206,11 +206,11 @@ class HistoryPane(gtk.VBox):
         when = store.get_value(iter, self.COL_WHEN)
         if isinstance(when, datetime.datetime):
             action = store.get_value(iter, self.COL_ACTION)
-            app = store.get_value(iter, self.COL_APP)
+            pkg = store.get_value(iter, self.COL_PKG)
             if action == self.INSTALLED:
-                text = _('%s installed %s') % (app, when.time().strftime('%X'))
+                text = _('%s installed %s') % (pkg, when.time().strftime('%X'))
             elif action == self.REMOVED:
-                text = _('%s removed %s') % (app, when.time().strftime('%X'))
+                text = _('%s removed %s') % (pkg, when.time().strftime('%X'))
         elif isinstance(when, datetime.date):
             today = datetime.date.today()
             monday = today - datetime.timedelta(days=today.weekday())
