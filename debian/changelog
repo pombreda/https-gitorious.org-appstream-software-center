@@ -21,6 +21,9 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * data/featured.menu.in:
     - Update featured applications list per Desktop team (LP: #548534)
     - Feature 'fretsonfire-game' rather than 'fretsonfire' (LP: #538646)
+  * softwarecenter/view/app.py:
+    - Set correct sensitivity of 'edit > undo,redo,cut,copy,delete,select_all' 
+      (LP: #439613, LP: #530194)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
@@ -29,6 +32,8 @@ software-center (2.0.3) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * debian/control:
     - updated Vcs-Bzr location to point to lucid branch
+  * softwarecenter/apt/aptcache.py:
+    - fix flickering when a application is instaleld (LP: #563163)
 
   [ Olivier Tilloy ]
   * data/templates/AppDetailsView.html:
