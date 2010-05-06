@@ -26,6 +26,7 @@ import logging
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
+#pathbar shapes
 SHAPE_RECTANGLE = 0
 SHAPE_START_ARROW = 1
 SHAPE_MID_ARROW = 2
@@ -36,7 +37,6 @@ class PathBarStyle:
 
     def __init__(self, pathbar):
         self.shape_map = self._load_shape_map(pathbar)
-
         gtk_settings = gtk.settings_get_default()
         self.theme = self._load_theme(gtk_settings)
         self.theme.build_palette(gtk_settings)
@@ -188,8 +188,52 @@ class PathBarStyle:
 
         # inner bevel/highlight
         if r == 0: w += 1
-        shape(cr, 1, 1, w-1, h-1, r, aw)
+        shape(cr, 1, 1, w-1, h-1, r-1, aw)
         cr.set_source_rgb(*self.light_line[state].tofloats())
+        cr.stroke()
+        cr.restore()
+        return
+
+    def paint_bg_active(self, cr, cat, x, y, w, h):
+        shape = self.shape_map[cat.shape]
+        state = cat.state
+        r = self["curvature"]
+        aw = self["arrow_width"]
+
+        cr.save()
+        cr.rectangle(x, y, w+1, h)
+        cr.clip()
+        cr.translate(x+0.5, y+0.5)
+
+        w -= 1
+        h -= 1
+
+        # bg linear vertical gradient
+        color1, color2 = self.gradients[state]
+
+        shape(cr, 0, 0, w, h, r, aw)
+
+        lin = cairo.LinearGradient(0, 0, 0, h)
+        lin.add_color_stop_rgb(2.0, *color1.tofloats())
+        lin.add_color_stop_rgb(0.0, *color2.tofloats())
+        cr.set_source(lin)
+        cr.fill()
+
+        cr.set_line_width(1.0)
+        # inner shadow 1
+        if r == 0: w += 1
+        shape(cr, 2, 2, w-2, h-2, r-2, aw)
+        red, g, b = self.dark_line[state].tofloats()
+        cr.set_source_rgba(red, g, b, 0.2)
+        cr.stroke()
+
+        shape(cr, 1, 1, w-1, h-1, r-1, aw)
+        cr.set_source_rgba(red, g, b, 0.4)
+        cr.stroke()
+
+        # strong outline
+        shape(cr, 0, 0, w, h, r, aw)
+        cr.set_source_rgb(*self.dark_line[state].tofloats())
         cr.stroke()
         cr.restore()
         return
@@ -216,16 +260,24 @@ class PathBarStyle:
 
 class PathBarColorArray:
 
-    def __init__(self, color_array):
+    def __init__(self, color_array=None):
         self.color_array = {}
+        if not color_array: return
         for state in (gtk.STATE_NORMAL, gtk.STATE_ACTIVE, gtk.STATE_SELECTED, \
             gtk.STATE_PRELIGHT, gtk.STATE_INSENSITIVE):
             self.color_array[state] = color_from_gdkcolor(color_array[state])
         return
 
+    def set_color_array(self, normal, active, prelight, selected, insensitive):
+        self.color_array[gtk.STATE_NORMAL] = normal
+        self.color_array[gtk.STATE_ACTIVE] = active
+        self.color_array[gtk.STATE_SELECTED] = selected
+        self.color_array[gtk.STATE_PRELIGHT] = prelight
+        self.color_array[gtk.STATE_INSENSITIVE] = insensitive
+        return
+
     def __getitem__(self, state):
         return self.color_array[state]
-
 
 class PathBarColor:
 
@@ -299,7 +351,7 @@ class Theme:
                                           gtk.Window)
 
         style = style or gtk.widget_get_default_style()
-
+        
         # build pathbar color palette
         self.fg =    PathBarColorArray(style.fg)
         self.bg =    PathBarColorArray(style.bg)

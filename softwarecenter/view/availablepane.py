@@ -85,7 +85,7 @@ class AvailablePane(SoftwarePane):
                                        self.icons)
         scroll_categories = gtk.ScrolledWindow()
         scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll_categories.add(self.cat_view)
+        scroll_categories.add_with_viewport(self.cat_view)
         self.notebook.append_page(scroll_categories, gtk.Label("categories"))
         # sub-categories view
         self.subcategories_view = CategoriesView(self.datadir,
@@ -98,7 +98,7 @@ class AvailablePane(SoftwarePane):
         self.scroll_subcategories = gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.scroll_subcategories.add(self.subcategories_view)
+        self.scroll_subcategories.add_with_viewport(self.subcategories_view)
         # add nav history back/forward buttons
         self.back_forward = BackForwardButton()
         self.back_forward.left.set_sensitive(False)
