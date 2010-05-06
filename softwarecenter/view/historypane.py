@@ -214,7 +214,9 @@ class HistoryPane(gtk.VBox):
         # Whether a child row matches the current filter and the search entry
         pkg = store.get_value(iter, self.COL_PKG) or ''
         filter_values = (self.ALL, store.get_value(iter, self.COL_ACTION))
-        return self.filter in filter_values and (self.searchentry.get_text() in pkg)
+        filter_matches = self.filter in filter_values
+        search_matches = self.searchentry.get_text().lower() in pkg.lower()
+        return filter_matches and search_matches
 
     def filter_row(self, store, iter):
         pkg = store.get_value(iter, self.COL_PKG)
