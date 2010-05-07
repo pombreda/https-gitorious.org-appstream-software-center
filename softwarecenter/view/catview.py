@@ -56,20 +56,20 @@ TEST_DEPARTMENTS = """
 STYLE_BASKET_IMAGE_PATH = 'data/images/basket.png'
 
 STYLE_CATVIEW_BORDER_WIDTH = 12
-STYLE_CATVIEW_VSPACING = 16    # vertical spacing between page elements
+STYLE_CATVIEW_VSPACING = 14    # vertical spacing between page elements
 STYLE_CATVIEW_HEADER_VGRADIENT_COLOR = '#C5809D'   # the color of that purple-ish vertical gradient
 
 STYLE_TITLE_FONT_SIZE = 20
 STYLE_TITLE_XALIGNMENT = 0.0    # 0.0=left margin, 0.5=centered, 1.0=right margin
 
-STYLE_FEATURED_FONT_SIZE = 16
+STYLE_FEATURED_FONT_SIZE = 14
 STYLE_FEATURED_FONT_COLOR = '#FFF'
 STYLE_FEATURED_ARROW_WIDTH = 18
 STYLE_FEATURED_XALIGNMENT = 0.0 # 0.0=left margin, 0.5=centered, 1.0=right margin
 STYLE_FEATURED_LABEL_XALIGNMENT = 0.0   # 0.0=left margin, 0.5=centered, 1.0=right margin
 STYLE_FEATURED_BASE_COLOR = '#E1550C'   # an orange color from which we shade, lighten, darken and mix
 
-STYLE_DEPARTMENTS_TITLE_FONT_SIZE = 12
+STYLE_DEPARTMENTS_TITLE_FONT_SIZE = 11
 
 STYLE_LAYOUTVIEW_BORDER_WIDTH = 6
 STYLE_LAYOUTVIEW_VSPACING = 12   # the vertical spacing between rows in Departments section
@@ -83,7 +83,7 @@ STYLE_DEPARTMENT_WIDTH = 84
 STYLE_DEPARTMENT_BORDER_WIDTH = 6
 STYLE_DEPARTMENT_VSPACING = 4   # vertical space between dept. icon and dept. label
 
-STYLE_COMPACT_DEPARTMENT_WIDTH = 128
+STYLE_COMPACT_DEPARTMENT_WIDTH = 116
 STYLE_COMPACT_DEPARTMENT_BORDER_WIDTH = 4
 
 STYLE_SHORTLIST_VSPACING = 8
@@ -142,6 +142,7 @@ class CategoriesView(gtk.VBox):
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Departments"))
 
+        self.departments = None
         self.categories = []
         self.header = ""
         self.db = db
@@ -168,12 +169,210 @@ class CategoriesView(gtk.VBox):
         self._append_departments()
         return
 
+    def _build_subcat_view(self):
+        # these methods add sections to the page
+        # changing order of methods changes order they appear in the page
+        self._append_subcat_departments()
+        return
+
+    def _append_title(self):
+        self.title = gtk.Label()
+
+        # define the font size (font_size in pixels * pango.SCALE)
+        size = STYLE_TITLE_FONT_SIZE*pango.SCALE
+        # define the markup for the title
+
+        self.title.set_markup(MARKUP_TITLE % (size, _('Ubuntu Software Center')))
+
+        # align the markup to the left margin
+        align = gtk.Alignment(STYLE_TITLE_XALIGNMENT, 0.5)
+        align.add(self.title)
+
+        # append the title to the page
+        self.pack_start(align, False)
+        return
+
+    def _append_featured_btn(self):
+        # find the featured apps category
+        cat = filter(lambda cat: cat.untranslated_name == 'Featured Applications',
+                     self.categories)[0]
+
+        # define the font size (font_size in pixels * pango.SCALE)
+        size = STYLE_FEATURED_FONT_SIZE*pango.SCALE
+
+        # define the markup for the featured button label and create featured widget
+        markup = MARKUP_FEATURED_LABEL % (size,
+                                          STYLE_FEATURED_FONT_COLOR,
+                                          cat.name)
+        self.featured = FeaturedCategory(markup)
+        # align the featured button the the left margin
+        align = gtk.Alignment(STYLE_FEATURED_XALIGNMENT, 0.5)
+        align.add(self.featured)
+
+        self.featured.connect('clicked', self._on_category_clicked, cat)
+
+        # append the featured button to the page
+        self.pack_start(align, False)
+        return
+
+    def _append_departments(self):
+        # create departments widget
+        self.departments = LayoutView()
+
+        # define the size of the departments section label
+        size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
+        # set the departments section to use the label markup we have just defined
+        self.departments.set_label_markup(MARKUP_DEPARTMENTS_HEADER % (size, self.header))
+
+        # for each department append it to the department widget
+        for cat in self.categories:
+            # make sure the string is parsable by pango, i.e. no funny characters
+            name = gobject.markup_escape_text(cat.name.strip())
+            # define the icon of the department
+            ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
+            # finally, create the department with label markup and icon
+            cat_btn = CategoryButton(markup=name, image=ico)
+            cat_btn.connect('clicked', self._on_category_clicked, cat)
+            # append the department to the departments widget
+            self.departments.append(cat_btn)
+
+        # append the departments section to the page
+        self.pack_start(self.departments, False)
+        return
+
+    def _append_subcat_departments(self):
+        # create departments widget
+        if not self.departments:
+            self.departments = LayoutView()
+            # append the departments section to the page
+            self.pack_start(self.departments, False)
+            self.departments.show_all()
+        else:
+            self.departments.clear()
+
+        # define the size of the departments section label
+        size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
+        # set the departments section to use the label markup we have just defined
+        header = gobject.markup_escape_text(self.header.strip())
+        self.departments.set_label_markup(MARKUP_DEPARTMENTS_HEADER % (size, header))
+
+        # for each department append it to the department widget
+        for cat in self.categories:
+            # make sure the string is parsable by pango, i.e. no funny characters
+            name = gobject.markup_escape_text(cat.name.strip())
+            # define the icon of the department
+            ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
+            # finally, create the department with label markup and icon
+            cat_btn = CategoryButton(markup=name, image=ico)
+            cat_btn.connect('clicked', self._on_category_clicked, cat)
+            # append the department to the departments widget
+            self.departments.append(cat_btn)
+        return
+
+#    def _append_most_popular(self, hbox):
+#        # create the most popular list widget
+#        self.popular = ShortList(MARKUP_MOST_POP_HEADER)
+
+#        # for the sake of testing i create an list of an arbitrary length 6
+#        for i in range(6):
+#            # define the icon of the list item
+#            ico = gtk.image_new_from_icon_name('distributor-logo', gtk.ICON_SIZE_MENU)
+#            # create the list item with markup and icon
+#            cat = CompactDepartment('A totally popular app %s' % i, ico)
+#            # lastly we append the cost of the item to the right most margin of the list item
+#            cat.hbox.pack_end(gtk.Label('Free'), False, padding=5)
+#            # append the list item to the most popular list widget
+#            self.popular.append(cat, False)
+
+#        # append the most popular list widgte to the page
+#        hbox.pack_start(self.popular, False)
+#        return
+
+#    def _append_recently_added(self, hbox):
+#        self.recent = ShortList(MARKUP_RECENTLY_ADDED_HEADER)
+
+#        for i in range(6):
+#            ico = gtk.image_new_from_icon_name('distributor-logo', gtk.ICON_SIZE_MENU)
+#            cat = CompactDepartment('An awesome app %s' % i, ico)
+#            cat.hbox.pack_end(gtk.Label('Free'), False, padding=5)
+#            self.recent.append(cat, False)
+
+#        hbox.pack_start(self.recent, False)
+#        return
+
+#    def _append_featured_shortlist(self):
+#        self.featured_shortlist = LayoutView(MARKUP_FEATURED_SHORTLIST_HEADER)
+
+#        for i in range(12):
+#            ico = gtk.image_new_from_icon_name('distributor-logo', gtk.ICON_SIZE_MENU)
+#            cat = CompactDepartment('An awesome app %s' % i, ico)
+#            self.featured_shortlist.append(cat)
+
+#        self.pack_start(self.featured_shortlist, False)
+#        return
+
+    def _on_category_clicked(self, cat_btn, cat):
+        """emit the category-selected signal when a category was clicked"""
+        logging.debug("on_category_changed: %s" % cat.name)
+        self.emit("category-selected", cat)
+        return
+
+    def _on_allocate(self, widget, allocation):
+        self.queue_draw()
+        return
+
+    def _on_expose(self, widget, event):
+        cr = widget.window.cairo_create()
+        cr.rectangle(event.area)
+        cr.clip_preserve()
+
+        # white background
+        cr.set_source_rgb(1, 1, 1)
+        cr.fill()
+
+        # header gradient - ubuntu wallpaper-esque?
+        r, g, b = floats_from_string(STYLE_CATVIEW_HEADER_VGRADIENT_COLOR)
+        lin = cairo.LinearGradient(0, 0, 0, 96)
+        lin.add_color_stop_rgba(0.0, r, g, b, 0.5)
+        lin.add_color_stop_rgba(1.0, r, g, b, 0)
+        cr.rectangle(0, 0, widget.allocation.width, 96)
+        cr.set_source(lin)
+        cr.fill()
+
+        if not self.in_subsection:
+            # draw basket image
+            pb = gtk.gdk.pixbuf_new_from_file(STYLE_BASKET_IMAGE_PATH)
+            w = pb.get_width()
+            x = widget.allocation.width - w - self.get_border_width()
+            y = self.get_border_width()
+            cr.set_source_pixbuf(pb, x, y)
+            cr.paint()
+
+            # draw featured button
+            self.featured.draw(cr, self.featured.allocation)
+
+        # draw departments
+        self.departments.draw(cr, self.departments.allocation)
+
+#        # draw most popular
+#        self.popular.draw(cr, self.popular.allocation)
+
+#        # draw recently added
+#        self.recent.draw(cr, self.recent.allocation)
+
+        # draw the featured apps shortlist
+#        self.featured_shortlist.draw(cr, self.featured_shortlist.allocation)
+
+        del cr
+        return
+
     def set_subcategory(self, root_category, block=False):
         # nothing to do
         if self.categories == root_category.subcategories:
             return
         self.header = root_category.name
         self.categories = root_category.subcategories
+        self._build_subcat_view()
         return
 
     def refresh_view(self):
@@ -357,159 +556,6 @@ class CategoriesView(gtk.VBox):
                 if cat.name != cat_unalloc.name:
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             #print cat_unalloc.name, cat_unalloc.query
-
-    def _append_title(self):
-        self.title = gtk.Label()
-
-        # define the font size (font_size in pixels * pango.SCALE)
-        size = STYLE_TITLE_FONT_SIZE*pango.SCALE
-        # define the markup for the title
-
-        self.title.set_markup(MARKUP_TITLE % (size, _('Ubuntu Software Center')))
-
-        # align the markup to the left margin
-        align = gtk.Alignment(STYLE_TITLE_XALIGNMENT, 0.5)
-        align.add(self.title)
-
-        # append the title to the page
-        self.pack_start(align, False)
-        return
-
-    def _append_featured_btn(self):
-        # define the font sizem (font_size in pixels * pango.SCALE)
-        size = STYLE_FEATURED_FONT_SIZE*pango.SCALE
-        # define the markup for the featured button label and create featured widget
-        markup = MARKUP_FEATURED_LABEL % (size,
-                                          STYLE_FEATURED_FONT_COLOR,
-                                          _('Featured Applications'))
-        self.featured = FeaturedCategory(markup)
-        # align the featured button the the left margin
-        align = gtk.Alignment(STYLE_FEATURED_XALIGNMENT, 0.5)
-        align.add(self.featured)
-
-        # append the featured button to the page
-        self.pack_start(align, False)
-        return
-
-    def _append_departments(self):
-        # create departments widget
-        self.departments = LayoutView()
-
-        # define the size of the departments section label
-        size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
-        # set the departments section to use the label markup we have just defined
-        self.departments.set_label_markup(MARKUP_DEPARTMENTS_HEADER % (size, self.header))
-
-        # for each department append it to the department widget
-        for cat in self.categories:
-            # make sure the string is parsable by pango, i.e. no funny characters
-            name = gobject.markup_escape_text(cat.name.strip())
-            # define the icon of the department
-            ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
-            # finally, create the department with label markup and icon
-            cat_btn = CategoryButton(markup=name, image=ico)
-            cat_btn.connect('clicked', self._on_category_clicked, cat)
-            # append the department to the departments widget
-            self.departments.append(cat_btn)
-
-        # append the departments section to the page
-        self.pack_start(self.departments, False)
-        return
-
-#    def _append_most_popular(self, hbox):
-#        # create the most popular list widget
-#        self.popular = ShortList(MARKUP_MOST_POP_HEADER)
-
-#        # for the sake of testing i create an list of an arbitrary length 6
-#        for i in range(6):
-#            # define the icon of the list item
-#            ico = gtk.image_new_from_icon_name('distributor-logo', gtk.ICON_SIZE_MENU)
-#            # create the list item with markup and icon
-#            cat = CompactDepartment('A totally popular app %s' % i, ico)
-#            # lastly we append the cost of the item to the right most margin of the list item
-#            cat.hbox.pack_end(gtk.Label('Free'), False, padding=5)
-#            # append the list item to the most popular list widget
-#            self.popular.append(cat, False)
-
-#        # append the most popular list widgte to the page
-#        hbox.pack_start(self.popular, False)
-#        return
-
-#    def _append_recently_added(self, hbox):
-#        self.recent = ShortList(MARKUP_RECENTLY_ADDED_HEADER)
-
-#        for i in range(6):
-#            ico = gtk.image_new_from_icon_name('distributor-logo', gtk.ICON_SIZE_MENU)
-#            cat = CompactDepartment('An awesome app %s' % i, ico)
-#            cat.hbox.pack_end(gtk.Label('Free'), False, padding=5)
-#            self.recent.append(cat, False)
-
-#        hbox.pack_start(self.recent, False)
-#        return
-
-#    def _append_featured_shortlist(self):
-#        self.featured_shortlist = LayoutView(MARKUP_FEATURED_SHORTLIST_HEADER)
-
-#        for i in range(12):
-#            ico = gtk.image_new_from_icon_name('distributor-logo', gtk.ICON_SIZE_MENU)
-#            cat = CompactDepartment('An awesome app %s' % i, ico)
-#            self.featured_shortlist.append(cat)
-
-#        self.pack_start(self.featured_shortlist, False)
-#        return
-
-    def _on_category_clicked(self, cat_btn, cat):
-        """emit the category-selected signal when a category was clicked"""
-        logging.debug("on_category_changed: %s" % cat.name)
-        self.emit("category-selected", cat)
-        return
-
-    def _on_allocate(self, widget, allocation):
-        self.queue_draw()
-        return
-
-    def _on_expose(self, widget, event):
-        cr = widget.window.cairo_create()
-        cr.rectangle(event.area)
-        cr.clip_preserve()
-
-        # white background
-        cr.set_source_rgb(1, 1, 1)
-        cr.fill()
-
-        # header gradient - ubuntu wallpaper-esque?
-        r, g, b = floats_from_string(STYLE_CATVIEW_HEADER_VGRADIENT_COLOR)
-        lin = cairo.LinearGradient(0, 0, 0, 96)
-        lin.add_color_stop_rgba(0.0, r, g, b, 0.5)
-        lin.add_color_stop_rgba(1.0, r, g, b, 0)
-        cr.rectangle(0, 0, widget.allocation.width, 96)
-        cr.set_source(lin)
-        cr.fill()
-
-        # draw basket image
-        pb = gtk.gdk.pixbuf_new_from_file(STYLE_BASKET_IMAGE_PATH)
-        w = pb.get_width()
-        x = widget.allocation.width - w - self.get_border_width()
-        y = self.title.allocation.y
-        cr.set_source_pixbuf(pb, x, y)
-        cr.paint()
-
-        # draw featured button
-        self.featured.draw(cr, self.featured.allocation)
-
-        # draw departments
-        self.departments.draw(cr, self.departments.allocation)
-
-#        # draw most popular
-#        self.popular.draw(cr, self.popular.allocation)
-
-#        # draw recently added
-#        self.recent.draw(cr, self.recent.allocation)
-
-        # draw the featured apps shortlist
-#        self.featured_shortlist.draw(cr, self.featured_shortlist.allocation)
-
-        del cr
         return
 
 
@@ -550,6 +596,11 @@ class LayoutView(gtk.VBox):
 
     def append(self, cat):
         self.catlist.append(cat)
+        return
+
+    def clear(self):
+        self.catlist = []
+        self._clear_view()
         return
 
     def _clear_view(self):
@@ -806,22 +857,25 @@ class CompactButton(PushButton):
 
         self.image = image
         self.label = gtk.Label()
-        self.label.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
         self.label.set_markup(markup)
-
-        # determine size_request width for label
-        layout = self.label.get_layout()
-        label_w = STYLE_COMPACT_DEPARTMENT_WIDTH - 2*self.get_border_width() - 16 # 16 = image width
-        layout.set_width(label_w*pango.SCALE)
-        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-        lw = layout.get_pixel_extents()[1][2]   # ink extents width
-        self.label.set_size_request(lw, -1)
-
-        self.hbox.set_size_request(STYLE_COMPACT_DEPARTMENT_WIDTH, -1)
+        self.label.set_line_wrap(gtk.WRAP_WORD)
+        #self.label.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
 
         if image:
             self.hbox.pack_start(image, False)
         self.hbox.pack_start(self.label, False)
+
+        # determine size_request width for label
+        layout = self.label.get_layout()
+        layout.set_wrap(pango.WRAP_WORD)
+        label_w = STYLE_COMPACT_DEPARTMENT_WIDTH - 2*self.get_border_width() - 48 # 16 = image width
+        layout.set_width(label_w*pango.SCALE)
+
+        #layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+        lw = layout.get_pixel_extents()[1][2]   # ink extents width
+        self.label.set_size_request(lw, -1)
+
+        self.hbox.set_size_request(STYLE_COMPACT_DEPARTMENT_WIDTH, -1)
 
         self.add(self.hbox)
         return
