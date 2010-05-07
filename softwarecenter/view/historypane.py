@@ -83,7 +83,7 @@ class HistoryPane(gtk.VBox):
         self.searchentry = SearchEntry()
         self.searchentry.connect('terms-changed', self.on_search_terms_changed)
         self.searchentry.show()
-        self.header.pack_start(self.searchentry, padding=self.PADDING)
+        self.header.pack_start(self.searchentry, expand=False, padding=self.PADDING)
 
         self.pack_start(gtk.HSeparator(), expand=False)
 
