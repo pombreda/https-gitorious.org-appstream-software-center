@@ -302,8 +302,6 @@ class AvailablePane(SoftwarePane):
            keeping track of the transaction-started signals
         """
         if self.custom_list_mode:
-            appstore = self.app_view.get_model()
-            appstore.refresh_metadata()
             self._update_action_bar()
 
     def _on_app_list_changed(self, pane, length):

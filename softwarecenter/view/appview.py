@@ -128,6 +128,8 @@ class AppStore(gtk.GenericTreeModel):
         self.active = True
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+        self.backend.connect("transaction-started", self._on_transaction_started)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
         # rowref of the active app and last active app
         self.active_app = None
         self._prev_active_app = 0
@@ -202,8 +204,11 @@ class AppStore(gtk.GenericTreeModel):
             if not app.pkgname in self.pkgname_index_map:
                 self.pkgname_index_map[app.pkgname] = []
             self.pkgname_index_map[app.pkgname].append(i)
-        if self.exact:
-            self.refresh_metadata()
+        
+        # This is data for store contents that will be generated
+        # when called for externally. (see _refresh_contents_data)
+        self._existing_apps = None
+        self._installable_apps = None
 
     # internal API
     def _append_app(self, app):
@@ -284,20 +289,32 @@ class AppStore(gtk.GenericTreeModel):
         self.app_index_map = appstore.app_index_map
         self.pkgname_index_map = appstore.pkgname_index_map
         self.exact = appstore.exact
-        if self.exact:
-            self.existing_apps = appstore.existing_apps
-            self.installable_apps = appstore.installable_apps
+        self._existing_apps = appstore._existing_apps
+        self._installable_apps = appstore._installable_apps
 
-    def refresh_metadata(self):
-        # Quantitative data on stored packages. These are used for quick
-        # reference in custom lists.
+    def _refresh_contents_data(self):
+        # Quantitative data on stored packages. This generates the information.
         exists = lambda app: self.cache.has_key(app.pkgname)
         installable = lambda app: (not self.cache[app.pkgname].isInstalled
                                    and app.pkgname not in
                                    self.backend.pending_transactions)
-        self.existing_apps = __builtin__.filter(exists, self.apps)
-        self.installable_apps = __builtin__.filter(installable,
-                                                   self.existing_apps)
+        self._existing_apps = __builtin__.filter(exists, self.apps)
+        self._installable_apps = __builtin__.filter(installable,
+                                                    self.existing_apps)
+
+    def _get_existing_apps(self):
+        if self._existing_apps == None:
+            self._refresh_contents_data()
+        return tuple(self._existing_apps)
+
+    def _get_installable_apps(self):
+        if self._installable_apps == None:
+            self._refresh_contents_data()
+        return tuple(self._installable_apps)
+
+    # data about the visible contents of the store, generated on call.
+    existing_apps = property(_get_existing_apps)
+    installable_apps = property(_get_installable_apps)
 
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
@@ -338,6 +355,18 @@ class AppStore(gtk.GenericTreeModel):
         for index in self.pkgname_index_map[pkgname]:
             row = self[index]
             self.row_changed(row.path, row.iter)
+
+    # the following methods ensure that the contents data is refreshed
+    # whenever a transaction potentially changes it: see _refresh_contents.
+
+    def _on_transaction_started(self, *args):
+        self._existing_apps = None
+        self._installable_apps = None
+
+    def _on_transaction_finished(self, *args):
+        self._existing_apps = None
+        self._installable_apps = None
+
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
