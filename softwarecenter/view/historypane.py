@@ -203,6 +203,10 @@ class HistoryPane(gtk.VBox):
     def update_view(self):
         self.store_filter.refilter()
 
+        # Expand all the matching rows
+        if self.searchentry.get_text():
+            self.view.expand_all()
+
         # Compute the number of visible changes
         self.visible_changes = 0
         day = self.store_filter.get_iter_first()
