@@ -63,6 +63,7 @@ STYLE_TITLE_FONT_SIZE = 20
 STYLE_TITLE_XALIGNMENT = 0.0    # 0.0=left margin, 0.5=centered, 1.0=right margin
 
 STYLE_FEATURED_FONT_SIZE = 14
+STYLE_FEATURED_BORDER_WIDTH = 8
 STYLE_FEATURED_FONT_COLOR = '#FFF'
 STYLE_FEATURED_ARROW_WIDTH = 18
 STYLE_FEATURED_XALIGNMENT = 0.0 # 0.0=left margin, 0.5=centered, 1.0=right margin
@@ -72,19 +73,23 @@ STYLE_FEATURED_BASE_COLOR = '#E1550C'   # an orange color from which we shade, l
 STYLE_DEPARTMENTS_TITLE_FONT_SIZE = 11
 
 STYLE_LAYOUTVIEW_BORDER_WIDTH = 6
-STYLE_LAYOUTVIEW_VSPACING = 12   # the vertical spacing between rows in Departments section
-STYLE_LAYOUTVIEW_HSPACING = 12  # the horiz spacing between each department button
+STYLE_LAYOUTVIEW_VSPACING = 8   # the vertical spacing between rows in Departments section
+STYLE_LAYOUTVIEW_HSPACING = 8  # the horiz spacing between each department button
 
 STYLE_FRAME_FILL_COLOR = '#F7F7F7'
-STYLE_FRAME_OUTLINE_COLOR = '#DAD7D3'
+STYLE_FRAME_OUTLINE_COLOR = '#C7C4C1'
 STYLE_FRAME_HEADER_FILL_COLOR = '#DAD7D3'
+STYLE_FRAME_CORNER_RADIUS = 3
 
-STYLE_DEPARTMENT_WIDTH = 84
-STYLE_DEPARTMENT_BORDER_WIDTH = 6
-STYLE_DEPARTMENT_VSPACING = 4   # vertical space between dept. icon and dept. label
+STYLE_CAT_BUTTON_WIDTH = 108
+STYLE_CAT_BUTTON_MIN_HEIGHT = 96
+STYLE_CAT_BUTTON_BORDER_WIDTH = 6
+STYLE_CAT_BUTTON_CORNER_RADIUS = 8
+STYLE_CAT_BUTTON_VSPACING = 4   # vertical space between dept. icon and dept. label
+STYLE_CAT_BUTTON_LABEL_FONT_SIZE = 9
 
-STYLE_COMPACT_DEPARTMENT_WIDTH = 116
-STYLE_COMPACT_DEPARTMENT_BORDER_WIDTH = 4
+STYLE_COMPACT_BUTTON_WIDTH = 116
+STYLE_COMPACT_BUTTON_BORDER_WIDTH = 4
 
 STYLE_SHORTLIST_VSPACING = 8
 STYLE_SHORTLIST_BORDER_WIDTH = 4
@@ -92,9 +97,9 @@ STYLE_SHORTLIST_BORDER_WIDTH = 4
 # markup / strings
 # "%s" locations are where strings/vars get substituted in at runtime
 # all markup must be compliant Pango Markup Language
-MARKUP_TITLE = '<span size="%s">%s</span>'
-MARKUP_FEATURED_LABEL = '<span size="%s" color="%s">%s</span>'
-MARKUP_DEPARTMENTS_HEADER = '<span size="%s">%s</span>'
+MARKUP_VARIABLE_SIZE_LABEL = '<span size="%s">%s</span>'
+MARKUP_VARIABLE_SIZE_COLOR_LABEL = '<span size="%s" color="%s">%s</span>'
+
 
 
 (COL_CAT_NAME,
@@ -147,6 +152,7 @@ class CategoriesView(gtk.VBox):
         self.header = ""
         self.db = db
         self.icons = icons
+        self._prev_width = 0
 
         if not root_category:
             self.header = _("Departments")
@@ -182,7 +188,7 @@ class CategoriesView(gtk.VBox):
         size = STYLE_TITLE_FONT_SIZE*pango.SCALE
         # define the markup for the title
 
-        self.title.set_markup(MARKUP_TITLE % (size, _('Ubuntu Software Center')))
+        self.title.set_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, _('Ubuntu Software Center')))
 
         # align the markup to the left margin
         align = gtk.Alignment(STYLE_TITLE_XALIGNMENT, 0.5)
@@ -201,9 +207,9 @@ class CategoriesView(gtk.VBox):
         size = STYLE_FEATURED_FONT_SIZE*pango.SCALE
 
         # define the markup for the featured button label and create featured widget
-        markup = MARKUP_FEATURED_LABEL % (size,
-                                          STYLE_FEATURED_FONT_COLOR,
-                                          cat.name)
+        markup = MARKUP_VARIABLE_SIZE_COLOR_LABEL % (size,
+                                                     STYLE_FEATURED_FONT_COLOR,
+                                                     cat.name)
         self.featured = FeaturedCategory(markup)
         # align the featured button the the left margin
         align = gtk.Alignment(STYLE_FEATURED_XALIGNMENT, 0.5)
@@ -222,16 +228,18 @@ class CategoriesView(gtk.VBox):
         # define the size of the departments section label
         size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
         # set the departments section to use the label markup we have just defined
-        self.departments.set_label_markup(MARKUP_DEPARTMENTS_HEADER % (size, self.header))
+        self.departments.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, self.header))
 
         # for each department append it to the department widget
+        size = STYLE_CAT_BUTTON_LABEL_FONT_SIZE*pango.SCALE
         for cat in self.categories:
             # make sure the string is parsable by pango, i.e. no funny characters
             name = gobject.markup_escape_text(cat.name.strip())
+            markup = MARKUP_VARIABLE_SIZE_LABEL % (size, name)
             # define the icon of the department
             ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
             # finally, create the department with label markup and icon
-            cat_btn = CategoryButton(markup=name, image=ico)
+            cat_btn = CategoryButton(markup, image=ico)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
@@ -248,25 +256,28 @@ class CategoriesView(gtk.VBox):
             self.pack_start(self.departments, False)
             self.departments.show_all()
         else:
-            self.departments.clear()
+            self.departments.clear_all()
 
         # define the size of the departments section label
         size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
         # set the departments section to use the label markup we have just defined
         header = gobject.markup_escape_text(self.header.strip())
-        self.departments.set_label_markup(MARKUP_DEPARTMENTS_HEADER % (size, header))
+        self.departments.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, header))
 
-        # for each department append it to the department widget
+        size = STYLE_CAT_BUTTON_LABEL_FONT_SIZE*pango.SCALE
         for cat in self.categories:
             # make sure the string is parsable by pango, i.e. no funny characters
             name = gobject.markup_escape_text(cat.name.strip())
+            markup = MARKUP_VARIABLE_SIZE_LABEL % (size, name)
             # define the icon of the department
             ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
             # finally, create the department with label markup and icon
-            cat_btn = CategoryButton(markup=name, image=ico)
+            cat_btn = CategoryButton(markup, image=ico)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
+        # kinda hacky ...
+        self.departments.build_view()
         return
 
 #    def _append_most_popular(self, hbox):
@@ -598,33 +609,29 @@ class LayoutView(gtk.VBox):
         self.catlist.append(cat)
         return
 
-    def clear(self):
+    def clear_all(self):
         self.catlist = []
-        self._clear_view()
-        return
-
-    def _clear_view(self):
         for row in self.vbox.get_children():
-            for cat in row.hbox.get_children():
-                row.hbox.remove(cat)
+            for child in row.get_children():
+                child.destroy()
             row.destroy()
         return
 
-    def _build_view(self):
-        w = 0
+    def build_view(self):
         max_w = self.allocation.width
 
         row = LayoutRow(self.hspacing)
         self.vbox.pack_start(row, False)
 
-        spacing = row.hbox.get_spacing()
+        spacing = self.hspacing
         bw = row.get_border_width()
+        w = 2*bw
         for cat in self.catlist:
             cw = cat.calc_width(self)
 
-            if w + cw + spacing + 2*bw < max_w:
+            if w + cw + spacing < max_w:
                 row.pack_start(cat, False)
-                w += cw + self.hspacing
+                w += cw + spacing
             else:
                 row = LayoutRow(self.hspacing)
                 self.vbox.pack_start(row, False)
@@ -634,11 +641,18 @@ class LayoutView(gtk.VBox):
         self.show_all()
         return
 
+    def _clear_rows(self):
+        for row in self.vbox.get_children():
+            for cat in row.hbox.get_children():
+                row.hbox.remove(cat)
+            row.destroy()
+        return
+
     def _on_allocate(self, widget, allocation):
         if self._prev_width == allocation.width: return
         self._prev_width = allocation.width
-        self._clear_view()
-        self._build_view()
+        self._clear_rows()
+        self.build_view()
         return
 
     def draw(self, cr, a):
@@ -647,20 +661,9 @@ class LayoutView(gtk.VBox):
         cr.clip()
 
         # fill frame light gray
-        rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, 4)
+        rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, STYLE_FRAME_CORNER_RADIUS)
         cr.set_source_rgb(*floats_from_string(STYLE_FRAME_FILL_COLOR))
         cr.fill()
-
-        # set darker gray
-        cr.set_source_rgb(*floats_from_string(STYLE_FRAME_OUTLINE_COLOR))
-
-        # stroke frame outline
-        cr.save()
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-        rounded_rectangle(cr, a.x, a.y, a.width-1, a.height-1, 4)
-        cr.stroke()
-        cr.restore()
 
         # fill header bg
         if self.has_label:
@@ -669,9 +672,20 @@ class LayoutView(gtk.VBox):
             rounded_rectangle_irregular(cr,
                                         a.x, a.y,
                                         a.width, h,
-                                        (4, 4, 0, 0))   # corner radii
+                                        (STYLE_FRAME_CORNER_RADIUS, STYLE_FRAME_CORNER_RADIUS, 0, 0))   # corner radii
             cr.set_source_rgb(*floats_from_string(STYLE_FRAME_HEADER_FILL_COLOR))
             cr.fill()
+
+        # set darker gray
+        cr.set_source_rgb(*floats_from_string(STYLE_FRAME_OUTLINE_COLOR))
+
+        # stroke frame outline
+        cr.save()
+        cr.set_line_width(1)
+        cr.translate(0.5, 0.5)
+        rounded_rectangle(cr, a.x, a.y, a.width-1, a.height-1, STYLE_FRAME_CORNER_RADIUS)
+        cr.stroke()
+        cr.restore()
 
         for cat in self.catlist:
             a = cat.allocation
@@ -789,7 +803,8 @@ class PushButton(gtk.EventBox):
     def _on_key_release(self, cat, event):
         # react to spacebar, enter, numpad-enter
         if event.keyval in (32, 65293, 65421):
-            cat.set_state(gtk.STATE_SELECTED)
+            cat.set_state(gtk.STATE_NORMAL)
+            self.emit('clicked')
         return
 
     def _on_focus_in(self, cat, event):
@@ -805,18 +820,19 @@ class CategoryButton(PushButton):
 
     def __init__(self, markup, image=None):
         PushButton.__init__(self, markup, image)
-        self.set_border_width(STYLE_DEPARTMENT_BORDER_WIDTH)
+        self.set_border_width(STYLE_CAT_BUTTON_BORDER_WIDTH)
         self.label.set_line_wrap(gtk.WRAP_WORD)
         self.label.set_justify(gtk.JUSTIFY_CENTER)
 
         # determine size_request width for label
         layout = self.label.get_layout()
-        layout.set_width(STYLE_DEPARTMENT_WIDTH*pango.SCALE)
-        lw = layout.get_pixel_extents()[1][2]   # ink extents width
+        layout.set_width(STYLE_CAT_BUTTON_WIDTH*pango.SCALE)
+        lw, lh = layout.get_pixel_extents()[1][2:]   # ink extents width, height
         self.label.set_size_request(lw, -1)
 
-        self.vbox = gtk.VBox(spacing=STYLE_DEPARTMENT_VSPACING)
-        self.vbox.set_size_request(STYLE_DEPARTMENT_WIDTH, -1)
+        self.vbox = gtk.VBox(spacing=STYLE_CAT_BUTTON_VSPACING)
+        h = lh + STYLE_CAT_BUTTON_VSPACING +2*STYLE_CAT_BUTTON_BORDER_WIDTH + 48 # 48 = icon size
+        self.vbox.set_size_request(STYLE_CAT_BUTTON_WIDTH, max(h, STYLE_CAT_BUTTON_MIN_HEIGHT))
 
         self.add(self.vbox)
         if self.image:
@@ -827,7 +843,7 @@ class CategoryButton(PushButton):
         return
 
     def calc_width(self, realized_widget):
-        return STYLE_DEPARTMENT_WIDTH + 2*self.get_border_width()
+        return STYLE_CAT_BUTTON_WIDTH + 2*self.get_border_width()
 
     def draw(self, theme, cr, a):
         x, y, w, h = a.x, a.y, a.width, a.height
@@ -840,10 +856,10 @@ class CategoryButton(PushButton):
         if self.has_focus():
             self.style.paint_focus(self.window,
                                    self.state,
-                                   (x+6, y+6, w-12, h-12),
+                                   (x+3, y+3, w-6, h-6),
                                    self,
                                    'button',
-                                   x+6, y+6, w-12, h-12)
+                                   x+3, y+3, w-6, h-6)
         return
 
 
@@ -851,7 +867,7 @@ class CompactButton(PushButton):
 
     def __init__(self, markup, image=None):
         PushButton.__init__(self, markup, image)
-        self.set_border_width(STYLE_COMPACT_DEPARTMENT_BORDER_WIDTH)
+        self.set_border_width(STYLE_COMPACT_BUTTON_BORDER_WIDTH)
 
         self.hbox = gtk.HBox(spacing=4)
 
@@ -868,20 +884,20 @@ class CompactButton(PushButton):
         # determine size_request width for label
         layout = self.label.get_layout()
         layout.set_wrap(pango.WRAP_WORD)
-        label_w = STYLE_COMPACT_DEPARTMENT_WIDTH - 2*self.get_border_width() - 48 # 16 = image width
+        label_w = STYLE_COMPACT_BUTTON_WIDTH - 2*self.get_border_width() - 48 # 16 = image width
         layout.set_width(label_w*pango.SCALE)
 
         #layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
         lw = layout.get_pixel_extents()[1][2]   # ink extents width
         self.label.set_size_request(lw, -1)
 
-        self.hbox.set_size_request(STYLE_COMPACT_DEPARTMENT_WIDTH, -1)
+        self.hbox.set_size_request(STYLE_COMPACT_BUTTON_WIDTH, -1)
 
         self.add(self.hbox)
         return
 
     def calc_width(self, realized_widget):
-        return STYLE_COMPACT_DEPARTMENT_WIDTH + 2*self.get_border_width()
+        return STYLE_COMPACT_BUTTON_WIDTH + 2*self.get_border_width()
 
     def draw(self, theme, cr, a):
         x, y, w, h = a.x, a.y, a.width, a.height
@@ -905,7 +921,7 @@ class FeaturedCategory(PushButton):
 
     def __init__(self, markup):
         PushButton.__init__(self, markup, image=None)
-        self.set_border_width(8)
+        self.set_border_width(STYLE_FEATURED_BORDER_WIDTH)
 
         self.theme = pathbar_common.PathBarStyle(self)
         # override arrow width and colour palatte
@@ -1167,7 +1183,7 @@ class CatViewStyle:
     def paint_bg(self, cr, cat, x, y, w, h):
         shape = self.shape_map[cat.shape]
         state = cat.state
-        r = self["curvature"] * 2
+        r = STYLE_CAT_BUTTON_CORNER_RADIUS
 
         cr.save()
         cr.translate(x+0.5, y+0.5)
@@ -1202,7 +1218,7 @@ class CatViewStyle:
     def paint_bg_active(self, cr, cat, x, y, w, h):
         shape = self.shape_map[cat.shape]
         state = cat.state
-        r = self["curvature"] * 2
+        r = STYLE_CAT_BUTTON_CORNER_RADIUS
 
         cr.save()
         cr.rectangle(x, y, w+1, h)
