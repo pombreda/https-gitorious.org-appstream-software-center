@@ -83,10 +83,8 @@ class AvailablePane(SoftwarePane):
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
                                        self.db,
                                        self.icons)
-        scroll_categories = gtk.ScrolledWindow()
-        scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll_categories.add_with_viewport(self.cat_view)
-        self.notebook.append_page(scroll_categories, gtk.Label("categories"))
+        #scroll_categories = gtk.ScrolledWindow()
+        self.notebook.append_page(self.cat_view, gtk.Label("categories"))
         # sub-categories view
         self.subcategories_view = CategoriesView(self.datadir,
                                                  APP_INSTALL_PATH,

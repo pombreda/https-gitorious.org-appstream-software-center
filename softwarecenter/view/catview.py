@@ -121,7 +121,7 @@ class Category(object):
         self.dont_display = dont_display
 
 
-class CategoriesView(gtk.VBox):
+class CategoriesView(gtk.ScrolledWindow):
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -140,9 +140,13 @@ class CategoriesView(gtk.VBox):
         icons - a gtk.IconTheme
         root_category - a Category class with subcategories or None
         """
-        gtk.VBox.__init__(self, spacing=STYLE_CATVIEW_VSPACING)
-        self.set_border_width(STYLE_CATVIEW_BORDER_WIDTH)
-        self.set_redraw_on_allocate(False)
+        gtk.ScrolledWindow.__init__(self)
+        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+
+        self.vbox = gtk.VBox(spacing=STYLE_CATVIEW_VSPACING)
+        self.vbox.set_border_width(STYLE_CATVIEW_BORDER_WIDTH)
+        self.add_with_viewport(self.vbox)
+        self.vbox.set_redraw_on_allocate(False)
 
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Departments"))
@@ -163,7 +167,7 @@ class CategoriesView(gtk.VBox):
             self.in_subsection = True
             self.set_subcategory(root_category)
 
-        self.connect('expose-event', self._on_expose)
+        self.vbox.connect('expose-event', self._on_expose)
         self.connect('size-allocate', self._on_allocate)
         return
 
@@ -195,7 +199,7 @@ class CategoriesView(gtk.VBox):
         align.add(self.title)
 
         # append the title to the page
-        self.pack_start(align, False)
+        self.vbox.pack_start(align, False)
         return
 
     def _append_featured_btn(self):
@@ -218,7 +222,7 @@ class CategoriesView(gtk.VBox):
         self.featured.connect('clicked', self._on_category_clicked, cat)
 
         # append the featured button to the page
-        self.pack_start(align, False)
+        self.vbox.pack_start(align, False)
         return
 
     def _append_departments(self):
@@ -245,7 +249,7 @@ class CategoriesView(gtk.VBox):
             self.departments.append(cat_btn)
 
         # append the departments section to the page
-        self.pack_start(self.departments, False)
+        self.vbox.pack_start(self.departments, False)
         return
 
     def _append_subcat_departments(self):
@@ -253,7 +257,7 @@ class CategoriesView(gtk.VBox):
         if not self.departments:
             self.departments = LayoutView()
             # append the departments section to the page
-            self.pack_start(self.departments, False)
+            self.vbox.pack_start(self.departments, False)
             self.departments.show_all()
         else:
             self.departments.clear_all()
@@ -277,7 +281,8 @@ class CategoriesView(gtk.VBox):
             # append the department to the departments widget
             self.departments.append(cat_btn)
         # kinda hacky ...
-        self.departments.build_view()
+        best_fit = self._get_layout_best_fit_width()
+        self.departments.build_view(best_fit)
         return
 
 #    def _append_most_popular(self, hbox):
@@ -328,8 +333,22 @@ class CategoriesView(gtk.VBox):
         self.emit("category-selected", cat)
         return
 
+    def _get_layout_best_fit_width(self):
+        # sum of all border widths * 2
+        if not self.parent: return 1
+        bw = 2*(STYLE_CATVIEW_BORDER_WIDTH + STYLE_LAYOUTVIEW_BORDER_WIDTH)
+        return self.parent.allocation.width - bw
+
     def _on_allocate(self, widget, allocation):
         self.queue_draw()
+        if self._prev_width == widget.parent.allocation.width: return
+        self._prev_width = widget.parent.allocation.width
+
+        best_fit = self._get_layout_best_fit_width()
+
+        if self.departments:
+            self.departments.clear_rows()
+            self.departments.build_view(best_fit)
         return
 
     def _on_expose(self, widget, event):
@@ -354,8 +373,8 @@ class CategoriesView(gtk.VBox):
             # draw basket image
             pb = gtk.gdk.pixbuf_new_from_file(STYLE_BASKET_IMAGE_PATH)
             w = pb.get_width()
-            x = widget.allocation.width - w - self.get_border_width()
-            y = self.get_border_width()
+            x = widget.allocation.width - w - self.vbox.get_border_width()
+            y = self.vbox.get_border_width()
             cr.set_source_pixbuf(pb, x, y)
             cr.paint()
 
@@ -597,7 +616,7 @@ class LayoutView(gtk.VBox):
         self.theme = CatViewStyle(self)
         self._prev_width = 0
 
-        self.connect('size-allocate', self._on_allocate)
+        #self.connect('size-allocate', self._on_allocate)
         return
 
     def set_label_markup(self, markup):
@@ -609,16 +628,7 @@ class LayoutView(gtk.VBox):
         self.catlist.append(cat)
         return
 
-    def clear_all(self):
-        self.catlist = []
-        for row in self.vbox.get_children():
-            for child in row.get_children():
-                child.destroy()
-            row.destroy()
-        return
-
-    def build_view(self):
-        max_w = self.allocation.width
+    def build_view(self, max_width):
 
         row = LayoutRow(self.hspacing)
         self.vbox.pack_start(row, False)
@@ -629,19 +639,27 @@ class LayoutView(gtk.VBox):
         for cat in self.catlist:
             cw = cat.calc_width(self)
 
-            if w + cw + spacing < max_w:
+            if w + cw + spacing < max_width:
                 row.pack_start(cat, False)
                 w += cw + spacing
             else:
                 row = LayoutRow(self.hspacing)
                 self.vbox.pack_start(row, False)
                 row.pack_start(cat, False)
-                w = cw + spacing
+                w = 2*bw + cw + spacing
 
         self.show_all()
         return
 
-    def _clear_rows(self):
+    def clear_all(self):
+        self.catlist = []
+        for row in self.vbox.get_children():
+            for child in row.get_children():
+                child.destroy()
+            row.destroy()
+        return
+
+    def clear_rows(self):
         for row in self.vbox.get_children():
             for cat in row.hbox.get_children():
                 row.hbox.remove(cat)
@@ -729,7 +747,6 @@ class PushButton(gtk.EventBox):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
-
         self.markup = markup
         self.label = gtk.Label()
         self.label.set_markup(markup)
