@@ -6,7 +6,9 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * show download completion status (LP: #460888)
   * add "bottom border" effect (LP: #439621)
   * add "history" GUI that reads /var/log/apt/history.log
-  
+  * Re-claim used memory after updating an existing AppStore with a 
+    new one (LP: #577540)
+
   [ Jacob Johan Edwards ]
   * merged lp:~j-johan-edwards/software-center/smooth_search, this 
     massively improves the search and stops it from flickering

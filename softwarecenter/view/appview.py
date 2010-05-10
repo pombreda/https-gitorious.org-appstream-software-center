@@ -266,6 +266,10 @@ class AppStore(gtk.GenericTreeModel):
         self.app_index_map = appstore.app_index_map
         self.pkgname_index_map = appstore.pkgname_index_map
 
+        # Re-claim the memory used by the new appstore
+        appstore.clear()
+        del appstore
+
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
         pkgname = self.db.get_pkgname(doc)
