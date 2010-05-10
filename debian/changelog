@@ -27,6 +27,10 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/app.py:
     - Set correct sensitivity of 'edit > undo,redo,cut,copy,delete,select_all' 
       (LP: #439613, LP: #530194)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/appview.py:
+    - simplify application list buildup and improve responsiveness
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 

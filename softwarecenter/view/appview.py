@@ -169,23 +169,14 @@ class AppStore(gtk.GenericTreeModel):
                 popcon = db.get_popcon(doc)
                 app = Application(appname, pkgname, popcon)
                 if not app in already_added:
-                    self.apps.append(app)
+                    if self.sorted:
+                        self._insert_app_sorted(app)
+                    else:
+                        self._append(app)
                     already_added.add(app)
-                    if not sort:
-                        self.app_index_map[app] = app_index
-                        app_index = app_index + 1
                 # keep the UI going
                 while gtk.events_pending():
                     gtk.main_iteration()
-        if self.sorted:
-            self.apps.sort()
-            for (i, app) in enumerate(self.apps):
-                self.app_index_map[app] = i
-        # build the pkgname map
-        for (i, app) in enumerate(self.apps):
-            if not app.pkgname in self.pkgname_index_map:
-                self.pkgname_index_map[app.pkgname] = []
-            self.pkgname_index_map[app.pkgname].append(i)
 
     # internal API
     def _append_app(self, app):
