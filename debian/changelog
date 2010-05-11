@@ -6,7 +6,9 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * show download completion status (LP: #460888)
   * add "bottom border" effect (LP: #439621)
   * add "history" GUI that reads /var/log/apt/history.log
-  
+  * Re-claim used memory after updating an existing AppStore with a 
+    new one (LP: #577540)
+
   [ Jacob Johan Edwards ]
   * merged lp:~j-johan-edwards/software-center/smooth_search, this 
     massively improves the search and stops it from flickering
@@ -25,6 +27,10 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/app.py:
     - Set correct sensitivity of 'edit > undo,redo,cut,copy,delete,select_all' 
       (LP: #439613, LP: #530194)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/appview.py:
+    - simplify application list buildup and improve responsiveness
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
