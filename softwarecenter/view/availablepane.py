@@ -117,6 +117,7 @@ class AvailablePane(SoftwarePane):
         self.apps_vbox.pack2(self.scroll_app_list)
         # app list
         self.cat_view.connect("category-selected", self.on_category_activated)
+        self.cat_view.connect("application-activated", self.on_application_activated)
         self.notebook.append_page(self.apps_vbox, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))

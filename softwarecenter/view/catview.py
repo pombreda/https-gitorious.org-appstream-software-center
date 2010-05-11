@@ -14,6 +14,7 @@ import xapian
 
 from widgets import pathbar_common
 from appview import AppStore
+from softwarecenter.db.database import Application
 
 from ConfigParser import ConfigParser
 from gettext import gettext as _
@@ -56,19 +57,19 @@ TEST_DEPARTMENTS = """
 # specific styling constants
 STYLE_BASKET_IMAGE_PATH = 'data/images/basket.png'
 
-STYLE_CATVIEW_BORDER_WIDTH = 12
-STYLE_CATVIEW_VSPACING = 14    # vertical spacing between page elements
+STYLE_CATVIEW_BORDER_WIDTH = 10
+STYLE_CATVIEW_VSPACING = 10    # vertical spacing between page elements
 STYLE_CATVIEW_HEADER_VGRADIENT_COLOR = '#C5809D'   # the color of that purple-ish vertical gradient
 
 STYLE_TITLE_FONT_SIZE = 20
 STYLE_TITLE_XALIGNMENT = 0.0    # 0.0=left margin, 0.5=centered, 1.0=right margin
 
 STYLE_FEATURED_FONT_SIZE = 14
-STYLE_FEATURED_BORDER_WIDTH = 8
+STYLE_FEATURED_BORDER_WIDTH = 4
 STYLE_FEATURED_FONT_COLOR = '#FFF'
-STYLE_FEATURED_ARROW_WIDTH = 18
+STYLE_FEATURED_ARROW_WIDTH = 8
 STYLE_FEATURED_XALIGNMENT = 0.0 # 0.0=left margin, 0.5=centered, 1.0=right margin
-STYLE_FEATURED_LABEL_XALIGNMENT = 0.0   # 0.0=left margin, 0.5=centered, 1.0=right margin
+STYLE_FEATURED_LABEL_XALIGNMENT = 0.3   # 0.0=left margin, 0.5=centered, 1.0=right margin
 STYLE_FEATURED_BASE_COLOR = '#E1550C'   # an orange color from which we shade, lighten, darken and mix
 
 STYLE_DEPARTMENTS_TITLE_FONT_SIZE = 11
@@ -89,7 +90,7 @@ STYLE_CAT_BUTTON_CORNER_RADIUS = 8
 STYLE_CAT_BUTTON_VSPACING = 4   # vertical space between dept. icon and dept. label
 STYLE_CAT_BUTTON_LABEL_FONT_SIZE = 9
 
-STYLE_COMPACT_BUTTON_WIDTH = 156
+STYLE_COMPACT_BUTTON_WIDTH = 168
 STYLE_COMPACT_BUTTON_BORDER_WIDTH = 3
 STYLE_COMPACT_BUTTON_CORNER_RADIUS = 3
 STYLE_COMPACT_BUTTON_HSPACING = 3
@@ -130,9 +131,13 @@ class CategoriesView(gtk.ScrolledWindow):
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
                                gobject.TYPE_NONE, 
-                               (gobject.TYPE_PYOBJECT,
-                               ),
-                              )
+                               (gobject.TYPE_PYOBJECT, ),
+                              ),
+
+        "application-activated" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE,
+                                   (gobject.TYPE_PYOBJECT, ),
+                                  )
         }
 
     def __init__(self, datadir, desktopdir, cache, db, icons, apps_filter, apps_limit=12, root_category=None):
@@ -182,10 +187,10 @@ class CategoriesView(gtk.ScrolledWindow):
     def _build_home_page_view(self):
         # these methods add sections to the page
         # changing order of methods changes order they appear in the page
-        self._append_title()
+#        self._append_title()
 #        self._append_featured_btn()
-        self._append_featured_applist()
         self._append_departments()
+        self._append_featured_applist()
         return
 
     def _build_subcat_view(self):
@@ -249,12 +254,19 @@ class CategoriesView(gtk.ScrolledWindow):
 
         self.featured = LayoutView()
 
-
         # define the size of the departments section label
         size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
         # set the departments section to use the label markup we have just defined
         self.featured.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, _('Featured Applications')))
+        # add a button to take you to all of the fatured apps
+        self.all_featured = MoreButton('<small>More apps...</small>')
 
+        # find the featured apps category
+        cat = filter(lambda cat: cat.untranslated_name == 'Featured Applications',
+                     self.categories)[0]
+        
+        self.featured.header.pack_end(self.all_featured, False)
+        self.all_featured.connect('clicked', self._on_category_clicked, cat)
         size = STYLE_COMPACT_BUTTON_LABEL_FONT_SIZE*pango.SCALE
         for app in store:
             # make sure the string is parsable by pango, i.e. no funny characters
@@ -264,7 +276,7 @@ class CategoriesView(gtk.ScrolledWindow):
             ico = gtk.image_new_from_pixbuf(app[3])
             # finally, create the department with label markup and icon
             app_btn = CompactButton(markup, image=ico)
-            app_btn.connect('clicked', self._on_category_clicked, app)
+            app_btn.connect('clicked', self._on_app_clicked, app)
             # append the department to the departments widget
             self.featured.append(app_btn)
 
@@ -374,6 +386,13 @@ class CategoriesView(gtk.ScrolledWindow):
 #        self.pack_start(self.featured_shortlist, False)
 #        return
 
+    def _on_app_clicked(self, btn, app):
+        appname = app[AppStore.COL_APP_NAME]
+        pkgname = app[AppStore.COL_PKGNAME]
+        popcon = app[AppStore.COL_POPCON]
+        self.emit("application-activated", Application(appname, pkgname, popcon))
+        return False
+
     def _on_category_clicked(self, cat_btn, cat):
         """emit the category-selected signal when a category was clicked"""
         logging.debug("on_category_changed: %s" % cat.name)
@@ -404,38 +423,40 @@ class CategoriesView(gtk.ScrolledWindow):
             self.queue_draw()
             return False
 
-        gobject.idle_add(idle_redraw)
+        self.queue_draw()
+        gobject.idle_add(idle_redraw)   #  ewww
         return
 
     def _on_expose(self, widget, event):
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
-        cr.clip_preserve()
+        cr.clip()
 
-        # white background
-        cr.set_source_rgb(1, 1, 1)
-        cr.fill()
+#        # white background
+#        cr.set_source_rgb(1, 1, 1)
+#        cr.fill()
 
         # header gradient - ubuntu wallpaper-esque?
         r, g, b = floats_from_string(STYLE_CATVIEW_HEADER_VGRADIENT_COLOR)
-        lin = cairo.LinearGradient(0, 0, 0, 96)
-        lin.add_color_stop_rgba(0.0, r, g, b, 0.5)
+        lin = cairo.LinearGradient(0, 0, 0, 128)
+        lin.add_color_stop_rgba(0.0, r, g, b, 0.4)
         lin.add_color_stop_rgba(1.0, r, g, b, 0)
-        cr.rectangle(0, 0, widget.allocation.width, 96)
+        cr.rectangle(0, 0, widget.allocation.width, 128)
         cr.set_source(lin)
         cr.fill()
 
         if not self.in_subsection:
-            # draw basket image
-            pb = gtk.gdk.pixbuf_new_from_file(STYLE_BASKET_IMAGE_PATH)
-            w = pb.get_width()
-            x = widget.allocation.width - w - self.vbox.get_border_width()
-            y = self.vbox.get_border_width()
-            cr.set_source_pixbuf(pb, x, y)
-            cr.paint()
+#            # draw basket image
+#            pb = gtk.gdk.pixbuf_new_from_file(STYLE_BASKET_IMAGE_PATH)
+#            w = pb.get_width()
+#            x = widget.allocation.width - w - self.vbox.get_border_width()
+#            y = self.vbox.get_border_width()
+#            cr.set_source_pixbuf(pb, x, y)
+#            cr.paint()
 
             # draw featured list
             self.featured.draw(cr, self.featured.allocation)
+            self.all_featured.draw(cr, self.all_featured.allocation)
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation)
@@ -451,47 +472,6 @@ class CategoriesView(gtk.ScrolledWindow):
 
         del cr
         return
-
-    def set_subcategory(self, root_category, block=False):
-        # nothing to do
-        if self.categories == root_category.subcategories:
-            return
-        self.header = root_category.name
-        self.categories = root_category.subcategories
-        self._build_subcat_view()
-        return
-
-    def refresh_view(self):
-        return
-
-    def parse_applications_menu(self, datadir):
-        " parse a application menu and return a list of Category objects"""
-        categories = []
-        # we support multiple menu files and menu drop ins
-        menu_files = [datadir+"/desktop/software-center.menu"]
-        menu_files += glob.glob(datadir+"/menu.d/*.menu")
-        for f in menu_files:
-            tree = ET.parse(f)
-            root = tree.getroot()
-            for child in root.getchildren():
-                category = None
-                if child.tag == "Menu":
-                    category = self._parse_menu_tag(child)
-                if category:
-                    categories.append(category)
-        # post processing for <OnlyUnallocated>
-        # now build the unallocated queries, once for top-level,
-        # and for the subcategories. this means that subcategories
-        # can have a "OnlyUnallocated/" that applies only to 
-        # unallocated entries in their sublevel
-        for cat in categories:
-            self._build_unallocated_queries(cat.subcategories)
-        self._build_unallocated_queries(categories)
-
-        # debug print
-        for cat in categories:
-            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
-        return categories
 
     def _image_path(self,name):
         return os.path.abspath("%s/images/%s.png" % (self.datadir, name)) 
@@ -644,6 +624,44 @@ class CategoriesView(gtk.ScrolledWindow):
             #print cat_unalloc.name, cat_unalloc.query
         return
 
+    def set_subcategory(self, root_category, block=False):
+        # nothing to do
+        if self.categories == root_category.subcategories:
+            return
+        self.header = root_category.name
+        self.categories = root_category.subcategories
+        self._build_subcat_view()
+        return
+
+    def parse_applications_menu(self, datadir):
+        " parse a application menu and return a list of Category objects"""
+        categories = []
+        # we support multiple menu files and menu drop ins
+        menu_files = [datadir+"/desktop/software-center.menu"]
+        menu_files += glob.glob(datadir+"/menu.d/*.menu")
+        for f in menu_files:
+            tree = ET.parse(f)
+            root = tree.getroot()
+            for child in root.getchildren():
+                category = None
+                if child.tag == "Menu":
+                    category = self._parse_menu_tag(child)
+                if category:
+                    categories.append(category)
+        # post processing for <OnlyUnallocated>
+        # now build the unallocated queries, once for top-level,
+        # and for the subcategories. this means that subcategories
+        # can have a "OnlyUnallocated/" that applies only to 
+        # unallocated entries in their sublevel
+        for cat in categories:
+            self._build_unallocated_queries(cat.subcategories)
+        self._build_unallocated_queries(categories)
+
+        # debug print
+        for cat in categories:
+            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
+        return categories
+
 
 class LayoutView(gtk.VBox):
 
@@ -654,9 +672,11 @@ class LayoutView(gtk.VBox):
 
         self.header = gtk.HBox()
         self.vbox = gtk.VBox(spacing=vspacing)
+        align = gtk.Alignment(0.5, 0.5)
+        align.add(self.vbox)
 
         self.pack_start(self.header, False)
-        self.pack_start(self.vbox, False)
+        self.pack_start(align, False)
 
         self.label = gtk.Label()
         self.header.pack_start(self.label, False)
@@ -772,7 +792,7 @@ class LayoutView(gtk.VBox):
 class LayoutRow(gtk.Alignment):
 
     def __init__(self, hspacing):
-        gtk.Alignment.__init__(self, 0.5, 0.5)
+        gtk.Alignment.__init__(self, 0.0, 0.5)
         self.hbox = gtk.HBox(spacing=hspacing)
         self.set_redraw_on_allocate(False)
         self.hbox.set_redraw_on_allocate(False)
@@ -949,7 +969,7 @@ class CompactButton(PushButton):
         self.label = gtk.Label()
         self.label.set_markup(markup)
         #self.label.set_line_wrap(gtk.WRAP_WORD)
-        self.label.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+        self.label.set_ellipsize(pango.ELLIPSIZE_END)
 
         if image:
             self.hbox.pack_start(image, False)
@@ -958,7 +978,7 @@ class CompactButton(PushButton):
         # determine size_request width for label
         layout = self.label.get_layout()
         #layout.set_wrap(pango.WRAP_WORD)
-        label_w = STYLE_COMPACT_BUTTON_WIDTH - 2*self.get_border_width() - 20 # 16 = image width
+        label_w = STYLE_COMPACT_BUTTON_WIDTH - 2*self.get_border_width() - 24 - 7 # 16 = image width
         layout.set_width(label_w*pango.SCALE)
 
         layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
@@ -982,6 +1002,21 @@ class CompactButton(PushButton):
             theme.paint_bg(cr, self, x, y, w, h, r)
         else:
             theme.paint_bg_active(cr, self, x, y, w, h, r)
+        if self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE:
+            # draw arrow
+            ax = x + w - self.get_border_width() - 14
+            ay = y + (h - 14)/2
+            self.style.paint_arrow(self.window,
+                                   self.state,
+                                   gtk.SHADOW_IN,
+                                   (ax, ay, 14, 14),
+                                   self,
+                                   'button',
+                                   gtk.ARROW_RIGHT,
+                                   True,
+                                   ax, ay,
+                                   14, 14)
+
         if self.has_focus():
             self.style.paint_focus(self.window,
                                    self.state,
@@ -992,7 +1027,7 @@ class CompactButton(PushButton):
         return
 
 
-class FeaturedCategory(PushButton):
+class MoreButton(PushButton):
 
     def __init__(self, markup):
         PushButton.__init__(self, markup, image=None)
@@ -1001,7 +1036,7 @@ class FeaturedCategory(PushButton):
         self.theme = pathbar_common.PathBarStyle(self)
         # override arrow width and colour palatte
         self.theme.properties['arrow_width'] = STYLE_FEATURED_ARROW_WIDTH
-        self._define_custom_palatte()
+        #self._define_custom_palatte()
 
         self.shape = pathbar_common.SHAPE_START_ARROW
 
@@ -1010,7 +1045,7 @@ class FeaturedCategory(PushButton):
         lw = layout.get_pixel_extents()[1][2]   # ink extents width
 
         # width request
-        w = lw + 2*self.get_border_width() + STYLE_FEATURED_ARROW_WIDTH
+        w = lw + 4*self.get_border_width() + STYLE_FEATURED_ARROW_WIDTH
         self.set_size_request(w, -1)
 
         align = gtk.Alignment(STYLE_FEATURED_LABEL_XALIGNMENT, 0.5)
@@ -1051,10 +1086,7 @@ class FeaturedCategory(PushButton):
         cr.rectangle(a)
         cr.clip()
 
-        if self.state == gtk.STATE_ACTIVE:
-            self.theme.paint_bg_active(cr, self, a.x, a.y, a.width-1, a.height)
-        else:
-            self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height)
+        self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height)
         if self.has_focus():
             a = self.label.allocation
             x, y, w, h = a.x, a.y, a.width, a.height
