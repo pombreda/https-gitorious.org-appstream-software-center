@@ -176,11 +176,11 @@ class AppStore(gtk.GenericTreeModel):
                 popcon = db.get_popcon(doc)
                 app = Application(appname, pkgname, popcon)
                 if not app in already_added:
-                    self.apps.append(app)
+                    if self.sorted:
+                        self._insert_app_sorted(app)
+                    else:
+                        self._append_app(app)
                     already_added.add(app)
-                    if not sort:
-                        self.app_index_map[app] = app_index
-                        app_index = app_index + 1
                 # keep the UI going
                 while gtk.events_pending():
                     gtk.main_iteration()
@@ -195,15 +195,6 @@ class AppStore(gtk.GenericTreeModel):
                 app = Application("", pkgname)
                 self.app_index_map[app] = app_index
                 self.apps.append(app)
-        if self.sorted:
-            self.apps.sort()
-            for (i, app) in enumerate(self.apps):
-                self.app_index_map[app] = i
-        # build the pkgname map
-        for (i, app) in enumerate(self.apps):
-            if not app.pkgname in self.pkgname_index_map:
-                self.pkgname_index_map[app.pkgname] = []
-            self.pkgname_index_map[app.pkgname].append(i)
         
         # This is data for store contents that will be generated
         # when called for externally. (see _refresh_contents_data)
@@ -291,6 +282,10 @@ class AppStore(gtk.GenericTreeModel):
         self.exact = appstore.exact
         self._existing_apps = appstore._existing_apps
         self._installable_apps = appstore._installable_apps
+
+        # Re-claim the memory used by the new appstore
+        appstore.clear()
+        del appstore
 
     def _refresh_contents_data(self):
         # Quantitative data on stored packages. This generates the information.
