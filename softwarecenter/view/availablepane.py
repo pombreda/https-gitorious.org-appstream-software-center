@@ -228,7 +228,7 @@ class AvailablePane(SoftwarePane):
         self.app_view.set_model(new_model)
         # check if we show subcategoriy
         self._show_hide_applist()
-        self.emit("app-list-changed", len(new_model))
+        self.emit("app-list-changed", len(self.app_view.get_model()))
         if self.app_view.window:
             self.app_view.window.set_cursor(None)
         if self.subcategories_view.window:
