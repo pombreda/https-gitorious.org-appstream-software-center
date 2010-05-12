@@ -172,7 +172,7 @@ class AppStore(gtk.GenericTreeModel):
                     if self.sorted:
                         self._insert_app_sorted(app)
                     else:
-                        self._append(app)
+                        self._append_app(app)
                     already_added.add(app)
                 # keep the UI going
                 while gtk.events_pending():
