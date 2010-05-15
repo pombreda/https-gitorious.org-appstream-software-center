@@ -288,6 +288,10 @@ class AppDetailsView(WebkitWidget):
         if self.homepage_url:
             return "visible"
         return "hidden"
+    def wksub_share_button_visibility(self):
+        if os.path.exists("/usr/bin/gwibber-poster"):
+            return "visible"
+        return "hidden"
     def wksub_package_information(self):
         if not self.pkg or not self.pkg.candidate:
             return ""
@@ -309,6 +313,9 @@ class AppDetailsView(WebkitWidget):
         return self.distro.get_installation_status(self.cache, self.pkg, self.app.name)
     def wksub_homepage(self):
         s = _("Website")
+        return s
+    def wksub_share(self):
+        s = _("Share")
         return s
     def wksub_license(self):
         return self.distro.get_license_text(self.component)
@@ -378,6 +385,10 @@ class AppDetailsView(WebkitWidget):
     def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()
         subprocess.call([cmd, self.homepage_url])
+
+    def on_button_share_clicked(self):
+        msg = _("Check out %s apturl://%s") % (self.app.appname, self.app.pkgname)
+        subprocess.call(["gwibber-poster", "-w", "-m", msg])
 
     def on_button_upgrade_clicked(self):
         self.upgrade()
