@@ -17,6 +17,8 @@ software-center (2.1.0) UNRELEASED; urgency=low
     (LP: #570682)
   * merged lp:~j-johan-edwards/software-center/action_bar that provides
     the foundation for the "custom packages list" branch
+  * merged lp:~j-johan-edwards/software-center/unbranded_icons to 
+    provide a set of unbranded icons for e.g. Debian
 
   [ Ken van Dine ]
   * allow sharing apps via gwibber and apturl 
