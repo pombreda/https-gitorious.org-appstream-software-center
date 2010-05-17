@@ -8,6 +8,8 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * add "history" GUI that reads /var/log/apt/history.log
   * Re-claim used memory after updating an existing AppStore with a 
     new one (LP: #577540)
+  * Fix the database update when run with a Turkish locale 
+    (patch by M. Vefa Bicakci). LP: #581207
 
   [ Jacob Johan Edwards ]
   * merged lp:~j-johan-edwards/software-center/smooth_search, this 
@@ -37,6 +39,13 @@ software-center (2.1.0) UNRELEASED; urgency=low
     - simplify application list buildup and improve responsiveness
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
+
+software-center (2.0.4) lucid-proposed; urgency=low
+
+  * Re-claim used memory after updating an existing AppStore with a 
+    new one (LP: #577540), thanks to Olivier Tilloy
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 11 May 2010 23:32:56 +0200
 
 software-center (2.0.3) UNRELEASED; urgency=low
 
