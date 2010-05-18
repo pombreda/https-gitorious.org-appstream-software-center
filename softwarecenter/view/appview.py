@@ -858,7 +858,7 @@ gobject.type_register(CellRendererAppView)
 
 
 # custom renderer for the arrow thing that mpt wants
-class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
+class CellRendererPixbufWithOverlay(gtk.CellRendererText):
 
     # offset of the install overlay icon
     OFFSET_X = 14
@@ -870,10 +870,12 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
                      gobject.PARAM_READWRITE),
+        'pixbuf'  : (gtk.gdk.Pixbuf, 'pixbuf', 'pixbuf',
+                     gobject.PARAM_READWRITE)
    }
 
     def __init__(self, overlay_icon_name):
-        gtk.CellRendererPixbuf.__init__(self)
+        gtk.CellRendererText.__init__(self)
         icons = gtk.icon_theme_get_default()
         self.overlay = False
         try:
@@ -898,18 +900,25 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
                 AppStore.ICON_SIZE,
                 AppStore.ICON_SIZE)
 
-        gtk.CellRendererPixbuf.do_render(self, window, widget, background_area,
-                                         area, area, flags)
-        overlay = self.overlay
-        if overlay:
-            dest_x = cell_area.x + self.OFFSET_X
-            dest_y = cell_area.y + self.OFFSET_Y
+        dest_x = cell_area.x
+        dest_y = cell_area.y
+        window.draw_pixbuf(None,
+                           self.pixbuf, # icon
+                           0, 0,            # src pixbuf
+                           dest_x, dest_y,  # dest in window
+                           -1, -1,          # size
+                           0, 0, 0)         # dither
+
+        if self.overlay:
+            dest_x += self.OFFSET_X
+            dest_y += self.OFFSET_Y
             window.draw_pixbuf(None,
                                self._installed, # icon
                                0, 0,            # src pixbuf
                                dest_x, dest_y,  # dest in window
                                -1, -1,          # size
                                0, 0, 0)         # dither
+        return
 
 gobject.type_register(CellRendererPixbufWithOverlay)
 
@@ -953,17 +962,12 @@ class AppView(gtk.TreeView):
         # we use it so that orca and other a11y tools get proper text to read
         # it needs to be the first one, because that is what the tools look
         # at by default
-        tt = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Name", tt, text=AppStore.COL_TEXT)
-        column.set_fixed_width(1)
-        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        self.append_column(column)
-
         # the columns that are actually visible
         tp = CellRendererPixbufWithOverlay("software-center-installed")
         tp.set_property('ypad', 2)
 
         column = gtk.TreeViewColumn("Icon", tp,
+                                    markup=AppStore.COL_MARKUP,
                                     pixbuf=AppStore.COL_ICON,
                                     overlay=AppStore.COL_INSTALLED)
         column.set_fixed_width(32)
