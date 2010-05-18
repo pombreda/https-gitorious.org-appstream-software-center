@@ -102,7 +102,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def install(self, pkgname, appname, iconname):
         """ install a single package """
         self.emit("transaction-started")
-        print "install", pkgname
         reply_handler = lambda trans: self._run_transaction(trans, pkgname,
                                                             appname, iconname)
         self.aptd_client.install_packages([pkgname],
