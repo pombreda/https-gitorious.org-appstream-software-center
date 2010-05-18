@@ -714,9 +714,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         if self.reviews == 0: return
         # draw number of reviews
-        nr_reviews_str = gettext.ngettext("%s review",
-                                          "%s reviews",
-                                          self.reviews) % self.reviews
+        nr_reviews_str = gettext.ngettext("%(amount)s review",
+                                          "%(amount)s reviews",
+                                          self.reviews) % { 'amount' : self.reviews, }
         
         layout.set_markup("<small>%s</small>" % nr_reviews_str)
         lw = self._get_layout_pixel_width(layout)

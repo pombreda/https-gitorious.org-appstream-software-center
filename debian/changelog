@@ -3,7 +3,6 @@ software-center (2.1.0) UNRELEASED; urgency=low
   [ Matthew McGowan ]
   * merged lp:~mmcg069/software-center/backforward-redraw-fix
   
-
   [ Olivier Tilloy ]
   * fix LP: #564785:
     "each row has a progress bar (which itself never contains any text)"
@@ -43,6 +42,9 @@ software-center (2.1.0) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/view/appview.py:
     - simplify application list buildup and improve responsiveness
+  * softwarecenter/view/*pane.py:
+    - fix crash when ngettext is translated without %s format 
+      (LP: #449053)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 

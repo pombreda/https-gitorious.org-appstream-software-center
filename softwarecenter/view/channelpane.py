@@ -200,13 +200,13 @@ class ChannelPane(SoftwarePane):
             return ""
         length = len(self.app_view.get_model())
         if len(self.searchentry.get_text()) > 0:
-            return gettext.ngettext("%s matching item",
-                                    "%s matching items",
-                                    length) % length
+            return gettext.ngettext("%(amount)s matching item",
+                                    "%(amount)s matching items",
+                                    length) % { 'amount' : length, }
         else:
-            return gettext.ngettext("%s item available",
-                                    "%s items available",
-                                    length) % length
+            return gettext.ngettext("%(amount)s item available",
+                                    "%(amount)s items available",
+                                    length) % { 'amount' : length, }
                                     
     def get_current_app(self):
         """return the current active application object applicable

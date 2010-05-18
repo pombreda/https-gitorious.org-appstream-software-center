@@ -298,13 +298,13 @@ class AvailablePane(SoftwarePane):
             length = len(self.db)
 
         if len(self.searchentry.get_text()) > 0:
-            self._status_text = gettext.ngettext("%s matching item",
-                                                 "%s matching items",
-                                                 length) % length
+            self._status_text = gettext.ngettext("%(amount)s matching item",
+                                                 "%(amount)s matching items",
+                                                 length) % { 'amount' : length, }
         else:
-            self._status_text = gettext.ngettext("%s item available",
-                                                 "%s items available",
-                                                 length) % length
+            self._status_text = gettext.ngettext("%(amount)s item available",
+                                                 "%(amount)s items available",
+                                                 length) % { 'amount' : length, }
 
     def _show_category_overview(self):
         " helper that shows the category overview "
