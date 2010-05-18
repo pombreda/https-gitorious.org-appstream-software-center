@@ -93,9 +93,12 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         self._signals.append(
             trans.connect("cancellable-changed",
                           self._on_cancellable_changed))
-        try:
+
+        if "sc_appname" in trans.meta_data:
             appname = trans.meta_data["sc_appname"]
-        except KeyError:
+        elif "sc_pkgname" in trans.meta_data:
+            appname = trans.meta_data["sc_pkgname"]
+        else:
             #FIXME: Extract information from packages property
             appname = get_role_localised_present_from_enum(trans.role)
             self._signals.append(

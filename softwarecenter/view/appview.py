@@ -300,12 +300,12 @@ class AppStore(gtk.GenericTreeModel):
     def _get_existing_apps(self):
         if self._existing_apps == None:
             self._refresh_contents_data()
-        return tuple(self._existing_apps)
+        return self._existing_apps
 
     def _get_installable_apps(self):
         if self._installable_apps == None:
             self._refresh_contents_data()
-        return tuple(self._installable_apps)
+        return self._installable_apps
 
     # data about the visible contents of the store, generated on call.
     existing_apps = property(_get_existing_apps)
@@ -444,7 +444,7 @@ class AppStore(gtk.GenericTreeModel):
             return s
         elif column == self.COL_ICON:
             try:
-                icon_name = doc.get_value(XAPIAN_VALUE_ICON)
+                icon_name = self.db.get_iconname(doc)
                 if icon_name:
                     icon_name = os.path.splitext(icon_name)[0]
                     if icon_name in _app_icon_cache:

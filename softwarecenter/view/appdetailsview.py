@@ -121,7 +121,7 @@ class AppDetailsView(WebkitWidget):
                 self.app.appname, self.app.pkgname)
 
         # get icon
-        self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)
+        self.iconname = self.db.get_iconname(self.doc)
         # remove extension (e.g. .png) because the gtk.IconTheme
         # will find fins a icon with it
         self.iconname = os.path.splitext(self.iconname)[0]

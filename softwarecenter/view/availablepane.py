@@ -376,7 +376,9 @@ class AvailablePane(SoftwarePane):
         for app in appstore.installable_apps:
             pkgnames.append(app.pkgname)
             appnames.append(app.appname)
-            iconnames.append("")
+            # add iconnames
+            doc = self.db.get_xapian_document(app.appname, app.pkgname)
+            iconnames.append(self.db.get_iconname(doc))
         self.backend.install_multiple(pkgnames, appnames, iconnames)
 
     def _show_category_overview(self):

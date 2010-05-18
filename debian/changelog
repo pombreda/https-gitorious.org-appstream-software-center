@@ -49,6 +49,15 @@ software-center (2.1.0) UNRELEASED; urgency=low
       (LP: #449053)
   * add test/Makefile and ensure all tests are run in the bzr-buildpackage
     pre-build hook
+  * softwarecenter/db/database.py, softwarecenter/view/appdetailsview.py:
+    - add "StoreDatabase.get_iconname()"  and use it
+  * softwarecenter/view/appview.py:
+    - small cleanups
+  * softwarecenter/view/availablepane.py:
+    - add iconnames when installing custom lists
+  * softwarecenter/view/pendingview.py:
+    - look for "appname" and "pkgname" (in this order) when showing
+      the progress information
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 

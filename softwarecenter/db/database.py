@@ -188,6 +188,11 @@ class StoreDatabase(gobject.GObject):
             pkgname = doc.get_data()
         return pkgname
 
+    def get_iconname(self, doc):
+        """ Return the iconname from the xapian document """
+        iconname = doc.get_value(XAPIAN_VALUE_ICON)
+        return iconname
+
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """
         popcon_raw = doc.get_value(XAPIAN_VALUE_POPCON)
