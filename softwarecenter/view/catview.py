@@ -116,10 +116,17 @@ class CategoriesView(WebkitWidget):
         helper for the webkit widget that injects the categories into
         the page when it has finished loading
         """
+        self._show_hide_header()
+        self.add_all_categories()
+
+    def _show_hide_header(self):
         if self.in_subsection:
             self.execute_script("hide_header();")
         else:
             self.execute_script("show_header();")
+
+    def add_all_categories(self):
+        """ add all categories to the view """
         for cat in sorted(self.categories, cmp=self._cat_sort_cmp):
             iconpath = ""
             if cat.iconname:
@@ -131,12 +138,15 @@ class CategoriesView(WebkitWidget):
                 if iconinfo:
                     iconpath = iconinfo.get_filename()
                     logging.debug("icon: %s %s" % (iconinfo, iconpath))
-            s = 'addCategory("%s","%s", "%s")' % (cat.name, 
-                                                  cat.untranslated_name,
-                                                  iconpath)
-            logging.debug("running script '%s'" % s)
-            self.execute_script(s)
+                self.add_category(cat, iconpath)
 
+    def add_category(self, cat, iconpath):
+        """ add a single category """
+        s = 'addCategory("%s","%s", "%s")' % (cat.name, 
+                                              cat.untranslated_name,
+                                              iconpath)
+        logging.debug("running script '%s'" % s)
+        self.execute_script(s)
 
     # substitute stuff
     def wksub_ubuntu_software_center(self):
