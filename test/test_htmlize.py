@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import sys
+sys.path.insert(0, "..")
 from softwarecenter.utils import htmlize_package_desc
 
 #file-roller

@@ -45,6 +45,8 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/*pane.py:
     - fix crash when ngettext is translated without %s format 
       (LP: #449053)
+  * add test/Makefile and ensure all tests are run in the bzr-buildpackage
+    pre-build hook
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
