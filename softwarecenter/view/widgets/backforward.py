@@ -67,6 +67,7 @@ class BackForwardButton(gtk.HBox):
         self.pack_end(self.right)
 
         sep.connect_after("style-set", self._on_style_set)
+        self.connect_after('size-allocate', self._on_size_allocate)
         return
 
     def set_button_atk_info_ltr(self):
@@ -113,6 +114,10 @@ class BackForwardButton(gtk.HBox):
             self.queue_draw()
         return
 
+    def _on_size_allocate(self, widget, allocation):
+        self.queue_draw()
+        return
+
 class SeparatorPart(gtk.DrawingArea):
 
     def __init__(self):
@@ -150,6 +155,7 @@ class ButtonPart(gtk.DrawingArea):
 
     def __init__(self, arrow_type, signal_name):
         gtk.DrawingArea.__init__(self)
+        self.set_redraw_on_allocate(False)
         self.set_size_request(*self.DEFAULT_SIZE)
         self.shape = pathbar_common.SHAPE_RECTANGLE
         self.button_down = False
