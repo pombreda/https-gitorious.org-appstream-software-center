@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import ldtp
+import ooldtp
 import ldtputils
 import os
 
@@ -8,8 +9,9 @@ from mago.test_suite.main import SingleApplicationTestSuite
 from mago.application.main import Application 
 
 class SoftwareCenterApp(Application):
-    WINDOW       = "window_main"
+    WINDOW       = "frmUbuntuSoftwareCenter"
     LAUNCHER     = "software-center"
+    CLOSE_NAME   = "mnuClose"
 
     def do_search(self, search_term):
         application = ooldtp.context(self.name)
@@ -24,14 +26,14 @@ class SoftwareCenterTest(SingleApplicationTestSuite):
     APPLICATION_FACTORY = SoftwareCenterApp
 
     def setup(self):
-        ldtp.waittillguinotexist(self.application.WINDOW, guiTimeOut=70)
+        self.application.set_close_name(self.application.CLOSE_NAME)
+        self.application.open()
 
     def teardown(self):
-        ldtp.waittillguinotexist(self.application.WINDOW, guiTimeOut=70)
+        self.application.close()
 
-    def test_search(self):
-        self.application.open(menu_schema)
-        if self.do_search() == False:
+    def test_search(self, search_term):
+        if self.application.do_search(search_term) == False:
             raise AssertionError, "Search failed"
 
 if __name__ == "__main__":
