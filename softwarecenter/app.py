@@ -642,6 +642,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def run(self, args):
         self.window_main.show_all()
+        for arg in args:
+            if "," in args:
+                args.extend(args.split(","))
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)

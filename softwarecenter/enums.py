@@ -24,9 +24,9 @@ APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
 
-# icon
+# icons
 MISSING_APP_ICON = "applications-other"
-
+MISSING_PKG_ICON = "dialog-question"
 
 # values used in the database
 XAPIAN_VALUE_APPNAME = 170

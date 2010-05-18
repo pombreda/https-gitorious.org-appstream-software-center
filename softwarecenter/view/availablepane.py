@@ -28,6 +28,7 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.backend import get_install_backend
 
 from appview import AppView, AppStore, AppViewFilter
 from catview import CategoriesView
@@ -56,6 +57,9 @@ class AvailablePane(SoftwarePane):
     NAV_BUTTON_ID_DETAILS  = "details"
     NAV_BUTTON_ID_SEARCH   = "search"
 
+    # constant for use in action bar (see _update_action_bar)
+    _INSTALL_BTN_ID = 0
+
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
@@ -73,8 +77,14 @@ class AvailablePane(SoftwarePane):
         self.connect("app-list-changed", self._on_app_list_changed)
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
+        # search mode
+        self.custom_list_mode = False
         # track navigation history
         self.nav_history = NavigationHistory(self)
+        # install backend
+        self.backend = get_install_backend()
+        self.backend.connect("transactions-changed",
+                             self._on_transactions_changed)
         # UI
         self._build_ui()
 
@@ -211,12 +221,14 @@ class AvailablePane(SoftwarePane):
             self.subcategories_view.window.set_cursor(self.busy_cursor)
         if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(self.busy_cursor)
+        # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
                              self.db,
                              self.icons,
                              query,
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
+                             exact=self.custom_list_mode,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
         # events may have happend
@@ -250,7 +262,11 @@ class AvailablePane(SoftwarePane):
                                             animate=True)
 
         elif self.apps_search_term:
-            self.navigation_bar.add_with_id(_("Search Results"),
+            if self.custom_list_mode:
+                tail_label = _("Custom List")
+            else:
+                tail_label = _("Search Results")
+            self.navigation_bar.add_with_id(tail_label,
                                             self.on_navigation_search,
                                             self.NAV_BUTTON_ID_SEARCH, 
                                             do_callback=True,
@@ -283,11 +299,20 @@ class AvailablePane(SoftwarePane):
         self.back_forward.left.set_sensitive(False)
         self.back_forward.right.set_sensitive(False)
 
+    def _on_transactions_changed(self, *args):
+        """internal helper that keeps the action bar up-to-date by
+           keeping track of the transaction-started signals
+        """
+        if self.custom_list_mode:
+            self._update_action_bar()
+
     def _on_app_list_changed(self, pane, length):
-        """internal helper that keeps the status text up-to-date by
-           keeping track of the app-list-changed signals
+        """internal helper that keeps the status text and the action
+           bar up-to-date by keeping track of the app-list-changed
+           signals
         """
         self._update_status_text(length)
+        self._update_action_bar()
 
     def _update_status_text(self, length):
         """
@@ -297,7 +322,13 @@ class AvailablePane(SoftwarePane):
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
             length = len(self.db)
 
-        if len(self.searchentry.get_text()) > 0:
+        if self.custom_list_mode:
+            appstore = self.app_view.get_model()
+            existing = len(appstore.existing_apps)
+            self._status_text = gettext.ngettext("%(amount)s item",
+                                                 "%(amount)s items",
+                                                 existing) % { 'amount' : existing, }
+        elif len(self.searchentry.get_text()) > 0:
             self._status_text = gettext.ngettext("%(amount)s matching item",
                                                  "%(amount)s matching items",
                                                  length) % { 'amount' : length, }
@@ -305,6 +336,48 @@ class AvailablePane(SoftwarePane):
             self._status_text = gettext.ngettext("%(amount)s item available",
                                                  "%(amount)s items available",
                                                  length) % { 'amount' : length, }
+
+    def _update_action_bar(self):
+        '''
+        update buttons in the action bar
+        '''
+        if self.custom_list_mode and self.apps_search_term:
+            appstore = self.app_view.get_model()
+            installable = appstore.installable_apps
+            button_text = gettext.ngettext("Install %(amount)s item",
+                                           "Install %(amount)s items",
+                                           len(installable)) % {
+                'amount' : len(installable), 
+                }
+            button = self.action_bar.get_button(self._INSTALL_BTN_ID)
+            if button and installable:
+                # Install all already offered. Update offer.
+                if button.get_label() != button_text:
+                    button.set_label(button_text)
+            elif installable:
+                # Install all not yet offered. Offer.
+                self.action_bar.add_button(self._INSTALL_BTN_ID, button_text,
+                                           self._install_current_appstore)
+            else:
+                # Install offered, but nothing to install. Clear offer.
+                self.action_bar.clear()
+        else:
+            # Ensure bar is hidden.
+            self.action_bar.clear()
+
+    def _install_current_appstore(self):
+        '''
+        Function that installs all applications displayed in the pane.
+        '''
+        pkgnames = []
+        appnames = []
+        iconnames = []
+        appstore = self.app_view.get_model()
+        for app in appstore.installable_apps:
+            pkgnames.append(app.pkgname)
+            appnames.append(app.appname)
+            iconnames.append("")
+        self.backend.install_multiple(pkgnames, appnames, iconnames)
 
     def _show_category_overview(self):
         " helper that shows the category overview "
@@ -322,6 +395,7 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_sorted = True
         self.apps_search_term = ""
+        self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
 
     def _check_nav_history(self, display_cb):
@@ -352,6 +426,7 @@ class AvailablePane(SoftwarePane):
         # we are searching but we are not in any category
         if not self.apps_category and not new_text:
             # category activate will clear search etc
+            self.apps_search_term = ""
             self.navigation_bar.navigate_up()
             return
 
@@ -368,6 +443,9 @@ class AvailablePane(SoftwarePane):
             self.apps_search_term = new_text
             self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
+            # enter custom list mode if search has non-trailing
+            # comma per custom list spec.
+            self.custom_list_mode = "," in new_text.rstrip(',')
         self.update_navigation_button()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
