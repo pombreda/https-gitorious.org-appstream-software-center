@@ -464,7 +464,7 @@
     <property name="has_separator">False</property>
     <property name="program_name">Ubuntu Software Center</property>
     <property name="version">0.3.4</property>
-    <property name="copyright" translatable="yes">&#xA9;2009 Canonical</property>
+    <property name="copyright" translatable="yes">&#xA9;2009-2010 Canonical</property>
     <property name="comments" translatable="yes">Lets you choose from thousands of free applications available for Ubuntu.</property>
     <property name="website">http://launchpad.net/software-center</property>
     <property name="authors">Michael Vogt</property>

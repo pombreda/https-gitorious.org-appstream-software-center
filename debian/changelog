@@ -62,6 +62,7 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/pendingview.py:
     - look for "appname" and "pkgname" (in this order) when showing
       the progress information
+  * update about (LP: #566571)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
 
