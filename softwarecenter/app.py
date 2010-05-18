@@ -642,9 +642,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def run(self, args):
         self.window_main.show_all()
-        for arg in args:
-            if "," in args:
-                args.extend(args.split(","))
+        # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
+        for (i, arg) in enumerate(args[:]):
+            if "," in arg:
+                args.extend(arg.split(","))
+                del args[i]
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
