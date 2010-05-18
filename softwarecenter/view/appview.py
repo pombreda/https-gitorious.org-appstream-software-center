@@ -209,7 +209,9 @@ class AppStore(gtk.GenericTreeModel):
         self.apps.append(app)
         i = len(self.apps) - 1
         self.app_index_map[app] = i
-        self.pkgname_index_map[app.pkgname] = i
+        if not app.pkgname in self.pkgname_index_map:
+            self.pkgname_index_map[app.pkgname] = []
+        self.pkgname_index_map[app.pkgname].append(i)
         self.row_inserted(i, self.get_iter(i))
 
     def _insert_app_sorted(self, app):
