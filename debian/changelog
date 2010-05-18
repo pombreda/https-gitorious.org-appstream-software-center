@@ -2,7 +2,11 @@ software-center (2.1.0) UNRELEASED; urgency=low
 
   [ Matthew McGowan ]
   * merged lp:~mmcg069/software-center/backforward-redraw-fix
-  
+  * make the overlaywithpixbuf cellrenderer inherit from a text
+    cellrenderer, does away with the need to have 1px column in the
+    appview for accessibility reasons.
+    (lp:~mmcg069/software-center/overlay-w-pixbuf-tweak)
+
   [ Olivier Tilloy ]
   * fix LP: #564785:
     "each row has a progress bar (which itself never contains any text)"
