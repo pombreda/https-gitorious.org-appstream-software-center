@@ -144,8 +144,8 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                 row[self.COL_PROGRESS] = progress
                 if trans.status == STATUS_DOWNLOADING:
                     name = row[self.COL_NAME]
-                    current_bytes = apt_pkg.SizeToStr(trans.progress_details[2])
-                    total_bytes = apt_pkg.SizeToStr(trans.progress_details[3])
+                    current_bytes = apt_pkg.size_to_str(trans.progress_details[2])
+                    total_bytes = apt_pkg.size_to_str(trans.progress_details[3])
                     status = _("Downloaded %sB of %sB") % \
                              (current_bytes, total_bytes)
                     row[self.COL_STATUS] = self._render_status_text(name, status)
