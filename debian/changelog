@@ -17,6 +17,8 @@ software-center (2.1.0) UNRELEASED; urgency=low
     new one (LP: #577540)
   * Fix the database update when run with a Turkish locale 
     (patch by M. Vefa Bicakci). LP: #581207
+  * Make buttons activate on mouse up, fix other inconsistencies
+    in list view button operation (LP: #514835)
 
   [ Jacob Johan Edwards ]
   * merged lp:~j-johan-edwards/software-center/smooth_search, this 
@@ -64,7 +66,7 @@ software-center (2.1.0) UNRELEASED; urgency=low
       the progress information
   * update about (LP: #566571)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 18 May 2010 22:04:17 -0400
 
 software-center (2.0.4) lucid-proposed; urgency=low
 
