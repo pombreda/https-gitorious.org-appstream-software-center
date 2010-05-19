@@ -1,11 +1,4 @@
-#!/usr/bin/make
 
-all: check
-
-check:
-	find . -name 'test_*.py' | \
-	while read file; do \
-	    if [ -x $$file ]; then \
-	    	python $$file ; \
-	    fi \
-	done
+all:
+	#MAGO_SHARE=./mago/ mago -f basic.xml
+	MAGO_SHARE=./mago/ mago --log-level=debug -f basic.xml
