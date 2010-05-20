@@ -141,7 +141,7 @@ class NavigationItem(object):
         available_pane.app_details.show_app(self.current_app)
 
         nav_bar = self.available_pane.navigation_bar
-        nav_bar.remove_all(do_callback=False)
+        nav_bar.remove_all(do_callback=False, animate=False)
 
         for part in self.parts[1:]:
             nav_bar.add_with_id(unescape(part.label),
