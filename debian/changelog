@@ -6,6 +6,8 @@ software-center (2.1.0) UNRELEASED; urgency=low
     cellrenderer, does away with the need to have 1px column in the
     appview for accessibility reasons.
     (lp:~mmcg069/software-center/overlay-w-pixbuf-tweak)
+  * add nice animation to pathbar elements 
+    (lp:~mmcg069/software-center/pathbar-scroll-inn)
 
   [ Olivier Tilloy ]
   * fix LP: #564785:
