@@ -19,6 +19,8 @@
 import logging
 import subprocess
 
+from gettext import gettext as _
+
 class UnimplementedError(Exception):
     pass
 
@@ -29,6 +31,28 @@ class Distro(object):
     IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
     IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
 
+    def get_app_name(self):
+        """ 
+        The name of the application (as displayed in the main window and 
+        the about window)
+        """
+        return _("Software Center")
+
+    def get_app_description(self):
+        """ 
+        The description of the application displayed in the about dialog
+        """
+        return _("Lets you choose from thousands of free applications available for your system.")
+
+
+    def get_distro_channel_name(self):
+        """ The name of the main channel in the Release file (e.g. Ubuntu)"""
+        return "none"
+ 
+    def get_distro_channel_description(self):
+        """ The description for the main distro channel """
+        return "none"
+
     def get_codename(self):
         """ The codename of the distro, e.g. lucid """
         if not hasattr(self, "_distro_code_name"):
@@ -36,14 +60,6 @@ class Distro(object):
                 ["lsb_release","-c","-s"], 
                 stdout=subprocess.PIPE).communicate()[0].strip()
         return self._distro_code_name
-
-    def get_distro_channel_name(self):
-        """ The name in the Release file """
-        return "none"
- 
-    def get_distro_channel_description(self):
-        """ The name in the Release file """
-        return "none"
 
     def get_installation_status(self, pkg):
         raise UnimplementedError

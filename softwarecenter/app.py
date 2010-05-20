@@ -233,6 +233,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.searchentry.grab_focus()
         self.window_main.set_size_request(600, 400)
 
+        # setup window name and about information (needs branding)
+        name = self.distro.get_app_name()
+        self.window_main.set_title(name)
+        self.aboutdialog.set_name(name)
+        about_description = self.distro.get_app_description()
+        self.aboutdialog.set_comments(about_description)
+
         # restore state
         self.config = get_config()
         self.restore_state()
@@ -408,6 +415,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_menuitem_about_activate(self, widget):
         self.aboutdialog.set_version(VERSION)
+        self.aboutdialog.set_transient_for(self.window_main)
         self.aboutdialog.run()
         self.aboutdialog.hide()
 

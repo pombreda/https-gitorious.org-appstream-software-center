@@ -151,9 +151,7 @@ class CategoriesView(WebkitWidget):
 
     # substitute stuff
     def wksub_ubuntu_software_center(self):
-        if get_distro().get_distro_channel_name() != "Ubuntu":
-           return _("Software Center")
-        return _("Ubuntu Software Center")
+        return get_distro().get_app_name()
     def wksub_icon_size(self):
         if self.in_subsection:
             return self.SUB_CATEGORY_ICON_SIZE
