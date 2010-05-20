@@ -107,7 +107,8 @@ class AppStore(gtk.GenericTreeModel):
         - `filter`: filter functions that can be used to filter the
                     data further. A python function that gets a pkgname
         - `exact`: If true, indexes of queries without matches will be
-                    maintained in the store.
+                    maintained in the store (useful to show e.g. a row
+                    with "??? not found")
         """
         gtk.GenericTreeModel.__init__(self)
         self.search_query = search_query
