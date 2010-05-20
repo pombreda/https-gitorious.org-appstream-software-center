@@ -172,7 +172,7 @@ class AppStore(gtk.GenericTreeModel):
                     if self.sorted:
                         self._insert_app_sorted(app)
                     else:
-                        self._append(app)
+                        self._append_app(app)
                     already_added.add(app)
                 # keep the UI going
                 while gtk.events_pending():
@@ -981,6 +981,7 @@ class AppView(gtk.TreeView):
                                     installed=AppStore.COL_INSTALLED, 
                                     available=AppStore.COL_AVAILABLE,
                                     action_in_progress=AppStore.COL_ACTION_IN_PROGRESS)
+
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)

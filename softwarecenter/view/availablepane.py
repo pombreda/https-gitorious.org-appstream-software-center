@@ -85,6 +85,7 @@ class AvailablePane(SoftwarePane):
                                        self.db,
                                        self.icons,
                                        self.apps_filter)
+        self.cat_view.set_shadow_type(gtk.SHADOW_NONE)
 
         #scroll_categories = gtk.ScrolledWindow()
         self.notebook.append_page(self.cat_view, gtk.Label("categories"))

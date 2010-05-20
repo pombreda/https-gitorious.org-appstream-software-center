@@ -236,7 +236,10 @@ class PathBar(gtk.HBox):
                 xo = part.get_draw_xoffset()
                 x, y, w, h = a.x, a.y, a.width, a.height
                 w = part.get_draw_width()
-                theme.paint_bg(cr, part, x+xo, y, w, h)
+                if part.state != gtk.STATE_ACTIVE:
+                    theme.paint_bg(cr, part, x+xo, y, w, h)
+                else:
+                    theme.paint_bg_active_shallow(cr, part, x+xo, y, w, h)
 
                 x, y, w, h = part.get_layout_points()
 
@@ -323,7 +326,8 @@ class PathBar(gtk.HBox):
             self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
             gobject.get_current_time(),
             (draw_area.x, draw_area.y,
-            draw_area.width, draw_area.height))
+            draw_area.width, draw_area.height),
+            priority=100)
         return False
 
     def _scroll_out_cb(self, distance, duration, start_t, draw_area):

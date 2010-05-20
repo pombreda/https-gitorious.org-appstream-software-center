@@ -36,28 +36,7 @@ SHAPE_END_RECT = 3
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
-
-TEST_DEPARTMENTS = """
-    Accessories
-    Education
-    Fonts
-    Games
-    Graphics
-    Internet
-    Office
-    Science & Engineering
-    Sound & Video
-    Themes & Tweaks
-    Universal Access
-    Developer Tools
-    System
-    """
-
-
-# specific styling constants
-STYLE_BASKET_IMAGE_PATH = 'data/images/basket.png'
-
-STYLE_CATVIEW_BORDER_WIDTH = 10
+STYLE_CATVIEW_BORDER_WIDTH = 3
 STYLE_CATVIEW_VSPACING = 10    # vertical spacing between page elements
 STYLE_CATVIEW_HEADER_VGRADIENT_COLOR = '#C5809D'   # the color of that purple-ish vertical gradient
 
@@ -75,13 +54,13 @@ STYLE_FEATURED_BASE_COLOR = '#E1550C'   # an orange color from which we shade, l
 STYLE_DEPARTMENTS_TITLE_FONT_SIZE = 11
 
 STYLE_LAYOUTVIEW_BORDER_WIDTH = 6
-STYLE_LAYOUTVIEW_VSPACING = 8   # the vertical spacing between rows in Departments section
+STYLE_LAYOUTVIEW_VSPACING = 14   # the vertical spacing between rows in Departments section
 STYLE_LAYOUTVIEW_HSPACING = 8  # the horiz spacing between each department button
 
 STYLE_FRAME_FILL_COLOR = '#F7F7F7'
 STYLE_FRAME_OUTLINE_COLOR = '#C7C4C1'
 STYLE_FRAME_HEADER_FILL_COLOR = '#DAD7D3'
-STYLE_FRAME_CORNER_RADIUS = 3
+STYLE_FRAME_CORNER_RADIUS = 4
 
 STYLE_CAT_BUTTON_WIDTH = 108
 STYLE_CAT_BUTTON_MIN_HEIGHT = 96
@@ -91,9 +70,9 @@ STYLE_CAT_BUTTON_VSPACING = 4   # vertical space between dept. icon and dept. la
 STYLE_CAT_BUTTON_LABEL_FONT_SIZE = 9
 
 STYLE_COMPACT_BUTTON_WIDTH = 168
-STYLE_COMPACT_BUTTON_BORDER_WIDTH = 3
+STYLE_COMPACT_BUTTON_BORDER_WIDTH = 6
 STYLE_COMPACT_BUTTON_CORNER_RADIUS = 3
-STYLE_COMPACT_BUTTON_HSPACING = 3
+STYLE_COMPACT_BUTTON_HSPACING = 4
 STYLE_COMPACT_BUTTON_LABEL_FONT_SIZE = 9
 
 STYLE_SHORTLIST_VSPACING = 8
@@ -111,6 +90,13 @@ MARKUP_VARIABLE_SIZE_COLOR_LABEL = '<span size="%s" color="%s">%s</span>'
  COL_CAT_PIXBUF,
  COL_CAT_QUERY,
  COL_CAT_MARKUP) = range(4)
+
+
+def get_category_by_name(categories, untrans_name):
+    # find a specific category
+    cat = filter(lambda cat: cat.untranslated_name == untrans_name,
+                 categories)[0]
+    return cat
 
 
 class Category(object):
@@ -140,7 +126,7 @@ class CategoriesView(gtk.ScrolledWindow):
                                   )
         }
 
-    def __init__(self, datadir, desktopdir, cache, db, icons, apps_filter, apps_limit=12, root_category=None):
+    def __init__(self, datadir, desktopdir, cache, db, icons, apps_filter, apps_limit=0, root_category=None):
         """ init the widget, takes
         
         datadir - the base directory of the app-store data
@@ -154,13 +140,16 @@ class CategoriesView(gtk.ScrolledWindow):
 
         self.vbox = gtk.VBox(spacing=STYLE_CATVIEW_VSPACING)
         self.vbox.set_border_width(STYLE_CATVIEW_BORDER_WIDTH)
-        self.add_with_viewport(self.vbox)
+        viewport = gtk.Viewport()
+        viewport.set_shadow_type(gtk.SHADOW_NONE)
+        viewport.add(self.vbox)
+        self.add(viewport)
         self.vbox.set_redraw_on_allocate(False)
 
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Departments"))
 
-        self.featured = None
+        self.carosel = None
         self.departments = None
         self.categories = []
         self.header = ""
@@ -190,7 +179,7 @@ class CategoriesView(gtk.ScrolledWindow):
 #        self._append_title()
 #        self._append_featured_btn()
         self._append_departments()
-        self._append_featured_applist()
+        #self._append_featured_carosel()
         return
 
     def _build_subcat_view(self):
@@ -216,73 +205,25 @@ class CategoriesView(gtk.ScrolledWindow):
         self.vbox.pack_start(align, False)
         return
 
-    def _append_featured_btn(self):
-        # find the featured apps category
-        cat = filter(lambda cat: cat.untranslated_name == 'Featured Applications',
-                     self.categories)[0]
-
-        # define the font size (font_size in pixels * pango.SCALE)
-        size = STYLE_FEATURED_FONT_SIZE*pango.SCALE
-
-        # define the markup for the featured button label and create featured widget
-        markup = MARKUP_VARIABLE_SIZE_COLOR_LABEL % (size,
-                                                     STYLE_FEATURED_FONT_COLOR,
-                                                     cat.name)
-        self.featured = FeaturedCategory(markup)
-        # align the featured button the the left margin
-        align = gtk.Alignment(STYLE_FEATURED_XALIGNMENT, 0.5)
-        align.add(self.featured)
-
-        self.featured.connect('clicked', self._on_category_clicked, cat)
-
-        # append the featured button to the page
-        self.vbox.pack_start(align, False)
-        return
-
-    def _append_featured_applist(self):
-        cat = filter(lambda cat: cat.untranslated_name == 'Featured Applications',
-                     self.categories)[0]
-        query = self.db.get_query_list_from_search_entry('', cat.query)
-        store = AppStore(self.cache,
-                            self.db,
-                            self.icons,
-                            query,
-                            limit=self.apps_limit,
-                            sort=True,
-                            filter=self.apps_filter)
-        store.ICON_SIZE = 24
-
-        self.featured = LayoutView()
-
-        # define the size of the departments section label
-        size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
-        # set the departments section to use the label markup we have just defined
-        self.featured.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, _('Featured Applications')))
-        # add a button to take you to all of the fatured apps
-        self.all_featured = MoreButton('<small>More apps...</small>')
-
-        # find the featured apps category
-        cat = filter(lambda cat: cat.untranslated_name == 'Featured Applications',
-                     self.categories)[0]
-        
-        self.featured.header.pack_end(self.all_featured, False)
-        self.all_featured.connect('clicked', self._on_category_clicked, cat)
-        size = STYLE_COMPACT_BUTTON_LABEL_FONT_SIZE*pango.SCALE
-        for app in store:
-            # make sure the string is parsable by pango, i.e. no funny characters
-            name = gobject.markup_escape_text(app[0].strip())
-            markup = MARKUP_VARIABLE_SIZE_LABEL % (size, name)
-            # define the icon of the department
-            ico = gtk.image_new_from_pixbuf(app[3])
-            # finally, create the department with label markup and icon
-            app_btn = CompactButton(markup, image=ico)
-            app_btn.connect('clicked', self._on_app_clicked, app)
-            # append the department to the departments widget
-            self.featured.append(app_btn)
-
+    def _append_featured_carosel(self):
         # append the departments section to the page
-        self.vbox.pack_start(self.featured, False)
+        carosel = CaroselView()
+
+        cat = get_category_by_name(self.categories, 'Featured Applications')
+
+        carosel.build(self.cache, self.db, self.icons,
+                      self.apps_limit, True,
+                      self.apps_filter, cat)
+
+        carosel.more_btn.connect('clicked', self._on_category_clicked, cat)
+
+        for i, btn in enumerate(carosel.widget_list):
+            btn.connect('clicked', self._on_app_clicked, carosel.app_list[i])
+
+        self.carosel = carosel
+        self.vbox.pack_start(carosel, False)
         return
+
 
     def _append_departments(self):
         # create departments widget
@@ -293,6 +234,8 @@ class CategoriesView(gtk.ScrolledWindow):
         # set the departments section to use the label markup we have just defined
         self.departments.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, self.header))
 
+        enquire = xapian.Enquire(self.db.xapiandb)
+
         # for each department append it to the department widget
         size = STYLE_CAT_BUTTON_LABEL_FONT_SIZE*pango.SCALE
         for cat in self.categories:
@@ -302,6 +245,14 @@ class CategoriesView(gtk.ScrolledWindow):
             # define the icon of the department
             ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
             # finally, create the department with label markup and icon
+
+            enquire.set_query(cat.query)
+            # limiting the size here does not make it faster
+            matches = enquire.get_mset(0, len(self.db))
+            estimate = matches.get_matches_estimated()
+
+            markup += '<span size="%s" fgcolor="#7F7F7F">\n%s</span>' % (size, estimate)
+
             cat_btn = CategoryButton(markup, image=ico)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -327,6 +278,8 @@ class CategoriesView(gtk.ScrolledWindow):
         header = gobject.markup_escape_text(self.header.strip())
         self.departments.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, header))
 
+        enquire = xapian.Enquire(self.db.xapiandb)
+
         size = STYLE_CAT_BUTTON_LABEL_FONT_SIZE*pango.SCALE
         for cat in self.categories:
             # make sure the string is parsable by pango, i.e. no funny characters
@@ -334,6 +287,14 @@ class CategoriesView(gtk.ScrolledWindow):
             markup = MARKUP_VARIABLE_SIZE_LABEL % (size, name)
             # define the icon of the department
             ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
+
+            enquire.set_query(cat.query)
+            # limiting the size here does not make it faster
+            matches = enquire.get_mset(0, len(self.db))
+            estimate = matches.get_matches_estimated()
+
+            markup += '<span size="%s" fgcolor="#7F7F7F">\n%s</span>' % (size, estimate)
+
             # finally, create the department with label markup and icon
             cat_btn = CategoryButton(markup, image=ico)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
@@ -406,15 +367,13 @@ class CategoriesView(gtk.ScrolledWindow):
         return self.parent.allocation.width - bw
 
     def _on_allocate(self, widget, allocation):
-        print 'Allocate'
         if self._prev_width != widget.parent.allocation.width:
             self._prev_width = widget.parent.allocation.width
-            print 'AllocateHandled'
             best_fit = self._get_layout_best_fit_width()
 
-            if self.featured:
-                self.featured.clear_rows()
-                self.featured.build_view(best_fit)
+            #if self.carosel:
+                #self.carosel.clear_rows()
+                #self.carosel.build_view(best_fit)
             if self.departments:
                 self.departments.clear_rows()
                 self.departments.build_view(best_fit)
@@ -437,38 +396,20 @@ class CategoriesView(gtk.ScrolledWindow):
 #        cr.fill()
 
         # header gradient - ubuntu wallpaper-esque?
-        r, g, b = floats_from_string(STYLE_CATVIEW_HEADER_VGRADIENT_COLOR)
-        lin = cairo.LinearGradient(0, 0, 0, 128)
-        lin.add_color_stop_rgba(0.0, r, g, b, 0.4)
-        lin.add_color_stop_rgba(1.0, r, g, b, 0)
-        cr.rectangle(0, 0, widget.allocation.width, 128)
-        cr.set_source(lin)
-        cr.fill()
+#        r, g, b = floats_from_string(STYLE_CATVIEW_HEADER_VGRADIENT_COLOR)
+#        lin = cairo.LinearGradient(0, 0, 0, 128)
+#        lin.add_color_stop_rgba(0.0, r, g, b, 0.4)
+#        lin.add_color_stop_rgba(1.0, r, g, b, 0)
+#        cr.rectangle(0, 0, widget.allocation.width, 128)
+#        cr.set_source(lin)
+#        cr.fill()
 
-        if not self.in_subsection:
-#            # draw basket image
-#            pb = gtk.gdk.pixbuf_new_from_file(STYLE_BASKET_IMAGE_PATH)
-#            w = pb.get_width()
-#            x = widget.allocation.width - w - self.vbox.get_border_width()
-#            y = self.vbox.get_border_width()
-#            cr.set_source_pixbuf(pb, x, y)
-#            cr.paint()
-
-            # draw featured list
-            self.featured.draw(cr, self.featured.allocation)
-            self.all_featured.draw(cr, self.all_featured.allocation)
+        #if not self.in_subsection:
+            ## draw featured list
+            #self.carosel.draw(cr, self.carosel.allocation)
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation)
-
-#        # draw most popular
-#        self.popular.draw(cr, self.popular.allocation)
-
-#        # draw recently added
-#        self.recent.draw(cr, self.recent.allocation)
-
-        # draw the featured apps shortlist
-#        self.featured_shortlist.draw(cr, self.featured_shortlist.allocation)
 
         del cr
         return
@@ -665,10 +606,13 @@ class CategoriesView(gtk.ScrolledWindow):
 
 class LayoutView(gtk.VBox):
 
-    def __init__(self, label_markup=None, vspacing=STYLE_LAYOUTVIEW_VSPACING, hspacing=STYLE_LAYOUTVIEW_HSPACING):
+    def __init__(self, label_markup=None, vspacing=STYLE_LAYOUTVIEW_VSPACING, \
+                    hspacing=STYLE_LAYOUTVIEW_HSPACING):
         gtk.VBox.__init__(self, spacing=vspacing)
         self.set_border_width(STYLE_LAYOUTVIEW_BORDER_WIDTH)
         self.set_redraw_on_allocate(False)
+
+        self.fit_to_width = False
 
         self.header = gtk.HBox()
         self.vbox = gtk.VBox(spacing=vspacing)
@@ -687,12 +631,17 @@ class LayoutView(gtk.VBox):
 
         self.vspacing = vspacing
         self.hspacing = hspacing
-        self.catlist = []
+        self.widget_list = []
 
         self.theme = CatViewStyle(self)
         self._prev_width = 0
+        return
 
-        #self.connect('size-allocate', self._on_allocate)
+    def _on_allocate(self, widget, allocation):
+        if self._prev_width == allocation.width: return
+        self._prev_width = allocation.width
+        self._clear_rows()
+        self.build_view()
         return
 
     def set_label_markup(self, markup):
@@ -700,19 +649,19 @@ class LayoutView(gtk.VBox):
         self.has_label = True
         return
 
-    def append(self, cat):
-        self.catlist.append(cat)
+    def append(self, widget):
+        self.widget_list.append(widget)
         return
 
     def build_view(self, max_width):
-
         row = LayoutRow(self.hspacing)
         self.vbox.pack_start(row, False)
 
         spacing = self.hspacing
-        bw = row.get_border_width()
-        w = 2*bw
-        for cat in self.catlist:
+        max_width = max_width - 2*STYLE_LAYOUTVIEW_BORDER_WIDTH
+        w = 0
+
+        for cat in self.widget_list:
             cw = cat.calc_width(self)
 
             if w + cw + spacing < max_width:
@@ -722,13 +671,13 @@ class LayoutView(gtk.VBox):
                 row = LayoutRow(self.hspacing)
                 self.vbox.pack_start(row, False)
                 row.pack_start(cat, False)
-                w = 2*bw + cw + spacing
+                w = cw + spacing
 
         self.show_all()
         return
 
     def clear_all(self):
-        self.catlist = []
+        self.widget_list = []
         for row in self.vbox.get_children():
             for child in row.get_children():
                 child.destroy()
@@ -740,13 +689,6 @@ class LayoutView(gtk.VBox):
             for cat in row.hbox.get_children():
                 row.hbox.remove(cat)
             row.destroy()
-        return
-
-    def _on_allocate(self, widget, allocation):
-        if self._prev_width == allocation.width: return
-        self._prev_width = allocation.width
-        self._clear_rows()
-        self.build_view()
         return
 
     def draw(self, cr, a):
@@ -779,9 +721,16 @@ class LayoutView(gtk.VBox):
         cr.translate(0.5, 0.5)
         rounded_rectangle(cr, a.x, a.y, a.width-1, a.height-1, STYLE_FRAME_CORNER_RADIUS)
         cr.stroke()
+
+        if self.has_label:
+            # underline
+            cr.move_to(a.x, a.y + h)
+            cr.rel_line_to(a.width, 0)
+            cr.stroke()
+
         cr.restore()
 
-        for cat in self.catlist:
+        for cat in self.widget_list:
             a = cat.allocation
             if a.width == 1 or a.height == 1: break
             cat.draw(self.theme, cr, a)
@@ -792,7 +741,7 @@ class LayoutView(gtk.VBox):
 class LayoutRow(gtk.Alignment):
 
     def __init__(self, hspacing):
-        gtk.Alignment.__init__(self, 0.0, 0.5)
+        gtk.Alignment.__init__(self, 0.5, 0.5)
         self.hbox = gtk.HBox(spacing=hspacing)
         self.set_redraw_on_allocate(False)
         self.hbox.set_redraw_on_allocate(False)
@@ -809,6 +758,104 @@ class LayoutRow(gtk.Alignment):
     def pack_end(self, cat, *args, **kwargs):
         self.hbox.pack_end(cat, *args, **kwargs)
         return
+
+
+#class CaroselView(LayoutView):
+
+    #def __init__(self, label_markup=None):
+        #LayoutView.__init__(self, label_markup)
+        #self.theme = CatViewStyle(self)
+        #self.app_list = []
+        #return
+
+    #def build(self, cache, db, icons, limit, sort, filter, featured_cat):
+        #query = db.get_query_list_from_search_entry('', featured_cat.query)
+
+        #store = AppStore(cache,
+                         #db,
+                         #icons,
+                         #query,
+                         #limit,
+                         #sort,
+                         #filter)
+
+        #store.ICON_SIZE = 24
+        #self.fit_to_width = True
+
+        ## define the size of the departments section label
+        #size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
+        ## set the departments section to use the label markup we have just defined
+        #self.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, _('Featured Applications')))
+        ## add a button to take you to all of the fatured apps
+        #self.more_btn = MoreButton('<small>More apps...</small>')
+        #self.header.pack_end(self.more_btn, False)
+
+        #self.scrolled = gtk.ScrolledWindow()
+        #viewport = gtk.Viewport()
+        #viewport.set_shadow_type(gtk.SHADOW_NONE)
+
+
+        #size = STYLE_COMPACT_BUTTON_LABEL_FONT_SIZE*pango.SCALE
+        #for i, app in enumerate(store):
+            #self.app_list.append(app)
+            ## make sure the string is parsable by pango, i.e. no funny characters
+            #name = gobject.markup_escape_text(app[0] or app[6])
+            #markup = MARKUP_VARIABLE_SIZE_LABEL % (size, name)
+            ## define the icon of the department
+            #ico = gtk.image_new_from_pixbuf(app[3])
+            ## finally, create the department with label markup and icon
+            #app_btn = CompactButton(markup, image=ico)
+            ## append the department to the departments widget
+            #self.append(app_btn)
+        #return
+
+    #def set_label_markup(self, markup):
+        #self.label.set_markup(markup)
+        #self.has_label = True
+        #return
+
+    #def draw(self, cr, a):
+        #cr.save()
+        #cr.rectangle(a)
+        #cr.clip()
+
+        ## fill frame light gray
+        #rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, STYLE_FRAME_CORNER_RADIUS)
+        #cr.set_source_rgb(*floats_from_string(STYLE_FRAME_FILL_COLOR))
+        #cr.fill()
+
+        ## fill header bg
+        #if self.has_label:
+            #total_spacing = self.header.allocation.y - a.y
+            #h = self.header.allocation.height + 2*total_spacing
+            #rounded_rectangle_irregular(cr,
+                                        #a.x, a.y,
+                                        #a.width, h,
+                                        #(STYLE_FRAME_CORNER_RADIUS, STYLE_FRAME_CORNER_RADIUS, 0, 0))   # corner radii
+            #cr.set_source_rgb(*floats_from_string(STYLE_FRAME_HEADER_FILL_COLOR))
+            #cr.fill()
+
+        ## set darker gray
+        #cr.set_source_rgb(*floats_from_string(STYLE_FRAME_OUTLINE_COLOR))
+
+        ## stroke frame outline
+        #cr.save()
+        #cr.set_line_width(1)
+        #cr.translate(0.5, 0.5)
+        #rounded_rectangle(cr, a.x, a.y, a.width-1, a.height-1, STYLE_FRAME_CORNER_RADIUS)
+        #cr.stroke()
+        #cr.restore()
+
+        ## draw the more button
+        #self.more_btn.draw(cr, self.more_btn.allocation)
+
+        #for cat in self.widget_list:
+            #a = cat.allocation
+            #if a.width == 1 or a.height == 1: break
+            #cat.draw(self.theme, cr, a)
+        #cr.restore()
+        #return
+
 
 
 class PushButton(gtk.EventBox):
@@ -924,14 +971,14 @@ class CategoryButton(PushButton):
         self.label.set_size_request(lw, -1)
 
         self.vbox = gtk.VBox(spacing=STYLE_CAT_BUTTON_VSPACING)
-        h = lh + STYLE_CAT_BUTTON_VSPACING +2*STYLE_CAT_BUTTON_BORDER_WIDTH + 48 # 48 = icon size
+        h = lh + STYLE_CAT_BUTTON_VSPACING +2*STYLE_CAT_BUTTON_BORDER_WIDTH + 32 # 32 = icon size
         self.vbox.set_size_request(STYLE_CAT_BUTTON_WIDTH, max(h, STYLE_CAT_BUTTON_MIN_HEIGHT))
 
         self.add(self.vbox)
         if self.image:
             self.vbox.pack_start(self.image, False)
 
-        self.vbox.pack_start(self.label)
+        self.vbox.pack_start(self.label, False)
         self.show_all()
         return
 
@@ -946,7 +993,7 @@ class CategoryButton(PushButton):
         elif self.state != gtk.STATE_ACTIVE:
             theme.paint_bg(cr, self, x, y, w, h, r)
         else:
-            theme.paint_bg_active(cr, self, x, y, w, h, r)
+            theme.paint_bg_active_deep(cr, self, x, y, w, h, r)
         if self.has_focus():
             self.style.paint_focus(self.window,
                                    self.state,
@@ -957,74 +1004,81 @@ class CategoryButton(PushButton):
         return
 
 
-class CompactButton(PushButton):
+#class CompactButton(PushButton):
 
-    def __init__(self, markup, image=None):
-        PushButton.__init__(self, markup, image)
-        self.set_border_width(STYLE_COMPACT_BUTTON_BORDER_WIDTH)
+    #def __init__(self, markup, image=None):
+        #PushButton.__init__(self, markup, image)
+        #self.set_border_width(STYLE_COMPACT_BUTTON_BORDER_WIDTH)
 
-        self.hbox = gtk.HBox(spacing=STYLE_COMPACT_BUTTON_HSPACING)
+        #self.hbox = gtk.HBox(spacing=STYLE_COMPACT_BUTTON_HSPACING)
 
-        self.image = image
-        self.label = gtk.Label()
-        self.label.set_markup(markup)
-        #self.label.set_line_wrap(gtk.WRAP_WORD)
-        self.label.set_ellipsize(pango.ELLIPSIZE_END)
+        #self.image = image
+        #self.label = gtk.Label()
+        #self.label.set_markup(markup)
+        ##self.label.set_line_wrap(gtk.WRAP_WORD)
+        #self.label.set_ellipsize(pango.ELLIPSIZE_END)
 
-        if image:
-            self.hbox.pack_start(image, False)
-        self.hbox.pack_start(self.label, False)
+        #if image:
+            #self.hbox.pack_start(image, False)
+        #self.hbox.pack_start(self.label, False)
 
-        # determine size_request width for label
-        layout = self.label.get_layout()
-        #layout.set_wrap(pango.WRAP_WORD)
-        label_w = STYLE_COMPACT_BUTTON_WIDTH - 2*self.get_border_width() - 24 - 7 # 16 = image width
-        layout.set_width(label_w*pango.SCALE)
+        ## determine size_request width for label
+        #layout = self.label.get_layout()
+        ##layout.set_wrap(pango.WRAP_WORD)
+        #label_w = STYLE_COMPACT_BUTTON_WIDTH - 2*self.get_border_width() - 24 - 7 # 16 = image width
+        #layout.set_width(label_w*pango.SCALE)
 
-        layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-        lw = layout.get_pixel_extents()[1][2]   # ink extents width
-        self.label.set_size_request(lw, -1)
+        #layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+        #lw = layout.get_pixel_extents()[1][2]   # ink extents width
+        #self.label.set_size_request(lw, -1)
 
-        self.hbox.set_size_request(STYLE_COMPACT_BUTTON_WIDTH, -1)
+        #self.hbox.set_size_request(STYLE_COMPACT_BUTTON_WIDTH, -1)
 
-        self.add(self.hbox)
-        return
+        #self.add(self.hbox)
+        #return
 
-    def calc_width(self, realized_widget):
-        return STYLE_COMPACT_BUTTON_WIDTH + 2*self.get_border_width()
+    #def calc_width(self, realized_widget):
+        #base_w = STYLE_COMPACT_BUTTON_WIDTH
+        #if self.parent:
+            #base_w = self.allocation.width
+        #return base_w + 2*self.get_border_width()
 
-    def draw(self, theme, cr, a):
-        x, y, w, h = a.x, a.y, a.width, a.height
-        r = STYLE_COMPACT_BUTTON_CORNER_RADIUS
-        if self.state == gtk.STATE_NORMAL:
-            pass
-        elif self.state != gtk.STATE_ACTIVE:
-            theme.paint_bg(cr, self, x, y, w, h, r)
-        else:
-            theme.paint_bg_active(cr, self, x, y, w, h, r)
-        if self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE:
-            # draw arrow
-            ax = x + w - self.get_border_width() - 14
-            ay = y + (h - 14)/2
-            self.style.paint_arrow(self.window,
-                                   self.state,
-                                   gtk.SHADOW_IN,
-                                   (ax, ay, 14, 14),
-                                   self,
-                                   'button',
-                                   gtk.ARROW_RIGHT,
-                                   True,
-                                   ax, ay,
-                                   14, 14)
+    #def draw_arrow(self, x, y, w, h):
+        ## draw arrow
+        #ax = x + w - self.get_border_width() - 14
+        #ay = y + (h - 14)/2
+        #self.style.paint_arrow(self.window,
+                               #self.state,
+                               #gtk.SHADOW_IN,
+                               #(ax, ay, 14, 14),
+                               #self,
+                               #'button',
+                               #gtk.ARROW_RIGHT,
+                               #True,
+                               #ax, ay,
+                               #14, 14)
+        #return
 
-        if self.has_focus():
-            self.style.paint_focus(self.window,
-                                   self.state,
-                                   (x+2, y+2, w-4, h-4),
-                                   self,
-                                   'button',
-                                   x+2, y+2, w-4, h-4)
-        return
+    #def draw(self, theme, cr, a):
+        #x, y, w, h = a.x, a.y, a.width, a.height
+        #r = STYLE_COMPACT_BUTTON_CORNER_RADIUS
+        #if self.state == gtk.STATE_NORMAL:
+            #pass
+        #elif self.state == gtk.STATE_ACTIVE:
+            #theme.paint_bg_active_shallow(cr, self, x, y, w, h, 2.5)
+            #self.draw_arrow(x, y, w, h)
+        #else:
+            #theme.paint_bg(cr, self, x, y, w, h, r)
+            #self.draw_arrow(x, y, w, h)
+
+        #if self.has_focus():
+            #self.style.paint_focus(self.window,
+                                   #self.state,
+                                   #(x+2, y+2, w-4, h-4),
+                                   #self,
+                                   #'button',
+                                   #x+2, y+2, w-4, h-4)
+        #return
 
 
 class MoreButton(PushButton):
@@ -1086,7 +1140,10 @@ class MoreButton(PushButton):
         cr.rectangle(a)
         cr.clip()
 
-        self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height)
+        if self.state == gtk.STATE_ACTIVE:
+            self.theme.paint_bg_active_shallow(cr, self, a.x, a.y, a.width-1, a.height)
+        else:
+            self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height)
         if self.has_focus():
             a = self.label.allocation
             x, y, w, h = a.x, a.y, a.width, a.height
@@ -1096,92 +1153,6 @@ class MoreButton(PushButton):
                                    self,
                                    'button',
                                    x-2, y-1, w+4, h+2)
-        cr.restore()
-        return
-
-
-class ShortList(gtk.VBox):
-
-    def __init__(self, label_markup=None):
-        gtk.VBox.__init__(self, spacing=STYLE_SHORTLIST_VSPACING)
-        self.set_border_width(STYLE_SHORTLIST_BORDER_WIDTH)
-        self.set_redraw_on_allocate(False)
-
-        self.header = gtk.HBox()
-        self.vbox = gtk.VBox()
-
-        self.pack_start(self.header, False)
-        self.pack_start(self.vbox, False)
-
-        self.label = gtk.Label()
-        self.label.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-        self.header.pack_start(self.label, False)
-        self.has_label = False
-
-        self.theme = CatViewStyle(self)
-
-        if label_markup:
-            self.set_label_markup(label_markup)
-        return
-
-    def append(self, cat, *args, **kwargs):
-        self.vbox.pack_start(cat, *args, **kwargs)
-        return
-
-    def set_label_markup(self, markup):
-        self.label.set_markup(markup)
-        self.has_label = True
-        return
-
-    def draw(self, cr, a):
-        cr.save()
-        cr.rectangle(a)
-        cr.clip()
-
-        # fill frame light gray
-        rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, 4)
-        cr.set_source_rgb(*floats_from_string(STYLE_FRAME_FILL_COLOR))
-        cr.fill()
-
-        # set darker gray
-        cr.set_source_rgb(*floats_from_string(STYLE_FRAME_OUTLINE_COLOR))
-
-        # stroke frame outline
-        cr.save()
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-        rounded_rectangle(cr, a.x, a.y, a.width-1, a.height-1, 4)
-        cr.stroke()
-        cr.restore()
-
-        # fill header bg
-        if self.has_label:
-            total_spacing = self.header.allocation.y - a.y
-            h = self.header.allocation.height + 2*total_spacing
-            rounded_rectangle_irregular(cr,
-                                        a.x, a.y,
-                                        a.width, h,
-                                        (4, 4, 0, 0))   # corner radii
-            cr.set_source_rgb(*floats_from_string(STYLE_FRAME_HEADER_FILL_COLOR))
-            cr.fill()
-
-        for child in self.vbox.get_children():
-            a = child.allocation
-            if a.width == 1 or a.height == 1: break
-            x, y, w, h = a.x, a.y, a.width, a.height
-            if child.state == gtk.STATE_NORMAL:
-                pass
-            elif child.state != gtk.STATE_ACTIVE:
-                self.theme.paint_bg(cr, child, x, y, w, h)
-            else:
-                self.theme.paint_bg_active(cr, child, x, y, w, h)
-            if child.has_focus():
-                self.style.paint_focus(self.window,
-                                       child.state,
-                                       (x+2, y+2, w-4, h-4),
-                                       self,
-                                       'button',
-                                       x+2, y+2, w-4, h-4)
         cr.restore()
         return
 
@@ -1321,7 +1292,45 @@ class CatViewStyle:
         cr.restore()
         return
 
-    def paint_bg_active(self, cr, cat, x, y, w, h, r):
+    def paint_bg_active_shallow(self, cr, cat, x, y, w, h, r):
+        shape = self.shape_map[cat.shape]
+        state = cat.state
+
+        cr.save()
+        cr.rectangle(x, y, w+1, h)
+        cr.clip()
+        cr.translate(x+0.5, y+0.5)
+
+        w -= 1
+        h -= 1
+
+        # bg linear vertical gradient
+        color1, color2 = self.gradients[state]
+
+        shape(cr, 0, 0, w, h, r)
+
+        lin = cairo.LinearGradient(0, 0, 0, h)
+        lin.add_color_stop_rgb(2.0, *color1.tofloats())
+        lin.add_color_stop_rgb(0.0, *color2.tofloats())
+        cr.set_source(lin)
+        cr.fill()
+
+        cr.set_line_width(1.0)
+        # inner shadow
+        if r == 0: w += 1
+        red, g, b = self.dark_line[state].tofloats()
+        shape(cr, 1, 1, w-1, h-1, r-1)
+        cr.set_source_rgba(red, g, b, 0.4)
+        cr.stroke()
+
+        # strong outline
+        shape(cr, 0, 0, w, h, r)
+        cr.set_source_rgb(*self.dark_line[state].tofloats())
+        cr.stroke()
+        cr.restore()
+        return
+
+    def paint_bg_active_deep(self, cr, cat, x, y, w, h, r):
         shape = self.shape_map[cat.shape]
         state = cat.state
 
@@ -1362,7 +1371,6 @@ class CatViewStyle:
         cr.stroke()
         cr.restore()
         return
-
 
 class Test:
 
