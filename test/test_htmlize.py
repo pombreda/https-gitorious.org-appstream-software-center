@@ -82,6 +82,24 @@ a large number of file formats. It features :
    * Extensible with plugins
 """
 
-for decr in [d1, d2, d3]:
-    html_descr = "\n".join(htmlize_package_desc(decr))
-    print html_descr
+import lxml.html
+import lxml.etree
+import unittest
+
+class testHtmlize(unittest.TestCase):
+
+    def test_htmlize(self):
+        for decr in [d1, d2, d3]:
+            html_descr = "\n".join(htmlize_package_desc(decr))
+            #print html_descr
+            #element = lxml.html.document_fromstring(html_descr)
+            star_count = decr.count("*")
+            root = lxml.etree.XML("<html>%s</html>" % html_descr)
+            li_count = len(root.findall(".//li"))
+            self.assertEqual(star_count, li_count)
+
+if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    unittest.main()
+

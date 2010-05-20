@@ -1,4 +1,4 @@
-software-center (2.1.0) UNRELEASED; urgency=low
+software-center (2.1.0) maverick; urgency=low
 
   [ Matthew McGowan ]
   * merged lp:~mmcg069/software-center/backforward-redraw-fix
@@ -74,7 +74,7 @@ software-center (2.1.0) UNRELEASED; urgency=low
     - add new "get_app_name", "get_app_description" methods for easier
       branding of downstreams
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 18 May 2010 22:04:17 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 May 2010 19:38:30 +0200
 
 software-center (2.0.4) lucid-proposed; urgency=low
 
