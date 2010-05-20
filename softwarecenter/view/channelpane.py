@@ -54,7 +54,9 @@ class ChannelPane(SoftwarePane):
         self.distro = get_distro()
         # UI
         self._build_ui()
-        
+        self.connect("app-list-changed", self._on_app_list_changed)
+        self.nonapps_visible = False
+
     def _build_ui(self):
         self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
@@ -100,7 +102,10 @@ class ChannelPane(SoftwarePane):
         old_model = self.app_view.get_model()
         if old_model is not None:
             old_model.active = False
+            print "setting old model to none", old_model
             self.app_view.set_model(None)
+            while gtk.events_pending():
+                gtk.main_iteration()
         gobject.idle_add(self._make_new_model, query, self.refresh_seq_nr)
         return False
 
@@ -114,6 +119,7 @@ class ChannelPane(SoftwarePane):
                              query, 
                              limit=0,
                              sort=True,
+                             nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
         # events may have happend
@@ -124,6 +130,8 @@ class ChannelPane(SoftwarePane):
             self.emit("app-list-changed", len(new_model))
         else:
             logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+        # reset nonapps
+        self.nonapps_visible = False
         return False
 
     def set_channel(self, channel):
@@ -179,6 +187,34 @@ class ChannelPane(SoftwarePane):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
+
+    def _on_app_list_changed(self, pane, length):
+        """internal helper that keeps the the action bar up-to-date by
+           keeping track of the app-list-changed signals
+        """
+        self._update_action_bar()
+
+    def _update_action_bar(self):
+        appstore = self.app_view.get_model()
+        print appstore
+        # We want to display the label if there are hidden packages
+        # in the appstore.
+        if (appstore and
+            appstore.active and
+            not appstore.nonapps_visible and
+            appstore.nonapp_pkgs):
+            label = gettext.ngettext("_%i other_ technical item",
+                                     "_%i other_ technical items",
+                                     appstore.nonapp_pkgs
+                                     ) % appstore.nonapp_pkgs
+            self.action_bar.set_label(label, self._show_nonapp_pkgs)
+        else:
+            self.action_bar.unset_label()
+
+    def _show_nonapp_pkgs(self):
+        self.nonapps_visible = True
+        self.refresh_apps()
+        self._update_action_bar()
 
     def display_search(self):
         self.navigation_bar.remove_id("details")
