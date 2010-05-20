@@ -17,9 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import gtk
 import cairo
 import colorsys
-import gtk
 import logging
 
 # pi constants
@@ -274,9 +274,24 @@ class PathBarStyle:
         cr.restore()
         return
 
-    def paint_layout(self, widget, part, x, y, sxO=0):
+    def paint_layout(self, cr, widget, part, x, y, sxO=0):
         # draw layout
         layout = part.get_layout()
+
+        # mac-esque bevel
+#        pcr = pangocairo.CairoContext(cr)
+#        pcr.move_to(x,y+1)
+#        pcr.set_source_rgba(1, 1, 1, 0.975)
+#        pcr.show_layout(layout)
+
+#        r, g, b = self.theme.dark[gtk.STATE_ACTIVE].shade(0.8).tofloats()
+#        pcr = pangocairo.CairoContext(cr)
+#        pcr.move_to(x,y)
+#        pcr.set_source_rgba(r, g, b, 0.95)
+#        pcr.show_layout(layout)
+
+#        del pcr
+
         widget.style.paint_layout(widget.window,
                                   self.text_states[part.state],
                                   False,
@@ -285,12 +300,6 @@ class PathBarStyle:
                                   None,
                                   x, y,
                                   layout)
-        return
-
-    def paint_focus(self, cr, x, y, w, h):
-        self._shape_rectangle(cr, 4, 4, w-4, h-4, self["curvature"], 0)
-        cr.set_source_rgb(*self.theme.bg[gtk.STATE_SELECTED].tofloats())
-        cr.stroke()
         return
 
 
@@ -393,9 +402,9 @@ class Theme:
         self.bg =    PathBarColorArray(style.bg)
         self.text =  PathBarColorArray(style.text)
         self.base =  PathBarColorArray(style.base)
-        self.light = PathBarColorArray(style.base)
-        self.mid =   PathBarColorArray(style.base)
-        self.dark =  PathBarColorArray(style.base)
+        self.light = PathBarColorArray(style.light)
+        self.mid =   PathBarColorArray(style.mid)
+        self.dark =  PathBarColorArray(style.dark)
         return
 
 
@@ -728,7 +737,7 @@ class Radiance(Ambiance):
 
     def get_grad_palette(self):
         palette = Ambiance.get_grad_palette(self)
-        palette[gtk.STATE_NORMAL] =  (self.mid[gtk.STATE_NORMAL].shade(1.25),
+        palette[gtk.STATE_NORMAL] =  (self.base[gtk.STATE_NORMAL].shade(1.25),
                                       self.bg[gtk.STATE_NORMAL].shade(0.9))
         return palette
 
@@ -830,17 +839,17 @@ class Hicolor(Theme):
 
     def get_grad_palette(self):
         # provide two colours per state for background vertical linear gradients
-        palette = {gtk.STATE_NORMAL:     (self.mid[gtk.STATE_NORMAL],
-                                          self.mid[gtk.STATE_NORMAL]),
+        palette = {gtk.STATE_NORMAL:     (self.base[gtk.STATE_NORMAL],
+                                          self.base[gtk.STATE_NORMAL]),
 
-                  gtk.STATE_ACTIVE:      (self.mid[gtk.STATE_ACTIVE],
-                                          self.mid[gtk.STATE_ACTIVE]),
+                  gtk.STATE_ACTIVE:      (self.base[gtk.STATE_ACTIVE],
+                                          self.base[gtk.STATE_ACTIVE]),
 
-                  gtk.STATE_SELECTED:    (self.mid[gtk.STATE_SELECTED],
-                                          self.mid[gtk.STATE_SELECTED]),
+                  gtk.STATE_SELECTED:    (self.base[gtk.STATE_SELECTED],
+                                          self.base[gtk.STATE_SELECTED]),
 
-                  gtk.STATE_PRELIGHT:    (self.mid[gtk.STATE_PRELIGHT],
-                                          self.mid[gtk.STATE_PRELIGHT]),
+                  gtk.STATE_PRELIGHT:    (self.base[gtk.STATE_PRELIGHT],
+                                          self.base[gtk.STATE_PRELIGHT]),
 
                   gtk.STATE_INSENSITIVE: (self.bg[gtk.STATE_INSENSITIVE],
                                           self.bg[gtk.STATE_INSENSITIVE])
@@ -857,18 +866,18 @@ class Hicolor(Theme):
 
     def get_dark_line_palette(self):
         palette = {gtk.STATE_NORMAL:      self.bg[gtk.STATE_SELECTED],
-                   gtk.STATE_ACTIVE:      self.dark[gtk.STATE_ACTIVE],
-                   gtk.STATE_PRELIGHT:    self.dark[gtk.STATE_PRELIGHT],
-                   gtk.STATE_SELECTED:    self.dark[gtk.STATE_SELECTED],
-                   gtk.STATE_INSENSITIVE: self.dark[gtk.STATE_INSENSITIVE]}
+                   gtk.STATE_ACTIVE:      self.bg[gtk.STATE_ACTIVE],
+                   gtk.STATE_PRELIGHT:    self.bg[gtk.STATE_PRELIGHT],
+                   gtk.STATE_SELECTED:    self.bg[gtk.STATE_SELECTED],
+                   gtk.STATE_INSENSITIVE: self.bg[gtk.STATE_INSENSITIVE]}
         return palette
 
     def get_light_line_palette(self):
         palette = {gtk.STATE_NORMAL:      self.bg[gtk.STATE_SELECTED],
-                   gtk.STATE_ACTIVE:      self.light[gtk.STATE_ACTIVE],
-                   gtk.STATE_PRELIGHT:    self.light[gtk.STATE_PRELIGHT],
-                   gtk.STATE_SELECTED:    self.light[gtk.STATE_SELECTED],
-                   gtk.STATE_INSENSITIVE: self.light[gtk.STATE_INSENSITIVE]}
+                   gtk.STATE_ACTIVE:      self.bg[gtk.STATE_ACTIVE],
+                   gtk.STATE_PRELIGHT:    self.bg[gtk.STATE_PRELIGHT],
+                   gtk.STATE_SELECTED:    self.bg[gtk.STATE_SELECTED],
+                   gtk.STATE_INSENSITIVE: self.bg[gtk.STATE_INSENSITIVE]}
         return palette
 
     def get_text_states(self):
@@ -909,7 +918,3 @@ def color_from_gdkcolor(gdkcolor):
 def color_from_string(spec):
     color = gtk.gdk.color_parse(spec)
     return PathBarColor(color.red_float, color.green_float, color.blue_float)
-
-
-
-

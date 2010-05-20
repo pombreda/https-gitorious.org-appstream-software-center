@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2010 Canonical
 #
 # Authors:
 #  Olivier Tilloy
@@ -123,7 +123,7 @@ class HistoryPane(gtk.VBox):
         self.store_filter.set_visible_func(self.filter_row)
         self.view.set_model(self.store_filter)
         all_action.set_active(True)
-        self.filename = apt_pkg.Config.FindFile("Dir::Log::History")
+        self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
         self.parse_history_log()
 

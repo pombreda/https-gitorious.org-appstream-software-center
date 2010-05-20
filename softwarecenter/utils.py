@@ -129,7 +129,7 @@ def unescape(text):
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
 def get_current_arch():
-    return apt_pkg.Config.Find("Apt::Architecture")
+    return apt_pkg.config.find("Apt::Architecture")
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

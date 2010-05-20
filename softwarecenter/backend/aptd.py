@@ -108,6 +108,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                           reply_handler=reply_handler,
                                           error_handler=self._on_trans_error)
 
+    def install_multiple(self, pkgnames, appnames, iconnames):
+        """ queue a list of packages for install  """
+        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
+            self.install(pkgname, appname, iconname)
+
     def reload(self):
         """ reload package list """
         reply_handler = lambda trans: self._run_transaction(trans, None, None,

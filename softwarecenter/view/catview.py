@@ -24,6 +24,7 @@ from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.utils import *
+from softwarecenter.distro import get_distro
 
 
 # shapes

@@ -121,7 +121,7 @@ class AppDetailsView(WebkitWidget):
                 self.app.appname, self.app.pkgname)
 
         # get icon
-        self.iconname = self.doc.get_value(XAPIAN_VALUE_ICON)
+        self.iconname = self.db.get_iconname(self.doc)
         # remove extension (e.g. .png) because the gtk.IconTheme
         # will find fins a icon with it
         self.iconname = os.path.splitext(self.iconname)[0]
@@ -214,7 +214,7 @@ class AppDetailsView(WebkitWidget):
                 self.app.name, self.arch)
 
         # format for html
-        description = self.pkg.description
+        description = self.pkg.candidate.description
         logging.debug("Description (text) %r", description)
         # format bullets (*-) as lists
         description = "\n".join(htmlize_package_desc(description))
@@ -288,6 +288,10 @@ class AppDetailsView(WebkitWidget):
         if self.homepage_url:
             return "visible"
         return "hidden"
+    def wksub_share_button_visibility(self):
+        if os.path.exists("/usr/bin/gwibber-poster"):
+            return "visible"
+        return "hidden"
     def wksub_package_information(self):
         if not self.pkg or not self.pkg.candidate:
             return ""
@@ -309,6 +313,9 @@ class AppDetailsView(WebkitWidget):
         return self.distro.get_installation_status(self.cache, self.pkg, self.app.name)
     def wksub_homepage(self):
         s = _("Website")
+        return s
+    def wksub_share(self):
+        s = _("Share via microblog")
         return s
     def wksub_license(self):
         return self.distro.get_license_text(self.component)
@@ -378,6 +385,15 @@ class AppDetailsView(WebkitWidget):
     def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()
         subprocess.call([cmd, self.homepage_url])
+
+    def on_button_share_clicked(self):
+        # TRANSLATORS: apturl:%(pkgname) is the apt protocol
+        msg = _("Check out %(appname)s apturl:%(pkgname)s") % {
+            'appname' : self.app.appname, 
+            'pkgname' : self.app.pkgname }
+        p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
+        # setup timeout handler to avoid zombies
+        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
 
     def on_button_upgrade_clicked(self):
         self.upgrade()

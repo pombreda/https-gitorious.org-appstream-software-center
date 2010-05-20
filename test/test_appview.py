@@ -69,8 +69,8 @@ class testAppStore(unittest.TestCase):
         # in the store
         self.assertEqual(store.apps[store.app_index_map[app]], app)
         # test that the pkgname_index_map points to the right index too
-        self.assertEqual(store.apps[store.pkgname_index_map["foo"]], app)
-        self.assertEqual(store.apps[store.pkgname_index_map["foo"]].pkgname, "foo")
+        self.assertEqual(store.apps[store.pkgname_index_map["foo"][0]], app)
+        self.assertEqual(store.apps[store.pkgname_index_map["foo"][0]].pkgname, "foo")
 
     def test_internal_insert_app_sorted(self):
         """ test if the interal _insert_app_sorted works """

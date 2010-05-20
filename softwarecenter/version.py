@@ -1,5 +1,5 @@
 
-VERSION='1.1.21debian1'
-CODENAME='unstable'
+VERSION='2.1.0'
+CODENAME='UNRELEASED'
 DISTRO='Debian'
 RELEASE='unstable'

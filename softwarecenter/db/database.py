@@ -90,16 +90,24 @@ class StoreDatabase(gobject.GObject):
         https://wiki.ubuntu.com/SoftwareCenter?action=show&redirect=SoftwareStore#Searching%20for%20multiple%20package%20names
         """
         # expand "," to APpkgname AND
+        # (ignore trailing comma)
+        search_term = search_term.rstrip(",")
         if "," in search_term:
-            query = xapian.Query()
+            queries = []
+            added = set()
             for pkgname in search_term.split(","):
-                # not a pkgname
+                pkgname = pkgname.lower()
+                # double comma, ignore term
+                if not pkgname:
+                    continue
+                # not a pkgname, return
                 if not re.match("[0-9a-z\.\-]+", pkgname):
                     return None
-                if pkgname:
-                    query = xapian.Query(xapian.Query.OP_OR, query, 
-                                         xapian.Query("XP"+pkgname))
-            return query
+                # only add if not there already
+                if pkgname not in added:
+                    added.add(pkgname)
+                    queries.append(xapian.Query("AP"+pkgname))
+            return queries
         return None
 
     def get_query_list_from_search_entry(self, search_term, category_query=None):
@@ -134,9 +142,9 @@ class StoreDatabase(gobject.GObject):
         
         # check if we need to do comma expansion instead of a regular
         # query
-        query = self._comma_expansion(search_term)
-        if query:
-            return _add_category_to_query(query)
+        queries = self._comma_expansion(search_term)
+        if queries:
+            return map(_add_category_to_query, queries)
 
         # get a pkg query
         pkg_query = xapian.Query()
@@ -179,6 +187,11 @@ class StoreDatabase(gobject.GObject):
         if not pkgname:
             pkgname = doc.get_data()
         return pkgname
+
+    def get_iconname(self, doc):
+        """ Return the iconname from the xapian document """
+        iconname = doc.get_value(XAPIAN_VALUE_ICON)
+        return iconname
 
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """
