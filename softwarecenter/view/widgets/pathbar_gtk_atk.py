@@ -33,9 +33,7 @@ class PathBar(gtk.HBox):
     ANIMATE_FPS = 50
     ANIMATE_DELAY = 100
     ANIMATE_DURATION = 150
-
-    ANIMATE_APPEND = 0
-    ANIMATE_REMOVE = 1
+    
 
     def __init__(self, group=None):
         gtk.HBox.__init__(self)
@@ -50,7 +48,6 @@ class PathBar(gtk.HBox):
         self._removing = False
 
         self._animate = False, None
-        self._animate_mode = self.ANIMATE_APPEND
         self._scroll_xO = 0
         self._no_draw = False
         self._scroller = None
