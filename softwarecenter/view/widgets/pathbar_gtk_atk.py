@@ -34,9 +34,6 @@ class PathBar(gtk.HBox):
     ANIMATE_DELAY = 100
     ANIMATE_DURATION = 150
 
-    ANIMATE_DIR_LTR = 1
-    ANIMATE_DIR_RTL = -1
-
     ANIMATE_APPEND = 0
     ANIMATE_REMOVE = 1
 
@@ -53,7 +50,6 @@ class PathBar(gtk.HBox):
         self._removing = False
 
         self._animate = False, None
-        self._animate_dir = self.ANIMATE_DIR_LTR
         self._animate_mode = self.ANIMATE_APPEND
         self._scroll_xO = 0
         self._no_draw = False
@@ -226,8 +222,15 @@ class PathBar(gtk.HBox):
         return
 
     def _scroll_init(self, scroll_callback, part):
-        draw_area = part.get_allocation()
-        #aw = self.theme['arrow_width']
+        a = part.get_allocation()
+        aw = self.theme['arrow_width']
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
+            x, y = a.x, a.y
+            width, height = a.width + aw, a.height
+        else:
+            x, y = a.x - aw, a.y
+            width, height = a.width + aw, a.height
+        
         self._scroller = gobject.timeout_add(
             max(int(1000.0 / self.ANIMATE_FPS), 10),  # interval
             scroll_callback,
@@ -235,8 +238,7 @@ class PathBar(gtk.HBox):
             part.get_size_request()[0],
             self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
             gobject.get_current_time(),
-            (draw_area.x, draw_area.y,
-            draw_area.width, draw_area.height),
+            (x, y, width, height),  # clip area
             priority=100)
         return False
 
