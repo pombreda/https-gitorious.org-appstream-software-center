@@ -214,7 +214,7 @@ class AppDetailsView(WebkitWidget):
                 self.app.name, self.arch)
 
         # format for html
-        description = self.pkg.description
+        description = self.pkg.candidate.description
         logging.debug("Description (text) %r", description)
         # format bullets (*-) as lists
         description = "\n".join(htmlize_package_desc(description))

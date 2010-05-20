@@ -293,7 +293,7 @@ class AppStore(gtk.GenericTreeModel):
     def _refresh_contents_data(self):
         # Quantitative data on stored packages. This generates the information.
         exists = lambda app: app.pkgname in self.cache
-        installable = lambda app: (not self.cache[app.pkgname].isInstalled
+        installable = lambda app: (not self.cache[app.pkgname].is_installed
                                    and app.pkgname not in
                                    self.backend.pending_transactions)
         self._existing_apps = __builtin__.filter(exists, self.apps)

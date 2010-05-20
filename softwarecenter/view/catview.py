@@ -36,6 +36,7 @@ from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.utils import *
+from softwarecenter.distro import get_distro
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
@@ -150,6 +151,8 @@ class CategoriesView(WebkitWidget):
 
     # substitute stuff
     def wksub_ubuntu_software_center(self):
+        if get_distro().get_distro_channel_name() != "Ubuntu":
+           return _("Software Center")
         return _("Ubuntu Software Center")
     def wksub_icon_size(self):
         if self.in_subsection:

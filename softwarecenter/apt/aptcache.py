@@ -171,11 +171,11 @@ class AptCache(gobject.GObject):
     def component_available(self, distro_codename, component):
         """ check if the given component is enabled """
         # FIXME: test for more properties here?
-        for it in self._cache._cache.FileList:
-            if (it.Component != "" and 
-                it.Component == component and
-                it.Archive != "" and 
-                it.Archive == distro_codename):
+        for it in self._cache._cache.file_list:
+            if (it.component != "" and 
+                it.component == component and
+                it.archive != "" and 
+                it.archive == distro_codename):
                 return True
         return False
 
