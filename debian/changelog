@@ -1,4 +1,4 @@
-software-center (2.1.1) UNRELEASED; urgency=low
+software-center (2.1.1) maverick; urgency=low
 
   * softwarecenter/view/channelpane.py:
     - Fix broken channel list views (LP: #583545)
