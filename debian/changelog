@@ -1,3 +1,10 @@
+software-center (2.1.1) UNRELEASED; urgency=low
+
+  * softwarecenter/view/channelpane.py:
+    - Fix broken channel list views (LP: #583545)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 21 May 2010 01:21:38 -0400
+
 software-center (2.1.0) maverick; urgency=low
 
   [ Matthew McGowan ]

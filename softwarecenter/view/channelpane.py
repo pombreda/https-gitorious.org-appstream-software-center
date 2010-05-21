@@ -87,7 +87,7 @@ class ChannelPane(SoftwarePane):
                                             self.on_navigation_search, 
                                             "search")
         else:
-            self.navigation_bar.remove_all(keep_first_part=False)
+            self.navigation_bar.remove_all()
             self.navigation_bar.add_with_id(self.channel.get_channel_display_name(),
                                         self.on_navigation_list,
                                         "list")
