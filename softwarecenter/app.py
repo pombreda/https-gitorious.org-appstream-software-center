@@ -203,8 +203,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_installed.add(self.installed_pane)
 
         # history pane
-        self.history_pane = HistoryPane(self.cache, self.db,
-                                        self.distro,
+        self.history_pane = HistoryPane(self.cache, self.history,
+                                        self.db, self.distro,
                                         self.icons, datadir)
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,

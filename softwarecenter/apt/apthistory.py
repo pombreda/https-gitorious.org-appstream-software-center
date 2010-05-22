@@ -29,10 +29,10 @@ from debian_bundle import deb822
 
 class Transaction(object):
     
-    PKGACTIONS=["Install", "Upgrade", "Downgrade" "Remove", "Purge"]
+    PKGACTIONS=["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
 
     def __init__(self, sec):
-        self.start_date = sec["Start-Date"]
+        self.start_date = datetime.datetime.strptime(sec["Start-Date"],"%Y-%m-%d  %H:%M:%S")
         for k in self.PKGACTIONS+["Error"]:
             if k in sec:
                 setattr(self, k.lower(), map(string.strip, sec[k].split(",")))
@@ -53,6 +53,7 @@ class AptHistory(object):
         self.logfile = gio.File(self.history_file)
         self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
+        self.update_callback = None
     
     def rescan(self):
         self.transactions = []
@@ -73,6 +74,11 @@ class AptHistory(object):
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
         if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             self.rescan()
+            if self.update_callback:
+                self.update_callback()
+    
+    def set_on_update(self,update_callback):
+        self.update_callback=update_callback
             
     def get_installed_date(self, pkg_name):
         installed_date = None
@@ -80,7 +86,7 @@ class AptHistory(object):
             for pkg in trans.install:
                 if pkg.split(" ")[0] == pkg_name:
                     installed_date = trans.start_date
-                    return datetime.datetime.strptime(installed_date,"%Y-%m-%d  %H:%M:%S")
+                    return installed_date
         return installed_date
     
     def _find_in_terminal_log(self, date, term_file):
