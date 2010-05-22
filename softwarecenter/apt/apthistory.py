@@ -22,6 +22,7 @@ import apt_pkg
 import glob
 import gzip
 import string
+import datetime
 
 from debian_bundle import deb822
 
@@ -47,15 +48,28 @@ class AptHistory(object):
     def __init__(self):
         self.transactions = []
         history_file = apt_pkg.config.find_file("Dir::Log::History")
-        for history_gz_file in glob.glob(history_file+".*.gz")
+        for history_gz_file in glob.glob(history_file+".*.gz"):
             self.scan(history_gz_file)
         self.scan(history_file)
         
-    def scan(self, f):
+    def scan(self, history_file):
+        if history_file.endswith(".gz"):
+            f = gzip.open(history_file)
+        else:
+            f = open(history_file)
         for stanza in deb822.Deb822.iter_paragraphs(f):
             trans = Transaction(stanza)
             self.transactions.insert(0, trans)
-
+    
+    def get_installed_date(self, pkg_name):
+        installed_date = None
+        for trans in self.transactions:
+            for pkg in trans.install:
+                if pkg.split(" ")[0] == pkg_name:
+                    installed_date = trans.start_date
+                    return datetime.datetime.strptime(installed_date,"%Y-%m-%d  %H:%M:%S")
+        return installed_date
+    
     def _find_in_terminal_log(self, date, term_file):
         found = False
         term_lines = []
