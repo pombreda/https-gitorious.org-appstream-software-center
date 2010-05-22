@@ -178,8 +178,8 @@ class CategoriesView(gtk.ScrolledWindow):
     def _build_home_page_view(self):
         # these methods add sections to the page
         # changing order of methods changes order they appear in the page
-        self._append_departments()
         self._append_featured()
+        self._append_departments()
         return
 
     def _build_subcat_view(self):
@@ -206,8 +206,8 @@ class CategoriesView(gtk.ScrolledWindow):
         return
 
     def _append_featured(self):
-        featured_cat = filter(lambda x: x.untranslated_name == 'Featured Applications',
-                              self.categories)[0]
+        featured_cat = get_category_by_name(self.categories,
+                                            'Featured Applications')
         query = self.db.get_query_list_from_search_entry('', featured_cat.query)
 
         featured_apps = AppStore(self.cache,
@@ -216,29 +216,12 @@ class CategoriesView(gtk.ScrolledWindow):
                                  query,
                                  self.apps_limit,
                                  True,
-                                 self.apps_filter)
+                                 self.apps_filter,
+                                 icon_size=48)
 
         # append the departments section to the page
-        carosel = FeaturedView()
+        carosel = FeaturedView(featured_apps)
         carosel.more_btn.connect('clicked', self._on_category_clicked, featured_cat)
-
-        #size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
-        #vis_apps = (featured_apps[0],)
-        #for app in vis_apps:
-            ## make sure the string is parsable by pango, i.e. no funny characters
-            #name = gobject.markup_escape_text(app[0].strip())
-            #markup = MARKUP_VARIABLE_SIZE_LABEL % (size, name)
-            ## finally, create the department with label markup and icon
-            #image = gtk.Image()
-            #image.set_from_pixbuf(app[3])
-
-            #app_btn = CategoryButton(markup, image)
-            #app_btn.connect('clicked', self._on_app_clicked, app)
-            ## append the department to the departments widget
-            #carosel.append(app_btn)
-
-        app_btn = CategoryButton('TOIUSDOIUS...', image=None)
-        carosel.append(app_btn)
 
         self.carosel = carosel
         self.vbox.pack_start(carosel, False)
@@ -258,7 +241,7 @@ class CategoriesView(gtk.ScrolledWindow):
 
         # for each department append it to the department widget
         size = STYLE_CAT_BUTTON_LABEL_FONT_SIZE*pango.SCALE
-        for cat in self.categories:
+        for cat in self.categories[:-1]:
             # make sure the string is parsable by pango, i.e. no funny characters
             name = gobject.markup_escape_text(cat.name.strip())
             markup = MARKUP_VARIABLE_SIZE_LABEL % (size, name)
@@ -341,7 +324,7 @@ class CategoriesView(gtk.ScrolledWindow):
             best_fit = self._get_layout_best_fit_width()
 
             if self.carosel:
-                self.carosel.clear_rows()
+                #self.carosel.clear_rows()
                 self.carosel.build_view(best_fit)
             if self.departments:
                 self.departments.clear_rows()
@@ -584,11 +567,14 @@ class FramedSection(gtk.VBox):
 
         self.header = gtk.HBox()
         self.body = gtk.VBox()
+        #self.footer = gtk.HBox()
+
         align = gtk.Alignment(0.5, 0.5)
         align.add(self.body)
 
         self.pack_start(self.header, False)
         self.pack_start(align)
+        #self.pack_start(self.footer, False)
 
         self.label = gtk.Label()
         self.header.pack_start(self.label, False)
@@ -603,8 +589,9 @@ class FramedSection(gtk.VBox):
         self.has_label = True
 
         # atk stuff
-        atk_obj = self.get_accessible()
-        atk_obj.set_name(self.label.get_text())
+        acc = self.get_accessible()
+        acc.set_name(self.label.get_text())
+        acc.set_role(atk.ROLE_SECTION)
         return
 
     def draw(self, cr, a):
@@ -624,9 +611,9 @@ class FramedSection(gtk.VBox):
             h = self.header.allocation.height + 2*total_spacing
 
             r, g, b = floats_from_string(STYLE_FRAME_HEADER_FILL_COLOR)
-            lin = cairo.LinearGradient(0, a.y, 0, a.y+int(1.4*h))
+            lin = cairo.LinearGradient(0, a.y, 0, a.y+h)
             lin.add_color_stop_rgba(0.0, r, g, b, 1.0)
-            lin.add_color_stop_rgba(1.0, r, g, b, 0)
+            lin.add_color_stop_rgba(1.0, r, g, b, 0.4)
 
             rounded_rectangle_irregular(cr,
                                         a.x, a.y,
@@ -705,7 +692,7 @@ class LayoutView(FramedSection):
         self.body.pack_start(row, False)
 
         spacing = self.hspacing
-        max_width = max_width - 2*STYLE_LAYOUTVIEW_BORDER_WIDTH
+        max_width -= 2*STYLE_LAYOUTVIEW_BORDER_WIDTH
         w = 0
 
         for cat in self.widget_list:
@@ -773,23 +760,151 @@ class LayoutRow(gtk.Alignment):
         return
 
 
-class FeaturedView(LayoutView):
+class FeaturedView(FramedSection):
 
-    def __init__(self):
-        LayoutView.__init__(self)
+    def __init__(self, featured_apps, vspacing=STYLE_LAYOUTVIEW_VSPACING, \
+                    hspacing=STYLE_LAYOUTVIEW_HSPACING):
 
-        name = 'Featured Applications'
+        FramedSection.__init__(self)
+        self.set_spacing(vspacing)
+        self.body.set_spacing(2)
+        self.hspacing = hspacing
+
+        self.set_border_width(STYLE_LAYOUTVIEW_BORDER_WIDTH)
+        self.set_redraw_on_allocate(False)
+
+        name = 'Application Showcase'
         size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
         self.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, name))
 
         self.more_btn = MoreButton('<small>More Apps...</small>')
         self.header.pack_end(self.more_btn, False)
+
+        self.featured_apps = featured_apps
+        self.icon_size = self.featured_apps.icon_size
+        self.offset = 0
+        self.alpha = 1.0
+        self.fader = 0
+        gobject.timeout_add(10000, self.transition)
+        return
+
+    def _fade_in(self):
+        self.alpha += 0.07
+        if self.alpha >= 1.0:
+            self.alpha = 1.0
+            self.queue_draw()
+            return False
+        self.queue_draw()
+        return True
+
+    def _fade_out(self):
+        self.alpha -= 0.1
+        if self.alpha <= 0.0:
+            self.alpha = 0.0
+            self.queue_draw()
+            self._set_next()
+            return False
+        self.queue_draw()
+        return True
+
+    def _set_next(self):
+        if self.offset < len(self.featured_apps)-2:
+            self.offset += 2
+        else:
+            self.offset = 0
+
+        self.fader = gobject.timeout_add(50, self._fade_in)
+        return
+
+    def transition(self):
+        cr = self.window.cairo_create()
+        self.fader = gobject.timeout_add(50, self._fade_out)
+        return True
+
+    def build_view(self, max_width):
+        max_width -=  3*STYLE_LAYOUTVIEW_BORDER_WIDTH
+        self.body.set_size_request(max_width, 100)
+        return
+
+    def draw_app_poster(self, cr, app, layout, a):
+        cr.save()
+        cr.translate(a.x, a.y)
+
+        pixbuf = app[AppStore.COL_ICON]
+        pw = pixbuf.get_width()
+        ph = pixbuf.get_height()
+        px = 0
+        py = 3
+        # center pixbuf
+        if pw != 48 or ph != 48:
+            px = (48-pw)/2
+            py += (48-ph)/2
+
+        text = app[AppStore.COL_TEXT]
+        name, summary = text.splitlines()
+        h1 = 11*pango.SCALE
+        h2 = 9*pango.SCALE
+        layout.set_markup('<span size="%s"><b>%s</b></span>\n<span size="%s">%s</span>'
+                          % (h1, name, h2, summary))
+
+        cr.set_source_pixbuf(pixbuf, px, py)
+        cr.paint_with_alpha(self.alpha)
+
+        if self.alpha < 1.0:
+            pcr = pangocairo.CairoContext(cr)
+            pcr.move_to(12 + self.icon_size, 3)
+            pcr.layout_path(layout)
+            pcr.set_source_rgba(0,0,0, self.alpha)
+            pcr.fill()
+        else:
+            self.style.paint_layout(self.window,
+                                    self.state,
+                                    False,
+                                    a,  # area
+                                    self,
+                                    None,
+                                    a.x + 12 + self.icon_size,
+                                    a.y + 3,
+                                    layout)
+
+        cr.restore()
         return
 
     def draw(self, cr, a):
         cr.save()
-        LayoutView.draw(self, cr, a)
+        FramedSection.draw(self, cr, a)
         self.more_btn.draw(cr, self.more_btn.allocation)
+
+        body_alloc = self.body.allocation
+
+        pc = self.get_pango_context()
+        layout = pango.Layout(pc)
+
+        layout_w = (body_alloc.width/2 - self.icon_size - 22)*pango.SCALE
+        layout.set_width(layout_w)
+        layout.set_wrap(pango.WRAP_WORD)
+
+        xo = body_alloc.x
+        for i in range(2):
+            index = i+self.offset
+            if index == len(self.featured_apps):
+                break
+
+            app = self.featured_apps[index]
+            area = gtk.gdk.Rectangle(xo, body_alloc.y,
+                                     body_alloc.width/2, body_alloc.height)
+
+            self.draw_app_poster(cr, app, layout, area)
+            xo += body_alloc.width/2
+
+        #cr.set_source_rgb(1,0,0)
+        #cr.rectangle(body_alloc)
+        #cr.stroke()
+
+        #cr.move_to(body_alloc.x+body_alloc.width/2, body_alloc.y)
+        #cr.rel_line_to(0, body_alloc.height)
+        #cr.stroke()
+
         cr.restore()
         return
 
