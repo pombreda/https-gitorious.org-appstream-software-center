@@ -60,7 +60,7 @@ STYLE_LAYOUTVIEW_VSPACING = 14   # the vertical spacing between rows in Departme
 STYLE_LAYOUTVIEW_HSPACING = 8  # the horiz spacing between each department button
 
 STYLE_FRAME_FILL_COLOR = '#FAFAFA'
-STYLE_FRAME_OUTLINE_COLOR = '#C7C4C1'
+STYLE_FRAME_OUTLINE_COLOR = '#BAB7B5'
 STYLE_FRAME_HEADER_FILL_COLOR = '#DAD7D3'
 STYLE_FRAME_CORNER_RADIUS = 4
 
@@ -217,7 +217,6 @@ class CategoriesView(gtk.ScrolledWindow):
                                  self.apps_limit,
                                  True,
                                  self.apps_filter)
-        featured_apps.ICON_SIZE = 48
 
         # append the departments section to the page
         carosel = FeaturedView()
@@ -602,6 +601,10 @@ class FramedSection(gtk.VBox):
     def set_label_markup(self, markup):
         self.label.set_markup(markup)
         self.has_label = True
+
+        # atk stuff
+        atk_obj = self.get_accessible()
+        atk_obj.set_name(self.label.get_text())
         return
 
     def draw(self, cr, a):
@@ -672,8 +675,10 @@ class LayoutView(FramedSection):
 
     def __init__(self, vspacing=STYLE_LAYOUTVIEW_VSPACING, \
                     hspacing=STYLE_LAYOUTVIEW_HSPACING):
+
         FramedSection.__init__(self)
         self.set_spacing(vspacing)
+        self.body.set_spacing(2)
         self.hspacing = hspacing
 
         self.set_border_width(STYLE_LAYOUTVIEW_BORDER_WIDTH)
