@@ -44,25 +44,17 @@ class Transaction(object):
                
 class AptHistory(object):
 
-    # FIXME: add full history file reading
-    def __init__(self, history_file=None):
-        self.history_file = history_file
-        if not history_file:
-            self.history_file = apt_pkg.config.find_file("Dir::Log::History")
-            #self.history_file = "/var/log/apt/history.log.1.gz"
-        if self.history_file.endswith(".gz"):
-            f = gzip.open(self.history_file)
-        else:
-            f = open(self.history_file)
-        self.rescan(f)
-    def rescan(self, f):
+    def __init__(self):
         self.transactions = []
+        history_file = apt_pkg.config.find_file("Dir::Log::History")
+        for history_gz_file in glob.glob(history_file+".*.gz")
+            self.scan(history_gz_file)
+        self.scan(history_file)
+        
+    def scan(self, f):
         for stanza in deb822.Deb822.iter_paragraphs(f):
             trans = Transaction(stanza)
-            self.transactions.append(trans)
-    @property
-    def older_parts(self):
-        return glob.glob(self.history_file+".*.gz")
+            self.transactions.insert(0, trans)
 
     def _find_in_terminal_log(self, date, term_file):
         found = False
