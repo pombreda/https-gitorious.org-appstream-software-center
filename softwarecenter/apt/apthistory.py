@@ -61,19 +61,20 @@ class AptHistory(object):
             self._scan(history_gz_file)
         self._scan(self.history_file)
     
-    def _scan(self, history_file):
+    def _scan(self, history_file, rescan = False):
         if history_file.endswith(".gz"):
             f = gzip.open(history_file)
         else:
             f = open(history_file)
         for stanza in deb822.Deb822.iter_paragraphs(f):
             trans = Transaction(stanza)
+            if rescan and trans.start_date < self.transactions[0].start_date:
+                continue
             self.transactions.insert(0, trans)
             
-    # FIXME: Scan only recent logs.
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
         if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
-            self.rescan()
+            self._scan(self.history_file, rescan = True)
             if self.update_callback:
                 self.update_callback()
     

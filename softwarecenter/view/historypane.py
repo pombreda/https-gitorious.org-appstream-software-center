@@ -149,7 +149,6 @@ class HistoryPane(gtk.VBox):
         self._app_icon_cache[MISSING_APP_ICON] = missing
 
     def parse_history(self):
-        print "parse history"
         date = None
         last_row = None
         day = self.store.get_iter_first()
