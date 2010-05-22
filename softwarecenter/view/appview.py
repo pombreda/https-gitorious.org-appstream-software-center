@@ -892,24 +892,26 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                w-2,
                                h-2)
 
+
+        prog_w = int(percent*w)
         # progress bar
         if self.text_direction != gtk.TEXT_DIR_RTL:
             widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
-                                   (dst_x, dst_y, percent*w, h),
+                                   (dst_x, dst_y, prog_w, h),
                                    widget, 
                                    "bar",
                                    dst_x,
                                    dst_y,
-                                   percent*w,
+                                   prog_w,
                                    h)
         else:
             widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
-                                   (dst_x + w+1-percent*w, dst_y, percent*w, h),
+                                   (dst_x + w+1-prog_w, dst_y, prog_w, h),
                                    widget, 
                                    "bar",
-                                   dst_x + w+1-percent*w,
+                                   dst_x + w+1-prog_w,
                                    dst_y,
-                                   percent*w,
+                                   prog_w,
                                    h)
         return
 
