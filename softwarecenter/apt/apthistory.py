@@ -23,6 +23,7 @@ import glob
 import gzip
 import string
 import datetime
+import gio
 
 from debian_bundle import deb822
 
@@ -46,13 +47,20 @@ class Transaction(object):
 class AptHistory(object):
 
     def __init__(self):
+        self.history_file = apt_pkg.config.find_file("Dir::Log::History")
+        self.rescan()
+        #Copy monitoring of history file changes from historypane.py
+        self.logfile = gio.File(self.history_file)
+        self.monitor = self.logfile.monitor_file()
+        self.monitor.connect("changed", self._on_apt_history_changed)
+    
+    def rescan(self):
         self.transactions = []
-        history_file = apt_pkg.config.find_file("Dir::Log::History")
-        for history_gz_file in glob.glob(history_file+".*.gz"):
-            self.scan(history_gz_file)
-        self.scan(history_file)
-        
-    def scan(self, history_file):
+        for history_gz_file in glob.glob(self.history_file+".*.gz"):
+            self._scan(history_gz_file)
+        self._scan(self.history_file)
+    
+    def _scan(self, history_file):
         if history_file.endswith(".gz"):
             f = gzip.open(history_file)
         else:
@@ -60,7 +68,12 @@ class AptHistory(object):
         for stanza in deb822.Deb822.iter_paragraphs(f):
             trans = Transaction(stanza)
             self.transactions.insert(0, trans)
-    
+            
+    # FIXME: Scan only recent logs.
+    def _on_apt_history_changed(self, monitor, afile, other_file, event):
+        if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+            self.rescan()
+            
     def get_installed_date(self, pkg_name):
         installed_date = None
         for trans in self.transactions:
