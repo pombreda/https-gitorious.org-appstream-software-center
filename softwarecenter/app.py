@@ -53,6 +53,7 @@ from backend import get_install_backend
 from distro import get_distro
 
 from apt.aptcache import AptCache
+from apt.apthistory import AptHistory
 from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -119,7 +120,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("channels-changed", self.on_channels_changed)
-
+        #apt histori
+        self.history = AptHistory()
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
@@ -159,8 +161,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._available_items_for_page = {}
 
         # available pane
-        self.available_pane = AvailablePane(self.cache, self.db,
-                                            self.distro,
+        self.available_pane = AvailablePane(self.cache, self.history,
+                                            self.db, self.distro,
                                             self.icons, datadir)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -173,8 +175,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_available.add(self.available_pane)
 
         # channel pane
-        self.channel_pane = ChannelPane(self.cache, self.db,
-                                            self.distro,
+        self.channel_pane = ChannelPane(self.cache, self.history,
+                                            self.db, self.distro,
                                             self.icons, datadir)
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -187,8 +189,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_channel.add(self.channel_pane)
         
         # installed pane
-        self.installed_pane = InstalledPane(self.cache, self.db,
-                                            self.distro,
+        self.installed_pane = InstalledPane(self.cache, self.history,
+                                            self.db, self.distro,
                                             self.icons, datadir)
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,

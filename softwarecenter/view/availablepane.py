@@ -60,9 +60,9 @@ class AvailablePane(SoftwarePane):
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
 
-    def __init__(self, cache, db, distro, icons, datadir):
+    def __init__(self, cache, history, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
         # state
         self.apps_category = None
         self.apps_subcategory = None
