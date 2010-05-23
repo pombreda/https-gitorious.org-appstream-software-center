@@ -767,8 +767,14 @@ class FeaturedView(FramedSection):
 
         FramedSection.__init__(self)
         self.set_spacing(vspacing)
-        self.body.set_spacing(2)
-        self.hspacing = hspacing
+        self.hbox = gtk.HBox(spacing=hspacing)
+        self.body.pack_start(self.hbox)
+        self.hbox.set_homogeneous(True)
+
+        self.poster1 = FeaturedPoster(48)
+        self.poster2 = FeaturedPoster(48)
+        self.hbox.pack_start(self.poster1)
+        self.hbox.pack_start(self.poster2)
 
         self.set_border_width(STYLE_LAYOUTVIEW_BORDER_WIDTH)
         self.set_redraw_on_allocate(False)
@@ -777,30 +783,34 @@ class FeaturedView(FramedSection):
         size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
         self.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, name))
 
-        self.more_btn = MoreButton('<small>More Apps...</small>')
+        self.more_btn = MoreButton('<small>All Featured...</small>')
         self.header.pack_end(self.more_btn, False)
 
         self.featured_apps = featured_apps
-        self.icon_size = self.featured_apps.icon_size
-        self.offset = 0
-        self.alpha = 1.0
-        self.fader = 0
-        gobject.timeout_add(10000, self.transition)
+
+        self._icon_size = self.featured_apps.icon_size
+        self._offset = 0
+        self._alpha = 1.0
+        self._fader = 0
+        self._layout = None
+
+        self.show_all()
+        gobject.timeout_add(15000, self.transition)
         return
 
     def _fade_in(self):
-        self.alpha += 0.07
-        if self.alpha >= 1.0:
-            self.alpha = 1.0
+        self._alpha += 0.07
+        if self._alpha >= 1.0:
+            self._alpha = 1.0
             self.queue_draw()
             return False
         self.queue_draw()
         return True
 
     def _fade_out(self):
-        self.alpha -= 0.1
-        if self.alpha <= 0.0:
-            self.alpha = 0.0
+        self._alpha -= 0.1
+        if self._alpha <= 0.0:
+            self._alpha = 0.0
             self.queue_draw()
             self._set_next()
             return False
@@ -808,17 +818,16 @@ class FeaturedView(FramedSection):
         return True
 
     def _set_next(self):
-        if self.offset < len(self.featured_apps)-2:
-            self.offset += 2
+        if self._offset < len(self.featured_apps)-2:
+            self._offset += 2
         else:
-            self.offset = 0
-
-        self.fader = gobject.timeout_add(50, self._fade_in)
+            self._offset = 0
+        self._fader = gobject.timeout_add(50, self._fade_in)
         return
 
     def transition(self):
         cr = self.window.cairo_create()
-        self.fader = gobject.timeout_add(50, self._fade_out)
+        self._fader = gobject.timeout_add(50, self._fade_out)
         return True
 
     def build_view(self, max_width):
@@ -826,8 +835,53 @@ class FeaturedView(FramedSection):
         self.body.set_size_request(max_width, 100)
         return
 
-    def draw_app_poster(self, cr, app, layout, a):
+    def draw(self, cr, a):
         cr.save()
+        FramedSection.draw(self, cr, a)
+        self.more_btn.draw(cr, self.more_btn.allocation)
+
+        if not self._layout:
+            # cache a layout
+            pc = self.get_pango_context()
+            self._layout = pango.Layout(pc)
+            self._layout.set_wrap(pango.WRAP_WORD_CHAR)
+
+        alpha = self._alpha
+        layout = self._layout
+
+        w = self.poster1.allocation.width
+        layout.set_width((w-48-20)*pango.SCALE)
+
+        for i, poster in enumerate((self.poster1, self.poster2)):
+            index = i+self._offset
+            if index == len(self.featured_apps):
+                break
+
+            app = self.featured_apps[index]
+            poster.draw(cr, poster.allocation, app, layout, alpha)
+
+        cr.restore()
+        return
+
+
+class FeaturedPoster(gtk.VBox):
+
+    def __init__(self, icon_size):
+        gtk.VBox.__init__(self)
+        self.set_redraw_on_allocate(False)
+
+        hbox = gtk.HBox()
+        self.pack_end(hbox, False)
+        self.more_info = BasicButton('More Info...')
+        hbox.pack_start(self.more_info, False)
+
+        self._icon_size = icon_size
+        return
+
+    def draw(self, cr, a, app, layout, alpha):
+        cr.save()
+        self.more_info.draw(cr, self.more_info.allocation, alpha)
+
         cr.translate(a.x, a.y)
 
         pixbuf = app[AppStore.COL_ICON]
@@ -842,19 +896,17 @@ class FeaturedView(FramedSection):
 
         text = app[AppStore.COL_TEXT]
         name, summary = text.splitlines()
-        h1 = 11*pango.SCALE
-        h2 = 9*pango.SCALE
-        layout.set_markup('<span size="%s"><b>%s</b></span>\n<span size="%s">%s</span>'
-                          % (h1, name, h2, summary))
+        layout.set_markup('<big><b>%s</b></big>\n%s'
+                          % (name, summary))
 
         cr.set_source_pixbuf(pixbuf, px, py)
-        cr.paint_with_alpha(self.alpha)
+        cr.paint_with_alpha(alpha)
 
-        if self.alpha < 1.0:
+        if alpha < 1.0:
             pcr = pangocairo.CairoContext(cr)
-            pcr.move_to(12 + self.icon_size, 3)
+            pcr.move_to(8 + self._icon_size, 3)
             pcr.layout_path(layout)
-            pcr.set_source_rgba(0,0,0, self.alpha)
+            pcr.set_source_rgba(0,0,0, alpha)
             pcr.fill()
         else:
             self.style.paint_layout(self.window,
@@ -863,47 +915,9 @@ class FeaturedView(FramedSection):
                                     a,  # area
                                     self,
                                     None,
-                                    a.x + 12 + self.icon_size,
+                                    a.x + 8 + self._icon_size,
                                     a.y + 3,
                                     layout)
-
-        cr.restore()
-        return
-
-    def draw(self, cr, a):
-        cr.save()
-        FramedSection.draw(self, cr, a)
-        self.more_btn.draw(cr, self.more_btn.allocation)
-
-        body_alloc = self.body.allocation
-
-        pc = self.get_pango_context()
-        layout = pango.Layout(pc)
-
-        layout_w = (body_alloc.width/2 - self.icon_size - 22)*pango.SCALE
-        layout.set_width(layout_w)
-        layout.set_wrap(pango.WRAP_WORD)
-
-        xo = body_alloc.x
-        for i in range(2):
-            index = i+self.offset
-            if index == len(self.featured_apps):
-                break
-
-            app = self.featured_apps[index]
-            area = gtk.gdk.Rectangle(xo, body_alloc.y,
-                                     body_alloc.width/2, body_alloc.height)
-
-            self.draw_app_poster(cr, app, layout, area)
-            xo += body_alloc.width/2
-
-        #cr.set_source_rgb(1,0,0)
-        #cr.rectangle(body_alloc)
-        #cr.stroke()
-
-        #cr.move_to(body_alloc.x+body_alloc.width/2, body_alloc.y)
-        #cr.rel_line_to(0, body_alloc.height)
-        #cr.stroke()
 
         cr.restore()
         return
@@ -926,12 +940,15 @@ class PushButton(gtk.EventBox):
         self.label.set_markup(markup)
         self.image = image
         self.shape = pathbar_common.SHAPE_RECTANGLE
+        self.theme = pathbar_common.PathBarStyle(self)
 
         # atk stuff
         atk_obj = self.get_accessible()
         atk_obj.set_name(self.label.get_text())
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
 
+        self._children_block_draw = False
+        self._layout = None
         self._button_press_origin = None    # broken
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
 
@@ -951,6 +968,7 @@ class PushButton(gtk.EventBox):
         self.connect("key-release-event", self._on_key_release)
         self.connect('focus-in-event', self._on_focus_in)
         self.connect('focus-out-event', self._on_focus_out)
+        self.connect('expose-event', lambda w, e: self._children_block_draw)
         return
 
     def _on_enter(self, cat, event):
@@ -1004,6 +1022,41 @@ class PushButton(gtk.EventBox):
 
     def _on_focus_out(self, cat, event):
         self.queue_draw()
+        return
+
+    def draw(self, cr, a, alpha=1.0):
+        cr.save()
+        cr.rectangle(a)
+        cr.clip()
+
+        self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
+        if self.has_focus() and alpha == 1.0:
+            a = self.label.allocation
+            x, y, w, h = a.x, a.y, a.width, a.height
+            self.style.paint_focus(self.window,
+                                   self.state,
+                                   (x-2, y-1, w+4, h+2),
+                                   self,
+                                   'button',
+                                   x-2, y-1, w+4, h+2)
+
+        if alpha != 1.0:
+            self._children_block_draw = True
+            # draw label with cairo
+            if not self._layout:
+                pc = self.get_pango_context()
+                self._layout = pango.Layout(pc)
+
+            la = self.label.allocation
+            self._layout.set_text(self.label.get_text())
+            pcr = pangocairo.CairoContext(cr)
+            pcr.move_to(la.x + self.get_border_width(), la.y)
+            pcr.set_source_rgba(0,0,0, alpha)
+            pcr.layout_path(self._layout)
+        else:
+            self._children_block_draw = False
+
+        cr.restore()
         return
 
 
@@ -1132,17 +1185,35 @@ class CategoryButton(PushButton):
         #return
 
 
+class BasicButton(PushButton):
+
+    def __init__(self, markup):
+        PushButton.__init__(self, markup, image=None)
+        self.set_border_width(STYLE_FEATURED_BORDER_WIDTH)
+
+        # determine layout width
+        layout = self.label.get_layout()
+        lw = layout.get_pixel_extents()[1][2]   # ink extents width
+
+        # width request
+        w = lw + 2*self.get_border_width() + STYLE_FEATURED_ARROW_WIDTH
+        self.set_size_request(w, -1)
+
+        self.add(self.label)
+        self.show_all()
+        return
+
+
 class MoreButton(PushButton):
 
     def __init__(self, markup):
         PushButton.__init__(self, markup, image=None)
         self.set_border_width(STYLE_FEATURED_BORDER_WIDTH)
 
-        self.theme = pathbar_common.PathBarStyle(self)
         # override arrow width and colour palatte
         self.theme.properties['arrow_width'] = STYLE_FEATURED_ARROW_WIDTH
         #self._define_custom_palatte()
-
+        # override shape
         self.shape = pathbar_common.SHAPE_START_ARROW
 
         # determine layout width
@@ -1184,27 +1255,6 @@ class MoreButton(PushButton):
             gtk.STATE_PRELIGHT:     orange.lighten(),
             gtk.STATE_SELECTED:     orange.lighten(),
             gtk.STATE_INSENSITIVE:  orange.lighten()}
-        return
-
-    def draw(self, cr, a):
-        cr.save()
-        cr.rectangle(a)
-        cr.clip()
-
-        if self.state == gtk.STATE_ACTIVE:
-            self.theme.paint_bg_active_shallow(cr, self, a.x, a.y, a.width-1, a.height)
-        else:
-            self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height)
-        if self.has_focus():
-            a = self.label.allocation
-            x, y, w, h = a.x, a.y, a.width, a.height
-            self.style.paint_focus(self.window,
-                                   self.state,
-                                   (x-2, y-1, w+4, h+2),
-                                   self,
-                                   'button',
-                                   x-2, y-1, w+4, h+2)
-        cr.restore()
         return
 
 

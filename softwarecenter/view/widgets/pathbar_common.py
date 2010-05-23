@@ -156,7 +156,7 @@ class PathBarStyle:
                               SHAPE_END_CAP:     self._shape_end_cap_rtl}
         return
 
-    def paint_bg(self, cr, part, x, y, w, h, sxO=0):
+    def paint_bg(self, cr, part, x, y, w, h, sxO=0, alpha=1.0):
         shape = self.shape_map[part.shape]
         state = part.state
         r = self["curvature"]
@@ -175,8 +175,11 @@ class PathBarStyle:
 
         shape(cr, 0, 0, w, h, r, aw)
         lin = cairo.LinearGradient(0, 0, 0, h)
-        lin.add_color_stop_rgb(0.0, *color1.tofloats())
-        lin.add_color_stop_rgb(1.0, *color2.tofloats())
+        red, g, b = color1.tofloats()
+        lin.add_color_stop_rgba(0.0, red, g, b, alpha)
+
+        red, g, b = color2.tofloats()
+        lin.add_color_stop_rgba(1.0, red, g, b, alpha)
         cr.set_source(lin)
         cr.fill()
 
@@ -184,12 +187,14 @@ class PathBarStyle:
         # inner bevel/highlight
         if r == 0: w += 1
         shape(cr, 1, 1, w-1, h-1, r-1, aw)
-        cr.set_source_rgb(*self.light_line[state].tofloats())
+        red, g, b = self.light_line[state].tofloats()
+        cr.set_source_rgba(red, g, b, alpha)
         cr.stroke()
 
         # strong outline
         shape(cr, 0, 0, w, h, r, aw)
-        cr.set_source_rgb(*self.dark_line[state].tofloats())
+        red, g, b = self.dark_line[state].tofloats()
+        cr.set_source_rgba(red, g, b, alpha)
         cr.stroke()
         cr.restore()
         return
