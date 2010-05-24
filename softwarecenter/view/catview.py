@@ -48,12 +48,12 @@ STYLE_TITLE_XALIGNMENT = 0.0    # 0.0=left margin, 0.5=centered, 1.0=right margi
 STYLE_FEATURED_FONT_SIZE = 10
 STYLE_FEATURED_BORDER_WIDTH = 4
 STYLE_FEATURED_FONT_COLOR = '#FFF'
-STYLE_FEATURED_ARROW_WIDTH = 8
+STYLE_FEATURED_ARROW_WIDTH = 12
 STYLE_FEATURED_XALIGNMENT = 0.0 # 0.0=left margin, 0.5=centered, 1.0=right margin
 STYLE_FEATURED_LABEL_XALIGNMENT = 0.3   # 0.0=left margin, 0.5=centered, 1.0=right margin
-STYLE_FEATURED_BASE_COLOR = '#E1550C'   # an orange color from which we shade, lighten, darken and mix
+STYLE_FEATURED_BASE_COLOR = '#F15D22'   # an orange color from which we shade, lighten, darken and mix
 
-STYLE_DEPARTMENTS_TITLE_FONT_SIZE = 11
+STYLE_DEPARTMENTS_TITLE_FONT_SIZE = 10
 
 STYLE_LAYOUTVIEW_BORDER_WIDTH = 6
 STYLE_LAYOUTVIEW_VSPACING = 14   # the vertical spacing between rows in Departments section
@@ -216,10 +216,8 @@ class CategoriesView(gtk.ScrolledWindow):
                                  query,
                                  self.apps_limit,
                                  True,
-                                 self.apps_filter,
-                                 icon_size=48)
+                                 self.apps_filter)
 
-        # append the departments section to the page
         carosel = FeaturedView(featured_apps)
         carosel.more_btn.connect('clicked', self._on_category_clicked, featured_cat)
 
@@ -294,6 +292,7 @@ class CategoriesView(gtk.ScrolledWindow):
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
+
         # kinda hacky ...
         best_fit = self._get_layout_best_fit_width()
         self.departments.build_view(best_fit)
@@ -339,30 +338,17 @@ class CategoriesView(gtk.ScrolledWindow):
         return
 
     def _on_expose(self, widget, event):
+        expose_area = event.area
         cr = widget.window.cairo_create()
-        cr.rectangle(event.area)
+        cr.rectangle(expose_area)
         cr.clip()
-
-#        # white background
-#        cr.set_source_rgb(1, 1, 1)
-#        cr.fill()
-
-        # header gradient - ubuntu wallpaper-esque?
-#        r, g, b = floats_from_string(STYLE_CATVIEW_HEADER_VGRADIENT_COLOR)
-#        lin = cairo.LinearGradient(0, 0, 0, 128)
-#        lin.add_color_stop_rgba(0.0, r, g, b, 0.4)
-#        lin.add_color_stop_rgba(1.0, r, g, b, 0)
-#        cr.rectangle(0, 0, widget.allocation.width, 128)
-#        cr.set_source(lin)
-#        cr.fill()
-
 
         if not self.in_subsection:
             # draw featured carosel
-            self.carosel.draw(cr, self.carosel.allocation)
+            self.carosel.draw(cr, self.carosel.allocation, expose_area)
 
         # draw departments
-        self.departments.draw(cr, self.departments.allocation)
+        self.departments.draw(cr, self.departments.allocation, expose_area)
 
         del cr
         return
@@ -594,7 +580,9 @@ class FramedSection(gtk.VBox):
         acc.set_role(atk.ROLE_SECTION)
         return
 
-    def draw(self, cr, a):
+    def draw(self, cr, a, expose_area):
+        if draw_skip(a, expose_area): return
+
         cr.save()
         x, y, w, h = a.x, a.y, a.width, a.height
         cr.rectangle(x-2, y-2, w+4, h+4)
@@ -725,14 +713,16 @@ class LayoutView(FramedSection):
             row.destroy()
         return
 
-    def draw(self, cr, a):
+    def draw(self, cr, a, expose_area):
+        if draw_skip(a, expose_area): return
+
         cr.save()
-        FramedSection.draw(self, cr, a)
+        FramedSection.draw(self, cr, a, expose_area)
 
         for cat in self.widget_list:
             a = cat.allocation
             if a.width == 1 or a.height == 1: break
-            cat.draw(self.theme, cr, a)
+            cat.draw(cr, a, expose_area, self.theme)
 
         cr.restore()
         return
@@ -767,26 +757,31 @@ class FeaturedView(FramedSection):
 
         FramedSection.__init__(self)
         self.set_spacing(vspacing)
+        self.body.set_spacing(6)
         self.hbox = gtk.HBox(spacing=hspacing)
         self.body.pack_start(self.hbox)
         self.hbox.set_homogeneous(True)
 
-        self.poster1 = FeaturedPoster(48)
-        self.poster2 = FeaturedPoster(48)
-        self.hbox.pack_start(self.poster1)
-        self.hbox.pack_start(self.poster2)
+        self.posters = (FeaturedPoster(32),
+                        FeaturedPoster(32),
+                        FeaturedPoster(32))
+
+        for poster in self.posters:
+            self.hbox.pack_start(poster)
 
         self.set_border_width(STYLE_LAYOUTVIEW_BORDER_WIDTH)
         self.set_redraw_on_allocate(False)
 
-        name = 'Application Showcase'
+        name = 'Showcase'
         size = STYLE_DEPARTMENTS_TITLE_FONT_SIZE*pango.SCALE
         self.set_label_markup(MARKUP_VARIABLE_SIZE_LABEL % (size, name))
 
-        self.more_btn = MoreButton('<small>All Featured...</small>')
-        self.header.pack_end(self.more_btn, False)
-
         self.featured_apps = featured_apps
+
+        self.more_btn = MoreButton('<span color="#FFF"><big><i>Want to see more?</i> Browse all featured applications...</big></span>')
+        align = gtk.Alignment(1.0, 0.5)
+        align.add(self.more_btn)
+        self.body.pack_end(align, False)
 
         self._icon_size = self.featured_apps.icon_size
         self._offset = 0
@@ -799,7 +794,7 @@ class FeaturedView(FramedSection):
         return
 
     def _fade_in(self):
-        self._alpha += 0.07
+        self._alpha += 0.1
         if self._alpha >= 1.0:
             self._alpha = 1.0
             self.queue_draw()
@@ -818,27 +813,34 @@ class FeaturedView(FramedSection):
         return True
 
     def _set_next(self):
-        if self._offset < len(self.featured_apps)-2:
-            self._offset += 2
+        n_posters = len(self.posters)
+        if self._offset < len(self.featured_apps)-n_posters:
+            self._offset += n_posters
         else:
             self._offset = 0
+
+        for poster in self.posters:
+            poster.clear_asset_cache()
+
         self._fader = gobject.timeout_add(50, self._fade_in)
         return
 
-    def transition(self):
-        cr = self.window.cairo_create()
+    def transition(self, loop=True):
         self._fader = gobject.timeout_add(50, self._fade_out)
-        return True
+        return loop
 
     def build_view(self, max_width):
         max_width -=  3*STYLE_LAYOUTVIEW_BORDER_WIDTH
-        self.body.set_size_request(max_width, 100)
+        self.body.set_size_request(max_width, -1)
+        self.more_btn.set_size_request(max_width, -1)
         return
 
-    def draw(self, cr, a):
+    def draw(self, cr, a, expose_area):
+        if draw_skip(a, expose_area): return
+
         cr.save()
-        FramedSection.draw(self, cr, a)
-        self.more_btn.draw(cr, self.more_btn.allocation)
+        FramedSection.draw(self, cr, a, expose_area)
+        self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
 
         if not self._layout:
             # cache a layout
@@ -849,70 +851,117 @@ class FeaturedView(FramedSection):
         alpha = self._alpha
         layout = self._layout
 
-        w = self.poster1.allocation.width
-        layout.set_width((w-48-20)*pango.SCALE)
+        w = self.posters[0].allocation.width
+        layout.set_width((w-self._icon_size-20)*pango.SCALE)
 
-        for i, poster in enumerate((self.poster1, self.poster2)):
+        for i, poster in enumerate(self.posters):
             index = i+self._offset
             if index == len(self.featured_apps):
                 break
 
             app = self.featured_apps[index]
-            poster.draw(cr, poster.allocation, app, layout, alpha)
+            poster.draw(cr, poster.allocation, expose_area, app, layout, alpha)
 
         cr.restore()
         return
 
 
-class FeaturedPoster(gtk.VBox):
+class FeaturedPoster(gtk.EventBox):
 
     def __init__(self, icon_size):
-        gtk.VBox.__init__(self)
+        gtk.EventBox.__init__(self)
         self.set_redraw_on_allocate(False)
-
-        hbox = gtk.HBox()
-        self.pack_end(hbox, False)
-        self.more_info = BasicButton('More Info...')
-        hbox.pack_start(self.more_info, False)
+        self.set_visible_window(False)
+        self.set_size_request(-1, 75)
 
         self._icon_size = icon_size
+        self._icon_pb = None
+        self._icon_offset = None
+        self._text = None
+        self._text_extents = None
+
+        self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
+                        gtk.gdk.LEAVE_NOTIFY_MASK)
+
+        self.connect('enter-notify-event', self._on_enter)
+        self.connect('leave-notify-event', self._on_leave)
+        #self.connect("button-press-event", self._on_button_press)
+        #self.connect("button-release-event", self._on_button_release)
+        self.show_all()
         return
 
-    def draw(self, cr, a, app, layout, alpha):
-        cr.save()
-        self.more_info.draw(cr, self.more_info.allocation, alpha)
+    def _on_enter(self, poster, event):
+        self.set_state(gtk.STATE_PRELIGHT)
+        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+        return
 
+    def _on_leave(self, poster, event):
+        self.set_state(gtk.STATE_NORMAL)
+        self.window.set_cursor(None)
+        return
+
+    def clear_asset_cache(self):
+        self._icon_pb = None
+        self._icon_offset = None
+        self._text = None
+        self._text_extents = None
+        return
+
+    def draw(self, cr, a, expose_area, app, layout, alpha):
+        cr.save()
+        #self.more_info.draw(cr, self.more_info.allocation, alpha)
         cr.translate(a.x, a.y)
 
-        pixbuf = app[AppStore.COL_ICON]
-        pw = pixbuf.get_width()
-        ph = pixbuf.get_height()
-        px = 0
-        py = 3
-        # center pixbuf
-        if pw != 48 or ph != 48:
-            px = (48-pw)/2
-            py += (48-ph)/2
+        if self.state == gtk.STATE_PRELIGHT and self._text_extents:
+            #h = max(38, self._text_extents[3] + 6)
+            rounded_rectangle(cr, 0,0,a.width, a.height, 4)
+            cr.set_source_rgba(*floats_from_string_with_alpha('#F15D22', alpha))
+            cr.fill()
 
-        text = app[AppStore.COL_TEXT]
-        name, summary = text.splitlines()
-        layout.set_markup('<big><b>%s</b></big>\n%s'
-                          % (name, summary))
+        if not self._icon_pb:
+            self._icon_pb = app[AppStore.COL_ICON]
 
-        cr.set_source_pixbuf(pixbuf, px, py)
+        if not self._icon_offset:
+            pb = self._icon_pb
+            pw = pb.get_width()
+            ph = pb.get_height()
+            px = 0
+            py = 3
+
+            # center pixbuf
+            ico = self._icon_size
+            if pw != ico or ph != ico:
+                px = (ico-pw)/2
+                py += (ico-ph)/2
+            self._icon_offset = px, py
+
+        if not self._text:
+            text = app[AppStore.COL_TEXT]
+            name, summary = text.splitlines()
+            self._text = '<b>%s</b>\n<small>%s</small>' \
+                          % (name, summary)
+            layout.set_markup(self._text)
+            self._text_extents = layout.get_pixel_extents()[1]
+
+        cr.set_source_pixbuf(self._icon_pb, *self._icon_offset)
         cr.paint_with_alpha(alpha)
 
+        if self.state == gtk.STATE_NORMAL:
+            color = '#000'
+        else:
+            color = '#FFF'
+        layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
         if alpha < 1.0:
             pcr = pangocairo.CairoContext(cr)
             pcr.move_to(8 + self._icon_size, 3)
+            pcr.set_source_rgba(*floats_from_string_with_alpha(color, alpha))
             pcr.layout_path(layout)
-            pcr.set_source_rgba(0,0,0, alpha)
             pcr.fill()
         else:
             self.style.paint_layout(self.window,
                                     self.state,
                                     False,
-                                    a,  # area
+                                    a,          # area
                                     self,
                                     None,
                                     a.x + 8 + self._icon_size,
@@ -1024,7 +1073,9 @@ class PushButton(gtk.EventBox):
         self.queue_draw()
         return
 
-    def draw(self, cr, a, alpha=1.0):
+    def draw(self, cr, a, expose_area, alpha=1.0):
+        if draw_skip(a, expose_area): return
+
         cr.save()
         cr.rectangle(a)
         cr.clip()
@@ -1048,7 +1099,7 @@ class PushButton(gtk.EventBox):
                 self._layout = pango.Layout(pc)
 
             la = self.label.allocation
-            self._layout.set_text(self.label.get_text())
+            self._layout.set_markup(self.label.get_label())
             pcr = pangocairo.CairoContext(cr)
             pcr.move_to(la.x + self.get_border_width(), la.y)
             pcr.set_source_rgba(0,0,0, alpha)
@@ -1089,7 +1140,9 @@ class CategoryButton(PushButton):
     def calc_width(self, realized_widget):
         return STYLE_CAT_BUTTON_WIDTH + 2*self.get_border_width()
 
-    def draw(self, theme, cr, a):
+    def draw(self, cr, a, expose_area, theme):
+        if draw_skip(a, expose_area): return
+
         x, y, w, h = a.x, a.y, a.width, a.height
         r = STYLE_CAT_BUTTON_CORNER_RADIUS
         if self.state == gtk.STATE_NORMAL:
@@ -1098,6 +1151,7 @@ class CategoryButton(PushButton):
             theme.paint_bg(cr, self, x, y, w, h, r)
         else:
             theme.paint_bg_active_deep(cr, self, x, y, w, h, r)
+
         if self.has_focus():
             self.style.paint_focus(self.window,
                                    self.state,
@@ -1105,102 +1159,6 @@ class CategoryButton(PushButton):
                                    self,
                                    'button',
                                    x+4, y+4, w-8, h-8)
-        return
-
-
-#class CompactButton(PushButton):
-
-    #def __init__(self, markup, image=None):
-        #PushButton.__init__(self, markup, image)
-        #self.set_border_width(STYLE_COMPACT_BUTTON_BORDER_WIDTH)
-
-        #self.hbox = gtk.HBox(spacing=STYLE_COMPACT_BUTTON_HSPACING)
-
-        #self.image = image
-        #self.label = gtk.Label()
-        #self.label.set_markup(markup)
-        ##self.label.set_line_wrap(gtk.WRAP_WORD)
-        #self.label.set_ellipsize(pango.ELLIPSIZE_END)
-
-        #if image:
-            #self.hbox.pack_start(image, False)
-        #self.hbox.pack_start(self.label, False)
-
-        ## determine size_request width for label
-        #layout = self.label.get_layout()
-        ##layout.set_wrap(pango.WRAP_WORD)
-        #label_w = STYLE_COMPACT_BUTTON_WIDTH - 2*self.get_border_width() - 24 - 7 # 16 = image width
-        #layout.set_width(label_w*pango.SCALE)
-
-        #layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-        #lw = layout.get_pixel_extents()[1][2]   # ink extents width
-        #self.label.set_size_request(lw, -1)
-
-        #self.hbox.set_size_request(STYLE_COMPACT_BUTTON_WIDTH, -1)
-
-        #self.add(self.hbox)
-        #return
-
-    #def calc_width(self, realized_widget):
-        #base_w = STYLE_COMPACT_BUTTON_WIDTH
-        #if self.parent:
-            #base_w = self.allocation.width
-        #return base_w + 2*self.get_border_width()
-
-    #def draw_arrow(self, x, y, w, h):
-        ## draw arrow
-        #ax = x + w - self.get_border_width() - 14
-        #ay = y + (h - 14)/2
-        #self.style.paint_arrow(self.window,
-                               #self.state,
-                               #gtk.SHADOW_IN,
-                               #(ax, ay, 14, 14),
-                               #self,
-                               #'button',
-                               #gtk.ARROW_RIGHT,
-                               #True,
-                               #ax, ay,
-                               #14, 14)
-        #return
-
-    #def draw(self, theme, cr, a):
-        #x, y, w, h = a.x, a.y, a.width, a.height
-        #r = STYLE_COMPACT_BUTTON_CORNER_RADIUS
-        #if self.state == gtk.STATE_NORMAL:
-            #pass
-        #elif self.state == gtk.STATE_ACTIVE:
-            #theme.paint_bg_active_shallow(cr, self, x, y, w, h, 2.5)
-            #self.draw_arrow(x, y, w, h)
-        #else:
-            #theme.paint_bg(cr, self, x, y, w, h, r)
-            #self.draw_arrow(x, y, w, h)
-
-        #if self.has_focus():
-            #self.style.paint_focus(self.window,
-                                   #self.state,
-                                   #(x+2, y+2, w-4, h-4),
-                                   #self,
-                                   #'button',
-                                   #x+2, y+2, w-4, h-4)
-        #return
-
-
-class BasicButton(PushButton):
-
-    def __init__(self, markup):
-        PushButton.__init__(self, markup, image=None)
-        self.set_border_width(STYLE_FEATURED_BORDER_WIDTH)
-
-        # determine layout width
-        layout = self.label.get_layout()
-        lw = layout.get_pixel_extents()[1][2]   # ink extents width
-
-        # width request
-        w = lw + 2*self.get_border_width() + STYLE_FEATURED_ARROW_WIDTH
-        self.set_size_request(w, -1)
-
-        self.add(self.label)
-        self.show_all()
         return
 
 
@@ -1212,7 +1170,7 @@ class MoreButton(PushButton):
 
         # override arrow width and colour palatte
         self.theme.properties['arrow_width'] = STYLE_FEATURED_ARROW_WIDTH
-        #self._define_custom_palatte()
+        self._define_custom_palatte()
         # override shape
         self.shape = pathbar_common.SHAPE_START_ARROW
 
@@ -1221,10 +1179,10 @@ class MoreButton(PushButton):
         lw = layout.get_pixel_extents()[1][2]   # ink extents width
 
         # width request
-        w = lw + 4*self.get_border_width() + STYLE_FEATURED_ARROW_WIDTH
+        w = lw + 8*self.get_border_width() + STYLE_FEATURED_ARROW_WIDTH
         self.set_size_request(w, -1)
 
-        align = gtk.Alignment(STYLE_FEATURED_LABEL_XALIGNMENT, 0.5)
+        align = gtk.Alignment(0.5, 0.5)
         align.add(self.label)
 
         self.add(align)
@@ -1233,28 +1191,27 @@ class MoreButton(PushButton):
 
     def _define_custom_palatte(self):
         orange = pathbar_common.color_from_string(STYLE_FEATURED_BASE_COLOR)
-        midorange = orange.mix(self.theme.theme.mid[gtk.STATE_ACTIVE], 0.2)
 
         self.theme.gradients = {
-            gtk.STATE_NORMAL:      (orange.shade(1.2), orange),
-            gtk.STATE_ACTIVE:      (midorange, midorange.shade(0.9)),
+            gtk.STATE_NORMAL:      (orange.shade(1.125), orange.shade(0.99)),
+            gtk.STATE_ACTIVE:      (orange.shade(0.97), orange.shade(0.85)),
             gtk.STATE_SELECTED:    (orange, orange),
-            gtk.STATE_PRELIGHT:    (orange.shade(1.4), orange.shade(1.2)),
+            gtk.STATE_PRELIGHT:    (orange.shade(1.2), orange.shade(1.1)),
             gtk.STATE_INSENSITIVE: (self.theme.theme.mid, self.theme.theme.mid)}
 
         self.theme.dark_line = {
-            gtk.STATE_NORMAL:       orange.darken(),
-            gtk.STATE_ACTIVE:       orange.darken(),
+            gtk.STATE_NORMAL:       orange.shade(0.65),
+            gtk.STATE_ACTIVE:       orange.shade(0.65),
             gtk.STATE_PRELIGHT:     orange.darken(),
-            gtk.STATE_SELECTED:     orange.darken(),
-            gtk.STATE_INSENSITIVE:  orange.darken()}
+            gtk.STATE_SELECTED:     orange.shade(0.65),
+            gtk.STATE_INSENSITIVE:  orange.shade(0.65)}
 
         self.theme.light_line = {
-            gtk.STATE_NORMAL:       orange.lighten(),
-            gtk.STATE_ACTIVE:       orange.lighten(),
-            gtk.STATE_PRELIGHT:     orange.lighten(),
-            gtk.STATE_SELECTED:     orange.lighten(),
-            gtk.STATE_INSENSITIVE:  orange.lighten()}
+            gtk.STATE_NORMAL:       orange.shade(0.915),
+            gtk.STATE_ACTIVE:       orange.shade(0.825),
+            gtk.STATE_PRELIGHT:     orange,
+            gtk.STATE_SELECTED:     orange,
+            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
         return
 
 
@@ -1490,9 +1447,16 @@ class Test:
         w.show_all()
         return
 
+def draw_skip(widget_area, expose_area):
+    return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
+
 def floats_from_string(spec):
     color = gtk.gdk.color_parse(spec)
     return color.red_float, color.green_float, color.blue_float
+
+def floats_from_string_with_alpha(spec, a):
+    r, g, b = floats_from_string(spec)
+    return r, g, b, a
 
 def rounded_rectangle(cr, x, y, w, h, r):
     cr.save()
