@@ -589,7 +589,7 @@ class FramedSection(gtk.VBox):
         cr.clip()
 
         # fill frame light gray
-        rounded_rectangle(cr, a.x+1, a.y+1, a.width-1, a.height-1, STYLE_FRAME_CORNER_RADIUS)
+        rounded_rectangle(cr, a.x+1, a.y+1, a.width-1, a.height-1, STYLE_FRAME_CORNER_RADIUS-1)
         cr.set_source_rgb(*floats_from_string(STYLE_FRAME_FILL_COLOR))
         cr.fill()
 
@@ -601,7 +601,7 @@ class FramedSection(gtk.VBox):
             r, g, b = floats_from_string(STYLE_FRAME_HEADER_FILL_COLOR)
             lin = cairo.LinearGradient(0, a.y, 0, a.y+h)
             lin.add_color_stop_rgba(0.0, r, g, b, 1.0)
-            lin.add_color_stop_rgba(1.0, r, g, b, 0.4)
+            lin.add_color_stop_rgba(1.0, r, g, b, 0.6)
 
             rounded_rectangle_irregular(cr,
                                         a.x, a.y,
@@ -628,18 +628,18 @@ class FramedSection(gtk.VBox):
         rounded_rectangle(cr, a.x, a.y, a.width-1, a.height-1, STYLE_FRAME_CORNER_RADIUS)
         cr.stroke()
 
-        cr.set_source_rgba(r,g,b, 0.4)
-        rounded_rectangle(cr, a.x-1, a.y-1, a.width+1, a.height+1, STYLE_FRAME_CORNER_RADIUS+1)
-        cr.stroke()
+        #cr.set_source_rgba(r,g,b, 0.4)
+        #rounded_rectangle(cr, a.x-1, a.y-1, a.width+1, a.height+1, STYLE_FRAME_CORNER_RADIUS+1)
+        #cr.stroke()
 
-        cr.set_source_rgba(r,g,b, 0.1)
-        rounded_rectangle(cr, a.x-2, a.y-2, a.width+3, a.height+3, STYLE_FRAME_CORNER_RADIUS+2)
-        cr.stroke()
+        #cr.set_source_rgba(r,g,b, 0.1)
+        #rounded_rectangle(cr, a.x-2, a.y-2, a.width+3, a.height+3, STYLE_FRAME_CORNER_RADIUS+2)
+        #cr.stroke()
 
         if self.has_label:
             cr.set_source_rgba(r, g, b, 0.6)
             cr.move_to(a.x, a.y + h + 1)
-            cr.rel_line_to(a.width, 0)
+            cr.rel_line_to(a.width-1, 0)
             cr.stroke()
 
         cr.restore()
@@ -909,12 +909,13 @@ class FeaturedPoster(gtk.EventBox):
 
     def draw(self, cr, a, expose_area, app, layout, alpha):
         cr.save()
-        #self.more_info.draw(cr, self.more_info.allocation, alpha)
+        cr.rectangle(a)
+        cr.clip()
         cr.translate(a.x, a.y)
 
         if self.state == gtk.STATE_PRELIGHT and self._text_extents:
             #h = max(38, self._text_extents[3] + 6)
-            rounded_rectangle(cr, 0,0,a.width, a.height, 4)
+            rounded_rectangle(cr, 0,0,a.width, a.height, 2)
             cr.set_source_rgba(*floats_from_string_with_alpha('#F15D22', alpha))
             cr.fill()
 
@@ -947,7 +948,7 @@ class FeaturedPoster(gtk.EventBox):
         cr.paint_with_alpha(alpha)
 
         if self.state == gtk.STATE_NORMAL:
-            color = '#000'
+            color = '#3C3B37'
         else:
             color = '#FFF'
         layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
@@ -1172,7 +1173,7 @@ class MoreButton(PushButton):
         self.theme.properties['arrow_width'] = STYLE_FEATURED_ARROW_WIDTH
         self._define_custom_palatte()
         # override shape
-        self.shape = pathbar_common.SHAPE_START_ARROW
+        #self.shape = pathbar_common.SHAPE_START_ARROW
 
         # determine layout width
         layout = self.label.get_layout()
