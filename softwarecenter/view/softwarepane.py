@@ -181,6 +181,7 @@ class SoftwarePane(gtk.VBox):
         index = 0
         if model and current_app in model.app_index_map:
             index =  model.app_index_map.get(current_app)
+            print "found app: %s at index %s" % (current_app.pkgname, index)
         self.app_view.set_cursor(index)
 
     def get_status_text(self):

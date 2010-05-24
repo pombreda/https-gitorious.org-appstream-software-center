@@ -249,8 +249,6 @@ class AppStore(gtk.GenericTreeModel):
     # external API
     def clear(self):
         self.apps = []
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
 
     def update(self, appstore):
         """ update this appstore to match data from another """
