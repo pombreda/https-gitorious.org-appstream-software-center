@@ -26,6 +26,7 @@ from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
+from aptdaemon.defer import inline_callbacks
 import gtk
 
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
@@ -81,57 +82,68 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # first arg is force, second update_only
         axi.update_async(True, True)
 
+    @inline_callbacks
     def upgrade(self, pkgname, appname, iconname):
         """ upgrade a single package """
         self.emit("transaction-started")
-        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
-                                                            appname, iconname)
-        self.aptd_client.upgrade_packages([pkgname],
-                                          reply_handler=reply_handler,
-                                          error_handler=self._on_trans_error)
+        try:
+            trans = yield self.aptd_client.upgrade_packages([pkgname],
+                                                            defer=True)
+            yield self._run_transaction(trans, pkgname, appname, iconname)
+        except Expcetion, error:
+            self._on_trans_error(error)
 
+    @inline_callbacks
     def remove(self, pkgname, appname, iconname):
         """ remove a single package """
         self.emit("transaction-started")
-        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
-                                                            appname, iconname)
-        self.aptd_client.remove_packages([pkgname], wait=False, 
-                                         reply_handler=reply_handler,
-                                         error_handler=self._on_trans_error)
+        try:
+            trans = yield self.aptd_client.remove_packages([pkgname],
+                                                           defer=True)
+            yield self._run_transaction(trans, pkgname, appname, iconname)
+        except Expcetion, error:
+            self._on_trans_error(error)
 
+    @inline_callbacks
     def install(self, pkgname, appname, iconname):
         """ install a single package """
         self.emit("transaction-started")
-        reply_handler = lambda trans: self._run_transaction(trans, pkgname,
-                                                            appname, iconname)
-        self.aptd_client.install_packages([pkgname],
-                                          reply_handler=reply_handler,
-                                          error_handler=self._on_trans_error)
+        try:
+            trans = yield self.aptd_client.install_packages([pkgname],
+                                                            defer=True)
+            yield self._run_transaction(trans, pkgname, appname, iconname)
+        except Expcetion, error:
+            self._on_trans_error(error)
 
+    @inline_callbacks
     def install_multiple(self, pkgnames, appnames, iconnames):
         """ queue a list of packages for install  """
         for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
-            self.install(pkgname, appname, iconname)
+            yield self.install(pkgname, appname, iconname)
 
+    @inline_callbacks
     def reload(self):
         """ reload package list """
-        reply_handler = lambda trans: self._run_transaction(trans, None, None,
-                                                            None)
-        self.aptd_client.update_cache(reply_handler=reply_handler,
-                                      error_handler=self._on_trans_error)
+        try:
+            trans = yield self.aptd_client.update_cache(defer=True)
+            yield self._run_transaction(trans, pkgname, appname, iconname)
+        except Expcetion, error:
+            self._on_trans_error(error)
 
+    @inline_callbacks
     def enable_component(self, component):
         logging.debug("enable_component: %s" % component)
         try:
-            self.aptd_client.enable_distro_component(component)
-        except dbus.exceptions.DBusException, e:
-            if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                logging.error("enable_component: '%s'" % e)
+            yield self.aptd_client.enable_distro_component(component, defer=True)
+        except dbus.DBusException, err:
+            if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                logging.error("enable_component: '%s'" % err)
                 return
             raise
         # now update the cache
-        self.reload()
+        yield self.reload()
 
+    @inline_callbacks
     def enable_channel(self, channelfile):
         import aptsources.sourceslist
 
@@ -144,16 +156,16 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if entry.invalid:
                 continue
             sourcepart = os.path.basename(channelfile)
-            try:
-                self.aptd_client.add_repository(
-                    entry.type, entry.uri, entry.dist, entry.comps,
+            args = (entry.type, entry.uri, entry.dist, entry.comps,
                     "Added by software-center", sourcepart)
-            except dbus.exceptions.DBusException, e:
-                if e._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                    logging.error("add_repository: '%s'" % e)
+            try:
+                yield self.aptd_client.add_repository(*args, defer=True)
+            except dbus.DBusException, err:
+                if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                    logging.error("add_repository: '%s'" % err)
                     return
         # now update the cache
-        self.reload()
+        yield self.reload()
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
@@ -195,21 +207,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self.emit("transaction-progress-changed", pkgname, progress)
         except KeyError:
             pass
-
-    def _on_trans_reply(self):
-        # dummy callback for now, but its required, otherwise the aptdaemon
-        # client blocks the UI and keeps gtk from refreshing
-        logging.debug("_on_trans_reply")
-
-    def _on_trans_error(self, error):
-        logging.warn("_on_trans_error: %s" % error)
-        # re-enable the action button again if anything went wrong
-        if (error._dbus_error_name == "org.freedesktop.PolicyKit.Error.NotAuthorized" or
-            error._dbus_error_name == "org.freedesktop.DBus.Error.NoReply"):
-            pass
-        else:
-            raise error
-        self.emit("transaction-stopped")
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
@@ -267,44 +264,45 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         else:
             transaction.cancel()
 
-    def set_http_proxy(self, trans):
-        """ set http proxy based on gconf and attach it to a transaction """
-        http_proxy = get_http_proxy_string_from_gconf()
-        if http_proxy:
-            trans.set_http_proxy(http_proxy, reply_handler=lambda t: True,
-                                 error_handler=self._on_trans_error)
-
+    @inline_callbacks
     def _run_transaction(self, trans, pkgname, appname, iconname):
         # connect signals
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
         trans.connect("finished", self._on_trans_finished)
-        # set appname/iconname/pkgname only if we actually have one
-        if appname:
-            trans.set_meta_data(sc_appname=appname, 
-                                reply_handler=lambda t: True,
-                                error_handler=self._on_trans_error)
-        if iconname:
-            trans.set_meta_data(sc_iconname=iconname,
-                                reply_handler=lambda t: True,
-                                error_handler=self._on_trans_error)
-        # we do not always have a pkgname, e.g. "cache_update" does not
-        if pkgname:
-            trans.set_meta_data(sc_pkgname=pkgname,
-                                reply_handler=lambda t: True,
-                                error_handler=self._on_trans_error)
-            # setup debconf only if we have a pkg
-            trans.set_debconf_frontend("gnome", reply_handler=lambda t: True,
-                                       error_handler=self._on_trans_error)
-            # set this once the new aptdaemon 0.2.x API can be used
-            trans.set_remove_obsoleted_depends(True, 
-                                               reply_handler=lambda t: True,
-                                               error_handler=self._on_trans_error)
-            
-        # set proxy and run
-        self.set_http_proxy(trans)
-        trans.run(error_handler=self._on_trans_error,
-                  reply_handler=self._on_trans_reply)
+        try:
+            # set appname/iconname/pkgname only if we actually have one
+            if appname:
+                yield trans.set_meta_data(sc_appname=appname, defer=True)
+            if iconname:
+                yield trans.set_meta_data(sc_iconname=iconname, defer=True)
+            # we do not always have a pkgname, e.g. "cache_update" does not
+            if pkgname:
+                yield trans.set_meta_data(sc_pkgname=pkgname, defer=True)
+                # setup debconf only if we have a pkg
+                yield trans.set_debconf_frontend("gnome", defer=True)
+                # set this once the new aptdaemon 0.2.x API can be used
+                trans.set_remove_obsoleted_depends(True, defer=True)
+            # set proxy and run
+            http_proxy = get_http_proxy_string_from_gconf()
+            if http_proxy:
+                trans.set_http_proxy(http_proxy, defer=True)
+            yield trans.run(defer=True)
+        except Exception, error:
+            self._on_trans_error(error)
+
+    def _on_trans_error(self, error):
+        logging.warn("_on_trans_error: %s", error)
+        # re-enable the action button again if anything went wrong
+        self.emit("transaction-stopped")
+        if isinstance(error, dbus.DBusException):
+            name = error.get_dbus_name()
+            if name in ["org.freedesktop.PolicyKit.Error.NotAuthorized",
+                        "org.freedesktop.DBus.Error.NoReply"]:
+                pass
+        else:
+            raise error
+
 
 if __name__ == "__main__":
     #c = client.AptClient()
