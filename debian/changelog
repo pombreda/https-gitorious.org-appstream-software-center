@@ -4,6 +4,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - only reselect a channel node when a model is available
       (LP: #578497)
+  * fix "List view forgets selected row" regression (LP: #584969)
   
   [ Michael Vogt ]
   * merged  lp:~glatzor/software-center/glatzor to get improved

@@ -249,8 +249,6 @@ class AppStore(gtk.GenericTreeModel):
     # external API
     def clear(self):
         self.apps = []
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
 
     def update(self, appstore):
         """ update this appstore to match data from another """
@@ -260,6 +258,8 @@ class AppStore(gtk.GenericTreeModel):
         for i in range(to_update):
             self.apps[i] = appstore.apps[i]
             self.row_changed(i, self.get_iter(i))
+            self.app_index_map[self.apps[i]] = i
+            self.pkgname_index_map[self.apps[i].pkgname] = i
 
         to_remove = max(0, len(self) - len(appstore))
         for i in range(to_remove):
@@ -280,8 +280,6 @@ class AppStore(gtk.GenericTreeModel):
         self.search_query = appstore.search_query
         self.sorted = appstore.sorted
         self.filter = appstore.filter
-        self.app_index_map = appstore.app_index_map
-        self.pkgname_index_map = appstore.pkgname_index_map
         self.exact = appstore.exact
         self._existing_apps = appstore._existing_apps
         self._installable_apps = appstore._installable_apps
