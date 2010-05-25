@@ -158,9 +158,10 @@ class ViewSwitcher(gtk.TreeView):
         we need to reselect it
         """
         model = self.get_model()
-        channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name)
-        if channel_iter_to_select:
-            self.set_cursor(model.get_path(channel_iter_to_select))
+        if model:
+            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name)
+            if channel_iter_to_select:
+                self.set_cursor(model.get_path(channel_iter_to_select))
 
 class ViewSwitcherList(gtk.TreeStore):
     

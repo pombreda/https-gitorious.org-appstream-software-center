@@ -1,3 +1,11 @@
+software-center (2.1.2) UNRELEASED; urgency=low
+
+  * softwarecenter/view/viewswitcher.py:
+    - only reselect a channel node when a model is available
+      (LP: #578497)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 24 May 2010 20:43:33 -0400
+
 software-center (2.1.1) maverick; urgency=low
 
   * softwarecenter/view/channelpane.py:
