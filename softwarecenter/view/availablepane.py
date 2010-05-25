@@ -210,6 +210,9 @@ class AvailablePane(SoftwarePane):
 
         old_model = self.app_view.get_model()
         if old_model is not None:
+            # if queries for the old and new models match, do nothing
+            if query.get_description() == old_model.search_query.get_description():
+                return
             # *ugh* deactivate the old model because otherwise it keeps
             # getting progress_changed events and eats CPU time until its
             # garbage collected
