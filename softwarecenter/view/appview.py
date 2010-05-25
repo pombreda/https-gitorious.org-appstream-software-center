@@ -92,7 +92,7 @@ class AppStore(gtk.GenericTreeModel):
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
-                 sort=False, filter=None, exact=False):
+                 sort=False, filter=None, exact=False, icon_size=0):
         """
         Initalize a AppStore.
 
@@ -115,9 +115,10 @@ class AppStore(gtk.GenericTreeModel):
         self.cache = cache
         self.db = db
         self.icons = icons
+        self.icon_size = icon_size or self.ICON_SIZE
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", lambda theme: _app_icon_cache.clear())
-        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
         self.apps = []
         # this is used to re-set the cursor
         self.app_index_map = {}
@@ -405,7 +406,7 @@ class AppStore(gtk.GenericTreeModel):
                 return s
             elif column == self.COL_ICON:
                 return self.icons.load_icon(MISSING_PKG_ICON,
-                                            self.ICON_SIZE, 0)
+                                            self.icon_size, 0)
             elif column == self.COL_INSTALLED:
                 return False
             elif column == self.COL_AVAILABLE:
@@ -453,7 +454,7 @@ class AppStore(gtk.GenericTreeModel):
                     # icons.load_icon takes between 0.001 to 0.01s on my
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
-                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
+                    icon = self.icons.load_icon(icon_name, self.icon_size, 0)
                     _app_icon_cache[icon_name] = icon
                     return icon
             except glib.GError, e:
@@ -1096,6 +1097,7 @@ class AppView(gtk.TreeView):
                                     available=AppStore.COL_AVAILABLE,
                                     action_in_progress=AppStore.COL_ACTION_IN_PROGRESS,
                                     exists=AppStore.COL_EXISTS)
+
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)

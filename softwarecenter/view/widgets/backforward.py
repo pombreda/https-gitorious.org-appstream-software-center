@@ -41,20 +41,20 @@ class BackForwardButton(gtk.HBox):
                                     gobject.TYPE_NONE,
                                     (gtk.gdk.Event,))}
 
-    def __init__(self):
+    def __init__(self, part_size=None):
         gtk.HBox.__init__(self)
         self.theme = pathbar_common.PathBarStyle(self)
         sep = SeparatorPart()
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             # ltr
-            self.left = ButtonPartLeft('left-clicked')
-            self.right = ButtonPartRight('right-clicked')
+            self.left = ButtonPartLeft('left-clicked', part_size)
+            self.right = ButtonPartRight('right-clicked', part_size)
             self.set_button_atk_info_ltr()
         else:
             # rtl
-            self.left = ButtonPartRight('left-clicked')
-            self.right = ButtonPartLeft('right-clicked')
+            self.left = ButtonPartRight('left-clicked', part_size)
+            self.right = ButtonPartLeft('right-clicked', part_size)
             self.set_button_atk_info_rtl()
 
         atk_obj = self.get_accessible()
@@ -153,10 +153,11 @@ class ButtonPart(gtk.DrawingArea):
     ARROW_SIZE = (12,12)
     DEFAULT_SIZE = (31, 27)
 
-    def __init__(self, arrow_type, signal_name):
+    def __init__(self, arrow_type, signal_name, size=None):
         gtk.DrawingArea.__init__(self)
         self.set_redraw_on_allocate(False)
-        self.set_size_request(*self.DEFAULT_SIZE)
+        size = size or self.DEFAULT_SIZE
+        self.set_size_request(*size)
         self.shape = pathbar_common.SHAPE_RECTANGLE
         self.button_down = False
         self.shadow_type = gtk.SHADOW_OUT
@@ -287,8 +288,8 @@ class ButtonPart(gtk.DrawingArea):
 
 class ButtonPartLeft(ButtonPart):
 
-    def __init__(self, sig_name):
-        ButtonPart.__init__(self, gtk.ARROW_LEFT, sig_name)
+    def __init__(self, sig_name, size=None):
+        ButtonPart.__init__(self, gtk.ARROW_LEFT, sig_name, size)
         self.connect("expose-event", self._on_expose, self.expose_pathbar)
         return
 
@@ -306,8 +307,8 @@ class ButtonPartLeft(ButtonPart):
 
 class ButtonPartRight(ButtonPart):
 
-    def __init__(self, sig_name):
-        ButtonPart.__init__(self, gtk.ARROW_RIGHT, sig_name)
+    def __init__(self, sig_name, size=None):
+        ButtonPart.__init__(self, gtk.ARROW_RIGHT, sig_name, size)
         self.connect("expose-event", self._on_expose, self.expose_pathbar)
         return
 
