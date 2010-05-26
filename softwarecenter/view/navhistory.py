@@ -29,9 +29,7 @@ class NavigationHistory(object):
     class to manage navigation history in the "Get Software" section (the
     available pane).
     """
-
     MAX_NAV_ITEMS = 25  # limit number of NavItems allowed in the NavStack
-
 
     def __init__(self, available_pane):
         self.available_pane = available_pane
@@ -41,12 +39,8 @@ class NavigationHistory(object):
         # different page) we need to update the search terms here
         available_pane.searchentry.connect("terms-changed",
                                            self.on_search_terms_changed)
-        # use stacks to track navigation history
+        # create stack to track navigation history
         self._nav_stack = NavigationStack(self.MAX_NAV_ITEMS)
-
-    def on_search_terms_changed(self, entry, terms):
-        # The search terms changed, update them in the current navigation item
-        self._nav_stack[self._nav_stack.cursor].apps_search_term = terms
 
     def navigate(self, nav_item):
         """
@@ -64,14 +58,6 @@ class NavigationHistory(object):
         if self._nav_stack.cursor > 0:
             self.available_pane.back_forward.left.set_sensitive(True)
         self.available_pane.back_forward.right.set_sensitive(False)
-
-    def navigate_no_cursor_step(self, nav_item):
-        if in_replay_history_mode:
-            return
-
-        nav_item.parent = self
-        self._nav_stack.append_no_cursor_step(nav_item)
-        return
 
     def nav_forward(self):
         """
@@ -98,6 +84,12 @@ class NavigationHistory(object):
             if self.available_pane.back_forward.left.has_focus():
                 self.available_pane.back_forward.right.grab_focus()
             self.available_pane.back_forward.left.set_sensitive(False)
+            
+    def on_search_terms_changed(self, entry, terms):
+        """
+        The search terms changed, track them in the current navigation item
+        """
+        self._nav_stack[self._nav_stack.cursor].apps_search_term = terms
 
     def get_last_label(self):
         if self._nav_stack.stack:
@@ -222,16 +214,6 @@ class NavigationStack(object):
         self.stack.append(item)
         self.cursor = len(self.stack)-1
         logging.debug('A:%s' % repr(self))
-        return
-
-    def append_no_cursor_step(self, item):
-        if not self._isok(item):
-            logging.debug('a:%s' % repr(self))
-            return
-        if len(self.stack) + 1 > self.max_length:
-            self.stack.pop(0)
-        self.stack.append(item)
-        logging.debug('a:%s' % repr(self))
         return
 
     def step_back(self):

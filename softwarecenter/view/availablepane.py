@@ -409,12 +409,6 @@ class AvailablePane(SoftwarePane):
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
 
-    def _check_nav_history(self, display_cb):
-        if self.navigation_bar.get_last().label != self.nav_history.get_last_label():
-            nav_item = NavigationItem(self, display_cb)
-            self.nav_history.navigate_no_cursor_step(nav_item)
-        return
-
     # callbacks
     def on_cache_ready(self, cache):
         """ refresh the application list when the cache is re-opened """
@@ -551,7 +545,6 @@ class AvailablePane(SoftwarePane):
         logging.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
-        #self._check_nav_history(self.display_list)
         self.navigation_bar.add_with_id(
             category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
@@ -568,10 +561,8 @@ class AvailablePane(SoftwarePane):
         logging.debug("on_application_selected: '%s'" % app)
 
         if self.apps_subcategory:
-            #self._check_nav_history(self.display_list_subcat)
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
-            #self._check_nav_history(self.display_list)
             self.current_app_by_category[self.apps_category] = app
 
     def on_nav_back_clicked(self, widget, event):
