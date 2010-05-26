@@ -39,7 +39,8 @@ M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
 BORDER_WIDTH_LARGE =    12
-BORDER_WIDTH_SMALL =    6
+BORDER_WIDTH_MED =    6
+BORDER_WIDTH_SMALL = 3
 
 VSPACING_XLARGE =   12
 VSPACING_LARGE =    6    # vertical spacing between page elements
@@ -63,6 +64,8 @@ CAT_BUTTON_FIXED_WIDTH =    108
 CAT_BUTTON_MIN_HEIGHT =     96
 CAT_BUTTON_BORDER_WIDTH =   6
 CAT_BUTTON_CORNER_RADIUS =  8
+
+CAROSEL_TRANSITION_TIMEOUT = 15000  # 15 seconds
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -126,7 +129,7 @@ class CategoriesView(gtk.ScrolledWindow):
         gtk.ScrolledWindow.__init__(self)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
 
-        self.vbox = gtk.VBox(spacing=VSPACING_LARGE)
+        self.vbox = gtk.VBox(spacing=VSPACING_XLARGE)
         self.vbox.set_border_width(BORDER_WIDTH_LARGE)
         viewport = gtk.Viewport()
         viewport.set_shadow_type(gtk.SHADOW_NONE)
@@ -188,12 +191,28 @@ class CategoriesView(gtk.ScrolledWindow):
                                  self.apps_filter)
 
         carosel = FeaturedView(featured_apps)
-        carosel.more_btn.connect('clicked', self._on_category_clicked, featured_cat)
+        carosel.more_btn.connect('clicked',
+                                 self._on_category_clicked,
+                                 featured_cat)
+ 
         for poster in carosel.posters:
             poster.connect('clicked', self._on_app_clicked)
 
+        carosel.show_hide_btn.connect('clicked',
+                                      self._on_show_hide_carosel_clicked,
+                                      carosel)
+
         self.carosel = carosel
         self.vbox.pack_start(carosel, False)
+        return
+
+    def _full_redraw(self):
+        def _redraw():
+            self.queue_draw()
+            return False
+
+        self.queue_draw()
+        gobject.idle_add(_redraw)
         return
 
     def _append_departments(self):
@@ -271,10 +290,19 @@ class CategoriesView(gtk.ScrolledWindow):
         self.emit("category-selected", cat)
         return
 
+    def _on_show_hide_carosel_clicked(self, btn, carosel):
+        if carosel.hbox.get_property('visible'):
+            carosel.show_carosel(False)
+        else:
+            carosel.show_carosel(True)
+
+        self._full_redraw()
+        return
+
     def _get_layout_best_fit_width(self):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - 2*BORDER_WIDTH_LARGE - 2*BORDER_WIDTH_SMALL
+        return self.parent.allocation.width - 2*BORDER_WIDTH_LARGE - 2*BORDER_WIDTH_MED
 
     def _on_allocate(self, widget, allocation):
         if self._prev_width != widget.parent.allocation.width:
@@ -287,22 +315,18 @@ class CategoriesView(gtk.ScrolledWindow):
                 self.departments.clear_rows()
                 self.departments.set_width(best_fit)
 
-        def idle_redraw():
-            self.queue_draw()
-            return False
-
-        self.queue_draw()
-        gobject.idle_add(idle_redraw)   #  ewww
+        self._full_redraw()   #  ewww
         return
 
     def _on_expose(self, widget, event):
         expose_area = event.area
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
-        cr.clip_preserve()
+        cr.clip()
+        #cr.clip_preserve()
 
-        cr.set_source_rgb(1,1,1)
-        cr.fill()
+        #cr.set_source_rgb(1,1,1)
+        #cr.fill()
 
         if not self.in_subsection:
             # draw featured carosel
@@ -514,8 +538,8 @@ class FramedSection(gtk.VBox):
         self.header = gtk.HBox()
         self.body = gtk.VBox()
 
-        self.header.set_border_width(BORDER_WIDTH_SMALL)
-        self.body.set_border_width(BORDER_WIDTH_SMALL)
+        self.header.set_border_width(BORDER_WIDTH_MED)
+        self.body.set_border_width(BORDER_WIDTH_MED)
         self.body.set_spacing(VSPACING_LARGE)
 
         align = gtk.Alignment(0.5, 0.5)
@@ -638,7 +662,7 @@ class LayoutView(FramedSection):
         self.body.pack_start(row, False)
 
         spacing = self.hspacing
-        width -= 3*BORDER_WIDTH_SMALL
+        width -= 3*BORDER_WIDTH_MED
         w = 0
 
         for cat in self.widget_list:
@@ -728,11 +752,23 @@ class FeaturedView(FramedSection):
         self.featured_apps = featured_apps
 
         self.set_label(H2 % _('Showcase'))
-        label = 'Browse all featured applications'
-        self.more_btn = MoreButton('<span color="%s"><big>%s</big></span>' % (COLOR_WHITE, label))
+
+        # show all featured apps orange button
+        label = _('Browse all featured applications')
+        self.more_btn = BasicButton('<span color="%s"><big>%s</big></span>' % (COLOR_WHITE, label))
+        # override theme palate with orange palate
+        self.more_btn.use_orange_palatte()
+
+        # align the more button in the center
         align = gtk.Alignment(1.0, 0.5)
         align.add(self.more_btn)
         self.body.pack_end(align, False)
+
+        # show / hide header button
+        self._hide_label = _('<small>%s</small>' % 'Hide')
+        self._show_label = _('<small>%s</small>' % 'Show')
+        self.show_hide_btn = BasicButton(self._hide_label)
+        self.header.pack_end(self.show_hide_btn, False)
 
         self._icon_size = self.featured_apps.icon_size
         self._offset = 0
@@ -746,13 +782,11 @@ class FeaturedView(FramedSection):
         self._init_layout()
 
         # init asset cache for each poster
-        for i, poster in enumerate(self.posters):
-            index = i+self._offset
-            if index == len(self.featured_apps):
-                break
-            poster.cache_assets(self.featured_apps[index], self._layout)
+        self._set_next()
 
-        gobject.timeout_add(15000, self.transition)
+        # start the carosel
+        self._trans_id = gobject.timeout_add(CAROSEL_TRANSITION_TIMEOUT,
+                                             self.transition)
         return
 
     def _init_layout(self):
@@ -782,19 +816,12 @@ class FeaturedView(FramedSection):
         return True
 
     def _set_next(self):
-        n_posters = len(self.posters)
-        if self._offset < len(self.featured_apps)-n_posters:
-            self._offset += n_posters
-        else:
-            self._offset = 0
-
         # update asset cache for each poster
-        for i, poster in enumerate(self.posters):
-            index = i+self._offset
-            if index == len(self.featured_apps):
-                break
-            poster.cache_assets(self.featured_apps[index], self._layout)
-
+        for poster in self.posters:
+            if self._offset == len(self.featured_apps):
+                    self._offset = 0
+            poster.cache_assets(self.featured_apps[self._offset], self._layout)
+            self._offset += 1
         self._fader = gobject.timeout_add(50, self._fade_in)
         return
 
@@ -803,8 +830,27 @@ class FeaturedView(FramedSection):
         return loop
 
     def set_width(self, width):
-        width -=  3*BORDER_WIDTH_SMALL
+        width -=  3*BORDER_WIDTH_MED
         self.more_btn.set_size_request(width, -1)
+        return
+
+    def show_carosel(self, show_carosel):
+        btn = self.show_hide_btn
+        if show_carosel:
+            btn.set_label(self._hide_label)
+            for poster in self.posters:
+                self._alpha = 1.0
+                poster.show()
+            self.hbox.show()
+            self._trans_id = gobject.timeout_add(CAROSEL_TRANSITION_TIMEOUT,
+                                                 self.transition)
+        else:
+            gobject.source_remove(self._fader)
+            gobject.source_remove(self._trans_id)
+            self.hbox.hide()
+            for poster in self.posters:
+                poster.hide()
+            btn.set_label(self._show_label)
         return
 
     def draw(self, cr, a, expose_area):
@@ -813,6 +859,7 @@ class FeaturedView(FramedSection):
         cr.save()
         FramedSection.draw(self, cr, a, expose_area)
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
+        self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area)
 
         alpha = self._alpha
         layout = self._layout
@@ -821,12 +868,7 @@ class FeaturedView(FramedSection):
         layout.set_width((w-self._icon_size-20)*pango.SCALE)
 
         for i, poster in enumerate(self.posters):
-            index = i+self._offset
-            if index == len(self.featured_apps):
-                break
-
-            app = self.featured_apps[index]
-            poster.draw(cr, poster.allocation, expose_area, app, layout, alpha)
+            poster.draw(cr, poster.allocation, expose_area, layout, alpha)
 
         cr.restore()
         return
@@ -864,6 +906,8 @@ class FeaturedPoster(gtk.EventBox):
         self.connect('leave-notify-event', self._on_leave)
         self.connect("button-press-event", self._on_button_press)
         self.connect("button-release-event", self._on_button_release)
+        self.connect("key-press-event", self._on_key_press)
+        self.connect("key-release-event", self._on_key_release)
         return
 
     def _on_enter(self, poster, event):
@@ -893,6 +937,19 @@ class FeaturedPoster(gtk.EventBox):
         s = gtk.settings_get_default()
         gobject.timeout_add(s.get_property("gtk-timeout-initial"),
                             self.emit, 'clicked')
+        return
+
+    def _on_key_press(self, cat, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421):
+            cat.set_state(gtk.STATE_ACTIVE)
+        return
+
+    def _on_key_release(self, cat, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421):
+            cat.set_state(gtk.STATE_NORMAL)
+            self.emit('clicked')
         return
 
     def cache_assets(self, app, layout):
@@ -926,20 +983,31 @@ class FeaturedPoster(gtk.EventBox):
         self._text_extents = layout.get_pixel_extents()[1]
         return
 
-    def draw(self, cr, a, expose_area, app, layout, alpha):
+    def draw(self, cr, a, expose_area, layout, alpha):
+        if draw_skip(a, expose_area): return
+        if not self.get_property('visible'): return
         cr.save()
         cr.rectangle(a)
         cr.clip()
         cr.translate(a.x, a.y)
 
         if (self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE):
-            if self.state == gtk.STATE_PRELIGHT or self.has_focus():
+            if self.state == gtk.STATE_PRELIGHT:
                 cr.set_source_rgba(*floats_from_string_with_alpha(COLOR_ORANGE, alpha))
             else:
-                cr.set_source_rgba(*floats_from_string_with_alpha(COLOR_PURPLE, alpha))
+                cr.set_source_rgb(*floats_from_string(COLOR_PURPLE))    # draw full opacity
 
             rounded_rectangle(cr, 0,0,a.width, a.height, 3)
             cr.fill()
+
+        if self.has_focus():
+            self.style.paint_focus(self.window,
+                                   self.state,
+                                   (a.x+1, a.y+1, a.width-2, a.height-2),
+                                   self,
+                                   'button',
+                                   a.x+1, a.y+1,
+                                   a.width-2, a.height-2)
 
         cr.set_source_pixbuf(self._icon_pb, *self._icon_offset)
         cr.paint_with_alpha(alpha)
@@ -1013,8 +1081,6 @@ class PushButton(gtk.EventBox):
         self.connect("button-release-event", self._on_button_release)
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
-        self.connect('focus-in-event', self._on_focus_in)
-        self.connect('focus-out-event', self._on_focus_out)
         self.connect('expose-event', lambda w, e: self._children_block_draw)
         return
 
@@ -1063,14 +1129,6 @@ class PushButton(gtk.EventBox):
             self.emit('clicked')
         return
 
-    def _on_focus_in(self, cat, event):
-        self.queue_draw()
-        return
-
-    def _on_focus_out(self, cat, event):
-        self.queue_draw()
-        return
-
     def draw(self, cr, a, expose_area, alpha=1.0):
         if draw_skip(a, expose_area): return
 
@@ -1113,7 +1171,7 @@ class CategoryButton(PushButton):
 
     def __init__(self, markup, image=None):
         PushButton.__init__(self, markup, image)
-        self.set_border_width(BORDER_WIDTH_SMALL)
+        self.set_border_width(BORDER_WIDTH_MED)
         self.label.set_line_wrap(gtk.WRAP_WORD)
         self.label.set_justify(gtk.JUSTIFY_CENTER)
 
@@ -1124,7 +1182,7 @@ class CategoryButton(PushButton):
         self.label.set_size_request(lw, -1)
 
         self.vbox = gtk.VBox(spacing=VSPACING_SMALL)
-        h = lh + VSPACING_SMALL + 2*BORDER_WIDTH_SMALL + 48 # 32 = icon size
+        h = lh + VSPACING_SMALL + 2*BORDER_WIDTH_MED + 48 # 32 = icon size
         self.vbox.set_size_request(CAT_BUTTON_FIXED_WIDTH, max(h, CAT_BUTTON_MIN_HEIGHT))
 
         self.add(self.vbox)
@@ -1160,21 +1218,11 @@ class CategoryButton(PushButton):
         return
 
 
-class MoreButton(PushButton):
+class BasicButton(PushButton):
 
     def __init__(self, markup):
         PushButton.__init__(self, markup, image=None)
         self.set_border_width(BORDER_WIDTH_SMALL)
-
-        # override arrow width and colour palatte
-#        self.theme.properties['arrow_width'] = STYLE_FEATURED_ARROW_WIDTH
-        self._define_custom_palatte()
-        # override shape
-        #self.shape = pathbar_common.SHAPE_START_ARROW
-
-        # determine layout width
-        layout = self.label.get_layout()
-        lw = layout.get_pixel_extents()[1][2]   # ink extents width
 
         align = gtk.Alignment(0.5, 0.5)
         align.add(self.label)
@@ -1183,7 +1231,26 @@ class MoreButton(PushButton):
         self.show_all()
         return
 
-    def _define_custom_palatte(self):
+    def _calc_width(self):
+        pc = self.get_pango_context()
+        layout = pango.Layout(pc)
+        layout.set_markup(self.label.get_label())
+        lw = layout.get_pixel_extents()[1][2]
+        bw = self.get_border_width()
+        self.set_size_request(lw+24, -1)
+        return
+
+    def set_border_width(self, width):
+        gtk.EventBox.set_border_width(self, width)
+        self._calc_width()
+        return
+
+    def set_label(self, label):
+        self.label.set_markup(label)
+        self._calc_width()
+        return
+
+    def use_orange_palatte(self):
         orange = pathbar_common.color_from_string(COLOR_ORANGE)
 
         self.theme.gradients = {
