@@ -189,8 +189,7 @@ class AvailablePane(SoftwarePane):
             self.scroll_app_list.show()
 
     def refresh_apps(self):
-        """refresh the applist after search changes and update the
-           navigation bar
+        """refresh the applist and update the navigation bar
         """
         #import traceback
         #print "refresh_apps"
@@ -210,9 +209,6 @@ class AvailablePane(SoftwarePane):
 
         old_model = self.app_view.get_model()
         if old_model is not None:
-            # if queries for the old and new models match, do nothing
-            if query.get_description() == old_model.search_query.get_description():
-                return
             # *ugh* deactivate the old model because otherwise it keeps
             # getting progress_changed events and eats CPU time until its
             # garbage collected
