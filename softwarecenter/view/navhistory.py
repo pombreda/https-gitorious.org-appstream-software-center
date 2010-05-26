@@ -31,8 +31,13 @@ class NavigationHistory(object):
     """
     MAX_NAV_ITEMS = 25  # limit number of NavItems allowed in the NavStack
 
-    def __init__(self, available_pane):
+    def __init__(self, 
+                 available_pane,
+                 navhistory_back_action,
+                 navhistory_forward_action):
         self.available_pane = available_pane
+        self.navhistory_back_action = navhistory_back_action
+        self.navhistory_forward_action = navhistory_forward_action
         # this is a bit ugly, but the way the available pane works
         # is that it adds the item on the first search and saves the
         # terms then. for subsequent searches (that do not go to a 
@@ -55,9 +60,14 @@ class NavigationHistory(object):
         nav_item.parent = self
         self._nav_stack.append(nav_item)
 
+        # FIXME:  Remove all direct references to self.available_pane.back_forward
+        #         and change the backforward buttons to use the corresponding actions
+        #         instead
         if self._nav_stack.cursor > 0:
             self.available_pane.back_forward.left.set_sensitive(True)
+            self.navhistory_back_action.set_sensitive(True)
         self.available_pane.back_forward.right.set_sensitive(False)
+        self.navhistory_forward_action.set_sensitive(False)
 
     def nav_forward(self):
         """
@@ -67,10 +77,12 @@ class NavigationHistory(object):
         nav_item.navigate_to()
 
         self.available_pane.back_forward.left.set_sensitive(True)
+        self.navhistory_back_action.set_sensitive(True)
         if self._nav_stack.at_end():
             if self.available_pane.back_forward.right.has_focus():
                 self.available_pane.back_forward.left.grab_focus()
             self.available_pane.back_forward.right.set_sensitive(False)
+            self.navhistory_forward_action.set_sensitive(False)
 
     def nav_back(self):
         """
@@ -80,10 +92,12 @@ class NavigationHistory(object):
         nav_item.navigate_to()
 
         self.available_pane.back_forward.right.set_sensitive(True)
+        self.navhistory_forward_action.set_sensitive(True)
         if self._nav_stack.at_start():
             if self.available_pane.back_forward.left.has_focus():
                 self.available_pane.back_forward.right.grab_focus()
             self.available_pane.back_forward.left.set_sensitive(False)
+            self.navhistory_back_action.set_sensitive(False)
             
     def on_search_terms_changed(self, entry, terms):
         """

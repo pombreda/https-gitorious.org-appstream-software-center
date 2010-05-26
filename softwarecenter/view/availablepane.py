@@ -62,9 +62,19 @@ class AvailablePane(SoftwarePane):
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
 
-    def __init__(self, cache, db, distro, icons, datadir):
+    def __init__(self, 
+                 cache, 
+                 db, 
+                 distro, 
+                 icons, 
+                 datadir, 
+                 navhistory_back_action, 
+                 navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        # navigation history actions
+        self.navhistory_back_action = navhistory_back_action
+        self.navhistory_forward_action = navhistory_forward_action
         # state
         self.apps_category = None
         self.apps_subcategory = None
@@ -82,7 +92,9 @@ class AvailablePane(SoftwarePane):
         # search mode
         self.custom_list_mode = False
         # track navigation history
-        self.nav_history = NavigationHistory(self)
+        self.nav_history = NavigationHistory(self,
+                                             self.navhistory_back_action,
+                                             self.navhistory_forward_action)
         # install backend
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed",
@@ -115,6 +127,10 @@ class AvailablePane(SoftwarePane):
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.scroll_subcategories.add_with_viewport(self.subcategories_view)
         # add nav history back/forward buttons
+        # FIXME:  Wire in new navhistory_back_action and navhistory_forward_action
+        #         to the BackForwardButton
+        self.navhistory_back_action.set_sensitive(False)
+        self.navhistory_forward_action.set_sensitive(False)
         self.back_forward = BackForwardButton()
         self.back_forward.left.set_sensitive(False)
         self.back_forward.right.set_sensitive(False)
