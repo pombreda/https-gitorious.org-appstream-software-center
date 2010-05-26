@@ -29,24 +29,23 @@ class NavigationHistory(object):
     class to manage navigation history in the "Get Software" section (the
     available pane).
     """
-
     MAX_NAV_ITEMS = 25  # limit number of NavItems allowed in the NavStack
 
-
-    def __init__(self, available_pane):
+    def __init__(self, 
+                 available_pane,
+                 navhistory_back_action,
+                 navhistory_forward_action):
         self.available_pane = available_pane
+        self.navhistory_back_action = navhistory_back_action
+        self.navhistory_forward_action = navhistory_forward_action
         # this is a bit ugly, but the way the available pane works
         # is that it adds the item on the first search and saves the
         # terms then. for subsequent searches (that do not go to a 
         # different page) we need to update the search terms here
         available_pane.searchentry.connect("terms-changed",
                                            self.on_search_terms_changed)
-        # use stacks to track navigation history
+        # create stack to track navigation history
         self._nav_stack = NavigationStack(self.MAX_NAV_ITEMS)
-
-    def on_search_terms_changed(self, entry, terms):
-        # The search terms changed, update them in the current navigation item
-        self._nav_stack[self._nav_stack.cursor].apps_search_term = terms
 
     def navigate(self, nav_item):
         """
@@ -61,17 +60,14 @@ class NavigationHistory(object):
         nav_item.parent = self
         self._nav_stack.append(nav_item)
 
+        # FIXME:  Remove all direct references to self.available_pane.back_forward
+        #         and change the backforward buttons to use the corresponding actions
+        #         instead
         if self._nav_stack.cursor > 0:
             self.available_pane.back_forward.left.set_sensitive(True)
+            self.navhistory_back_action.set_sensitive(True)
         self.available_pane.back_forward.right.set_sensitive(False)
-
-    def navigate_no_cursor_step(self, nav_item):
-        if in_replay_history_mode:
-            return
-
-        nav_item.parent = self
-        self._nav_stack.append_no_cursor_step(nav_item)
-        return
+        self.navhistory_forward_action.set_sensitive(False)
 
     def nav_forward(self):
         """
@@ -81,10 +77,12 @@ class NavigationHistory(object):
         nav_item.navigate_to()
 
         self.available_pane.back_forward.left.set_sensitive(True)
+        self.navhistory_back_action.set_sensitive(True)
         if self._nav_stack.at_end():
             if self.available_pane.back_forward.right.has_focus():
                 self.available_pane.back_forward.left.grab_focus()
             self.available_pane.back_forward.right.set_sensitive(False)
+            self.navhistory_forward_action.set_sensitive(False)
 
     def nav_back(self):
         """
@@ -94,10 +92,18 @@ class NavigationHistory(object):
         nav_item.navigate_to()
 
         self.available_pane.back_forward.right.set_sensitive(True)
+        self.navhistory_forward_action.set_sensitive(True)
         if self._nav_stack.at_start():
             if self.available_pane.back_forward.left.has_focus():
                 self.available_pane.back_forward.right.grab_focus()
             self.available_pane.back_forward.left.set_sensitive(False)
+            self.navhistory_back_action.set_sensitive(False)
+            
+    def on_search_terms_changed(self, entry, terms):
+        """
+        The search terms changed, track them in the current navigation item
+        """
+        self._nav_stack[self._nav_stack.cursor].apps_search_term = terms
 
     def get_last_label(self):
         if self._nav_stack.stack:
@@ -222,16 +228,6 @@ class NavigationStack(object):
         self.stack.append(item)
         self.cursor = len(self.stack)-1
         logging.debug('A:%s' % repr(self))
-        return
-
-    def append_no_cursor_step(self, item):
-        if not self._isok(item):
-            logging.debug('a:%s' % repr(self))
-            return
-        if len(self.stack) + 1 > self.max_length:
-            self.stack.pop(0)
-        self.stack.append(item)
-        logging.debug('a:%s' % repr(self))
         return
 
     def step_back(self):

@@ -161,7 +161,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # available pane
         self.available_pane = AvailablePane(self.cache, self.db,
                                             self.distro,
-                                            self.icons, datadir)
+                                            self.icons,
+                                            datadir,
+                                            self.navhistory_back_action,
+                                            self.navhistory_forward_action)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
@@ -434,6 +437,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
+            
+    def on_navhistory_back_action_activate(self, navhistory_back_action):
+        self.available_pane.nav_history.nav_back()
+        
+    def on_navhistory_forward_action_activate(self, navhistory_forward_action):
+        self.available_pane.nav_history.nav_forward()
             
     def _on_transaction_started(self, backend):
         self.menuitem_install.set_sensitive(False)
