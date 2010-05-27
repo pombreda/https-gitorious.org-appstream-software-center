@@ -1,3 +1,23 @@
+software-center (2.1.2) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/viewswitcher.py:
+    - only reselect a channel node when a model is available
+      (LP: #578497)
+  * fix "List view forgets selected row" regression (LP: #584969)
+  
+  [ Michael Vogt ]
+  * merged  lp:~glatzor/software-center/glatzor to get improved
+    aptdaemon API
+  * test/test_aptd.py:
+    - update tests to work with new defered magic API
+  * debian/control:
+    - update dependencies on aptdaemon
+  * merged lp:~mmcg069/software-center/improve-appview-persistence
+    (many thanks!)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 25 May 2010 15:34:55 +0200
+
 software-center (2.1.1) maverick; urgency=low
 
   * softwarecenter/view/channelpane.py:

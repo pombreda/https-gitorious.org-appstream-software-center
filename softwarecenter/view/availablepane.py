@@ -31,7 +31,9 @@ from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
 
 from appview import AppView, AppStore, AppViewFilter
-from catview import CategoriesView
+
+#from catview_webkit import CategoriesViewWebkit as CategoriesView
+from catview_gtk import CategoriesViewGtk as CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
@@ -91,24 +93,27 @@ class AvailablePane(SoftwarePane):
     def _build_ui(self):
         # categories, appview and details into the notebook in the bottom
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
+                                       self.cache,
                                        self.db,
-                                       self.icons)
-        scroll_categories = gtk.ScrolledWindow()
-        scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll_categories.add(self.cat_view)
-        self.notebook.append_page(scroll_categories, gtk.Label("categories"))
+                                       self.icons,
+                                       self.apps_filter)
+
+        #scroll_categories = gtk.ScrolledWindow()
+        self.notebook.append_page(self.cat_view, gtk.Label("categories"))
         # sub-categories view
         self.subcategories_view = CategoriesView(self.datadir,
                                                  APP_INSTALL_PATH,
+                                                 self.cache,
                                                  self.db,
                                                  self.icons,
-                                                 self.cat_view.categories[0])
+                                                 self.apps_filter,
+                                                 root_category=self.cat_view.categories[0])
         self.subcategories_view.connect(
             "category-selected", self.on_subcategory_activated)
         self.scroll_subcategories = gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.scroll_subcategories.add(self.subcategories_view)
+        self.scroll_subcategories.add_with_viewport(self.subcategories_view)
         # add nav history back/forward buttons
         self.back_forward = BackForwardButton()
         self.back_forward.left.set_sensitive(False)
@@ -124,6 +129,7 @@ class AvailablePane(SoftwarePane):
         self.apps_vbox.pack2(self.scroll_app_list)
         # app list
         self.cat_view.connect("category-selected", self.on_category_activated)
+        self.cat_view.connect("application-activated", self.on_application_activated)
         self.notebook.append_page(self.apps_vbox, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
@@ -204,6 +210,9 @@ class AvailablePane(SoftwarePane):
 
         old_model = self.app_view.get_model()
         if old_model is not None:
+            # if queries for the old and new models match, do nothing
+            if query.get_description() == old_model.search_query.get_description():
+                return
             # *ugh* deactivate the old model because otherwise it keeps
             # getting progress_changed events and eats CPU time until its
             # garbage collected
