@@ -140,7 +140,8 @@ class ActionBar(gtk.HBox):
         while len(self._label):
             last = self._label.get_children()[-1]
             self._label.remove(last)
-        self.window.set_cursor(None)
+        if self.window:
+            self.window.set_cursor(None)
         # Then hide if there's nothing else visible.
         if not len(self._btns):
             self._hide()

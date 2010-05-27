@@ -156,13 +156,13 @@ class InstalledPane(SoftwarePane):
             return ""
         length = len(model)
         if len(self.searchentry.get_text()) > 0:
-            return gettext.ngettext("%s matching item",
-                                    "%s matching items",
-                                    length) % length
+            return gettext.ngettext("%(amount)s matching item",
+                                    "%(amount)s matching items",
+                                    length) % { 'amount' : length, }
         else:
-            return gettext.ngettext("%s item installed",
-                                    "%s items installed",
-                                    length) % length
+            return gettext.ngettext("%(amount)s item installed",
+                                    "%(amount)s items installed",
+                                    length) % { 'amount' : length, }
                                     
     def get_current_app(self):
         """return the current active application object applicable

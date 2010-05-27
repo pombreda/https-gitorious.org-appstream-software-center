@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2010 Canonical
 #
 # Authors:
 #  Olivier Tilloy
@@ -84,7 +84,7 @@ class HistoryPane(gtk.VBox):
         self.searchentry = SearchEntry()
         self.searchentry.connect('terms-changed', self.on_search_terms_changed)
         self.searchentry.show()
-        self.header.pack_start(self.searchentry, padding=self.PADDING)
+        self.header.pack_start(self.searchentry, expand=False, padding=self.PADDING)
 
         self.pack_start(gtk.HSeparator(), expand=False)
 
@@ -123,7 +123,7 @@ class HistoryPane(gtk.VBox):
         self.store_filter.set_visible_func(self.filter_row)
         self.view.set_model(self.store_filter)
         all_action.set_active(True)
-        self.filename = apt_pkg.Config.FindFile("Dir::Log::History")
+        self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
         self.parse_history_log()
 
@@ -203,6 +203,10 @@ class HistoryPane(gtk.VBox):
 
     def update_view(self):
         self.store_filter.refilter()
+
+        # Expand all the matching rows
+        if self.searchentry.get_text():
+            self.view.expand_all()
 
         # Compute the number of visible changes
         self.visible_changes = 0

@@ -28,12 +28,18 @@ from gettext import gettext as _
 
 class PathBar(gtk.HBox):
 
+    DEFAULT_SIZE_REQUEST = (-1, 27)
+
     ANIMATE_FPS = 50
-    ANIMATE_DELAY = 150
+    ANIMATE_DELAY = 100
     ANIMATE_DURATION = 150
+    ANIMATE_REMOVE = -1
+    ANIMATE_APPEND = 1
+    
 
     def __init__(self, group=None):
         gtk.HBox.__init__(self)
+        self.set_size_request(*self.DEFAULT_SIZE_REQUEST)
         self.set_redraw_on_allocate(False)
 
         self._width = 0
@@ -41,8 +47,10 @@ class PathBar(gtk.HBox):
         self._active_part = None
         self._out_of_width = False
         self._button_press_origin = None
+        self._removing = False
 
         self._animate = False, None
+        self._animate_mode = self.ANIMATE_APPEND
         self._scroll_xO = 0
         self._no_draw = False
         self._scroller = None
@@ -118,14 +126,14 @@ class PathBar(gtk.HBox):
 
     def _compose_on_remove(self, last_part):
         parts = self.get_children()
-        if len(parts) == 1:
+        if len(parts) <= 2:
             last_part.set_shape(pathbar_common.SHAPE_RECTANGLE)
-        elif len(parts) == 2:
+        elif len(parts) == 3:
             root_part = parts[0]
             root_part.set_shape(pathbar_common.SHAPE_START_ARROW)
             last_part.set_shape(pathbar_common.SHAPE_END_CAP)
         else:
-            tail_part = parts[-1]
+            tail_part = parts[-2]
             tail_part.set_shape(pathbar_common.SHAPE_MID_ARROW)
             last_part.set_shape(pathbar_common.SHAPE_END_CAP)
         return
@@ -213,6 +221,80 @@ class PathBar(gtk.HBox):
         self.queue_draw_area(x+xo, y, w, h)
         return
 
+    def _scroll_init(self, scroll_callback, part):
+        a = part.get_allocation()
+        aw = self.theme['arrow_width']
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
+            x, y = a.x, a.y
+            width, height = a.width + aw, a.height
+        else:
+            x, y = a.x - aw, a.y
+            width, height = a.width + aw, a.height
+        
+        self._scroller = gobject.timeout_add(
+            max(int(1000.0 / self.ANIMATE_FPS), 10),  # interval
+            scroll_callback,
+            part,
+            part.get_size_request()[0],
+            self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
+            gobject.get_current_time(),
+            (x, y, width, height),  # clip area
+            priority=100)
+        return False
+
+    def _scroll_out_cb(self, part, distance, duration, start_t, draw_area):
+        cur_t = gobject.get_current_time()
+        xO = distance - distance*((cur_t - start_t) / duration)
+        part.invisible = False
+
+        if xO > 0:
+            self._scroll_xO = xO
+            self.queue_draw_area(*draw_area)
+        else:   # final frame
+            self._scroll_xO = 0
+            self._scroller = None
+            self.queue_draw_area(*draw_area)
+            return False
+        return True
+
+    def _scroll_in_cb(self, part, distance, duration, start_t, draw_area):
+        cur_t = gobject.get_current_time()
+        xO = distance*((cur_t - start_t) / duration)
+
+        if xO < distance:
+            self._scroll_xO = xO
+            self.queue_draw_area(*draw_area)
+        else:   # final frame
+            self._scroll_xO = 0
+            self.queue_draw_area(*draw_area)
+            self._scroller = None
+            parts = self.get_children()
+            if len(parts) > 1:
+                self._compose_on_remove(parts[-2])
+            else:
+                self._compose_on_remove(parts[0])
+            part.destroy()
+            self._removing = False
+            return False
+        return True
+
+    def _part_scroll_out(self, part):
+        self._animate = False, None
+        part.invisible = True
+        gobject.timeout_add(self.ANIMATE_DELAY,
+                            self._scroll_init,
+                            self._scroll_out_cb,
+                            part)
+        return
+
+    def _part_scroll_in(self, part):
+        self._animate = False, None
+        gobject.timeout_add(self.ANIMATE_DELAY,
+                            self._scroll_init,
+                            self._scroll_in_cb,
+                            part)
+        return
+
     def _on_expose_event(self, widget, event):
         if self._scroll_xO:
             self._expose_scroll(widget, event)
@@ -236,7 +318,10 @@ class PathBar(gtk.HBox):
                 xo = part.get_draw_xoffset()
                 x, y, w, h = a.x, a.y, a.width, a.height
                 w = part.get_draw_width()
-                theme.paint_bg(cr, part, x+xo, y, w, h)
+                if part.state != gtk.STATE_ACTIVE:
+                    theme.paint_bg(cr, part, x+xo, y, w, h)
+                else:
+                    theme.paint_bg_active_shallow(cr, part, x+xo, y, w, h)
 
                 x, y, w, h = part.get_layout_points()
 
@@ -248,7 +333,7 @@ class PathBar(gtk.HBox):
                                            'button',
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
-                theme.paint_layout(widget, part, a.x+x, a.y+y)
+                theme.paint_layout(cr, widget, part, a.x+x, a.y+y)
             else:
                 part.invisible = False
         del cr
@@ -276,7 +361,7 @@ class PathBar(gtk.HBox):
         xo = scroller.get_draw_xoffset()
         theme.paint_bg(cr, scroller, x+xo-sxO, y, w, h)
         x, y, w, h = scroller.get_layout_points()
-        theme.paint_layout(widget, scroller, a.x+x-int(sxO), a.y+y)
+        theme.paint_layout(cr, widget, scroller, a.x+x-int(sxO), a.y+y)
 
         a = static_tail.get_allocation()
         x, y, w, h = a.x, a.y, a.width, a.height
@@ -294,14 +379,13 @@ class PathBar(gtk.HBox):
 
         if self._animate[0] and self.theme['enable-animations']:
             part = self._animate[1]
-            part.invisible = True
-            self._animate = False, None
-            gobject.timeout_add(self.ANIMATE_DELAY, self._scroll_out_init, part)
+            self._part_scroll_out(part)
         else:
             self.queue_draw()
         return
 
     def _on_style_set(self, widget, old_style):
+        self.set_size_request(*self.DEFAULT_SIZE_REQUEST)
         self.theme = pathbar_common.PathBarStyle(self)
         self.set_size_request(-1, -1)
         for part in self.get_children():
@@ -314,39 +398,43 @@ class PathBar(gtk.HBox):
             self.append(part, do_callback, animate)
         return
 
-    def _scroll_out_init(self, part):
-        draw_area = part.get_allocation()
-        self._scroller = gobject.timeout_add(
-            max(int(1000.0 / self.ANIMATE_FPS), 10),  # interval
-            self._scroll_out_cb,
-            part.get_size_request()[0],
-            self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
-            gobject.get_current_time(),
-            (draw_area.x, draw_area.y,
-            draw_area.width, draw_area.height))
-        return False
+#    def _scroll_out_init(self, part):
+#        draw_area = part.get_allocation()
+#        self._scroller = gobject.timeout_add(
+#            max(int(1000.0 / self.ANIMATE_FPS), 10),  # interval
+#            self._scroll_out_cb,
+#            part.get_size_request()[0],
+#            self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
+#            gobject.get_current_time(),
+#            (draw_area.x, draw_area.y,
+#            draw_area.width, draw_area.height))
+#        return False
 
-    def _scroll_out_cb(self, distance, duration, start_t, draw_area):
-        cur_t = gobject.get_current_time()
-        xO = distance - distance*((cur_t - start_t) / duration)
+#    def _scroll_out_cb(self, distance, duration, start_t, draw_area):
+#        cur_t = gobject.get_current_time()
+#        xO = distance - distance*((cur_t - start_t) / duration)
 
-        if xO > 0:
-            self._scroll_xO = xO
-            self.queue_draw_area(*draw_area)
+#        if xO > 0:
+#            self._scroll_xO = xO
+#            self.queue_draw_area(*draw_area)
 
-        else:   # final frame
-            self._scroll_xO = 0
-            # redraw the entire widget
-            # incase some timeouts are skipped due to high system load
-            self.queue_draw()
-            self._scroller = None
-            return False
-        return True
+#        else:   # final frame
+#            self._scroll_xO = 0
+#            # redraw the entire widget
+#            # incase some timeouts are skipped due to high system load
+#            self.queue_draw()
+#            self._scroller = None
+#            return False
+#        return True
 
     def has_parts(self):
         return self.get_children() == True
 
     def get_parts(self):
+        if self._removing and len(self.get_children()) >= 2:
+            return self.get_children()[:-1]
+        elif self._removing:
+            return []
         return self.get_children()
 
     def get_last(self):
@@ -382,6 +470,7 @@ class PathBar(gtk.HBox):
         if self._scroller:
             gobject.source_remove(self._scroller)
         self._scroll_xO = 0
+        self._scroller = None
 
         self._compose_on_append(part)
         self._width += part.get_size_request()[0]
@@ -400,29 +489,57 @@ class PathBar(gtk.HBox):
     def append_no_callback(self, part):
         self.append(part, do_callback=False)
 
-    def remove(self, part):
+    def remove(self, part, animate=True):
         parts = self.get_children()
         if len(parts) <= 1: return  # protect last part
+
+        if self._scroller:
+            gobject.source_remove(self._scroller)
+            self.get_children()[-1].destroy()
+        self._scroll_xO = 0
+        self._scroller = None
+
         self._width -= part.get_size_request()[0]
-        part.destroy()
-        self._compose_on_remove(parts[-2])
+
+        if animate and not self._out_of_width:
+            self._animate = True, part
+            self._animate_mode = self.ANIMATE_REMOVE
+            self._part_scroll_in(part)
+        else:
+            self._compose_on_remove(parts[-2])
+            part.destroy()
         return
 
-    def remove_all(self, keep_first_part=True, do_callback=True):
+    def remove_all_but_first(self, do_callback=True, animate=True):
         parts = self.get_children()
-        if len(parts) < 1: return
-        if keep_first_part:
-            if len(parts) <= 1: return
+        if len(parts) <= 1 or self._removing: return
+        self._removing = True
+
+        if animate and not self._out_of_width:
+            parts = parts[2:]
+        else:
             parts = parts[1:]
+
         for part in parts:
             part.destroy()
 
-        self._width = 0
-        if keep_first_part:
-            root = self.get_parts()[0]
+        parts = self.get_children()
+        root = parts[0]
+        if animate and not self._out_of_width:
+            # XXX: there is a slight but noticable redraw issue when scrolling in
+            #      when self._out_of_width is True.  So atm, no scroll in this case.
+            tail = parts[-1]
+            root.layout.set_width(-1)   # eww but it has to be done :(
+            self._animate = True, tail
+            self._animate_mode = self.ANIMATE_REMOVE
+            self._part_scroll_in(tail)
+        else:
+            root.layout.set_width(-1)   # eww but it has to be done :(
             root.set_shape(pathbar_common.SHAPE_RECTANGLE)
-            self._width = root.get_size_request()[0]
-            if do_callback: root.callback(self, root)
+            self._removing = False
+
+        if do_callback: root.callback(self, root)
+        self._width = root.get_size_request()[0]
         return
 
     def navigate_up(self):
@@ -475,6 +592,7 @@ class PathPart(gtk.EventBox):
         pc = self._parent.get_pango_context()
         layout = pango.Layout(pc)
         layout.set_markup(self.label)
+        #layout.set_markup('<b>%s</b>' % self.label)
         layout.set_ellipsize(pango.ELLIPSIZE_END)
         self.layout = layout
         return
@@ -527,8 +645,8 @@ class PathPart(gtk.EventBox):
         w = self._adjust_width(shape, w)
         if not self.get_best_width():
             self._set_best_width(w)
-        self.set_size_request(w, h)
-        return
+        parent_h = self._parent.allocation.height
+        self.set_size_request(w, max(parent_h, h))
 
     def do_callback(self):
         self.callback(self._parent, self)
@@ -559,8 +677,8 @@ class PathPart(gtk.EventBox):
             lw -= theme['xpad']
         if self.shape == pathbar_common.SHAPE_MID_ARROW:
             lw -= theme['arrow_width']
-        self.layout.set_width(lw*pango.SCALE)
 
+        self.layout.set_width(lw*pango.SCALE)
         self._draw_width = w+theme['arrow_width']
         self.set_size_request(w, -1)
         return
@@ -632,20 +750,23 @@ class NavigationBar(PathBar):
             self.append(part, do_callback, animate)
         return
 
-    def remove_id(self, id):
+    def remove_id(self, id, animate=True):
         if not id in self.id_to_part:
             return
         part = self.id_to_part[id]
         del self.id_to_part[id]
-        self.remove(part)
+        self.remove(part, animate)
         return
 
-    def remove_all(self, keep_first_part=True, do_callback=True):
+    def remove_all(self, do_callback=True, animate=True):
         if len(self.get_parts()) <= 1: return
         root = self.get_children()[0]
         self.id_to_part = {root.get_name(): root}
-        PathBar.remove_all(self, do_callback=do_callback)
+        PathBar.remove_all_but_first(self, do_callback=do_callback, animate=animate)
         return
+
+    def has_id(self, id):
+        return self.id_to_part.has_key(id)
 
     def get_button_from_id(self, id):
         """

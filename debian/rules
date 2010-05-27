@@ -23,9 +23,7 @@ override_dh_install:
 	# Drop Ubuntu stuff if not on Ubuntu
 	# TODO: We should do this on the 'upstream' level, e.g. in setup.py.
 	set -e; if ! dpkg-vendor --derives-from Ubuntu; then \
-		cd debian/software-center; sed -i 's/Ubuntu/Debian/g' \
-			usr/share/software-center/ui/SoftwareCenter.ui \
-			usr/share/applications/ubuntu-software-center.desktop; \
+		cd debian/software-center; \
 		cd usr/share/applications; \
 		mv ubuntu-software-center.desktop software-center.desktop; \
 		cd ../icons/; \

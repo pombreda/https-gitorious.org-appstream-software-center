@@ -141,7 +141,18 @@
       padding:0;
       margin:1em 0;
     }
-    
+
+    #button_share {
+      display:block;
+      visibility:${share_button_visibility};
+      border:0;
+      background:0;
+      text-decoration:underline;
+      font-size:80%;
+      padding:0;
+      margin:1em 0;
+    }
+
     #action_progress_total {
        margin-top:5px;
        -webkit-border-radius:5px;
@@ -200,6 +211,9 @@
    <div id="description">$description</div>
    <input type="button" id="button_homepage" value="$homepage"
     onclick='changeTitle("call:on_button_homepage_clicked")'
+    />
+   <input type="button" id="button_share" value="$share"
+    onclick='changeTitle("call:on_button_share_clicked")'
     />
    <div id="screenshot_wrap">
      <div id="screenshot" class="screenshot">

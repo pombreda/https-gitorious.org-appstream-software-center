@@ -19,6 +19,7 @@
 from __future__ import with_statement
 
 
+import __builtin__
 import apt
 import gettext
 import glib
@@ -65,7 +66,7 @@ class AppStore(gtk.GenericTreeModel):
      COL_POPCON,
      COL_IS_ACTIVE,
      COL_ACTION_IN_PROGRESS,
-     ) = range(10)
+     COL_EXISTS) = range(11)
 
     column_type = (str,
                    str,
@@ -76,7 +77,8 @@ class AppStore(gtk.GenericTreeModel):
                    str,
                    int,
                    bool,
-                   int)
+                   int,
+                   bool)
 
     ICON_SIZE = 24
     MAX_STARS = 5
@@ -90,7 +92,7 @@ class AppStore(gtk.GenericTreeModel):
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
-                 sort=False, filter=None):
+                 sort=False, filter=None, exact=False, icon_size=0):
         """
         Initalize a AppStore.
 
@@ -104,15 +106,19 @@ class AppStore(gtk.GenericTreeModel):
                    (default is to use relevance sort)
         - `filter`: filter functions that can be used to filter the
                     data further. A python function that gets a pkgname
+        - `exact`: If true, indexes of queries without matches will be
+                    maintained in the store (useful to show e.g. a row
+                    with "??? not found")
         """
         gtk.GenericTreeModel.__init__(self)
         self.search_query = search_query
         self.cache = cache
         self.db = db
         self.icons = icons
+        self.icon_size = icon_size or self.ICON_SIZE
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", lambda theme: _app_icon_cache.clear())
-        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
         self.apps = []
         # this is used to re-set the cursor
         self.app_index_map = {}
@@ -120,9 +126,12 @@ class AppStore(gtk.GenericTreeModel):
         self.pkgname_index_map = {}
         self.sorted = sort
         self.filter = filter
+        self.exact = exact
         self.active = True
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+        self.backend.connect("transaction-started", self._on_transaction_started)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
         # rowref of the active app and last active app
         self.active_app = None
         self._prev_active_app = 0
@@ -169,23 +178,30 @@ class AppStore(gtk.GenericTreeModel):
                 popcon = db.get_popcon(doc)
                 app = Application(appname, pkgname, popcon)
                 if not app in already_added:
-                    self.apps.append(app)
+                    if self.sorted:
+                        self._insert_app_sorted(app)
+                    else:
+                        self._append_app(app)
                     already_added.add(app)
-                    if not sort:
-                        self.app_index_map[app] = app_index
-                        app_index = app_index + 1
                 # keep the UI going
                 while gtk.events_pending():
                     gtk.main_iteration()
-        if self.sorted:
-            self.apps.sort()
-            for (i, app) in enumerate(self.apps):
-                self.app_index_map[app] = i
-        # build the pkgname map
-        for (i, app) in enumerate(self.apps):
-            if not app.pkgname in self.pkgname_index_map:
-                self.pkgname_index_map[app.pkgname] = []
-            self.pkgname_index_map[app.pkgname].append(i)
+            if len(matches) == 0 and self.exact:
+                # Find and remove a AP search prefix to get the
+                # original package name of the xapian query.
+                pkgname = ""
+                for term in q:
+                    if term.startswith("AP"):
+                        pkgname = term[2:]
+                        break
+                app = Application("", pkgname)
+                self.app_index_map[app] = app_index
+                self.apps.append(app)
+        
+        # This is data for store contents that will be generated
+        # when called for externally. (see _refresh_contents_data)
+        self._existing_apps = None
+        self._installable_apps = None
 
     # internal API
     def _append_app(self, app):
@@ -195,7 +211,9 @@ class AppStore(gtk.GenericTreeModel):
         self.apps.append(app)
         i = len(self.apps) - 1
         self.app_index_map[app] = i
-        self.pkgname_index_map[app.pkgname] = i
+        if not app.pkgname in self.pkgname_index_map:
+            self.pkgname_index_map[app.pkgname] = []
+        self.pkgname_index_map[app.pkgname].append(i)
         self.row_inserted(i, self.get_iter(i))
 
     def _insert_app_sorted(self, app):
@@ -232,8 +250,6 @@ class AppStore(gtk.GenericTreeModel):
     # external API
     def clear(self):
         self.apps = []
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
 
     def update(self, appstore):
         """ update this appstore to match data from another """
@@ -243,6 +259,8 @@ class AppStore(gtk.GenericTreeModel):
         for i in range(to_update):
             self.apps[i] = appstore.apps[i]
             self.row_changed(i, self.get_iter(i))
+            self.app_index_map[self.apps[i]] = i
+            self.pkgname_index_map[self.apps[i].pkgname] = i
 
         to_remove = max(0, len(self) - len(appstore))
         for i in range(to_remove):
@@ -263,12 +281,37 @@ class AppStore(gtk.GenericTreeModel):
         self.search_query = appstore.search_query
         self.sorted = appstore.sorted
         self.filter = appstore.filter
-        self.app_index_map = appstore.app_index_map
-        self.pkgname_index_map = appstore.pkgname_index_map
+        self.exact = appstore.exact
+        self._existing_apps = appstore._existing_apps
+        self._installable_apps = appstore._installable_apps
 
         # Re-claim the memory used by the new appstore
         appstore.clear()
         del appstore
+
+    def _refresh_contents_data(self):
+        # Quantitative data on stored packages. This generates the information.
+        exists = lambda app: app.pkgname in self.cache
+        installable = lambda app: (not self.cache[app.pkgname].is_installed
+                                   and app.pkgname not in
+                                   self.backend.pending_transactions)
+        self._existing_apps = __builtin__.filter(exists, self.apps)
+        self._installable_apps = __builtin__.filter(installable,
+                                                    self.existing_apps)
+
+    def _get_existing_apps(self):
+        if self._existing_apps == None:
+            self._refresh_contents_data()
+        return self._existing_apps
+
+    def _get_installable_apps(self):
+        if self._installable_apps == None:
+            self._refresh_contents_data()
+        return self._installable_apps
+
+    # data about the visible contents of the store, generated on call.
+    existing_apps = property(_get_existing_apps)
+    installable_apps = property(_get_installable_apps)
 
     def is_filtered_out(self, filter, doc):
         """ apply filter and return True if the package is filtered out """
@@ -309,6 +352,18 @@ class AppStore(gtk.GenericTreeModel):
         for index in self.pkgname_index_map[pkgname]:
             row = self[index]
             self.row_changed(row.path, row.iter)
+
+    # the following methods ensure that the contents data is refreshed
+    # whenever a transaction potentially changes it: see _refresh_contents.
+
+    def _on_transaction_started(self, *args):
+        self._existing_apps = None
+        self._installable_apps = None
+
+    def _on_transaction_finished(self, *args):
+        self._existing_apps = None
+        self._installable_apps = None
+
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -333,7 +388,42 @@ class AppStore(gtk.GenericTreeModel):
         except IndexError:
             logging.exception("on_get_value: rowref=%s apps=%s" % (rowref, self.apps))
             return
-        doc = self.db.get_xapian_document(app.appname, app.pkgname)
+        try:
+            doc = self.db.get_xapian_document(app.appname, app.pkgname)
+        except IndexError:
+            # This occurs when using custom lists, which keep missing package
+            # names in the record. In this case a "Not found" cell should be
+            # rendered, with all data but package name absent and the text
+            # markup colored gray.
+            if column == self.COL_APP_NAME:
+                return _("Not found")
+            elif column == self.COL_TEXT:
+                return "%s\n" % app.pkgname
+            elif column == self.COL_MARKUP:
+                s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
+                    gobject.markup_escape_text(_("Not found")),
+                    gobject.markup_escape_text(app.pkgname))
+                return s
+            elif column == self.COL_ICON:
+                return self.icons.load_icon(MISSING_PKG_ICON,
+                                            self.icon_size, 0)
+            elif column == self.COL_INSTALLED:
+                return False
+            elif column == self.COL_AVAILABLE:
+                return False
+            elif column == self.COL_PKGNAME:
+                return app.pkgname
+            elif column == self.COL_POPCON:
+                return 0
+            elif column == self.COL_IS_ACTIVE:
+                # This ensures the missing package will not expand
+                return False
+            elif column == self.COL_EXISTS:
+                return False
+            elif column == self.COL_ACTION_IN_PROGRESS:
+                return -1
+
+        # Otherwise the app should return app data normally.
         if column == self.COL_APP_NAME:
             return app.appname
         elif column == self.COL_TEXT:
@@ -356,7 +446,7 @@ class AppStore(gtk.GenericTreeModel):
             return s
         elif column == self.COL_ICON:
             try:
-                icon_name = doc.get_value(XAPIAN_VALUE_ICON)
+                icon_name = self.db.get_iconname(doc)
                 if icon_name:
                     icon_name = os.path.splitext(icon_name)[0]
                     if icon_name in _app_icon_cache:
@@ -364,7 +454,7 @@ class AppStore(gtk.GenericTreeModel):
                     # icons.load_icon takes between 0.001 to 0.01s on my
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
-                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
+                    icon = self.icons.load_icon(icon_name, self.icon_size, 0)
                     _app_icon_cache[icon_name] = icon
                     return icon
             except glib.GError, e:
@@ -391,6 +481,8 @@ class AppStore(gtk.GenericTreeModel):
                 return self.backend.pending_transactions[app.pkgname]
             else:
                 return -1
+        elif column == self.COL_EXISTS:
+            return True
     def on_iter_next(self, rowref):
         #logging.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -493,7 +585,7 @@ class CellRendererButton:
         if not is_sensitive:
             self.set_state(gtk.STATE_INSENSITIVE)
             self.set_shadow(gtk.SHADOW_OUT)
-        else:
+        elif self.params['state'] == gtk.STATE_INSENSITIVE:
             self.set_state(gtk.STATE_NORMAL)
             self.set_shadow(gtk.SHADOW_OUT)
         return
@@ -604,6 +696,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         'action_in_progress': (gobject.TYPE_INT, 'Action Progress', 'Action progress', -1, 100, -1,
                      gobject.PARAM_READWRITE),
+
+        'exists': (bool, 'exists', 'Is the app found in current channel', False,
+                   gobject.PARAM_READWRITE),
         }
 
     def __init__(self, show_ratings):
@@ -723,9 +818,9 @@ class CellRendererAppView(gtk.GenericCellRenderer):
 
         if self.reviews == 0: return
         # draw number of reviews
-        nr_reviews_str = gettext.ngettext("%s review",
-                                          "%s reviews",
-                                          self.reviews) % self.reviews
+        nr_reviews_str = gettext.ngettext("%(amount)s review",
+                                          "%(amount)s reviews",
+                                          self.reviews) % { 'amount' : self.reviews, }
         
         layout.set_markup("<small>%s</small>" % nr_reviews_str)
         lw = self._get_layout_pixel_width(layout)
@@ -796,24 +891,26 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                w-2,
                                h-2)
 
+
+        prog_w = int(percent*w)
         # progress bar
         if self.text_direction != gtk.TEXT_DIR_RTL:
             widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
-                                   (dst_x, dst_y, percent*w, h),
+                                   (dst_x, dst_y, prog_w, h),
                                    widget, 
                                    "bar",
                                    dst_x,
                                    dst_y,
-                                   percent*w,
+                                   prog_w,
                                    h)
         else:
             widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
-                                   (dst_x + w+1-percent*w, dst_y, percent*w, h),
+                                   (dst_x + w+1-prog_w, dst_y, prog_w, h),
                                    widget, 
                                    "bar",
-                                   dst_x + w+1-percent*w,
+                                   dst_x + w+1-prog_w,
                                    dst_y,
-                                   percent*w,
+                                   prog_w,
                                    h)
         return
 
@@ -867,7 +964,13 @@ gobject.type_register(CellRendererAppView)
 
 
 # custom renderer for the arrow thing that mpt wants
-class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
+class CellRendererPixbufWithOverlay(gtk.CellRendererText):
+    """ A CellRenderer with support for a pixbuf and a overlay icon
+    
+    It also supports "markup" and "text" so that orca and friends can
+    read the content out
+    """
+    
 
     # offset of the install overlay icon
     OFFSET_X = 14
@@ -879,10 +982,12 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
                      gobject.PARAM_READWRITE),
+        'pixbuf'  : (gtk.gdk.Pixbuf, 'pixbuf', 'pixbuf',
+                     gobject.PARAM_READWRITE)
    }
 
     def __init__(self, overlay_icon_name):
-        gtk.CellRendererPixbuf.__init__(self)
+        gtk.CellRendererText.__init__(self)
         icons = gtk.icon_theme_get_default()
         self.overlay = False
         try:
@@ -907,18 +1012,25 @@ class CellRendererPixbufWithOverlay(gtk.CellRendererPixbuf):
                 AppStore.ICON_SIZE,
                 AppStore.ICON_SIZE)
 
-        gtk.CellRendererPixbuf.do_render(self, window, widget, background_area,
-                                         area, area, flags)
-        overlay = self.overlay
-        if overlay:
-            dest_x = cell_area.x + self.OFFSET_X
-            dest_y = cell_area.y + self.OFFSET_Y
+        dest_x = cell_area.x
+        dest_y = cell_area.y
+        window.draw_pixbuf(None,
+                           self.pixbuf, # icon
+                           0, 0,            # src pixbuf
+                           dest_x, dest_y,  # dest in window
+                           -1, -1,          # size
+                           0, 0, 0)         # dither
+
+        if self.overlay:
+            dest_x += self.OFFSET_X
+            dest_y += self.OFFSET_Y
             window.draw_pixbuf(None,
                                self._installed, # icon
                                0, 0,            # src pixbuf
                                dest_x, dest_y,  # dest in window
                                -1, -1,          # size
                                0, 0, 0)         # dither
+        return
 
 gobject.type_register(CellRendererPixbufWithOverlay)
 
@@ -945,6 +1057,7 @@ class AppView(gtk.TreeView):
     def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
         self.buttons = {}
+        self.pressed = False
         self.focal_btn = None
 
         # if this hacked mode is available everything will be fast
@@ -958,21 +1071,16 @@ class AppView(gtk.TreeView):
 
         self.set_headers_visible(False)
 
-        # a11y: this is a fake cell renderer with a zero size
+        # a11y: this is a cell renderer that only displays a icon, but still
+        #       has a markup property for orca and friends
         # we use it so that orca and other a11y tools get proper text to read
         # it needs to be the first one, because that is what the tools look
         # at by default
-        tt = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Name", tt, text=AppStore.COL_TEXT)
-        column.set_fixed_width(1)
-        column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        self.append_column(column)
-
-        # the columns that are actually visible
         tp = CellRendererPixbufWithOverlay("software-center-installed")
         tp.set_property('ypad', 2)
 
         column = gtk.TreeViewColumn("Icon", tp,
+                                    markup=AppStore.COL_MARKUP,
                                     pixbuf=AppStore.COL_ICON,
                                     overlay=AppStore.COL_INSTALLED)
         column.set_fixed_width(32)
@@ -989,7 +1097,9 @@ class AppView(gtk.TreeView):
                                     isactive=AppStore.COL_IS_ACTIVE,
                                     installed=AppStore.COL_INSTALLED, 
                                     available=AppStore.COL_AVAILABLE,
-                                    action_in_progress=AppStore.COL_ACTION_IN_PROGRESS)
+                                    action_in_progress=AppStore.COL_ACTION_IN_PROGRESS,
+                                    exists=AppStore.COL_EXISTS)
+
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
@@ -1006,6 +1116,7 @@ class AppView(gtk.TreeView):
         # button and motion are "special"
         self.connect("style-set", self._on_style_set, tr)
         self.connect("button-press-event", self._on_button_press_event, column)
+        self.connect("button-release-event", self._on_button_release_event, column)
         self.connect("cursor-changed", self._on_cursor_changed)
         self.connect("motion-notify-event", self._on_motion, tr, column)
 
@@ -1072,8 +1183,11 @@ class AppView(gtk.TreeView):
             rr = btn.get_param('region_rect')
             if btn.get_param('state') != gtk.STATE_INSENSITIVE:
                 if rr.point_in(x, y):
-                    self.window.set_cursor(self._cursor_hand)
-                    if btn.get_param('state') != gtk.STATE_PRELIGHT:
+                    if self.focal_btn is btn:
+                        self.window.set_cursor(self._cursor_hand)
+                        btn.set_state(gtk.STATE_ACTIVE)
+                    elif not self.pressed:
+                        self.window.set_cursor(self._cursor_hand)
                         btn.set_state(gtk.STATE_PRELIGHT)
                 else:
                     if btn.get_param('state') != gtk.STATE_NORMAL:
@@ -1118,14 +1232,17 @@ class AppView(gtk.TreeView):
 
     def _on_row_activated(self, view, path, column):
         model = view.get_model()
-        name = model[path][AppStore.COL_APP_NAME]
-        pkgname = model[path][AppStore.COL_PKGNAME]
-        popcon = model[path][AppStore.COL_POPCON]
-        self.emit("application-activated", Application(name, pkgname, popcon))
+        exists = model[path][AppStore.COL_EXISTS]
+        if exists:
+            name = model[path][AppStore.COL_APP_NAME]
+            pkgname = model[path][AppStore.COL_PKGNAME]
+            popcon = model[path][AppStore.COL_POPCON]
+            self.emit("application-activated", Application(name, pkgname, popcon))
 
     def _on_button_press_event(self, view, event, col):
         if event.button != 1:
             return
+        self.pressed = True
         res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
@@ -1141,10 +1258,36 @@ class AppView(gtk.TreeView):
         for btn_id, btn in self.buttons.iteritems():
             rr = btn.get_param('region_rect')
             if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
-                self.focal_btn = btn_id
+                self.focal_btn = btn
                 btn.set_state(gtk.STATE_ACTIVE)
                 btn.set_shadow(gtk.SHADOW_IN)
+                return
+        self.focal_btn = None
 
+    def _on_button_release_event(self, view, event, col):
+        if event.button != 1:
+            return
+        self.pressed = False
+        res = view.get_path_at_pos(int(event.x), int(event.y))
+        if not res:
+            return
+        (path, column, wx, wy) = res
+        if path is None:
+            return
+        # only act when the selection is already there
+        selection = view.get_selection()
+        if not selection.path_is_selected(path):
+            return
+
+        x, y = int(event.x), int(event.y)
+        for btn_id, btn in self.buttons.iteritems():
+            rr = btn.get_param('region_rect')
+            if rr.point_in(x, y) and (btn.get_param('state') != gtk.STATE_INSENSITIVE):
+                btn.set_state(gtk.STATE_NORMAL)
+                btn.set_shadow(gtk.SHADOW_OUT)
+                self.window.set_cursor(self._cursor_hand)
+                if self.focal_btn is not btn:
+                    break
                 model = view.get_model()
                 appname = model[path][AppStore.COL_APP_NAME]
                 pkgname = model[path][AppStore.COL_PKGNAME]
@@ -1163,11 +1306,10 @@ class AppView(gtk.TreeView):
                                     view.get_model(),
                                     path)
                 break
+        self.focal_btn = None
 
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
         if btn_id == 'info':
-            btn.set_state(gtk.STATE_NORMAL)
-            btn.set_shadow(gtk.SHADOW_OUT)
             self.emit("application-activated", Application(appname, pkgname, popcon))
         elif btn_id == 'action':
             btn.set_sensitive(False)

@@ -30,6 +30,10 @@ from gettext import gettext as _
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
+DEFAULT_PART_SIZE = (31, 27)
+DEFAULT_ARROW_SIZE = (12, 12)
+
+
 
 class BackForwardButton(gtk.HBox):
 
@@ -41,20 +45,24 @@ class BackForwardButton(gtk.HBox):
                                     gobject.TYPE_NONE,
                                     (gtk.gdk.Event,))}
 
-    def __init__(self):
+    def __init__(self, part_size=None, arrow_size=None, native_draw=True):
         gtk.HBox.__init__(self)
         self.theme = pathbar_common.PathBarStyle(self)
-        sep = SeparatorPart()
+        self.separator = SeparatorPart()
+
+        self.use_hand = False
+        part_size = part_size or DEFAULT_PART_SIZE
+        arrow_size = arrow_size or DEFAULT_ARROW_SIZE
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             # ltr
-            self.left = ButtonPartLeft('left-clicked')
-            self.right = ButtonPartRight('right-clicked')
+            self.left = ButtonPartLeft('left-clicked', part_size, arrow_size)
+            self.right = ButtonPartRight('right-clicked', part_size, arrow_size)
             self.set_button_atk_info_ltr()
         else:
             # rtl
-            self.left = ButtonPartRight('left-clicked')
-            self.right = ButtonPartLeft('right-clicked')
+            self.left = ButtonPartRight('left-clicked', part_size, arrow_size)
+            self.right = ButtonPartLeft('right-clicked', part_size, arrow_size)
             self.set_button_atk_info_rtl()
 
         atk_obj = self.get_accessible()
@@ -63,10 +71,15 @@ class BackForwardButton(gtk.HBox):
         atk_obj.set_role(atk.ROLE_PANEL)
 
         self.pack_start(self.left)
-        self.pack_start(sep, False)
+        self.pack_start(self.separator, False)
         self.pack_end(self.right)
 
-        sep.connect_after("style-set", self._on_style_set)
+        self.separator.connect_after("style-set", self._on_style_set)
+        self.connect_after('size-allocate', self._on_size_allocate)
+
+        if not native_draw:
+            self.set_redraw_on_allocate(False)
+            self.connect('expose-event', lambda w, e: True)
         return
 
     def set_button_atk_info_ltr(self):
@@ -97,6 +110,10 @@ class BackForwardButton(gtk.HBox):
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
         return
 
+    def set_use_hand_cursor(self, use_hand):
+        self.use_hand = use_hand
+        return
+
     def _on_style_set(self, widget, oldstyle):
         # when alloc.width == 1, this is typical of an unallocated widget,
         # lets not break a sweat for nothing...
@@ -113,10 +130,22 @@ class BackForwardButton(gtk.HBox):
             self.queue_draw()
         return
 
+    def _on_size_allocate(self, widget, allocation):
+        self.queue_draw()
+        return
+
+    def draw(self, cr, expose_area, alpha=1.0):
+        self.separator.alpha = alpha
+        self.left.draw(cr, expose_area, alpha)
+        self.right.draw(cr, expose_area, alpha)
+        return
+
+
 class SeparatorPart(gtk.DrawingArea):
 
     def __init__(self):
         gtk.DrawingArea.__init__(self)
+        self.alpha = 1.0
         self.theme = pathbar_common.PathBarStyle(self)
         self.set_size_request(self.theme['xthickness'], -1)
 
@@ -132,7 +161,12 @@ class SeparatorPart(gtk.DrawingArea):
         if not parent: return
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
-        cr.set_source_rgb(*self.theme.dark_line[self.state].tofloats())
+        if self.alpha == 1.0:
+            cr.set_source_rgb(*self.theme.dark_line[self.state].tofloats())
+        else:
+            r, g, b = self.theme.dark_line[self.state].tofloats()
+            cr.set_source_rgba(r, g, b, self.alpha)
+
         cr.fill()
         del cr
         return
@@ -143,18 +177,19 @@ class SeparatorPart(gtk.DrawingArea):
         return
 
 
-class ButtonPart(gtk.DrawingArea):
+class ButtonPart(gtk.EventBox):
 
-    ARROW_SIZE = (12,12)
-    DEFAULT_SIZE = (31, 27)
+    def __init__(self, arrow_type, signal_name, part_size, arrow_size):
+        gtk.EventBox.__init__(self)
+        self.set_redraw_on_allocate(False)
+        self.set_visible_window(False)
 
-    def __init__(self, arrow_type, signal_name):
-        gtk.DrawingArea.__init__(self)
-        self.set_size_request(*self.DEFAULT_SIZE)
+        self.set_size_request(*part_size)
         self.shape = pathbar_common.SHAPE_RECTANGLE
         self.button_down = False
         self.shadow_type = gtk.SHADOW_OUT
         self.arrow_type = arrow_type
+        self.arrow_size = arrow_size
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
@@ -165,11 +200,9 @@ class ButtonPart(gtk.DrawingArea):
         self.connect("enter-notify-event", self._on_enter)
         self.connect("leave-notify-event", self._on_leave)
         self.connect("button-press-event", self._on_press)
+        self.connect("button-release-event", self._on_release, signal_name)
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release, signal_name)
-        self.connect('focus-in-event', self._on_focus_in)
-        self.connect('focus-out-event', self._on_focus_out)
-        self.connect("button-release-event", self._on_release, signal_name)
         return
 
     def set_sensitive(self, is_sensitive):
@@ -193,6 +226,8 @@ class ButtonPart(gtk.DrawingArea):
             self.set_state(gtk.STATE_PRELIGHT)
         else:
             self.set_active(True)
+        if self.parent.use_hand:
+            self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
         return
 
     def _on_key_press(self, widget, event):
@@ -211,14 +246,8 @@ class ButtonPart(gtk.DrawingArea):
     def _on_leave(self, widget, event):
         if self.state == gtk.STATE_INSENSITIVE: return
         self.set_active(False)
-        return
-
-    def _on_focus_in(self, widget, event):
-        self.queue_draw()
-        return
-
-    def _on_focus_out(self, widget, event):
-        self.queue_draw()
+        if self.parent.use_hand:
+            self.window.set_cursor(None)
         return
 
     def _on_press(self, widget, event):
@@ -234,85 +263,104 @@ class ButtonPart(gtk.DrawingArea):
         p = gtk.gdk.device_get_core_pointer()
         x, y = p.get_state(widget.window)[0]
         rr = gtk.gdk.region_rectangle(widget.allocation)
-        if rr.point_in(int(x+widget.allocation.x), int(y+widget.allocation.y)):
+        if rr.point_in(int(x), int(y)):
             self.set_state(gtk.STATE_PRELIGHT)
             self.get_parent().emit(signal_name, event)
         else:
             self.set_state(gtk.STATE_NORMAL)
         return
 
-    def expose_pathbar(self, widget, area, x, y, w, h, xo=0, wo=0):
-        if not self.parent: return
-        # background
-        cr = widget.window.cairo_create()
-        cr.rectangle(area)
+    def do_draw(self, cr, a, expose_area, xo, wo, alpha):
+        if gtk.gdk.region_rectangle(expose_area).rect_in(a) == gtk.gdk.OVERLAP_RECTANGLE_OUT:
+            return
+        if not self.parent.get_property('visible'): return
+
+        cr.save()
+        cr.rectangle(a)
         cr.clip()
 
         self.parent.theme.paint_bg(cr,
                                    self,
-                                   x, y, w, h)
-        del cr
+                                   a.x+xo, a.y, a.width+wo, a.height,
+                                   alpha=alpha)
 
-        # arrow
         if self.has_focus():
             self.style.paint_focus(self.window,
                                    self.state,
-                                   (x+4+xo, y+4, w-8+wo, h-8),
+                                   (a.x+4, a.y+4, a.width-8, a.height-8),
                                    self,
                                    'button',
-                                   x+4+xo, y+4,
-                                   w-8+wo, h-8)
+                                   a.x+4, a.y+4,
+                                   a.width-8, a.height-8)
 
-        aw, ah = self.ARROW_SIZE
-        ax, ay = (area.width - aw)/2, (area.height - ah)/2,
+        # arrow
+        aw, ah = self.arrow_size
+        ax, ay = a.x + (a.width - aw)/2, a.y + (a.height - ah)/2
 
         self.style.paint_arrow(self.window,
                                self.state,
                                self.shadow_type,
-                               (ax, ay, aw, ah),
+                               None,
                                self,
                                "button",
                                self.arrow_type,
                                True,
                                ax, ay,
                                aw, ah)
+        cr.restore()
         return
 
 
 class ButtonPartLeft(ButtonPart):
 
-    def __init__(self, sig_name):
-        ButtonPart.__init__(self, gtk.ARROW_LEFT, sig_name)
-        self.connect("expose-event", self._on_expose, self.expose_pathbar)
+    def __init__(self, sig_name, part_size, arrow_size):
+        ButtonPart.__init__(self,
+                            gtk.ARROW_LEFT,
+                            sig_name,
+                            part_size,
+                            arrow_size)
+        self.connect("expose-event", self._on_expose)
         return
 
-    def _on_expose(self, widget, event, expose_func):
-        area = event.area
-        expose_func(widget,
-                    area,
-                    area.x,
-                    area.y,
-                    area.width + 10,
-                    area.height,
-                    wo=-10)
+    def _on_expose(self, widget, event):
+        cr = self.window.cairo_create()
+        a = self.allocation
+        self.draw(cr, event.area, alpha=1.0)
+        return
+
+    def draw(self, cr, expose_area, alpha):
+        r = int(self.parent.theme['curvature'])
+        self.do_draw(cr,
+                     self.allocation,
+                     expose_area,
+                     xo=0,
+                     wo=r,
+                     alpha=alpha)
         return
 
 
 class ButtonPartRight(ButtonPart):
 
-    def __init__(self, sig_name):
-        ButtonPart.__init__(self, gtk.ARROW_RIGHT, sig_name)
-        self.connect("expose-event", self._on_expose, self.expose_pathbar)
+    def __init__(self, sig_name, part_size, arrow_size):
+        ButtonPart.__init__(self,
+                            gtk.ARROW_RIGHT,
+                            sig_name,
+                            part_size,
+                            arrow_size)
+        self.connect("expose-event", self._on_expose)
         return
 
-    def _on_expose(self, widget, event, expose_func):
-        area = event.area
-        expose_func(widget,
-                    area,
-                    area.x-10,
-                    area.y,
-                    area.width+10,
-                    area.height,
-                    xo=10,
-                    wo=-10)
+    def _on_expose(self, widget, event):
+        cr = self.window.cairo_create()
+        self.draw(cr, event.area, alpha=1.0)
+        return
+
+    def draw(self, cr, expose_area, alpha):
+        r = int(self.parent.theme['curvature'])
+        self.do_draw(cr,
+                     self.allocation,
+                     expose_area,
+                     xo=-r,
+                     wo=r,
+                     alpha=alpha)
         return

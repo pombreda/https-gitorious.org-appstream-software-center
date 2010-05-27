@@ -1,4 +1,49 @@
-software-center (2.1.0) UNRELEASED; urgency=low
+software-center (2.1.2) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/viewswitcher.py:
+    - only reselect a channel node when a model is available
+      (LP: #578497)
+  * fix "List view forgets selected row" regression (LP: #584969)
+  * softwarecenter/view/availablepane.py:
+    - fix broken searches
+  * data/ui/SoftwareCenter.ui,
+    softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/navhistory.py:
+    - bit of navhistory code housekeeping
+    - add navhistory back/forward actions and corresponding
+      menu items
+  
+  [ Michael Vogt ]
+  * merged  lp:~glatzor/software-center/glatzor to get improved
+    aptdaemon API
+  * test/test_aptd.py:
+    - update tests to work with new defered magic API
+  * debian/control:
+    - update dependencies on aptdaemon
+  * merged lp:~mmcg069/software-center/improve-appview-persistence
+    (many thanks!)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 26 May 2010 16:05:24 -0400
+
+software-center (2.1.1) maverick; urgency=low
+
+  * softwarecenter/view/channelpane.py:
+    - Fix broken channel list views (LP: #583545)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 21 May 2010 01:21:38 -0400
+
+software-center (2.1.0) maverick; urgency=low
+
+  [ Matthew McGowan ]
+  * merged lp:~mmcg069/software-center/backforward-redraw-fix
+  * make the overlaywithpixbuf cellrenderer inherit from a text
+    cellrenderer, does away with the need to have 1px column in the
+    appview for accessibility reasons.
+    (lp:~mmcg069/software-center/overlay-w-pixbuf-tweak)
+  * add nice animation to pathbar elements 
+    (lp:~mmcg069/software-center/pathbar-scroll-inn)
 
   [ Olivier Tilloy ]
   * fix LP: #564785:
@@ -6,13 +51,27 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * show download completion status (LP: #460888)
   * add "bottom border" effect (LP: #439621)
   * add "history" GUI that reads /var/log/apt/history.log
-  
+  * Re-claim used memory after updating an existing AppStore with a 
+    new one (LP: #577540)
+  * Fix the database update when run with a Turkish locale 
+    (patch by M. Vefa Bicakci). LP: #581207
+  * Make buttons activate on mouse up, fix other inconsistencies
+    in list view button operation (LP: #514835)
+
   [ Jacob Johan Edwards ]
   * merged lp:~j-johan-edwards/software-center/smooth_search, this 
     massively improves the search and stops it from flickering
     (LP: #570682)
   * merged lp:~j-johan-edwards/software-center/action_bar that provides
     the foundation for the "custom packages list" branch
+  * merged lp:~j-johan-edwards/software-center/unbranded_icons to 
+    provide a set of unbranded icons for e.g. Debian
+  * merged lp:~j-johan-edwards/software-center/custom_lists to 
+    implement https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
+
+  [ Ken van Dine ]
+  * allow sharing apps via gwibber and apturl 
+    (lp:~ken-vandine/software-center/sharing)
   
   [ Julian Andres Klode ]
   * merged lp:~juliank/software-center/debian that include fixes and
@@ -25,8 +84,40 @@ software-center (2.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/app.py:
     - Set correct sensitivity of 'edit > undo,redo,cut,copy,delete,select_all' 
       (LP: #439613, LP: #530194)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/appview.py:
+    - simplify application list buildup and improve responsiveness
+  * softwarecenter/view/*pane.py:
+    - fix crash when ngettext is translated without %s format 
+      (LP: #449053)
+  * add test/Makefile and ensure all tests are run in the bzr-buildpackage
+    pre-build hook
+  * softwarecenter/db/database.py, softwarecenter/view/appdetailsview.py:
+    - add "StoreDatabase.get_iconname()"  and use it
+  * softwarecenter/view/appview.py:
+    - small cleanups
+  * softwarecenter/view/availablepane.py:
+    - add iconnames when installing custom lists
+  * softwarecenter/view/pendingview.py:
+    - look for "appname" and "pkgname" (in this order) when showing
+      the progress information
+  * update about (LP: #566571)
+  * merged lp:~apulido/software-center/mago_fix (many thanks to Ara Pulido)
+  * data/unbranded-software-center.desktop.in:
+    - add unbranded desktop file
+  * softwarecenter/distro/__init__.py:
+    - add new "get_app_name", "get_app_description" methods for easier
+      branding of downstreams
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Apr 2010 18:08:08 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 May 2010 19:38:30 +0200
+
+software-center (2.0.4) lucid-proposed; urgency=low
+
+  * Re-claim used memory after updating an existing AppStore with a 
+    new one (LP: #577540), thanks to Olivier Tilloy
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 11 May 2010 23:32:56 +0200
 
 software-center (2.0.3) UNRELEASED; urgency=low
 

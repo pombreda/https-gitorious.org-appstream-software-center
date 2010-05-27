@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<suite name="softwarecenter test suite">
+  <class>basic.SoftwareCenterTest</class>
+  <description>
+    test softwarecenter
+  </description>
+   <case name="Test search">
+    <method>test_search</method>
+    <description>test if search is working</description>
+    <args>
+      <search_term>foo</search_term>
+    </args>
+ </case>
+</suite>
+

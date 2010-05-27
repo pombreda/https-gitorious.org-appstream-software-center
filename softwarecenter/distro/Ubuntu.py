@@ -35,6 +35,12 @@ class Ubuntu(Distro):
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
 
+    def get_app_name(self):
+        return _("Ubuntu Software Center")
+
+    def get_app_description(self):
+        return _("Lets you choose from thousands of free applications available for Ubuntu.")
+    
     def get_distro_channel_name(self):
         """ The name in the Release file """
         return "Ubuntu"

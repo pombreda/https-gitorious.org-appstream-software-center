@@ -161,7 +161,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # available pane
         self.available_pane = AvailablePane(self.cache, self.db,
                                             self.distro,
-                                            self.icons, datadir)
+                                            self.icons,
+                                            datadir,
+                                            self.navhistory_back_action,
+                                            self.navhistory_forward_action)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
@@ -233,6 +236,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.searchentry.grab_focus()
         self.window_main.set_size_request(600, 400)
 
+        # setup window name and about information (needs branding)
+        name = self.distro.get_app_name()
+        self.window_main.set_title(name)
+        self.aboutdialog.set_name(name)
+        about_description = self.distro.get_app_description()
+        self.aboutdialog.set_comments(about_description)
+
         # restore state
         self.config = get_config()
         self.restore_state()
@@ -294,6 +304,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
+        self._show_navhistory_menu_items(action == self.NOTEBOOK_PAGE_AVAILABLE)
         # switch to new page
         self.notebook_view.set_current_page(action)
         self.update_app_list_view(channel)
@@ -408,6 +419,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_menuitem_about_activate(self, widget):
         self.aboutdialog.set_version(VERSION)
+        self.aboutdialog.set_transient_for(self.window_main)
         self.aboutdialog.run()
         self.aboutdialog.hide()
 
@@ -426,6 +438,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
+            
+    def on_navhistory_back_action_activate(self, navhistory_back_action):
+        self.available_pane.nav_history.nav_back()
+        
+    def on_navhistory_forward_action_activate(self, navhistory_forward_action):
+        self.available_pane.nav_history.nav_forward()
             
     def _on_transaction_started(self, backend):
         self.menuitem_install.set_sensitive(False)
@@ -606,6 +624,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.searchentry.set_text(",".join(packages))
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
+                
+    def _show_navhistory_menu_items(self, show_items):
+        self.navitems_menu_separator.set_visible(show_items)
+        self.menuitem_go_back.set_visible(show_items)
+        self.menuitem_go_forward.set_visible(show_items)
 
     def restore_state(self):
         if self.config.has_option("general", "size"):
@@ -642,6 +665,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def run(self, args):
         self.window_main.show_all()
+        # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
+        for (i, arg) in enumerate(args[:]):
+            if "," in arg:
+                args.extend(arg.split(","))
+                del args[i]
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)

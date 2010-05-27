@@ -22,6 +22,7 @@ import glib
 import locale
 import logging
 import os
+import string
 import sys
 import xapian
 
@@ -85,6 +86,13 @@ class DesktopConfigParser(RawConfigParser):
         except NoOptionError:
             pass
         return categories
+
+def ascii_upper(key):
+    """Translate an ASCII string to uppercase
+    in a locale-independent manner."""
+    ascii_trans_table = string.maketrans(string.ascii_lowercase,
+                                         string.ascii_uppercase)
+    return key.translate(ascii_trans_table)
 
 def index_name(doc, name, term_generator):
     """ index the name of the application """
@@ -193,7 +201,9 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
                 if not parser.has_option_desktop(key):
                     continue
                 s = parser.get_desktop(key)
-                w = globals()["WEIGHT_DESKTOP_"+key.replace(" ","").upper()]
+                # we need the ascii_upper here for e.g. turkish locales, see
+                # bug #581207
+                w = globals()["WEIGHT_DESKTOP_" + ascii_upper(key.replace(" ", ""))]
                 term_generator.index_text_without_positions(s, w)
             # add data from the apt cache
             if pkgname in cache and cache[pkgname].candidate:
