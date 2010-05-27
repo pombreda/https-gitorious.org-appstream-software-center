@@ -28,7 +28,7 @@ from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
 try:
-    from aptdaemon.defer import inline_callbacksx
+    from aptdaemon.defer import inline_callbacks
 except ImportError:
     logging.exception("aptdaemon import failed")
     print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
