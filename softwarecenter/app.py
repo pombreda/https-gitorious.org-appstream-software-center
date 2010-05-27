@@ -465,7 +465,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db.open()
             # reset the navigation history because software items stored
             # in the history stack might no longer be available
-            self.available_pane.reset_navigation_history()
+            self.available_pane.nav_history.reset()
             # refresh the available_pane views to reflect any changes
             self.available_pane.refresh_apps()
             self.available_pane.update_app_view()

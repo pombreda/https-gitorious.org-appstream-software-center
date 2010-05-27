@@ -91,10 +91,6 @@ class AvailablePane(SoftwarePane):
         self.current_app_by_subcategory = {}
         # search mode
         self.custom_list_mode = False
-        # track navigation history
-        self.nav_history = NavigationHistory(self,
-                                             self.navhistory_back_action,
-                                             self.navhistory_forward_action)
         # install backend
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed",
@@ -127,18 +123,22 @@ class AvailablePane(SoftwarePane):
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.scroll_subcategories.add_with_viewport(self.subcategories_view)
         # add nav history back/forward buttons
-        # FIXME:  Wire in new navhistory_back_action and navhistory_forward_action
-        #         to the BackForwardButton
         self.navhistory_back_action.set_sensitive(False)
         self.navhistory_forward_action.set_sensitive(False)
+        # note:  this is hacky, would be much nicer to make the custom self/right
+        # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
+        # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
+        # but couldn't seem to get this to work..so just wire things up directly
         self.back_forward = BackForwardButton()
-        self.back_forward.left.set_sensitive(False)
-        self.back_forward.right.set_sensitive(False)
         self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
         self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
         self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
         # nav buttons first in the panel
         self.top_hbox.reorder_child(self.back_forward, 0)
+        self.nav_history = NavigationHistory(self,
+                                             self.back_forward,
+                                             self.navhistory_back_action,
+                                             self.navhistory_forward_action)
         # now a vbox for subcategories and applist
         self.apps_vbox = gtk.VPaned()
         self.apps_vbox.pack1(self.scroll_subcategories, resize=True)
@@ -311,14 +311,6 @@ class AvailablePane(SoftwarePane):
                 return self.current_app_by_subcategory.get(self.apps_subcategory)
             else:
                 return self.current_app_by_category.get(self.apps_category)
-
-    def reset_navigation_history(self):
-        """
-        reset the navigation history and set the history buttons insensitive
-        """
-        self.nav_history.reset()
-        self.back_forward.left.set_sensitive(False)
-        self.back_forward.right.set_sensitive(False)
 
     def _on_transactions_changed(self, *args):
         """internal helper that keeps the action bar up-to-date by
@@ -578,10 +570,10 @@ class AvailablePane(SoftwarePane):
             self.current_app_by_category[self.apps_category] = app
 
     def on_nav_back_clicked(self, widget, event):
-        self.nav_history.nav_back()
+        self.navhistory_back_action.activate()
 
     def on_nav_forward_clicked(self, widget, event):
-        self.nav_history.nav_forward()
+        self.navhistory_forward_action.activate()
 
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
