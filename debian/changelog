@@ -16,6 +16,11 @@ software-center (2.1.2) UNRELEASED; urgency=low
       menu items
   * merged lp:~osomon/software-center/memory_leak, fixes
     memory leak regression (LP: #577540), thanks Olivier Tilloy!
+  * softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    modified softwarecenter/view/navhistory.py:
+    - cleaner integration of navhistory actions and
+      custom back/forward buttons
   
   [ Michael Vogt ]
   * merged  lp:~glatzor/software-center/glatzor to get improved
@@ -27,7 +32,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/improve-appview-persistence
     (many thanks!)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 May 2010 14:00:38 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 May 2010 18:19:56 -0400
 
 software-center (2.1.1) maverick; urgency=low
 
