@@ -14,6 +14,7 @@ import os
 import xapian
 
 from widgets import pathbar_common
+from widgets.backforward import BackForwardButton
 from appview import AppStore
 from softwarecenter.db.database import Application
 
@@ -740,6 +741,7 @@ class FeaturedView(FramedSection):
         self.hbox = gtk.HBox(spacing=HSPACING_SMALL)
         self.body.pack_start(self.hbox)
         self.hbox.set_homogeneous(True)
+        self.header.set_spacing(HSPACING_SMALL)
 
         self.posters = (FeaturedPoster(32),
                         FeaturedPoster(32),
@@ -756,7 +758,7 @@ class FeaturedView(FramedSection):
         # show all featured apps orange button
         label = _('Browse all featured applications')
         self.more_btn = BasicButton('<span color="%s"><big>%s</big></span>' % (COLOR_WHITE, label))
-        # override theme palate with orange palate
+        # override theme palatte with orange palatte
         self.more_btn.use_orange_palatte()
 
         # align the more button in the center
@@ -769,6 +771,14 @@ class FeaturedView(FramedSection):
         self._show_label = _('<small>%s</small>' % 'Show')
         self.show_hide_btn = BasicButton(self._hide_label)
         self.header.pack_end(self.show_hide_btn, False)
+
+        # back forward button to allow user control of carosel
+        self.back_forward_btn = BackForwardButton(part_size=(24,-1),
+                                                  native_draw=False)
+        self.back_forward_btn.set_use_hand_cursor(True)
+        self.back_forward_btn.connect('left-clicked', self._on_left_clicked)
+        self.back_forward_btn.connect('right-clicked', self._on_right_clicked)
+        self.header.pack_end(self.back_forward_btn, False)
 
         self._icon_size = self.featured_apps.icon_size
         self._offset = 0
@@ -785,8 +795,7 @@ class FeaturedView(FramedSection):
         self._set_next()
 
         # start the carosel
-        self._trans_id = gobject.timeout_add(CAROSEL_TRANSITION_TIMEOUT,
-                                             self.transition)
+        self.start()
         return
 
     def _init_layout(self):
@@ -815,14 +824,65 @@ class FeaturedView(FramedSection):
         self.queue_draw()
         return True
 
-    def _set_next(self):
+    def _set_next(self, fade_in=True):
         # update asset cache for each poster
         for poster in self.posters:
             if self._offset == len(self.featured_apps):
                     self._offset = 0
             poster.cache_assets(self.featured_apps[self._offset], self._layout)
             self._offset += 1
-        self._fader = gobject.timeout_add(50, self._fade_in)
+        if fade_in:
+            self._fader = gobject.timeout_add(50, self._fade_in)
+        else:
+            self.queue_draw()
+        return
+
+    def _set_prev(self, fade_in=True):
+        # update asset cache for each poster
+        for poster in self.posters:
+            if self._offset < 0:
+                    self._offset = len(self.featured_apps)-1
+            poster.cache_assets(self.featured_apps[self._offset], self._layout)
+            self._offset -= 1
+        if fade_in:
+            self._fader = gobject.timeout_add(50, self._fade_in)
+        else:
+            self.queue_draw()
+        return
+
+    def _on_left_clicked(self, btn, event):
+        if event.button != 1: return
+        self.previous()
+        self.restart()
+        return
+
+    def _on_right_clicked(self, btn, event):
+        if event.button != 1: return
+        self.next()
+        self.restart()
+        return
+
+    def stop(self):
+        gobject.source_remove(self._fader)
+        gobject.source_remove(self._trans_id)
+        return
+
+    def start(self):
+        self._trans_id = gobject.timeout_add(CAROSEL_TRANSITION_TIMEOUT,
+                                             self.transition)
+        return
+
+    def restart(self):
+        self.stop()
+        self.start()
+        return
+
+    def next(self):
+        self._set_next(fade_in=False)
+        return
+
+    def previous(self):
+        self._set_prev(fade_in=False)
         return
 
     def transition(self, loop=True):
@@ -842,11 +902,11 @@ class FeaturedView(FramedSection):
                 self._alpha = 1.0
                 poster.show()
             self.hbox.show()
-            self._trans_id = gobject.timeout_add(CAROSEL_TRANSITION_TIMEOUT,
-                                                 self.transition)
+            self.back_forward_btn.show()
+            self.start()
         else:
-            gobject.source_remove(self._fader)
-            gobject.source_remove(self._trans_id)
+            self.stop()
+            self.back_forward_btn.hide()
             self.hbox.hide()
             for poster in self.posters:
                 poster.hide()
@@ -859,7 +919,8 @@ class FeaturedView(FramedSection):
         cr.save()
         FramedSection.draw(self, cr, a, expose_area)
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
-        self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area)
+        self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area, alpha=0.5)
+        self.back_forward_btn.draw(cr, expose_area, alpha=0.5)
 
         alpha = self._alpha
         layout = self._layout
@@ -1062,7 +1123,6 @@ class PushButton(gtk.EventBox):
         atk_obj.set_name(self.label.get_text())
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
 
-        self._children_block_draw = False
         self._layout = None
         self._button_press_origin = None    # broken
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
@@ -1081,7 +1141,6 @@ class PushButton(gtk.EventBox):
         self.connect("button-release-event", self._on_button_release)
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
-        self.connect('expose-event', lambda w, e: self._children_block_draw)
         return
 
     def _on_enter(self, cat, event):
@@ -1137,7 +1196,7 @@ class PushButton(gtk.EventBox):
         cr.clip()
 
         self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
-        if self.has_focus() and alpha == 1.0:
+        if self.has_focus():
             a = self.label.allocation
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
@@ -1146,22 +1205,6 @@ class PushButton(gtk.EventBox):
                                    self,
                                    'button',
                                    x-2, y-1, w+4, h+2)
-
-        if alpha != 1.0:
-            self._children_block_draw = True
-            # draw label with cairo
-            if not self._layout:
-                pc = self.get_pango_context()
-                self._layout = pango.Layout(pc)
-
-            la = self.label.allocation
-            self._layout.set_markup(self.label.get_label())
-            pcr = pangocairo.CairoContext(cr)
-            pcr.move_to(la.x + self.get_border_width(), la.y)
-            pcr.set_source_rgba(0,0,0, alpha)
-            pcr.layout_path(self._layout)
-        else:
-            self._children_block_draw = False
 
         cr.restore()
         return
