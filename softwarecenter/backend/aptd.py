@@ -26,7 +26,11 @@ from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
-from aptdaemon.defer import inline_callbacks
+try:
+    from aptdaemon.defer import inline_callbacks
+except ImportError:
+    print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
+    raise
 import gtk
 
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
