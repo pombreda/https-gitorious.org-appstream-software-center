@@ -67,6 +67,9 @@ CAT_BUTTON_MIN_HEIGHT =     96
 CAT_BUTTON_BORDER_WIDTH =   6
 CAT_BUTTON_CORNER_RADIUS =  8
 
+CAROSEL_MIN_POSTER_COUNT = 1
+CAROSEL_MAX_POSTER_COUNT = 8
+CAROSEL_POSTER_MIN_WIDTH = 200
 CAROSEL_TRANSITION_TIMEOUT = 15000  # 15 seconds
 
 H1 = '<big><b>%s<b></big>'
@@ -545,12 +548,8 @@ class FeaturedView(FramedSection):
         self.hbox.set_homogeneous(True)
         self.header.set_spacing(HSPACING_SMALL)
 
-        self.posters = (FeaturedPoster(32),
-                        FeaturedPoster(32),
-                        FeaturedPoster(32))
-
-        for poster in self.posters:
-            self.hbox.pack_start(poster)
+        self.posters = []
+        self.n_posters = 0
 
         self.set_redraw_on_allocate(False)
         self.featured_apps = featured_apps
@@ -582,6 +581,7 @@ class FeaturedView(FramedSection):
         self.back_forward_btn.connect('right-clicked', self._on_right_clicked)
         self.header.pack_end(self.back_forward_btn, False)
 
+        self._width = 0
         self._icon_size = self.featured_apps.icon_size
         self._offset = 0
         self._alpha = 1.0
@@ -607,6 +607,39 @@ class FeaturedView(FramedSection):
         self._layout.set_wrap(pango.WRAP_WORD_CHAR)
         return
 
+    def _remove_all_posters(self):
+        # clear posters
+        for poster in self.posters:
+            self.hbox.remove(poster)
+            poster.destroy()
+        self.posters = []
+        return
+
+    def _build_view(self, width):
+        # push the offset back, so when we recache assets do so from the
+        # starting point we were at in the previous incarnation
+        self._offset -= self.n_posters
+
+        # number of posters we should have given available space
+        n = width / CAROSEL_POSTER_MIN_WIDTH
+        n = max(CAROSEL_MIN_POSTER_COUNT, n)
+        n = min(CAROSEL_MAX_POSTER_COUNT, n)
+        self.n_posters = n    
+
+        # repack appropriate number of new posters
+        for i in range(n):
+            poster = FeaturedPoster(32)
+            self.posters.append(poster)
+            self.hbox.pack_start(poster)
+
+            if self._offset == len(self.featured_apps):
+                    self._offset = 0
+            poster.cache_assets(self.featured_apps[self._offset], self._layout)
+            self._offset += 1
+
+        self.hbox.show_all()
+        return
+
     def _fade_in(self):
         self._alpha += 0.1
         if self._alpha >= 1.0:
@@ -627,7 +660,7 @@ class FeaturedView(FramedSection):
         return True
 
     def _set_next(self, fade_in=True):
-        # update asset cache for each poster
+        # increment view and update asset cache for each poster
         for poster in self.posters:
             if self._offset == len(self.featured_apps):
                     self._offset = 0
@@ -636,11 +669,12 @@ class FeaturedView(FramedSection):
         if fade_in:
             self._fader = gobject.timeout_add(50, self._fade_in)
         else:
+            self._alpha = 1.0
             self.queue_draw()
         return
 
     def _set_prev(self, fade_in=True):
-        # update asset cache for each poster
+        # increment view and update asset cache for each poster
         for poster in self.posters:
             if self._offset < 0:
                     self._offset = len(self.featured_apps)-1
@@ -649,6 +683,7 @@ class FeaturedView(FramedSection):
         if fade_in:
             self._fader = gobject.timeout_add(50, self._fade_in)
         else:
+            self._alpha = 1.0
             self.queue_draw()
         return
 
@@ -693,25 +728,24 @@ class FeaturedView(FramedSection):
 
     def set_width(self, width):
         width -=  3*BORDER_WIDTH_MED
+        self._width = width
         self.more_btn.set_size_request(width, -1)
+        self._remove_all_posters()
+        self._build_view(width)
         return
 
     def show_carosel(self, show_carosel):
         btn = self.show_hide_btn
         if show_carosel:
             btn.set_label(self._hide_label)
-            for poster in self.posters:
-                self._alpha = 1.0
-                poster.show()
-            self.hbox.show()
+            self._build_view(self._width)
             self.back_forward_btn.show()
             self.start()
         else:
             self.stop()
             self.back_forward_btn.hide()
             self.hbox.hide()
-            for poster in self.posters:
-                poster.hide()
+            self._remove_all_posters()
             btn.set_label(self._show_label)
         return
 
@@ -726,6 +760,10 @@ class FeaturedView(FramedSection):
 
         alpha = self._alpha
         layout = self._layout
+
+        if not self.posters:
+            cr.restore()
+            return
 
         w = self.posters[0].allocation.width
         layout.set_width((w-self._icon_size-20)*pango.SCALE)
