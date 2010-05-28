@@ -100,7 +100,6 @@ class ChannelPane(SoftwarePane):
         old_model = self.app_view.get_model()
         if old_model is not None:
             old_model.active = False
-            self.app_view.set_model(None)
         gobject.idle_add(self._make_new_model, query, self.refresh_seq_nr)
         return False
 
