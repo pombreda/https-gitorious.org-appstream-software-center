@@ -14,6 +14,9 @@ software-center (2.1.2) UNRELEASED; urgency=low
     - bit of navhistory code housekeeping
     - add navhistory back/forward actions and corresponding
       menu items
+    - integrate navhistory actions with custom back/forward
+      buttons
+    - add accelerator keys for navhistory actions
   * merged lp:~osomon/software-center/memory_leak, fixes
     memory leak regression (LP: #577540), thanks Olivier Tilloy!
   
@@ -27,7 +30,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/improve-appview-persistence
     (many thanks!)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 May 2010 14:00:38 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 May 2010 22:02:00 -0400
 
 software-center (2.1.1) maverick; urgency=low
 
