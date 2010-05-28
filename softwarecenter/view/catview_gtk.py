@@ -132,6 +132,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.apps_filter = apps_filter
         self.apps_limit = apps_limit
         self._prev_width = 0
+        self._poster_sigs = []
 
         # FIXME: move this to shared code
         if not root_category:
@@ -178,9 +179,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                  self._on_category_clicked,
                                  featured_cat)
  
-        for poster in carosel.posters:
-            poster.connect('clicked', self._on_app_clicked)
-
         carosel.show_hide_btn.connect('clicked',
                                       self._on_show_hide_carosel_clicked,
                                       carosel)
@@ -278,6 +276,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             carosel.show_carosel(False)
         else:
             carosel.show_carosel(True)
+            self._cleanup_poster_sigs()
 
         self._full_redraw()
         return
@@ -294,6 +293,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
             if self.carosel:
                 self.carosel.set_width(best_fit)
+                self._cleanup_poster_sigs()
             if self.departments:
                 self.departments.clear_rows()
                 self.departments.set_width(best_fit)
@@ -319,6 +319,15 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.departments.draw(cr, self.departments.allocation, expose_area)
 
         del cr
+        return
+
+    def _cleanup_poster_sigs(self):
+        # clean-up and connect signal handlers
+        for sig_id in self._poster_sigs:
+            gobject.source_remove(sig_id)
+        self._poster_sigs = []
+        for poster in self.carosel.posters:
+            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
         return
 
     def _image_path(self,name):
