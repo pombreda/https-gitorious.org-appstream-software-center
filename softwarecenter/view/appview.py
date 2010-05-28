@@ -257,13 +257,16 @@ class AppStore(gtk.GenericTreeModel):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white
         # flash. First, match list of apps.
+        self.pkgname_index_map.clear()
         to_update = min(len(self), len(appstore))
         for i in range(to_update):
             self.apps[i] = appstore.apps[i]
             self.row_changed(i, self.get_iter(i))
             self.app_index_map[self.apps[i]] = i
-            # FIXME: pkgname_index_map contains lists, not integers
-            self.pkgname_index_map[self.apps[i].pkgname] = i
+            pkgname = self.apps[i].pkgname
+            if pkgname not in self.pkgname_index_map:
+                self.pkgname_index_map[pkgname] = []
+            self.pkgname_index_map[pkgname].append(i)
 
         to_remove = max(0, len(self) - len(appstore))
         for i in range(to_remove):
