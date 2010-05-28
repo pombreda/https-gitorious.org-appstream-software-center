@@ -21,6 +21,9 @@ software-center (2.1.2) UNRELEASED; urgency=low
     modified softwarecenter/view/navhistory.py:
     - cleaner integration of navhistory actions and
       custom back/forward buttons
+  * softwarecenter/backend/aptd.py:
+    - fix error when updating software sources
+      (LP: #586623)
   
   [ Michael Vogt ]
   * merged  lp:~glatzor/software-center/glatzor to get improved
@@ -32,7 +35,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/improve-appview-persistence
     (many thanks!)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 May 2010 18:19:56 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 May 2010 20:43:31 -0400
 
 software-center (2.1.1) maverick; urgency=low
 

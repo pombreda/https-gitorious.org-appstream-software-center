@@ -133,7 +133,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """ reload package list """
         try:
             trans = yield self.aptd_client.update_cache(defer=True)
-            yield self._run_transaction(trans, pkgname, appname, iconname)
+            yield self._run_transaction(trans, None, None, None)
         except Exception, error:
             self._on_trans_error(error)
 
