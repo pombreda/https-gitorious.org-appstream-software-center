@@ -50,6 +50,10 @@ from view.historypane import HistoryPane
 from backend.config import get_config
 from backend import get_install_backend
 
+# launchpad stuff
+from view.login import LoginDialog
+from backend.launchpad import GLaunchpad
+
 from distro import get_distro
 
 from apt.aptcache import AptCache
@@ -83,6 +87,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
     def __init__(self, datadir, xapian_base_path):
+        self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareCenter.ui", 
                                      "software-center")
@@ -277,6 +282,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_app_status_menu()
 
     def on_window_main_delete_event(self, widget, event):
+        if hasattr(self, "glaunchpad"):
+            self.glaunchpad.shutdown()
         self.save_state()
         gtk.main_quit()
         
@@ -325,7 +332,18 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_status_bar()
         self.update_app_status_menu()
 
+    def _on_lp_login(self, lp):
+        print "_on_lp_login"
+        self._lp_login_successful = True
+
     # Menu Items
+    def on_menuitem_login_activate(self, menuitem):
+        print "login"
+        self.glaunchpad = GLaunchpad()
+        self.glaunchpad.connect("login-successful", self._on_lp_login)
+        LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
+        self.glaunchpad.connect_to_server()
+        
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)

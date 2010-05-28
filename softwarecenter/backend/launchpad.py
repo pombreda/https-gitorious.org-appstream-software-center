@@ -266,7 +266,6 @@ class GLaunchpad(gobject.GObject):
         state = lp_worker_thread.login_state
         if state == LOGIN_STATE_AUTH_FAILURE:
             self.emit("login-failed")
-            return False
         elif state == LOGIN_STATE_ASK_USER_AND_PASS:
             self.emit("need-username-password")
         elif state == LOGIN_STATE_SUCCESS:
