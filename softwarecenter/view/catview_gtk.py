@@ -40,7 +40,7 @@ SHAPE_END_RECT = 3
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
-BORDER_WIDTH_LARGE =    12
+BORDER_WIDTH_LARGE =    6
 BORDER_WIDTH_MED =    6
 BORDER_WIDTH_SMALL = 3
 
@@ -67,7 +67,11 @@ CAT_BUTTON_MIN_HEIGHT =     96
 CAT_BUTTON_BORDER_WIDTH =   6
 CAT_BUTTON_CORNER_RADIUS =  8
 
-CAROSEL_TRANSITION_TIMEOUT = 15000  # 15 seconds
+# MAX_POSTER_COUNT should be a number less than the number of featured apps
+CAROSEL_MAX_POSTER_COUNT =      8
+CAROSEL_MIN_POSTER_COUNT =      1
+CAROSEL_POSTER_MIN_WIDTH =      200    # this is actually more of an approximate minima
+CAROSEL_TRANSITION_TIMEOUT =    15000  # 15 seconds
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -129,6 +133,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.apps_filter = apps_filter
         self.apps_limit = apps_limit
         self._prev_width = 0
+        self._poster_sigs = []
 
         # FIXME: move this to shared code
         if not root_category:
@@ -175,9 +180,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                  self._on_category_clicked,
                                  featured_cat)
  
-        for poster in carosel.posters:
-            poster.connect('clicked', self._on_app_clicked)
-
         carosel.show_hide_btn.connect('clicked',
                                       self._on_show_hide_carosel_clicked,
                                       carosel)
@@ -271,10 +273,12 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
     def _on_show_hide_carosel_clicked(self, btn, carosel):
-        if carosel.hbox.get_property('visible'):
+        carosel_visible = self.carosel.get_carosel_visible()
+        if carosel_visible:
             carosel.show_carosel(False)
         else:
             carosel.show_carosel(True)
+            self._cleanup_poster_sigs()
 
         self._full_redraw()
         return
@@ -291,6 +295,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
             if self.carosel:
                 self.carosel.set_width(best_fit)
+                self._cleanup_poster_sigs()
             if self.departments:
                 self.departments.clear_rows()
                 self.departments.set_width(best_fit)
@@ -316,6 +321,15 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.departments.draw(cr, self.departments.allocation, expose_area)
 
         del cr
+        return
+
+    def _cleanup_poster_sigs(self):
+        # clean-up and connect signal handlers
+        for sig_id in self._poster_sigs:
+            gobject.source_remove(sig_id)
+        self._poster_sigs = []
+        for poster in self.carosel.posters:
+            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
         return
 
     def _image_path(self,name):
@@ -545,12 +559,9 @@ class FeaturedView(FramedSection):
         self.hbox.set_homogeneous(True)
         self.header.set_spacing(HSPACING_SMALL)
 
-        self.posters = (FeaturedPoster(32),
-                        FeaturedPoster(32),
-                        FeaturedPoster(32))
-
-        for poster in self.posters:
-            self.hbox.pack_start(poster)
+        self.posters = []
+        self.n_posters = 0
+        self._show_carosel = True
 
         self.set_redraw_on_allocate(False)
         self.featured_apps = featured_apps
@@ -569,8 +580,8 @@ class FeaturedView(FramedSection):
         self.body.pack_end(align, False)
 
         # show / hide header button
-        self._hide_label = _('<small>%s</small>' % 'Hide')
-        self._show_label = _('<small>%s</small>' % 'Show')
+        self._hide_label = '<small>%s</small>' % _('Hide')
+        self._show_label = '<small>%s</small>' % _('Show')
         self.show_hide_btn = BasicButton(self._hide_label)
         self.header.pack_end(self.show_hide_btn, False)
 
@@ -582,6 +593,7 @@ class FeaturedView(FramedSection):
         self.back_forward_btn.connect('right-clicked', self._on_right_clicked)
         self.header.pack_end(self.back_forward_btn, False)
 
+        self._width = 0
         self._icon_size = self.featured_apps.icon_size
         self._offset = 0
         self._alpha = 1.0
@@ -607,6 +619,39 @@ class FeaturedView(FramedSection):
         self._layout.set_wrap(pango.WRAP_WORD_CHAR)
         return
 
+    def _remove_all_posters(self):
+        # clear posters
+        for poster in self.posters:
+            self.hbox.remove(poster)
+            poster.destroy()
+        self.posters = []
+        return
+
+    def _build_view(self, width):
+        # push the offset back, so when we recache assets do so from the
+        # starting point we were at in the previous incarnation
+        self._offset -= self.n_posters
+
+        # number of posters we should have given available space
+        n = width / CAROSEL_POSTER_MIN_WIDTH
+        n = max(CAROSEL_MIN_POSTER_COUNT, n)
+        n = min(CAROSEL_MAX_POSTER_COUNT, n)
+        self.n_posters = n    
+
+        # repack appropriate number of new posters
+        for i in range(n):
+            poster = FeaturedPoster(32)
+            self.posters.append(poster)
+            self.hbox.pack_start(poster)
+
+            if self._offset == len(self.featured_apps):
+                    self._offset = 0
+            poster.cache_assets(self.featured_apps[self._offset], self._layout)
+            self._offset += 1
+
+        self.hbox.show_all()
+        return
+
     def _fade_in(self):
         self._alpha += 0.1
         if self._alpha >= 1.0:
@@ -627,7 +672,7 @@ class FeaturedView(FramedSection):
         return True
 
     def _set_next(self, fade_in=True):
-        # update asset cache for each poster
+        # increment view and update asset cache for each poster
         for poster in self.posters:
             if self._offset == len(self.featured_apps):
                     self._offset = 0
@@ -636,11 +681,12 @@ class FeaturedView(FramedSection):
         if fade_in:
             self._fader = gobject.timeout_add(50, self._fade_in)
         else:
+            self._alpha = 1.0
             self.queue_draw()
         return
 
     def _set_prev(self, fade_in=True):
-        # update asset cache for each poster
+        # increment view and update asset cache for each poster
         for poster in self.posters:
             if self._offset < 0:
                     self._offset = len(self.featured_apps)-1
@@ -649,6 +695,7 @@ class FeaturedView(FramedSection):
         if fade_in:
             self._fader = gobject.timeout_add(50, self._fade_in)
         else:
+            self._alpha = 1.0
             self.queue_draw()
         return
 
@@ -693,27 +740,33 @@ class FeaturedView(FramedSection):
 
     def set_width(self, width):
         width -=  3*BORDER_WIDTH_MED
+        self._width = width
         self.more_btn.set_size_request(width, -1)
+        if not self._show_carosel and self.hbox.get_property('visible'):
+            self.show_carosel(False)
+            return
+        self._remove_all_posters()
+        self._build_view(width)
         return
 
     def show_carosel(self, show_carosel):
+        self._show_carosel = show_carosel
         btn = self.show_hide_btn
         if show_carosel:
             btn.set_label(self._hide_label)
-            for poster in self.posters:
-                self._alpha = 1.0
-                poster.show()
-            self.hbox.show()
+            self._build_view(self._width)
             self.back_forward_btn.show()
             self.start()
         else:
             self.stop()
             self.back_forward_btn.hide()
             self.hbox.hide()
-            for poster in self.posters:
-                poster.hide()
+            self._remove_all_posters()
             btn.set_label(self._show_label)
         return
+
+    def get_carosel_visible(self):
+        return self._show_carosel
 
     def draw(self, cr, a, expose_area):
         if draw_skip(a, expose_area): return
@@ -726,6 +779,10 @@ class FeaturedView(FramedSection):
 
         alpha = self._alpha
         layout = self._layout
+
+        if not self.posters:
+            cr.restore()
+            return
 
         w = self.posters[0].allocation.width
         layout.set_width((w-self._icon_size-20)*pango.SCALE)
