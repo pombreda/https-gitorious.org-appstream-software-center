@@ -72,8 +72,7 @@ class LaunchpadlibWorker(threading.Thread):
         self.login_username = ""
         self.login_password = ""
         self._launchpad = None
-        self.pending_reviews = Queue()
-        self.pending_reports = Queue()
+        self._pending_requests = Queue()
         self._shutdown = False
 
     def run(self):
@@ -90,11 +89,25 @@ class LaunchpadlibWorker(threading.Thread):
         """Request shutdown"""
         self._shutdown = True
 
+    def queue_request(self, func, args, result_callback):
+        # FIXME: add support to pass strings instead of callable
+        self._pending_requests.put((func, args, result_callback))
+
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
         while True:
-            time.sleep(0.2)
-            if self._shutdown:
+            while not self._pending_requests.empty():
+                logging.debug("found pending request")
+                (func, args, result_callback) = self._pending_requests.get()
+                # run func async
+                res = func(*args)
+                # provide result to the callback
+                result_callback(res)
+                self._pending_requests.task_done()
+            # wait a bit
+            time.sleep(0.1)
+            if (self._shutdown and
+                self._pending_requests.empty()):
                 return
 
     def _lp_login(self, access_level=['READ_PRIVATE']):
@@ -211,11 +224,22 @@ class GLaunchpad(gobject.GObject):
     def get_subscribed_archives(self):
         """ return list of sources.list entries """
         urls = lp_worker_thread._launchpad.me.getArchiveSubscriptionURLs()
-        return ["deb %s %s main" % (url, self.distro.get_codename()) for url in urls]
-
+        return self._format_archive_subscription_urls_as_deb_lines(urls)
+    
+    def _format_archive_subscription_urls_as_deb_lines(self, urls):
+        deb_lines = ["deb %s %s main" % (url, self.distro.get_codename()) \
+                     for url in urls]
+        return deb_lines
+    
     def get_subscribed_archives_async(self, callback):
-        # FIXME: add code
-        pass
+        """ get the available subscribed archives and run 'callback' when
+            they become availalbe
+        """
+        def _result_cb(urls):
+            callback(self._format_archive_subscription_urls_as_deb_lines(urls))
+        #func = "me.getArchiveSubscriptionURLs"
+        func = lp_worker_thread._launchpad.me.getArchiveSubscriptionURLs
+        lp_worker_thread.queue_request(func, (), _result_cb)
 
     def _wait_for_login(self):
         state = lp_worker_thread.login_state
@@ -244,8 +268,11 @@ lp_worker_thread = LaunchpadlibWorker()
 def _login_success(lp):
     print "success", lp
     print lp.get_subscribed_archives()
+    print lp.get_subscribed_archives_async(_result_callback)
 def _login_failed(lp):
     print "fail", lp
+def _result_callback(result_list):
+    print "_result_callback", result_list
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -258,6 +285,7 @@ if __name__ == "__main__":
     lp.connect("login-successful", _login_success)
     lp.connect("login-failed", _login_failed)
     lp.login(user, password)
+
     
     # wait
     try:
