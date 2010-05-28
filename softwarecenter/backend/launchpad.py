@@ -46,6 +46,7 @@ LOGIN_STATE_UNKNOWN = "unkown"
 LOGIN_STATE_ASK_USER_AND_PASS = "ask-user-and-pass"
 LOGIN_STATE_HAS_USER_AND_PASS = "has-user-pass"
 LOGIN_STATE_SUCCESS = "success"
+LOGIN_STATE_SUCCESS_PENDING = "success-pending"
 LOGIN_STATE_AUTH_FAILURE = "auth-fail"
 LOGIN_STATE_USER_CANCEL = "user-cancel"
 
@@ -130,7 +131,6 @@ class LaunchpadlibWorker(threading.Thread):
             self.login_state = LOGIN_STATE_AUTH_FAILURE
             self._shutdown = True
             return
-        # check server status
         self.login_state = LOGIN_STATE_SUCCESS
         logging.debug("/done %s" % self._launchpad)
 
@@ -189,7 +189,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
     def success(self, suggested_message):
         """The token was successfully authorized."""
         logging.debug("success")
-        self.lp_worker.login_state = LOGIN_STATE_SUCCESS
+        self.lp_worker.login_state = LOGIN_STATE_SUCCESS_PENDING
 
 
 class GLaunchpad(gobject.GObject):
@@ -203,22 +203,26 @@ class GLaunchpad(gobject.GObject):
                           gobject.TYPE_NONE, 
                           (),
                          ),
+        "need-username-password" : (gobject.SIGNAL_RUN_LAST,
+                                    gobject.TYPE_NONE, 
+                                    (),
+                                   ),
         }
 
     def __init__(self):
         gobject.GObject.__init__(self)
         self.distro = get_distro()
 
-    def login(self, user, password):
-        """ log into launchpad, emits login-{successful,failed} signals """
+    def connect_to_server(self):
         glib.timeout_add(200, self._wait_for_login)
-        self._user = user
-        self._password = password
         lp_worker_thread.start()
 
-    def enter_username_password(self):
-        lp_worker_thread.login_username = self._user
-        lp_worker_thread.login_password = self._password
+    def shutdown(self):
+        lp_worker_thread.shutdown()
+
+    def enter_username_password(self, user, password):
+        lp_worker_thread.login_username = user
+        lp_worker_thread.login_password = password
         lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS        
     
     def get_subscribed_archives(self):
@@ -236,6 +240,7 @@ class GLaunchpad(gobject.GObject):
             they become availalbe
         """
         def _result_cb(urls):
+            # format as deb lines
             callback(self._format_archive_subscription_urls_as_deb_lines(urls))
         #func = "me.getArchiveSubscriptionURLs"
         func = lp_worker_thread._launchpad.me.getArchiveSubscriptionURLs
@@ -243,14 +248,11 @@ class GLaunchpad(gobject.GObject):
 
     def _wait_for_login(self):
         state = lp_worker_thread.login_state
-
-        # hide progress once we got a reply
-        # check state
         if state == LOGIN_STATE_AUTH_FAILURE:
             self.emit("login-failed")
             return False
         elif state == LOGIN_STATE_ASK_USER_AND_PASS:
-            self.enter_username_password()
+            self.emit("need-username-password")
         elif state == LOGIN_STATE_SUCCESS:
             self.emit("login-successful")
             return False
@@ -273,20 +275,25 @@ def _login_failed(lp):
     print "fail", lp
 def _result_callback(result_list):
     print "_result_callback", result_list
+def _login_need_user_and_password(lp):
+    import sys
+    sys.stdout.write("user: ")
+    sys.stdout.flush()
+    user = sys.stdin.readline().strip()
+    sys.stdout.write("pass: ")
+    sys.stdout.flush()
+    password = sys.stdin.readline().strip()
+    lp.enter_username_password(user, password)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    import sys
-    user = sys.argv[1]
-    print "password: "
-    password = sys.stdin.readline().strip()
-
     lp = GLaunchpad()
     lp.connect("login-successful", _login_success)
     lp.connect("login-failed", _login_failed)
-    lp.login(user, password)
+    lp.connect("need-username-password", _login_need_user_and_password)
+    lp.connect_to_server()
 
-    
     # wait
     try:
         glib.MainLoop().run()
