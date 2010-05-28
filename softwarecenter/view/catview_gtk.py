@@ -70,7 +70,7 @@ CAT_BUTTON_CORNER_RADIUS =  8
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROSEL_MAX_POSTER_COUNT =      8
 CAROSEL_MIN_POSTER_COUNT =      1
-CAROSEL_POSTER_MIN_WIDTH =      200
+CAROSEL_POSTER_MIN_WIDTH =      200    # this is actually more of an approximate minima
 CAROSEL_TRANSITION_TIMEOUT =    15000  # 15 seconds
 
 H1 = '<big><b>%s<b></big>'
@@ -273,7 +273,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
     def _on_show_hide_carosel_clicked(self, btn, carosel):
-        if carosel.hbox.get_property('visible'):
+        carosel_visible = self.carosel.get_carosel_visible()
+        if carosel_visible:
             carosel.show_carosel(False)
         else:
             carosel.show_carosel(True)
@@ -560,6 +561,7 @@ class FeaturedView(FramedSection):
 
         self.posters = []
         self.n_posters = 0
+        self._show_carosel = True
 
         self.set_redraw_on_allocate(False)
         self.featured_apps = featured_apps
@@ -740,11 +742,16 @@ class FeaturedView(FramedSection):
         width -=  3*BORDER_WIDTH_MED
         self._width = width
         self.more_btn.set_size_request(width, -1)
+        if not self._show_carosel:
+            self.back_forward_btn.hide()
+            return
         self._remove_all_posters()
         self._build_view(width)
         return
 
     def show_carosel(self, show_carosel):
+        print 'ShowCarosel', show_carosel
+        self._show_carosel = show_carosel
         btn = self.show_hide_btn
         if show_carosel:
             btn.set_label(self._hide_label)
@@ -758,6 +765,9 @@ class FeaturedView(FramedSection):
             self._remove_all_posters()
             btn.set_label(self._show_label)
         return
+
+    def get_carosel_visible(self):
+        return self._show_carosel
 
     def draw(self, cr, a, expose_area):
         if draw_skip(a, expose_area): return

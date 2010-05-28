@@ -654,6 +654,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "available-node-expanded") and
             self.config.getboolean("general", "available-node-expanded")):
             self.view_switcher.expand_available_node()
+        if (self.config.has_option("general", "carosel-hidden") and
+            self.config.getboolean("general", "carosel-hidden")):
+            print 'CaroselHidden'
+            self.available_pane.cat_view.carosel.show_carosel(False)
 
     def save_state(self):
         logging.debug("save_state")
@@ -675,6 +679,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.config.set("general", "available-node-expanded", "True")
         else:
             self.config.set("general", "available-node-expanded", "False")
+        carosel_visible = self.available_pane.cat_view.carosel.get_carosel_visible()
+        if carosel_visible:
+            self.config.set("general", "carosel-hidden", "False")
+        else:
+            self.config.set("general", "carosel-hidden", "True")
         self.config.write()
 
     def run(self, args):
