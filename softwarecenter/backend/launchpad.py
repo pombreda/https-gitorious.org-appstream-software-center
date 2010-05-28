@@ -237,6 +237,9 @@ class GLaunchpad(gobject.GObject):
         lp_worker_thread.login_username = user
         lp_worker_thread.login_password = password
         lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS        
+
+    def cancel_login(self):
+        lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
     
     def get_subscribed_archives(self):
         """ return list of sources.list entries """
