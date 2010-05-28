@@ -193,7 +193,10 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
 
 
 class GLaunchpad(gobject.GObject):
-    
+    """ A launchpad connection that uses GObject signals
+        for communication and async tasks
+    """
+
     __gsignals__ = {
         "login-successful" : (gobject.SIGNAL_RUN_LAST,
                              gobject.TYPE_NONE, 
@@ -214,13 +217,23 @@ class GLaunchpad(gobject.GObject):
         self.distro = get_distro()
 
     def connect_to_server(self):
+        """ Connects to launchpad and emits one of:
+            - need-username-password (use enter_username_password() then)
+            - login-successful
+            - login-failed
+        """
         glib.timeout_add(200, self._wait_for_login)
         lp_worker_thread.start()
 
     def shutdown(self):
+        """ shutdown the server connection thread """
         lp_worker_thread.shutdown()
 
     def enter_username_password(self, user, password):
+        """ 
+        provider username and password, ususally used when the
+        need-username-password signal was send
+        """
         lp_worker_thread.login_username = user
         lp_worker_thread.login_password = password
         lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS        
