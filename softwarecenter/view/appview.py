@@ -117,7 +117,7 @@ class AppStore(gtk.GenericTreeModel):
         self.icons = icons
         self.icon_size = icon_size or self.ICON_SIZE
         # invalidate the cache on icon theme changes
-        self.icons.connect("changed", lambda theme: _app_icon_cache.clear())
+        self.icons.connect("changed", self._clear_app_icon_cache)
         self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
         self.apps = []
         # this is used to re-set the cursor
@@ -203,6 +203,9 @@ class AppStore(gtk.GenericTreeModel):
         self._existing_apps = None
         self._installable_apps = None
 
+    def _clear_app_icon_cache(self, theme):
+        _app_icon_cache.clear()
+
     # internal API
     def _append_app(self, app):
         """ append a application to the current store, keep 
@@ -249,6 +252,12 @@ class AppStore(gtk.GenericTreeModel):
 
     # external API
     def clear(self):
+        """Clear the store and disconnect all callbacks to allow it to be
+        deleted."""
+        self.backend.disconnect_by_func(self._on_transaction_finished)
+        self.backend.disconnect_by_func(self._on_transaction_started)
+        self.backend.disconnect_by_func(self._on_transaction_progress_changed)
+        self.icons.disconnect_by_func(self._clear_app_icon_cache)
         self.apps = []
         self.app_index_map.clear()
         self.pkgname_index_map.clear()
@@ -289,7 +298,6 @@ class AppStore(gtk.GenericTreeModel):
 
         # Re-claim the memory used by the new appstore
         appstore.clear()
-        del appstore
 
     def _refresh_contents_data(self):
         # Quantitative data on stored packages. This generates the information.
