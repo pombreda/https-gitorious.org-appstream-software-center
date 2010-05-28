@@ -262,6 +262,7 @@ class AppStore(gtk.GenericTreeModel):
             self.apps[i] = appstore.apps[i]
             self.row_changed(i, self.get_iter(i))
             self.app_index_map[self.apps[i]] = i
+            # FIXME: pkgname_index_map contains lists, not integers
             self.pkgname_index_map[self.apps[i].pkgname] = i
 
         to_remove = max(0, len(self) - len(appstore))
