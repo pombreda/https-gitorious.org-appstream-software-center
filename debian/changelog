@@ -18,7 +18,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
     memory leak regression (LP: #577540), thanks Olivier Tilloy!
   * softwarecenter/app.py,
     softwarecenter/view/availablepane.py,
-    modified softwarecenter/view/navhistory.py:
+    softwarecenter/view/navhistory.py:
     - cleaner integration of navhistory actions and
       custom back/forward buttons
   * softwarecenter/backend/aptd.py:
