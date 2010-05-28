@@ -231,6 +231,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
         except Exception, e:
             logging.debug("launchpad integration error: '%s'" % e)
+            
+        # set up accelerator keys for navigation history actions
+        accel_group = gtk.AccelGroup()
+        self.window_main.add_accel_group(accel_group)
+        self.menuitem_go_back.add_accelerator("activate",
+                                              accel_group,
+                                              ord('['),
+                                              gtk.gdk.CONTROL_MASK,
+                                              gtk.ACCEL_VISIBLE)
+        self.menuitem_go_forward.add_accelerator("activate",
+                                                 accel_group,
+                                                 ord(']'),
+                                                 gtk.gdk.CONTROL_MASK,
+                                                 gtk.ACCEL_VISIBLE)
 
         # default focus
         self.available_pane.searchentry.grab_focus()
