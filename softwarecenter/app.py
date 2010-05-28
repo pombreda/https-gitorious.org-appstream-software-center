@@ -656,7 +656,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.view_switcher.expand_available_node()
         if (self.config.has_option("general", "carosel-hidden") and
             self.config.getboolean("general", "carosel-hidden")):
-            print 'CaroselHidden'
             self.available_pane.cat_view.carosel.show_carosel(False)
 
     def save_state(self):

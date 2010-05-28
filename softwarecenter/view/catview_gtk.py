@@ -580,8 +580,8 @@ class FeaturedView(FramedSection):
         self.body.pack_end(align, False)
 
         # show / hide header button
-        self._hide_label = _('<small>%s</small>' % 'Hide')
-        self._show_label = _('<small>%s</small>' % 'Show')
+        self._hide_label = '<small>%s</small>' % _('Hide')
+        self._show_label = '<small>%s</small>' % _('Show')
         self.show_hide_btn = BasicButton(self._hide_label)
         self.header.pack_end(self.show_hide_btn, False)
 
@@ -742,15 +742,14 @@ class FeaturedView(FramedSection):
         width -=  3*BORDER_WIDTH_MED
         self._width = width
         self.more_btn.set_size_request(width, -1)
-        if not self._show_carosel:
-            self.back_forward_btn.hide()
+        if not self._show_carosel and self.hbox.get_property('visible'):
+            self.show_carosel(False)
             return
         self._remove_all_posters()
         self._build_view(width)
         return
 
     def show_carosel(self, show_carosel):
-        print 'ShowCarosel', show_carosel
         self._show_carosel = show_carosel
         btn = self.show_hide_btn
         if show_carosel:
