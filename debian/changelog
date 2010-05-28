@@ -5,6 +5,17 @@ software-center (2.1.2) UNRELEASED; urgency=low
     - only reselect a channel node when a model is available
       (LP: #578497)
   * fix "List view forgets selected row" regression (LP: #584969)
+  * softwarecenter/view/availablepane.py:
+    - fix broken searches
+  * data/ui/SoftwareCenter.ui,
+    softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/navhistory.py:
+    - bit of navhistory code housekeeping
+    - add navhistory back/forward actions and corresponding
+      menu items
+  * merged lp:~osomon/software-center/memory_leak, fixes
+    memory leak regression (LP: #577540), thanks Olivier Tilloy!
   
   [ Michael Vogt ]
   * merged  lp:~glatzor/software-center/glatzor to get improved
@@ -16,7 +27,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/improve-appview-persistence
     (many thanks!)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 25 May 2010 15:34:55 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 May 2010 14:00:38 -0400
 
 software-center (2.1.1) maverick; urgency=low
 

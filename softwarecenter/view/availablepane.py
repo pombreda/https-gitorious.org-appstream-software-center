@@ -62,9 +62,19 @@ class AvailablePane(SoftwarePane):
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
 
-    def __init__(self, cache, db, distro, icons, datadir):
+    def __init__(self, 
+                 cache, 
+                 db, 
+                 distro, 
+                 icons, 
+                 datadir, 
+                 navhistory_back_action, 
+                 navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        # navigation history actions
+        self.navhistory_back_action = navhistory_back_action
+        self.navhistory_forward_action = navhistory_forward_action
         # state
         self.apps_category = None
         self.apps_subcategory = None
@@ -82,7 +92,9 @@ class AvailablePane(SoftwarePane):
         # search mode
         self.custom_list_mode = False
         # track navigation history
-        self.nav_history = NavigationHistory(self)
+        self.nav_history = NavigationHistory(self,
+                                             self.navhistory_back_action,
+                                             self.navhistory_forward_action)
         # install backend
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed",
@@ -115,6 +127,10 @@ class AvailablePane(SoftwarePane):
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.scroll_subcategories.add_with_viewport(self.subcategories_view)
         # add nav history back/forward buttons
+        # FIXME:  Wire in new navhistory_back_action and navhistory_forward_action
+        #         to the BackForwardButton
+        self.navhistory_back_action.set_sensitive(False)
+        self.navhistory_forward_action.set_sensitive(False)
         self.back_forward = BackForwardButton()
         self.back_forward.left.set_sensitive(False)
         self.back_forward.right.set_sensitive(False)
@@ -189,8 +205,7 @@ class AvailablePane(SoftwarePane):
             self.scroll_app_list.show()
 
     def refresh_apps(self):
-        """refresh the applist after search changes and update the
-           navigation bar
+        """refresh the applist and update the navigation bar
         """
         #import traceback
         #print "refresh_apps"
@@ -210,9 +225,6 @@ class AvailablePane(SoftwarePane):
 
         old_model = self.app_view.get_model()
         if old_model is not None:
-            # if queries for the old and new models match, do nothing
-            if query.get_description() == old_model.search_query.get_description():
-                return
             # *ugh* deactivate the old model because otherwise it keeps
             # getting progress_changed events and eats CPU time until its
             # garbage collected
@@ -409,12 +421,6 @@ class AvailablePane(SoftwarePane):
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
 
-    def _check_nav_history(self, display_cb):
-        if self.navigation_bar.get_last().label != self.nav_history.get_last_label():
-            nav_item = NavigationItem(self, display_cb)
-            self.nav_history.navigate_no_cursor_step(nav_item)
-        return
-
     # callbacks
     def on_cache_ready(self, cache):
         """ refresh the application list when the cache is re-opened """
@@ -551,7 +557,6 @@ class AvailablePane(SoftwarePane):
         logging.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
-        #self._check_nav_history(self.display_list)
         self.navigation_bar.add_with_id(
             category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
@@ -568,10 +573,8 @@ class AvailablePane(SoftwarePane):
         logging.debug("on_application_selected: '%s'" % app)
 
         if self.apps_subcategory:
-            #self._check_nav_history(self.display_list_subcat)
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
-            #self._check_nav_history(self.display_list)
             self.current_app_by_category[self.apps_category] = app
 
     def on_nav_back_clicked(self, widget, event):

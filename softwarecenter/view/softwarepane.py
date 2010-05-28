@@ -212,12 +212,4 @@ class SoftwarePane(gtk.VBox):
     def on_application_selected(self, widget, app):
         " stub implementation "
         pass
-        
-    def on_nav_back_clicked(self, widget, event):
-        " stub implementation "
-        pass
-
-    def on_nav_forward_clicked(self, widget, event):
-        " stub implementation "
-        pass
 
