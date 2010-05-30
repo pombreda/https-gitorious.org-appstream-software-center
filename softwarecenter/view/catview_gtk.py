@@ -60,7 +60,7 @@ COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
 COLOR_FRAME_BG_FILL =       '#FAFAFA'
 COLOR_FRAME_OUTLINE =       '#BAB7B5'
 COLOR_FRAME_HEADER_FILL =   '#DAD7D3'
-FRAME_CORNER_RADIUS =       4
+FRAME_CORNER_RADIUS =       3
 
 CAT_BUTTON_FIXED_WIDTH =    108
 CAT_BUTTON_MIN_HEIGHT =     96
@@ -71,7 +71,7 @@ CAT_BUTTON_CORNER_RADIUS =  8
 CAROSEL_MAX_POSTER_COUNT =      8
 CAROSEL_MIN_POSTER_COUNT =      1
 CAROSEL_POSTER_MIN_WIDTH =      200    # this is actually more of an approximate minima
-CAROSEL_TRANSITION_TIMEOUT =    15000  # 15 seconds
+CAROSEL_TRANSITION_TIMEOUT =    5000  # 15 seconds
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -350,14 +350,14 @@ class FramedSection(gtk.VBox):
     def __init__(self, label_markup=None):
         gtk.VBox.__init__(self)
         self.set_redraw_on_allocate(False)
-        self.set_spacing(VSPACING_SMALL)
+        #self.set_spacing(VSPACING_SMALL)
 
         self.header = gtk.HBox()
         self.body = gtk.VBox()
 
         self.header.set_border_width(BORDER_WIDTH_MED)
         self.body.set_border_width(BORDER_WIDTH_MED)
-        self.body.set_spacing(VSPACING_LARGE)
+        self.body.set_spacing(VSPACING_SMALL)
 
         align = gtk.Alignment(0.5, 0.5)
         align.add(self.body)
@@ -399,7 +399,7 @@ class FramedSection(gtk.VBox):
 
         # fill header bg
         if self.has_label:
-            h = self.header.allocation.height
+            h = self.header.allocation.height-1
 
             r, g, b = floats_from_string(COLOR_FRAME_HEADER_FILL)
             lin = cairo.LinearGradient(0, a.y, 0, a.y+h)
@@ -416,7 +416,7 @@ class FramedSection(gtk.VBox):
 
             # highlight
             rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, FRAME_CORNER_RADIUS-1)
-            cr.set_source_rgba(1,1,1,0.45)
+            cr.set_source_rgba(1,1,1,0.35)
             cr.stroke()
 
         # stroke frame outline and shadow
@@ -552,12 +552,14 @@ class LayoutRow(gtk.Alignment):
 class FeaturedView(FramedSection):
 
     def __init__(self, featured_apps):
-
         FramedSection.__init__(self)
         self.hbox = gtk.HBox(spacing=HSPACING_SMALL)
         self.body.pack_start(self.hbox)
         self.hbox.set_homogeneous(True)
         self.header.set_spacing(HSPACING_SMALL)
+
+        self.footer = gtk.HBox()
+        self.pack_end(self.footer)
 
         self.posters = []
         self.n_posters = 0
@@ -566,18 +568,21 @@ class FeaturedView(FramedSection):
         self.set_redraw_on_allocate(False)
         self.featured_apps = featured_apps
 
-        self.set_label(H2 % _('Showcase'))
+        self.set_label(H2 % _('Featured Applications'))
 
         # show all featured apps orange button
-        label = _('Browse all featured applications')
-        self.more_btn = BasicButton('<span color="%s"><big>%s</big></span>' % (COLOR_WHITE, label))
+        label = _('View all Featured Applications')
+        self.more_btn = BasicButton('<span color="%s">%s</span>' % (COLOR_WHITE, label),
+                                    border_width=8)
+        self.more_btn.set_shape(pathbar_common.SHAPE_START_ARROW)
         # override theme palatte with orange palatte
-        self.more_btn.use_orange_palatte()
+        self.more_btn.use_flat_orange_palatte()
 
         # align the more button in the center
         align = gtk.Alignment(1.0, 0.5)
+        align.set_border_width(BORDER_WIDTH_MED)
         align.add(self.more_btn)
-        self.body.pack_end(align, False)
+        self.footer.pack_end(align, False)
 
         # show / hide header button
         self._hide_label = '<small>%s</small>' % _('Hide')
@@ -602,8 +607,9 @@ class FeaturedView(FramedSection):
 
         self.show_all()
 
-        # cache a pango layout for text ops
-        self._init_layout()
+        # cache a pango layout for text ops and overlay image for installed apps
+        self._cache_layout()
+        self._cache_overlay_image("software-center-installed")
 
         # init asset cache for each poster
         self._set_next()
@@ -612,7 +618,18 @@ class FeaturedView(FramedSection):
         self.start()
         return
 
-    def _init_layout(self):
+    def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
+        icons = gtk.icon_theme_get_default()
+        try:
+            self._overlay = icons.load_icon(overlay_icon_name,
+                                            overlay_size, 0)
+        except glib.GError:
+            # icon not present in theme, probably because running uninstalled
+            self._overlay = icons.load_icon('emblem-system',
+                                            overlay_size, 0)
+        return
+
+    def _cache_layout(self):
         # cache a layout
         pc = self.get_pango_context()
         self._layout = pango.Layout(pc)
@@ -653,7 +670,7 @@ class FeaturedView(FramedSection):
         return
 
     def _fade_in(self):
-        self._alpha += 0.1
+        self._alpha += 0.2
         if self._alpha >= 1.0:
             self._alpha = 1.0
             self.queue_draw()
@@ -662,7 +679,7 @@ class FeaturedView(FramedSection):
         return True
 
     def _fade_out(self):
-        self._alpha -= 0.1
+        self._alpha -= 0.2
         if self._alpha <= 0.0:
             self._alpha = 0.0
             self.queue_draw()
@@ -739,9 +756,9 @@ class FeaturedView(FramedSection):
         return loop
 
     def set_width(self, width):
-        width -=  3*BORDER_WIDTH_MED
+        width -=  BORDER_WIDTH_MED
         self._width = width
-        self.more_btn.set_size_request(width, -1)
+        self.body.set_size_request(width, -1)
         if not self._show_carosel and self.hbox.get_property('visible'):
             self.show_carosel(False)
             return
@@ -756,11 +773,13 @@ class FeaturedView(FramedSection):
             btn.set_label(self._hide_label)
             self._build_view(self._width)
             self.back_forward_btn.show()
+            self.body.show()
             self.start()
         else:
             self.stop()
             self.back_forward_btn.hide()
             self.hbox.hide()
+            self.body.hide()
             self._remove_all_posters()
             btn.set_label(self._show_label)
         return
@@ -770,10 +789,20 @@ class FeaturedView(FramedSection):
 
     def draw(self, cr, a, expose_area):
         if draw_skip(a, expose_area): return
-
         cr.save()
         FramedSection.draw(self, cr, a, expose_area)
+
+        # draw footer bg
+        a = self.footer.allocation
+        r = FRAME_CORNER_RADIUS-1
+        rounded_rectangle_irregular(cr, a.x+1, a.y,
+                                    a.width-2, a.height-1,
+                                    (0, 0, r, r))
+        cr.set_source_rgb(*floats_from_string(COLOR_PURPLE))
+        cr.fill()
+
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
+
         self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area, alpha=0.5)
         self.back_forward_btn.draw(cr, expose_area, alpha=0.5)
 
@@ -787,8 +816,10 @@ class FeaturedView(FramedSection):
         w = self.posters[0].allocation.width
         layout.set_width((w-self._icon_size-20)*pango.SCALE)
 
+        overlay = self._overlay
         for i, poster in enumerate(self.posters):
-            poster.draw(cr, poster.allocation, expose_area, layout, alpha)
+            poster.draw(cr, poster.allocation, expose_area,
+                        layout, overlay, alpha)
 
         cr.restore()
         return
@@ -812,7 +843,7 @@ class FeaturedPoster(gtk.EventBox):
         self._icon_pb = None
         self._icon_offset = None
         self._text = None
-        self._text_extents = None
+        self._text_surfs = {}
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -872,15 +903,54 @@ class FeaturedPoster(gtk.EventBox):
             self.emit('clicked')
         return
 
+    def _cache_text_surf(self, layout):
+        # text rendering is relatively expensive
+        # here a surfaces a cached with the text prerendered
+        # makes fade much cheaper to render
+
+        text = self._text
+
+        # render text to surface in black and cache
+        color = COLOR_BLACK
+        layout.set_markup('<span color="%s">%s</span>' % (color, text))
+        w, h = layout.get_pixel_extents()[1][2:]
+
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        cr = cairo.Context(surf)
+
+        pcr = pangocairo.CairoContext(cr)
+        pcr.set_source_rgba(*floats_from_string(color))
+        pcr.layout_path(layout)
+        pcr.fill()
+
+        self._text_surfs[gtk.STATE_NORMAL] = surf
+        del pcr, cr
+
+        # render text to surface in white and cache
+        color = COLOR_WHITE
+        layout.set_markup('<span color="%s">%s</span>' % (color, text))
+
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        cr = cairo.Context(surf)
+
+        pcr = pangocairo.CairoContext(cr)
+        pcr.set_source_rgba(*floats_from_string(color))
+        pcr.layout_path(layout)
+        pcr.fill()
+
+        self._text_surfs[gtk.STATE_PRELIGHT] = surf
+        self._text_surfs[gtk.STATE_ACTIVE] = surf
+        del pcr, cr
+        return
+
     def cache_assets(self, app, layout):
-        self._icon_pb = app[AppStore.COL_ICON]
         self.app = app
+        self._icon_pb = app[AppStore.COL_ICON]
+        self._installed = app[AppStore.COL_INSTALLED]
 
         pb = self._icon_pb
-        pw = pb.get_width()
-        ph = pb.get_height()
-        px = 0
-        py = 3
+        pw, ph = pb.get_width(), pb.get_height() 
+        px, py = 0, 3
 
         # center pixbuf
         ico = self._icon_size
@@ -899,11 +969,10 @@ class FeaturedPoster(gtk.EventBox):
         acc.set_name(name)
         acc.set_description(summary)
 
-        layout.set_markup(self._text)
-        self._text_extents = layout.get_pixel_extents()[1]
+        self._cache_text_surf(layout)
         return
 
-    def draw(self, cr, a, expose_area, layout, alpha):
+    def draw(self, cr, a, expose_area, layout, overlay, alpha):
         if draw_skip(a, expose_area): return
         if not self.get_property('visible'): return
         cr.save()
@@ -911,6 +980,7 @@ class FeaturedPoster(gtk.EventBox):
         cr.clip()
         cr.translate(a.x, a.y)
 
+        # depending on state set bg colour and draw a rounded rectangle
         if (self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE):
             if self.state == gtk.STATE_PRELIGHT:
                 cr.set_source_rgba(*floats_from_string_with_alpha(COLOR_ORANGE, alpha))
@@ -920,6 +990,7 @@ class FeaturedPoster(gtk.EventBox):
             rounded_rectangle(cr, 0,0,a.width, a.height, 3)
             cr.fill()
 
+        # if has input focus, draw focus box
         if self.has_focus():
             self.style.paint_focus(self.window,
                                    self.state,
@@ -929,21 +1000,31 @@ class FeaturedPoster(gtk.EventBox):
                                    a.x+1, a.y+1,
                                    a.width-2, a.height-2)
 
+        # draw application icon
         cr.set_source_pixbuf(self._icon_pb, *self._icon_offset)
         cr.paint_with_alpha(alpha)
 
+        # draw installed overlay icon if app is installed
+        if self._installed:
+            cr.set_source_pixbuf(overlay, 16, 16)
+            cr.paint_with_alpha(alpha)
+
+        # depending on state set text colour
         if self.state == gtk.STATE_NORMAL:
             color = COLOR_BLACK
         else:
             color = COLOR_WHITE
-        layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
+
+        # draw text
         if alpha < 1.0:
-            pcr = pangocairo.CairoContext(cr)
-            pcr.move_to(8 + self._icon_size, 3)
-            pcr.set_source_rgba(*floats_from_string_with_alpha(color, alpha))
-            pcr.layout_path(layout)
-            pcr.fill()
+            # if fading, use cached surface, much cheaper to render
+            cr.set_source_surface(self._text_surfs[self.state],
+                                  8 + self._icon_size, 3)
+            cr.paint_with_alpha(alpha)
         else:
+            # we paint the layout use the gtk style because its text rendering seems
+            # much nicer than the rendering done by pangocairo...
+            layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
             self.style.paint_layout(self.window,
                                     self.state,
                                     False,
@@ -1122,56 +1203,67 @@ class CategoryButton(PushButton):
 
 class BasicButton(PushButton):
 
-    def __init__(self, markup):
+    def __init__(self, markup, border_width=BORDER_WIDTH_SMALL):
         PushButton.__init__(self, markup, image=None)
-        self.set_border_width(BORDER_WIDTH_SMALL)
+        self._shape_adjust = 0
+        self.set_border_width(border_width)
 
-        align = gtk.Alignment(0.5, 0.5)
-        align.add(self.label)
+        self.alignment = gtk.Alignment(0.5, 0.5)
+        self.alignment.add(self.label)
 
-        self.add(align)
+        self.add(self.alignment)
         self.show_all()
         return
 
-    def _calc_width(self):
+    def calc_width(self):
         pc = self.get_pango_context()
         layout = pango.Layout(pc)
         layout.set_markup(self.label.get_label())
         lw = layout.get_pixel_extents()[1][2]
-        bw = self.get_border_width()
-        self.set_size_request(lw+24, -1)
-        return
+        return lw + 24 + self._shape_adjust
 
     def set_border_width(self, width):
         gtk.EventBox.set_border_width(self, width)
-        self._calc_width()
+        w = self.calc_width()
+        self.set_size_request(w, -1)
         return
 
     def set_label(self, label):
         self.label.set_markup(label)
-        self._calc_width()
+        w = self.calc_width()
+        self.set_size_request(w, -1)
         return
 
-    def use_orange_palatte(self):
+    def set_shape(self, shape):
+        self.shape = shape
+        if shape == pathbar_common.SHAPE_START_ARROW:
+            self._shape_adjust = self.theme['arrow_width']/2
+            self.alignment.set(0.3, 0.5, 0, 0)
+        w = self.calc_width()
+        self.set_size_request(w, -1)
+        return
+
+    def use_flat_orange_palatte(self):
         orange = pathbar_common.color_from_string(COLOR_ORANGE)
+        purple = pathbar_common.color_from_string(COLOR_PURPLE)
 
         self.theme.gradients = {
-            gtk.STATE_NORMAL:      (orange.shade(1.125), orange.shade(0.99)),
-            gtk.STATE_ACTIVE:      (orange.shade(0.97), orange.shade(0.85)),
+            gtk.STATE_NORMAL:      (orange, orange),
+            gtk.STATE_ACTIVE:      (purple, purple),
             gtk.STATE_SELECTED:    (orange, orange),
-            gtk.STATE_PRELIGHT:    (orange.shade(1.2), orange.shade(1.1)),
+            gtk.STATE_PRELIGHT:    (orange, orange),
             gtk.STATE_INSENSITIVE: (self.theme.theme.mid, self.theme.theme.mid)}
 
         self.theme.dark_line = {
-            gtk.STATE_NORMAL:       orange.shade(0.65),
-            gtk.STATE_ACTIVE:       orange.shade(0.65),
-            gtk.STATE_PRELIGHT:     orange.darken(),
-            gtk.STATE_SELECTED:     orange.shade(0.65),
-            gtk.STATE_INSENSITIVE:  orange.shade(0.65)}
+            gtk.STATE_NORMAL:       orange,
+            gtk.STATE_ACTIVE:       purple,
+            gtk.STATE_PRELIGHT:     orange,
+            gtk.STATE_SELECTED:     orange,
+            gtk.STATE_INSENSITIVE:  self.theme.theme.dark}
 
         self.theme.light_line = {
-            gtk.STATE_NORMAL:       orange.shade(0.915),
-            gtk.STATE_ACTIVE:       orange.shade(0.825),
+            gtk.STATE_NORMAL:       orange,
+            gtk.STATE_ACTIVE:       purple,
             gtk.STATE_PRELIGHT:     orange,
             gtk.STATE_SELECTED:     orange,
             gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
