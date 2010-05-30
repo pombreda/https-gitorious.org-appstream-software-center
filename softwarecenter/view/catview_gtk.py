@@ -71,7 +71,7 @@ CAT_BUTTON_CORNER_RADIUS =  8
 CAROSEL_MAX_POSTER_COUNT =      8
 CAROSEL_MIN_POSTER_COUNT =      1
 CAROSEL_POSTER_MIN_WIDTH =      200    # this is actually more of an approximate minima
-CAROSEL_TRANSITION_TIMEOUT =    5000  # 15 seconds
+CAROSEL_TRANSITION_TIMEOUT =    20000  # n_seconds * 1000
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -702,20 +702,6 @@ class FeaturedView(FramedSection):
             self.queue_draw()
         return
 
-    def _set_prev(self, fade_in=True):
-        # increment view and update asset cache for each poster
-        for poster in self.posters:
-            if self._offset < 0:
-                    self._offset = len(self.featured_apps)-1
-            poster.cache_assets(self.featured_apps[self._offset], self._layout)
-            self._offset -= 1
-        if fade_in:
-            self._fader = gobject.timeout_add(50, self._fade_in)
-        else:
-            self._alpha = 1.0
-            self.queue_draw()
-        return
-
     def _on_left_clicked(self, btn, event):
         if event.button != 1: return
         self.previous()
@@ -748,7 +734,8 @@ class FeaturedView(FramedSection):
         return
 
     def previous(self):
-        self._set_prev(fade_in=False)
+        self._offset -= 2*self.n_posters
+        self._set_next(fade_in=False)
         return
 
     def transition(self, loop=True):
