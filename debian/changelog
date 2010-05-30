@@ -23,6 +23,8 @@ software-center (2.1.2) UNRELEASED; urgency=low
     - fix error when updating software sources (LP: #586623)
   * merged lp:~osomon/software-center/memory_leak, disconnect
     signals to allow appstore to be deleted, thanks Olivier Tilloy!
+  * merged lp:~osomon/software-center/fix_appstore_update, remake
+    pkgname_index_map correctly, many thanks Olivier!
   
   [ Michael Vogt ]
   * merged  lp:~glatzor/software-center/glatzor to get improved
@@ -34,7 +36,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/improve-appview-persistence
     (many thanks!)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 30 May 2010 11:48:37 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 30 May 2010 12:13:39 -0400
 
 software-center (2.1.1) maverick; urgency=low
 
