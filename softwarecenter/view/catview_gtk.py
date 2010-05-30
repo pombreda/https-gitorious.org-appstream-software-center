@@ -459,7 +459,7 @@ class LayoutView(FramedSection):
         self.set_redraw_on_allocate(False)
         self.widget_list = []
 
-        self.theme = CategoryViewStyle(self)
+        self.theme = pathbar_common.PathBarStyle(self)
         self._prev_width = 0
         return
 
@@ -781,7 +781,7 @@ class FeaturedView(FramedSection):
 
         # draw footer bg
         a = self.footer.allocation
-        r = FRAME_CORNER_RADIUS-1
+        r = FRAME_CORNER_RADIUS - 1
         rounded_rectangle_irregular(cr, a.x+1, a.y,
                                     a.width-2, a.height-1,
                                     (0, 0, r, r))
@@ -1169,6 +1169,7 @@ class CategoryButton(PushButton):
     def draw(self, cr, a, expose_area, theme):
         if draw_skip(a, expose_area): return
 
+        cr.save()
         x, y, w, h = a.x, a.y, a.width, a.height
         r = CAT_BUTTON_CORNER_RADIUS
         if self.state == gtk.STATE_NORMAL:
@@ -1185,6 +1186,7 @@ class CategoryButton(PushButton):
                                    self,
                                    'button',
                                    x+4, y+4, w-8, h-8)
+        cr.restore()
         return
 
 
@@ -1256,221 +1258,6 @@ class BasicButton(PushButton):
             gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
         return
 
-
-class CategoryViewStyle:
-
-    def __init__(self, pathbar):
-        self._load_shape_map(pathbar.get_direction())
-        gtk_settings = gtk.settings_get_default()
-        self.theme = self._load_theme(gtk_settings)
-        self.theme.build_palette(gtk_settings)
-        self.properties = self.theme.get_properties(gtk_settings)
-        self.gradients = self.theme.get_grad_palette()
-        self.dark_line = self.theme.get_dark_line_palette()
-        self.light_line = self.theme.get_light_line_palette()
-        self.text = self.theme.get_text_palette()
-        self.text_states = self.theme.get_text_states()
-        self.base_color = None
-        return
-
-    def __getitem__(self, item):
-        if self.properties.has_key(item):
-            return self.properties[item]
-        logging.warn('Key does not exist in the style profile: %s' % item)
-        return None
-
-    def _load_shape_map(self, direction):
-        if direction != gtk.TEXT_DIR_RTL:
-            self.shape_map = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                              SHAPE_START_RECT: self._shape_start_rect_ltr,
-                              SHAPE_MID_RECT:   self._shape_mid_rect_ltr,
-                              SHAPE_END_RECT:     self._shape_end_rect_ltr}
-#        else:
-#            self.shape_map = {SHAPE_RECTANGLE:   self._shape_rectangle,
-#                              SHAPE_START_ARROW: self._shape_start_arrow_rtl,
-#                              SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
-#                              SHAPE_END_CAP:     self._shape_end_cap_rtl}
-        return
-
-    def _load_theme(self, gtksettings):
-        name = gtksettings.get_property("gtk-theme-name")
-        r = pathbar_common.ThemeRegistry()
-        return r.retrieve(name)
-
-    def _shape_rectangle(self, cr, x, y, w, h, r, hint=None):
-        cr.new_sub_path()
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
-        cr.close_path()
-        return
-
-    def _shape_start_rect_ltr(self, cr, x, y, w, h, r, hint=None):
-        cr.new_sub_path()
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        cr.line_to(w, y)
-        cr.line_to(w, h)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
-        cr.close_path()
-        return
-
-    def _shape_mid_rect_ltr(self, cr, x, y, w, h, r, hint=None):
-        cr.rectangle(x-1, y, w-x+1, h-y)
-        return
-
-    def _shape_end_rect_ltr(self, cr, x, y, w, h, r, hint=None):
-        cr.move_to(x-1, y)
-        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(x-1, h)
-        cr.close_path()
-        return
-
-    def _shape_start_rect_rtl(self, cr, x, y, w, h, r):
-        cr.new_sub_path()
-        cr.move_to(x, (h+y)/2)
-        cr.line_to(aw, y)
-        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(aw, h)
-        cr.close_path()
-        return
-
-    def _shape_mid_rect_rtl(self, cr, x, y, w, h, r):
-        cr.move_to(x, (h+y)/2)
-        cr.line_to(aw, y)
-        cr.line_to(w, y)
-        cr.line_to(w, h)
-        cr.line_to(aw, h)
-        cr.close_path()
-        return
-
-    def _shape_end_rect_rtl(self, cr, x, y, w, h, r):
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        cr.line_to(w, y)
-        cr.line_to(w, h)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
-        cr.close_path()
-        return
-
-    def set_direction(self, direction):
-        self._load_shape_map(direction)
-        return
-
-    def paint_bg(self, cr, cat, x, y, w, h, r):
-        shape = self.shape_map[cat.shape]
-        state = cat.state
-
-        cr.save()
-        cr.translate(x+0.5, y+0.5)
-
-        w -= 1
-        h -= 1
-
-        # bg linear vertical gradient
-        color1, color2 = self.gradients[state]
-
-        shape(cr, 0, 0, w, h, r)
-        lin = cairo.LinearGradient(0, 0, 0, h)
-        lin.add_color_stop_rgb(0.0, *color1.tofloats())
-        lin.add_color_stop_rgb(1.0, *color2.tofloats())
-        cr.set_source(lin)
-        cr.fill()
-
-        cr.set_line_width(1.0)
-        # inner bevel/highlight
-        if r == 0: w += 1
-        shape(cr, 1, 1, w-1, h-1, r-1)
-        cr.set_source_rgb(*self.light_line[state].tofloats())
-        cr.stroke()
-
-        # strong outline
-        shape(cr, 0, 0, w, h, r)
-        cr.set_source_rgb(*self.dark_line[state].tofloats())
-        cr.stroke()
-        cr.restore()
-        return
-
-    def paint_bg_active_shallow(self, cr, cat, x, y, w, h, r):
-        shape = self.shape_map[cat.shape]
-        state = cat.state
-
-        cr.save()
-        cr.rectangle(x, y, w+1, h)
-        cr.clip()
-        cr.translate(x+0.5, y+0.5)
-
-        w -= 1
-        h -= 1
-
-        # bg linear vertical gradient
-        color1, color2 = self.gradients[state]
-
-        shape(cr, 0, 0, w, h, r)
-
-        lin = cairo.LinearGradient(0, 0, 0, h)
-        lin.add_color_stop_rgb(2.0, *color1.tofloats())
-        lin.add_color_stop_rgb(0.0, *color2.tofloats())
-        cr.set_source(lin)
-        cr.fill()
-
-        cr.set_line_width(1.0)
-        # inner shadow
-        if r == 0: w += 1
-        red, g, b = self.dark_line[state].tofloats()
-        shape(cr, 1, 1, w-1, h-1, r-1)
-        cr.set_source_rgba(red, g, b, 0.4)
-        cr.stroke()
-
-        # strong outline
-        shape(cr, 0, 0, w, h, r)
-        cr.set_source_rgb(*self.dark_line[state].tofloats())
-        cr.stroke()
-        cr.restore()
-        return
-
-    def paint_bg_active_deep(self, cr, cat, x, y, w, h, r):
-        shape = self.shape_map[cat.shape]
-        state = cat.state
-
-        cr.save()
-        cr.rectangle(x, y, w+1, h)
-        cr.clip()
-        cr.translate(x+0.5, y+0.5)
-
-        w -= 1
-        h -= 1
-
-        # bg linear vertical gradient
-        color1, color2 = self.gradients[state]
-
-        shape(cr, 0, 0, w, h, r)
-
-        lin = cairo.LinearGradient(0, 0, 0, h)
-        lin.add_color_stop_rgb(2.0, *color1.tofloats())
-        lin.add_color_stop_rgb(0.0, *color2.tofloats())
-        cr.set_source(lin)
-        cr.fill()
-
-        cr.set_line_width(1.0)
-        # inner shadow 1
-        if r == 0: w += 1
-        shape(cr, 2, 2, w-2, h-2, r-2)
-        red, g, b = self.dark_line[state].tofloats()
-        cr.set_source_rgba(red, g, b, 0.2)
-        cr.stroke()
-
-        shape(cr, 1, 1, w-1, h-1, r-1)
-        cr.set_source_rgba(red, g, b, 0.4)
-        cr.stroke()
-
-        # strong outline
-        shape(cr, 0, 0, w, h, r)
-        cr.set_source_rgb(*self.dark_line[state].tofloats())
-        cr.stroke()
-        cr.restore()
-        return
 
 class Test:
 

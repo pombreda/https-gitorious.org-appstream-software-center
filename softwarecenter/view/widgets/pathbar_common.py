@@ -156,10 +156,10 @@ class PathBarStyle:
                               SHAPE_END_CAP:     self._shape_end_cap_rtl}
         return
 
-    def paint_bg(self, cr, part, x, y, w, h, sxO=0, alpha=1.0):
+    def paint_bg(self, cr, part, x, y, w, h, r=None, sxO=0, alpha=1.0):
         shape = self.shape_map[part.shape]
         state = part.state
-        r = self["curvature"]
+        r = r or self["curvature"]
         aw = self["arrow_width"]
 
         cr.save()
@@ -235,16 +235,16 @@ class PathBarStyle:
         cr.restore()
         return
 
-    def paint_bg_active_deep(self, cr, part, x, y, w, h, sxO=0):
+    def paint_bg_active_deep(self, cr, part, x, y, w, h, r=None):
         shape = self.shape_map[part.shape]
         state = part.state
-        r = self["curvature"]
+        r = r or self["curvature"]
         aw = self["arrow_width"]
 
         cr.save()
         cr.rectangle(x, y, w+1, h)
         cr.clip()
-        cr.translate(x+0.5-sxO, y+0.5)
+        cr.translate(x+0.5, y+0.5)
 
         w -= 1
         h -= 1
@@ -265,7 +265,7 @@ class PathBarStyle:
         if r == 0: w += 1
         shape(cr, 2, 2, w-2, h-2, r-2, aw)
         red, g, b = self.dark_line[state].tofloats()
-        cr.set_source_rgba(red, g, b, 0.2)
+        cr.set_source_rgba(red, g, b, 0.1)
         cr.stroke()
 
         shape(cr, 1, 1, w-1, h-1, r-1, aw)
@@ -273,7 +273,7 @@ class PathBarStyle:
         cr.stroke()
 
         # strong outline
-        shape(cr, 0, 0, w, h, r)
+        shape(cr, 0, 0, w, h, r, aw)
         cr.set_source_rgb(*self.dark_line[state].tofloats())
         cr.stroke()
         cr.restore()
