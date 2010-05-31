@@ -70,8 +70,11 @@ CAT_BUTTON_CORNER_RADIUS =  8
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROSEL_MAX_POSTER_COUNT =      8
 CAROSEL_MIN_POSTER_COUNT =      1
-CAROSEL_POSTER_MIN_WIDTH =      200    # this is actually more of an approximate minima
-CAROSEL_TRANSITION_TIMEOUT =    20000  # n_seconds * 1000
+CAROSEL_POSTER_MIN_WIDTH =      200 # this is actually more of an approximate minima
+CAROSEL_TRANSITION_TIMEOUT =    20000 # n_seconds * 1000
+CAROSEL_FADE_INTERVAL =         50 # msec  
+CAROSEL_FADE_STEP =             0.2 # value between 0.0 and 1.0
+POSTER_CORNER_RADIUS =          3
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -180,9 +183,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                  self._on_category_clicked,
                                  featured_cat)
  
-        carosel.show_hide_btn.connect('clicked',
-                                      self._on_show_hide_carosel_clicked,
-                                      carosel)
+        #carosel.show_hide_btn.connect('clicked',
+                                      #self._on_show_hide_carosel_clicked,
+                                      #carosel)
 
         self.carosel = carosel
         self.vbox.pack_start(carosel, False)
@@ -584,11 +587,11 @@ class FeaturedView(FramedSection):
         align.add(self.more_btn)
         self.footer.pack_end(align, False)
 
-        # show / hide header button
-        self._hide_label = '<small>%s</small>' % _('Hide')
-        self._show_label = '<small>%s</small>' % _('Show')
-        self.show_hide_btn = BasicButton(self._hide_label)
-        self.header.pack_end(self.show_hide_btn, False)
+        ## show / hide header button
+        #self._hide_label = '<small>%s</small>' % _('Hide')
+        #self._show_label = '<small>%s</small>' % _('Show')
+        #self.show_hide_btn = BasicButton(self._hide_label)
+        #self.header.pack_end(self.show_hide_btn, False)
 
         # back forward button to allow user control of carosel
         self.back_forward_btn = BackForwardButton(part_size=(24,-1),
@@ -670,7 +673,7 @@ class FeaturedView(FramedSection):
         return
 
     def _fade_in(self):
-        self._alpha += 0.2
+        self._alpha += CAROSEL_FADE_STEP
         if self._alpha >= 1.0:
             self._alpha = 1.0
             self.queue_draw()
@@ -679,7 +682,7 @@ class FeaturedView(FramedSection):
         return True
 
     def _fade_out(self):
-        self._alpha -= 0.2
+        self._alpha -= CAROSEL_FADE_STEP
         if self._alpha <= 0.0:
             self._alpha = 0.0
             self.queue_draw()
@@ -696,7 +699,8 @@ class FeaturedView(FramedSection):
             poster.cache_assets(self.featured_apps[self._offset], self._layout)
             self._offset += 1
         if fade_in:
-            self._fader = gobject.timeout_add(50, self._fade_in)
+            self._fader = gobject.timeout_add(CAROSEL_FADE_INTERVAL,
+                                              self._fade_in)
         else:
             self._alpha = 1.0
             self.queue_draw()
@@ -739,7 +743,8 @@ class FeaturedView(FramedSection):
         return
 
     def transition(self, loop=True):
-        self._fader = gobject.timeout_add(50, self._fade_out)
+        self._fader = gobject.timeout_add(CAROSEL_FADE_INTERVAL,
+                                          self._fade_out)
         return loop
 
     def set_width(self, width):
@@ -790,7 +795,7 @@ class FeaturedView(FramedSection):
 
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
 
-        self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area, alpha=0.5)
+        #self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area, alpha=0.5)
         self.back_forward_btn.draw(cr, expose_area, alpha=0.5)
 
         alpha = self._alpha
@@ -904,11 +909,8 @@ class FeaturedPoster(gtk.EventBox):
 
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         cr = cairo.Context(surf)
-
         pcr = pangocairo.CairoContext(cr)
-        pcr.set_source_rgba(*floats_from_string(color))
-        pcr.layout_path(layout)
-        pcr.fill()
+        pcr.show_layout(layout)
 
         self._text_surfs[gtk.STATE_NORMAL] = surf
         del pcr, cr
@@ -919,11 +921,8 @@ class FeaturedPoster(gtk.EventBox):
 
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         cr = cairo.Context(surf)
-
         pcr = pangocairo.CairoContext(cr)
-        pcr.set_source_rgba(*floats_from_string(color))
-        pcr.layout_path(layout)
-        pcr.fill()
+        pcr.show_layout(layout)
 
         self._text_surfs[gtk.STATE_PRELIGHT] = surf
         self._text_surfs[gtk.STATE_ACTIVE] = surf
@@ -932,19 +931,8 @@ class FeaturedPoster(gtk.EventBox):
 
     def cache_assets(self, app, layout):
         self.app = app
-        self._icon_pb = app[AppStore.COL_ICON]
+        self._icon_pb = pb = app[AppStore.COL_ICON]
         self._installed = app[AppStore.COL_INSTALLED]
-
-        pb = self._icon_pb
-        pw, ph = pb.get_width(), pb.get_height() 
-        px, py = 0, 3
-
-        # center pixbuf
-        ico = self._icon_size
-        if pw != ico or ph != ico:
-            px = (ico-pw)/2
-            py += (ico-ph)/2
-        self._icon_offset = px, py
 
         # cache markup string and cache pixel extents
         text = app[AppStore.COL_TEXT]
@@ -956,7 +944,96 @@ class FeaturedPoster(gtk.EventBox):
         acc.set_name(name)
         acc.set_description(summary)
 
+        # cache rendered text
         self._cache_text_surf(layout)
+
+        # calc position of centered pixbuf
+        pw, ph = pb.get_width(), pb.get_height() 
+        px, py = 0, 3
+
+        ico = self._icon_size
+        if pw != ico or ph != ico:
+            px = (ico-pw)/2
+            py += (ico-ph)/2
+        self._icon_offset = px, py
+        return
+
+    def draw_ltr(self, cr, a, expose_area, layout, overlay, alpha):
+        # draw application icon
+        cr.set_source_pixbuf(self._icon_pb, *self._icon_offset)
+        cr.paint_with_alpha(alpha)
+
+        # draw installed overlay icon if app is installed
+        if self._installed:
+            cr.set_source_pixbuf(overlay, 17, 16)
+            cr.paint_with_alpha(alpha)
+
+        # draw text
+        if alpha < 1.0:
+            # if fading, use cached surface, much cheaper to render
+            cr.set_source_surface(self._text_surfs[self.state],
+                                  8 + self._icon_size,
+                                  POSTER_CORNER_RADIUS)
+            cr.paint_with_alpha(alpha)
+        else:
+            # depending on state set text colour
+            if self.state == gtk.STATE_NORMAL:
+                color = COLOR_BLACK
+            else:
+                color = COLOR_WHITE
+            # we paint the layout use the gtk style because its text rendering seems
+            # much nicer than the rendering done by pangocairo...
+            layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
+            self.style.paint_layout(self.window,
+                                    self.state,
+                                    False,
+                                    a,          # area
+                                    self,
+                                    None,
+                                    a.x + 8 + self._icon_size,
+                                    a.y + 3,
+                                    layout)
+        return
+
+    def draw_rtl(self, cr, a, expose_area, layout, overlay, alpha):
+        # draw application icon
+        x, y = self._icon_offset
+        cr.set_source_pixbuf(self._icon_pb,
+                             a.width - x - self._icon_pb.get_width(),
+                             y)
+        cr.paint_with_alpha(alpha)
+
+        # draw installed overlay icon if app is installed
+        if self._installed:
+            cr.set_source_pixbuf(overlay, a.width - 33, 16) # 33 = 17+16
+            cr.paint_with_alpha(alpha)
+
+        # draw text
+        if alpha < 1.0:
+            # if fading, use cached surface, much cheaper to render
+            surf = self._text_surfs[self.state]
+            cr.set_source_surface(self._text_surfs[self.state],
+                                  6,
+                                  3)
+            cr.paint_with_alpha(alpha)
+        else:
+            # depending on state set text colour
+            if self.state == gtk.STATE_NORMAL:
+                color = COLOR_BLACK
+            else:
+                color = COLOR_WHITE
+            # we paint the layout use the gtk style because its text rendering seems
+            # much nicer than the rendering done by pangocairo...
+            layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
+            self.style.paint_layout(self.window,
+                                    self.state,
+                                    False,
+                                    a,          # area
+                                    self,
+                                    None,
+                                    a.x + 6,
+                                    a.y + 3,
+                                    layout)
         return
 
     def draw(self, cr, a, expose_area, layout, overlay, alpha):
@@ -987,40 +1064,11 @@ class FeaturedPoster(gtk.EventBox):
                                    a.x+1, a.y+1,
                                    a.width-2, a.height-2)
 
-        # draw application icon
-        cr.set_source_pixbuf(self._icon_pb, *self._icon_offset)
-        cr.paint_with_alpha(alpha)
-
-        # draw installed overlay icon if app is installed
-        if self._installed:
-            cr.set_source_pixbuf(overlay, 16, 16)
-            cr.paint_with_alpha(alpha)
-
-        # depending on state set text colour
-        if self.state == gtk.STATE_NORMAL:
-            color = COLOR_BLACK
+        # direction sensitive stuff
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
+            self.draw_ltr(cr, a, expose_area, layout, overlay, alpha)
         else:
-            color = COLOR_WHITE
-
-        # draw text
-        if alpha < 1.0:
-            # if fading, use cached surface, much cheaper to render
-            cr.set_source_surface(self._text_surfs[self.state],
-                                  8 + self._icon_size, 3)
-            cr.paint_with_alpha(alpha)
-        else:
-            # we paint the layout use the gtk style because its text rendering seems
-            # much nicer than the rendering done by pangocairo...
-            layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
-            self.style.paint_layout(self.window,
-                                    self.state,
-                                    False,
-                                    a,          # area
-                                    self,
-                                    None,
-                                    a.x + 8 + self._icon_size,
-                                    a.y + 3,
-                                    layout)
+            self.draw_rtl(cr, a, expose_area, layout, overlay, alpha)
 
         cr.restore()
         return
@@ -1270,7 +1318,7 @@ class Test:
         scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         w.add(scrolled)
 
-        view = CatViewBody()
+        view = CategoriesViewGtk()
         scrolled.add_with_viewport(view)
 
         w.show_all()
