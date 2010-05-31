@@ -126,10 +126,20 @@ class LaunchpadlibWorker(threading.Thread):
                 authorizer_class=AuthorizeRequestTokenFromThread)
             self.display_name = self._launchpad.me.display_name
         except Exception, e:
-            if type(e) != UserCancelException:
-                logging.exception("Launchpad.login_with()")
-            self.login_state = LOGIN_STATE_AUTH_FAILURE
-            self._shutdown = True
+            if type(e) == UserCancelException:
+                return
+            logging.exception("Launchpad.login_with()")
+            # remove token on failure, it may be e.g. expired
+            # FIXME: store the token in a different place and to avoid
+            #        having to use _get_paths()
+            (service_root, launchpadlib_dir, cache_path,
+             service_root_dir) = Launchpad._get_paths(SERVICE_ROOT, cachedir)
+            credentials_path = os.path.join(service_root_dir, 'credentials')
+            consumer_credentials_path = os.path.join(credentials_path, 'software-center')
+            # ---
+            if os.path.exists(consumer_credentials_path):
+                os.remove(consumer_credentials_path)
+            self._lp_login(access_level)
             return
         self.login_state = LOGIN_STATE_SUCCESS
         logging.debug("/done %s" % self._launchpad)
