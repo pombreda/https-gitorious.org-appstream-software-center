@@ -229,7 +229,6 @@ class AvailablePane(SoftwarePane):
             # getting progress_changed events and eats CPU time until its
             # garbage collected
             old_model.active = False
-            self.app_view.set_model(None)
             while gtk.events_pending():
                 gtk.main_iteration()
 
