@@ -176,8 +176,12 @@ class HistoryPane(gtk.VBox):
                     row = (when, action, pkgname)
                     self.store.append(day, row)
 
-        fd.close()
-        self.last = when
+        fd.close() 
+        # something was broken for me so i did this so my instance works until smart people fix my error.
+        try:
+            self.last = when
+        except:
+            pass
         self.update_view()
 
     def is_category_view_showing(self):
