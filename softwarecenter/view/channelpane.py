@@ -100,7 +100,6 @@ class ChannelPane(SoftwarePane):
         old_model = self.app_view.get_model()
         if old_model is not None:
             old_model.active = False
-            self.app_view.set_model(None)
         gobject.idle_add(self._make_new_model, query, self.refresh_seq_nr)
         return False
 
@@ -121,6 +120,7 @@ class ChannelPane(SoftwarePane):
             self.scroll_app_list.window.set_cursor(None)
         if seq_nr == self.refresh_seq_nr:
             self.app_view.set_model(new_model)
+            self.app_view.get_model().active = True
             self.emit("app-list-changed", len(new_model))
         else:
             logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))

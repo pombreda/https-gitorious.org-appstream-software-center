@@ -7,12 +7,11 @@
     <property name="default_width">870</property>
     <property name="default_height">500</property>
     <property name="icon_name">softwarecenter</property>
-    <signal name="delete_event" handler="on_window_main_delete_event"/>
     <signal name="key_press_event" handler="on_window_main_key_press_event"/>
+    <signal name="delete_event" handler="on_window_main_delete_event"/>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <object class="GtkMenuBar" id="menubar1">
             <property name="visible">True</property>
@@ -223,6 +222,29 @@
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
                         <signal name="activate" handler="on_menuitem_view_supported_only_activate"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="navitems_menu_separator">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menuitem_go_back">
+                        <property name="label" translatable="yes">_Go Back</property>
+                        <property name="visible">True</property>
+                        <property name="related_action">navhistory_back_action</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menuitem_go_forward">
+                        <property name="label" translatable="yes">_Go Forward</property>
+                        <property name="visible">True</property>
+                        <property name="related_action">navhistory_forward_action</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">False</property>
                       </object>
                     </child>
                   </object>
@@ -459,9 +481,9 @@
   </object>
   <object class="GtkAboutDialog" id="aboutdialog">
     <property name="border_width">5</property>
+    <property name="modal">True</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
-    <property name="modal">True</property>
     <property name="version">0.3.4</property>
     <property name="copyright" translatable="yes">&#xA9;2009-2010 Canonical</property>
     <property name="website">http://launchpad.net/software-center</property>
@@ -470,7 +492,6 @@
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <placeholder/>
@@ -537,5 +558,15 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkAction" id="navhistory_back_action">
+    <property name="label">_Go Back</property>
+    <property name="stock_id">gtk-go-back</property>
+    <signal name="activate" handler="on_navhistory_back_action_activate"/>
+  </object>
+  <object class="GtkAction" id="navhistory_forward_action">
+    <property name="label">_Go Forward</property>
+    <property name="stock_id">gtk-go-forward</property>
+    <signal name="activate" handler="on_navhistory_forward_action_activate"/>
   </object>
 </interface>

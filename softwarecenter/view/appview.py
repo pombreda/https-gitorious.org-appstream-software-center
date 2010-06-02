@@ -92,7 +92,7 @@ class AppStore(gtk.GenericTreeModel):
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
-                 sort=False, filter=None, exact=False):
+                 sort=False, filter=None, exact=False, icon_size=0):
         """
         Initalize a AppStore.
 
@@ -115,9 +115,10 @@ class AppStore(gtk.GenericTreeModel):
         self.cache = cache
         self.db = db
         self.icons = icons
+        self.icon_size = icon_size or self.ICON_SIZE
         # invalidate the cache on icon theme changes
-        self.icons.connect("changed", lambda theme: _app_icon_cache.clear())
-        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+        self.icons.connect("changed", self._clear_app_icon_cache)
+        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
         self.apps = []
         # this is used to re-set the cursor
         self.app_index_map = {}
@@ -202,6 +203,9 @@ class AppStore(gtk.GenericTreeModel):
         self._existing_apps = None
         self._installable_apps = None
 
+    def _clear_app_icon_cache(self, theme):
+        _app_icon_cache.clear()
+
     # internal API
     def _append_app(self, app):
         """ append a application to the current store, keep 
@@ -248,6 +252,12 @@ class AppStore(gtk.GenericTreeModel):
 
     # external API
     def clear(self):
+        """Clear the store and disconnect all callbacks to allow it to be
+        deleted."""
+        self.backend.disconnect_by_func(self._on_transaction_finished)
+        self.backend.disconnect_by_func(self._on_transaction_started)
+        self.backend.disconnect_by_func(self._on_transaction_progress_changed)
+        self.icons.disconnect_by_func(self._clear_app_icon_cache)
         self.apps = []
         self.app_index_map.clear()
         self.pkgname_index_map.clear()
@@ -256,10 +266,17 @@ class AppStore(gtk.GenericTreeModel):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white
         # flash. First, match list of apps.
+        self.app_index_map.clear()
+        self.pkgname_index_map.clear()
         to_update = min(len(self), len(appstore))
         for i in range(to_update):
             self.apps[i] = appstore.apps[i]
             self.row_changed(i, self.get_iter(i))
+            self.app_index_map[self.apps[i]] = i
+            pkgname = self.apps[i].pkgname
+            if pkgname not in self.pkgname_index_map:
+                self.pkgname_index_map[pkgname] = []
+            self.pkgname_index_map[pkgname].append(i)
 
         to_remove = max(0, len(self) - len(appstore))
         for i in range(to_remove):
@@ -280,15 +297,12 @@ class AppStore(gtk.GenericTreeModel):
         self.search_query = appstore.search_query
         self.sorted = appstore.sorted
         self.filter = appstore.filter
-        self.app_index_map = appstore.app_index_map
-        self.pkgname_index_map = appstore.pkgname_index_map
         self.exact = appstore.exact
         self._existing_apps = appstore._existing_apps
         self._installable_apps = appstore._installable_apps
 
         # Re-claim the memory used by the new appstore
         appstore.clear()
-        del appstore
 
     def _refresh_contents_data(self):
         # Quantitative data on stored packages. This generates the information.
@@ -407,7 +421,7 @@ class AppStore(gtk.GenericTreeModel):
                 return s
             elif column == self.COL_ICON:
                 return self.icons.load_icon(MISSING_PKG_ICON,
-                                            self.ICON_SIZE, 0)
+                                            self.icon_size, 0)
             elif column == self.COL_INSTALLED:
                 return False
             elif column == self.COL_AVAILABLE:
@@ -455,7 +469,7 @@ class AppStore(gtk.GenericTreeModel):
                     # icons.load_icon takes between 0.001 to 0.01s on my
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
-                    icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
+                    icon = self.icons.load_icon(icon_name, self.icon_size, 0)
                     _app_icon_cache[icon_name] = icon
                     return icon
             except glib.GError, e:
@@ -892,24 +906,26 @@ class CellRendererAppView(gtk.GenericCellRenderer):
                                w-2,
                                h-2)
 
+
+        prog_w = int(percent*w)
         # progress bar
         if self.text_direction != gtk.TEXT_DIR_RTL:
             widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
-                                   (dst_x, dst_y, percent*w, h),
+                                   (dst_x, dst_y, prog_w, h),
                                    widget, 
                                    "bar",
                                    dst_x,
                                    dst_y,
-                                   percent*w,
+                                   prog_w,
                                    h)
         else:
             widget.style.paint_box(window, flags, gtk.SHADOW_OUT,
-                                   (dst_x + w+1-percent*w, dst_y, percent*w, h),
+                                   (dst_x + w+1-prog_w, dst_y, prog_w, h),
                                    widget, 
                                    "bar",
-                                   dst_x + w+1-percent*w,
+                                   dst_x + w+1-prog_w,
                                    dst_y,
-                                   percent*w,
+                                   prog_w,
                                    h)
         return
 
@@ -1098,6 +1114,7 @@ class AppView(gtk.TreeView):
                                     available=AppStore.COL_AVAILABLE,
                                     action_in_progress=AppStore.COL_ACTION_IN_PROGRESS,
                                     exists=AppStore.COL_EXISTS)
+
         column.set_fixed_width(200)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)

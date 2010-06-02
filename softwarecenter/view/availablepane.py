@@ -31,7 +31,9 @@ from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
 
 from appview import AppView, AppStore, AppViewFilter
-from catview import CategoriesView
+
+#from catview_webkit import CategoriesViewWebkit as CategoriesView
+from catview_gtk import CategoriesViewGtk as CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
@@ -60,9 +62,20 @@ class AvailablePane(SoftwarePane):
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, 
+                 cache,
+                 history,
+                 db, 
+                 distro, 
+                 icons, 
+                 datadir, 
+                 navhistory_back_action, 
+                 navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
+        # navigation history actions
+        self.navhistory_back_action = navhistory_back_action
+        self.navhistory_forward_action = navhistory_forward_action
         # state
         self.apps_category = None
         self.apps_subcategory = None
@@ -79,8 +92,6 @@ class AvailablePane(SoftwarePane):
         self.current_app_by_subcategory = {}
         # search mode
         self.custom_list_mode = False
-        # track navigation history
-        self.nav_history = NavigationHistory(self)
         # install backend
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed",
@@ -91,39 +102,51 @@ class AvailablePane(SoftwarePane):
     def _build_ui(self):
         # categories, appview and details into the notebook in the bottom
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
+                                       self.cache,
                                        self.db,
-                                       self.icons)
-        scroll_categories = gtk.ScrolledWindow()
-        scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll_categories.add(self.cat_view)
-        self.notebook.append_page(scroll_categories, gtk.Label("categories"))
+                                       self.icons,
+                                       self.apps_filter)
+
+        #scroll_categories = gtk.ScrolledWindow()
+        self.notebook.append_page(self.cat_view, gtk.Label("categories"))
         # sub-categories view
         self.subcategories_view = CategoriesView(self.datadir,
                                                  APP_INSTALL_PATH,
+                                                 self.cache,
                                                  self.db,
                                                  self.icons,
-                                                 self.cat_view.categories[0])
+                                                 self.apps_filter,
+                                                 root_category=self.cat_view.categories[0])
         self.subcategories_view.connect(
             "category-selected", self.on_subcategory_activated)
         self.scroll_subcategories = gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.scroll_subcategories.add(self.subcategories_view)
+        self.scroll_subcategories.add_with_viewport(self.subcategories_view)
         # add nav history back/forward buttons
+        self.navhistory_back_action.set_sensitive(False)
+        self.navhistory_forward_action.set_sensitive(False)
+        # note:  this is hacky, would be much nicer to make the custom self/right
+        # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
+        # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
+        # but couldn't seem to get this to work..so just wire things up directly
         self.back_forward = BackForwardButton()
-        self.back_forward.left.set_sensitive(False)
-        self.back_forward.right.set_sensitive(False)
         self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
         self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
         self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
         # nav buttons first in the panel
         self.top_hbox.reorder_child(self.back_forward, 0)
+        self.nav_history = NavigationHistory(self,
+                                             self.back_forward,
+                                             self.navhistory_back_action,
+                                             self.navhistory_forward_action)
         # now a vbox for subcategories and applist
         self.apps_vbox = gtk.VPaned()
         self.apps_vbox.pack1(self.scroll_subcategories, resize=True)
         self.apps_vbox.pack2(self.scroll_app_list)
         # app list
         self.cat_view.connect("category-selected", self.on_category_activated)
+        self.cat_view.connect("application-activated", self.on_application_activated)
         self.notebook.append_page(self.apps_vbox, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
@@ -183,8 +206,7 @@ class AvailablePane(SoftwarePane):
             self.scroll_app_list.show()
 
     def refresh_apps(self):
-        """refresh the applist after search changes and update the
-           navigation bar
+        """refresh the applist and update the navigation bar
         """
         #import traceback
         #print "refresh_apps"
@@ -208,7 +230,6 @@ class AvailablePane(SoftwarePane):
             # getting progress_changed events and eats CPU time until its
             # garbage collected
             old_model.active = False
-            self.app_view.set_model(None)
             while gtk.events_pending():
                 gtk.main_iteration()
 
@@ -290,14 +311,6 @@ class AvailablePane(SoftwarePane):
                 return self.current_app_by_subcategory.get(self.apps_subcategory)
             else:
                 return self.current_app_by_category.get(self.apps_category)
-
-    def reset_navigation_history(self):
-        """
-        reset the navigation history and set the history buttons insensitive
-        """
-        self.nav_history.reset()
-        self.back_forward.left.set_sensitive(False)
-        self.back_forward.right.set_sensitive(False)
 
     def _on_transactions_changed(self, *args):
         """internal helper that keeps the action bar up-to-date by
@@ -399,12 +412,6 @@ class AvailablePane(SoftwarePane):
         self.apps_search_term = ""
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
-
-    def _check_nav_history(self, display_cb):
-        if self.navigation_bar.get_last().label != self.nav_history.get_last_label():
-            nav_item = NavigationItem(self, display_cb)
-            self.nav_history.navigate_no_cursor_step(nav_item)
-        return
 
     # callbacks
     def on_cache_ready(self, cache):
@@ -542,7 +549,6 @@ class AvailablePane(SoftwarePane):
         logging.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
-        #self._check_nav_history(self.display_list)
         self.navigation_bar.add_with_id(
             category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
@@ -559,17 +565,15 @@ class AvailablePane(SoftwarePane):
         logging.debug("on_application_selected: '%s'" % app)
 
         if self.apps_subcategory:
-            #self._check_nav_history(self.display_list_subcat)
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
-            #self._check_nav_history(self.display_list)
             self.current_app_by_category[self.apps_category] = app
 
     def on_nav_back_clicked(self, widget, event):
-        self.nav_history.nav_back()
+        self.navhistory_back_action.activate()
 
     def on_nav_forward_clicked(self, widget, event):
-        self.nav_history.nav_forward()
+        self.navhistory_forward_action.activate()
 
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a

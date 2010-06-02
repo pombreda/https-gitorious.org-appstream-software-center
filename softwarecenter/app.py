@@ -120,7 +120,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("channels-changed", self.on_channels_changed)
-        #apt histori
+        #apt history
         self.history = AptHistory()
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -163,7 +163,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # available pane
         self.available_pane = AvailablePane(self.cache, self.history,
                                             self.db, self.distro,
-                                            self.icons, datadir)
+                                            self.icons,
+                                            datadir,
+                                            self.navhistory_back_action,
+                                            self.navhistory_forward_action)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
@@ -230,6 +233,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
         except Exception, e:
             logging.debug("launchpad integration error: '%s'" % e)
+            
+        # set up accelerator keys for navigation history actions
+        accel_group = gtk.AccelGroup()
+        self.window_main.add_accel_group(accel_group)
+        self.menuitem_go_back.add_accelerator("activate",
+                                              accel_group,
+                                              ord('['),
+                                              gtk.gdk.CONTROL_MASK,
+                                              gtk.ACCEL_VISIBLE)
+        self.menuitem_go_forward.add_accelerator("activate",
+                                                 accel_group,
+                                                 ord(']'),
+                                                 gtk.gdk.CONTROL_MASK,
+                                                 gtk.ACCEL_VISIBLE)
 
         # default focus
         self.available_pane.searchentry.grab_focus()
@@ -303,6 +320,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
+        self._show_navhistory_menu_items(action == self.NOTEBOOK_PAGE_AVAILABLE)
         # switch to new page
         self.notebook_view.set_current_page(action)
         self.update_app_list_view(channel)
@@ -437,6 +455,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
             
+    def on_navhistory_back_action_activate(self, navhistory_back_action):
+        self.available_pane.nav_history.nav_back()
+        
+    def on_navhistory_forward_action_activate(self, navhistory_forward_action):
+        self.available_pane.nav_history.nav_forward()
+            
     def _on_transaction_started(self, backend):
         self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(False)
@@ -457,7 +481,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db.open()
             # reset the navigation history because software items stored
             # in the history stack might no longer be available
-            self.available_pane.reset_navigation_history()
+            self.available_pane.nav_history.reset()
             # refresh the available_pane views to reflect any changes
             self.available_pane.refresh_apps()
             self.available_pane.update_app_view()
@@ -616,6 +640,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.searchentry.set_text(",".join(packages))
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
+                
+    def _show_navhistory_menu_items(self, show_items):
+        self.navitems_menu_separator.set_visible(show_items)
+        self.menuitem_go_back.set_visible(show_items)
+        self.menuitem_go_forward.set_visible(show_items)
 
     def restore_state(self):
         if self.config.has_option("general", "size"):
@@ -627,6 +656,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "available-node-expanded") and
             self.config.getboolean("general", "available-node-expanded")):
             self.view_switcher.expand_available_node()
+        if (self.config.has_option("general", "carosel-hidden") and
+            self.config.getboolean("general", "carosel-hidden")):
+            self.available_pane.cat_view.carosel.show_carosel(False)
 
     def save_state(self):
         logging.debug("save_state")
@@ -648,6 +680,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.config.set("general", "available-node-expanded", "True")
         else:
             self.config.set("general", "available-node-expanded", "False")
+        carosel_visible = self.available_pane.cat_view.carosel.get_carosel_visible()
+        if carosel_visible:
+            self.config.set("general", "carosel-hidden", "False")
+        else:
+            self.config.set("general", "carosel-hidden", "True")
         self.config.write()
 
     def run(self, args):

@@ -28,7 +28,8 @@ class testAptdaemon(unittest.TestCase):
         pkgnames = ["7zip", "2vcard"]
         appnames = ["The 7 zip app", ""]
         iconnames = ["icon-7zip", ""]
-        self.aptd.install_multiple(pkgnames, appnames, iconnames)
+        # need to yiel as install_multiple is a inline_callback (generator)
+        yield self.aptd.install_multiple(pkgnames, appnames, iconnames)
         self.assertEqual(self._pkgs_to_install, ["7zip", "2vcard"])
         self._pkgs_to_install = []
 
