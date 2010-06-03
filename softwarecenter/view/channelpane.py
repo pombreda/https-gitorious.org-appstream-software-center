@@ -195,7 +195,6 @@ class ChannelPane(SoftwarePane):
 
     def _update_action_bar(self):
         appstore = self.app_view.get_model()
-        print appstore
         # We want to display the label if there are hidden packages
         # in the appstore.
         if (appstore and

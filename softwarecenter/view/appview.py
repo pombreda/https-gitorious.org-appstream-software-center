@@ -318,6 +318,8 @@ class AppStore(gtk.GenericTreeModel):
         self.sorted = appstore.sorted
         self.filter = appstore.filter
         self.exact = appstore.exact
+        self.nonapps_visible = appstore.nonapps_visible
+        self.nonapp_pkgs = appstore.nonapp_pkgs
         self._existing_apps = appstore._existing_apps
         self._installable_apps = appstore._installable_apps
 
