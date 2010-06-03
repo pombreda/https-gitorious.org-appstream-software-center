@@ -25,6 +25,8 @@ software-center (2.1.2) UNRELEASED; urgency=low
     signals to allow appstore to be deleted, thanks Olivier Tilloy!
   * merged lp:~osomon/software-center/fix_appstore_update, remake
     pkgname_index_map correctly, many thanks Olivier!
+  * softwarecenter/view/historypane.py:
+    - fix UnboundLocalError if history.log is empty
   
   [ Michael Vogt ]
   * merged  lp:~glatzor/software-center/glatzor to get improved
@@ -38,7 +40,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
   * softwarecenter/view/installedpane.py:
     - do not crash if model is None (LP: #586306)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 30 May 2010 12:13:39 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 02 Jun 2010 21:02:50 -0400
 
 software-center (2.1.1) maverick; urgency=low
 
