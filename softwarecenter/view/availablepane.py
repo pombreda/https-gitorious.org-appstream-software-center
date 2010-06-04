@@ -353,8 +353,10 @@ class AvailablePane(SoftwarePane):
         '''
         update buttons in the action bar
         '''
-        if self.custom_list_mode and self.apps_search_term:
-            appstore = self.app_view.get_model()
+        appstore = self.app_view.get_model()
+        if (appstore and
+            self.custom_list_mode and
+            self.apps_search_term):
             installable = appstore.installable_apps
             button_text = gettext.ngettext("Install %(amount)s item",
                                            "Install %(amount)s items",
@@ -373,9 +375,26 @@ class AvailablePane(SoftwarePane):
             else:
                 # Install offered, but nothing to install. Clear offer.
                 self.action_bar.clear()
+        elif (appstore and
+             appstore.active and
+             not appstore.nonapps_visible and
+             appstore.nonapp_pkgs):
+            # We want to display the label if there are hidden packages
+            # in the appstore.
+            label = gettext.ngettext("_%i other_ technical item",
+                                     "_%i other_ technical items",
+                                     appstore.nonapp_pkgs
+                                     ) % appstore.nonapp_pkgs
+            self.action_bar.set_label(label, self._show_nonapp_pkgs)
         else:
             # Ensure bar is hidden.
+            self.action_bar.unset_label()
             self.action_bar.clear()
+            
+    def _show_nonapp_pkgs(self):
+        self.nonapps_visible = True
+        self.refresh_apps()
+        self._update_action_bar()
 
     def _install_current_appstore(self):
         '''
