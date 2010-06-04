@@ -258,6 +258,7 @@ class AvailablePane(SoftwarePane):
 
         # set model
         self.app_view.set_model(new_model)
+        self.app_view.get_model().active = True
         # check if we show subcategoriy
         self._show_hide_applist()
         # we can not use "new_model" here, because set_model may actually
@@ -355,7 +356,7 @@ class AvailablePane(SoftwarePane):
         '''
         appstore = self.app_view.get_model()
         if (appstore and
-            self.custom_list_mode and
+            self.custom_list_mode and 
             self.apps_search_term):
             installable = appstore.installable_apps
             button_text = gettext.ngettext("Install %(amount)s item",
@@ -388,7 +389,6 @@ class AvailablePane(SoftwarePane):
             self.action_bar.set_label(label, self._show_nonapp_pkgs)
         else:
             # Ensure bar is hidden.
-            self.action_bar.unset_label()
             self.action_bar.clear()
             
     def _show_nonapp_pkgs(self):
@@ -486,6 +486,7 @@ class AvailablePane(SoftwarePane):
     def display_category(self):
         self._clear_search()
         self._show_category_overview()
+        self.action_bar.clear()
         return
 
     def display_search(self):
@@ -530,6 +531,7 @@ class AvailablePane(SoftwarePane):
     def display_details(self):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        self.action_bar.clear()
         return
 
     def on_navigation_category(self, pathbar, part):
