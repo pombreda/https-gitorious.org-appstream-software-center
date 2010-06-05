@@ -181,6 +181,7 @@ class ChannelPane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        self.action_bar.clear()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
