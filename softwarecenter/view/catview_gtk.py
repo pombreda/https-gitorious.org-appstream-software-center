@@ -60,6 +60,7 @@ COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
 COLOR_FRAME_BG_FILL =       '#FAFAFA'
 COLOR_FRAME_OUTLINE =       '#BAB7B5'
 COLOR_FRAME_HEADER_FILL =   '#DAD7D3'
+COLOR_FRAME_LABEL =         '#707070'
 FRAME_CORNER_RADIUS =       3
 
 CAT_BUTTON_FIXED_WIDTH =    108
@@ -155,8 +156,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _build_homepage_view(self):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        self._append_featured()
         self._append_departments()
+        self._append_featured()
         return
 
     def _build_subcat_view(self):
@@ -310,11 +311,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         expose_area = event.area
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
-        cr.clip()
-        #cr.clip_preserve()
+        #cr.clip()
+        cr.clip_preserve()
 
-        #cr.set_source_rgb(1,1,1)
-        #cr.fill()
+        cr.set_source_rgb(*floats_from_string(COLOR_FRAME_BG_FILL))
+        cr.fill()
 
         if not self.in_subsection:
             # draw featured carosel
@@ -353,7 +354,7 @@ class FramedSection(gtk.VBox):
     def __init__(self, label_markup=None):
         gtk.VBox.__init__(self)
         self.set_redraw_on_allocate(False)
-        #self.set_spacing(VSPACING_SMALL)
+        self.set_spacing(VSPACING_LARGE)
 
         self.header = gtk.HBox()
         self.body = gtk.VBox()
@@ -369,7 +370,7 @@ class FramedSection(gtk.VBox):
         self.pack_start(align)
         #self.pack_start(self.footer, False)
 
-        self.label = gtk.Label()
+        self.label = EngravedLabel()
         self.header.pack_start(self.label, False)
         self.has_label = False
 
@@ -377,8 +378,8 @@ class FramedSection(gtk.VBox):
             self.set_label(label_markup)
         return
 
-    def set_label(self, markup):
-        self.label.set_markup(markup)
+    def set_label(self, label):
+        self.label.set_text(label)
         self.has_label = True
 
         # atk stuff
@@ -391,62 +392,32 @@ class FramedSection(gtk.VBox):
         if draw_skip(a, expose_area): return
 
         cr.save()
-        x, y, w, h = a.x, a.y, a.width, a.height
-        cr.rectangle(x-2, y-2, w+4, h+6)
+        cr.rectangle(a)
         cr.clip()
 
-        # fill frame light gray
-        rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, FRAME_CORNER_RADIUS-1)
-        cr.set_source_rgb(*floats_from_string(COLOR_FRAME_BG_FILL))
-        cr.fill()
+        # fill section white
+        cr.rectangle(a)
+        cr.set_source_rgb(1, 1, 1)
+        cr.fill_preserve()
 
-        # fill header bg
-        if self.has_label:
-            h = self.header.allocation.height-1
-
-            r, g, b = floats_from_string(COLOR_FRAME_HEADER_FILL)
-            lin = cairo.LinearGradient(0, a.y, 0, a.y+h)
-            lin.add_color_stop_rgba(0.0, r, g, b, 1.0)
-            lin.add_color_stop_rgba(1.0, r, g, b, 0.6)
-
-            rounded_rectangle_irregular(cr,
-                                        a.x, a.y,
-                                        a.width, h,
-                                        (FRAME_CORNER_RADIUS, FRAME_CORNER_RADIUS, 0, 0))
-
-            cr.set_source(lin)
-            cr.fill()
-
-            # highlight
-            rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, FRAME_CORNER_RADIUS-1)
-            cr.set_source_rgba(1,1,1,0.35)
-            cr.stroke()
-
-        # stroke frame outline and shadow
         cr.save()
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
-
-        # set darker gray
-        r, g, b = floats_from_string(COLOR_FRAME_OUTLINE)
-
-        cr.set_source_rgb(r,g,b)
-        rounded_rectangle(cr, a.x, a.y, a.width-1, a.height-1, FRAME_CORNER_RADIUS)
+        cr.set_source_rgb(*floats_from_string(COLOR_PURPLE))
         cr.stroke()
+        cr.restore()
 
-        cr.set_source_rgba(r,g,b, 0.4)
-        rounded_rectangle(cr, a.x-1, a.y-1, a.width+1, a.height+1, FRAME_CORNER_RADIUS+1)
-        cr.stroke()
+        # header gradient - suppose to be ubuntu wallpaper-esque
+        r, g, b = floats_from_string('#FCE3DD')
+        lin = cairo.LinearGradient(0, a.y+1, 0, a.y+57)
+        lin = cairo.LinearGradient(0, a.y+1, 0, a.y+57)
+        lin.add_color_stop_rgba(0.0, r, g, b, 1)
+        lin.add_color_stop_rgba(1.0, r, g, b, 0)
+        cr.rectangle(a.x+1, a.y+1, a.width-2, 56)
+        cr.set_source(lin)
+        cr.fill()
 
-        cr.set_source_rgba(r,g,b, 0.1)
-        rounded_rectangle(cr, a.x-2, a.y-2, a.width+3, a.height+3, FRAME_CORNER_RADIUS+2)
-        cr.stroke()
-
-        if self.has_label:
-            cr.set_source_rgba(r, g, b, 0.6)
-            cr.move_to(a.x, a.y + h + 1)
-            cr.rel_line_to(a.width-1, 0)
-            cr.stroke()
+        self.label.draw(cr, self.label.allocation, expose_area)
 
         cr.restore()
         return
@@ -562,6 +533,7 @@ class FeaturedView(FramedSection):
         self.header.set_spacing(HSPACING_SMALL)
 
         self.footer = gtk.HBox()
+        self.footer.set_border_width(BORDER_WIDTH_MED)
         self.pack_end(self.footer)
 
         self.posters = []
@@ -574,18 +546,14 @@ class FeaturedView(FramedSection):
         self.set_label(H2 % _('Featured Applications'))
 
         # show all featured apps orange button
-        label = _('View all Featured Applications')
-        self.more_btn = BasicButton('<span color="%s">%s</span>' % (COLOR_WHITE, label),
-                                    border_width=8)
-        self.more_btn.set_shape(pathbar_common.SHAPE_START_ARROW)
-        # override theme palatte with orange palatte
-        self.more_btn.use_flat_orange_palatte()
 
-        # align the more button in the center
-        align = gtk.Alignment(1.0, 0.5)
-        align.set_border_width(BORDER_WIDTH_MED)
-        align.add(self.more_btn)
-        self.footer.pack_end(align, False)
+        # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK == guillemotright
+        label = u'View all Featured Applications \xbb'
+        self.more_btn = BasicButton('<span color="%s"><small>%s</small></span>' % (COLOR_WHITE, label))
+        #self.more_btn.set_shape(pathbar_common.SHAPE_START_ARROW)
+        # override theme palatte with orange palatte
+        self.more_btn.use_flat_palatte()
+        self.header.pack_end(self.more_btn, False)
 
         ## show / hide header button
         #self._hide_label = '<small>%s</small>' % _('Hide')
@@ -594,12 +562,13 @@ class FeaturedView(FramedSection):
         #self.header.pack_end(self.show_hide_btn, False)
 
         # back forward button to allow user control of carosel
-        self.back_forward_btn = BackForwardButton(part_size=(24,-1),
+        self.back_forward_btn = BackForwardButton(part_size=(24,19),
                                                   native_draw=False)
+
         self.back_forward_btn.set_use_hand_cursor(True)
         self.back_forward_btn.connect('left-clicked', self._on_left_clicked)
         self.back_forward_btn.connect('right-clicked', self._on_right_clicked)
-        self.header.pack_end(self.back_forward_btn, False)
+        self.footer.pack_end(self.back_forward_btn, False)
 
         self._width = 0
         self._icon_size = self.featured_apps.icon_size
@@ -785,13 +754,13 @@ class FeaturedView(FramedSection):
         FramedSection.draw(self, cr, a, expose_area)
 
         # draw footer bg
-        a = self.footer.allocation
-        r = FRAME_CORNER_RADIUS - 1
-        rounded_rectangle_irregular(cr, a.x+1, a.y,
-                                    a.width-2, a.height-1,
-                                    (0, 0, r, r))
-        cr.set_source_rgb(*floats_from_string(COLOR_PURPLE))
-        cr.fill()
+        #a = self.footer.allocation
+        #r = FRAME_CORNER_RADIUS - 1
+        #rounded_rectangle_irregular(cr, a.x+1, a.y,
+                                    #a.width-2, a.height-1,
+                                    #(0, 0, r, r))
+        #cr.set_source_rgb(*floats_from_string(COLOR_PURPLE))
+        #cr.fill()
 
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
 
@@ -830,12 +799,14 @@ class FeaturedPoster(gtk.EventBox):
         self.set_redraw_on_allocate(False)
         self.set_visible_window(False)
         self.set_size_request(-1, 75)
+        self.theme = pathbar_common.PathBarStyle(self)
+        self.shape = pathbar_common.SHAPE_RECTANGLE
 
         self._icon_size = icon_size
         self._icon_pb = None
         self._icon_offset = None
         self._text = None
-        self._text_surfs = {}
+        self._text_surf = None
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -912,20 +883,7 @@ class FeaturedPoster(gtk.EventBox):
         pcr = pangocairo.CairoContext(cr)
         pcr.show_layout(layout)
 
-        self._text_surfs[gtk.STATE_NORMAL] = surf
-        del pcr, cr
-
-        # render text to surface in white and cache
-        color = COLOR_WHITE
-        layout.set_markup('<span color="%s">%s</span>' % (color, text))
-
-        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        cr = cairo.Context(surf)
-        pcr = pangocairo.CairoContext(cr)
-        pcr.show_layout(layout)
-
-        self._text_surfs[gtk.STATE_PRELIGHT] = surf
-        self._text_surfs[gtk.STATE_ACTIVE] = surf
+        self._text_surf = surf
         del pcr, cr
         return
 
@@ -971,19 +929,14 @@ class FeaturedPoster(gtk.EventBox):
         # draw text
         if alpha < 1.0:
             # if fading, use cached surface, much cheaper to render
-            cr.set_source_surface(self._text_surfs[self.state],
+            cr.set_source_surface(self._text_surf,
                                   8 + self._icon_size,
                                   POSTER_CORNER_RADIUS)
             cr.paint_with_alpha(alpha)
         else:
-            # depending on state set text colour
-            if self.state == gtk.STATE_NORMAL:
-                color = COLOR_BLACK
-            else:
-                color = COLOR_WHITE
             # we paint the layout use the gtk style because its text rendering seems
             # much nicer than the rendering done by pangocairo...
-            layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
+            layout.set_markup('<span color="%s">%s</span>' % (COLOR_BLACK, self._text))
             self.style.paint_layout(self.window,
                                     self.state,
                                     False,
@@ -1012,19 +965,14 @@ class FeaturedPoster(gtk.EventBox):
         if alpha < 1.0:
             # if fading, use cached surface, much cheaper to render
             surf = self._text_surfs[self.state]
-            cr.set_source_surface(self._text_surfs[self.state],
+            cr.set_source_surface(self._text_surf,
                                   6,
                                   3)
             cr.paint_with_alpha(alpha)
         else:
-            # depending on state set text colour
-            if self.state == gtk.STATE_NORMAL:
-                color = COLOR_BLACK
-            else:
-                color = COLOR_WHITE
             # we paint the layout use the gtk style because its text rendering seems
             # much nicer than the rendering done by pangocairo...
-            layout.set_markup('<span color="%s">%s</span>' % (color, self._text))
+            layout.set_markup('<span color="%s">%s</span>' % (COLOR_BLACK, self._text))
             self.style.paint_layout(self.window,
                                     self.state,
                                     False,
@@ -1045,14 +993,10 @@ class FeaturedPoster(gtk.EventBox):
         cr.translate(a.x, a.y)
 
         # depending on state set bg colour and draw a rounded rectangle
-        if (self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE):
-            if self.state == gtk.STATE_PRELIGHT:
-                cr.set_source_rgba(*floats_from_string_with_alpha(COLOR_ORANGE, alpha))
-            else:
-                cr.set_source_rgb(*floats_from_string(COLOR_PURPLE))    # draw full opacity
-
-            rounded_rectangle(cr, 0,0,a.width, a.height, 3)
-            cr.fill()
+        if self.state == gtk.STATE_PRELIGHT:
+            self.theme.paint_bg(cr, self, 0, 0, a.width, a.height)
+        elif self.state == gtk.STATE_ACTIVE:
+            self.theme.paint_bg_active_deep(cr, self, 0, 0, a.width, a.height)
 
         # if has input focus, draw focus box
         if self.has_focus():
@@ -1280,30 +1224,69 @@ class BasicButton(PushButton):
         self.set_size_request(w, -1)
         return
 
-    def use_flat_orange_palatte(self):
+    def use_flat_palatte(self):
+        gray = pathbar_common.color_from_string(COLOR_FRAME_LABEL).shade(1.1)
         orange = pathbar_common.color_from_string(COLOR_ORANGE)
         purple = pathbar_common.color_from_string(COLOR_PURPLE)
 
         self.theme.gradients = {
-            gtk.STATE_NORMAL:      (orange, orange),
+            gtk.STATE_NORMAL:      (gray, gray),
             gtk.STATE_ACTIVE:      (purple, purple),
             gtk.STATE_SELECTED:    (orange, orange),
             gtk.STATE_PRELIGHT:    (orange, orange),
             gtk.STATE_INSENSITIVE: (self.theme.theme.mid, self.theme.theme.mid)}
 
         self.theme.dark_line = {
-            gtk.STATE_NORMAL:       orange,
+            gtk.STATE_NORMAL:       gray,
             gtk.STATE_ACTIVE:       purple,
             gtk.STATE_PRELIGHT:     orange,
             gtk.STATE_SELECTED:     orange,
             gtk.STATE_INSENSITIVE:  self.theme.theme.dark}
 
         self.theme.light_line = {
-            gtk.STATE_NORMAL:       orange,
+            gtk.STATE_NORMAL:       gray,
             gtk.STATE_ACTIVE:       purple,
             gtk.STATE_PRELIGHT:     orange,
             gtk.STATE_SELECTED:     orange,
             gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
+        return
+
+
+class EngravedLabel(gtk.Label):
+
+    def __init__(self, *args, **kwargs):
+        gtk.Label.__init__(self, *args, **kwargs)
+        self.connect('expose-event', lambda w, e: True)
+        return
+
+    def draw(self, cr, a, expose_area):
+        if draw_skip(a, expose_area): return
+
+        text = self.get_text()
+        markup = '<span color="%s"><b>%s</b></span>'
+
+        layout = self.get_layout()
+        layout.set_markup(markup % (COLOR_WHITE, text))
+        self.style.paint_layout(self.window,
+                                self.state,
+                                False,
+                                None,          # area
+                                self,
+                                None,
+                                a.x,
+                                a.y + 1,
+                                layout)
+
+        layout.set_markup(markup % (COLOR_FRAME_LABEL, text))
+        self.style.paint_layout(self.window,
+                                self.state,
+                                False,
+                                None,          # area
+                                self,
+                                None,
+                                a.x,
+                                a.y,
+                                layout)
         return
 
 
