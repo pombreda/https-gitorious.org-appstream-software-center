@@ -83,6 +83,7 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
+        self.nonapps_visible = False
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
@@ -249,6 +250,7 @@ class AvailablePane(SoftwarePane):
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
                              exact=self.custom_list_mode,
+                             nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
         # events may have happend
@@ -270,6 +272,8 @@ class AvailablePane(SoftwarePane):
             self.subcategories_view.window.set_cursor(None)
         if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(None)
+        # reset nonapps
+        self.nonapps_visible = False
         return False
 
     def update_navigation_button(self):
@@ -377,9 +381,9 @@ class AvailablePane(SoftwarePane):
                 # Install offered, but nothing to install. Clear offer.
                 self.action_bar.clear()
         elif (appstore and
-             appstore.active and
-             not appstore.nonapps_visible and
-             appstore.nonapp_pkgs):
+              appstore.active and
+              not appstore.nonapps_visible and
+              appstore.nonapp_pkgs):
             # We want to display the label if there are hidden packages
             # in the appstore.
             label = gettext.ngettext("_%i other_ technical item",

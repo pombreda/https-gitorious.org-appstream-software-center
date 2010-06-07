@@ -126,7 +126,9 @@ class ChannelPane(SoftwarePane):
         if seq_nr == self.refresh_seq_nr:
             self.app_view.set_model(new_model)
             self.app_view.get_model().active = True
-            self.emit("app-list-changed", len(new_model))
+            # we can not use "new_model" here, because set_model may actually
+            # discard new_model and just update the previous one
+            self.emit("app-list-changed", len(self.app_view.get_model()))
         else:
             logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
         # reset nonapps
