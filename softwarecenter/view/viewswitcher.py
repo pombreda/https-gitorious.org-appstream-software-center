@@ -213,9 +213,6 @@ class ViewSwitcherList(gtk.TreeStore):
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
         
-        # kick off a background check for changes that may have been made
-        # in the channels list
-        glib.timeout_add(300, lambda: self._check_for_channel_updates(self.channels))
 
     def on_channels_changed(self, backend, res):
         logging.debug("on_channels_changed %s" % res)
@@ -261,7 +258,6 @@ class ViewSwitcherList(gtk.TreeStore):
         return icon
 
     def _update_channel_list(self):
-
         # check what needs to be cleared. we need to append first, kill
         # afterward because otherwise a row without children is collapsed
         # by the view.
@@ -274,51 +270,18 @@ class ViewSwitcherList(gtk.TreeStore):
         while child:
             iters_to_kill.add(child)
             child = self.iter_next(child)
-
-        # get list of software channels
-        self.channels = self._get_channels()
-        
         # iterate the channels and add as subnodes of the available node
-        for channel in self.channels:
-            self.append(self.available_iter, [channel.get_channel_icon(),
-                                              channel.get_channel_display_name(),
-                                              self.ACTION_ITEM_CHANNEL,
-                                              channel])
+        for channel in self.channel_manager.channels:
+            self.append(self.available_iter, [
+                    channel.get_channel_icon(),
+                    channel.get_channel_display_name(),
+                    self.ACTION_ITEM_CHANNEL,
+                    channel])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
-
         self.emit("channels-refreshed")
-
-    def _get_channels(self):
-        """
-        return a list of SoftwareChannel objects in display order
-        ordered according to:
-            Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
-            Unknown channel last
-        """
-        return self.channel_manager.channels
         
-    def _check_for_channel_updates(self, channels):
-        """ 
-        check current set of channel origins in the apt cache to see if anything
-        has changed, and refresh the channel list if needed
-        """
-        if not self.db._aptcache.ready:
-            glib.timeout_add(300, lambda: self._check_for_channel_updates(channels))
-            return False
-        cache_origins = self.db._aptcache.get_origins()
-        db_origins = set()
-        for channel in channels:
-            origin = channel.get_channel_origin()
-            if origin:
-                db_origins.add(origin)
-        logging.debug("cache_origins: %s" % cache_origins)
-        logging.debug("db_origins: %s" % cache_origins)
-        if cache_origins != db_origins:
-            logging.debug("running update_xapian_index")
-            self.backend.update_xapian_index()
-        return False
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

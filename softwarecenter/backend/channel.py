@@ -16,11 +16,15 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import glib
 import gettext
 import logging
 import xapian
 
+
 from gettext import gettext as _
+
+from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.animatedimage import AnimatedImage
 
@@ -30,9 +34,60 @@ class ChannelsManager(object):
         self.db = db
         self.icons = icons
         self.distro = get_distro()
+        self.backend = get_install_backend()
+        # kick off a background check for changes that may have been made
+        # in the channels list
+        glib.timeout_add(300, self._check_for_channel_updates_timer)
+    
+    def _check_for_channel_updates_timer(self):
+        """
+        run a background timer to see if the a-x-i data we have is 
+        still fresh or if the cache has changed since
+        """
+        if not self.db._aptcache.ready:
+            return True
+        if self._check_for_channel_updates():
+            # this will trigger a "channels-changed" signal from
+            # the backend object once a-x-i is finished
+            logging.debug("running update_xapian_index")
+            self.backend.update_xapian_index()
+        return False
+
+    def _check_for_channel_updates(self):
+        """ 
+        check current set of channel origins in a-x-i and
+        compare it to the apt cache to see if 
+        anything has changed, 
+        
+        returns True is a update is needed
+        """
+        # the operation get_origins can take some time (~60s?)
+        cache_origins = self.db._aptcache.get_origins()
+        db_origins = set()
+        for channel in self.channels:
+            origin = channel.get_channel_origin()
+            if origin:
+                db_origins.add(origin)
+        logging.debug("cache_origins: %s" % cache_origins)
+        logging.debug("db_origins: %s" % cache_origins)
+        if cache_origins != db_origins:
+            return True
+        return False
     
     @property
     def channels(self):
+        """
+        return a list of SoftwareChannel objects in display order
+        ordered according to:
+            Distribution, Partners, PPAs alphabetically, 
+            Other channels alphabetically, Unknown channel last
+        """
+        return self._get_channels()
+
+    def _get_channels(self):
+        """
+        (internal) implements 'channels()' property
+        """
         distro_channel_name = self.distro.get_distro_channel_name()
         
         # gather the set of software channels and order them
