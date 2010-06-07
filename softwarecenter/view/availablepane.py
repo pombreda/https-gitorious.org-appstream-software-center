@@ -355,6 +355,10 @@ class AvailablePane(SoftwarePane):
                                                  length) % { 'amount' : length, }
 
     def _update_action_bar(self):
+        self._update_action_bar_buttons()
+        self._update_action_bar_label()
+
+    def _update_action_bar_buttons(self):
         '''
         update buttons in the action bar
         '''
@@ -362,12 +366,11 @@ class AvailablePane(SoftwarePane):
         if (appstore and
             self.custom_list_mode and 
             self.apps_search_term):
+            appstore = self.app_view.get_model()
             installable = appstore.installable_apps
-            button_text = gettext.ngettext("Install %(amount)s item",
-                                           "Install %(amount)s items",
-                                           len(installable)) % {
-                'amount' : len(installable), 
-                }
+            button_text = gettext.ngettext("Install %s item",
+                                           "Install %s items",
+                                           len(installable)) % len(installable)
             button = self.action_bar.get_button(self._INSTALL_BTN_ID)
             if button and installable:
                 # Install all already offered. Update offer.
@@ -379,11 +382,17 @@ class AvailablePane(SoftwarePane):
                                            self._install_current_appstore)
             else:
                 # Install offered, but nothing to install. Clear offer.
-                self.action_bar.clear()
-        elif (appstore and
-              appstore.active and
-              not appstore.nonapps_visible and
-              appstore.nonapp_pkgs):
+                self.action_bar.remove_button(self._INSTALL_BTN_ID)
+        else:
+            # Ensure button is removed.
+            self.action_bar.remove_button(self._INSTALL_BTN_ID)
+            
+    def _update_action_bar_label(self):
+        appstore = self.app_view.get_model()
+        if (appstore and 
+            appstore.active and
+            not appstore.nonapps_visible and
+            appstore.nonapp_pkgs):
             # We want to display the label if there are hidden packages
             # in the appstore.
             label = gettext.ngettext("_%i other_ technical item",
@@ -392,8 +401,7 @@ class AvailablePane(SoftwarePane):
                                      ) % appstore.nonapp_pkgs
             self.action_bar.set_label(label, self._show_nonapp_pkgs)
         else:
-            # Ensure bar is hidden.
-            self.action_bar.clear()
+            self.action_bar.unset_label()
             
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = True
