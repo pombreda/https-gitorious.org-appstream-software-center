@@ -31,7 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-from softwarecenter.backend.channel import SoftwareChannel
+from softwarecenter.backend.channel import SoftwareChannel, ChannelsManager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.db.database import StoreDatabase
@@ -203,6 +203,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
 
         # do initial channel list update
+        self.channel_manager = ChannelsManager(db, icons)
         self._update_channel_list()
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
@@ -296,77 +297,7 @@ class ViewSwitcherList(gtk.TreeStore):
             Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
             Unknown channel last
         """
-        distro_channel_name = self.distro.get_distro_channel_name()
-        
-        # gather the set of software channels and order them
-        other_channel_list = []
-        for channel_iter in self.db.xapiandb.allterms("XOL"):
-            if len(channel_iter.term) == 3:
-                continue
-            channel_name = channel_iter.term[3:]
-            
-            # get origin information for this channel
-            m = self.db.xapiandb.postlist_begin(channel_iter.term)
-            doc = self.db.xapiandb.get_document(m.get_docid())
-            for term_iter in doc.termlist():
-                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
-                    channel_origin = term_iter.term[3:]
-                    break
-            logging.debug("channel_name: %s" % channel_name)
-            logging.debug("channel_origin: %s" % channel_origin)
-            other_channel_list.append((channel_name, channel_origin))
-        
-        dist_channel = None
-        ppa_channels = []
-        other_channels = []
-        unknown_channel = []
-        
-        for (channel_name, channel_origin) in other_channel_list:
-            if not channel_name:
-                unknown_channel.append(SoftwareChannel(self.icons, 
-                                                       channel_name,
-                                                       channel_origin,
-                                                       None))
-            elif channel_name == distro_channel_name:
-                dist_channel = (SoftwareChannel(self.icons,
-                                                distro_channel_name,
-                                                channel_origin,
-                                                None,
-                                                filter_required=True))
-            elif channel_origin and channel_origin.startswith("LP-PPA"):
-                ppa_channels.append(SoftwareChannel(self.icons, 
-                                                    channel_name,
-                                                    channel_origin,
-                                                    None))
-            # TODO: detect generic repository source (e.g., Google, Inc.)
-            else:
-                other_channels.append(SoftwareChannel(self.icons, 
-                                                      channel_name,
-                                                      channel_origin,
-                                                      None))
-        # FIXME: do not hardcode this, check instead for 
-        #        self.db.xapiandb.allterms("AH") and add all of those
-        #        and provide a mechanism in the channel to check
-        #        both origin (XAO) and channel name from app-install (AH)
-        # FIXME2: pass the AH name as well so that we do not need to special
-        #         case the AH query for partner
-        # also get the partner repository
-        partner_channel = SoftwareChannel(self.icons, 
-                                          distro_channel_name,
-                                          None,
-                                          "partner", 
-                                          filter_required=True)
-        
-        # set them in order
-        channels = []
-        if dist_channel is not None:
-            channels.append(dist_channel)
-        channels.append(partner_channel)
-        channels.extend(ppa_channels)
-        channels.extend(other_channels)
-        channels.extend(unknown_channel)
-        
-        return channels
+        return self.channel_manager.channels
         
     def _check_for_channel_updates(self, channels):
         """ 

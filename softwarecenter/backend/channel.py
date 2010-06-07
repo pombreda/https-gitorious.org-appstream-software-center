@@ -16,11 +16,96 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import xapian
 import gettext
+import logging
+import xapian
+
 from gettext import gettext as _
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.animatedimage import AnimatedImage
+
+class ChannelsManager(object):
+
+    def __init__(self, db, icons):
+        self.db = db
+        self.icons = icons
+        self.distro = get_distro()
+    
+    @property
+    def channels(self):
+        distro_channel_name = self.distro.get_distro_channel_name()
+        
+        # gather the set of software channels and order them
+        other_channel_list = []
+        for channel_iter in self.db.xapiandb.allterms("XOL"):
+            if len(channel_iter.term) == 3:
+                continue
+            channel_name = channel_iter.term[3:]
+            
+            # get origin information for this channel
+            m = self.db.xapiandb.postlist_begin(channel_iter.term)
+            doc = self.db.xapiandb.get_document(m.get_docid())
+            for term_iter in doc.termlist():
+                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
+                    channel_origin = term_iter.term[3:]
+                    break
+            logging.debug("channel_name: %s" % channel_name)
+            logging.debug("channel_origin: %s" % channel_origin)
+            other_channel_list.append((channel_name, channel_origin))
+        
+        dist_channel = None
+        ppa_channels = []
+        other_channels = []
+        unknown_channel = []
+        
+        for (channel_name, channel_origin) in other_channel_list:
+            if not channel_name:
+                unknown_channel.append(SoftwareChannel(self.icons, 
+                                                       channel_name,
+                                                       channel_origin,
+                                                       None))
+            elif channel_name == distro_channel_name:
+                dist_channel = (SoftwareChannel(self.icons,
+                                                distro_channel_name,
+                                                channel_origin,
+                                                None,
+                                                filter_required=True))
+            elif channel_origin and channel_origin.startswith("LP-PPA"):
+                ppa_channels.append(SoftwareChannel(self.icons, 
+                                                    channel_name,
+                                                    channel_origin,
+                                                    None))
+            # TODO: detect generic repository source (e.g., Google, Inc.)
+            else:
+                other_channels.append(SoftwareChannel(self.icons, 
+                                                      channel_name,
+                                                      channel_origin,
+                                                      None))
+        # FIXME: do not hardcode this, check instead for 
+        #        self.db.xapiandb.allterms("AH") and add all of those
+        #        and provide a mechanism in the channel to check
+        #        both origin (XAO) and channel name from app-install (AH)
+        # FIXME2: pass the AH name as well so that we do not need to special
+        #         case the AH query for partner
+        # also get the partner repository
+        partner_channel = SoftwareChannel(self.icons, 
+                                          distro_channel_name,
+                                          None,
+                                          "partner", 
+                                          filter_required=True)
+        
+        # set them in order
+        channels = []
+        if dist_channel is not None:
+            channels.append(dist_channel)
+        channels.append(partner_channel)
+        channels.extend(ppa_channels)
+        channels.extend(other_channels)
+        channels.extend(unknown_channel)
+        
+        return channels
+        
+
 
 class SoftwareChannel(object):
     """
