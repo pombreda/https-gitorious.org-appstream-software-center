@@ -43,6 +43,7 @@ class ExecutionTime(object):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
+
 def htmlize_package_desc(desc):
     def _is_bullet(line):
         return re.match("^(\s*[-*])", line)
