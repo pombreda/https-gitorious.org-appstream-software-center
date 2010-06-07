@@ -156,6 +156,7 @@ class HistoryPane(gtk.VBox):
         actions = {self.INSTALLED: 'Install', self.REMOVED: 'Remove'}
         fd = open(self.filename)
         date = None
+        when = None
         day = self.store.get_iter_first()
         if day is not None:
             date = self.store.get_value(day, self.COL_WHEN)
