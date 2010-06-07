@@ -217,6 +217,17 @@ class AppStore(gtk.GenericTreeModel):
                 app = Application("", pkgname)
                 self.app_index_map[app] = app_index
                 self.apps.append(app)
+                
+        # if we only have nonapps to be displayed, don't hide them
+        # FIXME:  NOTE to mvo, this works but isn't pretty.  How can we do
+        #   this more quickly?  It's fast with small PPAs, but try it with
+        #   Category Screen->Developer Tools->Libraries where it takes about
+        #   .6 seconds, bleh...
+        if (not self.nonapps_visible and
+            self.nonapp_pkgs > 0 and
+            len(self.apps) == 0):
+            self.nonapps_visible = True
+            self._perform_search()
         
         # This is data for store contents that will be generated
         # when called for externally. (see _refresh_contents_data)
