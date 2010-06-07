@@ -335,6 +335,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _on_lp_login(self, lp):
         print "_on_lp_login"
         self._lp_login_successful = True
+        private_archives = self.glaunchpad.get_subscribed_archives()
+        self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
+            private_archives)
 
     # Menu Items
     def on_menuitem_login_activate(self, menuitem):

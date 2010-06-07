@@ -2,6 +2,7 @@
 #
 # Authors:
 #  Gary Lasker
+#  Michael Vogt
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -16,11 +17,13 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import apt
 import glib
 import gettext
 import logging
 import xapian
 
+from aptsources.sourceslist import SourceEntry, SourcesList
 
 from gettext import gettext as _
 
@@ -38,7 +41,52 @@ class ChannelsManager(object):
         # kick off a background check for changes that may have been made
         # in the channels list
         glib.timeout_add(300, self._check_for_channel_updates_timer)
-    
+        # extra channels from e.g. external sources
+        self.extra_channels = []
+
+    # external API
+    @property
+    def channels(self):
+        """
+        return a list of SoftwareChannel objects in display order
+        ordered according to:
+            Distribution, Partners, PPAs alphabetically, 
+            Other channels alphabetically, Unknown channel last
+        """
+        return self._get_channels()
+
+    def _feed_in_private_sources_list_entry(self, source_entry):
+        """
+        this feeds in a private sources.list entry that is
+        available to the user (like a private PPA) that may or
+        may not be active 
+        """
+        # FIXME: strip out password and use apt/auth.conf
+        potential_new_entry = SourceEntry(source_entry)
+        # look if we have it
+        sources = SourcesList()
+        for source in sources.list:
+            if source == potential_new_entry:
+                return False
+        # need to add it as a not yet enabled channel
+        name = potential_new_entry.uri
+        # FIXME: use something better than uri as name
+        private_channel = SoftwareChannel(self.icons, name, None, None,
+                                          source_entry=source_entry)
+        if private_channel in self.extra_channels:
+            return False
+        # add it
+        self.extra_channels.append(private_channel)
+        return True
+
+    def feed_in_private_sources_list_entries(self, entries):
+        added = False
+        for entry in entries:
+            added |= self._feed_in_private_sources_list_entry(entry)
+        if added:
+            self.backend.emit("channels-changed", True)
+
+    # internal
     def _check_for_channel_updates_timer(self):
         """
         run a background timer to see if the a-x-i data we have is 
@@ -74,16 +122,6 @@ class ChannelsManager(object):
             return True
         return False
     
-    @property
-    def channels(self):
-        """
-        return a list of SoftwareChannel objects in display order
-        ordered according to:
-            Distribution, Partners, PPAs alphabetically, 
-            Other channels alphabetically, Unknown channel last
-        """
-        return self._get_channels()
-
     def _get_channels(self):
         """
         (internal) implements 'channels()' property
@@ -157,6 +195,7 @@ class ChannelsManager(object):
         channels.extend(ppa_channels)
         channels.extend(other_channels)
         channels.extend(unknown_channel)
+        channels.extend(self.extra_channels)
         
         return channels
         
@@ -169,7 +208,8 @@ class SoftwareChannel(object):
     
     ICON_SIZE = 24
     
-    def __init__(self, icons, channel_name, channel_origin, channel_component, filter_required=False):
+    def __init__(self, icons, channel_name, channel_origin, channel_component,
+                 filter_required=False, source_entry=None):
         """
         configure the software channel object based on channel name,
         origin, and component (the latter for detecting the partner
@@ -186,6 +226,9 @@ class SoftwareChannel(object):
         self._channel_display_name = self._get_display_name_for_channel(channel_name, channel_component)
         self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
         self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
+        # a sources.list entry attached to the channel (this is currently
+        # only used for not-yet-enabled channels)
+        self._source_entry = source_entry
         
     def get_channel_name(self):
         """

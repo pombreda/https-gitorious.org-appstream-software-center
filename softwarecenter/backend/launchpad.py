@@ -288,7 +288,7 @@ class GLaunchpad(gobject.GObject):
 # IMPORTANT: create one (module) global LP worker thread here
 lp_worker_thread = LaunchpadlibWorker()
 # daemon threads make it crash on cancel
-#lp_worker_thread.daemon = True
+lp_worker_thread.daemon = True
 
 
 # test code
