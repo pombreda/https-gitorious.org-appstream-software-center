@@ -132,6 +132,14 @@ def unescape(text):
 def get_current_arch():
     return apt_pkg.config.find("Apt::Architecture")
 
+def human_readable_name_from_ppa_uri(ppa_uri):
+    """ takes a PPA uri and returns a human readable name for it """
+    from urlparse import urlsplit
+    name = urlsplit(ppa_uri).path
+    if name.endswith("/ubuntu"):
+        return name[0:-len("/ubuntu")]
+    return name
+
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print s

@@ -21,6 +21,7 @@ import apt
 import glib
 import gettext
 import logging
+import urlparse
 import xapian
 
 from aptsources.sourceslist import SourceEntry, SourcesList
@@ -30,6 +31,7 @@ from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.animatedimage import AnimatedImage
+from softwarecenter.utils import *
 
 class ChannelsManager(object):
 
@@ -55,6 +57,7 @@ class ChannelsManager(object):
         """
         return self._get_channels()
 
+
     def _feed_in_private_sources_list_entry(self, source_entry):
         """
         this feeds in a private sources.list entry that is
@@ -69,7 +72,7 @@ class ChannelsManager(object):
             if source == potential_new_entry:
                 return False
         # need to add it as a not yet enabled channel
-        name = potential_new_entry.uri
+        name = human_readable_name_from_ppa_uri(potential_new_entry.uri)
         # FIXME: use something better than uri as name
         private_channel = SoftwareChannel(self.icons, name, None, None,
                                           source_entry=source_entry)

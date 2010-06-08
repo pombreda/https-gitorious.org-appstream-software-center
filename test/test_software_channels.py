@@ -39,6 +39,8 @@ class testSoftwareChannels(unittest.TestCase):
             while gtk.events_pending():
                 gtk.main_iteration()
             time.sleep(0.01)
+        # data
+        self.repo_from_lp = "deb https://user:pw@private-ppa.launchpad.net/user/private-test/ubuntu lucid main"
 
     def test_channels(self):
         cm = ChannelsManager(self.db, self.mock_icons)
@@ -52,11 +54,16 @@ class testSoftwareChannels(unittest.TestCase):
 
     def test_channels_from_lp(self):
         cm = ChannelsManager(self.db, self.mock_icons)
-        repo_from_lp = "deb https://user:pw@private-ppa.launchpad.net/user/private-test/ubuntu lucid main"
         len_now = len(cm.channels)
-        cm._feed_in_private_sources_list_entry(repo_from_lp)
+        cm._feed_in_private_sources_list_entry(self.repo_from_lp)
         self.assertEqual(len(cm.channels), len_now + 1)
 
+    def test_human_readable_name(self):
+        from softwarecenter.utils import human_readable_name_from_ppa_uri
+        from aptsources.sourceslist import SourceEntry
+        se = SourceEntry(self.repo_from_lp)
+        print human_readable_name_from_ppa_uri(se.uri)
+        
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()
