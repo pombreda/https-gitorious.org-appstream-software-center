@@ -27,8 +27,9 @@ import gobject
 
 from gettext import gettext as _
 
-from softwarecenter.enums import *
+from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
+from softwarecenter.enums import *
 
 from appview import AppView, AppStore, AppViewFilter
 
@@ -132,6 +133,26 @@ class ChannelPane(SoftwarePane):
         and set up the AppViewFilter if required
         """
         self.channel = channel
+        # check if the channel needs to added
+        if channel.needs_adding and channel._source_entry:
+            dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                       type=gtk.MESSAGE_QUESTION)
+            dialog.set_title("")
+            dialog.set_markup("<big><b>%s</b></big>" % _("Add channel"))
+            dialog.format_secondary_text(_("The selected channel is not yet "
+                                           "added, do you want to add it now?"))
+            dialog.add_buttons(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                               gtk.STOCK_ADD, gtk.RESPONSE_YES)
+            res = dialog.run()
+            dialog.destroy()
+            if res == gtk.RESPONSE_YES:
+                channel.needs_adding = False
+                backend = get_install_backend()
+                backend.add_sources_list_entry(channel._source_entry)
+                backend.emit("channels-changed", True)
+                backend.reload()
+            return
+        # normal operation
         if self.channel.filter_required:
             self.apps_filter = AppViewFilter(self.db, self.cache)
             self.apps_filter.set_only_packages_without_applications(True)

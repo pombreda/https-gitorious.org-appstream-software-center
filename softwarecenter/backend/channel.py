@@ -40,6 +40,8 @@ class ChannelsManager(object):
         self.icons = icons
         self.distro = get_distro()
         self.backend = get_install_backend()
+        self.backend.connect("channels-changed", 
+                             self._remove_no_longer_needed_extra_channels)
         # kick off a background check for changes that may have been made
         # in the channels list
         glib.timeout_add(300, self._check_for_channel_updates_timer)
@@ -58,6 +60,14 @@ class ChannelsManager(object):
         return self._get_channels()
 
 
+    def feed_in_private_sources_list_entries(self, entries):
+        added = False
+        for entry in entries:
+            added |= self._feed_in_private_sources_list_entry(entry)
+        if added:
+            self.backend.emit("channels-changed", True)
+
+    # internal
     def _feed_in_private_sources_list_entry(self, source_entry):
         """
         this feeds in a private sources.list entry that is
@@ -76,20 +86,27 @@ class ChannelsManager(object):
         # FIXME: use something better than uri as name
         private_channel = SoftwareChannel(self.icons, name, None, None,
                                           source_entry=source_entry)
+        private_channel.needs_adding = True
         if private_channel in self.extra_channels:
             return False
         # add it
         self.extra_channels.append(private_channel)
         return True
 
-    def feed_in_private_sources_list_entries(self, entries):
-        added = False
-        for entry in entries:
-            added |= self._feed_in_private_sources_list_entry(entry)
-        if added:
+    def _remove_no_longer_needed_extra_channels(self, backend, res):
+        """ go over the extra channels and remove no longer needed ones"""
+        removed = False
+        for channel in self.extra_channels:
+            if not channel._source_entry:
+                continue
+            sources = SourcesList()
+            for source in sources.list:
+                if source == SourceEntry(channel._source_entry):
+                    self.extra_channels.remove(channel)
+                    removed = True
+        if removed:
             self.backend.emit("channels-changed", True)
 
-    # internal
     def _check_for_channel_updates_timer(self):
         """
         run a background timer to see if the a-x-i data we have is 
@@ -97,6 +114,7 @@ class ChannelsManager(object):
         """
         if not self.db._aptcache.ready:
             return True
+        # see if we need a a-x-i update
         if self._check_for_channel_updates():
             # this will trigger a "channels-changed" signal from
             # the backend object once a-x-i is finished
@@ -119,6 +137,7 @@ class ChannelsManager(object):
             origin = channel.get_channel_origin()
             if origin:
                 db_origins.add(origin)
+        # origins
         logging.debug("cache_origins: %s" % cache_origins)
         logging.debug("db_origins: %s" % cache_origins)
         if cache_origins != db_origins:
@@ -232,6 +251,8 @@ class SoftwareChannel(object):
         # a sources.list entry attached to the channel (this is currently
         # only used for not-yet-enabled channels)
         self._source_entry = source_entry
+        # when the channel needs to be added to the systems sources.list
+        self.needs_adding = False
         
     def get_channel_name(self):
         """

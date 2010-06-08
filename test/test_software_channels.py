@@ -62,7 +62,15 @@ class testSoftwareChannels(unittest.TestCase):
         from softwarecenter.utils import human_readable_name_from_ppa_uri
         from aptsources.sourceslist import SourceEntry
         se = SourceEntry(self.repo_from_lp)
-        print human_readable_name_from_ppa_uri(se.uri)
+        self.assertEqual(human_readable_name_from_ppa_uri(se.uri), 
+                         "/user/private-test")
+
+    def test_ppa_sources_name(self):
+        from softwarecenter.utils import sources_filename_from_ppa_entry
+        from aptsources.sourceslist import SourceEntry
+        se = SourceEntry(self.repo_from_lp)
+        self.assertEqual(sources_filename_from_ppa_entry(se),
+                         "private-ppa.launchpad.net_user_private-test_ubuntu.list")
         
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
