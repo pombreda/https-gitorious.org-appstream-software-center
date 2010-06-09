@@ -63,7 +63,8 @@ class AvailablePane(SoftwarePane):
     _INSTALL_BTN_ID = 0
 
     def __init__(self, 
-                 cache, 
+                 cache,
+                 history,
                  db, 
                  distro, 
                  icons, 
@@ -71,7 +72,7 @@ class AvailablePane(SoftwarePane):
                  navhistory_back_action, 
                  navhistory_forward_action):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
