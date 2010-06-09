@@ -43,7 +43,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
   * softwarecenter/view/installedpane.py:
     - do not crash if model is None (LP: #586306)
   * merged lp:~gary-lasker/software-center/hide_nonapps_pkgs_xapian
-    many thanks
+    many thanks to Jacob Johan Edwards and Gary
   * softwarecenter/apt/apthistory.py:
     - add test (and test data) for AptHistory class
     - be more async friendly and add test for async
