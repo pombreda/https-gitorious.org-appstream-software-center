@@ -22,6 +22,7 @@ import gobject
 import gio
 import glib
 import gtk
+import logging
 
 import apt_pkg
 apt_pkg.init_config()
@@ -155,6 +156,9 @@ class HistoryPane(gtk.VBox):
         day = self.store.get_iter_first()
         if day is not None:
             date = self.store.get_value(day, self.COL_WHEN)
+        if len(self.history.transactions) == 0:
+            logging.debug("AptHistory is currently empty")
+            return
         new_last = self.history.transactions[0].start_date
         for trans in self.history.transactions:
             when = trans.start_date

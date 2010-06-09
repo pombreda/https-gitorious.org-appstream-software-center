@@ -25,7 +25,7 @@ import glob
 import gzip
 import string
 import datetime
-
+import logging
 
 from datetime import datetime
 
@@ -77,16 +77,22 @@ class AptHistory(object):
         self._scan(self.history_file)
     
     def _scan(self, history_file, rescan = False):
-        if history_file.endswith(".gz"):
-            f = gzip.open(history_file)
-        else:
-            f = open(history_file)
+        try:
+            if history_file.endswith(".gz"):
+                f = gzip.open(history_file)
+            else:
+                f = open(history_file)
+        except IOError, ioe:
+            logging.debug(ioe)
+            return
         for stanza in deb822.Deb822.iter_paragraphs(f):
             # keep the UI alive
             while self.main_context.pending():
                 self.main_context.iteration()
             trans = Transaction(stanza)
-            if rescan and trans.start_date < self.transactions[0].start_date:
+            if (rescan and
+                len(self.transactions) > 0 and
+                trans.start_date < self.transactions[0].start_date):
                 continue
             self.transactions.insert(0, trans)
             
