@@ -42,8 +42,10 @@ software-center (2.1.2) UNRELEASED; urgency=low
     (many thanks!)
   * softwarecenter/view/installedpane.py:
     - do not crash if model is None (LP: #586306)
+  * merged lp:~gary-lasker/software-center/hide_nonapps_pkgs_xapian
+    many thanks
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Jun 2010 00:01:05 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 09 Jun 2010 15:03:17 +0200
 
 software-center (2.1.1) maverick; urgency=low
 
@@ -404,20 +406,6 @@ software-center (1.1.21) lucid; urgency=low
       via aptdaemon
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 26 Mar 2010 10:18:49 +0100
-
-software-center (1.1.21) UNRELEASED; urgency=low
-
-  * softwarecenter/db/update.py:
-    - fix crash when locale is not supported
-  * apt-xapian-index-plugin/*.py:
-    - fix deprecation warnings (LP: #548665)
-  * merge branch from michaelforrest that does not empty box
-    for unavailalbe screenshots
-  * allow enabling components via "Use this source" button when
-    a software-item is in a component that is not yet enabled (like
-    "universe" on the live-cd)
-
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
 
 software-center (1.1.20) lucid; urgency=low
 

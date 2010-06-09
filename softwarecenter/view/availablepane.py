@@ -84,6 +84,7 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
+        self.nonapps_visible = False
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
@@ -250,6 +251,7 @@ class AvailablePane(SoftwarePane):
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
                              exact=self.custom_list_mode,
+                             nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
         # events may have happend
@@ -259,6 +261,7 @@ class AvailablePane(SoftwarePane):
 
         # set model
         self.app_view.set_model(new_model)
+        self.app_view.get_model().active = True
         # check if we show subcategoriy
         self._show_hide_applist()
         # we can not use "new_model" here, because set_model may actually
@@ -270,6 +273,8 @@ class AvailablePane(SoftwarePane):
             self.subcategories_view.window.set_cursor(None)
         if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(None)
+        # reset nonapps
+        self.nonapps_visible = False
         return False
 
     def update_navigation_button(self):
@@ -351,17 +356,22 @@ class AvailablePane(SoftwarePane):
                                                  length) % { 'amount' : length, }
 
     def _update_action_bar(self):
+        self._update_action_bar_buttons()
+        self._update_action_bar_label()
+
+    def _update_action_bar_buttons(self):
         '''
         update buttons in the action bar
         '''
-        if self.custom_list_mode and self.apps_search_term:
+        appstore = self.app_view.get_model()
+        if (appstore and
+            self.custom_list_mode and 
+            self.apps_search_term):
             appstore = self.app_view.get_model()
             installable = appstore.installable_apps
-            button_text = gettext.ngettext("Install %(amount)s item",
-                                           "Install %(amount)s items",
-                                           len(installable)) % {
-                'amount' : len(installable), 
-                }
+            button_text = gettext.ngettext("Install %s item",
+                                           "Install %s items",
+                                           len(installable)) % len(installable)
             button = self.action_bar.get_button(self._INSTALL_BTN_ID)
             if button and installable:
                 # Install all already offered. Update offer.
@@ -373,10 +383,31 @@ class AvailablePane(SoftwarePane):
                                            self._install_current_appstore)
             else:
                 # Install offered, but nothing to install. Clear offer.
-                self.action_bar.clear()
+                self.action_bar.remove_button(self._INSTALL_BTN_ID)
         else:
-            # Ensure bar is hidden.
-            self.action_bar.clear()
+            # Ensure button is removed.
+            self.action_bar.remove_button(self._INSTALL_BTN_ID)
+            
+    def _update_action_bar_label(self):
+        appstore = self.app_view.get_model()
+        if (appstore and 
+            appstore.active and
+            not appstore.nonapps_visible and
+            appstore.nonapp_pkgs):
+            # We want to display the label if there are hidden packages
+            # in the appstore.
+            label = gettext.ngettext("_%i other_ technical item",
+                                     "_%i other_ technical items",
+                                     appstore.nonapp_pkgs
+                                     ) % appstore.nonapp_pkgs
+            self.action_bar.set_label(label, self._show_nonapp_pkgs)
+        else:
+            self.action_bar.unset_label()
+            
+    def _show_nonapp_pkgs(self):
+        self.nonapps_visible = True
+        self.refresh_apps()
+        self._update_action_bar()
 
     def _install_current_appstore(self):
         '''
@@ -468,6 +499,7 @@ class AvailablePane(SoftwarePane):
     def display_category(self):
         self._clear_search()
         self._show_category_overview()
+        self.action_bar.clear()
         return
 
     def display_search(self):
@@ -512,6 +544,7 @@ class AvailablePane(SoftwarePane):
     def display_details(self):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        self.action_bar.clear()
         return
 
     def on_navigation_category(self, pathbar, part):
