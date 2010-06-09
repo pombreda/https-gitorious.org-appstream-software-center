@@ -46,6 +46,7 @@ software-center (2.1.2) UNRELEASED; urgency=low
     many thanks
   * softwarecenter/apt/apthistory.py:
     - add test (and test data) for AptHistory class
+    - be more async friendly and add test for async
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 09 Jun 2010 15:03:17 +0200
 

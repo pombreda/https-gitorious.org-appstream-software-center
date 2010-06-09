@@ -19,11 +19,13 @@
 
 import apt
 import apt_pkg
+import gio
+import glib
 import glob
 import gzip
 import string
 import datetime
-import gio
+
 
 from datetime import datetime
 
@@ -59,6 +61,7 @@ class Transaction(object):
 class AptHistory(object):
 
     def __init__(self):
+        self.main_context = glib.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
         self.rescan()
         #Copy monitoring of history file changes from historypane.py
@@ -66,7 +69,7 @@ class AptHistory(object):
         self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
-    
+
     def rescan(self):
         self.transactions = []
         for history_gz_file in glob.glob(self.history_file+".*.gz"):
@@ -79,6 +82,9 @@ class AptHistory(object):
         else:
             f = open(history_file)
         for stanza in deb822.Deb822.iter_paragraphs(f):
+            # keep the UI alive
+            while self.main_context.pending():
+                self.main_context.iteration()
             trans = Transaction(stanza)
             if rescan and trans.start_date < self.transactions[0].start_date:
                 continue
