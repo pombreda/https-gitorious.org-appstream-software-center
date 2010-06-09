@@ -68,6 +68,14 @@ class testAptHistory(unittest.TestCase):
                 raise
         os.remove(new_history+".gz")
 
+    def test_no_history_log(self):
+        # set to dir with no existing history.log
+        apt_pkg.Config.set("Dir::Log", "/")
+        # this should not raise
+        history = AptHistory()
+        self.assertEqual(history.transactions, [])
+        apt_pkg.Config.set("Dir::Log", self.basedir)
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()
