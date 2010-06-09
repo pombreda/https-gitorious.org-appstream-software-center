@@ -44,6 +44,8 @@ software-center (2.1.2) UNRELEASED; urgency=low
     - do not crash if model is None (LP: #586306)
   * merged lp:~gary-lasker/software-center/hide_nonapps_pkgs_xapian
     many thanks
+  * softwarecenter/apt/apthistory.py:
+    - add test (and test data) for AptHistory class
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 09 Jun 2010 15:03:17 +0200
 

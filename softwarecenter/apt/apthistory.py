@@ -25,14 +25,24 @@ import string
 import datetime
 import gio
 
+from datetime import datetime
+
 from debian_bundle import deb822
 
 class Transaction(object):
-    
+    """ Represents an apt transaction 
+
+    Attributes:
+    - 'start_date': the start date/time of the transaction as datetime
+    - 'install', 'upgrade', 'downgrade', 'remove', 'purge':
+        contain the list of packagenames affected by this action
+    """
+
     PKGACTIONS=["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
 
     def __init__(self, sec):
-        self.start_date = datetime.datetime.strptime(sec["Start-Date"],"%Y-%m-%d  %H:%M:%S")
+        self.start_date = datetime.strptime(sec["Start-Date"],
+                                            "%Y-%m-%d  %H:%M:%S")
         for k in self.PKGACTIONS+["Error"]:
             if k in sec:
                 setattr(self, k.lower(), map(string.strip, sec[k].split(",")))
@@ -43,6 +53,8 @@ class Transaction(object):
         for k in self.PKGACTIONS:
             count += len(getattr(self, k.lower()))
         return count
+    def __repr__(self):
+        return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
                
 class AptHistory(object):
 
