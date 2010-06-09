@@ -19,7 +19,9 @@ from softwarecenter.utils import ExecutionTime
 class testAptHistory(unittest.TestCase):
 
     def setUp(self):
-        apt_pkg.Config.set("Dir::Log", "./data/apt-history")
+        rundir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        self.basedir = os.path.join(rundir, "./data/apt-history")
+        apt_pkg.Config.set("Dir::Log", self.basedir)
         #apt_pkg.Config.set("Dir::Log::History", "./)
 
     def test_history(self):
@@ -39,14 +41,14 @@ class testAptHistory(unittest.TestCase):
             events are still processed
         """
         self._timeouts = []
-        new_history = "./data/apt-history/history.log.2"
+        new_history = os.path.join(self.basedir,"history.log.2")
         try:
             os.remove(new_history+".gz")
         except OSError: 
             pass
         history = AptHistory()
         self.assertEqual(len(history.transactions), 185)
-        s = open("./data/apt-history/history.log").read()
+        s = open(os.path.join(self.basedir,"history.log")).read()
         f = open(new_history,"w")
         for i in range(100):
             f.write(s)

@@ -5,7 +5,7 @@ all: check # mago_test
 check:
 	find . -name 'test_*.py' | \
 	while read file; do \
-	    if [ -x $$file ]; then \
+	    if [ -f $$file ]; then \
 	    	python $$file ; \
 	    fi \
 	done
