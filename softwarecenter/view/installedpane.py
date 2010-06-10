@@ -89,11 +89,6 @@ class InstalledPane(SoftwarePane):
         # getting progress_changed events and eats CPU time until it's
         # garbage collected
         old_model = self.app_view.get_model()
-        
-        # clear the current model to display an empty list while the full
-        # list is generated; this prevents visual glitches when a list is replaced
-        self.app_view.clear_model()
-        
         if old_model is not None:
             old_model.active = False
         # get a new store and attach it to the view

@@ -102,9 +102,13 @@ class ChannelPane(SoftwarePane):
         # garbage collected
         old_model = self.app_view.get_model()
         
-        # clear the current model to display an empty list while the full
-        # list is generated; prevents visual glitches when a list is replaced
-        self.app_view.clear_model()
+        # if this is the full distro channel (and so will contain many software items),
+        # and a search is not in progress, clear the current model to display an empty
+        # list while the full list is generated; this prevents a visual glitch when
+        # the list is replaced
+        if (self.channel.get_channel_name() == self.distro.get_distro_channel_name() and
+            not self.search_terms):
+            self.app_view.clear_model()
         
         if old_model is not None:
             old_model.active = False
