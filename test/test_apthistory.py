@@ -30,6 +30,7 @@ class testAptHistory(unittest.TestCase):
                          datetime.datetime.strptime("2010-06-09 14:50:00",
                                                     "%Y-%m-%d  %H:%M:%S"))
         # 185 is from "zgrep Start data/apt-history/history.log*|wc -l"
+        #print "\n".join([str(x) for x in history.transactions])
         self.assertEqual(len(history.transactions), 185)
 
     def _glib_timeout(self):

@@ -45,11 +45,15 @@ class Transaction(object):
     def __init__(self, sec):
         self.start_date = datetime.strptime(sec["Start-Date"],
                                             "%Y-%m-%d  %H:%M:%S")
+        # set the object attributes "install", "upgrade", "downgrade",
+        #                           "remove", "purge", error
         for k in self.PKGACTIONS+["Error"]:
+            attr = k.lower()
             if k in sec:
-                setattr(self, k.lower(), map(string.strip, sec[k].split(",")))
+                value = map(string.strip, sec[k].split(","))
             else:
-                setattr(self, k.lower(), [])
+                value = []
+            setattr(self, attr, value)
     def __len__(self):
         count=0
         for k in self.PKGACTIONS:
@@ -89,11 +93,17 @@ class AptHistory(object):
             # keep the UI alive
             while self.main_context.pending():
                 self.main_context.iteration()
-            trans = Transaction(stanza)
+            # ignore records with 
+            try:
+                trans = Transaction(stanza)
+            except KeyError, e:
+                continue
+            # ignore the ones we have already
             if (rescan and
                 len(self.transactions) > 0 and
                 trans.start_date < self.transactions[0].start_date):
-                continue
+                break
+            # add it
             self.transactions.insert(0, trans)
             
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
@@ -141,6 +151,3 @@ class AptHistory(object):
                     return term_lines
         return term_lines
 
-    # TODO:
-    #  def find_terminal_log(self, date)
-    #  def rescan(self, scan_all_parts=True)
