@@ -113,9 +113,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         """
         gtk.ScrolledWindow.__init__(self)
         CategoriesView.__init__(self)
-
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+        self.set_shadow_type(gtk.SHADOW_NONE)
 
+        # setup base widgets
+        # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox = gtk.VBox(spacing=VSPACING_XLARGE)
         self.vbox.set_border_width(BORDER_WIDTH_LARGE)
         viewport = gtk.Viewport()
@@ -124,11 +126,16 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.add(viewport)
         self.vbox.set_redraw_on_allocate(False)
 
+        # atk stuff
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Departments"))
 
+        # append sections
         self.carosel = None
         self.departments = None
+        self.welcome = None
+
+        # appstore stuff
         self.categories = []
         self.cache = cache
         self.db = db
@@ -136,6 +143,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.header = ''
         self.apps_filter = apps_filter
         self.apps_limit = apps_limit
+
+        # more stuff
         self._prev_width = 0
         self._poster_sigs = []
 
@@ -151,13 +160,13 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         self.vbox.connect('expose-event', self._on_expose)
         self.connect('size-allocate', self._on_allocate)
-        self.set_shadow_type(gtk.SHADOW_NONE)
 
     def _build_homepage_view(self):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        self._append_departments()
+        #self._append_welcome()
         self._append_featured()
+        self._append_departments()
         return
 
     def _build_subcat_view(self):
@@ -190,6 +199,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         self.carosel = carosel
         self.vbox.pack_start(carosel, False)
+        return
+
+    def _append_welcome(self):
+        self.welcome = WelcomeView()
+        self.vbox.pack_start(self.welcome, False)
         return
 
     def _full_redraw(self):
@@ -317,12 +331,14 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         cr.set_source_rgb(*floats_from_string(COLOR_FRAME_BG_FILL))
         cr.fill()
 
+        # draw departments
+        self.departments.draw(cr, self.departments.allocation, expose_area)
+
         if not self.in_subsection:
             # draw featured carosel
             self.carosel.draw(cr, self.carosel.allocation, expose_area)
-
-        # draw departments
-        self.departments.draw(cr, self.departments.allocation, expose_area)
+            # draw welcome and ubuntu software-center branding etc
+            #self.welcome.draw(cr, self.welcome.allocation, expose_area)
 
         del cr
         return
@@ -408,12 +424,14 @@ class FramedSection(gtk.VBox):
         cr.restore()
 
         # header gradient - suppose to be ubuntu wallpaper-esque
-        r, g, b = floats_from_string('#FCE3DD')
-        lin = cairo.LinearGradient(0, a.y+1, 0, a.y+57)
-        lin = cairo.LinearGradient(0, a.y+1, 0, a.y+57)
-        lin.add_color_stop_rgba(0.0, r, g, b, 1)
+        pink = '#FCE3DD'
+        h = 48
+        r, g, b = floats_from_string(pink)
+        lin = cairo.LinearGradient(0, a.y+1, 0, a.y+h)
+        lin = cairo.LinearGradient(0, a.y+1, 0, a.y+h)
+        lin.add_color_stop_rgba(0.0, r, g, b, 0.85)
         lin.add_color_stop_rgba(1.0, r, g, b, 0)
-        cr.rectangle(a.x+1, a.y+1, a.width-2, 56)
+        cr.rectangle(a.x+1, a.y+1, a.width-2, h)
         cr.set_source(lin)
         cr.fill()
 
@@ -765,6 +783,11 @@ class FeaturedView(FramedSection):
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
 
         #self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area, alpha=0.5)
+        fa = self.footer.allocation
+        cr.rectangle(fa.x+1, fa.y, fa.width-2, fa.height-1)
+        cr.set_source_rgba(*floats_from_string_with_alpha(COLOR_FRAME_HEADER_FILL, 0.3))
+        cr.fill()
+
         self.back_forward_btn.draw(cr, expose_area, alpha=0.5)
 
         alpha = self._alpha
@@ -1018,6 +1041,24 @@ class FeaturedPoster(gtk.EventBox):
         return
 
 
+class WelcomeView(FramedSection):
+
+    def __init__(self):
+        FramedSection.__init__(self)
+        self.set_size_request(-1, 64)
+        print dir(glib)
+        self.set_label('<big>Welcome back Matthew</big>')
+        return
+
+    def draw(self, cr, a, expose_area):
+        if draw_skip(a, expose_area): return
+        FramedSection.draw(self, cr, a, expose_area)
+
+        cr.save()
+
+        cr.restore()
+        return
+
 class PushButton(gtk.EventBox):
 
     __gsignals__ = {
@@ -1241,7 +1282,7 @@ class BasicButton(PushButton):
             gtk.STATE_ACTIVE:       purple,
             gtk.STATE_PRELIGHT:     orange,
             gtk.STATE_SELECTED:     orange,
-            gtk.STATE_INSENSITIVE:  self.theme.theme.dark}
+            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
 
         self.theme.light_line = {
             gtk.STATE_NORMAL:       gray,
@@ -1256,6 +1297,7 @@ class EngravedLabel(gtk.Label):
 
     def __init__(self, *args, **kwargs):
         gtk.Label.__init__(self, *args, **kwargs)
+        # kinda ugly but i suppress the 'native' drawing of the widget
         self.connect('expose-event', lambda w, e: True)
         return
 
@@ -1270,7 +1312,7 @@ class EngravedLabel(gtk.Label):
         self.style.paint_layout(self.window,
                                 self.state,
                                 False,
-                                None,          # area
+                                (a.x, a.y, a.width, a.height+1),          # area
                                 self,
                                 None,
                                 a.x,
