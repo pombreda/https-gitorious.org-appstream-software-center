@@ -101,6 +101,15 @@ class ChannelPane(SoftwarePane):
         # getting progress_changed events and eats CPU time until its
         # garbage collected
         old_model = self.app_view.get_model()
+        
+        # if the list is expected to contain many items, clear the current model to display
+        # an empty list while the full list is generated; this prevents a visual glitch when
+        # the list is replaced
+        if ((self.channel.get_channel_name() == self.distro.get_distro_channel_name() and
+             self.channel.get_channel_component() != "partner") and
+             not self.search_terms):
+            self.app_view.clear_model()
+        
         if old_model is not None:
             old_model.active = False
             while gtk.events_pending():

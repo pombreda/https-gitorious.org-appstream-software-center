@@ -209,9 +209,6 @@ class AvailablePane(SoftwarePane):
     def refresh_apps(self):
         """refresh the applist and update the navigation bar
         """
-        #import traceback
-        #print "refresh_apps"
-        #print traceback.print_stack()
         logging.debug("refresh_apps")
         # mvo: its important to fist show the subcategories and then
         #      the new model, otherwise we run into visual lack
@@ -226,6 +223,13 @@ class AvailablePane(SoftwarePane):
         logging.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
+        
+        # if a search is not in progress, clear the current model to
+        # display an empty list while the full list is generated; this
+        # prevents a visual glitch when a list is replaced
+        if not self.apps_search_term:
+            self.app_view.clear_model()
+        
         if old_model is not None:
             # *ugh* deactivate the old model because otherwise it keeps
             # getting progress_changed events and eats CPU time until its
