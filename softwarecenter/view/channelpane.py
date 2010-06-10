@@ -101,6 +101,11 @@ class ChannelPane(SoftwarePane):
         # getting progress_changed events and eats CPU time until its
         # garbage collected
         old_model = self.app_view.get_model()
+        
+        # clear the current model to display an empty list while the full
+        # list is generated; prevents visual glitches when a list is replaced
+        self.app_view.clear_model()
+        
         if old_model is not None:
             old_model.active = False
             while gtk.events_pending():

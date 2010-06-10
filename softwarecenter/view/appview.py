@@ -1186,6 +1186,9 @@ class AppView(gtk.TreeView):
         if abs(len(new_model)-len(model)) > AppStore.DEFAULT_SEARCH_LIMIT:
             return super(AppView, self).set_model(new_model)
         return model.update(new_model)
+        
+    def clear_model(self):
+        self.set_model(None)
 
     def is_action_in_progress_for_selected_app(self):
         """

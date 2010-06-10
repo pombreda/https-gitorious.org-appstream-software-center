@@ -226,6 +226,10 @@ class AvailablePane(SoftwarePane):
         logging.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
+        
+        # clear the current model to display an empty list while the full
+        # list is generated; prevents visual glitches when a list is replaced
+        self.app_view.clear_model()
         if old_model is not None:
             # *ugh* deactivate the old model because otherwise it keeps
             # getting progress_changed events and eats CPU time until its
