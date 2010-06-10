@@ -58,7 +58,7 @@ software-center (2.1.2) maverick; urgency=low
     - be more robust against invalid entries (LP: #590281), this
       also need a python-debian fix to be fully working
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 09 Jun 2010 22:30:10 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Jun 2010 12:04:34 +0200
 
 software-center (2.1.1) maverick; urgency=low
 
