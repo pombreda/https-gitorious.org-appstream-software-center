@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # FIXME:  REMOVE THIS option once launchpad integration is enabled
     #         by default
     parser.add_option("--enable-lp", action="store_true",
-                      help="enable launchpad integration features", 
+                      help="enable launchpad integration (for development use)", 
                       default=False)
     (options, args) = parser.parse_args()
 
