@@ -45,6 +45,11 @@ if __name__ == "__main__":
     parser.add_option("--force-rtl", action="store_true",
                       help="force rtl mode (useful for debugging)", 
                       default=False)
+    # FIXME:  REMOVE THIS option once launchpad integration is enabled
+    #         by default
+    parser.add_option("--enable-lp", action="store_true",
+                      help="enable launchpad integration (for development use)", 
+                      default=False)
     (options, args) = parser.parse_args()
 
     if options.debug_filter:
@@ -75,6 +80,7 @@ if __name__ == "__main__":
     
     from softwarecenter.app import SoftwareCenterApp
     
-    app = SoftwareCenterApp(datadir, xapian_base_path)
+    app = SoftwareCenterApp(datadir, xapian_base_path, enable_lp_integration=options.enable_lp)
+    # app = SoftwareCenterApp(datadir, xapian_base_path)
     app.run(args)
 

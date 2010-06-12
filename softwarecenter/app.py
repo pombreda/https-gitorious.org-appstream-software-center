@@ -87,7 +87,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
-    def __init__(self, datadir, xapian_base_path):
+    # FIXME:  REMOVE THIS once launchpad integration is enabled
+    #         by default
+    def __init__(self, datadir, xapian_base_path, enable_lp_integration=False):
+    #def __init__(self, datadir, xapian_base_path):
+    
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareCenter.ui", 
@@ -274,10 +278,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.aboutdialog.set_name(name)
         about_description = self.distro.get_app_description()
         self.aboutdialog.set_comments(about_description)
-
+            
         # restore state
         self.config = get_config()
         self.restore_state()
+
+        # FIXME:  REMOVE THIS once launchpad integration is enabled
+        #         by default
+        if not enable_lp_integration:
+            file_menu = self.builder.get_object("menu1")
+            file_menu.remove(self.builder.get_object("separator_login"))
+            file_menu.remove(self.builder.get_object("menuitem_login"))
 
     # callbacks
     def on_app_details_changed(self, widget, app, page):
