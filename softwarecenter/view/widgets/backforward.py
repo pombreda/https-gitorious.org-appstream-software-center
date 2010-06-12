@@ -294,15 +294,16 @@ class ButtonPart(gtk.EventBox):
                                    a.width-8, a.height-8)
 
         # arrow
-        aw, ah = self.arrow_size
-        ax, ay = a.x + (a.width - aw)/2, a.y + (a.height - ah)/2
+        aw = ah = 12
+        ay = a.y + (a.height - ah)/2
+        ax = a.x + (a.width - aw)/2
 
         self.style.paint_arrow(self.window,
                                self.state,
                                self.shadow_type,
-                               None,
+                               (ax, ay, aw, ah),
                                self,
-                               "button",
+                               None,
                                self.arrow_type,
                                True,
                                ax, ay,

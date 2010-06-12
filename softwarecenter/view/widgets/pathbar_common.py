@@ -26,11 +26,14 @@ import logging
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
-#pathbar shapes
+# shapes
 SHAPE_RECTANGLE = 0
 SHAPE_START_ARROW = 1
 SHAPE_MID_ARROW = 2
 SHAPE_END_CAP = 3
+SHAPE_CIRCLE = 4
+SHAPE_LEFT_ROUNDED_RECT = 5
+SHAPE_RIGHT_ROUNDED_RECT = 6
 
 
 class PathBarStyle:
@@ -60,12 +63,18 @@ class PathBarStyle:
             shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
                      SHAPE_START_ARROW: self._shape_start_arrow_ltr,
                      SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
-                     SHAPE_END_CAP:     self._shape_end_cap_ltr}
+                     SHAPE_END_CAP:     self._shape_end_cap_ltr,
+                     SHAPE_CIRCLE :     self._shape_circle,
+                     SHAPE_LEFT_ROUNDED_RECT: self._shape_end_cap_rtl,
+                     SHAPE_RIGHT_ROUNDED_RECT: self._shape_end_cap_ltr}
         else:
             shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
                      SHAPE_START_ARROW: self._shape_start_arrow_rtl,
                      SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
-                     SHAPE_END_CAP:     self._shape_end_cap_rtl}
+                     SHAPE_END_CAP:     self._shape_end_cap_rtl,
+                     SHAPE_CIRCLE :     self._shape_circle,
+                     SHAPE_LEFT_ROUNDED_RECT: self._shape_end_cap_ltr,
+                     SHAPE_RIGHT_ROUNDED_RECT: self._shape_end_cap_rtl}
         return shmap
 
     def _load_theme(self, gtksettings):
@@ -80,6 +89,14 @@ class PathBarStyle:
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
         cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
+        cr.close_path()
+        return
+
+    def _shape_circle(self, cr, x, y, w, h, r=None, aw=None):
+        global M_PI, PI_OVER_180
+        cr.new_path()
+        r = min(w/2, h/2)
+        cr.arc(r+x, r+y, r, 0, 360*PI_OVER_180)
         cr.close_path()
         return
 
@@ -107,10 +124,10 @@ class PathBarStyle:
 
     def _shape_end_cap_ltr(self, cr, x, y, w, h, r, aw):
         global M_PI, PI_OVER_180
-        cr.move_to(0, y)
+        cr.move_to(x, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(0, h)
+        cr.line_to(x, h)
         cr.close_path()
         return
 
@@ -145,15 +162,22 @@ class PathBarStyle:
 
     def set_direction(self, direction):
         if direction != gtk.TEXT_DIR_RTL:
-            self.shape_map = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                              SHAPE_START_ARROW: self._shape_start_arrow_ltr,
-                              SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
-                              SHAPE_END_CAP:     self._shape_end_cap_ltr}
+            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
+                     SHAPE_START_ARROW: self._shape_start_arrow_ltr,
+                     SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
+                     SHAPE_END_CAP:     self._shape_end_cap_ltr,
+                     SHAPE_CIRCLE :     self._shape_circle,
+                     SHAPE_LEFT_ROUNDED_RECT: self._shape_end_cap_rtl,
+                     SHAPE_RIGHT_ROUNDED_RECT: self._shape_end_cap_ltr}
         else:
-            self.shape_map = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                              SHAPE_START_ARROW: self._shape_start_arrow_rtl,
-                              SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
-                              SHAPE_END_CAP:     self._shape_end_cap_rtl}
+            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
+                     SHAPE_START_ARROW: self._shape_start_arrow_rtl,
+                     SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
+                     SHAPE_END_CAP:     self._shape_end_cap_rtl,
+                     SHAPE_CIRCLE :     self._shape_circle,
+                     SHAPE_LEFT_ROUNDED_RECT: self._shape_end_cap_ltr,
+                     SHAPE_RIGHT_ROUNDED_RECT: self._shape_end_cap_rtl}
+        self.shape_map = shmap
         return
 
     def paint_bg(self, cr, part, x, y, w, h, r=None, sxO=0, alpha=1.0):
