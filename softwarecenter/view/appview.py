@@ -92,7 +92,7 @@ class AppStore(gtk.GenericTreeModel):
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
-                 sort=False, filter=None, exact=False, icon_size=0):
+                 sort=False, filter=None, exact=False, icon_size=0, nonapps_visible=False):
         """
         Initalize a AppStore.
 
@@ -128,6 +128,12 @@ class AppStore(gtk.GenericTreeModel):
         self.filter = filter
         self.exact = exact
         self.active = True
+        # These track if technical (non-applications) are being displayed
+        # and if the user explicitly requested they be.
+        self.nonapps_visible = nonapps_visible
+        self.nonapp_pkgs = 0
+        self._explicit_nonapp_visibility = False
+        # backend stuff
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         self.backend.connect("transaction-started", self._on_transaction_started)
@@ -136,30 +142,44 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
+        self.limit = limit
+        self.filter = filter
         # no search query means "all"
         if not search_query:
             search_query = xapian.Query("ATapplication")
             self.sorted = True
-            limit = 0
+            self.limit = 0
 
         # we support single and list search_queries,
         # if list we append them one by one
         if isinstance(search_query, xapian.Query):
             search_query = [search_query]
+        self.search_query = search_query
+        self._perform_search()
+
+    def _perform_search(self):
         already_added = set()
-        for q in search_query:
+        for q in self.search_query:
             logging.debug("using query: '%s'" % q)
-            enquire = xapian.Enquire(db.xapiandb)
+            enquire = xapian.Enquire(self.db.xapiandb)
+            if not self.nonapps_visible:
+                enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                 q, xapian.Query("ATapplication")))
+
+                matches = enquire.get_mset(0, len(self.db))
+                self.nonapp_pkgs = matches.get_matches_estimated()
+                q = xapian.Query(xapian.Query.OP_AND, 
+                                 xapian.Query("ATapplication"), q)
             enquire.set_query(q)
             # set search order mode
             if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
                 enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
             elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
                 self.sorted=sort=True
-            if limit == 0:
-                matches = enquire.get_mset(0, len(db))
+            if self.limit == 0:
+                matches = enquire.get_mset(0, len(self.db))
             else:
-                matches = enquire.get_mset(0, limit)
+                matches = enquire.get_mset(0, self.limit)
             logging.debug("found ~%i matches" % matches.get_matches_estimated())
             app_index = 0
             for m in matches:
@@ -170,12 +190,12 @@ class AppStore(gtk.GenericTreeModel):
                         print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
                     print "\n"
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-                pkgname = db.get_pkgname(doc)
-                if filter and self.is_filtered_out(filter, doc):
+                pkgname = self.db.get_pkgname(doc)
+                if self.filter and self.is_filtered_out(self.filter, doc):
                     continue
                 # when doing multiple queries we need to ensure
                 # we don't add duplicates
-                popcon = db.get_popcon(doc)
+                popcon = self.db.get_popcon(doc)
                 app = Application(appname, pkgname, popcon)
                 if not app in already_added:
                     if self.sorted:
@@ -197,6 +217,13 @@ class AppStore(gtk.GenericTreeModel):
                 app = Application("", pkgname)
                 self.app_index_map[app] = app_index
                 self.apps.append(app)
+                
+        # if we only have nonapps to be displayed, don't hide them
+        if (not self.nonapps_visible and
+            self.nonapp_pkgs > 0 and
+            len(self.apps) == 0):
+            self.nonapps_visible = True
+            self._perform_search()
         
         # This is data for store contents that will be generated
         # when called for externally. (see _refresh_contents_data)
@@ -298,6 +325,8 @@ class AppStore(gtk.GenericTreeModel):
         self.sorted = appstore.sorted
         self.filter = appstore.filter
         self.exact = appstore.exact
+        self.nonapps_visible = appstore.nonapps_visible
+        self.nonapp_pkgs = appstore.nonapp_pkgs
         self._existing_apps = appstore._existing_apps
         self._installable_apps = appstore._installable_apps
 
@@ -1141,6 +1170,9 @@ class AppView(gtk.TreeView):
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
 
     def set_model(self, new_model):
+        # unset
+        if new_model is None:
+            super(AppView, self).set_model(None)
         # Only allow use of an AppStore model
         if type(new_model) != AppStore:
             return
@@ -1154,6 +1186,9 @@ class AppView(gtk.TreeView):
         if abs(len(new_model)-len(model)) > AppStore.DEFAULT_SEARCH_LIMIT:
             return super(AppView, self).set_model(new_model)
         return model.update(new_model)
+        
+    def clear_model(self):
+        self.set_model(None)
 
     def is_action_in_progress_for_selected_app(self):
         """

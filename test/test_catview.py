@@ -5,7 +5,7 @@ sys.path.insert(0,"../")
 
 import unittest
 
-from softwarecenter.view.catview import CategoryView
+from softwarecenter.view.catview import CategoriesView
 from softwarecenter.enums import *
 
 class testCatView(unittest.TestCase):

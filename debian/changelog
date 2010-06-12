@@ -1,4 +1,16 @@
-software-center (2.1.2) UNRELEASED; urgency=low
+software-center (2.1.3) UNRELEASED; urgency=low
+
+  * softwarecenter/view/appview.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py:
+    - fix visual glitch when updating a list view that contains
+      a large number of items (LP: #592296)
+  * po/POTFILES.in:
+    - update to current set of modules
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 Jun 2010 18:09:44 -0400
+
+software-center (2.1.2) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/viewswitcher.py:
@@ -27,6 +39,13 @@ software-center (2.1.2) UNRELEASED; urgency=low
     pkgname_index_map correctly, many thanks Olivier!
   * softwarecenter/view/historypane.py:
     - fix UnboundLocalError if history.log is empty
+  * merged lp:~hellium/software-center/installed-date, history
+    pane log parsing merged to AptHistory, implement "Installed since"
+    feature in the details view, many thanks Geliy Sokolov!
+  * softwarecenter/apt/apthistory.py,
+    softwarecenter/view/historypane.py:
+    - fix launch error in the case where there is no
+      history.log file (LP: #591590)
   
   [ Michael Vogt ]
   * merged  lp:~glatzor/software-center/glatzor to get improved
@@ -39,8 +58,19 @@ software-center (2.1.2) UNRELEASED; urgency=low
     (many thanks!)
   * softwarecenter/view/installedpane.py:
     - do not crash if model is None (LP: #586306)
+  * merged lp:~gary-lasker/software-center/hide_nonapps_pkgs_xapian
+    many thanks to Jacob Johan Edwards and Gary
+  * softwarecenter/apt/apthistory.py:
+    - add test (and test data) for AptHistory class
+    - be more async friendly and add test for async
+  * merge lp:~mvo/software-center/launchpad-login branch that
+    provides the infrastructure for LP login/API calls and supports
+    displaying private PPAs
+  * softwarecenter/apt/apthistory.py:
+    - be more robust against invalid entries (LP: #590281), this
+      also need a python-debian fix to be fully working
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 02 Jun 2010 21:02:50 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Jun 2010 12:04:34 +0200
 
 software-center (2.1.1) maverick; urgency=low
 
@@ -401,20 +431,6 @@ software-center (1.1.21) lucid; urgency=low
       via aptdaemon
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 26 Mar 2010 10:18:49 +0100
-
-software-center (1.1.21) UNRELEASED; urgency=low
-
-  * softwarecenter/db/update.py:
-    - fix crash when locale is not supported
-  * apt-xapian-index-plugin/*.py:
-    - fix deprecation warnings (LP: #548665)
-  * merge branch from michaelforrest that does not empty box
-    for unavailalbe screenshots
-  * allow enabling components via "Use this source" button when
-    a software-item is in a component that is not yet enabled (like
-    "universe" on the live-cd)
-
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Mar 2010 20:45:35 +0100
 
 software-center (1.1.20) lucid; urgency=low
 

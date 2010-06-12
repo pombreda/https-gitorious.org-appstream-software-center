@@ -19,51 +19,111 @@
 
 import apt
 import apt_pkg
+import gio
+import glib
 import glob
 import gzip
 import string
+import datetime
+import logging
+
+from datetime import datetime
 
 from debian_bundle import deb822
 
 class Transaction(object):
-    
-    PKGACTIONS=["Install", "Upgrade", "Downgrade" "Remove", "Purge"]
+    """ Represents an apt transaction 
+
+    Attributes:
+    - 'start_date': the start date/time of the transaction as datetime
+    - 'install', 'upgrade', 'downgrade', 'remove', 'purge':
+        contain the list of packagenames affected by this action
+    """
+
+    PKGACTIONS=["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
 
     def __init__(self, sec):
-        self.start_date = sec["Start-Date"]
+        self.start_date = datetime.strptime(sec["Start-Date"],
+                                            "%Y-%m-%d  %H:%M:%S")
+        # set the object attributes "install", "upgrade", "downgrade",
+        #                           "remove", "purge", error
         for k in self.PKGACTIONS+["Error"]:
+            attr = k.lower()
             if k in sec:
-                setattr(self, k.lower(), map(string.strip, sec[k].split(",")))
+                value = map(string.strip, sec[k].split(","))
             else:
-                setattr(self, k.lower(), [])
+                value = []
+            setattr(self, attr, value)
     def __len__(self):
         count=0
         for k in self.PKGACTIONS:
             count += len(getattr(self, k.lower()))
         return count
+    def __repr__(self):
+        return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
                
 class AptHistory(object):
 
-    # FIXME: add full history file reading
-    def __init__(self, history_file=None):
-        self.history_file = history_file
-        if not history_file:
-            self.history_file = apt_pkg.config.find_file("Dir::Log::History")
-            #self.history_file = "/var/log/apt/history.log.1.gz"
-        if self.history_file.endswith(".gz"):
-            f = gzip.open(self.history_file)
-        else:
-            f = open(self.history_file)
-        self.rescan(f)
-    def rescan(self, f):
-        self.transactions = []
-        for stanza in deb822.Deb822.iter_paragraphs(f):
-            trans = Transaction(stanza)
-            self.transactions.append(trans)
-    @property
-    def older_parts(self):
-        return glob.glob(self.history_file+".*.gz")
+    def __init__(self):
+        self.main_context = glib.main_context_default()
+        self.history_file = apt_pkg.config.find_file("Dir::Log::History")
+        self.rescan()
+        #Copy monitoring of history file changes from historypane.py
+        self.logfile = gio.File(self.history_file)
+        self.monitor = self.logfile.monitor_file()
+        self.monitor.connect("changed", self._on_apt_history_changed)
+        self.update_callback = None
 
+    def rescan(self):
+        self.transactions = []
+        for history_gz_file in glob.glob(self.history_file+".*.gz"):
+            self._scan(history_gz_file)
+        self._scan(self.history_file)
+    
+    def _scan(self, history_file, rescan = False):
+        try:
+            if history_file.endswith(".gz"):
+                f = gzip.open(history_file)
+            else:
+                f = open(history_file)
+        except IOError, ioe:
+            logging.debug(ioe)
+            return
+        for stanza in deb822.Deb822.iter_paragraphs(f):
+            # keep the UI alive
+            while self.main_context.pending():
+                self.main_context.iteration()
+            # ignore records with 
+            try:
+                trans = Transaction(stanza)
+            except KeyError, e:
+                continue
+            # ignore the ones we have already
+            if (rescan and
+                len(self.transactions) > 0 and
+                trans.start_date < self.transactions[0].start_date):
+                break
+            # add it
+            self.transactions.insert(0, trans)
+            
+    def _on_apt_history_changed(self, monitor, afile, other_file, event):
+        if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+            self._scan(self.history_file, rescan = True)
+            if self.update_callback:
+                self.update_callback()
+    
+    def set_on_update(self,update_callback):
+        self.update_callback=update_callback
+            
+    def get_installed_date(self, pkg_name):
+        installed_date = None
+        for trans in self.transactions:
+            for pkg in trans.install:
+                if pkg.split(" ")[0] == pkg_name:
+                    installed_date = trans.start_date
+                    return installed_date
+        return installed_date
+    
     def _find_in_terminal_log(self, date, term_file):
         found = False
         term_lines = []
@@ -91,6 +151,3 @@ class AptHistory(object):
                     return term_lines
         return term_lines
 
-    # TODO:
-    #  def find_terminal_log(self, date)
-    #  def rescan(self, scan_all_parts=True)

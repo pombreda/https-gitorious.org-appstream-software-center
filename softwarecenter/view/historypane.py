@@ -22,6 +22,7 @@ import gobject
 import gio
 import glib
 import gtk
+import logging
 
 import apt_pkg
 apt_pkg.init_config()
@@ -56,7 +57,7 @@ class HistoryPane(gtk.VBox):
     ICON_SIZE = 24
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir):
+    def __init__(self, cache, history, db, distro, icons, datadir):
         gtk.VBox.__init__(self)
         self.cache = cache
         self.db = db
@@ -125,11 +126,11 @@ class HistoryPane(gtk.VBox):
         all_action.set_active(True)
         self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
-        self.parse_history_log()
-
-        self.logfile = gio.File(self.filename)
-        self.monitor = self.logfile.monitor_file()
-        self.monitor.connect("changed", self._on_apt_history_changed)
+        
+        self.history = history
+        self.parse_history()
+        self.history.set_on_update(self.parse_history)
+        
 
         self.column = gtk.TreeViewColumn(_('Date'))
         self.view.append_column(self.column)
@@ -148,41 +149,32 @@ class HistoryPane(gtk.VBox):
             missing = None
         self._app_icon_cache[MISSING_APP_ICON] = missing
 
-    def _on_apt_history_changed(self, monitor, afile, other_file, event):
-        if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
-            self.parse_history_log()
-
-    def parse_history_log(self):
-        actions = {self.INSTALLED: 'Install', self.REMOVED: 'Remove'}
-        fd = open(self.filename)
+    def parse_history(self):
         date = None
         when = None
+        last_row = None
         day = self.store.get_iter_first()
         if day is not None:
             date = self.store.get_value(day, self.COL_WHEN)
-        for stanza in deb822.Deb822.iter_paragraphs(fd):
-            when = datetime.datetime.strptime(stanza['Start-Date'], '%Y-%m-%d %H:%M:%S')
+        if len(self.history.transactions) == 0:
+            logging.debug("AptHistory is currently empty")
+            return
+        new_last = self.history.transactions[0].start_date
+        for trans in self.history.transactions:
+            when = trans.start_date
             if self.last is not None and when <= self.last:
-                continue
-            for action, key in actions.iteritems():
-                if not stanza.has_key(key):
-                    continue
-                if when.date() != date:
-                    date = when.date()
-                    day = self.store.prepend(None, (date, self.ALL, None))
-                packages = stanza[key].split(', ')
-                # Drop the version numbers
-                pkgnames = [p.split()[0] for p in packages]
+                break
+            if when.date() != date:
+                date = when.date()
+                day = self.store.append(None, (date, self.ALL, None))
+                last_row = None
+            actions = {self.INSTALLED: trans.install, self.REMOVED: trans.remove}
+            for action, pkgs in actions.iteritems():
+                pkgnames = [p.split()[0] for p in pkgs]
                 for pkgname in pkgnames:
                     row = (when, action, pkgname)
-                    self.store.append(day, row)
-
-        fd.close() 
-        # something was broken for me so i did this so my instance works until smart people fix my error.
-        try:
-            self.last = when
-        except:
-            pass
+                    last_row = self.store.insert_after(day, last_row, row)
+        self.last = new_last
         self.update_view()
 
     def is_category_view_showing(self):

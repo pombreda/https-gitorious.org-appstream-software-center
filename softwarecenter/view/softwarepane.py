@@ -70,10 +70,11 @@ class SoftwarePane(gtk.VBox):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir, show_ratings=False):
+    def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
         # other classes we need
         self.cache = cache
+        self.history = history
         self.db = db
         self.distro = distro
         self.db.connect("reopen", self.on_db_reopen)
@@ -104,6 +105,7 @@ class SoftwarePane(gtk.VBox):
                                           self.distro,
                                           self.icons, 
                                           self.cache, 
+                                          self.history,
                                           self.datadir)
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
