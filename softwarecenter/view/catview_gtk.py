@@ -560,7 +560,7 @@ class FeaturedView(FramedSection):
 
         # show all featured apps orange button
 
-        # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK == guillemotright
+        # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = u'View all \xbb'
         self.more_btn = BasicButton('<small>%s</small>' % label)
         #self.more_btn.set_shape(pathbar_common.SHAPE_START_ARROW)
@@ -873,6 +873,9 @@ class FeaturedPoster(gtk.EventBox):
         # text rendering is relatively expensive
         # here a surfaces a cached with the text prerendered
         # makes fade much cheaper to render
+
+        # we only want to cache a text surf when the poster
+        # has been allocated so we get correct line wrapping.
         if self.allocation.width == 1: return
         text = self._text
 
@@ -933,7 +936,8 @@ class FeaturedPoster(gtk.EventBox):
         # draw text
         if alpha < 1.0:
             # if fading, use cached surface, much cheaper to render
-            if not self._text_surf: return
+            if not self._text_surf: self._cache_text_surf(layout)
+
             cr.set_source_surface(self._text_surf,
                                   8 + self._icon_size,
                                   POSTER_CORNER_RADIUS)

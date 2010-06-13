@@ -167,16 +167,14 @@ class PathBarStyle:
                      SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
                      SHAPE_END_CAP:     self._shape_end_cap_ltr,
                      SHAPE_CIRCLE :     self._shape_circle,
-                     SHAPE_LEFT_ROUNDED_RECT: self._shape_end_cap_rtl,
-                     SHAPE_RIGHT_ROUNDED_RECT: self._shape_end_cap_ltr}
+                     }
         else:
             shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
                      SHAPE_START_ARROW: self._shape_start_arrow_rtl,
                      SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
                      SHAPE_END_CAP:     self._shape_end_cap_rtl,
                      SHAPE_CIRCLE :     self._shape_circle,
-                     SHAPE_LEFT_ROUNDED_RECT: self._shape_end_cap_ltr,
-                     SHAPE_RIGHT_ROUNDED_RECT: self._shape_end_cap_rtl}
+                     }
         self.shape_map = shmap
         return
 
@@ -187,6 +185,7 @@ class PathBarStyle:
         aw = self["arrow_width"]
 
         cr.save()
+
         cr.rectangle(x, y, w, h)
         cr.clip()
         cr.translate(x-sxO, y)
@@ -203,6 +202,7 @@ class PathBarStyle:
         lin.add_color_stop_rgba(1.0, red, g, b, alpha)
         cr.set_source(lin)
         cr.fill()
+
         cr.restore()
         return
 
