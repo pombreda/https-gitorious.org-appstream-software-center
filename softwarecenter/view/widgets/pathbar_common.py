@@ -180,6 +180,32 @@ class PathBarStyle:
         self.shape_map = shmap
         return
 
+    def paint_bg_flat(self, cr, part, x, y, w, h, r=None, sxO=0, alpha=1.0):
+        shape = self.shape_map[part.shape]
+        state = part.state
+        r = r or self["curvature"]
+        aw = self["arrow_width"]
+
+        cr.save()
+        cr.rectangle(x, y, w, h)
+        cr.clip()
+        cr.translate(x-sxO, y)
+
+        # bg linear vertical gradient
+        color1, color2 = self.gradients[state]
+
+        shape(cr, 0, 0, w, h, r, aw)
+        lin = cairo.LinearGradient(0, 0, 0, h)
+        red, g, b = color1.tofloats()
+        lin.add_color_stop_rgba(0.0, red, g, b, alpha)
+
+        red, g, b = color2.tofloats()
+        lin.add_color_stop_rgba(1.0, red, g, b, alpha)
+        cr.set_source(lin)
+        cr.fill()
+        cr.restore()
+        return
+
     def paint_bg(self, cr, part, x, y, w, h, r=None, sxO=0, alpha=1.0):
         shape = self.shape_map[part.shape]
         state = part.state
@@ -188,11 +214,9 @@ class PathBarStyle:
 
         cr.save()
         cr.rectangle(x, y, w+1, h)
-        cr.clip()
-        cr.translate(x+0.5-sxO, y+0.5)
 
-        w -= 1
-        h -= 1
+        cr.clip()
+        cr.translate(x-sxO, y)
 
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
@@ -207,9 +231,13 @@ class PathBarStyle:
         cr.set_source(lin)
         cr.fill()
 
+        cr.translate(0.5, 0.5)
         cr.set_line_width(1.0)
+
+        w -= 1
+        h -= 1
+
         # inner bevel/highlight
-        if r == 0: w += 1
         shape(cr, 1, 1, w-1, h-1, r-1, aw)
         red, g, b = self.light_line[state].tofloats()
         cr.set_source_rgba(red, g, b, alpha)
@@ -220,6 +248,7 @@ class PathBarStyle:
         red, g, b = self.dark_line[state].tofloats()
         cr.set_source_rgba(red, g, b, alpha)
         cr.stroke()
+
         cr.restore()
         return
 

@@ -318,10 +318,8 @@ class PathBar(gtk.HBox):
                 xo = part.get_draw_xoffset()
                 x, y, w, h = a.x, a.y, a.width, a.height
                 w = part.get_draw_width()
-                if part.state != gtk.STATE_ACTIVE:
-                    theme.paint_bg(cr, part, x+xo, y, w, h)
-                else:
-                    theme.paint_bg_active_shallow(cr, part, x+xo, y, w, h)
+
+                theme.paint_bg(cr, part, x+xo, y, w, h)
 
                 x, y, w, h = part.get_layout_points()
 

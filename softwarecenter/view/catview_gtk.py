@@ -107,7 +107,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
-        self.vbox = gtk.VBox(spacing=VSPACING_XLARGE)
+        self.vbox = gtk.VBox(spacing=VSPACING_LARGE)
         self.vbox.set_border_width(BORDER_WIDTH_LARGE)
         viewport = gtk.Viewport()
         viewport.set_shadow_type(gtk.SHADOW_NONE)
@@ -537,18 +537,16 @@ class FeaturedView(FramedSection):
         FramedSection.__init__(self)
         self.hbox = gtk.HBox(spacing=HSPACING_SMALL)
         self.hbox.set_homogeneous(True)
+        self.body.pack_start(self.hbox, False)
 
-        outter_hbox = gtk.HBox(spacing=HSPACING_SMALL)
+        self.back_forward_btn = BackForwardButton(part_size=(25, -1), native_draw=False)
+        #self.back_forward_btn.use_flat_palatte()
+        self.back_forward_btn.set_use_hand_cursor(True)
 
-        self.left = ArrowButton(gtk.ARROW_LEFT)
-        self.right = ArrowButton(gtk.ARROW_RIGHT)
+        #align = gtk.Alignment(1.0, 0.5)
+        #align.add(self.back_forward_btn)
 
-        outter_hbox.pack_start(self.left, False)
-        outter_hbox.pack_end(self.right, False)
-
-        outter_hbox.pack_start(self.hbox)
-        self.body.pack_start(outter_hbox)
-
+        #self.body.pack_end(align, False)
         self.header.set_spacing(HSPACING_SMALL)
 
         self.posters = []
@@ -563,12 +561,13 @@ class FeaturedView(FramedSection):
         # show all featured apps orange button
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK == guillemotright
-        label = u'View all Featured Applications \xbb'
+        label = u'View all \xbb'
         self.more_btn = BasicButton('<small>%s</small>' % label)
         #self.more_btn.set_shape(pathbar_common.SHAPE_START_ARROW)
         # override theme palatte with orange palatte
-        self.more_btn.use_flat_palatte()
+        #self.more_btn.use_flat_palatte()
         self.header.pack_end(self.more_btn, False)
+        self.header.pack_end(self.back_forward_btn, False)
 
         self._width = 0
         self._icon_size = self.featured_apps.icon_size
@@ -581,16 +580,15 @@ class FeaturedView(FramedSection):
 
         self.connect('realize', self._on_realize)
 
-        if self.get_direction() != gtk.TEXT_DIR_RTL:
-            self.left.connect('clicked', self._on_back_clicked)
-            self.right.connect('clicked', self._on_forward_clicked)
-        else:
-            self.left.connect('clicked', self._on_forward_clicked)
-            self.right.connect('clicked', self._on_back_clicked)
+        #if self.get_direction() != gtk.TEXT_DIR_RTL:
+            #self.left.connect('clicked', self._on_back_clicked)
+            #self.right.connect('clicked', self._on_forward_clicked)
+        #else:
+            #self.left.connect('clicked', self._on_forward_clicked)
+            #self.right.connect('clicked', self._on_back_clicked)
         return
 
     def _on_realize(self, widget):
-        print 'Realize', self.allocation.width
         # cache a pango layout for text ops and overlay image for installed apps
         self._cache_layout()
         self._cache_overlay_image("software-center-installed")
@@ -758,10 +756,7 @@ class FeaturedView(FramedSection):
 
     def draw(self, cr, a, expose_area):
         if draw_skip(a, expose_area): return
-        cr.save()
         FramedSection.draw(self, cr, a, expose_area)
-
-        self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
 
         #self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area, alpha=0.5)
         #fa = self.footer.allocation
@@ -770,8 +765,18 @@ class FeaturedView(FramedSection):
         #cr.set_source_rgba(*floats_from_color_with_alpha(self.style.mid[gtk.STATE_NORMAL], 1))
         #cr.fill()
 
-        self.left.draw(cr, self.left.allocation, expose_area)
-        self.right.draw(cr, self.right.allocation, expose_area)
+        if self.more_btn.state == gtk.STATE_NORMAL:
+            self.more_btn.draw(cr, self.more_btn.allocation, expose_area, alpha=0.4)
+        else:
+            self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
+
+        left_alpha = right_alpha = 0.4
+        if self.back_forward_btn.left.state != gtk.STATE_NORMAL:
+            left_alpha = 1.0
+        if self.back_forward_btn.right.state != gtk.STATE_NORMAL:
+            right_alpha = 1.0
+
+        self.back_forward_btn.draw(cr, expose_area, left_alpha, right_alpha)
 
         alpha = self._alpha
         layout = self._layout
@@ -784,8 +789,6 @@ class FeaturedView(FramedSection):
         for i, poster in enumerate(self.posters):
             poster.draw(cr, poster.allocation, expose_area,
                         layout, overlay, alpha)
-
-        cr.restore()
         return
 
 
@@ -1052,6 +1055,7 @@ class PushButton(gtk.EventBox):
 
         self._layout = None
         self._button_press_origin = None    # broken?
+        self._use_flat_palatte = True
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
 
         self.set_flags(gtk.CAN_FOCUS)
@@ -1117,12 +1121,14 @@ class PushButton(gtk.EventBox):
         return
 
     def use_flat_palatte(self):
-        self.label.modify_fg(gtk.STATE_PRELIGHT, gtk.gdk.color_parse('#FFF'))
-        self.label.modify_fg(gtk.STATE_ACTIVE, gtk.gdk.color_parse('#FFF'))
+        self._use_flat_palatte = True
 
         gray   = self.theme.theme.mid[gtk.STATE_NORMAL]
         orange = pathbar_common.color_from_string(COLOR_ORANGE)
         purple = pathbar_common.color_from_string(COLOR_PURPLE)
+
+        self.label.modify_fg(gtk.STATE_PRELIGHT, gtk.gdk.color_parse('#FFF'))
+        self.label.modify_fg(gtk.STATE_ACTIVE, gtk.gdk.color_parse('#FFF'))
 
         self.theme.gradients = {
             gtk.STATE_NORMAL:      (gray, gray),
@@ -1149,11 +1155,8 @@ class PushButton(gtk.EventBox):
     def draw(self, cr, a, expose_area, alpha=1.0):
         if draw_skip(a, expose_area): return
 
-        cr.save()
-        cr.rectangle(a)
-        cr.clip()
-
         self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
+
         if self.has_focus():
             a = self.label.allocation
             x, y, w, h = a.x, a.y, a.width, a.height
@@ -1164,7 +1167,6 @@ class PushButton(gtk.EventBox):
                                    'button',
                                    x-2, y-1, w+4, h+2)
 
-        cr.restore()
         return
 
 
