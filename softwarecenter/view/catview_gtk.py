@@ -579,13 +579,8 @@ class FeaturedView(FramedSection):
         self.show_all()
 
         self.connect('realize', self._on_realize)
-
-        #if self.get_direction() != gtk.TEXT_DIR_RTL:
-            #self.left.connect('clicked', self._on_back_clicked)
-            #self.right.connect('clicked', self._on_forward_clicked)
-        #else:
-            #self.left.connect('clicked', self._on_forward_clicked)
-            #self.right.connect('clicked', self._on_back_clicked)
+        self.back_forward_btn.connect('left-clicked', self._on_left_clicked)
+        self.back_forward_btn.connect('right-clicked', self._on_right_clicked)
         return
 
     def _on_realize(self, widget):
@@ -683,12 +678,14 @@ class FeaturedView(FramedSection):
             self.queue_draw()
         return
 
-    def _on_back_clicked(self, btn):
+    def _on_left_clicked(self, btn, event):
+        if event.button != 1: return
         self.previous()
         self.restart()
         return
 
-    def _on_forward_clicked(self, btn):
+    def _on_right_clicked(self, btn, event):
+        if event.button != 1: return
         self.next()
         self.restart()
         return
