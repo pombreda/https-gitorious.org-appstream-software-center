@@ -12,8 +12,11 @@ software-center (2.1.3) UNRELEASED; urgency=low
     data/ui/SoftwareCenter.ui:
     - only show login menu if --enable-lp at startup as this
       feature is still in development (LP: #592616)
+  * softwarecenter/app.py:
+    - set nav history menu items insensitive rather than
+      hide them (LP: #594273) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 11 Jun 2010 19:33:36 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 Jun 2010 18:14:55 -0400
 
 software-center (2.1.2) maverick; urgency=low
 
