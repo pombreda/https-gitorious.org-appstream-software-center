@@ -167,7 +167,7 @@ class Ubuntu(Distro):
             # mvo: we do not define the end date very precisely
             #      currently this is why it will just display a end
             #      range
-            print release_date, support_month
+            # print release_date, support_month
             (support_end_year, support_end_month) = get_maintenance_end_date(release_date, support_month)
             support_end_month_str = locale.nl_langinfo(getattr(locale,"MON_%d" % support_end_month))
              # check if the support has ended
