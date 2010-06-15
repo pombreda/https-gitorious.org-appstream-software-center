@@ -26,11 +26,14 @@ import logging
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
-#pathbar shapes
+# shapes
 SHAPE_RECTANGLE = 0
 SHAPE_START_ARROW = 1
 SHAPE_MID_ARROW = 2
 SHAPE_END_CAP = 3
+SHAPE_CIRCLE = 4
+SHAPE_LEFT_ROUNDED_RECT = 5
+SHAPE_RIGHT_ROUNDED_RECT = 6
 
 
 class PathBarStyle:
@@ -60,12 +63,18 @@ class PathBarStyle:
             shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
                      SHAPE_START_ARROW: self._shape_start_arrow_ltr,
                      SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
-                     SHAPE_END_CAP:     self._shape_end_cap_ltr}
+                     SHAPE_END_CAP:     self._shape_end_cap_ltr,
+                     SHAPE_CIRCLE :     self._shape_circle,
+                     SHAPE_LEFT_ROUNDED_RECT: self._shape_end_cap_rtl,
+                     SHAPE_RIGHT_ROUNDED_RECT: self._shape_end_cap_ltr}
         else:
             shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
                      SHAPE_START_ARROW: self._shape_start_arrow_rtl,
                      SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
-                     SHAPE_END_CAP:     self._shape_end_cap_rtl}
+                     SHAPE_END_CAP:     self._shape_end_cap_rtl,
+                     SHAPE_CIRCLE :     self._shape_circle,
+                     SHAPE_LEFT_ROUNDED_RECT: self._shape_end_cap_ltr,
+                     SHAPE_RIGHT_ROUNDED_RECT: self._shape_end_cap_rtl}
         return shmap
 
     def _load_theme(self, gtksettings):
@@ -80,6 +89,14 @@ class PathBarStyle:
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
         cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
+        cr.close_path()
+        return
+
+    def _shape_circle(self, cr, x, y, w, h, r=None, aw=None):
+        global M_PI, PI_OVER_180
+        cr.new_path()
+        r = min(w/2, h/2)
+        cr.arc(r+x, r+y, r, 0, 360*PI_OVER_180)
         cr.close_path()
         return
 
@@ -107,10 +124,10 @@ class PathBarStyle:
 
     def _shape_end_cap_ltr(self, cr, x, y, w, h, r, aw):
         global M_PI, PI_OVER_180
-        cr.move_to(0, y)
+        cr.move_to(x, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(0, h)
+        cr.line_to(x, h)
         cr.close_path()
         return
 
@@ -145,30 +162,33 @@ class PathBarStyle:
 
     def set_direction(self, direction):
         if direction != gtk.TEXT_DIR_RTL:
-            self.shape_map = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                              SHAPE_START_ARROW: self._shape_start_arrow_ltr,
-                              SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
-                              SHAPE_END_CAP:     self._shape_end_cap_ltr}
+            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
+                     SHAPE_START_ARROW: self._shape_start_arrow_ltr,
+                     SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
+                     SHAPE_END_CAP:     self._shape_end_cap_ltr,
+                     SHAPE_CIRCLE :     self._shape_circle,
+                     }
         else:
-            self.shape_map = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                              SHAPE_START_ARROW: self._shape_start_arrow_rtl,
-                              SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
-                              SHAPE_END_CAP:     self._shape_end_cap_rtl}
+            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
+                     SHAPE_START_ARROW: self._shape_start_arrow_rtl,
+                     SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
+                     SHAPE_END_CAP:     self._shape_end_cap_rtl,
+                     SHAPE_CIRCLE :     self._shape_circle,
+                     }
+        self.shape_map = shmap
         return
 
-    def paint_bg(self, cr, part, x, y, w, h, sxO=0, alpha=1.0):
+    def paint_bg_flat(self, cr, part, x, y, w, h, r=None, sxO=0, alpha=1.0):
         shape = self.shape_map[part.shape]
         state = part.state
-        r = self["curvature"]
+        r = r or self["curvature"]
         aw = self["arrow_width"]
 
         cr.save()
-        cr.rectangle(x, y, w+1, h)
-        cr.clip()
-        cr.translate(x+0.5-sxO, y+0.5)
 
-        w -= 1
-        h -= 1
+        cr.rectangle(x, y, w, h)
+        cr.clip()
+        cr.translate(x-sxO, y)
 
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
@@ -183,9 +203,41 @@ class PathBarStyle:
         cr.set_source(lin)
         cr.fill()
 
+        cr.restore()
+        return
+
+    def paint_bg(self, cr, part, x, y, w, h, r=None, sxO=0, alpha=1.0):
+        shape = self.shape_map[part.shape]
+        state = part.state
+        r = r or self["curvature"]
+        aw = self["arrow_width"]
+
+        cr.save()
+        cr.rectangle(x, y, w+1, h)
+
+        cr.clip()
+        cr.translate(x-sxO, y)
+
+        # bg linear vertical gradient
+        color1, color2 = self.gradients[state]
+
+        shape(cr, 0, 0, w, h, r, aw)
+        lin = cairo.LinearGradient(0, 0, 0, h)
+        red, g, b = color1.tofloats()
+        lin.add_color_stop_rgba(0.0, red, g, b, alpha)
+
+        red, g, b = color2.tofloats()
+        lin.add_color_stop_rgba(1.0, red, g, b, alpha)
+        cr.set_source(lin)
+        cr.fill()
+
+        cr.translate(0.5, 0.5)
         cr.set_line_width(1.0)
+
+        w -= 1
+        h -= 1
+
         # inner bevel/highlight
-        if r == 0: w += 1
         shape(cr, 1, 1, w-1, h-1, r-1, aw)
         red, g, b = self.light_line[state].tofloats()
         cr.set_source_rgba(red, g, b, alpha)
@@ -196,6 +248,7 @@ class PathBarStyle:
         red, g, b = self.dark_line[state].tofloats()
         cr.set_source_rgba(red, g, b, alpha)
         cr.stroke()
+
         cr.restore()
         return
 
@@ -235,16 +288,16 @@ class PathBarStyle:
         cr.restore()
         return
 
-    def paint_bg_active_deep(self, cr, part, x, y, w, h, sxO=0):
+    def paint_bg_active_deep(self, cr, part, x, y, w, h, r=None):
         shape = self.shape_map[part.shape]
         state = part.state
-        r = self["curvature"]
+        r = r or self["curvature"]
         aw = self["arrow_width"]
 
         cr.save()
         cr.rectangle(x, y, w+1, h)
         cr.clip()
-        cr.translate(x+0.5-sxO, y+0.5)
+        cr.translate(x+0.5, y+0.5)
 
         w -= 1
         h -= 1
@@ -265,7 +318,7 @@ class PathBarStyle:
         if r == 0: w += 1
         shape(cr, 2, 2, w-2, h-2, r-2, aw)
         red, g, b = self.dark_line[state].tofloats()
-        cr.set_source_rgba(red, g, b, 0.2)
+        cr.set_source_rgba(red, g, b, 0.1)
         cr.stroke()
 
         shape(cr, 1, 1, w-1, h-1, r-1, aw)
@@ -273,7 +326,7 @@ class PathBarStyle:
         cr.stroke()
 
         # strong outline
-        shape(cr, 0, 0, w, h, r)
+        shape(cr, 0, 0, w, h, r, aw)
         cr.set_source_rgb(*self.dark_line[state].tofloats())
         cr.stroke()
         cr.restore()
