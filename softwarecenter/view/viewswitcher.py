@@ -31,7 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-from softwarecenter.backend.channel import SoftwareChannel, ChannelsManager
+from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.db.database import StoreDatabase
