@@ -248,7 +248,8 @@ class AvailablePane(SoftwarePane):
         if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(self.busy_cursor)
         # special case to disable hide nonapps for the "Featured Applications" category
-        if self.apps_category.untranslated_name == "Featured Applications":
+        if (self.apps_category and 
+            self.apps_category.untranslated_name) == "Featured Applications":
             self.nonapps_visible = True
         # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
