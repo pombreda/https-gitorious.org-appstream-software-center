@@ -1,4 +1,4 @@
-software-center (2.1.3) UNRELEASED; urgency=low
+software-center (2.1.3) maverick; urgency=low
 
   * softwarecenter/view/appview.py,
     softwarecenter/view/availablepane.py,
@@ -22,7 +22,7 @@ software-center (2.1.3) UNRELEASED; urgency=low
     - disable hide non-apps for the Featured Applications
       category (LP: #594817) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Jun 2010 21:19:14 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 17 Jun 2010 10:23:15 -0400
 
 software-center (2.1.2) maverick; urgency=low
 
