@@ -47,7 +47,8 @@ class ChannelPane(SoftwarePane):
 
     def __init__(self, cache, history, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir, show_ratings=False)
+        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir,
+                              show_ratings=False)
         self.channel = None
         self.apps_filter = None
         self.search_terms = ""
@@ -171,11 +172,14 @@ class ChannelPane(SoftwarePane):
                 backend.reload()
             return
         # normal operation
-        if self.channel.filter_required:
+        self.apps_filter = None
+        if self.channel.only_packages_without_applications:
             self.apps_filter = AppViewFilter(self.db, self.cache)
             self.apps_filter.set_only_packages_without_applications(True)
-        else:
-            self.apps_filter = None
+        if self.channel.installed_only:
+            if self.apps_filter is None:
+                self.apps_filter = AppViewFilter(self.db, self.cache)
+            self.apps_filter.set_installed_only(True)
         # when displaying a new channel, clear any search in progress
         self.search_terms = ""
         

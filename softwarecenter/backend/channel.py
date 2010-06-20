@@ -53,12 +53,21 @@ class ChannelsManager(object):
     def channels(self):
         """
         return a list of SoftwareChannel objects in display order
-        ordered according to:
+        according to:
             Distribution, Partners, PPAs alphabetically, 
             Other channels alphabetically, Unknown channel last
         """
         return self._get_channels()
-
+        
+    @property
+    def channels_installed_only(self):
+        """
+        return a list of SoftwareChannel objects displaying installed
+        packages only in display order according to:
+            Distribution, Partners, PPAs alphabetically, 
+            Other channels alphabetically, Unknown channel last
+        """
+        return self._get_channels(installed_only=True)
 
     def feed_in_private_sources_list_entries(self, entries):
         added = False
@@ -144,9 +153,9 @@ class ChannelsManager(object):
             return True
         return False
     
-    def _get_channels(self):
+    def _get_channels(self, installed_only=False):
         """
-        (internal) implements 'channels()' property
+        (internal) implements 'channels()' and 'channels_installed_only()' properties
         """
         distro_channel_name = self.distro.get_distro_channel_name()
         
@@ -178,24 +187,28 @@ class ChannelsManager(object):
                 unknown_channel.append(SoftwareChannel(self.icons, 
                                                        channel_name,
                                                        channel_origin,
-                                                       None))
+                                                       None,
+                                                       installed_only=installed_only))
             elif channel_name == distro_channel_name:
                 dist_channel = (SoftwareChannel(self.icons,
                                                 distro_channel_name,
                                                 channel_origin,
                                                 None,
-                                                filter_required=True))
+                                                only_packages_without_applications=True,
+                                                installed_only=installed_only))
             elif channel_origin and channel_origin.startswith("LP-PPA"):
                 ppa_channels.append(SoftwareChannel(self.icons, 
                                                     channel_name,
                                                     channel_origin,
-                                                    None))
+                                                    None,
+                                                    installed_only=installed_only))
             # TODO: detect generic repository source (e.g., Google, Inc.)
             else:
                 other_channels.append(SoftwareChannel(self.icons, 
                                                       channel_name,
                                                       channel_origin,
-                                                      None))
+                                                      None,
+                                                      installed_only=installed_only))
         # FIXME: do not hardcode this, check instead for 
         #        self.db.xapiandb.allterms("AH") and add all of those
         #        and provide a mechanism in the channel to check
@@ -207,7 +220,8 @@ class ChannelsManager(object):
                                           distro_channel_name,
                                           None,
                                           "partner", 
-                                          filter_required=True)
+                                          only_packages_without_applications=True,
+                                          installed_only=installed_only)
         
         # set them in order
         channels = []
@@ -231,7 +245,8 @@ class SoftwareChannel(object):
     ICON_SIZE = 24
     
     def __init__(self, icons, channel_name, channel_origin, channel_component,
-                 filter_required=False, source_entry=None):
+                 only_packages_without_applications=False,
+                 source_entry=None, installed_only=False):
         """
         configure the software channel object based on channel name,
         origin, and component (the latter for detecting the partner
@@ -240,7 +255,8 @@ class SoftwareChannel(object):
         self._channel_name = channel_name
         self._channel_origin = channel_origin
         self._channel_component = channel_component
-        self.filter_required = filter_required
+        self.only_packages_without_applications = only_packages_without_applications
+        self.installed_only = installed_only
         self.icons = icons
         # distro specific stuff
         self.distro = get_distro()
@@ -353,7 +369,8 @@ class SoftwareChannel(object):
         details.append("  get_channel_display_name(): %s" % self.get_channel_display_name())
         details.append("  get_channel_icon(): %s" % self.get_channel_icon())
         details.append("  get_channel_query(): %s" % self.get_channel_query())
-        details.append("  filter_required: %s" % self.filter_required)
+        details.append("  only_packages_without_applications: %s" % self.only_packages_without_applications)
+        details.append("  installed_only: %s" % self.installed_only)
         return '\n'.join(details)
         
 if __name__ == "__main__":
@@ -363,7 +380,8 @@ if __name__ == "__main__":
     icons.append_search_path(ICON_PATH)
     icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
     distro = get_distro()
-    channel = SoftwareChannel(icons, distro.get_distro_channel_name(), None, None, filter_required=True)
+    channel = SoftwareChannel(icons, distro.get_distro_channel_name(), 
+                              None, None, only_packages_without_applications=True)
     print channel
     channel = SoftwareChannel(icons, distro.get_distro_channel_name(), None, "partner")
     print channel

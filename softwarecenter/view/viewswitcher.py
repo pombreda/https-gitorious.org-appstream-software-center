@@ -140,16 +140,29 @@ class ViewSwitcher(gtk.TreeView):
     def expand_available_node(self):
         """ expand the available pane node in the viewswitcher pane """
         model = self.get_model()
-        available_path = model.get_path(model.available_iter)
-        self.expand_row(available_path, False)
+        if model:
+            self.expand_row(model.get_path(model.available_iter), False)
             
     def is_available_node_expanded(self):
         """ return True if the available pane node in the viewswitcher pane is expanded """
+        model = self.get_model()
         expanded = False
+        if model:
+            expanded = self.row_expanded(model.get_path(model.available_iter))
+        return expanded
+        
+    def expand_installed_node(self):
+        """ expand the installed pane node in the viewswitcher pane """
         model = self.get_model()
         if model:
-            available_path = model.get_path(model.available_iter)
-            expanded = self.row_expanded(available_path)
+            self.expand_row(model.get_path(model.installed_iter), False)
+            
+    def is_installed_node_expanded(self):
+        """ return True if the installed pane node in the viewswitcher pane is expanded """
+        model = self.get_model()
+        expanded = False
+        if model:
+            expanded = self.row_expanded(model.get_path(model.installed_iter))
         return expanded
 
     def _on_channels_refreshed(self, model):
@@ -199,15 +212,18 @@ class ViewSwitcherList(gtk.TreeStore):
         # pending transactions
         self._pending = 0
         # setup the normal stuff
+        # first, the availablepane items
         available_icon = self._get_icon("softwarecenter")
         self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
-
+        # the installedpane items
+        icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
+        self.installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
+        
         # do initial channel list update
         self.channel_manager = ChannelsManager(db, icons)
         self._update_channel_list()
         
-        icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
+        # the historypane item
         icon = self._get_icon("clock")
         history_iter = self.append(None, [icon, _("History"), self.ACTION_ITEM_HISTORY, None])
         icon = AnimatedImage(None)
@@ -265,6 +281,8 @@ class ViewSwitcherList(gtk.TreeStore):
         # normally GtkTreeIters have a limited life-cycle and are no
         # longer valid after the model changed, fortunately with the
         # gtk.TreeStore (that we use) they are persisent
+        
+        # update channels for availablepane
         child = self.iter_children(self.available_iter)
         iters_to_kill = set()
         while child:
@@ -280,6 +298,24 @@ class ViewSwitcherList(gtk.TreeStore):
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
+            
+        # update channels for installedpane
+        child = self.iter_children(self.installed_iter)
+        iters_to_kill = set()
+        while child:
+            iters_to_kill.add(child)
+            child = self.iter_next(child)
+        # iterate the channels and add as subnodes of the installed node
+        for channel in self.channel_manager.channels_installed_only:
+            self.append(self.installed_iter, [
+                    channel.get_channel_icon(),
+                    channel.get_channel_display_name(),
+                    self.ACTION_ITEM_CHANNEL,
+                    channel])
+        # delete the old ones
+        for child in iters_to_kill:
+            self.remove(child)
+
         self.emit("channels-refreshed")
         
 
