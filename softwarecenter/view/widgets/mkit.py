@@ -88,46 +88,191 @@ def floats_from_string_with_alpha(spec, a):
     r, g, b = floats_from_string(spec)
     return r, g, b, a
 
-# common shapes
-def rounded_rectangle(cr, x, y, w, h, r):
-    cr.save()
-    cr.translate(x, y)
-    cr.new_sub_path()
-    cr.arc(r, r, r, M_PI, 270*PI_OVER_180)
-    cr.arc(w-r, r, r, 270*PI_OVER_180, 0)
-    cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-    cr.arc(r, h-r, r, 90*PI_OVER_180, M_PI)
-    cr.close_path()
-    cr.restore()
-    return
-
-def rounded_rectangle_irregular(cr, x, y, w, h, corner_radii):
-    nw, ne, se, sw = corner_radii
-    cr.save()
-    cr.translate(x, y)
-    if nw:
-        cr.new_sub_path()
-        cr.arc(nw, nw, nw, M_PI, 270 * PI_OVER_180)
-    else:
-        cr.move_to(0, 0)
-    if ne:
-        cr.arc(w-ne, ne, ne, 270 * PI_OVER_180, 0)
-    else:
-        cr.rel_line_to(w-nw, 0)
-    if se:
-        cr.arc(w-se, h-se, se, 0, 90 * PI_OVER_180)
-    else:
-        cr.rel_line_to(0, h-ne)
-    if sw:
-        cr.arc(sw, h-sw, sw, 90 * PI_OVER_180, M_PI)
-    else:
-        cr.rel_line_to(-(w-se), 0)
-    cr.close_path()
-    cr.restore()
-    return
-
 def is_overlapping(widget_area, expose_area):
     return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
+
+
+class Shape:
+
+    def __init__(self, direction):
+        self.direction = direction
+        return
+
+    def layout(self, cr, x, y, w, h, *args, **kwargs):
+        if self.direction != gtk.TEXT_DIR_RTL:
+            self._layout_ltr(cr, x, y, w, h, *args, **kwargs)
+        else:
+            self._layout_rtl(cr, x, y, w, h, *args, **kwargs)
+        return
+
+
+class ShapeRoundedRectangle(Shape):
+
+    def __init__(self, direction=gtk.TEXT_DIR_LTR):
+        Shape.__init__(self, direction)
+        return
+
+    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+        r = kwargs['radius']
+
+        cr.new_sub_path()
+        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
+        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
+        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
+        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
+        cr.close_path()
+        return
+
+    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
+        self._layout_ltr(cr, x, y, w, h, *args, **kwargs)
+        return
+
+
+class ShapeRoundedRectangleIrregular(Shape):
+
+    def __init__(self, direction=gtk.TEXT_DIR_LTR):
+        Shape.__init__(self, direction)
+        return
+
+    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+        nw, ne, se, sw = kwargs['radii']
+
+        cr.save()
+        cr.translate(x, y)
+        if nw:
+            cr.new_sub_path()
+            cr.arc(nw, nw, nw, M_PI, 270 * PI_OVER_180)
+        else:
+            cr.move_to(0, 0)
+        if ne:
+            cr.arc(w-ne, ne, ne, 270 * PI_OVER_180, 0)
+        else:
+            cr.rel_line_to(w-nw, 0)
+        if se:
+            cr.arc(w-se, h-se, se, 0, 90 * PI_OVER_180)
+        else:
+            cr.rel_line_to(0, h-ne)
+        if sw:
+            cr.arc(sw, h-sw, sw, 90 * PI_OVER_180, M_PI)
+        else:
+            cr.rel_line_to(-(w-se), 0)
+
+        cr.close_path()
+        cr.restore()
+        return
+
+    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
+        self._layout_ltr(cr, x, y, w, h, *args, **kwargs)
+        return
+
+
+class ShapeStartArrow(Shape):
+
+    def __init__(self, direction=gtk.TEXT_DIR_LTR):
+        Shape.__init__(self, direction)
+        return
+
+    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+        aw = kwargs['arrow_width']
+        r = kwargs['radius']
+
+        cr.new_sub_path()
+        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
+        # arrow head
+        cr.line_to(w-aw, y)
+        cr.line_to(w-x+1, (h+y)/2)
+        cr.line_to(w-aw, h)
+        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
+        cr.close_path()
+        return
+
+    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
+        aw = kwargs['arrow_width']
+        r = kwargs['radius']
+
+        cr.new_sub_path()
+        cr.move_to(x, (h+y)/2)
+        cr.line_to(aw, y)
+        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
+        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
+        cr.line_to(aw, h)
+        cr.close_path()
+        return
+
+
+class ShapeMidArrow(Shape):
+
+    def __init__(self, direction=gtk.TEXT_DIR_LTR):
+        Shape.__init__(self, direction)
+        return
+
+    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+        aw = kwargs['arrow_width']
+
+        cr.move_to(0, y)
+        # arrow head
+        cr.line_to(w-aw, y)
+        cr.line_to(w-x+1, (h+y)/2)
+        cr.line_to(w-aw, h)
+        cr.line_to(0, h)
+        cr.close_path()
+        return
+
+    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
+        aw = kwargs['arrow_width']
+
+        cr.move_to(x, (h+y)/2)
+        cr.line_to(aw, y)
+        cr.line_to(w, y)
+        cr.line_to(w, h)
+        cr.line_to(aw, h)
+        cr.close_path()
+        return
+
+
+class ShapeEndCap(Shape):
+
+    def __init__(self, direction=gtk.TEXT_DIR_LTR):
+        Shape.__init__(self, direction)
+        return
+
+    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+        r = kwargs['radius']
+
+        cr.move_to(x, y)
+        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
+        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
+        cr.line_to(x, h)
+        cr.close_path()
+        return
+
+    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
+        r = kwargs['radius']
+
+        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
+        cr.line_to(w, y)
+        cr.line_to(w, h)
+        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
+        cr.close_path()
+        return
+
+
+class ShapeCircle(Shape):
+
+    def __init__(self, direction=gtk.TEXT_DIR_LTR):
+        Shape.__init__(self, direction)
+        return
+
+    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+        cr.new_path()
+        r = min(w/2, h/2)
+        cr.arc(r+x, r+y, r, 0, 360*PI_OVER_180)
+        cr.close_path()
+        return
+
+    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
+        self._layout_ltr(*args, **kwargs)
+        return
 
 
 class Style:
@@ -154,17 +299,17 @@ class Style:
 
     def _load_shape_map(self, widget):
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
-            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                     SHAPE_START_ARROW: self._shape_start_arrow_ltr,
-                     SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
-                     SHAPE_END_CAP:     self._shape_end_cap_ltr,
-                     SHAPE_CIRCLE :     self._shape_circle}
+            shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_LTR),
+                     SHAPE_START_ARROW: ShapeStartArrow(gtk.TEXT_DIR_LTR),
+                     SHAPE_MID_ARROW:   ShapeMidArrow(gtk.TEXT_DIR_LTR),
+                     SHAPE_END_CAP:     ShapeEndCap(gtk.TEXT_DIR_LTR),
+                     SHAPE_CIRCLE :     ShapeCircle(gtk.TEXT_DIR_LTR)}
         else:
-            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                     SHAPE_START_ARROW: self._shape_start_arrow_rtl,
-                     SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
-                     SHAPE_END_CAP:     self._shape_end_cap_rtl,
-                     SHAPE_CIRCLE :     self._shape_circle}
+            shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_RTL),
+                     SHAPE_START_ARROW: ShapeStartArrow(gtk.TEXT_DIR_RTL),
+                     SHAPE_MID_ARROW:   ShapeMidArrow(gtk.TEXT_DIR_RTL),
+                     SHAPE_END_CAP:     ShapeEndCap(gtk.TEXT_DIR_RTL),
+                     SHAPE_CIRCLE :     ShapeCircle(gtk.TEXT_DIR_RTL)}
         return shmap
 
     def _load_theme(self, gtksettings):
@@ -172,99 +317,19 @@ class Style:
         r = ThemeRegistry()
         return r.retrieve(name)
 
-    def _shape_rectangle(self, cr, x, y, w, h, r, aw):
-        global M_PI, PI_OVER_180
-        cr.new_sub_path()
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
-        cr.close_path()
-        return
-
-    def _shape_circle(self, cr, x, y, w, h, r=None, aw=None):
-        global M_PI, PI_OVER_180
-        cr.new_path()
-        r = min(w/2, h/2)
-        cr.arc(r+x, r+y, r, 0, 360*PI_OVER_180)
-        cr.close_path()
-        return
-
-    def _shape_start_arrow_ltr(self, cr, x, y, w, h, r, aw):
-        global M_PI, PI_OVER_180
-        cr.new_sub_path()
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        # arrow head
-        cr.line_to(w-aw, y)
-        cr.line_to(w-x+1, (h+y)/2)
-        cr.line_to(w-aw, h)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
-        cr.close_path()
-        return
-
-    def _shape_mid_arrow_ltr(self, cr, x, y, w, h, r, aw):
-        cr.move_to(0, y)
-        # arrow head
-        cr.line_to(w-aw, y)
-        cr.line_to(w-x+1, (h+y)/2)
-        cr.line_to(w-aw, h)
-        cr.line_to(0, h)
-        cr.close_path()
-        return
-
-    def _shape_end_cap_ltr(self, cr, x, y, w, h, r, aw):
-        global M_PI, PI_OVER_180
-        cr.move_to(x, y)
-        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(x, h)
-        cr.close_path()
-        return
-
-    def _shape_start_arrow_rtl(self, cr, x, y, w, h, r, aw):
-        global M_PI, PI_OVER_180
-        cr.new_sub_path()
-        cr.move_to(x, (h+y)/2)
-        cr.line_to(aw, y)
-        cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(aw, h)
-        cr.close_path()
-        return
-
-    def _shape_mid_arrow_rtl(self, cr, x, y, w, h, r, aw):
-        cr.move_to(x, (h+y)/2)
-        cr.line_to(aw, y)
-        cr.line_to(w, y)
-        cr.line_to(w, h)
-        cr.line_to(aw, h)
-        cr.close_path()
-        return
-
-    def _shape_end_cap_rtl(self, cr, x, y, w, h, r, aw):
-        global M_PI, PI_OVER_180
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
-        cr.line_to(w, y)
-        cr.line_to(w, h)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
-        cr.close_path()
-        return
-
     def set_direction(self, direction):
         if direction != gtk.TEXT_DIR_RTL:
-            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                     SHAPE_START_ARROW: self._shape_start_arrow_ltr,
-                     SHAPE_MID_ARROW:   self._shape_mid_arrow_ltr,
-                     SHAPE_END_CAP:     self._shape_end_cap_ltr,
-                     SHAPE_CIRCLE :     self._shape_circle,
-                     }
+            shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_LTR),
+                     SHAPE_START_ARROW: ShapeStartArrow(gtk.TEXT_DIR_LTR),
+                     SHAPE_MID_ARROW:   ShapeMidArrow(gtk.TEXT_DIR_LTR),
+                     SHAPE_END_CAP:     ShapeEndCap(gtk.TEXT_DIR_LTR),
+                     SHAPE_CIRCLE :     ShapeCircle(gtk.TEXT_DIR_LTR)}
         else:
-            shmap = {SHAPE_RECTANGLE:   self._shape_rectangle,
-                     SHAPE_START_ARROW: self._shape_start_arrow_rtl,
-                     SHAPE_MID_ARROW:   self._shape_mid_arrow_rtl,
-                     SHAPE_END_CAP:     self._shape_end_cap_rtl,
-                     SHAPE_CIRCLE :     self._shape_circle,
-                     }
+            shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_RTL),
+                     SHAPE_START_ARROW: ShapeStartArrow(gtk.TEXT_DIR_RTL),
+                     SHAPE_MID_ARROW:   ShapeMidArrow(gtk.TEXT_DIR_RTL),
+                     SHAPE_END_CAP:     ShapeEndCap(gtk.TEXT_DIR_RTL),
+                     SHAPE_CIRCLE :     ShapeCircle(gtk.TEXT_DIR_RTL)}
         self.shape_map = shmap
         return
 
@@ -283,7 +348,7 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape(cr, 0, 0, w, h, r, aw)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
         lin = cairo.LinearGradient(0, 0, 0, h)
         red, g, b = color1.floats()
         lin.add_color_stop_rgba(0.0, red, g, b, alpha)
@@ -311,7 +376,7 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape(cr, 0, 0, w, h, r, aw)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
         lin = cairo.LinearGradient(0, 0, 0, h)
         red, g, b = color1.floats()
         lin.add_color_stop_rgba(0.0, red, g, b, alpha)
@@ -328,13 +393,13 @@ class Style:
         h -= 1
 
         # inner bevel/highlight
-        shape(cr, 1, 1, w-1, h-1, r-1, aw)
+        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=r-1)
         red, g, b = self.light_line[state].floats()
         cr.set_source_rgba(red, g, b, alpha)
         cr.stroke()
 
         # strong outline
-        shape(cr, 0, 0, w, h, r, aw)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
         red, g, b = self.dark_line[state].floats()
         cr.set_source_rgba(red, g, b, alpha)
         cr.stroke()
@@ -359,7 +424,7 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape(cr, 0, 0, w, h, r, aw)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
         cr.set_source_rgb(*color2.floats())
         cr.fill()
 
@@ -367,12 +432,12 @@ class Style:
         # inner shadow
         if r == 0: w += 1
         red, g, b = self.dark_line[state].floats()
-        shape(cr, 1, 1, w-0.5, h-1, r-1, aw)
+        shape.layout(cr, 1, 1, w-0.5, h-1, arrow_width=aw, radius=r-1)
         cr.set_source_rgba(red, g, b, 0.3)
         cr.stroke()
 
         # strong outline
-        shape(cr, 0, 0, w, h, r, aw)
+        shape(cr, 0, 0, w, h, arrow_width=aw, radius=r)
         cr.set_source_rgb(*self.dark_line[state].floats())
         cr.stroke()
         cr.restore()
@@ -395,7 +460,7 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape(cr, 0, 0, w, h, r, aw)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
 
         lin = cairo.LinearGradient(0, 0, 0, h)
         lin.add_color_stop_rgb(2.0, *color1.floats())
@@ -406,17 +471,17 @@ class Style:
         cr.set_line_width(1.0)
         # inner shadow 1
         if r == 0: w += 1
-        shape(cr, 2, 2, w-2, h-2, r-2, aw)
+        shape.layout(cr, 2, 2, w-2, h-2, arrow_width=aw, radius=r-2)
         red, g, b = self.dark_line[state].floats()
         cr.set_source_rgba(red, g, b, 0.1)
         cr.stroke()
 
-        shape(cr, 1, 1, w-1, h-1, r-1, aw)
+        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=r-1)
         cr.set_source_rgba(red, g, b, 0.4)
         cr.stroke()
 
         # strong outline
-        shape(cr, 0, 0, w, h, r, aw)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
         cr.set_source_rgb(*self.dark_line[state].floats())
         cr.stroke()
         cr.restore()
@@ -482,31 +547,28 @@ class FramedSection(gtk.VBox):
         cr.clip()
 
         # fill section white
-        rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, FRAME_CORNER_RADIUS)
+        rr = ShapeRoundedRectangle()
+        rr.layout(cr,
+                  a.x+1, a.y+1,
+                  a.x + a.width-2, a.y + a.height-2,
+                  radius=FRAME_CORNER_RADIUS)
+
+
         cr.set_source_rgba(*floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
         cr.fill()
 
         cr.save()
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
-        rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, FRAME_CORNER_RADIUS)
+        rr.layout(cr,
+                  a.x+1, a.y+1,
+                  a.x + a.width-2, a.y + a.height-2,
+                  radius=FRAME_CORNER_RADIUS)
+
         cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[gtk.STATE_NORMAL]))
         cr.stroke_preserve()
         cr.stroke()
         cr.restore()
-
-        ## header gradient - suppose to be ubuntu wallpaper-esque
-        #pink = '#FCE3DD'
-        #h = 48
-        #r, g, b = floats_from_string(pink)
-        ##r, g, b = floats_from_color(self.style.mid[gtk.STATE_NORMAL])
-        #lin = cairo.LinearGradient(0, a.y+1, 0, a.y+h)
-        #lin = cairo.LinearGradient(0, a.y+1, 0, a.y+h)
-        #lin.add_color_stop_rgba(0.0, r, g, b, 0.8)
-        #lin.add_color_stop_rgba(1.0, r, g, b, 0)
-        #rounded_rectangle(cr, a.x+2, a.y+2, a.width-3, a.height-3, FRAME_CORNER_RADIUS-1)
-        #cr.set_source(lin)
-        #cr.fill()
 
         cr.restore()
         return
@@ -790,7 +852,6 @@ class HButton(Button):
 
     def _on_realize(self, widget):
         self.set_size_request(self.calc_width(), -1)
-        print self.allocation
         return
 
     def calc_width(self):

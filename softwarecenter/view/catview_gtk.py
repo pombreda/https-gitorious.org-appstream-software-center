@@ -367,7 +367,7 @@ class FeaturedView(mkit.FramedSection):
         # show all featured apps orange button
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-        label = u'View all \xbb'
+        label = u'All \xbb'
         self.more_btn = mkit.HButton('<small>%s</small>' % label)
         #self.more_btn.set_shape(mkit.SHAPE_START_ARROW)
         # override theme palatte with orange palatte
