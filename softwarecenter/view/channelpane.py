@@ -180,6 +180,8 @@ class ChannelPane(SoftwarePane):
             if self.apps_filter is None:
                 self.apps_filter = AppViewFilter(self.db, self.cache)
             self.apps_filter.set_installed_only(True)
+            # show all items for installed view channels
+            self.nonapps_visible = True
         # when displaying a new channel, clear any search in progress
         self.search_terms = ""
         
