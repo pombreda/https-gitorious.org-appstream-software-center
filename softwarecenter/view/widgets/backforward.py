@@ -29,11 +29,6 @@ from gettext import gettext as _
 DEFAULT_PART_SIZE = (31, 27)
 DEFAULT_ARROW_SIZE = (12, 12)
 
-COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
-COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
-
-
-
 
 class BackForwardButton(gtk.HBox):
 
@@ -114,38 +109,6 @@ class BackForwardButton(gtk.HBox):
 
     def set_use_hand_cursor(self, use_hand):
         self.use_hand = use_hand
-        return
-
-    def use_flat_palatte(self):
-        self._use_flat_palatte = True
-
-        gray   = self.theme.theme.mid[gtk.STATE_NORMAL]
-        orange = mkit.color_from_string(COLOR_ORANGE)
-        purple = mkit.color_from_string(COLOR_PURPLE)
-
-        #self.label.modify_fg(gtk.STATE_PRELIGHT, gtk.gdk.color_parse('#FFF'))
-        #self.label.modify_fg(gtk.STATE_ACTIVE, gtk.gdk.color_parse('#FFF'))
-
-        self.theme.gradients = {
-            gtk.STATE_NORMAL:      (gray, gray),
-            gtk.STATE_ACTIVE:      (purple, purple),
-            gtk.STATE_SELECTED:    (orange, orange),
-            gtk.STATE_PRELIGHT:    (orange, orange),
-            gtk.STATE_INSENSITIVE: (self.theme.theme.mid, self.theme.theme.mid)}
-
-        self.theme.dark_line = {
-            gtk.STATE_NORMAL:       gray,
-            gtk.STATE_ACTIVE:       purple,
-            gtk.STATE_PRELIGHT:     orange,
-            gtk.STATE_SELECTED:     orange,
-            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
-
-        self.theme.light_line = {
-            gtk.STATE_NORMAL:       gray,
-            gtk.STATE_ACTIVE:       purple,
-            gtk.STATE_PRELIGHT:     orange,
-            gtk.STATE_SELECTED:     orange,
-            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
         return
 
     def _on_style_set(self, widget, oldstyle):

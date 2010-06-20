@@ -30,11 +30,6 @@ from softwarecenter.distro import get_distro
 
 from catview import *
 
-
-# pi constants
-M_PI = 3.1415926535897931
-PI_OVER_180 = 0.017453292519943295
-
 COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
 COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
 
@@ -96,6 +91,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox = gtk.VBox(spacing=mkit.VSPACING_LARGE)
         self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
+
         viewport = gtk.Viewport()
         viewport.set_shadow_type(gtk.SHADOW_NONE)
         viewport.add(self.vbox)
@@ -175,6 +171,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         self.carosel = carosel
         self.vbox.pack_start(carosel, False)
+        return
+
+    def _append_welcome(self):
+        self.welcome = WelcomeView()
+        self.vbox.pack_start(self.welcome, False)
         return
 
     def _full_redraw(self):
@@ -556,13 +557,6 @@ class FeaturedView(mkit.FramedSection):
         if mkit.is_overlapping(a, expose_area): return
         mkit.FramedSection.draw(self, cr, a, expose_area)
 
-        #self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area, alpha=0.5)
-        #fa = self.footer.allocation
-        #r = FRAME_CORNER_RADIUS-1
-        #rounded_rectangle_irregular(cr, fa.x+2, fa.y, fa.width-3, fa.height-1, (0,0,r,r))
-        #cr.set_source_rgba(*floats_from_color_with_alpha(self.style.mid[gtk.STATE_NORMAL], 1))
-        #cr.fill()
-
         if self.more_btn.state == gtk.STATE_NORMAL:
             self.more_btn.draw(cr, self.more_btn.allocation, expose_area, alpha=0.4)
         else:
@@ -572,15 +566,6 @@ class FeaturedView(mkit.FramedSection):
             self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area, alpha=0.4)
         else:
             self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
-
-        #left_alpha = right_alpha = 0.4
-        #if self.back_forward_btn.left.state != gtk.STATE_NORMAL:
-            #left_alpha = 1.0
-        #if self.back_forward_btn.right.state != gtk.STATE_NORMAL:
-            #right_alpha = 1.0
-
-        #self.back_forward_btn.draw(cr, expose_area, left_alpha, right_alpha)
-        
 
         alpha = self._alpha
         layout = self._layout
@@ -609,6 +594,7 @@ class FeaturedPoster(gtk.EventBox):
         self.set_redraw_on_allocate(False)
         self.set_visible_window(False)
         self.set_size_request(-1, 75)
+
         self.theme = mkit.Style(self)
         self.shape = mkit.SHAPE_RECTANGLE
 
@@ -835,8 +821,3 @@ class FeaturedPoster(gtk.EventBox):
 
         cr.restore()
         return
-
-
-if __name__ == '__main__':
-    Test()
-    gtk.main()

@@ -278,7 +278,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.aboutdialog.set_name(name)
         about_description = self.distro.get_app_description()
         self.aboutdialog.set_comments(about_description)
-            
+
         # restore state
         self.config = get_config()
         self.restore_state()
@@ -348,7 +348,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
-        self._show_navhistory_menu_items(action == self.NOTEBOOK_PAGE_AVAILABLE)
+        if action == self.NOTEBOOK_PAGE_AVAILABLE:
+            back_action = self.available_pane.nav_history.navhistory_back_action
+            forward_action = self.available_pane.nav_history.navhistory_forward_action
+            self.menuitem_go_back.set_sensitive(back_action.get_sensitive())
+            self.menuitem_go_forward.set_sensitive(forward_action.get_sensitive())
+        else:
+            self.menuitem_go_back.set_sensitive(False)
+            self.menuitem_go_forward.set_sensitive(False)
         # switch to new page
         self.notebook_view.set_current_page(action)
         self.update_app_list_view(channel)
@@ -682,11 +689,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.searchentry.set_text(",".join(packages))
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
-                
-    def _show_navhistory_menu_items(self, show_items):
-        self.navitems_menu_separator.set_visible(show_items)
-        self.menuitem_go_back.set_visible(show_items)
-        self.menuitem_go_forward.set_visible(show_items)
 
     def restore_state(self):
         if self.config.has_option("general", "size"):
