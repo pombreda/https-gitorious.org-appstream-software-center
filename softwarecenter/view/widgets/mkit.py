@@ -1,4 +1,4 @@
-# mkit, a collection of handy thing
+# mkit, a collection of handy things
 
 # Copyright (C) 2010 Matthew McGowan
 #
@@ -263,15 +263,15 @@ class ShapeCircle(Shape):
         Shape.__init__(self, direction)
         return
 
-    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+    def layout(self, cr, x, y, w, h, *args, **kwargs):
         cr.new_path()
-        r = min(w/2, h/2)
+
+        r = max(w, h)*0.5
+        x += int((w-2*r)/2)
+        y += int((h-2*r)/2)
+
         cr.arc(r+x, r+y, r, 0, 360*PI_OVER_180)
         cr.close_path()
-        return
-
-    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
-        self._layout_ltr(*args, **kwargs)
         return
 
 
@@ -608,7 +608,7 @@ class LayoutView(FramedSection):
         w = 0
 
         for cat in self.widget_list:
-            cw = cat.calc_width(self)
+            cw = cat.calc_width()
 
             if w + cw + spacing <= width:
                 row.pack_start(cat, False)
@@ -682,26 +682,30 @@ class Button(gtk.EventBox):
                      (),)
         }
 
-    def __init__(self, markup, image=None):
+    def __init__(self, markup, icon_name, icon_size):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
 
-        self.markup = markup
         self.label = gtk.Label()
-        self.label.set_markup(markup)
-        self.image = image
-        self.shape = SHAPE_RECTANGLE
-        self.theme = Style(self)
+        self.image = gtk.Image()
+
+        if markup:
+            self.label.set_markup(markup)
+        if icon_name:
+            self.image.set_from_icon_name(icon_name, icon_size)
 
         # atk stuff
         atk_obj = self.get_accessible()
-        atk_obj.set_name(self.label.get_text())
         atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
+        # auto generated atk label
+        atk_obj.set_name(self.label.get_text())
+
+        self.shape = SHAPE_RECTANGLE
+        self.theme = Style(self)
 
         self._layout = None
         self._button_press_origin = None    # broken?
-        #self._use_flat_palatte = True
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
 
         self.set_flags(gtk.CAN_FOCUS)
@@ -712,12 +716,17 @@ class Button(gtk.EventBox):
                         gtk.gdk.ENTER_NOTIFY_MASK|
                         gtk.gdk.LEAVE_NOTIFY_MASK)
 
+        self.connect('realize', self._on_realize)
         self.connect('enter-notify-event', self._on_enter)
         self.connect('leave-notify-event', self._on_leave)
         self.connect("button-press-event", self._on_button_press)
         self.connect("button-release-event", self._on_button_release)
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
+        return
+
+    def _on_realize(self, widget):
+        self.set_size_request(self.calc_width(), -1)
         return
 
     def _on_enter(self, cat, event):
@@ -766,6 +775,10 @@ class Button(gtk.EventBox):
             self.emit('clicked')
         return
 
+    def set_shape(self, shape):
+        self.shape = shape
+        return
+
     def draw(self, cr, a, expose_area, alpha=1.0):
         if is_overlapping(a, expose_area): return
 
@@ -780,14 +793,14 @@ class Button(gtk.EventBox):
                                    self,
                                    'button',
                                    x-2, y-1, w+4, h+2)
-
         return
 
 
 class VButton(Button):
 
-    def __init__(self, markup, image=None):
-        Button.__init__(self, markup, image)
+    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
+        Button.__init__(self, markup, icon_name, icon_size)
+
         self.set_border_width(BORDER_WIDTH_MED)
         self.label.set_line_wrap(gtk.WRAP_WORD)
         self.label.set_justify(gtk.JUSTIFY_CENTER)
@@ -810,7 +823,7 @@ class VButton(Button):
         self.show_all()
         return
 
-    def calc_width(self, realized_widget):
+    def calc_width(self):
         return CAT_BUTTON_FIXED_WIDTH + 2*self.get_border_width()
 
     def draw(self, cr, a, expose_area, theme):
@@ -839,27 +852,34 @@ class VButton(Button):
 
 class HButton(Button):
 
-    def __init__(self, markup):
-        Button.__init__(self, markup, image=None)
+    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
+        Button.__init__(self, markup, icon_name, icon_size)
         self.set_border_width(BORDER_WIDTH_SMALL)
-        self.alignment = gtk.Alignment(0.5, 0.5)
-        self.alignment.add(self.label)
-        self.add(self.alignment)
+
+        hbox = gtk.HBox()
+        align = gtk.Alignment(0.5, 0.6)
+        align.add(hbox)
+        self.add(align)
+
+        if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
+            hbox.pack_start(self.image, False)
+        if self.label.get_text():
+            hbox.pack_start(self.label, False)
+
         self.show_all()
-
-        self.connect('realize', self._on_realize)
-        return
-
-    def _on_realize(self, widget):
-        self.set_size_request(self.calc_width(), -1)
         return
 
     def calc_width(self):
-        pc = self.get_pango_context()
-        layout = pango.Layout(pc)
-        layout.set_markup(self.label.get_label())
-        lw = layout.get_pixel_extents()[1][2]
-        return lw + 12 + self.get_border_width()
+        w = 1
+        if self.label:
+            pc = self.get_pango_context()
+            layout = pango.Layout(pc)
+            layout.set_markup(self.label.get_label())
+            w += layout.get_pixel_extents()[1][2]
+        if self.image and self.image.get_property('visible'):
+            w += self.image.allocation.width
+        w += self.get_border_width() + 12
+        return w
 
     def set_border_width(self, width):
         gtk.EventBox.set_border_width(self, width)
@@ -869,4 +889,46 @@ class HButton(Button):
     def set_label(self, label):
         self.label.set_markup(label)
         self.set_size_request(self.calc_width(), -1)
+        return
+
+
+class PlayPauseButton(Button):
+    
+    def __init__(self):
+        Button.__init__(self, None, None, None)
+        self.is_playing = True
+        return
+
+    def set_is_playing(self, is_playing):
+        self.is_playing = is_playing
+        return
+
+    def calc_width(self):
+        return self.allocation.width
+
+    def draw(self, cr, a, expose_area, alpha=1.0):
+        if is_overlapping(a, expose_area): return
+        Button.draw(self, cr, a, expose_area, alpha)
+
+        cr.save()
+
+        r, g, b = self.theme.theme.text[self.state].floats()
+        cr.set_source_rgba(r, g, b, 0.7)
+        # if is_playing draw pause emblem
+        if self.is_playing:
+            w = max(2, int(a.width*0.2))
+            h = max(6, int(a.height*0.55)) - 1
+            gap = max(1, int(w/2))
+
+            x = a.x + (a.width - 2*w + gap)/2-1
+            y = a.y + (a.height - h)/2
+
+            cr.rectangle(x, y, w, h)
+            cr.fill()
+
+            cr.rectangle(x+w+gap, y, w, h)
+            cr.fill()
+
+        # else, draw play emblem
+        cr.restore()
         return

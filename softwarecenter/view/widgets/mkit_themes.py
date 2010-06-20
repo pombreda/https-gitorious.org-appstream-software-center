@@ -200,17 +200,17 @@ class Clearlooks(Human):
         selected_color = self.bg[gtk.STATE_NORMAL].mix(self.bg[gtk.STATE_SELECTED],
                                                        0.2)
 
-        palette = {gtk.STATE_NORMAL:  (self.bg[gtk.STATE_NORMAL].shade(1.15),
-                                       self.bg[gtk.STATE_NORMAL].shade(0.95)),
+        palette = {gtk.STATE_NORMAL:     (self.bg[gtk.STATE_NORMAL].shade(1.15),
+                                          self.bg[gtk.STATE_NORMAL].shade(0.95)),
 
-                  gtk.STATE_ACTIVE:   (self.bg[gtk.STATE_ACTIVE],
-                                       self.bg[gtk.STATE_ACTIVE]),
+                  gtk.STATE_ACTIVE:      (self.bg[gtk.STATE_ACTIVE],
+                                          self.bg[gtk.STATE_ACTIVE]),
 
-                  gtk.STATE_SELECTED: (selected_color.shade(1.175),
-                                       selected_color),
+                  gtk.STATE_SELECTED:    (selected_color.shade(1.175),
+                                          selected_color),
 
-                  gtk.STATE_PRELIGHT: (self.bg[gtk.STATE_NORMAL].shade(1.3),
-                                       selected_color.shade(1.1)),
+                  gtk.STATE_PRELIGHT:    (self.bg[gtk.STATE_NORMAL].shade(1.3),
+                                          selected_color.shade(1.1)),
 
                   gtk.STATE_INSENSITIVE: (self.bg[gtk.STATE_INSENSITIVE],
                                           self.bg[gtk.STATE_INSENSITIVE])
@@ -243,17 +243,17 @@ class InHuman(Theme):
 
     def get_grad_palette(self):
         # provide two colours per state for background vertical linear gradients
-        palette = {gtk.STATE_NORMAL:  (self.bg[gtk.STATE_NORMAL].shade(1.1),
-                                       self.bg[gtk.STATE_NORMAL].shade(0.95)),
+        palette = {gtk.STATE_NORMAL:     (self.bg[gtk.STATE_NORMAL].shade(1.1),
+                                          self.bg[gtk.STATE_NORMAL].shade(0.95)),
 
-                  gtk.STATE_ACTIVE:   (self.bg[gtk.STATE_NORMAL].shade(1.00),
-                                       self.bg[gtk.STATE_NORMAL].shade(0.75)),
+                  gtk.STATE_ACTIVE:      (self.bg[gtk.STATE_NORMAL].shade(1.00),
+                                          self.bg[gtk.STATE_NORMAL].shade(0.75)),
 
-                  gtk.STATE_SELECTED: (self.bg[gtk.STATE_NORMAL].shade(1.09),
-                                       self.bg),
+                  gtk.STATE_SELECTED:    (self.bg[gtk.STATE_NORMAL].shade(1.09),
+                                          self.bg),
 
-                  gtk.STATE_PRELIGHT: (self.bg[gtk.STATE_SELECTED].shade(1.35),
-                                       self.bg[gtk.STATE_SELECTED].shade(1.1)),
+                  gtk.STATE_PRELIGHT:    (self.bg[gtk.STATE_SELECTED].shade(1.35),
+                                          self.bg[gtk.STATE_SELECTED].shade(1.1)),
 
                   gtk.STATE_INSENSITIVE: (self.bg[gtk.STATE_INSENSITIVE],
                                           self.bg[gtk.STATE_INSENSITIVE])

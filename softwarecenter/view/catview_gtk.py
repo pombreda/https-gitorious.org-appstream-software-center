@@ -198,16 +198,16 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         for cat in self.categories[:-1]:
             # make sure the string is parsable by pango, i.e. no funny characters
             name = gobject.markup_escape_text(cat.name.strip())
-            # define the icon of the department
-            ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
-            # finally, create the department with label markup and icon
 
             #enquirer.set_query(cat.query)
             ## limiting the size here does not make it faster
             #matches = enquirer.get_mset(0, len(self.db))
             #estimate = matches.get_matches_estimated()
 
-            cat_btn = mkit.VButton(name, image=ico)
+            cat_btn = mkit.VButton(name,
+                                   icon_name=cat.iconname,
+                                   icon_size=gtk.ICON_SIZE_DIALOG)
+
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
@@ -345,14 +345,9 @@ class FeaturedView(mkit.FramedSection):
         self.hbox.set_homogeneous(True)
         self.body.pack_start(self.hbox, False)
 
-        self.back_forward_btn = BackForwardButton(part_size=(25, -1), native_draw=False)
-        #self.back_forward_btn.use_flat_palatte()
-        self.back_forward_btn.set_use_hand_cursor(True)
+        self.play_pause_btn = mkit.PlayPauseButton()
+        self.play_pause_btn.set_shape(mkit.SHAPE_CIRCLE)
 
-        #align = gtk.Alignment(1.0, 0.5)
-        #align.add(self.back_forward_btn)
-
-        #self.body.pack_end(align, False)
         self.header.set_spacing(mkit.HSPACING_SMALL)
 
         self.posters = []
@@ -364,16 +359,11 @@ class FeaturedView(mkit.FramedSection):
 
         self.set_label(H2 % _('Featured Applications'))
 
-        # show all featured apps orange button
-
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-        label = u'All \xbb'
+        label = _(u'All \xbb')
         self.more_btn = mkit.HButton('<small>%s</small>' % label)
-        #self.more_btn.set_shape(mkit.SHAPE_START_ARROW)
-        # override theme palatte with orange palatte
-        #self.more_btn.use_flat_palatte()
         self.header.pack_end(self.more_btn, False)
-        self.header.pack_end(self.back_forward_btn, False)
+        self.header.pack_end(self.play_pause_btn, False)
 
         self._width = 0
         self._icon_size = self.featured_apps.icon_size
@@ -385,8 +375,7 @@ class FeaturedView(mkit.FramedSection):
         self.show_all()
 
         self.connect('realize', self._on_realize)
-        self.back_forward_btn.connect('left-clicked', self._on_left_clicked)
-        self.back_forward_btn.connect('right-clicked', self._on_right_clicked)
+        self.more_btn.connect_after('realize', self._on_more_btn_realize)
         return
 
     def _on_realize(self, widget):
@@ -397,6 +386,12 @@ class FeaturedView(mkit.FramedSection):
         self._set_next()
         # start the carosel
         self.start()
+        return
+
+    def _on_more_btn_realize(self, widget):
+        # set the play pause size, relative to the height of the 'more' button
+        h = self.more_btn.allocation.height
+        self.play_pause_btn.set_size_request(h, h)
         return
 
     def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
@@ -573,13 +568,19 @@ class FeaturedView(mkit.FramedSection):
         else:
             self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
 
-        left_alpha = right_alpha = 0.4
-        if self.back_forward_btn.left.state != gtk.STATE_NORMAL:
-            left_alpha = 1.0
-        if self.back_forward_btn.right.state != gtk.STATE_NORMAL:
-            right_alpha = 1.0
+        if self.play_pause_btn.state == gtk.STATE_NORMAL:
+            self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area, alpha=0.4)
+        else:
+            self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
 
-        self.back_forward_btn.draw(cr, expose_area, left_alpha, right_alpha)
+        #left_alpha = right_alpha = 0.4
+        #if self.back_forward_btn.left.state != gtk.STATE_NORMAL:
+            #left_alpha = 1.0
+        #if self.back_forward_btn.right.state != gtk.STATE_NORMAL:
+            #right_alpha = 1.0
+
+        #self.back_forward_btn.draw(cr, expose_area, left_alpha, right_alpha)
+        
 
         alpha = self._alpha
         layout = self._layout
