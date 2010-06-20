@@ -83,6 +83,7 @@ class ViewSwitcher(gtk.TreeView):
         self.set_enable_search(False)
 
         self.selected_channel_name = None
+        self.selected_channel_installed_only = False
         
         self.connect("row-expanded", self.on_treeview_row_expanded)
         self.connect("row-collapsed", self.on_treeview_row_collapsed)
@@ -106,9 +107,11 @@ class ViewSwitcher(gtk.TreeView):
     def on_cursor_changed(self, widget):
         (path, column) = self.get_cursor()
         model = self.get_model()
-        self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
         action = model[path][ViewSwitcherList.COL_ACTION]
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
+        self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
+        if channel:
+            self.selected_channel_installed_only = channel.installed_only
         self.emit("view-changed", action, channel)
         
     def get_view(self):
@@ -172,7 +175,8 @@ class ViewSwitcher(gtk.TreeView):
         """
         model = self.get_model()
         if model:
-            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name)
+            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name,
+                                                                     self.selected_channel_installed_only)
             if channel_iter_to_select:
                 self.set_cursor(model.get_path(channel_iter_to_select))
 
@@ -197,8 +201,9 @@ class ViewSwitcherList(gtk.TreeStore):
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
     __gsignals__ = {'channels-refreshed':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
-                                     ())}
+                                          gobject.TYPE_NONE,
+                                          ())}
+
 
     def __init__(self, datadir, db, icons):
         gtk.TreeStore.__init__(self, AnimatedImage, str, int, gobject.TYPE_PYOBJECT)
@@ -254,9 +259,13 @@ class ViewSwitcherList(gtk.TreeStore):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
 
-    def get_channel_iter_for_name(self, channel_name):
+    def get_channel_iter_for_name(self, channel_name, installed_only):
         channel_iter_for_name = None
-        child = self.iter_children(self.available_iter)
+        if installed_only:
+            parent_iter = self.installed_iter
+        else:
+            parent_iter = self.available_iter
+        child = self.iter_children(parent_iter)
         while child:
             if self.get_value(child, self.COL_NAME) == channel_name:
                 channel_iter_for_name = child
