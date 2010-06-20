@@ -239,7 +239,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # view switcher
-        self.view_switcher = ViewSwitcher(datadir, self.db, self.icons)
+        self.view_switcher = ViewSwitcher(datadir, self.db, self.cache, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 

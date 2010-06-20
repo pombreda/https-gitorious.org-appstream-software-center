@@ -49,12 +49,12 @@ class ViewSwitcher(gtk.TreeView):
     }
 
 
-    def __init__(self, datadir, db, icons, store=None):
+    def __init__(self, datadir, db, cache, icons, store=None):
         super(ViewSwitcher, self).__init__()
         self.datadir = datadir
         self.icons = icons
         if not store:
-            store = ViewSwitcherList(datadir, db, icons)
+            store = ViewSwitcherList(datadir, db, cache, icons)
             # FIXME: this is just set here for app.py, make the
             #        transactions-changed signal part of the view api
             #        instead of the model
@@ -205,7 +205,7 @@ class ViewSwitcherList(gtk.TreeStore):
                                           ())}
 
 
-    def __init__(self, datadir, db, icons):
+    def __init__(self, datadir, db, cache, icons):
         gtk.TreeStore.__init__(self, AnimatedImage, str, int, gobject.TYPE_PYOBJECT)
         self.icons = icons
         self.datadir = datadir
@@ -213,6 +213,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self.backend.connect("transactions-changed", self.on_transactions_changed)
         self.backend.connect("channels-changed", self.on_channels_changed)
         self.db = db
+        self.cache = cache
         self.distro = get_distro()
         # pending transactions
         self._pending = 0
@@ -283,6 +284,11 @@ class ViewSwitcherList(gtk.TreeStore):
         return icon
 
     def _update_channel_list(self):
+        self._update_channel_list_available_view()
+        self._update_channel_list_installed_view()
+        self.emit("channels-refreshed")
+        
+    def _update_channel_list_available_view(self):
         # check what needs to be cleared. we need to append first, kill
         # afterward because otherwise a row without children is collapsed
         # by the view.
@@ -290,8 +296,6 @@ class ViewSwitcherList(gtk.TreeStore):
         # normally GtkTreeIters have a limited life-cycle and are no
         # longer valid after the model changed, fortunately with the
         # gtk.TreeStore (that we use) they are persisent
-        
-        # update channels for availablepane
         child = self.iter_children(self.available_iter)
         iters_to_kill = set()
         while child:
@@ -300,15 +304,16 @@ class ViewSwitcherList(gtk.TreeStore):
         # iterate the channels and add as subnodes of the available node
         for channel in self.channel_manager.channels:
             self.append(self.available_iter, [
-                    channel.get_channel_icon(),
-                    channel.get_channel_display_name(),
-                    self.ACTION_ITEM_CHANNEL,
-                    channel])
+                        channel.get_channel_icon(),
+                        channel.get_channel_display_name(),
+                        self.ACTION_ITEM_CHANNEL,
+                        channel])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
-            
-        # update channels for installedpane
+    
+    def _update_channel_list_installed_view(self):
+        # see comments for _update_channel_list_available_view() method above
         child = self.iter_children(self.installed_iter)
         iters_to_kill = set()
         while child:
@@ -316,17 +321,31 @@ class ViewSwitcherList(gtk.TreeStore):
             child = self.iter_next(child)
         # iterate the channels and add as subnodes of the installed node
         for channel in self.channel_manager.channels_installed_only:
-            self.append(self.installed_iter, [
-                    channel.get_channel_icon(),
-                    channel.get_channel_display_name(),
-                    self.ACTION_ITEM_CHANNEL,
-                    channel])
+            # check for no installed items for each channel and do not
+            # append the channel item in this case
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(channel.get_channel_query())
+            matches = enquire.get_mset(0, len(self.db))
+            # only check channels that have a small number of items
+            add_channel_item = True
+            if len(matches) < 200:
+                add_channel_item = False
+                for m in matches:
+                    doc = m[xapian.MSET_DOCUMENT]
+                    pkgname = self.db.get_pkgname(doc)
+                    if (pkgname in self.cache and
+                        self.cache[pkgname].is_installed):
+                        add_channel_item = True
+                        break
+            if add_channel_item:
+                self.append(self.installed_iter, [
+                            channel.get_channel_icon(),
+                            channel.get_channel_display_name(),
+                            self.ACTION_ITEM_CHANNEL,
+                            channel])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
-
-        self.emit("channels-refreshed")
-        
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
