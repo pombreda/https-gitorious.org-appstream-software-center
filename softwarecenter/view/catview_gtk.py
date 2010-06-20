@@ -13,7 +13,7 @@ import logging
 import os
 import xapian
 
-from widgets import pathbar_common
+from widgets import mkit
 from widgets.backforward import BackForwardButton
 from appview import AppStore
 from softwarecenter.db.database import Application
@@ -35,22 +35,8 @@ from catview import *
 M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
-BORDER_WIDTH_LARGE =    10
-BORDER_WIDTH_MED =    6
-BORDER_WIDTH_SMALL = 3
-
-VSPACING_XLARGE =   12
-VSPACING_LARGE =    6    # vertical spacing between page elements
-VSPACING_SMALL =    3
-
-HSPACING_XLARGE =   12
-HSPACING_LARGE =    6    # horizontal spacing between page elements
-HSPACING_SMALL =    3
-
 COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
 COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
-
-FRAME_CORNER_RADIUS =       3
 
 CAT_BUTTON_FIXED_WIDTH =    108
 CAT_BUTTON_MIN_HEIGHT =     96
@@ -64,6 +50,7 @@ CAROSEL_POSTER_MIN_WIDTH =      200 # this is actually more of an approximate mi
 CAROSEL_TRANSITION_TIMEOUT =    20000 # n_seconds * 1000
 CAROSEL_FADE_INTERVAL =         50 # msec  
 CAROSEL_FADE_STEP =             0.2 # value between 0.0 and 1.0
+
 POSTER_CORNER_RADIUS =          3
 
 H1 = '<big><b>%s<b></big>'
@@ -107,8 +94,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
-        self.vbox = gtk.VBox(spacing=VSPACING_LARGE)
-        self.vbox.set_border_width(BORDER_WIDTH_LARGE)
+        self.vbox = gtk.VBox(spacing=mkit.VSPACING_LARGE)
+        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
         viewport = gtk.Viewport()
         viewport.set_shadow_type(gtk.SHADOW_NONE)
         viewport.add(self.vbox)
@@ -190,11 +177,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.vbox.pack_start(carosel, False)
         return
 
-    def _append_welcome(self):
-        self.welcome = WelcomeView()
-        self.vbox.pack_start(self.welcome, False)
-        return
-
     def _full_redraw(self):
         def _redraw():
             self.queue_draw()
@@ -206,7 +188,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
     def _append_departments(self):
         # create departments widget
-        self.departments = LayoutView()
+        self.departments = mkit.LayoutView()
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
@@ -225,7 +207,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             #matches = enquirer.get_mset(0, len(self.db))
             #estimate = matches.get_matches_estimated()
 
-            cat_btn = CategoryButton(name, image=ico)
+            cat_btn = mkit.VButton(name, image=ico)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
@@ -237,7 +219,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _append_subcat_departments(self):
         # create departments widget
         if not self.departments:
-            self.departments = LayoutView()
+            self.departments = mkit.LayoutView()
             # append the departments section to the page
             self.vbox.pack_start(self.departments, False)
             self.departments.show_all()
@@ -255,7 +237,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
 
             # finally, create the department with label markup and icon
-            cat_btn = CategoryButton(name, image=ico)
+            cat_btn = mkit.VButton(name, image=ico)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
@@ -293,7 +275,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _get_layout_best_fit_width(self):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - 2*BORDER_WIDTH_LARGE - 2*BORDER_WIDTH_MED
+        return self.parent.allocation.width - \
+                2*mkit.BORDER_WIDTH_LARGE - 2*mkit.BORDER_WIDTH_MED
 
     def _on_allocate(self, widget, allocation):
         if self._prev_width != widget.parent.allocation.width:
@@ -354,188 +337,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
 
-class FramedSection(gtk.VBox):
-
-    def __init__(self, label_markup=None):
-        gtk.VBox.__init__(self)
-        self.set_redraw_on_allocate(False)
-        self.set_spacing(VSPACING_LARGE)
-
-        self.header = gtk.HBox()
-        self.body = gtk.VBox()
-
-        self.header.set_border_width(BORDER_WIDTH_MED)
-        self.body.set_border_width(BORDER_WIDTH_MED)
-        self.body.set_spacing(VSPACING_SMALL)
-
-        align = gtk.Alignment(0.5, 0.5)
-        align.add(self.body)
-
-        self.pack_start(self.header, False)
-        self.pack_start(align)
-        #self.pack_start(self.footer, False)
-
-        self.label = gtk.Label()
-        self.header.pack_start(self.label, False, padding=BORDER_WIDTH_SMALL)
-        self.has_label = False
-
-        if label_markup:
-            self.set_label(label_markup)
-        return
-
-    def set_label(self, label):
-        self.label.set_markup('<b>%s</b>' % label)
-        self.has_label = True
-
-        # atk stuff
-        acc = self.get_accessible()
-        acc.set_name(self.label.get_text())
-        acc.set_role(atk.ROLE_SECTION)
-        return
-
-    def draw(self, cr, a, expose_area):
-        if draw_skip(a, expose_area): return
-
-        cr.save()
-        cr.rectangle(a)
-        cr.clip()
-
-        # fill section white
-        rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, FRAME_CORNER_RADIUS)
-        cr.set_source_rgba(*floats_from_color_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
-        cr.fill()
-
-        cr.save()
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-        rounded_rectangle(cr, a.x+1, a.y+1, a.width-2, a.height-2, FRAME_CORNER_RADIUS)
-        cr.set_source_rgb(*floats_from_color(self.style.dark[gtk.STATE_NORMAL]))
-        cr.stroke_preserve()
-        cr.stroke()
-        cr.restore()
-
-        ## header gradient - suppose to be ubuntu wallpaper-esque
-        #pink = '#FCE3DD'
-        #h = 48
-        #r, g, b = floats_from_string(pink)
-        ##r, g, b = floats_from_color(self.style.mid[gtk.STATE_NORMAL])
-        #lin = cairo.LinearGradient(0, a.y+1, 0, a.y+h)
-        #lin = cairo.LinearGradient(0, a.y+1, 0, a.y+h)
-        #lin.add_color_stop_rgba(0.0, r, g, b, 0.8)
-        #lin.add_color_stop_rgba(1.0, r, g, b, 0)
-        #rounded_rectangle(cr, a.x+2, a.y+2, a.width-3, a.height-3, FRAME_CORNER_RADIUS-1)
-        #cr.set_source(lin)
-        #cr.fill()
-
-        cr.restore()
-        return
-
-
-class LayoutView(FramedSection):
-
-    def __init__(self):
-
-        FramedSection.__init__(self)
-        self.hspacing = HSPACING_SMALL
-
-        self.set_redraw_on_allocate(False)
-        self.widget_list = []
-
-        self.theme = pathbar_common.PathBarStyle(self)
-        self._prev_width = 0
-        return
-
-    def _on_allocate(self, widget, allocation):
-        if self._prev_width == allocation.width: return
-        self._prev_width = allocation.width
-        self._clear_rows()
-        self.set_width()
-        return
-
-    def append(self, widget):
-        self.widget_list.append(widget)
-        return
-
-    def set_width(self, width):
-        row = LayoutRow(self.hspacing)
-        self.body.pack_start(row, False)
-
-        spacing = self.hspacing
-        width -= 3*BORDER_WIDTH_MED
-        w = 0
-
-        for cat in self.widget_list:
-            cw = cat.calc_width(self)
-
-            if w + cw + spacing <= width:
-                row.pack_start(cat, False)
-                w += cw + spacing
-            else:
-                row = LayoutRow(self.hspacing)
-                self.body.pack_start(row, False)
-                row.pack_start(cat, False)
-                w = cw + spacing
-
-        self.show_all()
-        return
-
-    def clear_all(self):
-        self.widget_list = []
-        for row in self.body.get_children():
-            for child in row.get_children():
-                child.destroy()
-            row.destroy()
-        return
-
-    def clear_rows(self):
-        for row in self.body.get_children():
-            for cat in row.hbox.get_children():
-                row.hbox.remove(cat)
-            row.destroy()
-        return
-
-    def draw(self, cr, a, expose_area):
-        if draw_skip(a, expose_area): return
-
-        cr.save()
-        FramedSection.draw(self, cr, a, expose_area)
-
-        for cat in self.widget_list:
-            a = cat.allocation
-            if a.width == 1 or a.height == 1: break
-            cat.draw(cr, a, expose_area, self.theme)
-
-        cr.restore()
-        return
-
-
-class LayoutRow(gtk.Alignment):
-
-    def __init__(self, hspacing):
-        gtk.Alignment.__init__(self, 0.5, 0.5)
-        self.hbox = gtk.HBox(spacing=hspacing)
-        self.set_redraw_on_allocate(False)
-        self.hbox.set_redraw_on_allocate(False)
-        self.add(self.hbox)
-        return
-
-    def __getitem__(self, index):
-        return self.hbox.get_children()[index]
-
-    def pack_start(self, cat, *args, **kwargs):
-        self.hbox.pack_start(cat, *args, **kwargs)
-        return
-
-    def pack_end(self, cat, *args, **kwargs):
-        self.hbox.pack_end(cat, *args, **kwargs)
-        return
-
-
-class FeaturedView(FramedSection):
+class FeaturedView(mkit.FramedSection):
 
     def __init__(self, featured_apps):
-        FramedSection.__init__(self)
-        self.hbox = gtk.HBox(spacing=HSPACING_SMALL)
+        mkit.FramedSection.__init__(self)
+        self.hbox = gtk.HBox(spacing=mkit.HSPACING_SMALL)
         self.hbox.set_homogeneous(True)
         self.body.pack_start(self.hbox, False)
 
@@ -547,7 +353,7 @@ class FeaturedView(FramedSection):
         #align.add(self.back_forward_btn)
 
         #self.body.pack_end(align, False)
-        self.header.set_spacing(HSPACING_SMALL)
+        self.header.set_spacing(mkit.HSPACING_SMALL)
 
         self.posters = []
         self.n_posters = 0
@@ -562,8 +368,8 @@ class FeaturedView(FramedSection):
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = u'View all \xbb'
-        self.more_btn = BasicButton('<small>%s</small>' % label)
-        #self.more_btn.set_shape(pathbar_common.SHAPE_START_ARROW)
+        self.more_btn = mkit.HButton('<small>%s</small>' % label)
+        #self.more_btn.set_shape(mkit.SHAPE_START_ARROW)
         # override theme palatte with orange palatte
         #self.more_btn.use_flat_palatte()
         self.header.pack_end(self.more_btn, False)
@@ -720,7 +526,7 @@ class FeaturedView(FramedSection):
         return loop
 
     def set_width(self, width):
-        width -=  BORDER_WIDTH_MED
+        width -=  mkit.BORDER_WIDTH_MED
         self._width = width
         self.body.set_size_request(width, -1)
         if not self._show_carosel and self.hbox.get_property('visible'):
@@ -752,8 +558,8 @@ class FeaturedView(FramedSection):
         return self._show_carosel
 
     def draw(self, cr, a, expose_area):
-        if draw_skip(a, expose_area): return
-        FramedSection.draw(self, cr, a, expose_area)
+        if mkit.is_overlapping(a, expose_area): return
+        mkit.FramedSection.draw(self, cr, a, expose_area)
 
         #self.show_hide_btn.draw(cr, self.show_hide_btn.allocation, expose_area, alpha=0.5)
         #fa = self.footer.allocation
@@ -802,8 +608,8 @@ class FeaturedPoster(gtk.EventBox):
         self.set_redraw_on_allocate(False)
         self.set_visible_window(False)
         self.set_size_request(-1, 75)
-        self.theme = pathbar_common.PathBarStyle(self)
-        self.shape = pathbar_common.SHAPE_RECTANGLE
+        self.theme = mkit.Style(self)
+        self.shape = mkit.SHAPE_RECTANGLE
 
         self._icon_size = icon_size
         self._icon_pb = None
@@ -994,7 +800,7 @@ class FeaturedPoster(gtk.EventBox):
         return
 
     def draw(self, cr, a, expose_area, layout, overlay, alpha):
-        if draw_skip(a, expose_area): return
+        if mkit.is_overlapping(a, expose_area): return
         if not self.get_property('visible'): return
 
         layout.set_width((self.allocation.width - 32 - 20)*pango.SCALE)
@@ -1028,354 +834,6 @@ class FeaturedPoster(gtk.EventBox):
 
         cr.restore()
         return
-
-
-class PushButton(gtk.EventBox):
-
-    __gsignals__ = {
-        "clicked" : (gobject.SIGNAL_RUN_LAST,
-                     gobject.TYPE_NONE, 
-                     (),)
-        }
-
-    def __init__(self, markup, image=None):
-        gtk.EventBox.__init__(self)
-        self.set_visible_window(False)
-        self.set_redraw_on_allocate(False)
-        self.markup = markup
-        self.label = gtk.Label()
-        self.label.set_markup(markup)
-        self.image = image
-        self.shape = pathbar_common.SHAPE_RECTANGLE
-        self.theme = pathbar_common.PathBarStyle(self)
-
-        # atk stuff
-        atk_obj = self.get_accessible()
-        atk_obj.set_name(self.label.get_text())
-        atk_obj.set_role(atk.ROLE_PUSH_BUTTON)
-
-        self._layout = None
-        self._button_press_origin = None    # broken?
-        self._use_flat_palatte = True
-        self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
-
-        self.set_flags(gtk.CAN_FOCUS)
-        self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
-                        gtk.gdk.BUTTON_RELEASE_MASK|
-                        gtk.gdk.KEY_RELEASE_MASK|
-                        gtk.gdk.KEY_PRESS_MASK|
-                        gtk.gdk.ENTER_NOTIFY_MASK|
-                        gtk.gdk.LEAVE_NOTIFY_MASK)
-
-        self.connect('enter-notify-event', self._on_enter)
-        self.connect('leave-notify-event', self._on_leave)
-        self.connect("button-press-event", self._on_button_press)
-        self.connect("button-release-event", self._on_button_release)
-        self.connect("key-press-event", self._on_key_press)
-        self.connect("key-release-event", self._on_key_release)
-        return
-
-    def _on_enter(self, cat, event):
-        if cat == self._button_press_origin:
-            cat.set_state(gtk.STATE_ACTIVE)
-        else:
-            cat.set_state(gtk.STATE_PRELIGHT)
-
-        self.window.set_cursor(self._cursor)
-        return
-
-    def _on_leave(self, cat, event):
-        cat.set_state(gtk.STATE_NORMAL)
-        self.window.set_cursor(None)
-        return
-
-    def _on_button_press(self, cat, event):
-        if event.button != 1: return
-        self._button_press_origin = cat
-        cat.set_state(gtk.STATE_ACTIVE)
-        return
-
-    def _on_button_release(self, cat, event):
-        if event.button != 1: return
-
-        cat_region = gtk.gdk.region_rectangle(cat.allocation)
-        if not cat_region.point_in(*self.window.get_pointer()[:2]):
-            self._button_press_origin = None
-            return
-        if cat != self._button_press_origin: return
-        cat.set_state(gtk.STATE_PRELIGHT)
-        self._button_press_origin = None
-        self.emit('clicked')
-        return
-
-    def _on_key_press(self, cat, event):
-        # react to spacebar, enter, numpad-enter
-        if event.keyval in (32, 65293, 65421):
-            cat.set_state(gtk.STATE_ACTIVE)
-        return
-
-    def _on_key_release(self, cat, event):
-        # react to spacebar, enter, numpad-enter
-        if event.keyval in (32, 65293, 65421):
-            cat.set_state(gtk.STATE_NORMAL)
-            self.emit('clicked')
-        return
-
-    def use_flat_palatte(self):
-        self._use_flat_palatte = True
-
-        gray   = self.theme.theme.mid[gtk.STATE_NORMAL]
-        orange = pathbar_common.color_from_string(COLOR_ORANGE)
-        purple = pathbar_common.color_from_string(COLOR_PURPLE)
-
-        self.label.modify_fg(gtk.STATE_PRELIGHT, gtk.gdk.color_parse('#FFF'))
-        self.label.modify_fg(gtk.STATE_ACTIVE, gtk.gdk.color_parse('#FFF'))
-
-        self.theme.gradients = {
-            gtk.STATE_NORMAL:      (gray, gray),
-            gtk.STATE_ACTIVE:      (purple, purple),
-            gtk.STATE_SELECTED:    (orange, orange),
-            gtk.STATE_PRELIGHT:    (orange, orange),
-            gtk.STATE_INSENSITIVE: (self.theme.theme.mid, self.theme.theme.mid)}
-
-        self.theme.dark_line = {
-            gtk.STATE_NORMAL:       gray,
-            gtk.STATE_ACTIVE:       purple,
-            gtk.STATE_PRELIGHT:     orange,
-            gtk.STATE_SELECTED:     orange,
-            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
-
-        self.theme.light_line = {
-            gtk.STATE_NORMAL:       gray,
-            gtk.STATE_ACTIVE:       purple,
-            gtk.STATE_PRELIGHT:     orange,
-            gtk.STATE_SELECTED:     orange,
-            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
-        return
-
-    def draw(self, cr, a, expose_area, alpha=1.0):
-        if draw_skip(a, expose_area): return
-
-        self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
-
-        if self.has_focus():
-            a = self.label.allocation
-            x, y, w, h = a.x, a.y, a.width, a.height
-            self.style.paint_focus(self.window,
-                                   self.state,
-                                   (x-2, y-1, w+4, h+2),
-                                   self,
-                                   'button',
-                                   x-2, y-1, w+4, h+2)
-
-        return
-
-
-class CategoryButton(PushButton):
-
-    def __init__(self, markup, image=None):
-        PushButton.__init__(self, markup, image)
-        self.set_border_width(BORDER_WIDTH_MED)
-        self.label.set_line_wrap(gtk.WRAP_WORD)
-        self.label.set_justify(gtk.JUSTIFY_CENTER)
-
-        # determine size_request width for label
-        layout = self.label.get_layout()
-        layout.set_width(CAT_BUTTON_FIXED_WIDTH*pango.SCALE)
-        lw, lh = layout.get_pixel_extents()[1][2:]   # ink extents width, height
-        self.label.set_size_request(lw, -1)
-
-        self.vbox = gtk.VBox(spacing=VSPACING_SMALL)
-        h = lh + VSPACING_SMALL + 2*BORDER_WIDTH_MED + 48 # 32 = icon size
-        self.vbox.set_size_request(CAT_BUTTON_FIXED_WIDTH, max(h, CAT_BUTTON_MIN_HEIGHT))
-
-        self.add(self.vbox)
-        if self.image:
-            self.vbox.pack_start(self.image, False)
-
-        self.vbox.pack_start(self.label)
-        self.show_all()
-        return
-
-    def calc_width(self, realized_widget):
-        return CAT_BUTTON_FIXED_WIDTH + 2*self.get_border_width()
-
-    def draw(self, cr, a, expose_area, theme):
-        if draw_skip(a, expose_area): return
-
-        cr.save()
-        x, y, w, h = a.x, a.y, a.width, a.height
-        r = CAT_BUTTON_CORNER_RADIUS
-        if self.state == gtk.STATE_NORMAL:
-            pass
-        elif self.state != gtk.STATE_ACTIVE:
-            theme.paint_bg(cr, self, x, y, w, h, r)
-        else:
-            theme.paint_bg_active_deep(cr, self, x, y, w, h, r)
-
-        if self.has_focus():
-            self.style.paint_focus(self.window,
-                                   self.state,
-                                   (x+4, y+4, w-8, h-8),
-                                   self,
-                                   'button',
-                                   x+4, y+4, w-8, h-8)
-        cr.restore()
-        return
-
-
-class BasicButton(PushButton):
-
-    def __init__(self, markup, border_width=BORDER_WIDTH_SMALL):
-        PushButton.__init__(self, markup, image=None)
-        self._shape_adjust = 0
-        self.set_border_width(border_width)
-
-        self.alignment = gtk.Alignment(0.5, 0.5)
-        self.alignment.add(self.label)
-
-        self.add(self.alignment)
-        self.show_all()
-        return
-
-    def calc_width(self):
-        pc = self.get_pango_context()
-        layout = pango.Layout(pc)
-        layout.set_markup(self.label.get_label())
-        lw = layout.get_pixel_extents()[1][2]
-        return lw + 24 + self._shape_adjust
-
-    def set_border_width(self, width):
-        gtk.EventBox.set_border_width(self, width)
-        w = self.calc_width()
-        self.set_size_request(w, -1)
-        return
-
-    def set_label(self, label):
-        self.label.set_markup(label)
-        w = self.calc_width()
-        self.set_size_request(w, -1)
-        return
-
-    def set_shape(self, shape):
-        self.shape = shape
-        if shape == pathbar_common.SHAPE_START_ARROW:
-            self._shape_adjust = self.theme['arrow_width']/2
-            self.alignment.set(0.3, 0.5, 0, 0)
-        w = self.calc_width()
-        self.set_size_request(w, -1)
-        return
-
-
-class ArrowButton(BasicButton):
-
-    def __init__(self, arrow_direction):
-        BasicButton.__init__(self, '', border_width=0)
-        self.arrow_direction = arrow_direction
-        if arrow_direction == gtk.ARROW_RIGHT:
-            self.set_shape(pathbar_common.SHAPE_RIGHT_ROUNDED_RECT)
-            self.set_tooltip_text(_('Navigate Forward'))
-        else:
-            self.set_shape(pathbar_common.SHAPE_LEFT_ROUNDED_RECT)
-            self.set_tooltip_text(_('Navigate Back'))
-        return
-
-    def draw(self, cr, a, expose_area, alpha=1.0):
-        if self.state != gtk.STATE_NORMAL:
-            BasicButton.draw(self, cr, a, expose_area, alpha)
-
-        # arrow
-        aw = ah = 8
-        ay = a.y + (a.height - ah)/2
-        ax = a.x + 6
-
-        if self.arrow_direction == gtk.ARROW_RIGHT:
-            ax += 1
-
-        self.style.paint_arrow(self.window,
-                               self.state,
-                               gtk.SHADOW_NONE,
-                               None,
-                               self,
-                               None,
-                               self.arrow_direction,
-                               True,
-                               ax, ay,
-                               aw, ah)
-        return
-
-
-class Test:
-
-    def __init__(self):
-        w = gtk.Window()
-        w.set_size_request(500, 400)
-        w.connect('destroy', gtk.main_quit)
-
-        scrolled = gtk.ScrolledWindow()
-        scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
-        w.add(scrolled)
-
-        view = CategoriesViewGtk()
-        scrolled.add_with_viewport(view)
-
-        w.show_all()
-        return
-
-def draw_skip(widget_area, expose_area):
-    return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
-
-def floats_from_color(color):
-    return color.red_float, color.green_float, color.blue_float
-
-def floats_from_color_with_alpha(color, a):
-    r, g, b = floats_from_color(color)
-    return r, g, b, a
-
-def floats_from_string(spec):
-    color = gtk.gdk.color_parse(spec)
-    return color.red_float, color.green_float, color.blue_float
-
-def floats_from_string_with_alpha(spec, a):
-    r, g, b = floats_from_string(spec)
-    return r, g, b, a
-
-def rounded_rectangle(cr, x, y, w, h, r):
-    cr.save()
-    cr.translate(x, y)
-    cr.new_sub_path()
-    cr.arc(r, r, r, M_PI, 270*PI_OVER_180)
-    cr.arc(w-r, r, r, 270*PI_OVER_180, 0)
-    cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-    cr.arc(r, h-r, r, 90*PI_OVER_180, M_PI)
-    cr.close_path()
-    cr.restore()
-    return
-
-def rounded_rectangle_irregular(cr, x, y, w, h, corner_radii):
-    nw, ne, se, sw = corner_radii
-    cr.save()
-    cr.translate(x, y)
-    if nw:
-        cr.new_sub_path()
-        cr.arc(nw, nw, nw, M_PI, 270 * PI_OVER_180)
-    else:
-        cr.move_to(0, 0)
-    if ne:
-        cr.arc(w-ne, ne, ne, 270 * PI_OVER_180, 0)
-    else:
-        cr.rel_line_to(w-nw, 0)
-    if se:
-        cr.arc(w-se, h-se, se, 0, 90 * PI_OVER_180)
-    else:
-        cr.rel_line_to(0, h-ne)
-    if sw:
-        cr.arc(sw, h-sw, sw, 90 * PI_OVER_180, M_PI)
-    else:
-        cr.rel_line_to(-(w-se), 0)
-    cr.close_path()
-    cr.restore()
-    return
 
 
 if __name__ == '__main__':
