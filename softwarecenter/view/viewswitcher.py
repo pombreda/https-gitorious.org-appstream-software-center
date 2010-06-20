@@ -211,6 +211,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self.datadir = datadir
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed", self.on_transactions_changed)
+        self.backend.connect("transaction-finished", self.on_transaction_finished)
         self.backend.connect("channels-changed", self.on_channels_changed)
         self.db = db
         self.cache = cache
@@ -259,6 +260,11 @@ class ViewSwitcherList(gtk.TreeStore):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
+                    
+    def on_transaction_finished(self, backend, success):
+        if success:
+            self._update_channel_list_installed_view()
+            self.emit("channels-refreshed")
 
     def get_channel_iter_for_name(self, channel_name, installed_only):
         channel_iter_for_name = None
@@ -272,6 +278,8 @@ class ViewSwitcherList(gtk.TreeStore):
                 channel_iter_for_name = child
                 break
             child = self.iter_next(child)
+        if not channel_iter_for_name:
+            return parent_iter
         return channel_iter_for_name
                     
     def _get_icon(self, icon_name):
