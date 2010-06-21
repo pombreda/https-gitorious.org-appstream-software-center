@@ -168,15 +168,28 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # create new-apps widget
         self.new = mkit.LayoutView()
-        # set the departments section to use the label markup we have just defined
         self.new.set_label(H2 % _('New Applications'))
-
+        new_cat = get_category_by_name(self.categories,
+                                       'New Applications')
+        query = self.db.get_query_list_from_search_entry('', new_cat.query)
+        new_apps = AppStore(self.cache,
+                            self.db,
+                            self.icons,
+                            query,
+                            self.apps_limit,
+                            True,
+                            self.apps_filter)
+        carousel2 = FeaturedView(new_apps)
+        carousel2.more_btn.connect('clicked',
+                                 self._on_category_clicked,
+                                 new_cat)
+ 
+        # put in the box
         self.hbox_inner = gtk.HBox(spacing=mkit.HSPACING_SMALL)
         self.hbox_inner.set_homogeneous(True)
         self.hbox_inner.pack_start(self.carousel, False)
         self.hbox_inner.pack_start(self.new, False)
-
-
+        self.hbox_inner.pack_start(carousel2, False)
         self.vbox.pack_start(self.hbox_inner, False)
         return
 

@@ -152,6 +152,11 @@ class CategoriesView(object):
                 logging.debug("adding channel: %s" % and_elem.text)
                 q = xapian.Query("AH"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCOrigin":
+                logging.debug("adding origin: %s" % and_elem.text)
+                # FIXME: origin is currently case-sensitive?!?
+                q = xapian.Query("XOO"+and_elem.text)
+                query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCPkgname":
                 logging.debug("adding tag: %s" % and_elem.text)
                 # query both axi and s-c

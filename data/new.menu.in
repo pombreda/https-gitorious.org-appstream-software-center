@@ -1,0 +1,11 @@
+<Menu>
+  <Menu>
+    <_Name>New Applications</_Name>
+    <SCIcon>gtk-about</SCIcon>
+    <Include>
+      <Or>
+	<SCOrigin>LP-PPA-mvo</SCOrigin>
+      </Or>
+    </Include>
+  </Menu>
+</Menu>
