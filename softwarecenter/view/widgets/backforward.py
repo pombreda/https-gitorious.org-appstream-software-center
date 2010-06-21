@@ -21,22 +21,13 @@ import atk
 import gtk
 import cairo
 import gobject
-import pathbar_common
+import mkit
 
 from gettext import gettext as _
 
 
-# pi constants
-M_PI = 3.1415926535897931
-PI_OVER_180 = 0.017453292519943295
-
 DEFAULT_PART_SIZE = (31, 27)
 DEFAULT_ARROW_SIZE = (12, 12)
-
-COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
-COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
-
-
 
 
 class BackForwardButton(gtk.HBox):
@@ -51,7 +42,7 @@ class BackForwardButton(gtk.HBox):
 
     def __init__(self, part_size=None, arrow_size=None, native_draw=True):
         gtk.HBox.__init__(self)
-        self.theme = pathbar_common.PathBarStyle(self)
+        self.theme = mkit.Style(self)
         self.separator = SeparatorPart()
 
         self.use_hand = False
@@ -120,38 +111,6 @@ class BackForwardButton(gtk.HBox):
         self.use_hand = use_hand
         return
 
-    def use_flat_palatte(self):
-        self._use_flat_palatte = True
-
-        gray   = self.theme.theme.mid[gtk.STATE_NORMAL]
-        orange = pathbar_common.color_from_string(COLOR_ORANGE)
-        purple = pathbar_common.color_from_string(COLOR_PURPLE)
-
-        #self.label.modify_fg(gtk.STATE_PRELIGHT, gtk.gdk.color_parse('#FFF'))
-        #self.label.modify_fg(gtk.STATE_ACTIVE, gtk.gdk.color_parse('#FFF'))
-
-        self.theme.gradients = {
-            gtk.STATE_NORMAL:      (gray, gray),
-            gtk.STATE_ACTIVE:      (purple, purple),
-            gtk.STATE_SELECTED:    (orange, orange),
-            gtk.STATE_PRELIGHT:    (orange, orange),
-            gtk.STATE_INSENSITIVE: (self.theme.theme.mid, self.theme.theme.mid)}
-
-        self.theme.dark_line = {
-            gtk.STATE_NORMAL:       gray,
-            gtk.STATE_ACTIVE:       purple,
-            gtk.STATE_PRELIGHT:     orange,
-            gtk.STATE_SELECTED:     orange,
-            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
-
-        self.theme.light_line = {
-            gtk.STATE_NORMAL:       gray,
-            gtk.STATE_ACTIVE:       purple,
-            gtk.STATE_PRELIGHT:     orange,
-            gtk.STATE_SELECTED:     orange,
-            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
-        return
-
     def _on_style_set(self, widget, oldstyle):
         # when alloc.width == 1, this is typical of an unallocated widget,
         # lets not break a sweat for nothing...
@@ -159,7 +118,7 @@ class BackForwardButton(gtk.HBox):
             return
 
         old_xthickness = self.theme['xthickness']
-        self.theme = pathbar_common.PathBarStyle(self)
+        self.theme = mkit.Style(self)
         if old_xthickness > self.theme['xthickness']:
             a = self.allocation
             self.queue_draw_area(a.x, a.y,
@@ -185,7 +144,7 @@ class SeparatorPart(gtk.DrawingArea):
     def __init__(self):
         gtk.DrawingArea.__init__(self)
         self.alpha = 1.0
-        self.theme = pathbar_common.PathBarStyle(self)
+        self.theme = mkit.Style(self)
         self.set_size_request(self.theme['xthickness'], -1)
 
         atk_obj = self.get_accessible()
@@ -201,9 +160,9 @@ class SeparatorPart(gtk.DrawingArea):
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
         if self.alpha == 1.0:
-            cr.set_source_rgb(*self.theme.dark_line[self.state].tofloats())
+            cr.set_source_rgb(*self.theme.dark_line[self.state].floats())
         else:
-            r, g, b = self.theme.dark_line[self.state].tofloats()
+            r, g, b = self.theme.dark_line[self.state].floats()
             cr.set_source_rgba(r, g, b, self.alpha)
 
         cr.fill()
@@ -211,7 +170,7 @@ class SeparatorPart(gtk.DrawingArea):
         return
 
     def _on_style_set(self, widget, old_style):
-        self.theme = pathbar_common.PathBarStyle(self)
+        self.theme = mkit.Style(self)
         self.set_size_request(self.theme['xthickness'], -1)
         return
 
@@ -224,7 +183,7 @@ class ButtonPart(gtk.EventBox):
         self.set_visible_window(False)
 
         self.set_size_request(*part_size)
-        self.shape = pathbar_common.SHAPE_RECTANGLE
+        self.shape = mkit.SHAPE_RECTANGLE
         self.button_down = False
         self.shadow_type = gtk.SHADOW_OUT
         self.arrow_type = arrow_type
