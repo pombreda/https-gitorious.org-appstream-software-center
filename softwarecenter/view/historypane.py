@@ -52,7 +52,7 @@ class HistoryPane(gtk.VBox):
     (COL_WHEN, COL_ACTION, COL_PKG) = range(3)
     COL_TYPES = (object, int, str)
 
-    (ALL, INSTALLED, REMOVED) = range(3)
+    (ALL, INSTALLED, REMOVED, UPGRADED) = range(4)
 
     ICON_SIZE = 24
     PADDING = 6
@@ -108,6 +108,11 @@ class HistoryPane(gtk.VBox):
         removals_action.set_group(all_action)
         removals_button = removals_action.create_tool_item()
         self.toolbar.insert(removals_button, 2)
+
+        upgrades_action = gtk.RadioAction('filter_upgrads', _('All Upgrades'), None, None, self.UPGRADED)
+        upgrades_action.set_group(all_action)
+        upgrades_button = upgrades_action.create_tool_item()
+        self.toolbar.insert(upgrades_button, 3)
 
         self.view = gtk.TreeView()
         self.view.show()
@@ -168,7 +173,10 @@ class HistoryPane(gtk.VBox):
                 date = when.date()
                 day = self.store.append(None, (date, self.ALL, None))
                 last_row = None
-            actions = {self.INSTALLED: trans.install, self.REMOVED: trans.remove}
+            actions = {self.INSTALLED: trans.install, 
+                       self.REMOVED: trans.remove,
+                       self.UPGRADED: trans.upgrade,
+                      }
             for action, pkgs in actions.iteritems():
                 pkgnames = [p.split()[0] for p in pkgs]
                 for pkgname in pkgnames:
@@ -266,6 +274,8 @@ class HistoryPane(gtk.VBox):
                 text = _('%s installed %s') % (pkg, when.time().strftime('%X'))
             elif action == self.REMOVED:
                 text = _('%s removed %s') % (pkg, when.time().strftime('%X'))
+            elif action == self.UPGRADED:
+                text = _('%s upgraded %s') % (pkg, when.time().strftime('%X'))
         elif isinstance(when, datetime.date):
             today = datetime.date.today()
             monday = today - datetime.timedelta(days=today.weekday())

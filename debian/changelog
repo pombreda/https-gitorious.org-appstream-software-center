@@ -16,7 +16,9 @@ software-center (2.1.4) UNRELEASED; urgency=low
     - Fixes inaccessible Screenshot image (LP: #595500)
     many thanks to Rakesh 'arky' Ambati 
   * merged lp:~mmcg069/software-center/catview-conform-w-spec
-    to make the categories look like the spec 
+    to make the categories look like the spec
+  * add information about "upgraded" packages to the history pane 
+    (thanks to seb128 for the suggestion)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Jun 2010 14:14:23 +0200
 
