@@ -13,6 +13,7 @@ software-center (2.1.4) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * mergedp:~arky/ubuntu/maverick/software-center/fixes-595500:
     - Fixes inaccessible install/remove buttons (LP: #538404)
+    - Fixes inaccessible Screenshot image (LP: #595500)
     many thanks to Rakesh 'arky' Ambati 
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sun, 20 Jun 2010 23:45:00 -0400
