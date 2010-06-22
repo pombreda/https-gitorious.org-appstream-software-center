@@ -19,6 +19,9 @@ software-center (2.1.4) UNRELEASED; urgency=low
     to make the categories look like the spec
   * add information about "upgraded" packages to the history pane 
     (thanks to seb128 for the suggestion)
+  * merged lp:~mvo/software-center/new-apps-test1 and
+    lp:~mmcg069/software-center/catview-conform-w-spec, thanks
+    to Matthew McGowan
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Jun 2010 14:14:23 +0200
 
