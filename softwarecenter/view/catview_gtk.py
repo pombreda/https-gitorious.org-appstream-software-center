@@ -149,17 +149,15 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _append_featured_and_new(self):
         featured_cat = get_category_by_name(self.categories,
                                             'Featured Applications')    # untranslated name
-        query = self.db.get_query_list_from_search_entry('', featured_cat.query)
-
         featured_apps = AppStore(self.cache,
                                  self.db,
                                  self.icons,
-                                 query,
+                                 featured_cat.query,
                                  self.apps_limit,
                                  True,
                                  self.apps_filter)
 
-        carousel = FeaturedView(featured_apps)
+        carousel = FeaturedView(featured_apps, _("Featured Applications"))
         carousel.more_btn.connect('clicked',
                                  self._on_category_clicked,
                                  featured_cat)
@@ -167,29 +165,25 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.carousel = carousel
 
         # create new-apps widget
-        self.new = mkit.LayoutView()
-        self.new.set_label(H2 % _('New Applications'))
         new_cat = get_category_by_name(self.categories,
                                        'New Applications')
-        query = self.db.get_query_list_from_search_entry('', new_cat.query)
         new_apps = AppStore(self.cache,
                             self.db,
                             self.icons,
-                            query,
+                            new_cat.query,
                             self.apps_limit,
                             True,
                             self.apps_filter)
-        carousel2 = FeaturedView(new_apps)
-        carousel2.more_btn.connect('clicked',
-                                 self._on_category_clicked,
-                                 new_cat)
+        self.carousel_new = FeaturedView(new_apps, _("New Applications"))
+        self.carousel_new.more_btn.connect('clicked',
+                                           self._on_category_clicked,
+                                           new_cat)
  
         # put in the box
         self.hbox_inner = gtk.HBox(spacing=mkit.HSPACING_SMALL)
         self.hbox_inner.set_homogeneous(True)
         self.hbox_inner.pack_start(self.carousel, False)
-        self.hbox_inner.pack_start(self.new, False)
-        self.hbox_inner.pack_start(carousel2, False)
+        self.hbox_inner.pack_start(self.carousel_new, False)
         self.vbox.pack_start(self.hbox_inner, False)
         return
 
@@ -324,7 +318,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         if not self.in_subsection:
             # draw featured carousel
             self.carousel.draw(cr, self.carousel.allocation, expose_area)
-            self.new.draw(cr, self.new.allocation, expose_area)
+            self.carousel_new.draw(cr, self.carousel_new.allocation, expose_area)
 
         del cr
         return
@@ -353,8 +347,10 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
 class FeaturedView(mkit.FramedSection):
 
-    def __init__(self, featured_apps):
+    def __init__(self, featured_apps, title):
         mkit.FramedSection.__init__(self)
+        self.title = title
+
         self.hbox = gtk.HBox(spacing=mkit.HSPACING_SMALL)
         self.hbox.set_homogeneous(True)
         self.body.pack_start(self.hbox, False)
@@ -371,7 +367,7 @@ class FeaturedView(mkit.FramedSection):
         self.set_redraw_on_allocate(False)
         self.featured_apps = featured_apps
 
-        self.set_label(H2 % _('Featured Applications'))
+        self.set_label(H2 % title)
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = _(u'View all \xbb')
@@ -584,7 +580,7 @@ class FeaturedView(mkit.FramedSection):
         layout = self._layout
 
         if not self.posters:
-            cr.restore()
+            #cr.restore()
             return
 
         overlay = self._overlay
