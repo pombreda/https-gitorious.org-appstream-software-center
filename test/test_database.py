@@ -36,6 +36,15 @@ class testDatabase(unittest.TestCase):
         querries = self.db._comma_expansion("??")
         self.assertEqual(querries, None)
 
+    def test_update_from_desktop_file(self):
+        from softwarecenter.db.update import update_from_app_install_data
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        cache = apt.Cache()
+        res = update_from_app_install_data(db, cache, datadir="./data/")
+        self.assertTrue(res)
+        self.assertEqual(db.get_doccount(), 1)
+
     def test_update_from_var_lib_apt_lists(self):
         from softwarecenter.db.update import update_from_var_lib_apt_lists
         db = xapian.WritableDatabase("./data/test.db", 
@@ -43,6 +52,7 @@ class testDatabase(unittest.TestCase):
         cache = apt.Cache()
         res = update_from_var_lib_apt_lists(db, cache, listsdir="./data/app-info/")
         self.assertTrue(res)
+        #self.assertEqual(db.get_doccount(), 1)
 
 if __name__ == "__main__":
     import logging
