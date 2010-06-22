@@ -104,6 +104,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # append sections
         self.carousel = None
+        self.carousel_new = None
         self.departments = None
         self.welcome = None
 
@@ -294,10 +295,13 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
             if self.carousel:
                 self.carousel.set_width(best_fit/2)
-                self._cleanup_poster_sigs()
+            if self.carousel_new:
+                self.carousel_new.set_width(best_fit/2)
             if self.departments:
                 self.departments.clear_rows()
                 self.departments.set_width(best_fit)
+            # cleanup any signals, its ok if there are none
+            self._cleanup_poster_sigs()
 
         self._full_redraw()   #  ewww
         return
@@ -328,8 +332,12 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         for sig_id in self._poster_sigs:
             gobject.source_remove(sig_id)
         self._poster_sigs = []
-        for poster in self.carousel.posters:
-            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        if self.carousel:
+            for poster in self.carousel.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        if self.carousel_new:
+            for poster in self.carousel_new.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
         return
 
     def _image_path(self,name):
@@ -377,7 +385,8 @@ class FeaturedView(mkit.FramedSection):
 
         self._width = 0
         self._icon_size = self.featured_apps.icon_size
-        self._offset = -3
+        import random
+        self._offset = random.randrange(len(featured_apps))
         self._alpha = 1.0
         self._fader = 0
         self._layout = None
