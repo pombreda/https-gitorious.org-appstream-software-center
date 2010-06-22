@@ -4,7 +4,7 @@
     <SCIcon>gtk-about</SCIcon>
     <Include>
       <Or>
-	<SCOrigin>LP-PPA-mvo</SCOrigin>
+	<SCOrigin>LP-PPA-app-review-board</SCOrigin>
       </Or>
     </Include>
   </Menu>
