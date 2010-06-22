@@ -102,7 +102,19 @@ def index_name(doc, name, term_generator):
     term_generator.index_text_without_positions(name, w)
 
 def update(db, cache, datadir=APP_INSTALL_PATH):
-    " index the desktop files in $datadir/desktop/*.desktop "
+    update_from_app_install_data(db, cache, datadir)
+    update_from_var_lib_apt_lists()
+
+def update_from_var_lib_apt_lists(db, cache, listsdir=None):
+    """ index the files in /var/lib/apt/lists/*AppInfo """
+    if not listsdir:
+        listsdir = apt_pkg.Config.FindDir("Dir::State::lists")
+    for appinfo in glob("%s/*AppInfo" % listsdir):
+        print appinfo
+    return True
+
+def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
+    """ index the desktop files in $datadir/desktop/*.desktop """
     term_generator = xapian.TermGenerator()
     seen = set()
     context = glib.main_context_default()

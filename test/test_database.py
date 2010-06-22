@@ -6,6 +6,7 @@ sys.path.insert(0,"../")
 
 import apt
 import unittest
+import xapian
 
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import *
@@ -34,6 +35,14 @@ class testDatabase(unittest.TestCase):
         # invalid query
         querries = self.db._comma_expansion("??")
         self.assertEqual(querries, None)
+
+    def test_update_from_var_lib_apt_lists(self):
+        from softwarecenter.db.update import update_from_var_lib_apt_lists
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        cache = apt.Cache()
+        res = update_from_var_lib_apt_lists(db, cache, listsdir="./data/app-info/")
+        self.assertTrue(res)
 
 if __name__ == "__main__":
     import logging
