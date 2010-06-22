@@ -169,7 +169,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # create new-apps widget
         self.new = mkit.LayoutView()
         # set the departments section to use the label markup we have just defined
-        self.new.set_label(H2 % _('New Applications'))
+        self.new.set_label(H2 % _("What's New"))
 
         self.hbox_inner = gtk.HBox(spacing=mkit.HSPACING_SMALL)
         self.hbox_inner.set_homogeneous(True)
