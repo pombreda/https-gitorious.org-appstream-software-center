@@ -33,6 +33,12 @@ class testAptHistory(unittest.TestCase):
         #print "\n".join([str(x) for x in history.transactions])
         self.assertEqual(len(history.transactions), 185)
 
+
+    def test_apthistory_upgrade(self):
+        history = AptHistory()
+        self.assertEqual(history.transactions[1].upgrade,
+                         ['acl (2.2.49-2, 2.2.49-3)'])
+
     def _glib_timeout(self):
         self._timeouts.append(time.time())
         return True

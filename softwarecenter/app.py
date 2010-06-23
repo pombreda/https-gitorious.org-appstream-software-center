@@ -239,7 +239,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # view switcher
-        self.view_switcher = ViewSwitcher(datadir, self.db, self.icons)
+        self.view_switcher = ViewSwitcher(datadir, self.db, self.cache, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
@@ -700,6 +700,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "available-node-expanded") and
             self.config.getboolean("general", "available-node-expanded")):
             self.view_switcher.expand_available_node()
+        if (self.config.has_option("general", "installed-node-expanded") and
+            self.config.getboolean("general", "installed-node-expanded")):
+            self.view_switcher.expand_installed_node()
 
     def save_state(self):
         logging.debug("save_state")
@@ -721,6 +724,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.config.set("general", "available-node-expanded", "True")
         else:
             self.config.set("general", "available-node-expanded", "False")
+        installed_node_expanded = self.view_switcher.is_installed_node_expanded()
+        if installed_node_expanded:
+            self.config.set("general", "installed-node-expanded", "True")
+        else:
+            self.config.set("general", "installed-node-expanded", "False")
         self.config.write()
 
     def run(self, args):

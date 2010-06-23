@@ -40,8 +40,9 @@ from xml.sax.saxutils import unescape as xml_unescape
 def get_category_by_name(categories, untrans_name):
     # find a specific category
     cat = filter(lambda cat: cat.untranslated_name == untrans_name,
-                 categories)[0]
-    return cat
+                 categories)
+    if cat: return cat[0]
+    return None
 
 class Category(object):
     """represents a menu category"""
@@ -151,6 +152,11 @@ class CategoriesView(object):
             elif and_elem.tag == "SCChannel":
                 logging.debug("adding channel: %s" % and_elem.text)
                 q = xapian.Query("AH"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCOrigin":
+                logging.debug("adding origin: %s" % and_elem.text)
+                # FIXME: origin is currently case-sensitive?!?
+                q = xapian.Query("XOO"+and_elem.text)
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCPkgname":
                 logging.debug("adding tag: %s" % and_elem.text)
