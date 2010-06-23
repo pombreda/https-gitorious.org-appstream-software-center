@@ -647,9 +647,8 @@ class LayoutView(FramedSection):
         for btn in self.widget_list:
             a = btn.allocation
             if a.width == 1 or a.height == 1: break
-            if btn.state == gtk.STATE_PRELIGHT or \
-                btn.state == gtk.STATE_ACTIVE:
-                btn.draw(cr, a, expose_area)
+
+            btn.draw(cr, a, expose_area)
 
         cr.restore()
         return
@@ -685,6 +684,7 @@ class Button(gtk.EventBox):
         self.shape = SHAPE_RECTANGLE
         self.theme = Style(self)
 
+        self._relief = gtk.RELIEF_NORMAL
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
@@ -762,10 +762,19 @@ class Button(gtk.EventBox):
         self.shape = shape
         return
 
+    def set_relief(self, relief):
+        self._relief = relief
+        return
+
     def draw(self, cr, a, expose_area, alpha=1.0):
         if is_overlapping(a, expose_area): return
 
-        self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
+        if self._relief == gtk.RELIEF_NORMAL:
+            self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
+        else:
+            if self.state == gtk.STATE_PRELIGHT or \
+                self.state == gtk.STATE_ACTIVE:
+                self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
 
         if self.has_focus():
             a = self.label.allocation

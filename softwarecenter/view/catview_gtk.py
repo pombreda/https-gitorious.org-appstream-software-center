@@ -217,6 +217,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                    icon_name=cat.iconname,
                                    icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
 
+            cat_btn.set_relief(gtk.RELIEF_NONE)
             cat_btn.set_internal_xalignment(0.0)    # basically justify-left
             cat_btn.set_internal_spacing(mkit.HSPACING_LARGE)
             cat_btn.set_border_width(mkit.BORDER_WIDTH_MED)
