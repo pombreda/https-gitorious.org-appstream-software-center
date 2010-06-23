@@ -127,6 +127,9 @@ class AppDetailsView(WebkitWidget):
         # will find fins a icon with it
         self.iconname = os.path.splitext(self.iconname)[0]
 
+        # get price
+        self.price = self.doc.get_value(XAPIAN_VALUE_PRICE)
+
         # get apt cache data
         pkgname = self.db.get_pkgname(self.doc)
         self.pkg = None
@@ -610,27 +613,42 @@ if __name__ == "__main__":
     else:
         datadir = "/usr/share/software-center"
 
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.apt.aptcache import AptCache
+    from softwarecenter.db.update import update_from_app_install_data
+    import softwarecenter.apt.apthistory
+    import softwarecenter.distro
+
+    # base stuff
     cache = AptCache()
-    db = StoreDatabase(pathname, cache)
+    distro = softwarecenter.distro.get_distro()
+    history = softwarecenter.apt.apthistory.AptHistory()
+    
+    # write fresh test data
+    xapian_base_path = "/var/cache/software-center"
+    xapian_datadir = "./test/data"
+    xapian_base_path = os.path.join(xapian_datadir, "test.db")
+    db = xapian.WritableDatabase(xapian_base_path,
+                                 xapian.DB_CREATE_OR_OVERWRITE)
+    res = update_from_app_install_data(db, cache, datadir=xapian_datadir)
+    db.flush()
+
+    # use test data
+    #xapian_base_path = "/var/cache/software-center/xapian"
+
+    db = StoreDatabase(xapian_base_path, cache)
     db.open()
 
+    # add icons
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
-
-    import softwarecenter.distro
-    distro = softwarecenter.distro.get_distro()
-
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsView(db, distro, icons, cache, datadir)
+    view = AppDetailsView(db, distro, icons, cache, history, datadir)
+    view.show_app(Application("Pay App Example", "pay-app"))
+    #view.show_app(Application("Ubuntu Software Center", "software-center"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 
