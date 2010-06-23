@@ -631,7 +631,6 @@ class LayoutView(FramedSection):
         for col in self.column_hbox.get_children():
             for btn in col.get_children():
                 col.remove(btn)
-            col.destroy()
         return
 
     def draw(self, cr, a, expose_area):
@@ -649,18 +648,6 @@ class LayoutView(FramedSection):
 
         cr.restore()
         return
-
-
-class LayoutRow(gtk.HBox):
-
-    def __init__(self, hspacing):
-        gtk.HBox.__init__(self, spacing=hspacing)
-        self.set_homogeneous(True)
-        self.set_redraw_on_allocate(False)
-        return
-
-    def __getitem__(self, index):
-        return self.get_children()[index]
 
 
 class Button(gtk.EventBox):
@@ -787,58 +774,58 @@ class Button(gtk.EventBox):
         return
 
 
-#class VButton(Button):
+class VButton(Button):
 
-    #def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
-        #Button.__init__(self, markup, icon_name, icon_size)
+    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
+        Button.__init__(self, markup, icon_name, icon_size)
 
-        #self.set_border_width(BORDER_WIDTH_MED)
-        #self.label.set_line_wrap(gtk.WRAP_WORD)
-        #self.label.set_justify(gtk.JUSTIFY_CENTER)
+        self.set_border_width(BORDER_WIDTH_MED)
+        self.label.set_line_wrap(gtk.WRAP_WORD)
+        self.label.set_justify(gtk.JUSTIFY_CENTER)
 
-        ## determine size_request width for label
-        #layout = self.label.get_layout()
-        #layout.set_width(CAT_BUTTON_FIXED_WIDTH*pango.SCALE)
-        #lw, lh = layout.get_pixel_extents()[1][2:]   # ink extents width, height
-        #self.label.set_size_request(lw, -1)
+        # determine size_request width for label
+        layout = self.label.get_layout()
+        layout.set_width(CAT_BUTTON_FIXED_WIDTH*pango.SCALE)
+        lw, lh = layout.get_pixel_extents()[1][2:]   # ink extents width, height
+        self.label.set_size_request(lw, -1)
 
-        #self.vbox = gtk.VBox(spacing=VSPACING_SMALL)
-        #h = lh + VSPACING_SMALL + 2*BORDER_WIDTH_MED + 48 # 32 = icon size
-        #self.vbox.set_size_request(CAT_BUTTON_FIXED_WIDTH, max(h, CAT_BUTTON_MIN_HEIGHT))
+        self.vbox = gtk.VBox(spacing=VSPACING_SMALL)
+        h = lh + VSPACING_SMALL + 2*BORDER_WIDTH_MED + 48 # 32 = icon size
+        self.vbox.set_size_request(CAT_BUTTON_FIXED_WIDTH, max(h, CAT_BUTTON_MIN_HEIGHT))
 
-        #self.add(self.vbox)
-        #if self.image:
-            #self.vbox.pack_start(self.image, False)
+        self.add(self.vbox)
+        if self.image:
+            self.vbox.pack_start(self.image, False)
 
-        #self.vbox.pack_start(self.label)
-        #self.show_all()
-        #return
+        self.vbox.pack_start(self.label)
+        self.show_all()
+        return
 
-    #def calc_width(self):
-        #return CAT_BUTTON_FIXED_WIDTH + 2*self.get_border_width()
+    def calc_width(self):
+        return CAT_BUTTON_FIXED_WIDTH + 2*self.get_border_width()
 
-    #def draw(self, cr, a, expose_area, theme):
-        #if is_overlapping(a, expose_area): return
+    def draw(self, cr, a, expose_area):
+        if is_overlapping(a, expose_area): return
 
-        #cr.save()
-        #x, y, w, h = a.x, a.y, a.width, a.height
-        #r = CAT_BUTTON_CORNER_RADIUS
-        #if self.state == gtk.STATE_NORMAL:
-            #pass
-        #elif self.state != gtk.STATE_ACTIVE:
-            #theme.paint_bg(cr, self, x, y, w, h, r)
-        #else:
-            #theme.paint_bg_active_deep(cr, self, x, y, w, h, r)
+        cr.save()
+        x, y, w, h = a.x, a.y, a.width, a.height
+        r = CAT_BUTTON_CORNER_RADIUS
+        if self.state == gtk.STATE_NORMAL:
+            pass
+        elif self.state != gtk.STATE_ACTIVE:
+            self.theme.paint_bg(cr, self, x, y, w, h, r)
+        else:
+            self.theme.paint_bg_active_deep(cr, self, x, y, w, h, r)
 
-        #if self.has_focus():
-            #self.style.paint_focus(self.window,
-                                   #self.state,
-                                   #(x+4, y+4, w-8, h-8),
-                                   #self,
-                                   #'button',
-                                   #x+4, y+4, w-8, h-8)
-        #cr.restore()
-        #return
+        if self.has_focus():
+            self.style.paint_focus(self.window,
+                                   self.state,
+                                   (x+4, y+4, w-8, h-8),
+                                   self,
+                                   'button',
+                                   x+4, y+4, w-8, h-8)
+        cr.restore()
+        return
 
 
 class HButton(Button):
