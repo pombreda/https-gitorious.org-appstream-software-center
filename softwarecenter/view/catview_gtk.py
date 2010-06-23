@@ -34,7 +34,7 @@ from catview import *
 COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
 COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
 
-CAT_BUTTON_FIXED_WIDTH =    108
+CAT_BUTTON_FIXED_WIDTH =    200
 CAT_BUTTON_MIN_HEIGHT =     96
 CAT_BUTTON_BORDER_WIDTH =   6
 CAT_BUTTON_CORNER_RADIUS =  8
@@ -195,15 +195,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.vbox.pack_start(self.hbox_inner, False)
         return
 
-    def _full_redraw(self):
-        def _redraw():
-            self.queue_draw()
-            return False
-
-        self.queue_draw()
-        gobject.idle_add(_redraw)
-        return
-
     def _append_departments(self):
         # create departments widget
         self.departments = mkit.LayoutView()
@@ -222,9 +213,12 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             #matches = enquirer.get_mset(0, len(self.db))
             #estimate = matches.get_matches_estimated()
 
-            cat_btn = mkit.VButton(name,
+            cat_btn = mkit.HButton(name,
                                    icon_name=cat.iconname,
-                                   icon_size=gtk.ICON_SIZE_DIALOG)
+                                   icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
+
+            cat_btn.set_internal_xalignment(0.0)    # basically justify-left
+            cat_btn.set_internal_spacing(mkit.HSPACING_LARGE)
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -263,6 +257,21 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.departments.set_width(best_fit)
         return
 
+    def _full_redraw(self):
+        def _redraw():
+            self.queue_draw()
+            return False
+
+        self.queue_draw()
+        gobject.idle_add(_redraw)
+        return
+
+    def _get_layout_best_fit_width(self):
+        if not self.parent: return 1
+        # parent alllocation less the sum of all border widths
+        return self.parent.allocation.width - \
+                2*(mkit.BORDER_WIDTH_LARGE + mkit.BORDER_WIDTH_MED) - mkit.BORDER_WIDTH_LARGE
+
     def _on_app_clicked(self, btn):
         app = btn.app
         appname = app[AppStore.COL_APP_NAME]
@@ -287,12 +296,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         self._full_redraw()
         return
-
-    def _get_layout_best_fit_width(self):
-        if not self.parent: return 1
-        # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - \
-                2*mkit.BORDER_WIDTH_LARGE - 2*mkit.BORDER_WIDTH_MED
 
     def _on_allocate(self, widget, allocation):
         if self._prev_width != widget.parent.allocation.width:
@@ -397,18 +400,12 @@ class CarouselView(mkit.FramedSection):
 
         if carousel_apps:
             self._icon_size = self.carousel_apps.icon_size
-        else:
-            self._icon_size = 32
-
-        self._width = 0
-
-        if carousel_apps:
-            self._icon_size = self.carousel_apps.icon_size
             self._offset = random.randrange(len(carousel_apps))
         else:
             self._offset = 0
             self._icon_size = 32
 
+        self._width = 0
         self._alpha = 1.0
         self._fader = 0
         self._layout = None
@@ -567,7 +564,7 @@ class CarouselView(mkit.FramedSection):
         return loop
 
     def set_width(self, width):
-        width -=  mkit.BORDER_WIDTH_MED
+#        width -=  mkit.BORDER_WIDTH_MED
         self._width = width
         self.body.set_size_request(width, -1)
         if not self._show_carousel and self.hbox.get_property('visible'):

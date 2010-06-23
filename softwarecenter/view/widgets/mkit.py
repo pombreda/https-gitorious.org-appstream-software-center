@@ -29,7 +29,7 @@ from mkit_themes import Color, ColorArray, ThemeRegistry
 
 import logging
 
-# todo pahase out from here if possible
+# todo phase out from here if possible
 CAT_BUTTON_FIXED_WIDTH =    108
 CAT_BUTTON_MIN_HEIGHT =     96
 CAT_BUTTON_BORDER_WIDTH =   6
@@ -514,11 +514,8 @@ class FramedSection(gtk.VBox):
         self.body.set_border_width(BORDER_WIDTH_MED)
         self.body.set_spacing(VSPACING_SMALL)
 
-        align = gtk.Alignment(0.5, 0.5)
-        align.add(self.body)
-
         self.pack_start(self.header, False)
-        self.pack_start(align)
+        self.pack_start(self.body)
         #self.pack_start(self.footer, False)
 
         self.label = gtk.Label()
@@ -577,22 +574,15 @@ class FramedSection(gtk.VBox):
 class LayoutView(FramedSection):
 
     def __init__(self):
-
         FramedSection.__init__(self)
-        self.hspacing = HSPACING_SMALL
-
         self.set_redraw_on_allocate(False)
+
+        self.column_hbox = gtk.HBox(spacing=HSPACING_SMALL)
+        self.column_hbox.set_homogeneous(True)
+        self.body.pack_start(self.column_hbox)
+
         self.widget_list = []
-
         self.theme = Style(self)
-        self._prev_width = 0
-        return
-
-    def _on_allocate(self, widget, allocation):
-        if self._prev_width == allocation.width: return
-        self._prev_width = allocation.width
-        self._clear_rows()
-        self.set_width()
         return
 
     def append(self, widget):
@@ -600,41 +590,48 @@ class LayoutView(FramedSection):
         return
 
     def set_width(self, width):
-        row = LayoutRow(self.hspacing)
-        self.body.pack_start(row, False)
+        self.body.set_size_request(width, -1)
 
-        spacing = self.hspacing
-        width -= 3*BORDER_WIDTH_MED
-        w = 0
+        # find widest button/widget
+        widgets = self.widget_list
+        widest_w = 0
+        for btn in widgets:
+            widest_w = max(widest_w, btn.calc_width())
 
-        for cat in self.widget_list:
-            cw = cat.calc_width()
+        # determine number of columns to display
+        n_columns = width / widest_w
+        n_columns = (width - n_columns*self.column_hbox.get_spacing()) / widest_w
 
-            if w + cw + spacing <= width:
-                row.pack_start(cat, False)
-                w += cw + spacing
+        # pack columns into widget
+        for i in range(n_columns):
+            self.column_hbox.pack_start(gtk.VBox(spacing=VSPACING_SMALL))
+
+        # pack buttons into appropriate columns
+        i = 0
+        columns = self.column_hbox.get_children()
+        for btn in widgets:
+            columns[i].pack_start(btn, False)
+            if i < n_columns-1:
+                i += 1
             else:
-                row = LayoutRow(self.hspacing)
-                self.body.pack_start(row, False)
-                row.pack_start(cat, False)
-                w = cw + spacing
+                i = 0
 
         self.show_all()
         return
 
     def clear_all(self):
         self.widget_list = []
-        for row in self.body.get_children():
-            for child in row.get_children():
+        for col in self.column_hbox.get_children():
+            for child in col.get_children():
                 child.destroy()
-            row.destroy()
+            col.destroy()
         return
 
     def clear_rows(self):
-        for row in self.body.get_children():
-            for cat in row.hbox.get_children():
-                row.hbox.remove(cat)
-            row.destroy()
+        for col in self.column_hbox.get_children():
+            for btn in col.get_children():
+                col.remove(btn)
+            col.destroy()
         return
 
     def draw(self, cr, a, expose_area):
@@ -643,35 +640,27 @@ class LayoutView(FramedSection):
         cr.save()
         FramedSection.draw(self, cr, a, expose_area)
 
-        for cat in self.widget_list:
-            a = cat.allocation
+        for btn in self.widget_list:
+            a = btn.allocation
             if a.width == 1 or a.height == 1: break
-            cat.draw(cr, a, expose_area, self.theme)
+            if btn.state == gtk.STATE_PRELIGHT or \
+                btn.state == gtk.STATE_ACTIVE:
+                btn.draw(cr, a, expose_area)
 
         cr.restore()
         return
 
 
-class LayoutRow(gtk.Alignment):
+class LayoutRow(gtk.HBox):
 
     def __init__(self, hspacing):
-        gtk.Alignment.__init__(self, 0.5, 0.5)
-        self.hbox = gtk.HBox(spacing=hspacing)
+        gtk.HBox.__init__(self, spacing=hspacing)
+        self.set_homogeneous(True)
         self.set_redraw_on_allocate(False)
-        self.hbox.set_redraw_on_allocate(False)
-        self.add(self.hbox)
         return
 
     def __getitem__(self, index):
-        return self.hbox.get_children()[index]
-
-    def pack_start(self, cat, *args, **kwargs):
-        self.hbox.pack_start(cat, *args, **kwargs)
-        return
-
-    def pack_end(self, cat, *args, **kwargs):
-        self.hbox.pack_end(cat, *args, **kwargs)
-        return
+        return self.get_children()[index]
 
 
 class Button(gtk.EventBox):
@@ -707,6 +696,7 @@ class Button(gtk.EventBox):
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
+        self._fixed_width = None
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -727,6 +717,7 @@ class Button(gtk.EventBox):
 
     def _on_realize(self, widget):
         self.set_size_request(self.calc_width(), -1)
+        #print self.allocation.width
         return
 
     def _on_enter(self, cat, event):
@@ -796,75 +787,76 @@ class Button(gtk.EventBox):
         return
 
 
-class VButton(Button):
+#class VButton(Button):
 
-    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
-        Button.__init__(self, markup, icon_name, icon_size)
+    #def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
+        #Button.__init__(self, markup, icon_name, icon_size)
 
-        self.set_border_width(BORDER_WIDTH_MED)
-        self.label.set_line_wrap(gtk.WRAP_WORD)
-        self.label.set_justify(gtk.JUSTIFY_CENTER)
+        #self.set_border_width(BORDER_WIDTH_MED)
+        #self.label.set_line_wrap(gtk.WRAP_WORD)
+        #self.label.set_justify(gtk.JUSTIFY_CENTER)
 
-        # determine size_request width for label
-        layout = self.label.get_layout()
-        layout.set_width(CAT_BUTTON_FIXED_WIDTH*pango.SCALE)
-        lw, lh = layout.get_pixel_extents()[1][2:]   # ink extents width, height
-        self.label.set_size_request(lw, -1)
+        ## determine size_request width for label
+        #layout = self.label.get_layout()
+        #layout.set_width(CAT_BUTTON_FIXED_WIDTH*pango.SCALE)
+        #lw, lh = layout.get_pixel_extents()[1][2:]   # ink extents width, height
+        #self.label.set_size_request(lw, -1)
 
-        self.vbox = gtk.VBox(spacing=VSPACING_SMALL)
-        h = lh + VSPACING_SMALL + 2*BORDER_WIDTH_MED + 48 # 32 = icon size
-        self.vbox.set_size_request(CAT_BUTTON_FIXED_WIDTH, max(h, CAT_BUTTON_MIN_HEIGHT))
+        #self.vbox = gtk.VBox(spacing=VSPACING_SMALL)
+        #h = lh + VSPACING_SMALL + 2*BORDER_WIDTH_MED + 48 # 32 = icon size
+        #self.vbox.set_size_request(CAT_BUTTON_FIXED_WIDTH, max(h, CAT_BUTTON_MIN_HEIGHT))
 
-        self.add(self.vbox)
-        if self.image:
-            self.vbox.pack_start(self.image, False)
+        #self.add(self.vbox)
+        #if self.image:
+            #self.vbox.pack_start(self.image, False)
 
-        self.vbox.pack_start(self.label)
-        self.show_all()
-        return
+        #self.vbox.pack_start(self.label)
+        #self.show_all()
+        #return
 
-    def calc_width(self):
-        return CAT_BUTTON_FIXED_WIDTH + 2*self.get_border_width()
+    #def calc_width(self):
+        #return CAT_BUTTON_FIXED_WIDTH + 2*self.get_border_width()
 
-    def draw(self, cr, a, expose_area, theme):
-        if is_overlapping(a, expose_area): return
+    #def draw(self, cr, a, expose_area, theme):
+        #if is_overlapping(a, expose_area): return
 
-        cr.save()
-        x, y, w, h = a.x, a.y, a.width, a.height
-        r = CAT_BUTTON_CORNER_RADIUS
-        if self.state == gtk.STATE_NORMAL:
-            pass
-        elif self.state != gtk.STATE_ACTIVE:
-            theme.paint_bg(cr, self, x, y, w, h, r)
-        else:
-            theme.paint_bg_active_deep(cr, self, x, y, w, h, r)
+        #cr.save()
+        #x, y, w, h = a.x, a.y, a.width, a.height
+        #r = CAT_BUTTON_CORNER_RADIUS
+        #if self.state == gtk.STATE_NORMAL:
+            #pass
+        #elif self.state != gtk.STATE_ACTIVE:
+            #theme.paint_bg(cr, self, x, y, w, h, r)
+        #else:
+            #theme.paint_bg_active_deep(cr, self, x, y, w, h, r)
 
-        if self.has_focus():
-            self.style.paint_focus(self.window,
-                                   self.state,
-                                   (x+4, y+4, w-8, h-8),
-                                   self,
-                                   'button',
-                                   x+4, y+4, w-8, h-8)
-        cr.restore()
-        return
+        #if self.has_focus():
+            #self.style.paint_focus(self.window,
+                                   #self.state,
+                                   #(x+4, y+4, w-8, h-8),
+                                   #self,
+                                   #'button',
+                                   #x+4, y+4, w-8, h-8)
+        #cr.restore()
+        #return
 
 
 class HButton(Button):
 
     def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
         Button.__init__(self, markup, icon_name, icon_size)
-        self.set_border_width(BORDER_WIDTH_SMALL)
 
-        hbox = gtk.HBox()
-        align = gtk.Alignment(0.5, 0.6)
-        align.add(hbox)
-        self.add(align)
+        self.hbox = gtk.HBox()
+        self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
+        self.alignment.add(self.hbox)
+        self.add(self.alignment)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
-            hbox.pack_start(self.image, False)
+            self.hbox.pack_start(self.image, False)
         if self.label.get_text():
-            hbox.pack_start(self.label, False)
+            self.hbox.pack_start(self.label, False)
+
+        self.set_border_width(BORDER_WIDTH_SMALL)
 
         self.show_all()
         return
@@ -878,17 +870,25 @@ class HButton(Button):
             w += layout.get_pixel_extents()[1][2]
         if self.image and self.image.get_property('visible'):
             w += self.image.allocation.width
-        w += self.get_border_width() + 12
+        w += 2*self.get_border_width() + 12 + self.hbox.get_spacing()
         return w
+
+    def set_internal_xalignment(self, xalign):
+        self.alignment.set(xalign,
+                           self.alignment.get_property('yalign'),
+                           0, 0)    # x/y scale
+        return
+
+    def set_internal_spacing(self, internal_spacing):
+        self.hbox.set_spacing(internal_spacing)
+        return
 
     def set_border_width(self, width):
         gtk.EventBox.set_border_width(self, width)
-        self.set_size_request(self.calc_width(), -1)
         return
 
     def set_label(self, label):
         self.label.set_markup(label)
-        self.set_size_request(self.calc_width(), -1)
         return
 
 
