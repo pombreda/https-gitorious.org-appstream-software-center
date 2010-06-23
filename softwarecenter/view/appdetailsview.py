@@ -45,6 +45,7 @@ from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend import get_install_backend
+from softwarecenter.view.purchasedialog import PurchaseDialog
 
 from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
@@ -365,6 +366,12 @@ class AppDetailsView(WebkitWidget):
 
 
     # callbacks
+    def on_button_buy_app_clicked(self):
+        logging.debug("on_button_buy_app_clicked")
+        dialog = PurchaseDialog()
+        dialog.run()
+        self._set_action_button_sensitive(True)
+
     def on_button_reload_clicked(self):
         self.backend.reload()
         self._set_action_button_sensitive(False)
