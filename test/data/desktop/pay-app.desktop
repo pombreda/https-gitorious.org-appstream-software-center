@@ -1,6 +1,6 @@
 [Desktop Entry]
 X-AppInstall-Package=pay-app
-X-AppInstall-PPA=owner/name
+X-AppInstall-PPA=pay-owner/pay-ppa-name
 X-AppInstall-Price=99$
 
 Name=Pay App Example

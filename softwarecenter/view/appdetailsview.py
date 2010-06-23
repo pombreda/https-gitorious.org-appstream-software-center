@@ -211,6 +211,10 @@ class AppDetailsView(WebkitWidget):
                 return _("To show information about this item, "
                          "the software catalog needs updating.")
             
+            # if we have no pkg and its a for pay app, display that
+            if available_for_arch and self.price:
+                return _("This software is available for pay.")
+
             # if we don't have a package and it has no arch/component its
             # not available for us
             return _("Sorry, '%s' is not available for "
@@ -284,6 +288,7 @@ class AppDetailsView(WebkitWidget):
         if not self._available_for_our_arch():
             return "hidden"
         if (not self.channelfile and 
+            not self.price and
             not self._unavailable_component() and
             not self.pkg):
             return "hidden"
@@ -525,8 +530,13 @@ class AppDetailsView(WebkitWidget):
                     logging.error("Can not handle price %s" % price)
                 action_button_value = "install"
         elif self.doc:
+            price =  self.doc.get_value(XAPIAN_VALUE_PRICE)
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
+            # it has a price and is not available 
+            if price and self._available_for_our_arch():
+                action_button_label = _("Buy for %s") % price
+                action_button_value = "buy_app"
+            elif channel:
                 path = APP_INSTALL_CHANNELS_PATH + channel +".list"
                 if os.path.exists(path):
                     self.channelname = channel

@@ -238,6 +238,14 @@ def index_app_info_from_parser(parser, db, cache):
             archive_channel = parser.get_desktop("X-AppInstall-Channel")
             doc.add_term("AH"+archive_channel)
             doc.add_value(XAPIAN_VALUE_ARCHIVE_CHANNEL, archive_channel)
+        # PPA (third party stuff)
+        if parser.has_option_desktop("X-AppInstall-PPA"):
+            archive_ppa = parser.get_desktop("X-AppInstall-PPA")
+            doc.add_value(XAPIAN_VALUE_ARCHIVE_PPA, archive_ppa)
+        # price (pay stuff)
+        if parser.has_option_desktop("X-AppInstall-Price"):
+            price = parser.get_desktop("X-AppInstall-Price")
+            doc.add_value(XAPIAN_VALUE_PRICE, price)
         # icon
         if parser.has_option_desktop("Icon"):
             icon = parser.get_desktop("Icon")
