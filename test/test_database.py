@@ -52,7 +52,7 @@ class testDatabase(unittest.TestCase):
         cache = apt.Cache()
         res = update_from_var_lib_apt_lists(db, cache, listsdir="./data/app-info/")
         self.assertTrue(res)
-        #self.assertEqual(db.get_doccount(), 1)
+        self.assertEqual(db.get_doccount(), 1)
 
 if __name__ == "__main__":
     import logging
