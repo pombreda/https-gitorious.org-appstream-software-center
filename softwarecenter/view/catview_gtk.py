@@ -159,15 +159,16 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                  True,
                                  self.apps_filter)
 
-        carousel = FeaturedView(featured_apps)
+        carousel = CarouselView(featured_apps)
+        carousel.set_label(H2 % _('Featured Applications'))
         carousel.more_btn.connect('clicked',
-                                 self._on_category_clicked,
-                                 featured_cat)
+                                  self._on_category_clicked,
+                                  featured_cat)
  
         self.carousel = carousel
 
         # create new-apps widget
-        self.new = mkit.LayoutView()
+        self.new = CarouselView()
         # set the departments section to use the label markup we have just defined
         self.new.set_label(H2 % _('New Applications'))
 
@@ -175,7 +176,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.hbox_inner.set_homogeneous(True)
         self.hbox_inner.pack_start(self.carousel, False)
         self.hbox_inner.pack_start(self.new, False)
-
 
         self.vbox.pack_start(self.hbox_inner, False)
         return
@@ -236,11 +236,10 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         for cat in self.categories:
             # make sure the string is parsable by pango, i.e. no funny characters
             name = gobject.markup_escape_text(cat.name)
-            # define the icon of the department
-            ico = gtk.image_new_from_icon_name(cat.iconname, gtk.ICON_SIZE_DIALOG)
 
             # finally, create the department with label markup and icon
-            cat_btn = mkit.VButton(name, image=ico)
+            cat_btn = mkit.VButton(markup=name, icon_name=cat.iconname,
+                                   icon_size=gtk.ICON_SIZE_DIALOG)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
@@ -339,9 +338,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
 
-class FeaturedView(mkit.FramedSection):
+class CarouselView(mkit.FramedSection):
 
-    def __init__(self, featured_apps):
+    def __init__(self, carousel_apps=None):
         mkit.FramedSection.__init__(self)
         self.hbox = gtk.HBox(spacing=mkit.HSPACING_SMALL)
         self.hbox.set_homogeneous(True)
@@ -357,9 +356,7 @@ class FeaturedView(mkit.FramedSection):
         self._show_carousel = True
 
         self.set_redraw_on_allocate(False)
-        self.featured_apps = featured_apps
-
-        self.set_label(H2 % _('Featured Applications'))
+        self.carousel_apps = carousel_apps
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = _(u'View all \xbb')
@@ -367,8 +364,12 @@ class FeaturedView(mkit.FramedSection):
         self.header.pack_end(self.more_btn, False)
         self.header.pack_end(self.play_pause_btn, False)
 
+        if carousel_apps:
+            self._icon_size = self.carousel_apps.icon_size
+        else:
+            self._icon_size = 32
+
         self._width = 0
-        self._icon_size = self.featured_apps.icon_size
         self._offset = -3
         self._alpha = 1.0
         self._fader = 0
@@ -433,15 +434,18 @@ class FeaturedView(mkit.FramedSection):
         n = min(CAROUSEL_MAX_POSTER_COUNT, n)
         self.n_posters = n    
 
+        if not self.carousel_apps: return
+
         # repack appropriate number of new posters
         for i in range(n):
             poster = FeaturedPoster(32)
             self.posters.append(poster)
             self.hbox.pack_start(poster)
 
-            if self._offset == len(self.featured_apps):
+            
+            if self._offset == len(self.carousel_apps):
                     self._offset = 0
-            poster.cache_assets(self.featured_apps[self._offset], self._layout)
+            poster.cache_assets(self.carousel_apps[self._offset], self._layout)
             self._offset += 1
 
         self.hbox.show_all()
@@ -469,9 +473,10 @@ class FeaturedView(mkit.FramedSection):
     def _set_next(self, fade_in=True):
         # increment view and update asset cache for each poster
         for poster in self.posters:
-            if self._offset == len(self.featured_apps):
+            if self._offset == len(self.carousel_apps):
                     self._offset = 0
-            poster.cache_assets(self.featured_apps[self._offset], self._layout)
+
+            poster.cache_assets(self.carousel_apps[self._offset], self._layout)
             self._offset += 1
         if fade_in:
             self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
@@ -572,7 +577,6 @@ class FeaturedView(mkit.FramedSection):
         layout = self._layout
 
         if not self.posters:
-            cr.restore()
             return
 
         overlay = self._overlay

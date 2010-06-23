@@ -401,7 +401,7 @@ class Style:
         # strong outline
         shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
         red, g, b = self.dark_line[state].floats()
-        cr.set_source_rgba(red, g, b, 1)
+        cr.set_source_rgba(red, g, b, alpha)
         cr.stroke()
 
         cr.restore()
