@@ -88,7 +88,7 @@ def floats_from_string_with_alpha(spec, a):
     r, g, b = floats_from_string(spec)
     return r, g, b, a
 
-def is_overlapping(widget_area, expose_area):
+def not_overlapping(widget_area, expose_area):
     return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
 
 
@@ -537,7 +537,7 @@ class FramedSection(gtk.VBox):
         return
 
     def draw(self, cr, a, expose_area):
-        if is_overlapping(a, expose_area): return
+        if not_overlapping(a, expose_area): return
 
         cr.save()
         cr.rectangle(a)
@@ -639,7 +639,7 @@ class LayoutView(FramedSection):
         return
 
     def draw(self, cr, a, expose_area):
-        if is_overlapping(a, expose_area): return
+        if not_overlapping(a, expose_area): return
 
         cr.save()
         FramedSection.draw(self, cr, a, expose_area)
@@ -767,7 +767,7 @@ class Button(gtk.EventBox):
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0):
-        if is_overlapping(a, expose_area): return
+        if not_overlapping(a, expose_area): return
 
         if self._relief == gtk.RELIEF_NORMAL:
             self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
@@ -819,7 +819,7 @@ class Button(gtk.EventBox):
         #return CAT_BUTTON_FIXED_WIDTH + 2*self.get_border_width()
 
     #def draw(self, cr, a, expose_area):
-        #if is_overlapping(a, expose_area): return
+        #if not_overlapping(a, expose_area): return
 
         #cr.save()
         #x, y, w, h = a.x, a.y, a.width, a.height
@@ -914,7 +914,7 @@ class PlayPauseButton(Button):
         return self.allocation.width
 
     def draw(self, cr, a, expose_area, alpha=1.0):
-        if is_overlapping(a, expose_area): return
+        if not_overlapping(a, expose_area): return
         Button.draw(self, cr, a, expose_area, alpha)
 
         cr.save()
