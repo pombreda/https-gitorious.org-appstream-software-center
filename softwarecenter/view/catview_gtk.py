@@ -219,6 +219,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
             cat_btn.set_internal_xalignment(0.0)    # basically justify-left
             cat_btn.set_internal_spacing(mkit.HSPACING_LARGE)
+            cat_btn.set_border_width(mkit.BORDER_WIDTH_MED)
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -245,9 +246,15 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         for cat in self.categories:
             # make sure the string is parsable by pango, i.e. no funny characters
             name = gobject.markup_escape_text(cat.name)
-            cat_btn = mkit.VButton(name, 
+
+            cat_btn = mkit.HButton(name,
                                    icon_name=cat.iconname,
-                                   icon_size= gtk.ICON_SIZE_DIALOG)
+                                   icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
+
+            cat_btn.set_internal_xalignment(0.0)    # basically justify-left
+            cat_btn.set_internal_spacing(mkit.HSPACING_LARGE)
+            cat_btn.set_border_width(mkit.BORDER_WIDTH_MED)
+
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
