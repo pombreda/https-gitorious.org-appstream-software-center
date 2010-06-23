@@ -4,6 +4,7 @@ X-AppInstall-Popcon=93988
 X-AppInstall-Section=main
 
 Name=Ubuntu Software Center
+Name[de]=Ubuntu Software Zentrum
 GenericName=Software Center
 Comment=Lets you choose from thousands of free applications available for Ubuntu
 Exec=/usr/bin/software-center

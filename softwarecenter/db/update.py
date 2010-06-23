@@ -20,7 +20,6 @@
 import apt
 import apt_pkg
 import glib
-import locale
 import logging
 import os
 import string
@@ -45,7 +44,7 @@ WEIGHT_APT_DESCRIPTION = 1
 from locale import getdefaultlocale
 import gettext
 
-# some globals that need to go into a Update class
+# some globals (FIXME: that really need to go into a new Update class)
 popcon_max = 0
 seen = set()
 
@@ -79,6 +78,28 @@ class DesktopTagSectionParser(AppInfoParserBase):
         if key.startswith("X-AppInstall-"):
             key = key[len("X-AppInstall-"):]
         # FIXME: make i18n work similar to get_desktop
+        # first try dgettext
+        if "Gettext-Domain" in self.tag_section:
+            value = self.tag_section.get(key)
+            if value:
+                domain = self.tag_section["Gettext-Domain"]
+                translated_value = gettext.dgettext(domain, value)
+                if value != translated_value:
+                    return translated_value
+        # then try the i18n version of the key (in [de_DE] or
+        # [de]) but ignore errors and return the untranslated one then
+        try:
+            locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
+            if locale:
+                if self.has_option_desktop("%s-%s" % (key, locale)):
+                    return self.tag_section["%s-%s" % (key, locale)]
+                if "_" in locale:
+                    locale_short = locale.split("_")[0]
+                    if self.has_option_desktop("%s-%s" % (key, locale_short)):
+                        return self.tag_section["%s-%s" % (key, locale_short)]
+        except ValueError,e :
+            pass
+        # and then the untranslated field
         return self.tag_section[key]
     def has_option_desktop(self, key):
         # strip away bogus prefixes
