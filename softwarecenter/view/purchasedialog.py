@@ -20,6 +20,9 @@ import gtk
 import simplejson
 import webkit
 
+from softwarecenter.backend import get_install_backend
+from softwarecenter.distro import get_distro
+
 class PurchaseDialog(gtk.Dialog):
 
     def __init__(self, url=None, html=None):
@@ -37,7 +40,8 @@ class PurchaseDialog(gtk.Dialog):
         elif html:
             self.webkit.load_html_string(html, "file:///")
         self.vbox.pack_start(self.webkit)
-        
+        self.distro = get_distro()
+
     def run(self):
         return gtk.Dialog.run(self)
 
@@ -57,7 +61,14 @@ class PurchaseDialog(gtk.Dialog):
         print res
         if res["successful"] == False:
             self.response(gtk.RESPONSE_CANCEL)
-        # FIXME: do something with the data
+        # FIXME: add auth key
+        source_entry = res["apt_line"]
+        backend = get_install_backend()
+        backend.add_sources_list_entry(source_entry)
+        backend.emit("channels-changed", True)
+        backend.reload()
+        # now queue installing the app
+        backend.install(res["pkgname"], "", "")
         self.response(gtk.RESPONSE_OK)
 
 if __name__ == "__main__":
@@ -72,7 +83,8 @@ if __name__ == "__main__":
  <script type="text/javascript">
   function changeTitle(title) { document.title = title; }
   function success() { changeTitle('{ "successful" : true, \
-                                      "repo-url" : "http://foobar" \
+                                      "apt_line" : "deb https://private-ppa.launchapd.net/mvo/ubuntu lucid main", \
+                                      "pkgname" : "2vcard" \
                                     }') }
   function cancel() { changeTitle('{ "successful" : "false" }') }
  </script>
