@@ -22,6 +22,8 @@ software-center (2.1.4) UNRELEASED; urgency=low
   * merged lp:~mvo/software-center/new-apps-test1 and
     lp:~mmcg069/software-center/catview-conform-w-spec, thanks
     to Matthew McGowan
+  * merged lp:~mvo/software-center/update-from-var-lib-apt-lists
+    to support meta-data in deb822 format in /var/lib/apt/lists
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Jun 2010 14:14:23 +0200
 
