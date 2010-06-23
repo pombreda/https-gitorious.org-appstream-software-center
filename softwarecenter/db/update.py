@@ -49,7 +49,28 @@ import gettext
 popcon_max = 0
 seen = set()
 
-class DesktopTagSectionParser(object):
+class AppInfoParserBase(object):
+    """ base class for reading AppInfo meta-data """
+
+    def get_desktop(self, key):
+        """ get a AppInfo entry for the given key """
+    def has_option_desktop(self, key):
+        """ return True if there is a given AppInfo info """
+    def get_desktop_categories(self):
+        categories = []
+        try:
+            categories_str = self.get_desktop("Categories")
+            for item in categories_str.split(";"):
+                if item:
+                    categories.append(item)
+        except NoOptionError:
+            pass
+        return categories
+    @property
+    def desktopf(self):
+        """ return the file that the AppInfo comes from """
+
+class DesktopTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, tagfile):
         self.tag_section = tag_section
         self.tagfile = tagfile
@@ -64,21 +85,11 @@ class DesktopTagSectionParser(object):
         if key.startswith("X-AppInstall-"):
             key = key[len("X-AppInstall-"):]
         return key in self.tag_section
-    def get_desktop_categories(self):
-        categories = []
-        try:
-            categories_str = self.get_desktop("Categories")
-            for item in categories_str.split(";"):
-                if item:
-                    categories.append(item)
-        except NoOptionError:
-            pass
-        return categories
     @property
     def desktopf(self):
         return self.tagfile
 
-class DesktopConfigParser(RawConfigParser):
+class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
     " thin wrapper that is tailored for xdg Desktop files "
     DE = "Desktop Entry"
     def get_desktop(self, key):
@@ -109,17 +120,6 @@ class DesktopConfigParser(RawConfigParser):
     def has_option_desktop(self, key):
         " test if there is the option under 'Desktop Entry'"
         return self.has_option(self.DE, key)
-    def get_desktop_categories(self):
-        " get the list of categories for the desktop file "
-        categories = []
-        try:
-            categories_str = self.get_desktop("Categories")
-            for item in categories_str.split(";"):
-                if item:
-                    categories.append(item)
-        except NoOptionError:
-            pass
-        return categories
     def read(self, filename):
         self._filename = filename
         RawConfigParser.read(self, filename)
