@@ -683,7 +683,7 @@ class Button(gtk.EventBox):
         self.internal_hb.pack_end(padding1, False)
 
         if markup:
-            self.label.set_markup(markup)
+            self.set_label(markup)
         if icon_name:
             self.image.set_from_icon_name(icon_name, icon_size)
 
@@ -884,7 +884,7 @@ class VButton(Button):
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
-            self.box.pack_start(self.label, False)
+            self.box.pack_end(self.label)
 
         self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
