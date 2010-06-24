@@ -417,8 +417,8 @@ class CarouselView(mkit.FramedSection):
         self.set_label(H2 % title)
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-        label = _(u'View all \xbb')
-        self.more_btn = mkit.HButton('<small>%s</small>' % label)
+        label = _('All')
+        self.more_btn = mkit.HButton('<u>%s</u>' % label)
         self.more_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.pack_end(self.more_btn, False)
