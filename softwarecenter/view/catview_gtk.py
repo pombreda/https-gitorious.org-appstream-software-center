@@ -401,8 +401,9 @@ class CarouselView(mkit.FramedSection):
         self.hbox.set_homogeneous(True)
         self.body.pack_start(self.hbox, False)
 
-        self.play_pause_btn = mkit.PlayPauseButton()
-        self.play_pause_btn.set_shape(mkit.SHAPE_CIRCLE)
+        #self.play_pause_btn = mkit.PlayPauseButton()
+        #self.play_pause_btn.set_shape(mkit.SHAPE_CIRCLE)
+        #self.play_pause_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.set_spacing(mkit.HSPACING_SMALL)
 
@@ -418,8 +419,10 @@ class CarouselView(mkit.FramedSection):
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = _(u'View all \xbb')
         self.more_btn = mkit.HButton('<small>%s</small>' % label)
+        self.more_btn.set_relief(gtk.RELIEF_NONE)
+
         self.header.pack_end(self.more_btn, False)
-        self.header.pack_end(self.play_pause_btn, False)
+        #self.header.pack_end(self.play_pause_btn, False)
 
         if carousel_apps:
             self._icon_size = 32
@@ -436,7 +439,7 @@ class CarouselView(mkit.FramedSection):
         self.show_all()
 
         self.connect('realize', self._on_realize)
-        self.more_btn.connect_after('realize', self._on_more_btn_realize)
+        #self.more_btn.connect_after('realize', self._on_more_btn_realize)
         return
 
     def _on_realize(self, widget):
@@ -624,15 +627,8 @@ class CarouselView(mkit.FramedSection):
         if mkit.not_overlapping(a, expose_area): return
         mkit.FramedSection.draw(self, cr, a, expose_area)
 
-        if self.more_btn.state == gtk.STATE_NORMAL:
-            self.more_btn.draw(cr, self.more_btn.allocation, expose_area, alpha=0.4)
-        else:
-            self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
-
-        if self.play_pause_btn.state == gtk.STATE_NORMAL:
-            self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area, alpha=0.4)
-        else:
-            self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
+        self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
+        #self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
 
         alpha = self._alpha
         layout = self._layout
