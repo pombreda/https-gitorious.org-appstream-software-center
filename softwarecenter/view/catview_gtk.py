@@ -42,7 +42,7 @@ CAT_BUTTON_CORNER_RADIUS =  8
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
-CAROUSEL_POSTER_MIN_WIDTH =      110 # this is actually more of an approximate minima
+CAROUSEL_POSTER_MIN_WIDTH =      100 # this is actually more of an approximate minima
 CAROUSEL_POSTER_MIN_HEIGHT =     75
 
 # XXX: TRANSITION_TIMEOUT 5000 for testing only, should be 20000 for normal use
@@ -683,7 +683,7 @@ class CarouselPoster(mkit.VButton):
         # TODO: dont do all this stuff every draw...
         ia = self.label.allocation  # label allocation
         layout = self.label.get_layout()
-        layout.set_width(ia.width*pango.SCALE)
+        layout.set_width((ia.width+12)*pango.SCALE)
         layout.set_wrap(pango.WRAP_WORD)
 
         if alpha < 1.0:
@@ -692,9 +692,9 @@ class CarouselPoster(mkit.VButton):
 
             pcr = pangocairo.CairoContext(cr)
             pcr.save()
-            pcr.rectangle(ia.x, ia.y, ia.width, 3*ia.height)
+            pcr.rectangle(ia.x-6, ia.y, ia.width+12, 3*ia.height)
             pcr.clip()
-            pcr.move_to(ia.x, ia.y)
+            pcr.move_to(ia.x-6, ia.y)
             pcr.set_source_rgba(*rgba)
             pcr.show_layout(layout)
             pcr.restore()
@@ -706,7 +706,7 @@ class CarouselPoster(mkit.VButton):
                                     a,
                                     self,
                                     None,
-                                    ia.x, ia.y,
+                                    ia.x-6, ia.y,
                                     layout)
         cr.restore()
         return
