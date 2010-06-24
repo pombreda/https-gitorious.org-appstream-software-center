@@ -535,13 +535,9 @@ class CarouselView(mkit.FramedSection):
         # increment view and update asset cache for each poster
         for poster in self.posters:
             if self._offset == len(self.carousel_apps):
-                    self._offset = 0
+                self._offset = 0
 
-            markup = '<b>%s</b>' % self.carousel_apps[self._offset][AppStore.COL_APP_NAME]
-            pixbuf = self.carousel_apps[self._offset][AppStore.COL_ICON]
-
-            poster.set_label(markup)
-            poster.image.set_from_pixbuf(pixbuf)
+            poster.set_app(self.carousel_apps[self._offset])
             self._offset += 1
         if fade_in:
             self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
@@ -651,8 +647,20 @@ class CarouselPoster(mkit.VButton):
         self.image.set_size_request(-1, 32)
         self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
+        self.app = None
+
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
+        return
+
+    def set_app(self, app):
+        self.app = app
+
+        markup = '<b>%s</b>' % app[AppStore.COL_APP_NAME]
+        pixbuf = app[AppStore.COL_ICON]
+
+        self.set_label(markup)
+        self.image.set_from_pixbuf(pixbuf)
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0):
