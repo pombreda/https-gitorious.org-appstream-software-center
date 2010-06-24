@@ -190,29 +190,23 @@ class AvailablePane(SoftwarePane):
             not (self.apps_search_term or self.apps_subcategory)):
             self.scroll_subcategories.show()
             self.subcategories_view.set_subcategory(self.apps_category)
-        else:
-            self.scroll_subcategories.hide()
-
-    def _show_hide_applist(self):
-        # now check if the apps_category view has entries and if
-        # not hide it
-        model = self.app_view.get_model()
-        if (model and
-            len(model) == 0 and
-            self.apps_category and
-            self.apps_category.subcategories and
-            not self.apps_subcategory):
             self.scroll_app_list.hide()
         else:
+            self.scroll_subcategories.hide()
             self.scroll_app_list.show()
 
     def refresh_apps(self):
         """refresh the applist and update the navigation bar
         """
         logging.debug("refresh_apps")
-        # mvo: its important to fist show the subcategories and then
-        #      the new model, otherwise we run into visual lack
-        self._show_hide_subcategories()
+        self.scroll_subcategories.hide()
+        self.scroll_app_list.hide()
+        if self.app_view.window:
+            self.app_view.window.set_cursor(self.busy_cursor)
+        if self.subcategories_view.window:
+            self.subcategories_view.window.set_cursor(self.busy_cursor)
+        if self.apps_vbox.window:
+            self.apps_vbox.window.set_cursor(self.busy_cursor)
         self._refresh_apps_with_apt_cache()
 
     @wait_for_apt_cache_ready
@@ -241,12 +235,6 @@ class AvailablePane(SoftwarePane):
         logging.debug("availablepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
-        if self.app_view.window:
-            self.app_view.window.set_cursor(self.busy_cursor)
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(self.busy_cursor)
-        if self.apps_vbox.window:
-            self.apps_vbox.window.set_cursor(self.busy_cursor)
         # special case to disable hide nonapps for the "Featured Applications" category
         if (self.apps_category and 
             self.apps_category.untranslated_name) == "Featured Applications":
@@ -270,8 +258,10 @@ class AvailablePane(SoftwarePane):
         # set model
         self.app_view.set_model(new_model)
         self.app_view.get_model().active = True
-        # check if we show subcategoriy
-        self._show_hide_applist()
+        # check if we show subcategory
+        self._show_hide_subcategories()
+        # TODO:  Implement this
+#        self._append_show_all_items(len(self.app_view.get_model()) ######
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))
