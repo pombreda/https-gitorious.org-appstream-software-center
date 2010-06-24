@@ -680,12 +680,13 @@ class CarouselPoster(mkit.VButton):
 
         layout = self.label.get_layout()
         if alpha < 1.0:
-            lw = layout.get_pixel_extents()[1][2]
+            # text colour from gtk.Style
+            rgba = mkit.floats_from_gdkcolor_with_alpha(self.style.text[self.state], alpha)
 
             pcr = pangocairo.CairoContext(cr)
             pcr.move_to(self.label.allocation.x,
                         self.label.allocation.y)
-            pcr.set_source_rgba(0, 0, 0, alpha)
+            pcr.set_source_rgba(*rgba)
             pcr.layout_path(layout)
             pcr.fill()
             del pcr
