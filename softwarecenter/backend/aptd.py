@@ -169,6 +169,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         yield self.reload()
 
     @inline_callbacks
+    def add_vendor_key_from_keyserver(self, keyid, keyserver="keyserver.ubuntu.com"):
+        # strip the keysize
+        if "/" in keyid:
+            keyid = keyid.split("/")[1]
+        if not keyid.startswith("0x"):
+            keyid = "0x%s" % keyid
+        return self.aptd_client.add_vendor_key_from_keyserver(keyid, keyserver)
+
+    @inline_callbacks
     def add_sources_list_entry(self, source_entry, sourcepart=None):
         from aptsources.sourceslist import SourceEntry
 

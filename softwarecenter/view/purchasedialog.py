@@ -64,6 +64,7 @@ class PurchaseDialog(gtk.Dialog):
         # FIXME: add auth key
         source_entry = res["apt_line"]
         backend = get_install_backend()
+        backend.add_vendor_key_from_keyserver(res["signing_key_id"])
         backend.add_sources_list_entry(source_entry)
         backend.emit("channels-changed", True)
         backend.reload()
