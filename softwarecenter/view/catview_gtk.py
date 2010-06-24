@@ -70,7 +70,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE,
                                    (gobject.TYPE_PYOBJECT, ),
-                                  )
+                                  ),
+                                  
+        "show-category-items" : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 (),)
         }
 
 
@@ -352,7 +356,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
         
     def _on_show_all_clicked(self, show_all_btn):
-        print "called _on_show_all_clicked"
+        self.emit("show-category-items")
 
     def set_subcategory(self, root_category, num_items=0, block=False):
         # nothing to do
