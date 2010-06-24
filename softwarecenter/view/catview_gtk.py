@@ -638,7 +638,7 @@ class CarouselView(mkit.FramedSection):
 
 class CarouselPoster(mkit.VButton):
 
-    def __init__(self, markup='test', icon_name='broken', icon_size=gtk.ICON_SIZE_DIALOG):
+    def __init__(self, markup='none', icon_name='none', icon_size=gtk.ICON_SIZE_DIALOG):
         mkit.VButton.__init__(self, markup, icon_name, icon_size)
         self.set_relief(gtk.RELIEF_NONE)
         self.set_border_width(mkit.BORDER_WIDTH_LARGE)
@@ -672,13 +672,14 @@ class CarouselPoster(mkit.VButton):
         cr.rectangle(a)
         cr.clip()
 
-        pb = self.image.get_pixbuf()
-        pb_w = pb.get_width()
+        if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.image.get_pixbuf()
+            pb_w = pb.get_width()
 
-        cr.set_source_pixbuf(pb,
-                             a.x + (a.width - pb_w)/2,
-                             self.image.allocation.y)
-        cr.paint_with_alpha(alpha)
+            cr.set_source_pixbuf(pb,
+                                 a.x + (a.width - pb_w)/2,
+                                 self.image.allocation.y)
+            cr.paint_with_alpha(alpha)
 
         # TODO: dont do all this stuff every draw...
         ia = self.label.allocation  # label allocation

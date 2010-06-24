@@ -670,18 +670,6 @@ class Button(gtk.EventBox):
         self.label = gtk.Label()
         self.image = gtk.Image()
 
-        # internal hbox providing padding at 
-        # the left and right margins
-        self.internal_hb = gtk.HBox()
-        padding0 = gtk.HBox()
-        padding1 = gtk.HBox()
-        padding0.set_size_request(6, -1)
-        padding1.set_size_request(6, -1)
-
-        self.add(self.internal_hb)
-        self.internal_hb.pack_start(padding0, False)
-        self.internal_hb.pack_end(padding1, False)
-
         if markup:
             self.set_label(markup)
         if icon_name:
@@ -859,7 +847,7 @@ class HButton(Button):
         self.box = gtk.HBox()
         self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
         self.alignment.add(self.box)
-        self.internal_hb.pack_start(self.alignment)
+        self.add(self.alignment)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
@@ -892,7 +880,7 @@ class VButton(Button):
         self.box = gtk.VBox()
         self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
         self.alignment.add(self.box)
-        self.internal_hb.pack_start(self.alignment)
+        self.add(self.alignment)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
