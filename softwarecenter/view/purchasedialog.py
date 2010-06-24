@@ -61,15 +61,19 @@ class PurchaseDialog(gtk.Dialog):
         print res
         if res["successful"] == False:
             self.response(gtk.RESPONSE_CANCEL)
-        # FIXME: add auth key
-        source_entry = res["apt_line"]
+        # gather data
+        source_entry = res["deb_line"]
+        signing_key = res["signing_key_id"]
+        pkgname = res["package_name"]
+        appname = res["application_name"]
+        # do it
         backend = get_install_backend()
-        backend.add_vendor_key_from_keyserver(res["signing_key_id"])
+        backend.add_vendor_key_from_keyserver(signing_key)
         backend.add_sources_list_entry(source_entry)
         backend.emit("channels-changed", True)
         backend.reload()
         # now queue installing the app
-        backend.install(res["pkgname"], "", "")
+        backend.install(pkgname, appname, "")
         self.response(gtk.RESPONSE_OK)
 
 if __name__ == "__main__":
@@ -84,8 +88,10 @@ if __name__ == "__main__":
  <script type="text/javascript">
   function changeTitle(title) { document.title = title; }
   function success() { changeTitle('{ "successful" : true, \
-                                      "apt_line" : "deb https://private-ppa.launchapd.net/mvo/ubuntu lucid main", \
-                                      "pkgname" : "2vcard" \
+                                      "deb_line" : "deb https://user:pass@private-ppa.launchapd.net/mvo/ubuntu lucid main", \
+                                      "package_name" : "2vcard", \
+                                      "application_name" : "The 2vcard app", \
+                                      "signing_key_id" : "1024R/0EB12F05"\
                                     }') }
   function cancel() { changeTitle('{ "successful" : "false" }') }
  </script>
