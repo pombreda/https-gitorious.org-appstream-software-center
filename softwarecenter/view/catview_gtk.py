@@ -142,10 +142,48 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self._append_featured_and_new()
         return
 
-    def _build_subcat_view(self):
+    def _build_subcat_view(self, root_category, num_items):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        self._append_subcat_departments()
+        # create departments widget
+        if not self.departments:
+            self.departments = mkit.LayoutView()
+            # append the departments section to the page
+            self.vbox.pack_start(self.departments, False)
+            self.departments.show_all()
+        else:
+            self.departments.clear_all()
+
+        # set the departments section to use the label markup we have just defined
+        header = gobject.markup_escape_text(self.header)
+        self.departments.set_label(H2 % header)
+
+        for cat in self.categories:
+            # make sure the string is parsable by pango, i.e. no funny characters
+            name = gobject.markup_escape_text(cat.name)
+            # finally, create the department with label markup and icon
+            cat_btn = mkit.VButton(name, 
+                                   icon_name=cat.iconname,
+                                   icon_size= gtk.ICON_SIZE_DIALOG)
+            cat_btn.connect('clicked', self._on_category_clicked, cat)
+            # append the department to the departments widget
+            self.departments.append(cat_btn)
+
+        # TODO:  remove the ">>" once we have the correct icon to use
+        #        in the show_all_button (for now, just show the category icon)
+        name = _("All %s >>") % num_items
+        fixed_name = gobject.markup_escape_text(name)
+        show_all_btn = mkit.VButton(fixed_name, 
+                                    icon_name=root_category.iconname,
+                                    icon_size= gtk.ICON_SIZE_DIALOG)
+        # show_all_btn.connect('clicked', self._on_show_all_clicked, root_category)
+        show_all_btn.connect('clicked', self._on_show_all_clicked)
+        # append as the last item in the departments list
+        self.departments.append(show_all_btn)
+
+        # kinda hacky doing this here...
+        best_fit = self._get_layout_best_fit_width()
+        self.departments.set_width(best_fit)
         return
 
     def _append_featured_and_new(self):
@@ -225,36 +263,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
-        return
-
-    def _append_subcat_departments(self):
-        # create departments widget
-        if not self.departments:
-            self.departments = mkit.LayoutView()
-            # append the departments section to the page
-            self.vbox.pack_start(self.departments, False)
-            self.departments.show_all()
-        else:
-            self.departments.clear_all()
-
-        # set the departments section to use the label markup we have just defined
-        header = gobject.markup_escape_text(self.header)
-        self.departments.set_label(H2 % header)
-
-        for cat in self.categories:
-            # make sure the string is parsable by pango, i.e. no funny characters
-            name = gobject.markup_escape_text(cat.name)
-            # finally, create the department with label markup and icon
-            cat_btn = mkit.VButton(name, 
-                                   icon_name=cat.iconname,
-                                   icon_size= gtk.ICON_SIZE_DIALOG)
-            cat_btn.connect('clicked', self._on_category_clicked, cat)
-            # append the department to the departments widget
-            self.departments.append(cat_btn)
-
-        # kinda hacky doing this here...
-        best_fit = self._get_layout_best_fit_width()
-        self.departments.set_width(best_fit)
         return
 
     def _on_app_clicked(self, btn):
@@ -341,17 +349,19 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
     def _image_path(self,name):
-        return os.path.abspath("%s/images/%s.png" % (self.datadir, name)) 
+        return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
+        
+    def _on_show_all_clicked(self, show_all_btn):
+        print "called _on_show_all_clicked"
 
-    def set_subcategory(self, root_category, block=False):
+    def set_subcategory(self, root_category, num_items=0, block=False):
         # nothing to do
         if self.categories == root_category.subcategories:
             return
         self.header = root_category.name
         self.categories = root_category.subcategories
-        self._build_subcat_view()
+        self._build_subcat_view(root_category, num_items)
         return
-
 
 class FeaturedView(mkit.FramedSection):
 

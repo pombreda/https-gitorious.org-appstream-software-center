@@ -189,7 +189,8 @@ class AvailablePane(SoftwarePane):
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
             self.scroll_subcategories.show()
-            self.subcategories_view.set_subcategory(self.apps_category)
+            self.subcategories_view.set_subcategory(self.apps_category,
+                                                    num_items=len(self.app_view.get_model()))
             self.scroll_app_list.hide()
         else:
             self.scroll_subcategories.hide()
@@ -260,8 +261,6 @@ class AvailablePane(SoftwarePane):
         self.app_view.get_model().active = True
         # check if we show subcategory
         self._show_hide_subcategories()
-        # TODO:  Implement this
-#        self._append_show_all_items(len(self.app_view.get_model()) ######
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))
@@ -391,7 +390,10 @@ class AvailablePane(SoftwarePane):
         if (appstore and 
             appstore.active and
             not appstore.nonapps_visible and
-            appstore.nonapp_pkgs):
+            appstore.nonapp_pkgs and
+            self.apps_category and
+            self.apps_category.subcategories and
+            not self.scroll_subcategories.props.visible):
             # We want to display the label if there are hidden packages
             # in the appstore.
             label = gettext.ngettext("_%i other_ technical item",
