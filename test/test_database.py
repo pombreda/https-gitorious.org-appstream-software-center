@@ -46,7 +46,7 @@ class testDatabase(unittest.TestCase):
         os.environ["LANGUAGE"] = "de"
         res = update_from_app_install_data(db, cache, datadir="./data/")
         self.assertTrue(res)
-        self.assertEqual(db.get_doccount(), 1)
+        self.assertEqual(db.get_doccount(), 3)
         # test if Name[de] was picked up
         i=0
         for it in db.postlist("AAUbuntu Software Zentrum"):
