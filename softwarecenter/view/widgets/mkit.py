@@ -773,17 +773,30 @@ class Button(gtk.EventBox):
 
     def _draw_action_arrow(self, a, aw=10):  # d : arrow_width
         # draw arrow
-        self.style.paint_arrow(self.window,
-                               self.state,
-                               gtk.SHADOW_NONE,
-                               a,       #area
-                               self,
-                               None,
-                               gtk.ARROW_RIGHT,
-                               True,    # fill
-                               a.x + a.width - aw - self.get_border_width(),
-                               a.y + (a.height-aw)/2,
-                               aw, aw)
+        if self.get_direction() != gtk.TEXT_DIR_RTL:
+            self.style.paint_arrow(self.window,
+                                   self.state,
+                                   gtk.SHADOW_NONE,
+                                   a,       #area
+                                   self,
+                                   None,
+                                   gtk.ARROW_RIGHT,
+                                   True,    # fill
+                                   a.x + a.width - aw - self.get_border_width(),
+                                   a.y + (a.height-aw)/2,
+                                   aw, aw)
+        else:
+            self.style.paint_arrow(self.window,
+                                   self.state,
+                                   gtk.SHADOW_NONE,
+                                   a,       #area
+                                   self,
+                                   None,
+                                   gtk.ARROW_LEFT,
+                                   True,    # fill
+                                   a.x + self.get_border_width(),
+                                   a.y + (a.height-aw)/2,
+                                   aw, aw)
         return
 
     def set_shape(self, shape):
