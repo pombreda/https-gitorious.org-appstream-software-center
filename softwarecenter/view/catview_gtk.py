@@ -149,45 +149,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _build_subcat_view(self, root_category, num_items):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        # create departments widget
-        if not self.departments:
-            self.departments = mkit.LayoutView()
-            # append the departments section to the page
-            self.vbox.pack_start(self.departments, False)
-            self.departments.show_all()
-        else:
-            self.departments.clear_all()
-
-        # set the departments section to use the label markup we have just defined
-        header = gobject.markup_escape_text(self.header)
-        self.departments.set_label(H2 % header)
-
-        for cat in self.categories:
-            # make sure the string is parsable by pango, i.e. no funny characters
-            name = gobject.markup_escape_text(cat.name)
-            # finally, create the department with label markup and icon
-            cat_btn = mkit.VButton(name, 
-                                   icon_name=cat.iconname,
-                                   icon_size= gtk.ICON_SIZE_DIALOG)
-            cat_btn.connect('clicked', self._on_category_clicked, cat)
-            # append the department to the departments widget
-            self.departments.append(cat_btn)
-
-        # TODO:  remove the ">>" once we have the correct icon to use
-        #        in the show_all_button (for now, just show the category icon)
-        name = _("All %s >>") % num_items
-        fixed_name = gobject.markup_escape_text(name)
-        show_all_btn = mkit.VButton(fixed_name, 
-                                    icon_name=root_category.iconname,
-                                    icon_size= gtk.ICON_SIZE_DIALOG)
-        # show_all_btn.connect('clicked', self._on_show_all_clicked, root_category)
-        show_all_btn.connect('clicked', self._on_show_all_clicked)
-        # append as the last item in the departments list
-        self.departments.append(show_all_btn)
-
-        # kinda hacky doing this here...
-        best_fit = self._get_layout_best_fit_width()
-        self.departments.set_width(best_fit)
+        self._append_subcat_departments(root_category, num_items)
         return
 
     def _append_featured_and_new(self):
@@ -230,15 +192,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.vbox.pack_start(self.hbox_inner, False)
         return
 
-    def _full_redraw(self):
-        def _redraw():
-            self.queue_draw()
-            return False
-
-        self.queue_draw()
-        gobject.idle_add(_redraw)
-        return
-
     def _append_departments(self):
         # create departments widget
         self.departments = mkit.LayoutView()
@@ -267,6 +220,57 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
+        return
+        
+    def _append_subcat_departments(self, root_category, num_items):
+        # create departments widget
+        if not self.departments:
+            self.departments = mkit.LayoutView()
+            # append the departments section to the page
+            self.vbox.pack_start(self.departments, False)
+            self.departments.show_all()
+        else:
+            self.departments.clear_all()
+
+        # set the departments section to use the label markup we have just defined
+        header = gobject.markup_escape_text(self.header)
+        self.departments.set_label(H2 % header)
+
+        for cat in self.categories:
+            # make sure the string is parsable by pango, i.e. no funny characters
+            name = gobject.markup_escape_text(cat.name)
+            # finally, create the department with label markup and icon
+            cat_btn = mkit.VButton(name, 
+                                   icon_name=cat.iconname,
+                                   icon_size= gtk.ICON_SIZE_DIALOG)
+            cat_btn.connect('clicked', self._on_category_clicked, cat)
+            # append the department to the departments widget
+            self.departments.append(cat_btn)
+
+        # TODO:  remove the ">>" once we have the correct icon to use
+        #        in the show_all_button (for now, just show the category icon)
+        name = _("All %s >>") % num_items
+        fixed_name = gobject.markup_escape_text(name)
+        show_all_btn = mkit.VButton(fixed_name, 
+                                    icon_name=root_category.iconname,
+                                    icon_size= gtk.ICON_SIZE_DIALOG)
+        # show_all_btn.connect('clicked', self._on_show_all_clicked, root_category)
+        show_all_btn.connect('clicked', self._on_show_all_clicked)
+        # append as the last item in the departments list
+        self.departments.append(show_all_btn)
+
+        # kinda hacky doing this here...
+        best_fit = self._get_layout_best_fit_width()
+        self.departments.set_width(best_fit)
+        return
+        
+    def _full_redraw(self):
+        def _redraw():
+            self.queue_draw()
+            return False
+
+        self.queue_draw()
+        gobject.idle_add(_redraw)
         return
 
     def _on_app_clicked(self, btn):
