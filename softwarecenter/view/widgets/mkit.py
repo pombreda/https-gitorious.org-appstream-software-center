@@ -670,6 +670,18 @@ class Button(gtk.EventBox):
         self.label = gtk.Label()
         self.image = gtk.Image()
 
+        # internal hbox providing padding at 
+        # the left and right margins
+        self.internal_hb = gtk.HBox()
+        padding0 = gtk.HBox()
+        padding1 = gtk.HBox()
+        padding0.set_size_request(6, -1)
+        padding1.set_size_request(6, -1)
+
+        self.add(self.internal_hb)
+        self.internal_hb.pack_start(padding0, False)
+        self.internal_hb.pack_end(padding1, False)
+
         if markup:
             self.label.set_markup(markup)
         if icon_name:
@@ -782,6 +794,20 @@ class Button(gtk.EventBox):
         self._relief = relief
         return
 
+    def set_internal_xalignment(self, xalign):
+        self.alignment.set(xalign,
+                           self.alignment.get_property('yalign'),
+                           0, 0)    # x/y scale
+        return
+
+    def set_internal_spacing(self, internal_spacing):
+        self.box.set_spacing(internal_spacing)
+        return
+
+    def set_label(self, label):
+        self.label.set_markup(label)
+        return
+
     def set_has_action_arrow(self, has_action_arrow):
         self._has_action_arrow = has_action_arrow
         return
@@ -812,84 +838,20 @@ class Button(gtk.EventBox):
         return
 
 
-#class VButton(Button):
-
-    #def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
-        #Button.__init__(self, markup, icon_name, icon_size)
-
-        #self.set_border_width(BORDER_WIDTH_MED)
-        #self.label.set_line_wrap(gtk.WRAP_WORD)
-        #self.label.set_justify(gtk.JUSTIFY_CENTER)
-
-        ## determine size_request width for label
-        #layout = self.label.get_layout()
-        #layout.set_width(CAT_BUTTON_FIXED_WIDTH*pango.SCALE)
-        #lw, lh = layout.get_pixel_extents()[1][2:]   # ink extents width, height
-        #self.label.set_size_request(lw, -1)
-
-        #self.vbox = gtk.VBox(spacing=VSPACING_SMALL)
-        #h = lh + VSPACING_SMALL + 2*BORDER_WIDTH_MED + 48 # 32 = icon size
-        #self.vbox.set_size_request(CAT_BUTTON_FIXED_WIDTH, max(h, CAT_BUTTON_MIN_HEIGHT))
-
-        #self.add(self.vbox)
-        #if self.image:
-            #self.vbox.pack_start(self.image, False)
-
-        #self.vbox.pack_start(self.label)
-        #self.show_all()
-        #return
-
-    #def calc_width(self):
-        #return CAT_BUTTON_FIXED_WIDTH + 2*self.get_border_width()
-
-    #def draw(self, cr, a, expose_area):
-        #if not_overlapping(a, expose_area): return
-
-        #cr.save()
-        #x, y, w, h = a.x, a.y, a.width, a.height
-        #r = CAT_BUTTON_CORNER_RADIUS
-        #if self.state == gtk.STATE_NORMAL:
-            #pass
-        #elif self.state != gtk.STATE_ACTIVE:
-            #self.theme.paint_bg(cr, self, x, y, w, h, r)
-        #else:
-            #self.theme.paint_bg_active_deep(cr, self, x, y, w, h, r)
-
-        #if self.has_focus():
-            #self.style.paint_focus(self.window,
-                                   #self.state,
-                                   #(x+4, y+4, w-8, h-8),
-                                   #self,
-                                   #'button',
-                                   #x+4, y+4, w-8, h-8)
-        #cr.restore()
-        #return
-
-
 class HButton(Button):
 
     def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
         Button.__init__(self, markup, icon_name, icon_size)
 
-        hb = gtk.HBox()
-        padding0 = gtk.HBox()
-        padding1 = gtk.HBox()
-        padding0.set_size_request(6, -1)
-        padding1.set_size_request(6, -1)
-
-        self.hbox = gtk.HBox()
+        self.box = gtk.HBox()
         self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
-        self.alignment.add(self.hbox)
-
-        self.add(hb)
-        hb.pack_start(padding0, False)
-        hb.pack_start(self.alignment)
-        hb.pack_start(padding1, False)
+        self.alignment.add(self.box)
+        self.internal_hb.pack_start(self.alignment)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
-            self.hbox.pack_start(self.image, False)
+            self.box.pack_start(self.image, False)
         if self.label.get_text():
-            self.hbox.pack_start(self.label, False)
+            self.box.pack_start(self.label, False)
 
         self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
@@ -905,22 +867,42 @@ class HButton(Button):
         if self.image and self.image.get_property('visible'):
             w += self.image.allocation.width
 
-        w += 2*self.get_border_width() + 12 + self.hbox.get_spacing()
+        w += 2*self.get_border_width() + 12 + self.box.get_spacing()
         return w
 
-    def set_internal_xalignment(self, xalign):
-        self.alignment.set(xalign,
-                           self.alignment.get_property('yalign'),
-                           0, 0)    # x/y scale
+
+class VButton(Button):
+
+    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
+        Button.__init__(self, markup, icon_name, icon_size)
+
+        self.box = gtk.VBox()
+        self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
+        self.alignment.add(self.box)
+        self.internal_hb.pack_start(self.alignment)
+
+        if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
+            self.box.pack_start(self.image, False)
+        if self.label.get_text():
+            self.box.pack_start(self.label, False)
+
+        self.set_border_width(BORDER_WIDTH_SMALL)
+        self.show_all()
         return
 
-    def set_internal_spacing(self, internal_spacing):
-        self.hbox.set_spacing(internal_spacing)
-        return
+    def calc_width(self):
+        w = 1
+        if self.label:
+            pc = self.get_pango_context()
+            layout = pango.Layout(pc)
+            layout.set_markup(self.label.get_label())
+            lw = layout.get_pixel_extents()[1][2]   # label width
+        if self.image and self.image.get_property('visible'):
+            iw = self.image.allocation.width        # image width
 
-    def set_label(self, label):
-        self.label.set_markup(label)
-        return
+        w += max(lw, iw)
+        w += 2*self.get_border_width() + 12
+        return w
 
 
 class PlayPauseButton(Button):

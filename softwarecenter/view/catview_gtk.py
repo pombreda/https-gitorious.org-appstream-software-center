@@ -204,14 +204,18 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
 #        enquirer = xapian.Enquire(self.db.xapiandb)
 
-        for cat in self.categories[:-1]:
-            # make sure the string is parsable by pango, i.e. no funny characters
-            name = gobject.markup_escape_text(cat.name.strip())
+        # sort Category.name's alphabetically
+        sorted_catnames = sorted_category_names(self.categories[:-1])
 
+        for name in sorted_catnames:
+            cat = get_category_by_name(self.categories, name)
             #enquirer.set_query(cat.query)
             ## limiting the size here does not make it faster
             #matches = enquirer.get_mset(0, len(self.db))
             #estimate = matches.get_matches_estimated()
+
+            # sanitize text so its pango friendly...
+            name = gobject.markup_escape_text(name.strip())
 
             cat_btn = CategoryButton(name,
                                      icon_name=cat.iconname,
@@ -239,9 +243,14 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         header = gobject.markup_escape_text(self.header)
         self.departments.set_label(H2 % header)
 
-        for cat in self.categories:
-            # make sure the string is parsable by pango, i.e. no funny characters
-            name = gobject.markup_escape_text(cat.name)
+        # sort Category.name's alphabetically
+        sorted_catnames = sorted_category_names(self.categories)
+
+        for name in sorted_catnames:
+            cat = get_category_by_name(self.categories, name)
+
+            # sanitize text so its pango friendly...
+            name = gobject.markup_escape_text(name.strip())
 
             cat_btn = CategoryButton(name,
                                      icon_name=cat.iconname,
