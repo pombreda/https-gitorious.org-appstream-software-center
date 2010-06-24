@@ -3,7 +3,7 @@ X-AppInstall-Package=software-center
 X-AppInstall-Popcon=93988
 X-AppInstall-Section=main
 
-Name=Ubuntu Software Center
+Name=Ubuntu Software Center Test
 Name[de]=Ubuntu Software Zentrum
 GenericName=Software Center
 Comment=Lets you choose from thousands of free applications available for Ubuntu

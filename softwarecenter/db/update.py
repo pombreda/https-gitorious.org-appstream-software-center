@@ -164,7 +164,7 @@ def index_name(doc, name, term_generator):
 
 def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
-    update_from_var_lib_apt_lists()
+    update_from_var_lib_apt_lists(db, cache)
     # add db global meta-data
     logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
