@@ -39,6 +39,8 @@ class PurchaseDialog(gtk.Dialog):
             self.webkit.load_uri(url)
         elif html:
             self.webkit.load_html_string(html, "file:///")
+        else:
+            self.webkit.load_html_string(DUMMY_HTML, "file:///")
         self.vbox.pack_start(self.webkit)
         self.distro = get_distro()
 
@@ -76,8 +78,9 @@ class PurchaseDialog(gtk.Dialog):
         backend.install(pkgname, appname, "")
         self.response(gtk.RESPONSE_OK)
 
-if __name__ == "__main__":
-    html = """
+
+# just used for testing
+DUMMY_HTML = """
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
        "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -95,20 +98,26 @@ if __name__ == "__main__":
                                     }') }
   function cancel() { changeTitle('{ "successful" : "false" }') }
  </script>
- <h1>Purchase test</h1>
- <p>  Some text  </p>
+ <h1>Purchase test page</h1>
+ <p> To buy Frobunicator for 99$ you need to enter your credit card info</p>
+ <p>  Enter your credit card info  </p>
+ <p>
+ <input type="entry">
+ </p>
  <input type="button" name="test_button2" 
-        value="Button cancel"
+        value="Cancel"
       onclick='cancel()'
  />
  <input type="button" name="test_button" 
-        value="Button ok"
+        value="Buy now"
       onclick='success()'
  />
 </body>
 </html>
     """
+
+if __name__ == "__main__":
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
     #url = "http://www.ubuntu.com"
-    d = PurchaseDialog(html=html)
+    d = PurchaseDialog(html=DUMMY_HTML)
     d.run()
