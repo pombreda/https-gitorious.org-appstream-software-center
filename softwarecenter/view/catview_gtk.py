@@ -213,14 +213,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             #matches = enquirer.get_mset(0, len(self.db))
             #estimate = matches.get_matches_estimated()
 
-            cat_btn = mkit.HButton(name,
-                                   icon_name=cat.iconname,
-                                   icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
-
-            cat_btn.set_relief(gtk.RELIEF_NONE)
-            cat_btn.set_internal_xalignment(0.0)    # basically justify-left
-            cat_btn.set_internal_spacing(mkit.HSPACING_LARGE)
-            cat_btn.set_border_width(mkit.BORDER_WIDTH_MED)
+            cat_btn = CategoryButton(name,
+                                     icon_name=cat.iconname,
+                                     icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -248,13 +243,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             # make sure the string is parsable by pango, i.e. no funny characters
             name = gobject.markup_escape_text(cat.name)
 
-            cat_btn = mkit.HButton(name,
-                                   icon_name=cat.iconname,
-                                   icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
-
-            cat_btn.set_internal_xalignment(0.0)    # basically justify-left
-            cat_btn.set_internal_spacing(mkit.HSPACING_LARGE)
-            cat_btn.set_border_width(mkit.BORDER_WIDTH_MED)
+            cat_btn = CategoryButton(name,
+                                     icon_name=cat.iconname,
+                                     icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -604,7 +595,7 @@ class CarouselView(mkit.FramedSection):
         return self._show_carousel
 
     def draw(self, cr, a, expose_area):
-        if mkit.is_overlapping(a, expose_area): return
+        if mkit.not_overlapping(a, expose_area): return
         mkit.FramedSection.draw(self, cr, a, expose_area)
 
         if self.more_btn.state == gtk.STATE_NORMAL:
@@ -628,6 +619,18 @@ class CarouselView(mkit.FramedSection):
                         layout, overlay, alpha)
         return
 
+
+class CategoryButton(mkit.HButton):
+    
+    def __init__(self, markup, icon_name, icon_size):
+        mkit.HButton.__init__(self, markup, icon_name, icon_size)
+
+        self.set_relief(gtk.RELIEF_NONE)
+        self.set_has_action_arrow(True)
+        self.set_internal_xalignment(0.0)    # basically justify-left
+        self.set_internal_spacing(mkit.HSPACING_LARGE)
+        self.set_border_width(mkit.BORDER_WIDTH_MED)
+        return
 
 class FeaturedPoster(gtk.EventBox):
 
@@ -835,7 +838,7 @@ class FeaturedPoster(gtk.EventBox):
         return
 
     def draw(self, cr, a, expose_area, layout, overlay, alpha):
-        if mkit.is_overlapping(a, expose_area): return
+        if mkit.not_overlapping(a, expose_area): return
         if not self.get_property('visible'): return
 
         layout.set_width((self.allocation.width - 32 - 20)*pango.SCALE)

@@ -685,6 +685,7 @@ class Button(gtk.EventBox):
         self.theme = Style(self)
 
         self._relief = gtk.RELIEF_NORMAL
+        self._has_action_arrow = False
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
@@ -758,6 +759,21 @@ class Button(gtk.EventBox):
             self.emit('clicked')
         return
 
+    def _draw_action_arrow(self, a, aw=10):  # d : arrow_width
+        # draw arrow
+        self.style.paint_arrow(self.window,
+                               self.state,
+                               gtk.SHADOW_NONE,
+                               a,       #area
+                               self,
+                               None,
+                               gtk.ARROW_RIGHT,
+                               True,    # fill
+                               a.x + a.width - aw - self.get_border_width(),
+                               a.y + (a.height-aw)/2,
+                               aw, aw)
+        return
+
     def set_shape(self, shape):
         self.shape = shape
         return
@@ -766,15 +782,23 @@ class Button(gtk.EventBox):
         self._relief = relief
         return
 
+    def set_has_action_arrow(self, has_action_arrow):
+        self._has_action_arrow = has_action_arrow
+        return
+
     def draw(self, cr, a, expose_area, alpha=1.0):
         if not_overlapping(a, expose_area): return
 
         if self._relief == gtk.RELIEF_NORMAL:
             self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
+            if self._has_action_arrow:
+                self._draw_action_arrow(a)
         else:
             if self.state == gtk.STATE_PRELIGHT or \
                 self.state == gtk.STATE_ACTIVE:
                 self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
+                if self._has_action_arrow:
+                    self._draw_action_arrow(a)
 
         if self.has_focus():
             a = self.label.allocation
