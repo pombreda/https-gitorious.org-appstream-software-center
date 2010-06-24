@@ -43,7 +43,7 @@ CAT_BUTTON_CORNER_RADIUS =  8
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
 CAROUSEL_POSTER_MIN_WIDTH =      100 # this is actually more of an approximate minima
-CAROUSEL_POSTER_MIN_HEIGHT =     75
+CAROUSEL_POSTER_MIN_HEIGHT =     90
 
 # XXX: TRANSITION_TIMEOUT 5000 for testing only, should be 20000 for normal use
 CAROUSEL_TRANSITION_TIMEOUT =    20000 # n_seconds * 1000
@@ -164,7 +164,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                  featured_cat.query,
                                  self.apps_limit,
                                  True,
-                                 self.apps_filter)
+                                 self.apps_filter,
+                                 icon_size=48,
+                                 global_icon_cache=False)
 
         self.featured_carousel = CarouselView(featured_apps, _('Featured Applications'))
         self.featured_carousel.more_btn.connect('clicked',
@@ -412,7 +414,7 @@ class CarouselView(mkit.FramedSection):
         self._show_carousel = True
 
         self.set_redraw_on_allocate(False)
-        self.carousel_apps = carousel_apps
+        self.carousel_apps = carousel_apps  # an AppStore
 
         self.set_label(H2 % title)
 
@@ -425,11 +427,12 @@ class CarouselView(mkit.FramedSection):
         #self.header.pack_end(self.play_pause_btn, False)
 
         if carousel_apps:
-            self._icon_size = 32
+            self._icon_size = carousel_apps.icon_size
             self._offset = random.randrange(len(carousel_apps))
+            self.connect('realize', self._on_realize)
         else:
+            self._icon_size = 48
             self._offset = 0
-            self._icon_size = 32
 
         self._width = 0
         self._alpha = 1.0
@@ -438,13 +441,10 @@ class CarouselView(mkit.FramedSection):
 
         self.show_all()
 
-        self.connect('realize', self._on_realize)
-        #self.more_btn.connect_after('realize', self._on_more_btn_realize)
+       #self.more_btn.connect_after('realize', self._on_more_btn_realize)
         return
 
     def _on_realize(self, widget):
-        # cache a pango layout for text ops and overlay image for installed apps
-        self._cache_layout()
         #self._cache_overlay_image("software-center-installed")
         # init asset cache for each poster
         self._set_next()
@@ -469,13 +469,6 @@ class CarouselView(mkit.FramedSection):
                                             overlay_size, 0)
         return
 
-    def _cache_layout(self):
-        # cache a layout
-        pc = self.get_pango_context()
-        self._layout = pango.Layout(pc)
-        self._layout.set_wrap(pango.WRAP_WORD_CHAR)
-        return
-
     def _remove_all_posters(self):
         # clear posters
         for poster in self.posters:
@@ -491,16 +484,17 @@ class CarouselView(mkit.FramedSection):
 
         # number of posters we should have given available space
         n = width / CAROUSEL_POSTER_MIN_WIDTH
+        n = (width - n*self.hbox.get_spacing()) / CAROUSEL_POSTER_MIN_WIDTH
         n = max(CAROUSEL_MIN_POSTER_COUNT, n)
         n = min(CAROUSEL_MAX_POSTER_COUNT, n)
-        self.n_posters = n    
+        self.n_posters = n
 
         if not self.carousel_apps: return
 
         # repack appropriate number of new posters (and make sure
         # we do not try to show more than we have)
         for i in range(min(n, len(self.carousel_apps))):
-            poster = CarouselPoster()
+            poster = CarouselPoster(icon_pixel_size=self._icon_size)
             self.posters.append(poster)
             self.hbox.pack_start(poster)
 
@@ -638,29 +632,42 @@ class CarouselView(mkit.FramedSection):
 
 class CarouselPoster(mkit.VButton):
 
-    def __init__(self, markup='none', icon_name='none', icon_size=gtk.ICON_SIZE_DIALOG):
+    def __init__(self, markup='none', icon_name='none', \
+                 icon_size=gtk.ICON_SIZE_DIALOG, icon_pixel_size=48):
+
         mkit.VButton.__init__(self, markup, icon_name, icon_size)
+
         self.set_relief(gtk.RELIEF_NONE)
         self.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.set_internal_spacing(mkit.VSPACING_SMALL)
+
         self.label.set_justify(gtk.JUSTIFY_CENTER)
-        self.image.set_size_request(-1, 32)
+        self.image.set_size_request(-1, icon_pixel_size)
         self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None
 
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
+        
+        self.connect('size-allocate', self._on_allocate)
+        return
+
+    def _on_allocate(self, widget, allocation):
+        ia = self.label.allocation  # label allocation
+        layout = self.label.get_layout()
+        layout.set_width((ia.width+12)*pango.SCALE)
+        layout.set_wrap(pango.WRAP_WORD)
         return
 
     def set_app(self, app):
         self.app = app
 
         markup = '<b>%s</b>' % app[AppStore.COL_APP_NAME]
-        pixbuf = app[AppStore.COL_ICON]
+        pb = app[AppStore.COL_ICON]
 
         self.set_label(markup)
-        self.image.set_from_pixbuf(pixbuf)
+        self.image.set_from_pixbuf(pb)
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0):
@@ -674,18 +681,15 @@ class CarouselPoster(mkit.VButton):
 
         if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.image.get_pixbuf()
-            pb_w = pb.get_width()
-
+            ia = self.image.allocation
             cr.set_source_pixbuf(pb,
-                                 a.x + (a.width - pb_w)/2,
-                                 self.image.allocation.y)
+                                 a.x + (a.width - pb.get_width())/2,
+                                 ia.y + (ia.height - pb.get_height())/2)
+
             cr.paint_with_alpha(alpha)
 
-        # TODO: dont do all this stuff every draw...
-        ia = self.label.allocation  # label allocation
+        la = self.label.allocation  # label allocation
         layout = self.label.get_layout()
-        layout.set_width((ia.width+12)*pango.SCALE)
-        layout.set_wrap(pango.WRAP_WORD)
 
         if alpha < 1.0:
             # text colour from gtk.Style
@@ -693,9 +697,9 @@ class CarouselPoster(mkit.VButton):
 
             pcr = pangocairo.CairoContext(cr)
             pcr.save()
-            pcr.rectangle(ia.x-6, ia.y, ia.width+12, 3*ia.height)
+            pcr.rectangle(la.x-6, la.y, la.width+12, la.height)
             pcr.clip()
-            pcr.move_to(ia.x-6, ia.y)
+            pcr.move_to(ia.x-6, la.y)
             pcr.set_source_rgba(*rgba)
             pcr.show_layout(layout)
             pcr.restore()
@@ -707,7 +711,7 @@ class CarouselPoster(mkit.VButton):
                                     a,
                                     self,
                                     None,
-                                    ia.x-6, ia.y,
+                                    la.x-6, la.y,
                                     layout)
         cr.restore()
         return
