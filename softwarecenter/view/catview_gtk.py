@@ -43,7 +43,9 @@ CAT_BUTTON_CORNER_RADIUS =  8
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
 CAROUSEL_POSTER_MIN_WIDTH =      100 # this is actually more of an approximate minima
-CAROUSEL_TRANSITION_TIMEOUT =    20000 # n_seconds * 1000
+
+# XXX: TRANSITION_TIMEOUT fast for testing only
+CAROUSEL_TRANSITION_TIMEOUT =    5000 # n_seconds * 1000
 CAROUSEL_FADE_INTERVAL =         50 # msec  
 CAROUSEL_FADE_STEP =             0.2 # value between 0.0 and 1.0
 
@@ -531,8 +533,11 @@ class CarouselView(mkit.FramedSection):
             if self._offset == len(self.carousel_apps):
                     self._offset = 0
 
-            markup = '<b>%s</b>' % self.carousel_apps[self._offset][0]
+            markup = '<b>%s</b>' % self.carousel_apps[self._offset][AppStore.COL_APP_NAME]
+            pixbuf = self.carousel_apps[self._offset][AppStore.COL_ICON]
+
             poster.set_label(markup)
+            poster.image.set_from_pixbuf(pixbuf)
             self._offset += 1
         if fade_in:
             self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
@@ -641,16 +646,58 @@ class CarouselView(mkit.FramedSection):
 
 class CarouselPoster(mkit.VButton):
 
-    def __init__(self):
-        mkit.VButton.__init__(self, markup='test', icon_name='broken', icon_size=gtk.ICON_SIZE_DIALOG)
+    def __init__(self, markup='test', icon_name='broken', icon_size=gtk.ICON_SIZE_DIALOG):
+        mkit.VButton.__init__(self, markup, icon_name, icon_size)
         self.set_relief(gtk.RELIEF_NONE)
+        self.set_border_width(mkit.BORDER_WIDTH_MED)
         self.set_internal_spacing(mkit.VSPACING_LARGE)
         self.label.set_justify(gtk.JUSTIFY_CENTER)
         self.label.set_line_wrap(True)
+
+        # we inhibit the native gtk drawing for both the Image and Label
+        self.image.connect('expose-event',
+                           lambda w, e: True)
+        self.label.connect('expose-event',
+                           lambda w, e: True)
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0):
         if mkit.not_overlapping(a, expose_area): return
 
         mkit.VButton.draw(self, cr, a, expose_area, alpha)
+
+        cr.save()
+        cr.rectangle(a)
+        cr.clip()
+
+        pb = self.image.get_pixbuf()
+        pb_w = pb.get_width()
+
+        cr.set_source_pixbuf(pb,
+                             a.x + (a.width - pb_w)/2,
+                             self.image.allocation.y)
+        cr.paint_with_alpha(alpha)
+
+        layout = self.label.get_layout()
+        if alpha < 1.0:
+            lw = layout.get_pixel_extents()[1][2]
+
+            pcr = pangocairo.CairoContext(cr)
+            pcr.move_to(self.label.allocation.x,
+                        self.label.allocation.y)
+            pcr.set_source_rgba(0, 0, 0, alpha)
+            pcr.layout_path(layout)
+            pcr.fill()
+            del pcr
+        else:
+            self.style.paint_layout(self.window,
+                                    self.state,
+                                    True,
+                                    a,
+                                    self,
+                                    None,
+                                    self.label.allocation.x,
+                                    self.label.allocation.y,
+                                    layout)
+        cr.restore()
         return
