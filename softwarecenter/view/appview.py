@@ -516,9 +516,8 @@ class AppStore(gtk.GenericTreeModel):
         elif column == self.COL_PKGNAME:
             pkgname = app.pkgname
             return pkgname
-         ###################### RESTORE THIS ##############################
-#        elif column == self.COL_POPCON:
-#            return self._calc_normalized_rating(self.apps[rowref].popcon)
+        elif column == self.COL_POPCON:
+            return self._calc_normalized_rating(self.apps[rowref].popcon)
         elif column == self.COL_IS_ACTIVE:
             return (rowref == self.active_app)
         elif column == self.COL_ACTION_IN_PROGRESS:
