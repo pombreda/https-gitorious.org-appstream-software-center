@@ -42,12 +42,13 @@ CAT_BUTTON_CORNER_RADIUS =  8
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
-CAROUSEL_POSTER_MIN_WIDTH =      100 # this is actually more of an approximate minima
+CAROUSEL_POSTER_MIN_WIDTH =      110 # this is actually more of an approximate minima
+CAROUSEL_POSTER_MIN_HEIGHT =     75
 
-# XXX: TRANSITION_TIMEOUT fast for testing only
-CAROUSEL_TRANSITION_TIMEOUT =    5000 # n_seconds * 1000
+# XXX: TRANSITION_TIMEOUT 5000 for testing only, should be 20000 for normal use
+CAROUSEL_TRANSITION_TIMEOUT =    20000 # n_seconds * 1000
 CAROUSEL_FADE_INTERVAL =         50 # msec  
-CAROUSEL_FADE_STEP =             0.2 # value between 0.0 and 1.0
+CAROUSEL_FADE_STEP =             0.1 # value between 0.0 and 1.0
 
 
 H1 = '<big><b>%s<b></big>'
@@ -421,7 +422,7 @@ class CarouselView(mkit.FramedSection):
         self.header.pack_end(self.play_pause_btn, False)
 
         if carousel_apps:
-            self._icon_size = self.carousel_apps.icon_size
+            self._icon_size = 32
             self._offset = random.randrange(len(carousel_apps))
         else:
             self._offset = 0
@@ -589,7 +590,6 @@ class CarouselView(mkit.FramedSection):
         return loop
 
     def set_width(self, width):
-#        width -=  mkit.BORDER_WIDTH_MED
         self._width = width
         self.body.set_size_request(width, -1)
         if not self._show_carousel and self.hbox.get_property('visible'):
@@ -649,16 +649,14 @@ class CarouselPoster(mkit.VButton):
     def __init__(self, markup='test', icon_name='broken', icon_size=gtk.ICON_SIZE_DIALOG):
         mkit.VButton.__init__(self, markup, icon_name, icon_size)
         self.set_relief(gtk.RELIEF_NONE)
-        self.set_border_width(mkit.BORDER_WIDTH_MED)
-        self.set_internal_spacing(mkit.VSPACING_LARGE)
+        self.set_border_width(mkit.BORDER_WIDTH_LARGE)
+        self.set_internal_spacing(mkit.VSPACING_SMALL)
         self.label.set_justify(gtk.JUSTIFY_CENTER)
-        self.label.set_line_wrap(True)
+        self.image.set_size_request(-1, 32)
+        self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         # we inhibit the native gtk drawing for both the Image and Label
-        self.image.connect('expose-event',
-                           lambda w, e: True)
-        self.label.connect('expose-event',
-                           lambda w, e: True)
+        self.connect('expose-event', lambda w, e: True)
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0):
@@ -678,17 +676,24 @@ class CarouselPoster(mkit.VButton):
                              self.image.allocation.y)
         cr.paint_with_alpha(alpha)
 
+        # TODO: dont do all this stuff every draw...
+        ia = self.label.allocation  # label allocation
         layout = self.label.get_layout()
+        layout.set_width(ia.width*pango.SCALE)
+        layout.set_wrap(pango.WRAP_WORD)
+
         if alpha < 1.0:
             # text colour from gtk.Style
             rgba = mkit.floats_from_gdkcolor_with_alpha(self.style.text[self.state], alpha)
 
             pcr = pangocairo.CairoContext(cr)
-            pcr.move_to(self.label.allocation.x,
-                        self.label.allocation.y)
+            pcr.save()
+            pcr.rectangle(ia.x, ia.y, ia.width, 3*ia.height)
+            pcr.clip()
+            pcr.move_to(ia.x, ia.y)
             pcr.set_source_rgba(*rgba)
-            pcr.layout_path(layout)
-            pcr.fill()
+            pcr.show_layout(layout)
+            pcr.restore()
             del pcr
         else:
             self.style.paint_layout(self.window,
@@ -697,8 +702,7 @@ class CarouselPoster(mkit.VButton):
                                     a,
                                     self,
                                     None,
-                                    self.label.allocation.x,
-                                    self.label.allocation.y,
+                                    ia.x, ia.y,
                                     layout)
         cr.restore()
         return
