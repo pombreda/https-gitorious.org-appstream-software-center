@@ -40,8 +40,19 @@ from xml.sax.saxutils import unescape as xml_unescape
 def get_category_by_name(categories, untrans_name):
     # find a specific category
     cat = filter(lambda cat: cat.untranslated_name == untrans_name,
-                 categories)[0]
-    return cat
+                 categories)
+    if cat: return cat[0]
+    return None
+
+def sorted_category_names(categories):
+    # sort categories by name
+    sorted_cats = []
+    for cat in categories:
+        # hrm not sure if we should use untranslated_name here or not?
+        sorted_cats.append(cat.name)
+    sorted_cats.sort()
+    return sorted_cats
+
 
 class Category(object):
     """represents a menu category"""
