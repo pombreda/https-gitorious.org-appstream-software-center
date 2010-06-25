@@ -61,23 +61,22 @@ class RestfulClientWorker(threading.Thread):
         """Request shutdown"""
         self._shutdown = True
 
-    def queue_request(self, func, args, result_callback):
+    def queue_request(self, func, args, kwargs, result_callback):
         """
         queue a (remote) command for execution, the result_callback will
         call with the result_list when done (that function will be
         called async)
         """
-        self._pending_requests.put((func, args, result_callback))
+        self._pending_requests.put((func, args, kwargs, result_callback))
 
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
         while True:
-            print "lala"
             while not self._pending_requests.empty():
                 logging.debug("found pending request")
-                (func, args, result_callback) = self._pending_requests.get()
+                (func, args, kwargs, result_callback) = self._pending_requests.get()
                 # run func async
-                res = func(*args)
+                res = func(*args, **kwargs)
                 # provide result to the callback
                 result_callback(res)
                 self._pending_requests.task_done()
@@ -87,20 +86,22 @@ class RestfulClientWorker(threading.Thread):
                 self._pending_requests.empty()):
                 return
 
-def _result_callback(result_list):
+def _authenticate_callback(result_list):
     print "_result_callback: ", result_list
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     service = "https://login.staging.ubuntu.com/api/1.0"
-    authorizer = None
+    username = ""
+    password = ""
+    authorizer = BasicHttpAuthorizer(username, password)
 
     worker_thread = RestfulClientWorker(authorizer, service)
     worker_thread.start()
 
-    #worker_thread.queue_request(
-    #    worker_thread.service.registrations.register, (), _result_callback)
+    worker_thread.queue_request(
+        worker_thread.service.authentications.authenticate, (), {"token_name":"software-center"}, _authenticate_callback)
 
 
     # wait
