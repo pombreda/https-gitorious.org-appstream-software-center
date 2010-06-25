@@ -505,7 +505,6 @@ class FramedSection(gtk.VBox):
     def __init__(self, label_markup=None):
         gtk.VBox.__init__(self)
         self.set_redraw_on_allocate(False)
-        self.set_spacing(VSPACING_LARGE)
 
         self.header = gtk.HBox()
         self.body = gtk.VBox()

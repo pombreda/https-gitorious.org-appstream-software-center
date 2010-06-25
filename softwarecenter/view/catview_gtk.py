@@ -469,15 +469,9 @@ class CarouselView(mkit.FramedSection):
                                             overlay_size, 0)
         return
 
-    def _remove_all_posters(self):
-        # clear posters
-        for poster in self.posters:
-            self.hbox.remove(poster)
-            poster.destroy()
-        self.posters = []
-        return
-
     def _build_view(self, width):
+        if not self.carousel_apps: return
+
         # push the offset back, so when we recache assets do so from the
         # starting point we were at in the previous incarnation
         self._offset -= self.n_posters
@@ -487,23 +481,38 @@ class CarouselView(mkit.FramedSection):
         n = (width - n*self.hbox.get_spacing()) / CAROUSEL_POSTER_MIN_WIDTH
         n = max(CAROUSEL_MIN_POSTER_COUNT, n)
         n = min(CAROUSEL_MAX_POSTER_COUNT, n)
-        self.n_posters = n
 
-        if not self.carousel_apps: return
+        # do nothing if the the new number of posters matches the
+        # old number of posters
+        print n, self.n_posters 
+        if n == self.n_posters:
+            return
 
         # repack appropriate number of new posters (and make sure
         # we do not try to show more than we have)
-        for i in range(min(n, len(self.carousel_apps))):
-            poster = CarouselPoster(icon_pixel_size=self._icon_size)
-            self.posters.append(poster)
-            self.hbox.pack_start(poster)
+        
+        # if n is smaller than our previous number of posters,
+        # then we remove just the right number of posters from the carousel
+        if n < self.n_posters:
+            n_remove = self.n_posters - n
+            for i in range(n_remove):
+                poster = self.posters[i]
+                # leave no traces remaining (of the poster)
+                self.hbox.remove(poster)
+                poster.destroy()
+                del self.posters[i]
 
-            if self._offset == len(self.carousel_apps):
-                    self._offset = 0
-            else:
-                self._offset += 1
+        # if n is greater than our previous number of posters,
+        # we need to pack in extra posters
+        else:
+            n_add = n - self.n_posters
+            for i in range(n_add):
+                poster = CarouselPoster(icon_pixel_size=self._icon_size)
+                self.posters.append(poster)
+                self.hbox.pack_start(poster)
+                poster.show()
 
-        self.hbox.show_all()
+        self.n_posters = n
         return
 
     def _fade_in(self):
@@ -531,7 +540,8 @@ class CarouselView(mkit.FramedSection):
             if self._offset == len(self.carousel_apps):
                 self._offset = 0
 
-            poster.set_app(self.carousel_apps[self._offset])
+            app = self.carousel_apps[self._offset]
+            poster.set_app(app)
             self._offset += 1
         if fade_in:
             self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
@@ -585,10 +595,6 @@ class CarouselView(mkit.FramedSection):
     def set_width(self, width):
         self._width = width
         self.body.set_size_request(width, -1)
-        if not self._show_carousel and self.hbox.get_property('visible'):
-            self.show_carousel(False)
-            return
-        self._remove_all_posters()
         self._build_view(width)
         return
 
@@ -626,6 +632,13 @@ class CarouselView(mkit.FramedSection):
         if not self.posters: return
 
         for poster in self.posters:
+            # check poster has an app set (when reallocation occurs,
+            # new posters miss out on set_app() which only
+            # occurs during carousel transistions
+            if not poster.app:
+                app = self.carousel_apps[self._offset]
+                poster.set_app(app)
+
             poster.draw(cr, poster.allocation, expose_area, alpha)
         return
 
@@ -672,7 +685,6 @@ class CarouselPoster(mkit.VButton):
 
     def draw(self, cr, a, expose_area, alpha=1.0):
         if mkit.not_overlapping(a, expose_area): return
-
         mkit.VButton.draw(self, cr, a, expose_area, alpha)
 
         cr.save()
@@ -682,6 +694,8 @@ class CarouselPoster(mkit.VButton):
         if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.image.get_pixbuf()
             ia = self.image.allocation
+
+            # paint pixbuf
             cr.set_source_pixbuf(pb,
                                  a.x + (a.width - pb.get_width())/2,
                                  ia.y + (ia.height - pb.get_height())/2)
@@ -714,4 +728,21 @@ class CarouselPoster(mkit.VButton):
                                     la.x-6, la.y,
                                     layout)
         cr.restore()
+        return
+
+
+class CarouselNavPoints(gtk.HBox):
+    
+    def __init__(self):
+        gtk.HBox.__init__(self, spacing=HSPACING_XLARGE)
+        return
+
+    def set_n_navpoints(self, n_navpoints):
+        for i in range(n_navpoints):
+            np = VButton(markup=' ')
+            np.set_shape(mkit.SHAPE_CIRCLE)
+            self.pack_start(np, False)
+        return
+
+    def draw(self, cr, a, expose_area):
         return
