@@ -276,7 +276,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                       icon_name=root_category.iconname,
                                       icon_size= gtk.ICON_SIZE_LARGE_TOOLBAR)
         show_all_btn.connect('clicked', self._on_show_all_clicked)
-        # append as the last item in the departments list
         self.departments.append(show_all_btn)
 
         # kinda hacky doing this here...

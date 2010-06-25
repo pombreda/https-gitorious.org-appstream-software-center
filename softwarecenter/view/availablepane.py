@@ -189,6 +189,7 @@ class AvailablePane(SoftwarePane):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
         if (not show_category_applist and
+            not self.nonapps_visible and
             self.apps_category and
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
