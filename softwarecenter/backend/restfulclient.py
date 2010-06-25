@@ -44,7 +44,6 @@ class RestfulClientWorker(threading.Thread):
     def __init__(self, authorizer, service_root):
         """ init the thread """
         threading.Thread.__init__(self)
-        self.service = ServiceRoot(authorizer, service_root)
         self._service_root_url = service_root
         self._authorizer = authorizer
         self._pending_requests = Queue()
@@ -55,6 +54,7 @@ class RestfulClientWorker(threading.Thread):
         Main thread run interface, logs into launchpad
         """
         logging.debug("lp worker thread run")
+        self.service = ServiceRoot(self._authorizer, self._service_root_url)
         # loop
         self._wait_for_commands()
 
@@ -62,24 +62,30 @@ class RestfulClientWorker(threading.Thread):
         """Request shutdown"""
         self._shutdown = True
 
-    def queue_request(self, func, args, kwargs, result_callback):
+    def queue_request(self, func, args, kwargs, result_callback, error_callback):
         """
         queue a (remote) command for execution, the result_callback will
         call with the result_list when done (that function will be
         called async)
         """
-        self._pending_requests.put((func, args, kwargs, result_callback))
+        self._pending_requests.put((func, args, kwargs, result_callback, error_callback))
 
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
         while True:
             while not self._pending_requests.empty():
                 logging.debug("found pending request")
-                (func, args, kwargs, result_callback) = self._pending_requests.get()
+                (func_str, args, kwargs, result_callback, error_callback) = self._pending_requests.get()
                 # run func async
-                res = func(*args, **kwargs)
-                # provide result to the callback
-                result_callback(res)
+                try:
+                    func = self.service
+                    for part in func_str.split("."):
+                        func = getattr(func, part)
+                    res = func(*args, **kwargs)
+                except Exception ,e:
+                    error_callback(e)
+                else:
+                    result_callback(res)
                 self._pending_requests.task_done()
             # wait a bit
             time.sleep(0.1)
@@ -92,7 +98,7 @@ class UbuntuSSOlogin(gobject.GObject):
     __gsignals__ = {
         "login-successful" : (gobject.SIGNAL_RUN_LAST,
                              gobject.TYPE_NONE, 
-                             (),
+                             (gobject.TYPE_PYOBJECT,),
                             ),
         "login-failed" : (gobject.SIGNAL_RUN_LAST,
                           gobject.TYPE_NONE, 
@@ -103,6 +109,8 @@ class UbuntuSSOlogin(gobject.GObject):
                                     (),
                                    ),
         }
+
+    SSO_AUTHENTICATE_FUNC = "authentications.authenticate"
 
     def __init__(self):
         gobject.GObject.__init__(self)
@@ -115,17 +123,23 @@ class UbuntuSSOlogin(gobject.GObject):
         authorizer = BasicHttpAuthorizer(username, password)
         self.worker_thread =  RestfulClientWorker(authorizer, self.service)
         self.worker_thread.start()
-        kwargs = { "token_name":"software-center", }
-        self.worker_thread.queue_request(
-            self.worker_thread.service.authentications.authenticate, (), kwargs,
-            self._authentication_done)
+        kwargs = { "token_name" : "software-center", }
+        self.worker_thread.queue_request(self.SSO_AUTHENTICATE_FUNC, (), kwargs,
+                                         self._authentication_done,
+                                         self._authentication_error)
 
-    def _authentication_done(self, result_list):
-        print "_authentication_done", result_list
+    def _authentication_done(self, result):
+        print "_authentication_done", result
+        self.oauth_credentials = result
+        self.emit("login-successful", result)
+
+    def _authentication_error(self, e):
+        print "_authentication_error", type(e)
+        self.emit("login-failed")
 
 # test code
-def _login_success(lp):
-    print "success", lp
+def _login_success(lp, token):
+    print "success", lp, token
 def _login_failed(lp):
     print "fail", lp
 def _login_need_user_and_password(sso):
@@ -146,7 +160,6 @@ if __name__ == "__main__":
     sso.connect("login-failed", _login_failed)
     sso.connect("need-username-password", _login_need_user_and_password)
     sso.login()
-
 
     # wait
     try:
