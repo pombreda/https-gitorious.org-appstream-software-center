@@ -92,7 +92,9 @@ class AppStore(gtk.GenericTreeModel):
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
-                 sort=False, filter=None, exact=False, icon_size=0, nonapps_visible=False):
+                 sort=False, filter=None, exact=False,
+                 icon_size=ICON_SIZE, global_icon_cache=True, 
+                 nonapps_visible=False):
         """
         Initalize a AppStore.
 
@@ -115,7 +117,12 @@ class AppStore(gtk.GenericTreeModel):
         self.cache = cache
         self.db = db
         self.icons = icons
-        self.icon_size = icon_size or self.ICON_SIZE
+        self.icon_size = icon_size
+        if global_icon_cache:
+            self.icon_cache = _app_icon_cache
+        else:
+            self.icon_cache = {}
+
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", self._clear_app_icon_cache)
         self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
@@ -231,7 +238,7 @@ class AppStore(gtk.GenericTreeModel):
         self._installable_apps = None
 
     def _clear_app_icon_cache(self, theme):
-        _app_icon_cache.clear()
+        self.icon_cache.clear()
 
     # internal API
     def _append_app(self, app):
@@ -493,17 +500,17 @@ class AppStore(gtk.GenericTreeModel):
                 icon_name = self.db.get_iconname(doc)
                 if icon_name:
                     icon_name = os.path.splitext(icon_name)[0]
-                    if icon_name in _app_icon_cache:
-                        return _app_icon_cache[icon_name]
+                    if icon_name in self.icon_cache:
+                        return self.icon_cache[icon_name]
                     # icons.load_icon takes between 0.001 to 0.01s on my
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
                     icon = self.icons.load_icon(icon_name, self.icon_size, 0)
-                    _app_icon_cache[icon_name] = icon
+                    self.icon_cache[icon_name] = icon
                     return icon
             except glib.GError, e:
                 logging.debug("get_icon returned '%s'" % e)
-                _app_icon_cache[icon_name] = self._appicon_missing_icon
+                self.icon_cache[icon_name] = self._appicon_missing_icon
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:
             pkgname = app.pkgname

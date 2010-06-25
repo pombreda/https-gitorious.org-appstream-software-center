@@ -34,7 +34,7 @@ from catview import *
 COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
 COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
 
-CAT_BUTTON_FIXED_WIDTH =    108
+CAT_BUTTON_FIXED_WIDTH =    200
 CAT_BUTTON_MIN_HEIGHT =     96
 CAT_BUTTON_BORDER_WIDTH =   6
 CAT_BUTTON_CORNER_RADIUS =  8
@@ -42,12 +42,14 @@ CAT_BUTTON_CORNER_RADIUS =  8
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
-CAROUSEL_POSTER_MIN_WIDTH =      200 # this is actually more of an approximate minima
+CAROUSEL_POSTER_MIN_WIDTH =      100 # this is actually more of an approximate minima
+CAROUSEL_POSTER_MIN_HEIGHT =     90
+
+# XXX: TRANSITION_TIMEOUT 5000 for testing only, should be 20000 for normal use
 CAROUSEL_TRANSITION_TIMEOUT =    20000 # n_seconds * 1000
 CAROUSEL_FADE_INTERVAL =         50 # msec  
-CAROUSEL_FADE_STEP =             0.2 # value between 0.0 and 1.0
+CAROUSEL_FADE_STEP =             0.1 # value between 0.0 and 1.0
 
-POSTER_CORNER_RADIUS =          3
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -108,8 +110,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         atk_desc.set_name(_("Departments"))
 
         # append sections
-        self.carousel = None
-        self.carousel_new = None
+        self.featured_carousel = None
+        self.newapps_carousel = None
         self.departments = None
         self.welcome = None
 
@@ -153,42 +155,51 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
     def _append_featured_and_new(self):
+        # carousel hbox
+        self.hbox_inner = gtk.HBox(spacing=mkit.HSPACING_SMALL)
+        self.hbox_inner.set_homogeneous(True)
+
         featured_cat = get_category_by_name(self.categories,
                                             'Featured Applications')    # untranslated name
+        #print featured_cat, featured_cat[0]
         featured_apps = AppStore(self.cache,
                                  self.db,
                                  self.icons,
                                  featured_cat.query,
                                  self.apps_limit,
                                  True,
-                                 self.apps_filter)
+                                 self.apps_filter,
+                                 icon_size=48,
+                                 global_icon_cache=False)
 
-        carousel = FeaturedView(featured_apps, _("Featured Applications"))
-        carousel.more_btn.connect('clicked',
-                                 self._on_category_clicked,
-                                 featured_cat)
- 
-        self.carousel = carousel
+        self.featured_carousel = CarouselView(featured_apps, _('Featured Applications'))
+        self.featured_carousel.more_btn.connect('clicked',
+                                  self._on_category_clicked,
+                                  featured_cat)
+        # pack featured carousel into hbox
+        self.hbox_inner.pack_start(self.featured_carousel, False)
 
         # create new-apps widget
         new_cat = get_category_by_name(self.categories, 'New Applications')
-        new_apps = AppStore(self.cache,
-                            self.db,
-                            self.icons,
-                            new_cat.query,
-                            self.apps_limit,
-                            True,
-                            self.apps_filter)
-        self.carousel_new = FeaturedView(new_apps, _("What's New"))
-        self.carousel_new.more_btn.connect('clicked',
+        if new_cat:
+            new_apps = AppStore(self.cache,
+                                self.db,
+                                self.icons,
+                                new_cat.query,
+                                self.apps_limit,
+                                True,
+                                self.apps_filter)
+        else:
+            new_apps = None
+
+        self.newapps_carousel = CarouselView(new_apps, _("What's New"))
+        self.newapps_carousel.more_btn.connect('clicked',
                                            self._on_category_clicked,
                                            new_cat)
- 
-        # put in the box
-        self.hbox_inner = gtk.HBox(spacing=mkit.HSPACING_SMALL)
-        self.hbox_inner.set_homogeneous(True)
-        self.hbox_inner.pack_start(self.carousel, False)
-        self.hbox_inner.pack_start(self.carousel_new, False)
+        # pack new carousel into hbox
+        self.hbox_inner.pack_start(self.newapps_carousel, False)
+
+        # append carousel's to lobby page
         self.vbox.pack_start(self.hbox_inner, False)
         return
 
@@ -201,18 +212,22 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
 #        enquirer = xapian.Enquire(self.db.xapiandb)
 
-        for cat in self.categories[:-1]:
-            # make sure the string is parsable by pango, i.e. no funny characters
-            name = gobject.markup_escape_text(cat.name.strip())
+        # sort Category.name's alphabetically
+        sorted_catnames = sorted_category_names(self.categories[:-1])
 
+        for name in sorted_catnames:
+            cat = get_category_by_name(self.categories, name)
             #enquirer.set_query(cat.query)
             ## limiting the size here does not make it faster
             #matches = enquirer.get_mset(0, len(self.db))
             #estimate = matches.get_matches_estimated()
 
-            cat_btn = mkit.VButton(name,
-                                   icon_name=cat.iconname,
-                                   icon_size=gtk.ICON_SIZE_DIALOG)
+            # sanitize text so its pango friendly...
+            name = gobject.markup_escape_text(name.strip())
+
+            cat_btn = CategoryButton(name,
+                                     icon_name=cat.iconname,
+                                     icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -232,17 +247,23 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         else:
             self.departments.clear_all()
 
-        # set the departments section to use the label markup we have just defined
+        # set the departments section to use the label
         header = gobject.markup_escape_text(self.header)
         self.departments.set_label(H2 % header)
 
-        for cat in self.categories:
-            # make sure the string is parsable by pango, i.e. no funny characters
-            name = gobject.markup_escape_text(cat.name)
-            # finally, create the department with label markup and icon
-            cat_btn = mkit.VButton(name, 
-                                   icon_name=cat.iconname,
-                                   icon_size= gtk.ICON_SIZE_DIALOG)
+        # sort Category.name's alphabetically
+        sorted_catnames = sorted_category_names(self.categories)
+
+        for name in sorted_catnames:
+            cat = get_category_by_name(self.categories, name)
+
+            # sanitize text so its pango friendly...
+            name = gobject.markup_escape_text(name.strip())
+
+            cat_btn = CategoryButton(name,
+                                     icon_name=cat.iconname,
+                                     icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
+
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
@@ -273,6 +294,21 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         gobject.idle_add(_redraw)
         return
 
+    def _full_redraw(self):
+        def _redraw():
+            self.queue_draw()
+            return False
+
+        self.queue_draw()
+        gobject.idle_add(_redraw)
+        return
+
+    def _get_layout_best_fit_width(self):
+        if not self.parent: return 1
+        # parent alllocation less the sum of all border widths
+        return self.parent.allocation.width - \
+                2*(mkit.BORDER_WIDTH_LARGE + mkit.BORDER_WIDTH_MED) - mkit.BORDER_WIDTH_LARGE
+
     def _on_app_clicked(self, btn):
         app = btn.app
         appname = app[AppStore.COL_APP_NAME]
@@ -298,21 +334,15 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self._full_redraw()
         return
 
-    def _get_layout_best_fit_width(self):
-        if not self.parent: return 1
-        # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - \
-                2*mkit.BORDER_WIDTH_LARGE - 2*mkit.BORDER_WIDTH_MED
-
     def _on_allocate(self, widget, allocation):
         if self._prev_width != widget.parent.allocation.width:
             self._prev_width = widget.parent.allocation.width
             best_fit = self._get_layout_best_fit_width()
 
-            if self.carousel:
-                self.carousel.set_width(best_fit/2)
-            if self.carousel_new:
-                self.carousel_new.set_width(best_fit/2)
+            if self.featured_carousel:
+                self.featured_carousel.set_width(best_fit/2)
+            if self.newapps_carousel:
+                self.newapps_carousel.set_width(best_fit/2)
             if self.departments:
                 self.departments.clear_rows()
                 self.departments.set_width(best_fit)
@@ -337,8 +367,14 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         if not self.in_subsection:
             # draw featured carousel
-            self.carousel.draw(cr, self.carousel.allocation, expose_area)
-            self.carousel_new.draw(cr, self.carousel_new.allocation, expose_area)
+            if self.featured_carousel:
+                self.featured_carousel.draw(cr,
+                                            self.featured_carousel.allocation,
+                                            expose_area)
+            if self.newapps_carousel:
+                self.newapps_carousel.draw(cr,
+                                           self.newapps_carousel.allocation,
+                                           expose_area)
 
         del cr
         return
@@ -348,11 +384,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         for sig_id in self._poster_sigs:
             gobject.source_remove(sig_id)
         self._poster_sigs = []
-        if self.carousel:
-            for poster in self.carousel.posters:
+        if self.featured_carousel:
+            for poster in self.featured_carousel.posters:
                 self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
-        if self.carousel_new:
-            for poster in self.carousel_new.posters:
+        if self.newapps_carousel:
+            for poster in self.newapps_carousel.posters:
                 self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
         return
 
@@ -371,9 +407,22 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self._build_subcat_view(root_category, num_items)
         return
 
-class FeaturedView(mkit.FramedSection):
+class CategoryButton(mkit.HButton):
+    
+    def __init__(self, markup, icon_name, icon_size):
+        mkit.HButton.__init__(self, markup, icon_name, icon_size)
 
-    def __init__(self, featured_apps, title):
+        self.set_relief(gtk.RELIEF_NONE)
+        self.set_has_action_arrow(True)
+        self.set_internal_xalignment(0.0)    # basically justify-left
+        self.set_internal_spacing(mkit.HSPACING_LARGE)
+        self.set_border_width(mkit.BORDER_WIDTH_MED)
+        return
+
+
+class CarouselView(mkit.FramedSection):
+
+    def __init__(self, carousel_apps, title):
         mkit.FramedSection.__init__(self)
         self.title = title
 
@@ -381,8 +430,9 @@ class FeaturedView(mkit.FramedSection):
         self.hbox.set_homogeneous(True)
         self.body.pack_start(self.hbox, False)
 
-        self.play_pause_btn = mkit.PlayPauseButton()
-        self.play_pause_btn.set_shape(mkit.SHAPE_CIRCLE)
+        #self.play_pause_btn = mkit.PlayPauseButton()
+        #self.play_pause_btn.set_shape(mkit.SHAPE_CIRCLE)
+        #self.play_pause_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.set_spacing(mkit.HSPACING_SMALL)
 
@@ -391,36 +441,38 @@ class FeaturedView(mkit.FramedSection):
         self._show_carousel = True
 
         self.set_redraw_on_allocate(False)
-        self.featured_apps = featured_apps
+        self.carousel_apps = carousel_apps  # an AppStore
 
         self.set_label(H2 % title)
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-        label = _(u'View all \xbb')
-        self.more_btn = mkit.HButton('<small>%s</small>' % label)
+        label = _('All')
+        self.more_btn = mkit.HButton('<u>%s</u>' % label)
+        self.more_btn.set_relief(gtk.RELIEF_NONE)
+
         self.header.pack_end(self.more_btn, False)
-        self.header.pack_end(self.play_pause_btn, False)
+        #self.header.pack_end(self.play_pause_btn, False)
+
+        if carousel_apps and len(carousel_apps) > 0:
+            self._icon_size = carousel_apps.icon_size
+            self._offset = random.randrange(len(carousel_apps))
+            self.connect('realize', self._on_realize)
+        else:
+            self._icon_size = 48
+            self._offset = 0
 
         self._width = 0
-        self._icon_size = self.featured_apps.icon_size
-        if len(featured_apps):
-            self._offset = random.randrange(len(featured_apps))
-        else:
-            self._offset = 0
         self._alpha = 1.0
         self._fader = 0
         self._layout = None
 
         self.show_all()
 
-        self.connect('realize', self._on_realize)
-        self.more_btn.connect_after('realize', self._on_more_btn_realize)
+       #self.more_btn.connect_after('realize', self._on_more_btn_realize)
         return
 
     def _on_realize(self, widget):
-        # cache a pango layout for text ops and overlay image for installed apps
-        self._cache_layout()
-        self._cache_overlay_image("software-center-installed")
+        #self._cache_overlay_image("software-center-installed")
         # init asset cache for each poster
         self._set_next()
         # start the carousel
@@ -444,13 +496,6 @@ class FeaturedView(mkit.FramedSection):
                                             overlay_size, 0)
         return
 
-    def _cache_layout(self):
-        # cache a layout
-        pc = self.get_pango_context()
-        self._layout = pango.Layout(pc)
-        self._layout.set_wrap(pango.WRAP_WORD_CHAR)
-        return
-
     def _remove_all_posters(self):
         # clear posters
         for poster in self.posters:
@@ -466,21 +511,24 @@ class FeaturedView(mkit.FramedSection):
 
         # number of posters we should have given available space
         n = width / CAROUSEL_POSTER_MIN_WIDTH
+        n = (width - n*self.hbox.get_spacing()) / CAROUSEL_POSTER_MIN_WIDTH
         n = max(CAROUSEL_MIN_POSTER_COUNT, n)
         n = min(CAROUSEL_MAX_POSTER_COUNT, n)
-        self.n_posters = n    
+        self.n_posters = n
+
+        if not self.carousel_apps: return
 
         # repack appropriate number of new posters (and make sure
         # we do not try to show more than we have)
-        for i in range(min(n, len(self.featured_apps))):
-            poster = FeaturedPoster(32)
+        for i in range(min(n, len(self.carousel_apps))):
+            poster = CarouselPoster(icon_pixel_size=self._icon_size)
             self.posters.append(poster)
             self.hbox.pack_start(poster)
 
-            if self._offset == len(self.featured_apps):
+            if self._offset == len(self.carousel_apps):
                     self._offset = 0
-            poster.cache_assets(self.featured_apps[self._offset], self._layout)
-            self._offset += 1
+            else:
+                self._offset += 1
 
         self.hbox.show_all()
         return
@@ -507,9 +555,10 @@ class FeaturedView(mkit.FramedSection):
     def _set_next(self, fade_in=True):
         # increment view and update asset cache for each poster
         for poster in self.posters:
-            if self._offset == len(self.featured_apps):
-                    self._offset = 0
-            poster.cache_assets(self.featured_apps[self._offset], self._layout)
+            if self._offset == len(self.carousel_apps):
+                self._offset = 0
+
+            poster.set_app(self.carousel_apps[self._offset])
             self._offset += 1
         if fade_in:
             self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
@@ -561,7 +610,6 @@ class FeaturedView(mkit.FramedSection):
         return loop
 
     def set_width(self, width):
-        width -=  mkit.BORDER_WIDTH_MED
         self._width = width
         self.body.set_size_request(width, -1)
         if not self._show_carousel and self.hbox.get_property('visible'):
@@ -593,270 +641,104 @@ class FeaturedView(mkit.FramedSection):
         return self._show_carousel
 
     def draw(self, cr, a, expose_area):
-        if mkit.is_overlapping(a, expose_area): return
+        if mkit.not_overlapping(a, expose_area): return
         mkit.FramedSection.draw(self, cr, a, expose_area)
 
-        if self.more_btn.state == gtk.STATE_NORMAL:
-            self.more_btn.draw(cr, self.more_btn.allocation, expose_area, alpha=0.4)
-        else:
-            self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
-
-        if self.play_pause_btn.state == gtk.STATE_NORMAL:
-            self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area, alpha=0.4)
-        else:
-            self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
+        self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
+        #self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
 
         alpha = self._alpha
         layout = self._layout
 
-        if not self.posters:
-            #cr.restore()
-            return
+        if not self.posters: return
 
-        overlay = self._overlay
-        for i, poster in enumerate(self.posters):
-            poster.draw(cr, poster.allocation, expose_area,
-                        layout, overlay, alpha)
+        for poster in self.posters:
+            poster.draw(cr, poster.allocation, expose_area, alpha)
         return
 
 
-class FeaturedPoster(gtk.EventBox):
+class CarouselPoster(mkit.VButton):
 
-    __gsignals__ = {
-        "clicked" : (gobject.SIGNAL_RUN_LAST,
-                     gobject.TYPE_NONE, 
-                     (),)
-        }
+    def __init__(self, markup='none', icon_name='none', \
+                 icon_size=gtk.ICON_SIZE_DIALOG, icon_pixel_size=48):
 
-    def __init__(self, icon_size):
-        gtk.EventBox.__init__(self)
-        self.set_redraw_on_allocate(False)
-        self.set_visible_window(False)
-        self.set_size_request(-1, 75)
+        mkit.VButton.__init__(self, markup, icon_name, icon_size)
 
-        self.theme = mkit.Style(self)
-        self.shape = mkit.SHAPE_RECTANGLE
+        self.set_relief(gtk.RELIEF_NONE)
+        self.set_border_width(mkit.BORDER_WIDTH_LARGE)
+        self.set_internal_spacing(mkit.VSPACING_SMALL)
 
-        self._icon_size = icon_size
-        self._icon_pb = None
-        self._icon_offset = None
-        self._text = None
-        self._text_surf = None
+        self.label.set_justify(gtk.JUSTIFY_CENTER)
+        self.image.set_size_request(-1, icon_pixel_size)
+        self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
-        self.set_flags(gtk.CAN_FOCUS)
-        self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
-                        gtk.gdk.BUTTON_RELEASE_MASK|
-                        gtk.gdk.KEY_RELEASE_MASK|
-                        gtk.gdk.KEY_PRESS_MASK|
-                        gtk.gdk.ENTER_NOTIFY_MASK|
-                        gtk.gdk.LEAVE_NOTIFY_MASK)
+        self.app = None
 
-        self.connect('enter-notify-event', self._on_enter)
-        self.connect('leave-notify-event', self._on_leave)
-        self.connect("button-press-event", self._on_button_press)
-        self.connect("button-release-event", self._on_button_release)
-        self.connect("key-press-event", self._on_key_press)
-        self.connect("key-release-event", self._on_key_release)
+        # we inhibit the native gtk drawing for both the Image and Label
+        self.connect('expose-event', lambda w, e: True)
+        
+        self.connect('size-allocate', self._on_allocate)
         return
 
-    def _on_enter(self, poster, event):
-        self.set_state(gtk.STATE_PRELIGHT)
-        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+    def _on_allocate(self, widget, allocation):
+        ia = self.label.allocation  # label allocation
+        layout = self.label.get_layout()
+        layout.set_width((ia.width+12)*pango.SCALE)
+        layout.set_wrap(pango.WRAP_WORD)
         return
 
-    def _on_leave(self, poster, event):
-        self.set_state(gtk.STATE_NORMAL)
-        self.window.set_cursor(None)
-        return
-
-    def _on_button_press(self, poster, event):
-        if event.button != 1: return
-        poster.set_state(gtk.STATE_ACTIVE)
-        return
-
-    def _on_button_release(self, poster, event):
-        if event.button != 1: return
-
-        region = gtk.gdk.region_rectangle(poster.allocation)
-        if not region.point_in(*self.window.get_pointer()[:2]):
-            return
-
-        poster.set_state(gtk.STATE_PRELIGHT)
-
-        s = gtk.settings_get_default()
-        gobject.timeout_add(s.get_property("gtk-timeout-initial"),
-                            self.emit, 'clicked')
-        return
-
-    def _on_key_press(self, cat, event):
-        # react to spacebar, enter, numpad-enter
-        if event.keyval in (32, 65293, 65421):
-            cat.set_state(gtk.STATE_ACTIVE)
-        return
-
-    def _on_key_release(self, cat, event):
-        # react to spacebar, enter, numpad-enter
-        if event.keyval in (32, 65293, 65421):
-            cat.set_state(gtk.STATE_NORMAL)
-            self.emit('clicked')
-        return
-
-    def _cache_text_surf(self, layout):
-        # text rendering is relatively expensive
-        # here a surfaces a cached with the text prerendered
-        # makes fade much cheaper to render
-
-        # we only want to cache a text surf when the poster
-        # has been allocated so we get correct line wrapping.
-        if self.allocation.width == 1: return
-        text = self._text
-
-        # render text to surface in black and cache
-        layout.set_width((self.allocation.width - 32 - 20)*pango.SCALE)
-        layout.set_wrap(pango.WRAP_WORD_CHAR)
-        layout.set_markup(text)
-        w, h = layout.get_pixel_extents()[1][2:]
-
-        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        cr = cairo.Context(surf)
-        pcr = pangocairo.CairoContext(cr)
-        pcr.show_layout(layout)
-
-        self._text_surf = surf
-        del pcr, cr
-        return
-
-    def cache_assets(self, app, layout):
+    def set_app(self, app):
         self.app = app
-        self._icon_pb = pb = app[AppStore.COL_ICON]
-        self._installed = app[AppStore.COL_INSTALLED]
 
-        # cache markup string and cache pixel extents
-        text = app[AppStore.COL_TEXT]
-        name, summary = text.splitlines()
-        self._text = '%s\n%s' % ((H3 % name), (P_SMALL % summary))
+        markup = '<b>%s</b>' % app[AppStore.COL_APP_NAME]
+        pb = app[AppStore.COL_ICON]
 
-        # set atk stuff
-        acc = self.get_accessible()
-        acc.set_name(name)
-        acc.set_description(summary)
-
-        # cache rendered text
-        self._cache_text_surf(layout)
-
-        # calc position of centered pixbuf
-        pw, ph = pb.get_width(), pb.get_height() 
-        px, py = 0, 3
-
-        ico = self._icon_size
-        if pw != ico or ph != ico:
-            px = (ico-pw)/2
-            py += (ico-ph)/2
-        self._icon_offset = px, py
+        self.set_label(markup)
+        self.image.set_from_pixbuf(pb)
         return
 
-    def draw_ltr(self, cr, a, expose_area, layout, overlay, alpha):
-        # draw application icon
-        cr.set_source_pixbuf(self._icon_pb, *self._icon_offset)
-        cr.paint_with_alpha(alpha)
+    def draw(self, cr, a, expose_area, alpha=1.0):
+        if mkit.not_overlapping(a, expose_area): return
 
-        # draw installed overlay icon if app is installed
-        if self._installed:
-            cr.set_source_pixbuf(overlay, 17, 16)
-            cr.paint_with_alpha(alpha)
-
-        # draw text
-        if alpha < 1.0:
-            # if fading, use cached surface, much cheaper to render
-            if not self._text_surf: self._cache_text_surf(layout)
-
-            cr.set_source_surface(self._text_surf,
-                                  8 + self._icon_size,
-                                  POSTER_CORNER_RADIUS)
-            cr.paint_with_alpha(alpha)
-        else:
-            # we paint the layout use the gtk style because its text rendering seems
-            # much nicer than the rendering done by pangocairo...
-            layout.set_markup(self._text)
-            self.style.paint_layout(self.window,
-                                    self.state,
-                                    False,
-                                    a,          # area
-                                    self,
-                                    None,
-                                    a.x + 8 + self._icon_size,
-                                    a.y + 3,
-                                    layout)
-        return
-
-    def draw_rtl(self, cr, a, expose_area, layout, overlay, alpha):
-        # draw application icon
-        x, y = self._icon_offset
-        cr.set_source_pixbuf(self._icon_pb,
-                             a.width - x - self._icon_pb.get_width(),
-                             y)
-        cr.paint_with_alpha(alpha)
-
-        # draw installed overlay icon if app is installed
-        if self._installed:
-            cr.set_source_pixbuf(overlay, a.width - 33, 16) # 33 = 17+16
-            cr.paint_with_alpha(alpha)
-
-        # draw text
-        if alpha < 1.0:
-            # if fading, use cached surface, much cheaper to render
-            surf = self._text_surfs[self.state]
-            cr.set_source_surface(self._text_surf,
-                                  6,
-                                  3)
-            cr.paint_with_alpha(alpha)
-        else:
-            # we paint the layout use the gtk style because its text rendering seems
-            # much nicer than the rendering done by pangocairo...
-            layout.set_markup(self._text)
-            self.style.paint_layout(self.window,
-                                    self.state,
-                                    False,
-                                    a,          # area
-                                    self,
-                                    None,
-                                    a.x + 6,
-                                    a.y + 3,
-                                    layout)
-        return
-
-    def draw(self, cr, a, expose_area, layout, overlay, alpha):
-        if mkit.is_overlapping(a, expose_area): return
-        if not self.get_property('visible'): return
-
-        layout.set_width((self.allocation.width - 32 - 20)*pango.SCALE)
+        mkit.VButton.draw(self, cr, a, expose_area, alpha)
 
         cr.save()
         cr.rectangle(a)
         cr.clip()
-        cr.translate(a.x, a.y)
 
-        # depending on state set bg colour and draw a rounded rectangle
-        if self.state == gtk.STATE_PRELIGHT:
-            self.theme.paint_bg(cr, self, 0, 0, a.width, a.height)
-        elif self.state == gtk.STATE_ACTIVE:
-            self.theme.paint_bg_active_deep(cr, self, 0, 0, a.width, a.height)
+        if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.image.get_pixbuf()
+            ia = self.image.allocation
+            cr.set_source_pixbuf(pb,
+                                 a.x + (a.width - pb.get_width())/2,
+                                 ia.y + (ia.height - pb.get_height())/2)
 
-        # if has input focus, draw focus box
-        if self.has_focus():
-            self.style.paint_focus(self.window,
-                                   self.state,
-                                   (a.x+1, a.y+1, a.width-2, a.height-2),
-                                   self,
-                                   'button',
-                                   a.x+1, a.y+1,
-                                   a.width-2, a.height-2)
+            cr.paint_with_alpha(alpha)
 
-        # direction sensitive stuff
-        if self.get_direction() != gtk.TEXT_DIR_RTL:
-            self.draw_ltr(cr, a, expose_area, layout, overlay, alpha)
+        la = self.label.allocation  # label allocation
+        layout = self.label.get_layout()
+
+        if alpha < 1.0:
+            # text colour from gtk.Style
+            rgba = mkit.floats_from_gdkcolor_with_alpha(self.style.text[self.state], alpha)
+
+            pcr = pangocairo.CairoContext(cr)
+            pcr.save()
+            pcr.rectangle(la.x-6, la.y, la.width+12, la.height)
+            pcr.clip()
+            pcr.move_to(ia.x-6, la.y)
+            pcr.set_source_rgba(*rgba)
+            pcr.show_layout(layout)
+            pcr.restore()
+            del pcr
         else:
-            self.draw_rtl(cr, a, expose_area, layout, overlay, alpha)
-
+            self.style.paint_layout(self.window,
+                                    self.state,
+                                    True,
+                                    a,
+                                    self,
+                                    None,
+                                    la.x-6, la.y,
+                                    layout)
         cr.restore()
         return

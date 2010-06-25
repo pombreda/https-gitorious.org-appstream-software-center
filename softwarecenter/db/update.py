@@ -164,7 +164,7 @@ def index_name(doc, name, term_generator):
 
 def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
-    update_from_var_lib_apt_lists()
+    update_from_var_lib_apt_lists(db, cache)
     # add db global meta-data
     logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
@@ -172,7 +172,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """
     if not listsdir:
-        listsdir = apt_pkg.Config.FindDir("Dir::State::lists")
+        listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
     context = glib.main_context_default()
     for appinfo in glob("%s/*AppInfo" % listsdir):
         logging.debug("processing %s" % appinfo)
