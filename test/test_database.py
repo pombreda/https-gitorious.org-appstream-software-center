@@ -78,6 +78,17 @@ class testDatabase(unittest.TestCase):
                     break
         self.assertTrue(found_gettext_translation)
 
+
+    def test_update_from_webservice(self):
+        from softwarecenter.db.update import update_from_webservice
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        cache = apt.Cache()
+        p = os.path.abspath("./data/app-info-json/apps.json")
+        res = update_from_webservice(db, cache, url="file:%s" % p)
+        self.assertTrue(res)
+        self.assertEqual(db.get_doccount(), 1)
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)

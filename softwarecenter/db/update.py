@@ -22,14 +22,17 @@ import apt_pkg
 import glib
 import logging
 import os
+import simplejson
 import string
 import sys
+import urllib
 import xapian
 
 from ConfigParser import RawConfigParser, NoOptionError
 from glob import glob
 
 from softwarecenter.enums import *
+from softwarecenter.utils import GnomeProxyURLopener
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -68,6 +71,33 @@ class AppInfoParserBase(object):
     @property
     def desktopf(self):
         """ return the file that the AppInfo comes from """
+
+class JsonTagSectionParser(AppInfoParserBase):
+
+    MAPPING = { 'Name'       : 'application_name',
+                'Comment'    : 'description',
+                'Price'      : 'price',
+                'Package'    : 'package_name',
+                'Categories' : 'categories',
+              }
+
+    def __init__(self, tag_section, url):
+        self.tag_section = tag_section
+        self.url = url
+    def _apply_mapping(self, key):
+        # strip away bogus prefixes
+        if key.startswith("X-AppInstall-"):
+            key = key[len("X-AppInstall-"):]
+        if key in self.MAPPING:
+            return self.MAPPING[key]
+        return key
+    def get_desktop(self, key):
+        return self.tag_section[self._apply_mapping(key)]
+    def has_option_desktop(self, key):
+        return self._apply_mapping(key) in self.tag_section
+    @property
+    def desktopf(self):
+        return self.url
 
 class DesktopTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, tagfile):
@@ -168,6 +198,15 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
     # add db global meta-data
     logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
+
+def update_from_webservice(db, cache, url):
+    """ index from a json webservice """
+    urllib._urlopener = GnomeProxyURLopener()
+    f = urllib.urlopen(url)
+    for sec in simplejson.loads(f.read()):
+        parser = JsonTagSectionParser(sec, url)
+        index_app_info_from_parser(parser, db, cache)
+    return True
 
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """
