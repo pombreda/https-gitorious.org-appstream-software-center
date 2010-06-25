@@ -72,7 +72,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE,
                                    (gobject.TYPE_PYOBJECT, ),
-                                  )
+                                  ),
+                                  
+        "show-category-applist" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE,
+                                   (),)
         }
 
 
@@ -144,10 +148,10 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self._append_featured_and_new()
         return
 
-    def _build_subcat_view(self):
+    def _build_subcat_view(self, root_category, num_items):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        self._append_subcat_departments()
+        self._append_subcat_departments(root_category, num_items)
         return
 
     def _append_featured_and_new(self):
@@ -232,8 +236,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
         return
-
-    def _append_subcat_departments(self):
+        
+    def _append_subcat_departments(self, root_category, num_items):
         # create departments widget
         if not self.departments:
             self.departments = mkit.LayoutView()
@@ -264,11 +268,21 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             # append the department to the departments widget
             self.departments.append(cat_btn)
 
+        # append an additional button to show all of the items in the category
+        # TODO:  remove that unsightly ">>" in the name once we have the correct icon to use
+        #        in the show_all_button (for now, just show the category icon)
+        name = gobject.markup_escape_text(_("All %s >>") % num_items)
+        show_all_btn = CategoryButton(name, 
+                                      icon_name=root_category.iconname,
+                                      icon_size= gtk.ICON_SIZE_LARGE_TOOLBAR)
+        show_all_btn.connect('clicked', self._on_show_all_clicked)
+        self.departments.append(show_all_btn)
+
         # kinda hacky doing this here...
         best_fit = self._get_layout_best_fit_width()
         self.departments.set_width(best_fit)
         return
-
+        
     def _full_redraw(self):
         def _redraw():
             self.queue_draw()
@@ -368,17 +382,19 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
     def _image_path(self,name):
-        return os.path.abspath("%s/images/%s.png" % (self.datadir, name)) 
+        return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
+        
+    def _on_show_all_clicked(self, show_all_btn):
+        self.emit("show-category-applist")
 
-    def set_subcategory(self, root_category, block=False):
+    def set_subcategory(self, root_category, num_items=0, block=False):
         # nothing to do
         if self.categories == root_category.subcategories:
             return
         self.header = root_category.name
         self.categories = root_category.subcategories
-        self._build_subcat_view()
+        self._build_subcat_view(root_category, num_items)
         return
-
 
 class CategoryButton(mkit.HButton):
     
