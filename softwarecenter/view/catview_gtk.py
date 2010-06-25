@@ -74,9 +74,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                    (gobject.TYPE_PYOBJECT, ),
                                   ),
                                   
-        "show-category-items" : (gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
-                                 (),)
+        "show-category-applist" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE,
+                                   (),)
         }
 
 
@@ -269,14 +269,12 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             self.departments.append(cat_btn)
 
         # append an additional button to show all of the items in the category
-        # TODO:  remove the unsightly ">>" in the name once we have the correct icon to use
+        # TODO:  remove that unsightly ">>" in the name once we have the correct icon to use
         #        in the show_all_button (for now, just show the category icon)
-        name = _("All %s >>") % num_items
         name = gobject.markup_escape_text(_("All %s >>") % num_items)
         show_all_btn = CategoryButton(name, 
                                       icon_name=root_category.iconname,
                                       icon_size= gtk.ICON_SIZE_LARGE_TOOLBAR)
-        # show_all_btn.connect('clicked', self._on_show_all_clicked, root_category)
         show_all_btn.connect('clicked', self._on_show_all_clicked)
         # append as the last item in the departments list
         self.departments.append(show_all_btn)
@@ -286,15 +284,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.departments.set_width(best_fit)
         return
         
-    def _full_redraw(self):
-        def _redraw():
-            self.queue_draw()
-            return False
-
-        self.queue_draw()
-        gobject.idle_add(_redraw)
-        return
-
     def _full_redraw(self):
         def _redraw():
             self.queue_draw()
@@ -397,7 +386,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
         
     def _on_show_all_clicked(self, show_all_btn):
-        self.emit("show-category-items")
+        self.emit("show-category-applist")
 
     def set_subcategory(self, root_category, num_items=0, block=False):
         # nothing to do

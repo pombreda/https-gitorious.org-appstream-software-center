@@ -85,6 +85,7 @@ class AvailablePane(SoftwarePane):
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
         self.nonapps_visible = False
+
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
@@ -121,7 +122,7 @@ class AvailablePane(SoftwarePane):
         self.subcategories_view.connect(
             "category-selected", self.on_subcategory_activated)
         self.subcategories_view.connect(
-            "show-category-items", self.on_show_category_items)
+            "show-category-applist", self.on_show_category_applist)
         self.scroll_subcategories = gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -184,10 +185,10 @@ class AvailablePane(SoftwarePane):
                 not self.apps_subcategory and
                 not self.apps_search_term)
 
-    def _show_hide_subcategories(self, show_app_list=False):
+    def _show_hide_subcategories(self, show_category_applist=False):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
-        if (not show_app_list and
+        if (not show_category_applist and
             self.apps_category and
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
@@ -395,7 +396,7 @@ class AvailablePane(SoftwarePane):
             appstore.active and
             not appstore.nonapps_visible and
             appstore.nonapp_pkgs and
-            not self.scroll_subcategories.props.visible):
+            not self.is_category_view_showing()):
             # We want to display the label if there are hidden packages
             # in the appstore.
             label = gettext.ngettext("_%i other_ technical item",
@@ -610,8 +611,8 @@ class AvailablePane(SoftwarePane):
     def on_nav_forward_clicked(self, widget, event):
         self.navhistory_forward_action.activate()
         
-    def on_show_category_items(self, widget):
-        self._show_hide_subcategories(show_app_list=True)
+    def on_show_category_applist(self, widget):
+        self._show_hide_subcategories(show_category_applist=True)
 
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
