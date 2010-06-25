@@ -85,7 +85,6 @@ class AvailablePane(SoftwarePane):
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
         self.nonapps_visible = False
-
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
@@ -200,6 +199,7 @@ class AvailablePane(SoftwarePane):
         else:
             self.scroll_subcategories.hide()
             self.scroll_app_list.show()
+            self.update_app_view()
             self._update_action_bar()
 
     def refresh_apps(self):
