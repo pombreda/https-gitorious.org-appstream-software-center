@@ -268,13 +268,14 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             # append the department to the departments widget
             self.departments.append(cat_btn)
 
-        # TODO:  remove the ">>" once we have the correct icon to use
+        # append an additional button to show all of the items in the category
+        # TODO:  remove the unsightly ">>" in the name once we have the correct icon to use
         #        in the show_all_button (for now, just show the category icon)
         name = _("All %s >>") % num_items
-        fixed_name = gobject.markup_escape_text(name)
-        show_all_btn = mkit.VButton(fixed_name, 
-                                    icon_name=root_category.iconname,
-                                    icon_size= gtk.ICON_SIZE_DIALOG)
+        name = gobject.markup_escape_text(_("All %s >>") % num_items)
+        show_all_btn = CategoryButton(name, 
+                                      icon_name=root_category.iconname,
+                                      icon_size= gtk.ICON_SIZE_LARGE_TOOLBAR)
         # show_all_btn.connect('clicked', self._on_show_all_clicked, root_category)
         show_all_btn.connect('clicked', self._on_show_all_clicked)
         # append as the last item in the departments list
