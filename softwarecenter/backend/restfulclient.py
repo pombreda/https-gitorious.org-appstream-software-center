@@ -36,6 +36,7 @@ from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
 from paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
+UBUNTU_SSO_SERVICE = "https://login.staging.ubuntu.com/api/1.0"
 
 class RestfulClientWorker(threading.Thread):
     """ a generic worker thread for a lazr.restfulclient """
@@ -86,26 +87,69 @@ class RestfulClientWorker(threading.Thread):
                 self._pending_requests.empty()):
                 return
 
-def _authenticate_callback(result_list):
-    print "_result_callback: ", result_list
+class UbuntuSSOlogin(gobject.GObject):
+
+    __gsignals__ = {
+        "login-successful" : (gobject.SIGNAL_RUN_LAST,
+                             gobject.TYPE_NONE, 
+                             (),
+                            ),
+        "login-failed" : (gobject.SIGNAL_RUN_LAST,
+                          gobject.TYPE_NONE, 
+                          (),
+                         ),
+        "need-username-password" : (gobject.SIGNAL_RUN_LAST,
+                                    gobject.TYPE_NONE, 
+                                    (),
+                                   ),
+        }
+
+    def __init__(self):
+        gobject.GObject.__init__(self)
+        self.service = UBUNTU_SSO_SERVICE
+
+    def login(self, username=None, password=None):
+        if not username or not password:
+            self.emit("need-username-password")
+            return
+        authorizer = BasicHttpAuthorizer(username, password)
+        self.worker_thread =  RestfulClientWorker(authorizer, self.service)
+        self.worker_thread.start()
+        kwargs = { "token_name":"software-center", }
+        self.worker_thread.queue_request(
+            self.worker_thread.service.authentications.authenticate, (), kwargs,
+            self._authentication_done)
+
+    def _authentication_done(self, result_list):
+        print "_authentication_done", result_list
+
+# test code
+def _login_success(lp):
+    print "success", lp
+def _login_failed(lp):
+    print "fail", lp
+def _login_need_user_and_password(sso):
+    import sys
+    sys.stdout.write("user: ")
+    sys.stdout.flush()
+    user = sys.stdin.readline().strip()
+    sys.stdout.write("pass: ")
+    sys.stdout.flush()
+    password = sys.stdin.readline().strip()
+    sso.login(user, password)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    service = "https://login.staging.ubuntu.com/api/1.0"
-    username = ""
-    password = ""
-    authorizer = BasicHttpAuthorizer(username, password)
-
-    worker_thread = RestfulClientWorker(authorizer, service)
-    worker_thread.start()
-
-    worker_thread.queue_request(
-        worker_thread.service.authentications.authenticate, (), {"token_name":"software-center"}, _authenticate_callback)
+    sso = UbuntuSSOlogin()
+    sso.connect("login-successful", _login_success)
+    sso.connect("login-failed", _login_failed)
+    sso.connect("need-username-password", _login_need_user_and_password)
+    sso.login()
 
 
     # wait
     try:
         glib.MainLoop().run()
     except KeyboardInterrupt:
-        worker_thread.shutdown()
+        sso.worker_thread.shutdown()
