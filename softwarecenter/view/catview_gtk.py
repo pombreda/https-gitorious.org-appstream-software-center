@@ -265,20 +265,34 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             self.departments.append(cat_btn)
 
         # kinda hacky doing this here...
-        best_fit = self._get_layout_best_fit_width()
+        best_fit = self._get_best_fit_width()
         self.departments.set_width(best_fit)
         return
 
+    def _full_redraw_cb(self):
+        self.queue_draw()
+        return False
+
     def _full_redraw(self):
-        def _redraw():
-            self.queue_draw()
-            return False
+        # If we relied on a single queue_draw newly exposed (previously
+        # clipped) regions of the Viewport are blighted with
+        # visual artefacts, so...
+
+        # Two draws are queued; one immediately and one as an idle process
+
+        # The immediate draw results in visual artefacts
+        # but without which the resize feels 'laggy'.
+        # The idle redraw cleans up the regions affected by 
+        # visual artefacts.
+
+        # This all seems to happen fast enough such that the user will
+        # not to notice the temporary visual artefacts.  Peace out.
 
         self.queue_draw()
-        gobject.idle_add(_redraw)
+        gobject.idle_add(self._full_redraw_cb)
         return
 
-    def _get_layout_best_fit_width(self):
+    def _get_best_fit_width(self):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
         return self.parent.allocation.width - \
@@ -312,7 +326,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _on_allocate(self, widget, allocation):
         if self._prev_width != widget.parent.allocation.width:
             self._prev_width = widget.parent.allocation.width
-            best_fit = self._get_layout_best_fit_width()
+            best_fit = self._get_best_fit_width()
 
             if self.featured_carousel:
                 self.featured_carousel.set_width(best_fit/2)
@@ -332,10 +346,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
         cr.clip()
-        #cr.clip_preserve()
-
-        #cr.set_source_rgb(*floats_from_string(COLOR_FRAME_BG_FILL))
-        #cr.fill()
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)
@@ -474,7 +484,7 @@ class CarouselView(mkit.FramedSection):
 
         # push the offset back, so when we recache assets do so from the
         # starting point we were at in the previous incarnation
-        self._offset -= self.n_posters
+        #self._offset -= self.n_posters
 
         # number of posters we should have given available space
         n = width / CAROUSEL_POSTER_MIN_WIDTH
@@ -495,6 +505,8 @@ class CarouselView(mkit.FramedSection):
         # then we remove just the right number of posters from the carousel
         if n < self.n_posters:
             n_remove = self.n_posters - n
+            print '* REMOVE POSTER(S):', n_remove
+            self._offset -= n_remove
             for i in range(n_remove):
                 poster = self.posters[i]
                 # leave no traces remaining (of the poster)
@@ -506,6 +518,7 @@ class CarouselView(mkit.FramedSection):
         # we need to pack in extra posters
         else:
             n_add = n - self.n_posters
+            print '* ADD POSTER(S):', n_add
             for i in range(n_add):
                 poster = CarouselPoster(icon_pixel_size=self._icon_size)
                 self.posters.append(poster)
@@ -535,11 +548,13 @@ class CarouselView(mkit.FramedSection):
         return True
 
     def _set_next(self, fade_in=True):
+        print '* NEXT'
         # increment view and update asset cache for each poster
         for poster in self.posters:
             if self._offset == len(self.carousel_apps):
                 self._offset = 0
 
+            print 'Next:', self._offset
             app = self.carousel_apps[self._offset]
             poster.set_app(app)
             self._offset += 1
@@ -583,7 +598,7 @@ class CarouselView(mkit.FramedSection):
         return
 
     def previous(self):
-        self._offset -= 2*self.n_posters
+        self._offset -= self.n_posters
         self._set_next(fade_in=False)
         return
 
@@ -636,8 +651,13 @@ class CarouselView(mkit.FramedSection):
             # new posters miss out on set_app() which only
             # occurs during carousel transistions
             if not poster.app:
+                print 'Draw:', self._offset
                 app = self.carousel_apps[self._offset]
                 poster.set_app(app)
+
+                self._offset += 1
+                if self._offset == len(self.carousel_apps):
+                    self._offset = 0
 
             poster.draw(cr, poster.allocation, expose_area, alpha)
         return
