@@ -697,6 +697,7 @@ class LayoutView(FramedSection):
         self.column_hbox.set_homogeneous(True)
         self.body.pack_start(self.column_hbox)
 
+        self.n_columns = 0
         self.widget_list = []
         self.theme = Style(self)
         return
@@ -722,6 +723,9 @@ class LayoutView(FramedSection):
         if n_columns > len(widgets):
             n_columns = len(widgets)
 
+        if n_columns == self.n_columns: return
+        self.clear_rows()
+
         # pack columns into widget
         for i in range(n_columns):
             self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_SMALL))
@@ -737,16 +741,17 @@ class LayoutView(FramedSection):
                 i = 0
 
         self.show_all()
+        self.n_columns = n_columns
         return
 
-    def clear_all(self):
-        # destroy all columns and column-children
-        self.widget_list = []
-        for col in self.column_hbox.get_children():
-            for child in col.get_children():
-                child.destroy()
-            col.destroy()
-        return
+    #def clear_all(self):
+        ## destroy all columns and column-children
+        #self.widget_list = []
+        #for col in self.column_hbox.get_children():
+            #for child in col.get_children():
+                #child.destroy()
+            #col.destroy()
+        #return
 
     def clear_rows(self):
         # remove columns, but do not destroy column-children
@@ -828,8 +833,8 @@ class Button(gtk.EventBox):
         return
 
     def _on_realize(self, widget):
-        self.set_size_request(self.calc_width(), self.allocation.height)
-        #print self.allocation.width
+        self.set_size_request(self.calc_width(), 
+                              self.get_size_request()[1])
         return
 
     def _on_enter(self, cat, event):

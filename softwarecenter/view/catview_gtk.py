@@ -350,8 +350,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             if self.newapps_carousel:
                 self.newapps_carousel.set_width(best_fit/2)
             if self.departments:
-                self.departments.clear_rows()
                 self.departments.set_width(best_fit)
+
             # cleanup any signals, its ok if there are none
             self._cleanup_poster_sigs()
 
@@ -811,7 +811,7 @@ class PageSelector(gtk.Alignment):
         self.clear_paging_dots()
         for i in range(int(n_pages)):
             dot = PagingDot(i)
-            dot.connect('clicked', self._on_dot_clicked)
+            self._signals.append(dot.connect('clicked', self._on_dot_clicked))
             self.hbox.pack_start(dot, False)
 
         self.hbox.show_all()
