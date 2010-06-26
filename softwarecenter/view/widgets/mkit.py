@@ -93,7 +93,6 @@ def get_nearest_stock_size(desired_size):
 
     return best_size
 
-
 def not_overlapping(widget_area, expose_area):
     return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
 
@@ -410,7 +409,7 @@ class ShapeCircle(Shape):
     def layout(self, cr, x, y, w, h, *args, **kwargs):
         cr.new_path()
 
-        r = max(w, h)*0.5
+        r = min(w, h)*0.5
         x += int((w-2*r)/2)
         y += int((h-2*r)/2)
 
@@ -593,6 +592,7 @@ class Style:
         r, g, b = self.dark_line[state].floats()
         cr.set_source_rgba(r, g, b, 0.1)
         cr.stroke()
+
         # inner shadow 2
         shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=curv-1)
         cr.set_source_rgba(r, g, b, 0.4)
@@ -828,7 +828,7 @@ class Button(gtk.EventBox):
         return
 
     def _on_realize(self, widget):
-        self.set_size_request(self.calc_width(), -1)
+        self.set_size_request(self.calc_width(), self.allocation.height)
         #print self.allocation.width
         return
 
@@ -1044,45 +1044,3 @@ class VButton(Button):
         w += max(lw, iw)
         w += 2*self.get_border_width() + 12
         return w
-
-
-class PlayPauseButton(Button):
-    
-    def __init__(self):
-        Button.__init__(self, None, None, None)
-        self.is_playing = True
-        return
-
-    def set_is_playing(self, is_playing):
-        self.is_playing = is_playing
-        return
-
-    def calc_width(self):
-        return self.allocation.width
-
-    def draw(self, cr, a, expose_area, alpha=1.0):
-        if not_overlapping(a, expose_area): return
-        Button.draw(self, cr, a, expose_area, alpha)
-
-        cr.save()
-
-        r, g, b = self.theme.theme.text[self.state].floats()
-        cr.set_source_rgba(r, g, b, 0.7)
-        # if is_playing draw pause emblem
-        if self.is_playing:
-            w = max(2, int(a.width*0.2))
-            h = max(6, int(a.height*0.55)) - 1
-            gap = max(1, int(w/2))
-
-            x = a.x + (a.width - 2*w + gap)/2-1
-            y = a.y + (a.height - h)/2
-
-            cr.rectangle(x, y, w, h)
-            cr.fill()
-
-            cr.rectangle(x+w+gap, y, w, h)
-            cr.fill()
-
-        # else, draw play emblem
-        cr.restore()
-        return

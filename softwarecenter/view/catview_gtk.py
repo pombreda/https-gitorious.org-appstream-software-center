@@ -41,7 +41,7 @@ CAROUSEL_ICON_SIZE =             4*mkit.EM
 CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
 CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
-CAROUSEL_TRANSITION_TIMEOUT =    20000 # as per spec this should be 20000 (20 seconds)
+CAROUSEL_TRANSITION_TIMEOUT =    3000 # as per spec this should be 15000 (15 seconds)
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         50 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
@@ -163,7 +163,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # icon size
         best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
 
-        #print featured_cat, featured_cat[0]
         featured_apps = AppStore(self.cache,
                                  self.db,
                                  self.icons,
@@ -174,7 +173,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                  icon_size=best_stock_size,
                                  global_icon_cache=False)
 
-        self.featured_carousel = CarouselView(featured_apps, _('Featured Applications'))
+        self.featured_carousel = CarouselView(featured_apps, _('Featured'))
         self.featured_carousel.more_btn.connect('clicked',
                                   self._on_category_clicked,
                                   featured_cat)
@@ -417,10 +416,9 @@ class CarouselView(mkit.FramedSection):
         self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.hbox.set_homogeneous(True)
         self.body.pack_start(self.hbox, False)
-
-        #self.play_pause_btn = mkit.PlayPauseButton()
-        #self.play_pause_btn.set_shape(mkit.SHAPE_CIRCLE)
-        #self.play_pause_btn.set_relief(gtk.RELIEF_NONE)
+        self.page_sel = PageSelector()
+        self.body.pack_end(self.page_sel, False,
+                           padding=mkit.SPACING_SMALL)
 
         self.header.set_spacing(mkit.SPACING_SMALL)
 
@@ -440,7 +438,6 @@ class CarouselView(mkit.FramedSection):
         self.more_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.pack_end(self.more_btn, False)
-        #self.header.pack_end(self.play_pause_btn, False)
 
         if carousel_apps:
             self._icon_size = carousel_apps.icon_size
@@ -457,7 +454,7 @@ class CarouselView(mkit.FramedSection):
 
         self.show_all()
 
-       #self.more_btn.connect_after('realize', self._on_more_btn_realize)
+        self.page_sel.connect('page-selected', self._on_page_selected)
         return
 
     def _on_realize(self, widget):
@@ -468,10 +465,13 @@ class CarouselView(mkit.FramedSection):
         self.start()
         return
 
-    def _on_more_btn_realize(self, widget):
-        # set the play pause size, relative to the height of the 'more' button
-        h = self.more_btn.allocation.height
-        self.play_pause_btn.set_size_request(h, h)
+    def _on_page_selected(self, page_sel, page):
+        page_range = []
+
+        for i in range(self.n_posters):
+            page_range.append(self.n_posters*page + i)
+
+        print 'PageSel:', page, page_range, len(self.carousel_apps), self.n_posters
         return
 
     def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
@@ -487,10 +487,6 @@ class CarouselView(mkit.FramedSection):
 
     def _build_view(self, width):
         if not self.carousel_apps: return
-
-        # push the offset back, so when we recache assets do so from the
-        # starting point we were at in the previous incarnation
-        #self._offset -= self.n_posters
 
         # number of posters we should have given available space
         n = width / CAROUSEL_POSTER_MIN_WIDTH
@@ -528,6 +524,9 @@ class CarouselView(mkit.FramedSection):
                 self.hbox.pack_start(poster)
                 poster.show()
 
+        # set how many PagingDot's the PageSelector should display
+        pages = int(len(self.carousel_apps) / n + 1)
+        self.page_sel.set_n_pages(pages)
         self.n_posters = n
         return
 
@@ -551,6 +550,10 @@ class CarouselView(mkit.FramedSection):
         return True
 
     def _set_next(self, fade_in=True):
+        # set the PageSelector page
+        page = int(self._offset / self.n_posters)
+        self.page_sel.set_selected_page(page)
+
         # increment view and update asset cache for each poster
         for poster in self.posters:
             if self._offset == len(self.carousel_apps):
@@ -647,9 +650,10 @@ class CarouselView(mkit.FramedSection):
         layout = self._layout
 
         for poster in self.posters:
-            # check poster has an app set (when reallocation occurs,
-            # new posters miss out on set_app() which only
-            # occurs during carousel transistions
+            # check that posters have an app set
+            # (since when reallocation occurs, new posters miss out on 
+            # set_application() which only occurs during carousel
+            # transistions) ...
             if not poster.app:
                 app = self.carousel_apps[self._offset]
                 poster.set_application(app)
@@ -659,6 +663,8 @@ class CarouselView(mkit.FramedSection):
                     self._offset = 0
 
             poster.draw(cr, poster.allocation, expose_area, alpha)
+
+        self.page_sel.draw(cr, self.page_sel.allocation, expose_area)
         return
 
 
@@ -710,7 +716,7 @@ class CarouselPoster(mkit.VButton):
     def set_application(self, app):
         self.app = app
 
-        markup = '<b>%s</b>' % app[AppStore.COL_APP_NAME]
+        markup = '%s' % app[AppStore.COL_APP_NAME]
         pb = app[AppStore.COL_ICON]
 
         self.set_label(markup)
@@ -765,18 +771,107 @@ class CarouselPoster(mkit.VButton):
         return
 
 
-class CarouselNavPoints(gtk.HBox):
-    
+class PageSelector(gtk.Alignment):
+
+    __gsignals__ = {
+        "page-selected" : (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_NONE, 
+                           (int,),)
+        }
+
     def __init__(self):
-        gtk.HBox.__init__(self, spacing=HSPACING_XLARGE)
+        gtk.Alignment.__init__(self, 0.5, 0.5)
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.add(self.hbox)
+        self.set_size_request(-1, 8)
+
+        self.selected = None
+        self._signals = []
         return
 
-    def set_n_navpoints(self, n_navpoints):
-        for i in range(n_navpoints):
-            np = VButton(markup=' ')
-            np.set_shape(mkit.SHAPE_CIRCLE)
-            self.pack_start(np, False)
+    def _on_dot_clicked(self, dot):
+        self.emit('page-selected', dot.page_number)
+        dot.is_selected = True
+        if self.selected:
+            self.selected.is_selected = False
+        self.selected = dot
+        return
+
+    def clear_paging_dots(self):
+        # remove all dots and clear dot signal handlers
+        for i, dot in enumerate(self.hbox.get_children()):
+            gobject.source_remove(self._signals[i])
+            self.hbox.remove(dot)
+            dot.destroy()
+
+        self._signals = []
+        return
+
+    def set_n_pages(self, n_pages):
+        self.clear_paging_dots()
+        for i in range(int(n_pages)):
+            dot = PagingDot(i)
+            dot.connect('clicked', self._on_dot_clicked)
+            self.hbox.pack_start(dot, False)
+
+        self.hbox.show_all()
+        return
+
+    def set_selected_page(self, page_n):
+        dot = self.hbox.get_children()[page_n]
+        dot.is_selected = True
+
+        if self.selected:
+            self.selected.is_selected = False
+            self.selected.queue_draw()
+
+        self.selected = dot
+        dot.queue_draw()
         return
 
     def draw(self, cr, a, expose_area):
+        if mkit.not_overlapping(a, expose_area): return
+
+        for dot in self.hbox.get_children():
+            dot.draw(cr, dot.allocation, expose_area)
+        return
+
+
+class PagingDot(mkit.Button):
+
+    def __init__(self, page_number):
+        mkit.Button.__init__(self, None, None, None)
+        self.set_size_request(6, 6)
+        self.is_selected = False
+        self.page_number = page_number
+        return
+
+    def calc_width(self):
+        return self.allocation.width
+
+    def draw(self, cr, a, expose_area):
+        if mkit.not_overlapping(a, expose_area): return
+        cr.save()
+        cr.rectangle(a)
+        cr.clip_preserve()
+        r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+
+        if self.is_selected:
+            cr.set_source_rgb(r,g,b)
+            cr.fill_preserve()
+            cr.stroke()
+        elif self.state == gtk.STATE_NORMAL:
+            cr.set_source_rgb(r,g,b)
+            cr.stroke()
+        elif self.state == gtk.STATE_PRELIGHT:
+            cr.set_source_rgba(r,g,b,0.5)
+            cr.fill_preserve()
+            cr.set_source_rgb(r,g,b)
+            cr.stroke()
+        elif self.state == gtk.STATE_ACTIVE:
+            cr.set_source_rgb(r,g,b)
+            cr.fill_preserve()
+            cr.stroke()
+
+        cr.restore()
         return
