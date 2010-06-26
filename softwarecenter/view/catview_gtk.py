@@ -41,7 +41,8 @@ CAROUSEL_ICON_SIZE =             4*mkit.EM
 CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
 CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
-CAROUSEL_TRANSITION_TIMEOUT =    3000 # as per spec this should be 15000 (15 seconds)
+CAROUSEL_PAGING_DOT_SIZE =       max(6, int(0.7*mkit.EM+0.5))
+CAROUSEL_TRANSITION_TIMEOUT =    5000 # as per spec this should be 15000 (15 seconds)
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         50 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
@@ -466,24 +467,25 @@ class CarouselView(mkit.FramedSection):
         return
 
     def _on_page_selected(self, page_sel, page):
-        page_range = []
-
-        for i in range(self.n_posters):
-            page_range.append(self.n_posters*page + i)
-
-        print 'PageSel:', page, page_range, len(self.carousel_apps), self.n_posters
+        self.stop()
+        self._offset = page*self.n_posters
+        self._update_poster_content()
+        self._alpha = 1.0
+        self.queue_draw()
+        self.start()
+        print 'PageSel:', self._offset, self.n_posters, page, len(self.carousel_apps)
         return
 
-    def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
-        icons = gtk.icon_theme_get_default()
-        try:
-            self._overlay = icons.load_icon(overlay_icon_name,
-                                            overlay_size, 0)
-        except glib.GError:
-            # icon not present in theme, probably because running uninstalled
-            self._overlay = icons.load_icon('emblem-system',
-                                            overlay_size, 0)
-        return
+    #def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
+        #icons = gtk.icon_theme_get_default()
+        #try:
+            #self._overlay = icons.load_icon(overlay_icon_name,
+                                            #overlay_size, 0)
+        #except glib.GError:
+            ## icon not present in theme, probably because running uninstalled
+            #self._overlay = icons.load_icon('emblem-system',
+                                            #overlay_size, 0)
+        #return
 
     def _build_view(self, width):
         if not self.carousel_apps: return
@@ -525,7 +527,7 @@ class CarouselView(mkit.FramedSection):
                 poster.show()
 
         # set how many PagingDot's the PageSelector should display
-        pages = int(len(self.carousel_apps) / n + 1)
+        pages = len(self.carousel_apps) / n + 1
         self.page_sel.set_n_pages(pages)
         self.n_posters = n
         return
@@ -549,12 +551,8 @@ class CarouselView(mkit.FramedSection):
         self.queue_draw()
         return True
 
-    def _set_next(self, fade_in=True):
-        # set the PageSelector page
-        page = int(self._offset / self.n_posters)
-        self.page_sel.set_selected_page(page)
-
-        # increment view and update asset cache for each poster
+    def _update_poster_content(self):
+        # update poster content and increment offset
         for poster in self.posters:
             if self._offset == len(self.carousel_apps):
                 self._offset = 0
@@ -562,6 +560,16 @@ class CarouselView(mkit.FramedSection):
             app = self.carousel_apps[self._offset]
             poster.set_application(app)
             self._offset += 1
+        return
+
+    def _set_next(self, fade_in=True):
+        # set the PageSelector page
+        page = self._offset / self.n_posters
+        #print self._offset, self._offset / float(self.n_posters)
+        self.page_sel.set_selected_page(page)
+
+        self._update_poster_content()
+
         if fade_in:
             self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
                                               self._fade_in)
@@ -664,7 +672,7 @@ class CarouselView(mkit.FramedSection):
 
             poster.draw(cr, poster.allocation, expose_area, alpha)
 
-        self.page_sel.draw(cr, self.page_sel.allocation, expose_area)
+        self.page_sel.draw(cr, self.page_sel.allocation, expose_area, alpha)
         return
 
 
@@ -785,6 +793,7 @@ class PageSelector(gtk.Alignment):
         self.add(self.hbox)
         self.set_size_request(-1, 8)
 
+        self.n_pages = 0
         self.selected = None
         self._signals = []
         return
@@ -808,6 +817,7 @@ class PageSelector(gtk.Alignment):
         return
 
     def set_n_pages(self, n_pages):
+        self.n_pages = n_pages
         self.clear_paging_dots()
         for i in range(int(n_pages)):
             dot = PagingDot(i)
@@ -816,6 +826,9 @@ class PageSelector(gtk.Alignment):
 
         self.hbox.show_all()
         return
+
+    def get_n_pages(self):
+        return self.n_pages
 
     def set_selected_page(self, page_n):
         dot = self.hbox.get_children()[page_n]
@@ -829,11 +842,11 @@ class PageSelector(gtk.Alignment):
         dot.queue_draw()
         return
 
-    def draw(self, cr, a, expose_area):
+    def draw(self, cr, a, expose_area, alpha):
         if mkit.not_overlapping(a, expose_area): return
 
         for dot in self.hbox.get_children():
-            dot.draw(cr, dot.allocation, expose_area)
+            dot.draw(cr, dot.allocation, expose_area, alpha)
         return
 
 
@@ -841,15 +854,16 @@ class PagingDot(mkit.Button):
 
     def __init__(self, page_number):
         mkit.Button.__init__(self, None, None, None)
-        self.set_size_request(6, 6)
+        self.set_size_request(CAROUSEL_PAGING_DOT_SIZE,
+                              CAROUSEL_PAGING_DOT_SIZE)
         self.is_selected = False
         self.page_number = page_number
         return
 
     def calc_width(self):
-        return 6
+        return CAROUSEL_PAGING_DOT_SIZE
 
-    def draw(self, cr, a, expose_area):
+    def draw(self, cr, a, expose_area, alpha):
         if mkit.not_overlapping(a, expose_area): return
         cr.save()
         cr.rectangle(a)
@@ -857,8 +871,9 @@ class PagingDot(mkit.Button):
         r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
 
         if self.is_selected:
-            cr.set_source_rgb(r,g,b)
+            cr.set_source_rgba(r,g,b,alpha)
             cr.fill_preserve()
+            cr.set_source_rgb(r,g,b)
             cr.stroke()
         elif self.state == gtk.STATE_NORMAL:
             cr.set_source_rgb(r,g,b)
