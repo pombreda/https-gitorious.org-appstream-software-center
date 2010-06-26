@@ -31,17 +31,18 @@ from softwarecenter.distro import get_distro
 
 from catview import *
 
-# some nice colours
-COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
-COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
+
+FOOTER_HEIGHT = 2*mkit.EM   # as per spec
 
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
 CAROUSEL_ICON_SIZE =             4*mkit.EM
+CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
 CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_TRANSITION_TIMEOUT =    20000 # as per spec this should be 20000 (20 seconds)
+# spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         50 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
 
@@ -213,6 +214,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
+        self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
 #        enquirer = xapian.Enquire(self.db.xapiandb)
 
@@ -253,6 +255,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # set the departments section to use the label
         header = gobject.markup_escape_text(self.header)
         self.departments.set_label(H2 % header)
+        self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories[:-1])
@@ -405,24 +408,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
 
-class CategoryButton(mkit.HButton):
-    
-    def __init__(self, markup, icon_name, icon_size):
-        mkit.HButton.__init__(self, markup, icon_name, icon_size)
-
-        self.set_relief(gtk.RELIEF_NONE)
-        self.set_has_action_arrow(True)
-        self.set_internal_xalignment(0.0)    # basically justify-left
-        self.set_internal_spacing(mkit.SPACING_LARGE)
-        self.set_border_width(mkit.BORDER_WIDTH_MED)
-        return
-
-
 class CarouselView(mkit.FramedSection):
 
     def __init__(self, carousel_apps, title):
         mkit.FramedSection.__init__(self)
-        self.title = title
+        self.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.hbox.set_homogeneous(True)
@@ -434,6 +424,7 @@ class CarouselView(mkit.FramedSection):
 
         self.header.set_spacing(mkit.SPACING_SMALL)
 
+        self.title = title
         self.posters = []
         self.n_posters = 0
         self._show_carousel = True
@@ -566,7 +557,7 @@ class CarouselView(mkit.FramedSection):
                 self._offset = 0
 
             app = self.carousel_apps[self._offset]
-            poster.set_app(app)
+            poster.set_application(app)
             self._offset += 1
         if fade_in:
             self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
@@ -651,10 +642,9 @@ class CarouselView(mkit.FramedSection):
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
         #self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
 
+        if not self.carousel_apps: return
         alpha = self._alpha
         layout = self._layout
-
-        if not self.posters: return
 
         for poster in self.posters:
             # check poster has an app set (when reallocation occurs,
@@ -662,13 +652,26 @@ class CarouselView(mkit.FramedSection):
             # occurs during carousel transistions
             if not poster.app:
                 app = self.carousel_apps[self._offset]
-                poster.set_app(app)
+                poster.set_application(app)
 
                 self._offset += 1
                 if self._offset == len(self.carousel_apps):
                     self._offset = 0
 
             poster.draw(cr, poster.allocation, expose_area, alpha)
+        return
+
+
+class CategoryButton(mkit.HButton):
+    
+    def __init__(self, markup, icon_name, icon_size):
+        mkit.HButton.__init__(self, markup, icon_name, icon_size)
+
+        self.set_relief(gtk.RELIEF_NONE)
+        self.set_has_action_arrow(True)
+        self.set_internal_xalignment(0.0)    # basically justify-left
+        self.set_internal_spacing(mkit.SPACING_LARGE)
+        self.set_border_width(mkit.BORDER_WIDTH_MED)
         return
 
 
@@ -679,9 +682,11 @@ class CarouselPoster(mkit.VButton):
 
         mkit.VButton.__init__(self, markup, icon_name, icon_size)
 
+        self.theme['curvature'] = CAROUSEL_POSTER_CORNER_RADIUS
         self.set_relief(gtk.RELIEF_NONE)
         self.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.set_internal_spacing(mkit.SPACING_SMALL)
+        self.set_active_paint_mode(mkit.ACTIVE_PAINT_MODE_DEEP)
 
         self.label.set_justify(gtk.JUSTIFY_CENTER)
         self.image.set_size_request(-1, icon_pixel_size)
@@ -698,11 +703,11 @@ class CarouselPoster(mkit.VButton):
     def _on_allocate(self, widget, allocation):
         ia = self.label.allocation  # label allocation
         layout = self.label.get_layout()
-        layout.set_width((ia.width+12)*pango.SCALE)
+        layout.set_width(ia.width*pango.SCALE)
         layout.set_wrap(pango.WRAP_WORD)
         return
 
-    def set_app(self, app):
+    def set_application(self, app):
         self.app = app
 
         markup = '<b>%s</b>' % app[AppStore.COL_APP_NAME]
@@ -714,7 +719,7 @@ class CarouselPoster(mkit.VButton):
 
     def draw(self, cr, a, expose_area, alpha=1.0):
         if mkit.not_overlapping(a, expose_area): return
-        mkit.VButton.draw(self, cr, a, expose_area, alpha)
+        mkit.VButton.draw(self, cr, a, expose_area, alpha=alpha)
 
         cr.save()
         cr.rectangle(a)
@@ -740,9 +745,9 @@ class CarouselPoster(mkit.VButton):
 
             pcr = pangocairo.CairoContext(cr)
             pcr.save()
-            pcr.rectangle(la.x-6, la.y, la.width+12, la.height)
+            pcr.rectangle(la.x, la.y, la.width, la.height)
             pcr.clip()
-            pcr.move_to(ia.x-6, la.y)
+            pcr.move_to(ia.x, la.y)
             pcr.set_source_rgba(*rgba)
             pcr.show_layout(layout)
             pcr.restore()
@@ -754,7 +759,7 @@ class CarouselPoster(mkit.VButton):
                                     a,
                                     self,
                                     None,
-                                    la.x-6, la.y,
+                                    la.x, la.y,
                                     layout)
         cr.restore()
         return

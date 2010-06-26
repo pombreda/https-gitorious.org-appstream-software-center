@@ -114,6 +114,10 @@ SHAPE_MID_ARROW =   2
 SHAPE_END_CAP =     3
 SHAPE_CIRCLE =      4
 
+# active paint modes
+ACTIVE_PAINT_MODE_NORMAL =  0
+ACTIVE_PAINT_MODE_DEEP =    1
+
 # the em value
 EM = get_em_value()
 
@@ -131,7 +135,7 @@ SPACING_SMALL =         max(1, int(0.333*EM+0.5))
 CORNER_RADIUS =         max(2, int(0.333*EM+0.5))
 
 # DEBUGGING
-print '\n* METRICS'
+print '\n* MKIT METRICS'
 print '1EM:', EM
 print 'BORDER_WIDTH_L:',BORDER_WIDTH_LARGE
 print 'BORDER_WIDTH_M:',BORDER_WIDTH_MED
@@ -437,6 +441,13 @@ class Style:
         logging.warn('Key does not exist in the style profile: %s' % item)
         return None
 
+    def __setitem__(self, item, value):
+        if self.properties.has_key(item):
+            self.properties[item] = value
+            return
+        logging.warn('Key does not exist in the style profile: %s' % item)
+        return None
+
     def _load_shape_map(self, widget):
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
             shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_LTR),
@@ -473,10 +484,10 @@ class Style:
         self.shape_map = shmap
         return
 
-    def paint_bg_flat(self, cr, part, x, y, w, h, r=None, sxO=0, alpha=1.0):
+    def paint_bg_flat(self, cr, part, x, y, w, h, sxO=0, alpha=1.0):
         shape = self.shape_map[part.shape]
         state = part.state
-        r = r or self["curvature"]
+        curv = self["curvature"]
         aw = self["arrow-width"]
 
         cr.save()
@@ -488,23 +499,23 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
         lin = cairo.LinearGradient(0, 0, 0, h)
-        red, g, b = color1.floats()
-        lin.add_color_stop_rgba(0.0, red, g, b, alpha)
+        r, g, b = color1.floats()
+        lin.add_color_stop_rgba(0.0, r, g, b, alpha)
+        r, g, b = color2.floats()
+        lin.add_color_stop_rgba(1.0, r, g, b, alpha)
 
-        red, g, b = color2.floats()
-        lin.add_color_stop_rgba(1.0, red, g, b, alpha)
         cr.set_source(lin)
         cr.fill()
 
         cr.restore()
         return
 
-    def paint_bg(self, cr, part, x, y, w, h, r=None, sxO=0, alpha=1.0):
+    def paint_bg(self, cr, part, x, y, w, h, sxO=0, alpha=1.0):
         shape = self.shape_map[part.shape]
         state = part.state
-        r = r or self["curvature"]
+        curv = self["curvature"]
         aw = self["arrow-width"]
 
         cr.save()
@@ -516,13 +527,13 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
         lin = cairo.LinearGradient(0, 0, 0, h)
-        red, g, b = color1.floats()
-        lin.add_color_stop_rgba(0.0, red, g, b, alpha)
+        r, g, b = color1.floats()
+        lin.add_color_stop_rgba(0.0, r, g, b, alpha)
+        r, g, b = color2.floats()
+        lin.add_color_stop_rgba(1.0, r, g, b, alpha)
 
-        red, g, b = color2.floats()
-        lin.add_color_stop_rgba(1.0, red, g, b, alpha)
         cr.set_source(lin)
         cr.fill()
 
@@ -532,61 +543,29 @@ class Style:
         w -= 1
         h -= 1
 
+        # strong outline
+        r, g, b = self.dark_line[state].floats()
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
+        cr.set_source_rgba(r, g, b, alpha)
+        cr.stroke()
         # inner bevel/highlight
-        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=r-1)
-        red, g, b = self.light_line[state].floats()
-        cr.set_source_rgba(red, g, b, alpha)
-        cr.stroke()
+        if part.state != gtk.STATE_ACTIVE:
+            r, g, b = self.light_line[state].floats()
+        else:
+            r, g, b = self.dark_line[state].floats()
+            alpha *= 0.25
 
-        # strong outline
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
-        red, g, b = self.dark_line[state].floats()
-        cr.set_source_rgba(red, g, b, alpha)
+        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=curv-1)
+        cr.set_source_rgba(r, g, b, alpha)
         cr.stroke()
 
         cr.restore()
         return
 
-    def paint_bg_active_shallow(self, cr, part, x, y, w, h, sxO=0):
+    def paint_bg_active_deep(self, cr, part, x, y, w, h, alpha=1.0):
         shape = self.shape_map[part.shape]
         state = part.state
-        r = self["curvature"]
-        aw = self["arrow-width"]
-
-        cr.save()
-        cr.rectangle(x, y, w+1, h)
-        cr.clip()
-        cr.translate(x+0.5-sxO, y+0.5)
-
-        w -= 1
-        h -= 1
-
-        # bg linear vertical gradient
-        color1, color2 = self.gradients[state]
-
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
-        cr.set_source_rgb(*color2.floats())
-        cr.fill()
-
-        cr.set_line_width(1.0)
-        # inner shadow
-        if r == 0: w += 1
-        red, g, b = self.dark_line[state].floats()
-        shape.layout(cr, 1, 1, w-0.5, h-1, arrow_width=aw, radius=r-1)
-        cr.set_source_rgba(red, g, b, 0.3)
-        cr.stroke()
-
-        # strong outline
-        shape(cr, 0, 0, w, h, arrow_width=aw, radius=r)
-        cr.set_source_rgb(*self.dark_line[state].floats())
-        cr.stroke()
-        cr.restore()
-        return
-
-    def paint_bg_active_deep(self, cr, part, x, y, w, h, r=None):
-        shape = self.shape_map[part.shape]
-        state = part.state
-        r = r or self["curvature"]
+        curv = self["curvature"]
         aw = self["arrow-width"]
 
         cr.save()
@@ -600,7 +579,7 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
 
         lin = cairo.LinearGradient(0, 0, 0, h)
         lin.add_color_stop_rgb(2.0, *color1.floats())
@@ -610,18 +589,17 @@ class Style:
 
         cr.set_line_width(1.0)
         # inner shadow 1
-        if r == 0: w += 1
-        shape.layout(cr, 2, 2, w-2, h-2, arrow_width=aw, radius=r-2)
-        red, g, b = self.dark_line[state].floats()
-        cr.set_source_rgba(red, g, b, 0.1)
+        shape.layout(cr, 2, 2, w-2, h-2, arrow_width=aw, radius=curv-2)
+        r, g, b = self.dark_line[state].floats()
+        cr.set_source_rgba(r, g, b, 0.1)
         cr.stroke()
-
-        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=r-1)
-        cr.set_source_rgba(red, g, b, 0.4)
+        # inner shadow 2
+        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=curv-1)
+        cr.set_source_rgba(r, g, b, 0.4)
         cr.stroke()
 
         # strong outline
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=r)
+        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
         cr.set_source_rgb(*self.dark_line[state].floats())
         cr.stroke()
         cr.restore()
@@ -762,6 +740,7 @@ class LayoutView(FramedSection):
         return
 
     def clear_all(self):
+        # destroy all columns and column-children
         self.widget_list = []
         for col in self.column_hbox.get_children():
             for child in col.get_children():
@@ -770,6 +749,7 @@ class LayoutView(FramedSection):
         return
 
     def clear_rows(self):
+        # remove columns, but do not destroy column-children
         for col in self.column_hbox.get_children():
             for btn in col.get_children():
                 col.remove(btn)
@@ -824,6 +804,7 @@ class Button(gtk.EventBox):
 
         self._relief = gtk.RELIEF_NORMAL
         self._has_action_arrow = False
+        self._active_paint_mode = ACTIVE_PAINT_MODE_NORMAL
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
@@ -897,7 +878,25 @@ class Button(gtk.EventBox):
             self.emit('clicked')
         return
 
-    def _draw_action_arrow(self, a, aw=10):  # d : arrow_width
+    def _paint_bg(self, cr, a, alpha):
+        if self._active_paint_mode == ACTIVE_PAINT_MODE_NORMAL or \
+            self.state != gtk.STATE_ACTIVE:
+
+            self.theme.paint_bg(cr, self,
+                                a.x, a.y,
+                                a.width-1,
+                                a.height,
+                                alpha=alpha)
+
+        else:
+            self.theme.paint_bg_active_deep(cr, self,
+                                            a.x, a.y,
+                                            a.width-1,
+                                            a.height,
+                                            alpha=alpha)
+        return
+
+    def _paint_action_arrow(self, a, aw=10):
         # draw arrow
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             self.style.paint_arrow(self.window,
@@ -951,19 +950,22 @@ class Button(gtk.EventBox):
         self._has_action_arrow = has_action_arrow
         return
 
+    def set_active_paint_mode(self, paint_mode):
+        self._active_paint_mode = paint_mode
+        return
+
     def draw(self, cr, a, expose_area, alpha=1.0):
         if not_overlapping(a, expose_area): return
 
         if self._relief == gtk.RELIEF_NORMAL:
-            self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
+            self._paint_bg(cr, a, alpha)
             if self._has_action_arrow:
-                self._draw_action_arrow(a)
+                self._paint_action_arrow(a)
         else:
-            if self.state == gtk.STATE_PRELIGHT or \
-                self.state == gtk.STATE_ACTIVE:
-                self.theme.paint_bg(cr, self, a.x, a.y, a.width-1, a.height, alpha=alpha)
+            if self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE:
+                self._paint_bg(cr, a, alpha)
                 if self._has_action_arrow:
-                    self._draw_action_arrow(a)
+                    self._paint_action_arrow(a)
 
         if self.has_focus():
             a = self.label.allocation
