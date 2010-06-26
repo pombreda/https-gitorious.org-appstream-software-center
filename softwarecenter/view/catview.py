@@ -44,13 +44,21 @@ def get_category_by_name(categories, untrans_name):
     if cat: return cat[0]
     return None
 
-def sorted_category_names(categories):
+def categories_sorted_by_name(categories):
     # sort categories by name
-    sorted_cats = []
+    sorted_catnames = []
+    # first pass, sort by translated names
     for cat in categories:
-        # hrm not sure if we should use untranslated_name here or not?
-        sorted_cats.append(cat.name)
-    sorted_cats.sort()
+        sorted_catnames.append(cat.name)
+    sorted_catnames.sort()
+
+    # second pass, assemble cats by sorted their sorted catnames
+    sorted_cats = []
+    for name in sorted_catnames:
+        for cat in categories:
+            if cat.name == name:
+                sorted_cats.append(cat)
+                break
     return sorted_cats
 
 

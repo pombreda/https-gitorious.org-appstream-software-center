@@ -31,25 +31,19 @@ from softwarecenter.distro import get_distro
 
 from catview import *
 
+# some nice colours
 COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
 COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
-
-CAT_BUTTON_FIXED_WIDTH =    200
-CAT_BUTTON_MIN_HEIGHT =     96
-CAT_BUTTON_BORDER_WIDTH =   6
-CAT_BUTTON_CORNER_RADIUS =  8
 
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
-CAROUSEL_POSTER_MIN_WIDTH =      100 # this is actually more of an approximate minima
-CAROUSEL_POSTER_MIN_HEIGHT =     90
-
-# XXX: TRANSITION_TIMEOUT 5000 for testing only, should be 20000 for normal use
-CAROUSEL_TRANSITION_TIMEOUT =    20000 # n_seconds * 1000
-CAROUSEL_FADE_INTERVAL =         50 # msec  
-CAROUSEL_FADE_STEP =             0.1 # value between 0.0 and 1.0
-
+CAROUSEL_ICON_SIZE =             4*mkit.EM
+CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
+CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
+CAROUSEL_TRANSITION_TIMEOUT =    20000 # as per spec this should be 20000 (20 seconds)
+CAROUSEL_FADE_INTERVAL =         50 # msec
+CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -136,6 +130,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         self.vbox.connect('expose-event', self._on_expose)
         self.connect('size-allocate', self._on_allocate)
+        self.connect('style-set', self._on_style_set)
+        return
 
     def _build_homepage_view(self):
         # these methods add sections to the page
@@ -157,6 +153,33 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         featured_cat = get_category_by_name(self.categories,
                                             'Featured Applications')    # untranslated name
+
+        # the spec says the carousel icons should be 4em
+        # however, by not using a stock icon size, icons sometimes dont
+        # look to great.
+
+        # so based on the value of 4*em we try to choose a sane stock
+        # icon size
+        stock_sizes = (24, 32, 48, 64)
+        spec_to_stock_ratios = []
+
+        # first divide the specd icon size (4em) by stock icon sizes
+        for size in stock_sizes:
+            spec_to_stock_ratios.append(CAROUSEL_ICON_SIZE / float(size))
+
+        # then choose the stock size whose spec_to_stock ratio is nearest to 1
+        best_ratio = 1
+        best_stock_size = 0
+        for i, ratio in enumerate(spec_to_stock_ratios):
+            if ratio < 1:
+                proximity_to_one = 1 - ratio
+            else:
+                proximity_to_one = ratio - 1
+
+            if proximity_to_one < best_ratio:
+                best_stock_size = stock_sizes[i]
+                best_ratio = proximity_to_one
+
         #print featured_cat, featured_cat[0]
         featured_apps = AppStore(self.cache,
                                  self.db,
@@ -165,7 +188,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                  self.apps_limit,
                                  True,
                                  self.apps_filter,
-                                 icon_size=48,
+                                 icon_size=best_stock_size,
                                  global_icon_cache=False)
 
         self.featured_carousel = CarouselView(featured_apps, _('Featured Applications'))
@@ -184,7 +207,10 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
                                 new_cat[0].query,
                                 self.apps_limit,
                                 True,
-                                self.apps_filter)
+                                self.apps_filter,
+                                icon_size=CAROUSEL_ICON_SIZE,
+                                global_icon_cache=False)
+
         else:
             new_apps = None
 
@@ -209,17 +235,16 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 #        enquirer = xapian.Enquire(self.db.xapiandb)
 
         # sort Category.name's alphabetically
-        sorted_catnames = sorted_category_names(self.categories[:-1])
+        sorted_cats = categories_sorted_by_name(self.categories[:-1])
 
-        for name in sorted_catnames:
-            cat = get_category_by_name(self.categories, name)
+        for cat in sorted_cats:
             #enquirer.set_query(cat.query)
             ## limiting the size here does not make it faster
             #matches = enquirer.get_mset(0, len(self.db))
             #estimate = matches.get_matches_estimated()
 
             # sanitize text so its pango friendly...
-            name = gobject.markup_escape_text(name.strip())
+            name = gobject.markup_escape_text(cat.name.strip())
 
             cat_btn = CategoryButton(name,
                                      icon_name=cat.iconname,
@@ -297,6 +322,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # parent alllocation less the sum of all border widths
         return self.parent.allocation.width - \
                 2*(mkit.BORDER_WIDTH_LARGE + mkit.BORDER_WIDTH_MED) - mkit.BORDER_WIDTH_LARGE
+
+    def _on_style_set(self, widget, old_style):
+        mkit.update_em_metrics()
+        self.queue_draw()
+        return
 
     def _on_app_clicked(self, btn):
         app = btn.app
@@ -494,7 +524,6 @@ class CarouselView(mkit.FramedSection):
 
         # do nothing if the the new number of posters matches the
         # old number of posters
-        print n, self.n_posters 
         if n == self.n_posters:
             return
 
@@ -505,7 +534,6 @@ class CarouselView(mkit.FramedSection):
         # then we remove just the right number of posters from the carousel
         if n < self.n_posters:
             n_remove = self.n_posters - n
-            print '* REMOVE POSTER(S):', n_remove
             self._offset -= n_remove
             for i in range(n_remove):
                 poster = self.posters[i]
@@ -518,7 +546,6 @@ class CarouselView(mkit.FramedSection):
         # we need to pack in extra posters
         else:
             n_add = n - self.n_posters
-            print '* ADD POSTER(S):', n_add
             for i in range(n_add):
                 poster = CarouselPoster(icon_pixel_size=self._icon_size)
                 self.posters.append(poster)
@@ -548,13 +575,11 @@ class CarouselView(mkit.FramedSection):
         return True
 
     def _set_next(self, fade_in=True):
-        print '* NEXT'
         # increment view and update asset cache for each poster
         for poster in self.posters:
             if self._offset == len(self.carousel_apps):
                 self._offset = 0
 
-            print 'Next:', self._offset
             app = self.carousel_apps[self._offset]
             poster.set_app(app)
             self._offset += 1
@@ -651,7 +676,6 @@ class CarouselView(mkit.FramedSection):
             # new posters miss out on set_app() which only
             # occurs during carousel transistions
             if not poster.app:
-                print 'Draw:', self._offset
                 app = self.carousel_apps[self._offset]
                 poster.set_app(app)
 

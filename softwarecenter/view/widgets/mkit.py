@@ -74,6 +74,7 @@ def not_overlapping(widget_area, expose_area):
     return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
 
 
+
 #######################
 ### HANDY CONSTANTS ###
 #######################
@@ -94,23 +95,106 @@ EM = get_em_value()
 
 # recommended border metrics (integers)
 BORDER_WIDTH_LARGE =    max(3, EM)
-BORDER_WIDTH_MED =      max(2, int(0.66*EM))
-BORDER_WIDTH_SMALL =    max(1, int(0.33*EM))
+BORDER_WIDTH_MED =      max(2, int(0.666*EM))
+BORDER_WIDTH_SMALL =    max(1, int(0.333*EM))
 
 # recommended spacings between elements
 SPACING_LARGE =         max(3, EM)
-SPACING_MED =           max(2, int(0.66*EM))
-SPACING_SMALL =         max(1, int(0.33*EM))
+SPACING_MED =           max(2, int(0.666*EM+0.5))
+SPACING_SMALL =         max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
-CORNER_RADIUS =         max(2, int(0.33*EM))
+CORNER_RADIUS =         max(2, int(0.333*EM+0.5))
+
+# DEBUGGING
+print '\n* METRICS'
+print '1EM:', EM
+print 'BORDER_WIDTH_L:',BORDER_WIDTH_LARGE
+print 'BORDER_WIDTH_M:',BORDER_WIDTH_MED
+print 'BORDER_WIDTH_S:', BORDER_WIDTH_SMALL
+
+print 'SPACING_L:', SPACING_LARGE
+print 'SPACING_M:', SPACING_MED
+print 'SPACING_S:', SPACING_SMALL
+
+print 'CORNER_R:', CORNER_RADIUS
 
 
-#######################
-### HANDY CONSTANTS ###
-#######################
+
+##############################
+### ANOTHER HANDY FUNCTION ###
+##############################
+
+def update_em_metrics():
+    # if the gtk-font-name changes, this can be called to update
+    # all em dependent metrics
+    global EM
+    if EM == get_em_value(): return
+    EM = get_em_value()
+
+    global BORDER_WIDTH_LARGE, BORDER_WIDTH_MED, BORDER_WIDTH_SMALL
+    BORDER_WIDTH_LARGE =    max(3, EM)
+    BORDER_WIDTH_MED =      max(2, int(0.666*EM+0.5))
+    BORDER_WIDTH_SMALL =    max(1, int(0.333*EM+0.5))
+
+    # recommended spacings between elements
+    global SPACING_LARGE, SPACING_MED, SPACING_SMALL
+    SPACING_LARGE =         max(3, EM)
+    SPACING_MED =           max(2, int(0.666*EM+0.5))
+    SPACING_SMALL =         max(1, int(0.333*EM+0.5))
+
+    # recommended corner radius
+    global CORNER_RADIUS
+    CORNER_RADIUS =         max(2, int(0.333*EM+0.5))
+
+
+    # DEBUGGING
+    print '\n* METRICS'
+    print '1EM:', EM
+    print 'BORDER_WIDTH_L:',BORDER_WIDTH_LARGE
+    print 'BORDER_WIDTH_M:',BORDER_WIDTH_MED
+    print 'BORDER_WIDTH_S:', BORDER_WIDTH_SMALL
+
+    print 'SPACING_L:', SPACING_LARGE
+    print 'SPACING_M:', SPACING_MED
+    print 'SPACING_S:', SPACING_SMALL
+
+    print 'CORNER_R:', CORNER_RADIUS
+    return
+
+
+#####################
+### HANDY CLASSES ###
+#####################
 
 class Shape:
+
+    """ Base class for a Shape implementation.
+
+        Currently implements a single method <layout> which is called
+        to layout the shape using cairo paths.  It can also store the
+        'direction' of the shape which should be on of the gtk.TEXT_DIR
+        constants.  Default 'direction' is gtk.TEXT_DIR_LTR.
+
+        When implementing a Shape, there are two options available.
+
+        If the Shape is direction dependent, the Shape MUST
+        implement <_layout_ltr> and <_layout_rtl> methods.
+        
+        If the Shape is not direction dependent, then it simply can
+        override the <layout> method.
+
+        <layout> methods must take the following as arguments:
+
+        cr :    a CairoContext
+        x  :    x coordinate
+        y  :    y coordinate
+        w  :    width value
+        h  :    height value
+
+        <layout> methods can then be passed Shape specific
+        keyword arguments which can be used as draw-time modifiers.
+    """
 
     def __init__(self, direction):
         self.direction = direction
@@ -126,11 +210,21 @@ class Shape:
 
 class ShapeRoundedRectangle(Shape):
 
+    """
+        RoundedRectangle lays out a rectangle with all four corners
+        rounded as specified at the layout call by the keyword argument:
+
+        radius :    an integer or float specifying the corner radius.
+                    The radius must be > 0.
+
+        RoundedRectangle is not direction sensitive.
+    """
+
     def __init__(self, direction=gtk.TEXT_DIR_LTR):
         Shape.__init__(self, direction)
         return
 
-    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+    def layout(self, cr, x, y, w, h, *args, **kwargs):
         r = kwargs['radius']
 
         cr.new_sub_path()
@@ -141,18 +235,26 @@ class ShapeRoundedRectangle(Shape):
         cr.close_path()
         return
 
-    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
-        self._layout_ltr(cr, x, y, w, h, *args, **kwargs)
-        return
-
 
 class ShapeRoundedRectangleIrregular(Shape):
+
+    """
+        RoundedRectangleIrregular lays out a rectangle for which each
+        individual corner can be rounded by a specific radius,
+        as specified at the layout call by the keyword argument:
+
+        radii : a 4-tuple of ints or floats specifying the radius for
+                each corner.  A value of 0 is acceptable as a radius, it
+                will result in a squared corner.
+
+        RoundedRectangleIrregular is not direction sensitive.
+    """
 
     def __init__(self, direction=gtk.TEXT_DIR_LTR):
         Shape.__init__(self, direction)
         return
 
-    def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
+    def layout(self, cr, x, y, w, h, *args, **kwargs):
         nw, ne, se, sw = kwargs['radii']
 
         cr.save()
@@ -177,10 +279,6 @@ class ShapeRoundedRectangleIrregular(Shape):
 
         cr.close_path()
         cr.restore()
-        return
-
-    def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
-        self._layout_ltr(cr, x, y, w, h, *args, **kwargs)
         return
 
 
@@ -526,6 +624,7 @@ class FramedSection(gtk.VBox):
 
         self.header = gtk.HBox()
         self.body = gtk.VBox()
+        self.footer = gtk.HBox()
 
         self.header.set_border_width(BORDER_WIDTH_MED)
         self.body.set_border_width(BORDER_WIDTH_MED)
@@ -533,11 +632,10 @@ class FramedSection(gtk.VBox):
 
         self.pack_start(self.header, False)
         self.pack_start(self.body)
-        #self.pack_start(self.footer, False)
+        self.pack_start(self.footer, False)
 
         self.label = gtk.Label()
         self.header.pack_start(self.label, False, padding=BORDER_WIDTH_SMALL)
-        self.has_label = False
 
         if label_markup:
             self.set_label(label_markup)
@@ -545,7 +643,6 @@ class FramedSection(gtk.VBox):
 
     def set_label(self, label):
         self.label.set_markup('<b>%s</b>' % label)
-        self.has_label = True
 
         # atk stuff
         acc = self.get_accessible()
