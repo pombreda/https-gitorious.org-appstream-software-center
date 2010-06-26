@@ -92,7 +92,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
-        self.vbox = gtk.VBox(spacing=mkit.VSPACING_SMALL)
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
         self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
 
         viewport = gtk.Viewport()
@@ -152,7 +152,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
     def _append_featured_and_new(self):
         # carousel hbox
-        self.hbox_inner = gtk.HBox(spacing=mkit.HSPACING_SMALL)
+        self.hbox_inner = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.hbox_inner.set_homogeneous(True)
 
         featured_cat = get_category_by_name(self.categories,
@@ -398,7 +398,7 @@ class CategoryButton(mkit.HButton):
         self.set_relief(gtk.RELIEF_NONE)
         self.set_has_action_arrow(True)
         self.set_internal_xalignment(0.0)    # basically justify-left
-        self.set_internal_spacing(mkit.HSPACING_LARGE)
+        self.set_internal_spacing(mkit.SPACING_LARGE)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
         return
 
@@ -409,7 +409,7 @@ class CarouselView(mkit.FramedSection):
         mkit.FramedSection.__init__(self)
         self.title = title
 
-        self.hbox = gtk.HBox(spacing=mkit.HSPACING_SMALL)
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.hbox.set_homogeneous(True)
         self.body.pack_start(self.hbox, False)
 
@@ -417,7 +417,7 @@ class CarouselView(mkit.FramedSection):
         #self.play_pause_btn.set_shape(mkit.SHAPE_CIRCLE)
         #self.play_pause_btn.set_relief(gtk.RELIEF_NONE)
 
-        self.header.set_spacing(mkit.HSPACING_SMALL)
+        self.header.set_spacing(mkit.SPACING_SMALL)
 
         self.posters = []
         self.n_posters = 0
@@ -672,7 +672,7 @@ class CarouselPoster(mkit.VButton):
 
         self.set_relief(gtk.RELIEF_NONE)
         self.set_border_width(mkit.BORDER_WIDTH_LARGE)
-        self.set_internal_spacing(mkit.VSPACING_SMALL)
+        self.set_internal_spacing(mkit.SPACING_SMALL)
 
         self.label.set_justify(gtk.JUSTIFY_CENTER)
         self.image.set_size_request(-1, icon_pixel_size)

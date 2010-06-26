@@ -29,41 +29,11 @@ from mkit_themes import Color, ColorArray, ThemeRegistry
 
 import logging
 
-# todo phase out from here if possible
-CAT_BUTTON_FIXED_WIDTH =    108
-CAT_BUTTON_MIN_HEIGHT =     96
-CAT_BUTTON_BORDER_WIDTH =   6
-CAT_BUTTON_CORNER_RADIUS =  8
 
 
-# pi constants
-M_PI = 3.1415926535897931
-PI_OVER_180 = 0.017453292519943295
-
-# TODO: make metrics in terms of em
-BORDER_WIDTH_LARGE =    10
-BORDER_WIDTH_MED =      6
-BORDER_WIDTH_SMALL =    3
-
-VSPACING_XLARGE =       12
-VSPACING_LARGE =        6    # vertical spacing between page elements
-VSPACING_SMALL =        3
-
-HSPACING_XLARGE =       12
-HSPACING_LARGE =        6    # horizontal spacing between page elements
-HSPACING_SMALL =        3
-
-FRAME_CORNER_RADIUS =   3
-
-
-# shapes
-SHAPE_RECTANGLE = 0
-SHAPE_START_ARROW = 1   
-SHAPE_MID_ARROW = 2
-SHAPE_END_CAP = 3
-SHAPE_CIRCLE = 4
-
-
+#######################
+### HANDY FUNCTIONS ###
+#######################
 
 # color coversion functions
 def color_from_gdkcolor(gdkcolor):
@@ -88,9 +58,57 @@ def floats_from_string_with_alpha(spec, a):
     r, g, b = floats_from_string(spec)
     return r, g, b, a
 
+def get_em_value():
+    # retrieve the gtk-font-name and return the font size to be used at 1em
+    raw_desc = gtk.settings_get_default().get_property("gtk-font-name")
+    font_name, font_size = raw_desc.rsplit(' ', 1)
+    try:
+        return int(font_size)
+    except:
+        logging.warn("Could not parse font size for font description: %s" % raw_desc)
+
+    # fall back to default font size, as per default gtk font size "Sans 10"
+    return 10
+
 def not_overlapping(widget_area, expose_area):
     return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
 
+
+#######################
+### HANDY CONSTANTS ###
+#######################
+
+# pi constants
+PI =            3.1415926535897931
+PI_OVER_180 =   0.017453292519943295
+
+# shapes constants
+SHAPE_RECTANGLE =   0
+SHAPE_START_ARROW = 1   
+SHAPE_MID_ARROW =   2
+SHAPE_END_CAP =     3
+SHAPE_CIRCLE =      4
+
+# the em value
+EM = get_em_value()
+
+# recommended border metrics (integers)
+BORDER_WIDTH_LARGE =    max(3, EM)
+BORDER_WIDTH_MED =      max(2, int(0.66*EM))
+BORDER_WIDTH_SMALL =    max(1, int(0.33*EM))
+
+# recommended spacings between elements
+SPACING_LARGE =         max(3, EM)
+SPACING_MED =           max(2, int(0.66*EM))
+SPACING_SMALL =         max(1, int(0.33*EM))
+
+# recommended corner radius
+CORNER_RADIUS =         max(2, int(0.33*EM))
+
+
+#######################
+### HANDY CONSTANTS ###
+#######################
 
 class Shape:
 
@@ -116,10 +134,10 @@ class ShapeRoundedRectangle(Shape):
         r = kwargs['radius']
 
         cr.new_sub_path()
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
+        cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
+        cr.arc(r+x, h-r, r, 90*PI_OVER_180, PI)
         cr.close_path()
         return
 
@@ -141,7 +159,7 @@ class ShapeRoundedRectangleIrregular(Shape):
         cr.translate(x, y)
         if nw:
             cr.new_sub_path()
-            cr.arc(nw, nw, nw, M_PI, 270 * PI_OVER_180)
+            cr.arc(nw, nw, nw, PI, 270 * PI_OVER_180)
         else:
             cr.move_to(0, 0)
         if ne:
@@ -153,7 +171,7 @@ class ShapeRoundedRectangleIrregular(Shape):
         else:
             cr.rel_line_to(0, h-ne)
         if sw:
-            cr.arc(sw, h-sw, sw, 90 * PI_OVER_180, M_PI)
+            cr.arc(sw, h-sw, sw, 90 * PI_OVER_180, PI)
         else:
             cr.rel_line_to(-(w-se), 0)
 
@@ -177,12 +195,12 @@ class ShapeStartArrow(Shape):
         r = kwargs['radius']
 
         cr.new_sub_path()
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
+        cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)
         # arrow head
         cr.line_to(w-aw, y)
         cr.line_to(w-x+1, (h+y)/2)
         cr.line_to(w-aw, h)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
+        cr.arc(r+x, h-r, r, 90*PI_OVER_180, PI)
         cr.close_path()
         return
 
@@ -249,10 +267,10 @@ class ShapeEndCap(Shape):
     def _layout_rtl(self, cr, x, y, w, h, *args, **kwargs):
         r = kwargs['radius']
 
-        cr.arc(r+x, r+y, r, M_PI, 270*PI_OVER_180)
+        cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)
         cr.line_to(w, y)
         cr.line_to(w, h)
-        cr.arc(r+x, h-r, r, 90*PI_OVER_180, M_PI)
+        cr.arc(r+x, h-r, r, 90*PI_OVER_180, PI)
         cr.close_path()
         return
 
@@ -511,7 +529,7 @@ class FramedSection(gtk.VBox):
 
         self.header.set_border_width(BORDER_WIDTH_MED)
         self.body.set_border_width(BORDER_WIDTH_MED)
-        self.body.set_spacing(VSPACING_SMALL)
+        self.body.set_spacing(SPACING_SMALL)
 
         self.pack_start(self.header, False)
         self.pack_start(self.body)
@@ -547,7 +565,7 @@ class FramedSection(gtk.VBox):
         rr.layout(cr,
                   a.x+1, a.y+1,
                   a.x + a.width-2, a.y + a.height-2,
-                  radius=FRAME_CORNER_RADIUS)
+                  radius=CORNER_RADIUS)
 
 
         cr.set_source_rgba(*floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
@@ -559,7 +577,7 @@ class FramedSection(gtk.VBox):
         rr.layout(cr,
                   a.x+1, a.y+1,
                   a.x + a.width-2, a.y + a.height-2,
-                  radius=FRAME_CORNER_RADIUS)
+                  radius=CORNER_RADIUS)
 
         cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[gtk.STATE_NORMAL]))
         cr.stroke_preserve()
@@ -576,7 +594,7 @@ class LayoutView(FramedSection):
         FramedSection.__init__(self)
         self.set_redraw_on_allocate(False)
 
-        self.column_hbox = gtk.HBox(spacing=HSPACING_SMALL)
+        self.column_hbox = gtk.HBox(spacing=SPACING_SMALL)
         self.column_hbox.set_homogeneous(True)
         self.body.pack_start(self.column_hbox)
 
@@ -607,7 +625,7 @@ class LayoutView(FramedSection):
 
         # pack columns into widget
         for i in range(n_columns):
-            self.column_hbox.pack_start(gtk.VBox(spacing=VSPACING_SMALL))
+            self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_SMALL))
 
         # pack buttons into appropriate columns
         i = 0
