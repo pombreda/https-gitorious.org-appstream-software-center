@@ -269,11 +269,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             self.departments.append(cat_btn)
 
         # append an additional button to show all of the items in the category
-        # TODO:  remove that unsightly ">>" in the name once we have the correct icon to use
-        #        in the show_all_button (for now, just show the category icon)
-        name = gobject.markup_escape_text(_("All %s >>") % num_items)
+        name = gobject.markup_escape_text(_("All %s") % num_items)
         show_all_btn = CategoryButton(name, 
-                                      icon_name=root_category.iconname,
+                                      icon_name="go-next",
                                       icon_size= gtk.ICON_SIZE_LARGE_TOOLBAR)
         show_all_btn.connect('clicked', self._on_show_all_clicked)
         self.departments.append(show_all_btn)
@@ -695,9 +693,9 @@ class CarouselPoster(mkit.VButton):
         cr.rectangle(a)
         cr.clip()
 
+        ia = self.image.allocation
         if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.image.get_pixbuf()
-            ia = self.image.allocation
             cr.set_source_pixbuf(pb,
                                  a.x + (a.width - pb.get_width())/2,
                                  ia.y + (ia.height - pb.get_height())/2)

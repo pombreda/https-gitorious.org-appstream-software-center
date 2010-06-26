@@ -13,6 +13,9 @@ software-center (2.1.4) UNRELEASED; urgency=low
     softwarecenter/view/catview.py,
     softwarecenter/view/catview_gtk.py:
     - implement single-pane department screen
+  * softwarecenter/view/catview_gtk.py:
+    - use stock go-next icon for the show all button,
+      small fix in CarouselPoster's draw method
 
   [ Michael Vogt ]
   * mergedp:~arky/ubuntu/maverick/software-center/fixes-595500:
@@ -29,7 +32,7 @@ software-center (2.1.4) UNRELEASED; urgency=low
   * merged lp:~mvo/software-center/update-from-var-lib-apt-lists
     to support meta-data in deb822 format in /var/lib/apt/lists
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 Jun 2010 22:50:56 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 26 Jun 2010 13:15:32 -0400
 
 software-center (2.1.3) maverick; urgency=low
 
