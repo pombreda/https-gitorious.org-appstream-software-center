@@ -847,7 +847,7 @@ class PagingDot(mkit.Button):
         return
 
     def calc_width(self):
-        return self.allocation.width
+        return 6
 
     def draw(self, cr, a, expose_area):
         if mkit.not_overlapping(a, expose_area): return

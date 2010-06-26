@@ -724,7 +724,7 @@ class LayoutView(FramedSection):
             n_columns = len(widgets)
 
         if n_columns == self.n_columns: return
-        self.clear_rows()
+        self.clear_columns()
 
         # pack columns into widget
         for i in range(n_columns):
@@ -753,7 +753,7 @@ class LayoutView(FramedSection):
             #col.destroy()
         #return
 
-    def clear_rows(self):
+    def clear_columns(self):
         # remove columns, but do not destroy column-children
         for col in self.column_hbox.get_children():
             for btn in col.get_children():
