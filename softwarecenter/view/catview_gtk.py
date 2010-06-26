@@ -160,25 +160,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # so based on the value of 4*em we try to choose a sane stock
         # icon size
-        stock_sizes = (24, 32, 48, 64)
-        spec_to_stock_ratios = []
-
-        # first divide the specd icon size (4em) by stock icon sizes
-        for size in stock_sizes:
-            spec_to_stock_ratios.append(CAROUSEL_ICON_SIZE / float(size))
-
-        # then choose the stock size whose spec_to_stock ratio is nearest to 1
-        best_ratio = 1
-        best_stock_size = 0
-        for i, ratio in enumerate(spec_to_stock_ratios):
-            if ratio < 1:
-                proximity_to_one = 1 - ratio
-            else:
-                proximity_to_one = ratio - 1
-
-            if proximity_to_one < best_ratio:
-                best_stock_size = stock_sizes[i]
-                best_ratio = proximity_to_one
+        best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
 
         #print featured_cat, featured_cat[0]
         featured_apps = AppStore(self.cache,
@@ -273,13 +255,16 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.departments.set_label(H2 % header)
 
         # sort Category.name's alphabetically
-        sorted_catnames = sorted_category_names(self.categories)
+        sorted_cats = categories_sorted_by_name(self.categories[:-1])
 
-        for name in sorted_catnames:
-            cat = get_category_by_name(self.categories, name)
+        for cat in sorted_cats:
+            #enquirer.set_query(cat.query)
+            ## limiting the size here does not make it faster
+            #matches = enquirer.get_mset(0, len(self.db))
+            #estimate = matches.get_matches_estimated()
 
             # sanitize text so its pango friendly...
-            name = gobject.markup_escape_text(name.strip())
+            name = gobject.markup_escape_text(cat.name.strip())
 
             cat_btn = CategoryButton(name,
                                      icon_name=cat.iconname,

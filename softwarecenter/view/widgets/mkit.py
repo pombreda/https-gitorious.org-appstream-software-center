@@ -70,6 +70,30 @@ def get_em_value():
     # fall back to default font size, as per default gtk font size "Sans 10"
     return 10
 
+def get_nearest_stock_size(desired_size):
+    stock_sizes = (16, 24, 32, 48, 64)
+    desired_to_stock_ratios = []
+
+    # first divide the desired icon size (4em) by each of the stock sizes
+    for size in stock_sizes:
+        desired_to_stock_ratios.append(desired_size / float(size))
+
+    # then choose the stock size whose desired_to_stock ratio is nearest to 1
+    best_ratio = 1
+    best_size = 0
+    for i, ratio in enumerate(desired_to_stock_ratios):
+        if ratio < 1:
+            proximity_to_one = 1 - ratio
+        else:
+            proximity_to_one = ratio - 1
+
+        if proximity_to_one < best_ratio:
+            best_size = stock_sizes[i]
+            best_ratio = proximity_to_one
+
+    return best_size
+
+
 def not_overlapping(widget_area, expose_area):
     return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
 
@@ -95,8 +119,8 @@ EM = get_em_value()
 
 # recommended border metrics (integers)
 BORDER_WIDTH_LARGE =    max(3, EM)
-BORDER_WIDTH_MED =      max(2, int(0.666*EM))
-BORDER_WIDTH_SMALL =    max(1, int(0.333*EM))
+BORDER_WIDTH_MED =      max(2, int(0.666*EM+0.5))
+BORDER_WIDTH_SMALL =    max(1, int(0.333*EM+0.5))
 
 # recommended spacings between elements
 SPACING_LARGE =         max(3, EM)
