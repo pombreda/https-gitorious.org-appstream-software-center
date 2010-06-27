@@ -74,6 +74,8 @@ class Category(object):
         self.subcategories = subcategories
         self.dont_display = dont_display
 
+    def __str__(self):
+        return "* Category: %s" % self.name
 
 class CategoriesView(object):
     """ 

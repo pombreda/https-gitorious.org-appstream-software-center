@@ -69,7 +69,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE,
                                    (gobject.TYPE_PYOBJECT, ),
-                                  )
+                                  ),
+                                  
+        "show-category-applist" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE,
+                                   (),)
         }
 
 
@@ -143,10 +147,10 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self._append_featured_and_new()
         return
 
-    def _build_subcat_view(self):
+    def _build_subcat_view(self, root_category, num_items):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        self._append_subcat_departments()
+        self._append_subcat_departments(root_category, num_items)
         return
 
     def _append_featured_and_new(self):
@@ -188,7 +192,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             new_apps = AppStore(self.cache,
                                 self.db,
                                 self.icons,
-                                new_cat[0].query,
+                                new_cat.query,
                                 self.apps_limit,
                                 True,
                                 self.apps_filter,
@@ -242,8 +246,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
         return
-
-    def _append_subcat_departments(self):
+        
+    def _append_subcat_departments(self, root_category, num_items):
         # create departments widget
         if not self.departments:
             self.departments = mkit.LayoutView()
@@ -277,6 +281,14 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
+
+        # append an additional button to show all of the items in the category
+        name = gobject.markup_escape_text(_("All %s") % num_items)
+        show_all_btn = CategoryButton(name, 
+                                      icon_name="go-next",
+                                      icon_size= gtk.ICON_SIZE_LARGE_TOOLBAR)
+        show_all_btn.connect('clicked', self._on_show_all_clicked)
+        self.departments.append(show_all_btn)
 
         # kinda hacky doing this here...
         best_fit = self._get_best_fit_width()
@@ -398,7 +410,10 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         return
 
     def _image_path(self,name):
-        return os.path.abspath("%s/images/%s.png" % (self.datadir, name)) 
+        return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
+        
+    def _on_show_all_clicked(self, show_all_btn):
+        self.emit("show-category-applist")
 
     def start_carousels(self):
         self.featured_carousel.start()
@@ -408,15 +423,14 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.featured_carousel.stop()
         return
 
-    def set_subcategory(self, root_category, block=False):
+    def set_subcategory(self, root_category, num_items=0, block=False):
         # nothing to do
         if self.categories == root_category.subcategories:
             return
         self.header = root_category.name
         self.categories = root_category.subcategories
-        self._build_subcat_view()
+        self._build_subcat_view(root_category, num_items)
         return
-
 
 class CarouselView(mkit.FramedSection):
 
@@ -450,7 +464,7 @@ class CarouselView(mkit.FramedSection):
 
         self.header.pack_end(self.more_btn, False)
 
-        if carousel_apps:
+        if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
             self._offset = random.randrange(len(carousel_apps))
             #self.connect('realize', self._on_realize)
@@ -702,7 +716,7 @@ class CarouselView(mkit.FramedSection):
 
 
 class CategoryButton(mkit.HButton):
-    
+
     def __init__(self, markup, icon_name, icon_size):
         mkit.HButton.__init__(self, markup, icon_name, icon_size)
 
@@ -764,9 +778,9 @@ class CarouselPoster(mkit.VButton):
         cr.rectangle(a)
         cr.clip()
 
+        ia = self.image.allocation
         if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.image.get_pixbuf()
-            ia = self.image.allocation
 
             # paint pixbuf
             cr.set_source_pixbuf(pb,
