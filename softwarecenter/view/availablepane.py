@@ -441,6 +441,7 @@ class AvailablePane(SoftwarePane):
         # remove pathbar stuff
         self.navigation_bar.remove_all()
         self.notebook.set_current_page(self.PAGE_CATEGORY)
+        self.cat_view.start_carousels()
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
 
@@ -534,6 +535,7 @@ class AvailablePane(SoftwarePane):
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return
 
     def display_list_subcat(self):
@@ -547,12 +549,14 @@ class AvailablePane(SoftwarePane):
         if model is not None:
             self.emit("app-list-changed", len(model))
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return
 
     def display_details(self):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
+        self.cat_view.stop_carousels()
         return
 
     def on_navigation_category(self, pathbar, part):

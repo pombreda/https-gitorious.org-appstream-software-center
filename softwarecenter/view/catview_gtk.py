@@ -400,6 +400,14 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _image_path(self,name):
         return os.path.abspath("%s/images/%s.png" % (self.datadir, name)) 
 
+    def start_carousels(self):
+        self.featured_carousel.start()
+        return
+
+    def stop_carousels(self):
+        self.featured_carousel.stop()
+        return
+
     def set_subcategory(self, root_category, block=False):
         # nothing to do
         if self.categories == root_category.subcategories:
@@ -445,11 +453,12 @@ class CarouselView(mkit.FramedSection):
         if carousel_apps:
             self._icon_size = carousel_apps.icon_size
             self._offset = random.randrange(len(carousel_apps))
-            self.connect('realize', self._on_realize)
+            #self.connect('realize', self._on_realize)
         else:
             self._icon_size = 48
             self._offset = 0
 
+        self._is_playing = False
         self._width = 0
         self._alpha = 1.0
         self._fader = 0
@@ -600,11 +609,18 @@ class CarouselView(mkit.FramedSection):
         return
 
     def stop(self):
-        gobject.source_remove(self._fader)
-        gobject.source_remove(self._trans_id)
+        if not self._is_playing: return
+        self._alpha = 1.0
+        self._is_playing = False
+        if self._fader:
+            gobject.source_remove(self._fader)
+        if self._trans_id:
+            gobject.source_remove(self._trans_id)
         return
 
     def start(self):
+        if self._is_playing: return
+        self._is_playing = True
         self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
                                              self.transition)
         return
