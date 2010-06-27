@@ -42,7 +42,8 @@ CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)
 CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(6, int(0.7*mkit.EM+0.5))
-CAROUSEL_TRANSITION_TIMEOUT =    5000 # as per spec this should be 15000 (15 seconds)
+# as per spec transition timeout should be 15000 (15 seconds)
+CAROUSEL_TRANSITION_TIMEOUT =    5000
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         50 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
@@ -321,7 +322,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
         return self.parent.allocation.width - \
-                2*(mkit.BORDER_WIDTH_LARGE + mkit.BORDER_WIDTH_MED) - mkit.BORDER_WIDTH_LARGE
+                2*(mkit.BORDER_WIDTH_LARGE + mkit.BORDER_WIDTH_MED) - \
+                mkit.BORDER_WIDTH_LARGE
 
     def _on_style_set(self, widget, old_style):
         mkit.update_em_metrics()
@@ -413,6 +415,14 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _on_show_all_clicked(self, show_all_btn):
         self.emit("show-category-applist")
 
+    def start_carousels(self):
+        self.featured_carousel.start()
+        return
+
+    def stop_carousels(self):
+        self.featured_carousel.stop()
+        return
+
     def set_subcategory(self, root_category, num_items=0, block=False):
         # nothing to do
         if self.categories == root_category.subcategories:
@@ -457,11 +467,12 @@ class CarouselView(mkit.FramedSection):
         if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
             self._offset = random.randrange(len(carousel_apps))
-            self.connect('realize', self._on_realize)
+            #self.connect('realize', self._on_realize)
         else:
             self._icon_size = 48
             self._offset = 0
 
+        self._is_playing = False
         self._width = 0
         self._alpha = 1.0
         self._fader = 0
@@ -512,8 +523,7 @@ class CarouselView(mkit.FramedSection):
 
         # do nothing if the the new number of posters matches the
         # old number of posters
-        if n == self.n_posters:
-            return
+        if n == self.n_posters: return
 
         # repack appropriate number of new posters (and make sure
         # we do not try to show more than we have)
@@ -541,9 +551,13 @@ class CarouselView(mkit.FramedSection):
                 poster.show()
 
         # set how many PagingDot's the PageSelector should display
-        pages = len(self.carousel_apps) / n + 1
-        self.page_sel.set_n_pages(pages)
+        pages = float(len(self.carousel_apps)) / n + 1
+        #print len(self.carousel_apps), n, pages
+        self.page_sel.set_n_pages(int(pages))
         self.n_posters = n
+
+        if self.page_sel.selected:
+            self._update_pagesel()
         return
 
     def _fade_in(self):
@@ -565,6 +579,14 @@ class CarouselView(mkit.FramedSection):
         self.queue_draw()
         return True
 
+    def _update_pagesel(self):
+        # set the PageSelector page
+        # XXX: This needs improving!
+        page = float(self._offset) / self.n_posters
+        print self._offset, page
+        self.page_sel.set_selected_page(int(page))
+        return
+
     def _update_poster_content(self):
         # update poster content and increment offset
         for poster in self.posters:
@@ -577,11 +599,7 @@ class CarouselView(mkit.FramedSection):
         return
 
     def _set_next(self, fade_in=True):
-        # set the PageSelector page
-        page = self._offset / self.n_posters
-        #print self._offset, self._offset / float(self.n_posters)
-        self.page_sel.set_selected_page(page)
-
+        self._update_pagesel()
         self._update_poster_content()
 
         if fade_in:
@@ -605,11 +623,18 @@ class CarouselView(mkit.FramedSection):
         return
 
     def stop(self):
-        gobject.source_remove(self._fader)
-        gobject.source_remove(self._trans_id)
+        if not self._is_playing: return
+        self._alpha = 1.0
+        self._is_playing = False
+        if self._fader:
+            gobject.source_remove(self._fader)
+        if self._trans_id:
+            gobject.source_remove(self._trans_id)
         return
 
     def start(self):
+        if self._is_playing: return
+        self._is_playing = True
         self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
                                              self.transition)
         return
@@ -691,7 +716,7 @@ class CarouselView(mkit.FramedSection):
 
 
 class CategoryButton(mkit.HButton):
-    
+
     def __init__(self, markup, icon_name, icon_size):
         mkit.HButton.__init__(self, markup, icon_name, icon_size)
 
@@ -747,7 +772,7 @@ class CarouselPoster(mkit.VButton):
 
     def draw(self, cr, a, expose_area, alpha=1.0):
         if mkit.not_overlapping(a, expose_area): return
-        mkit.VButton.draw(self, cr, a, expose_area, alpha=alpha)
+        mkit.VButton.draw(self, cr, a, expose_area)
 
         cr.save()
         cr.rectangle(a)
@@ -805,7 +830,7 @@ class PageSelector(gtk.Alignment):
         gtk.Alignment.__init__(self, 0.5, 0.5)
         self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
         self.add(self.hbox)
-        self.set_size_request(-1, 8)
+        self.set_size_request(-1, CAROUSEL_PAGING_DOT_SIZE)
 
         self.n_pages = 0
         self.selected = None
@@ -868,8 +893,7 @@ class PagingDot(mkit.Button):
 
     def __init__(self, page_number):
         mkit.Button.__init__(self, None, None, None)
-        self.set_size_request(CAROUSEL_PAGING_DOT_SIZE,
-                              CAROUSEL_PAGING_DOT_SIZE)
+        self.set_size_request(-1, CAROUSEL_PAGING_DOT_SIZE)
         self.is_selected = False
         self.page_number = page_number
         return
@@ -879,24 +903,32 @@ class PagingDot(mkit.Button):
 
     def draw(self, cr, a, expose_area, alpha):
         if mkit.not_overlapping(a, expose_area): return
+
         cr.save()
         cr.rectangle(a)
         cr.clip_preserve()
         r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
 
         if self.is_selected:
+            if self.state == gtk.STATE_PRELIGHT or self.has_focus():
+                r,g,b = mkit.floats_from_gdkcolor(self.style.dark[gtk.STATE_SELECTED])
+
             cr.set_source_rgba(r,g,b,alpha)
             cr.fill_preserve()
             cr.set_source_rgb(r,g,b)
             cr.stroke()
-        elif self.state == gtk.STATE_NORMAL:
-            cr.set_source_rgb(r,g,b)
-            cr.stroke()
-        elif self.state == gtk.STATE_PRELIGHT:
+
+        elif self.state == gtk.STATE_PRELIGHT or self.has_focus():
+            r,g,b = mkit.floats_from_gdkcolor(self.style.dark[gtk.STATE_SELECTED])
             cr.set_source_rgba(r,g,b,0.5)
             cr.fill_preserve()
             cr.set_source_rgb(r,g,b)
             cr.stroke()
+
+        elif self.state == gtk.STATE_NORMAL:
+            cr.set_source_rgb(r,g,b)
+            cr.stroke()
+
         elif self.state == gtk.STATE_ACTIVE:
             cr.set_source_rgb(r,g,b)
             cr.fill_preserve()
