@@ -74,7 +74,7 @@ def get_nearest_stock_size(desired_size):
     stock_sizes = (16, 24, 32, 48, 64)
     desired_to_stock_ratios = []
 
-    # first divide the desired icon size (4em) by each of the stock sizes
+    # first divide the desired icon size by each of the stock sizes
     for size in stock_sizes:
         desired_to_stock_ratios.append(desired_size / float(size))
 
@@ -82,11 +82,7 @@ def get_nearest_stock_size(desired_size):
     best_ratio = 1
     best_size = 0
     for i, ratio in enumerate(desired_to_stock_ratios):
-        if ratio < 1:
-            proximity_to_one = 1 - ratio
-        else:
-            proximity_to_one = ratio - 1
-
+        proximity_to_one = abs(1 - ratio)
         if proximity_to_one < best_ratio:
             best_size = stock_sizes[i]
             best_ratio = proximity_to_one
@@ -546,13 +542,16 @@ class Style:
         r, g, b = self.dark_line[state].floats()
         shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
         cr.set_source_rgba(r, g, b, alpha)
+        cr.stroke_preserve()
+        cr.set_source_rgba(r, g, b, 0.5*alpha)
         cr.stroke()
+
         # inner bevel/highlight
         if part.state != gtk.STATE_ACTIVE:
             r, g, b = self.light_line[state].floats()
         else:
             r, g, b = self.dark_line[state].floats()
-            alpha *= 0.25
+            alpha *= 0.225
 
         shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=curv-1)
         cr.set_source_rgba(r, g, b, alpha)
@@ -601,6 +600,8 @@ class Style:
         # strong outline
         shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
         cr.set_source_rgb(*self.dark_line[state].floats())
+        cr.stroke_preserve()
+        cr.set_source_rgba(r, g, b, 0.5*alpha)
         cr.stroke()
         cr.restore()
         return
@@ -744,14 +745,15 @@ class LayoutView(FramedSection):
         self.n_columns = n_columns
         return
 
-    #def clear_all(self):
-        ## destroy all columns and column-children
-        #self.widget_list = []
-        #for col in self.column_hbox.get_children():
-            #for child in col.get_children():
-                #child.destroy()
-            #col.destroy()
-        #return
+    def clear_all(self):
+        # destroy all columns and column-children
+        self.widget_list = []
+        self.n_columns = 0
+        for col in self.column_hbox.get_children():
+            for child in col.get_children():
+                child.destroy()
+            col.destroy()
+        return
 
     def clear_columns(self):
         # remove columns, but do not destroy column-children
