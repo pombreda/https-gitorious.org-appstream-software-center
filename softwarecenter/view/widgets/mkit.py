@@ -961,7 +961,7 @@ class Button(gtk.EventBox):
         self._active_paint_mode = paint_mode
         return
 
-    def draw(self, cr, a, expose_area, alpha=1.0):
+    def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
         if not_overlapping(a, expose_area): return
 
         if self._relief == gtk.RELIEF_NORMAL:
@@ -974,7 +974,7 @@ class Button(gtk.EventBox):
                 if self._has_action_arrow:
                     self._paint_action_arrow(a)
 
-        if self.has_focus():
+        if self.has_focus() and focus_draw:
             a = self.label.allocation
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
