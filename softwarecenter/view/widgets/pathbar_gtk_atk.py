@@ -20,8 +20,8 @@ import atk
 import cairo
 import gobject
 import gtk
+import mkit
 import pango
-import pathbar_common
 
 from gettext import gettext as _
 
@@ -55,7 +55,7 @@ class PathBar(gtk.HBox):
         self._no_draw = False
         self._scroller = None
 
-        self.theme = pathbar_common.PathBarStyle(self)
+        self.theme = mkit.Style(self)
 
         # Accessibility info
         atk_desc = self.get_accessible()
@@ -73,7 +73,7 @@ class PathBar(gtk.HBox):
         path_w = self._width
         overhang = path_w - allocation.width
         self._width -= overhang
-        mpw = self.theme['min_part_width']
+        mpw = self.theme['min-part-width']
         for part in self.get_children():
             w = part.get_size_request()[0]
             dw = 0
@@ -113,29 +113,29 @@ class PathBar(gtk.HBox):
     def _compose_on_append(self, last_part):
         parts = self.get_children()
         if len(parts) == 0:
-            last_part.set_shape(pathbar_common.SHAPE_RECTANGLE)
+            last_part.set_shape(mkit.SHAPE_RECTANGLE)
         elif len(parts) == 1:
             root_part = parts[0]
-            root_part.set_shape(pathbar_common.SHAPE_START_ARROW)
-            last_part.set_shape(pathbar_common.SHAPE_END_CAP)
+            root_part.set_shape(mkit.SHAPE_START_ARROW)
+            last_part.set_shape(mkit.SHAPE_END_CAP)
         else:
             tail_part = parts[-1]
-            tail_part.set_shape(pathbar_common.SHAPE_MID_ARROW)
-            last_part.set_shape(pathbar_common.SHAPE_END_CAP)
+            tail_part.set_shape(mkit.SHAPE_MID_ARROW)
+            last_part.set_shape(mkit.SHAPE_END_CAP)
         return
 
     def _compose_on_remove(self, last_part):
         parts = self.get_children()
         if len(parts) <= 2:
-            last_part.set_shape(pathbar_common.SHAPE_RECTANGLE)
+            last_part.set_shape(mkit.SHAPE_RECTANGLE)
         elif len(parts) == 3:
             root_part = parts[0]
-            root_part.set_shape(pathbar_common.SHAPE_START_ARROW)
-            last_part.set_shape(pathbar_common.SHAPE_END_CAP)
+            root_part.set_shape(mkit.SHAPE_START_ARROW)
+            last_part.set_shape(mkit.SHAPE_END_CAP)
         else:
             tail_part = parts[-2]
-            tail_part.set_shape(pathbar_common.SHAPE_MID_ARROW)
-            last_part.set_shape(pathbar_common.SHAPE_END_CAP)
+            tail_part.set_shape(mkit.SHAPE_MID_ARROW)
+            last_part.set_shape(mkit.SHAPE_END_CAP)
         return
 
     def _part_enter_notify(self, part, event):
@@ -223,7 +223,7 @@ class PathBar(gtk.HBox):
 
     def _scroll_init(self, scroll_callback, part):
         a = part.get_allocation()
-        aw = self.theme['arrow_width']
+        aw = self.theme['arrow-width']
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             x, y = a.x, a.y
             width, height = a.width + aw, a.height
@@ -384,7 +384,7 @@ class PathBar(gtk.HBox):
 
     def _on_style_set(self, widget, old_style):
         self.set_size_request(*self.DEFAULT_SIZE_REQUEST)
-        self.theme = pathbar_common.PathBarStyle(self)
+        self.theme = mkit.Style(self)
         self.set_size_request(-1, -1)
         for part in self.get_children():
             part.recalc_dimensions()
@@ -533,7 +533,7 @@ class PathBar(gtk.HBox):
             self._part_scroll_in(tail)
         else:
             root.layout.set_width(-1)   # eww but it has to be done :(
-            root.set_shape(pathbar_common.SHAPE_RECTANGLE)
+            root.set_shape(mkit.SHAPE_RECTANGLE)
             self._removing = False
 
         if do_callback: root.callback(self, root)
@@ -569,7 +569,7 @@ class PathPart(gtk.EventBox):
         self._size_requisition = 0,0
 
         self.label = None
-        self.shape = pathbar_common.SHAPE_RECTANGLE
+        self.shape = mkit.SHAPE_RECTANGLE
         self.layout = None
         self.callback = callback
         self.set_label(label)
@@ -611,22 +611,22 @@ class PathPart(gtk.EventBox):
         self._draw_xoffset = 0
         self._draw_width = w
 
-        arrow_width = self._parent.theme['arrow_width']
-        if shape == pathbar_common.SHAPE_RECTANGLE:
+        arrow_width = self._parent.theme['arrow-width']
+        if shape == mkit.SHAPE_RECTANGLE:
             return w
 
-        elif shape == pathbar_common.SHAPE_START_ARROW:
+        elif shape == mkit.SHAPE_START_ARROW:
             self._draw_width += arrow_width
             if self.get_direction() == gtk.TEXT_DIR_RTL:
                 self._draw_xoffset -= arrow_width
 
-        elif shape == pathbar_common.SHAPE_END_CAP:
+        elif shape == mkit.SHAPE_END_CAP:
             w += arrow_width
             self._draw_width += arrow_width
             if self.get_direction() != gtk.TEXT_DIR_RTL:
                 self._layout_points[0] += arrow_width
 
-        elif shape == pathbar_common.SHAPE_MID_ARROW:
+        elif shape == mkit.SHAPE_MID_ARROW:
             w += arrow_width
             self._draw_width += 2*arrow_width
             if self.get_direction() == gtk.TEXT_DIR_RTL:
@@ -670,24 +670,24 @@ class PathPart(gtk.EventBox):
 
     def set_width(self, w):
         theme = self._parent.theme
-        lw = w-theme['arrow_width']
-        if self.shape != pathbar_common.SHAPE_START_ARROW:
+        lw = w-theme['arrow-width']
+        if self.shape != mkit.SHAPE_START_ARROW:
             lw -= theme['xpad']
-        if self.shape == pathbar_common.SHAPE_MID_ARROW:
-            lw -= theme['arrow_width']
+        if self.shape == mkit.SHAPE_MID_ARROW:
+            lw -= theme['arrow-width']
 
         self.layout.set_width(lw*pango.SCALE)
-        self._draw_width = w+theme['arrow_width']
+        self._draw_width = w+theme['arrow-width']
         self.set_size_request(w, -1)
         return
 
     def restore_best_width(self):
         w = self.get_best_width()
-        arrow_width = self._parent.theme['arrow_width']
+        arrow_width = self._parent.theme['arrow-width']
 
-        if self.shape == pathbar_common.SHAPE_MID_ARROW:
+        if self.shape == mkit.SHAPE_MID_ARROW:
             w += arrow_width
-        if self.shape == pathbar_common.SHAPE_END_CAP and \
+        if self.shape == mkit.SHAPE_END_CAP and \
             self.get_direction() == gtk.TEXT_DIR_RTL:
             self._draw_xoffset -= arrow_width
             self._layout_points[0] -= arrow_width

@@ -40,8 +40,27 @@ from xml.sax.saxutils import unescape as xml_unescape
 def get_category_by_name(categories, untrans_name):
     # find a specific category
     cat = filter(lambda cat: cat.untranslated_name == untrans_name,
-                 categories)[0]
-    return cat
+                 categories)
+    if cat: return cat[0]
+    return None
+
+def categories_sorted_by_name(categories):
+    # sort categories by name
+    sorted_catnames = []
+    # first pass, sort by translated names
+    for cat in categories:
+        sorted_catnames.append(cat.name)
+    sorted_catnames.sort()
+
+    # second pass, assemble cats by sorted their sorted catnames
+    sorted_cats = []
+    for name in sorted_catnames:
+        for cat in categories:
+            if cat.name == name:
+                sorted_cats.append(cat)
+                break
+    return sorted_cats
+
 
 class Category(object):
     """represents a menu category"""
@@ -55,6 +74,8 @@ class Category(object):
         self.subcategories = subcategories
         self.dont_display = dont_display
 
+    def __str__(self):
+        return "* Category: %s" % self.name
 
 class CategoriesView(object):
     """ 
@@ -151,6 +172,11 @@ class CategoriesView(object):
             elif and_elem.tag == "SCChannel":
                 logging.debug("adding channel: %s" % and_elem.text)
                 q = xapian.Query("AH"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCOrigin":
+                logging.debug("adding origin: %s" % and_elem.text)
+                # FIXME: origin is currently case-sensitive?!?
+                q = xapian.Query("XOO"+and_elem.text)
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCPkgname":
                 logging.debug("adding tag: %s" % and_elem.text)

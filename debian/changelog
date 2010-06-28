@@ -1,9 +1,45 @@
 software-center (2.1.4) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/availablepane.py:
-    - fix error when using the login dialog
+    - fix error when using the login dialog and
+      intermittently while searching (LP: #596443)
+  * softwarecenter/app.py,
+    softwarecenter/backend/channel.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/viewswitcher.py:
+    - implement channel views for installed items
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview.py,
+    softwarecenter/view/catview_gtk.py:
+    - implement single-pane department screen
+  * softwarecenter/view/catview_gtk.py:
+    - use stock go-next icon for the show all button,
+      small fix in CarouselPoster's draw method
+  * merge lp:~mmcg069/software-center/catview-conform-w-spec:
+    many nice improvements to the category view and a fix
+    for the dept screen resize bug (LP: #598502), many thanks
+    to Matthew McGowan!
+  * merge lp:~mmcg069/software-center/catview-conform-w-spec:
+    fixes subcategory screen bug (LP: #598498), thanks Matthew
+    McGowan!
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 17 Jun 2010 16:40:17 -0400
+  [ Michael Vogt ]
+  * mergedp:~arky/ubuntu/maverick/software-center/fixes-595500:
+    - Fixes inaccessible install/remove buttons (LP: #538404)
+    - Fixes inaccessible Screenshot image (LP: #595500)
+    many thanks to Rakesh 'arky' Ambati 
+  * merged lp:~mmcg069/software-center/catview-conform-w-spec
+    to make the categories look like the spec
+  * add information about "upgraded" packages to the history pane 
+    (thanks to seb128 for the suggestion)
+  * merged lp:~mvo/software-center/new-apps-test1 and
+    lp:~mmcg069/software-center/catview-conform-w-spec, thanks
+    to Matthew McGowan
+  * merged lp:~mvo/software-center/update-from-var-lib-apt-lists
+    to support meta-data in deb822 format in /var/lib/apt/lists
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 27 Jun 2010 12:28:58 -0400
 
 software-center (2.1.3) maverick; urgency=low
 

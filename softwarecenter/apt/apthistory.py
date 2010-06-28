@@ -34,7 +34,7 @@ from debian_bundle import deb822
 class Transaction(object):
     """ Represents an apt transaction 
 
-    Attributes:
+o    Attributes:
     - 'start_date': the start date/time of the transaction as datetime
     - 'install', 'upgrade', 'downgrade', 'remove', 'purge':
         contain the list of packagenames affected by this action
@@ -50,7 +50,7 @@ class Transaction(object):
         for k in self.PKGACTIONS+["Error"]:
             attr = k.lower()
             if k in sec:
-                value = map(string.strip, sec[k].split(","))
+                value = map(string.strip, sec[k].split("),"))
             else:
                 value = []
             setattr(self, attr, value)

@@ -120,6 +120,8 @@ class AvailablePane(SoftwarePane):
                                                  root_category=self.cat_view.categories[0])
         self.subcategories_view.connect(
             "category-selected", self.on_subcategory_activated)
+        self.subcategories_view.connect(
+            "show-category-applist", self.on_show_category_applist)
         self.scroll_subcategories = gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -182,37 +184,36 @@ class AvailablePane(SoftwarePane):
                 not self.apps_subcategory and
                 not self.apps_search_term)
 
-    def _show_hide_subcategories(self):
+    def _show_hide_subcategories(self, show_category_applist=False):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
-        if (self.apps_category and
+        if (not show_category_applist and
+            not self.nonapps_visible and
+            self.apps_category and
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
             self.scroll_subcategories.show()
-            self.subcategories_view.set_subcategory(self.apps_category)
-        else:
-            self.scroll_subcategories.hide()
-
-    def _show_hide_applist(self):
-        # now check if the apps_category view has entries and if
-        # not hide it
-        model = self.app_view.get_model()
-        if (model and
-            len(model) == 0 and
-            self.apps_category and
-            self.apps_category.subcategories and
-            not self.apps_subcategory):
+            self.subcategories_view.set_subcategory(self.apps_category,
+                                                    num_items=len(self.app_view.get_model()))
             self.scroll_app_list.hide()
         else:
+            self.scroll_subcategories.hide()
             self.scroll_app_list.show()
+            self.update_app_view()
+            self._update_action_bar()
 
     def refresh_apps(self):
         """refresh the applist and update the navigation bar
         """
         logging.debug("refresh_apps")
-        # mvo: its important to fist show the subcategories and then
-        #      the new model, otherwise we run into visual lack
-        self._show_hide_subcategories()
+        self.scroll_subcategories.hide()
+        self.scroll_app_list.hide()
+        if self.app_view.window:
+            self.app_view.window.set_cursor(self.busy_cursor)
+        if self.subcategories_view.window:
+            self.subcategories_view.window.set_cursor(self.busy_cursor)
+        if self.apps_vbox.window:
+            self.apps_vbox.window.set_cursor(self.busy_cursor)
         self._refresh_apps_with_apt_cache()
 
     @wait_for_apt_cache_ready
@@ -241,12 +242,6 @@ class AvailablePane(SoftwarePane):
         logging.debug("availablepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
-        if self.app_view.window:
-            self.app_view.window.set_cursor(self.busy_cursor)
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(self.busy_cursor)
-        if self.apps_vbox.window:
-            self.apps_vbox.window.set_cursor(self.busy_cursor)
         # special case to disable hide nonapps for the "Featured Applications" category
         if (self.apps_category and 
             self.apps_category.untranslated_name) == "Featured Applications":
@@ -270,8 +265,8 @@ class AvailablePane(SoftwarePane):
         # set model
         self.app_view.set_model(new_model)
         self.app_view.get_model().active = True
-        # check if we show subcategoriy
-        self._show_hide_applist()
+        # check if we show subcategory
+        self._show_hide_subcategories()
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))
@@ -401,7 +396,8 @@ class AvailablePane(SoftwarePane):
         if (appstore and 
             appstore.active and
             not appstore.nonapps_visible and
-            appstore.nonapp_pkgs):
+            appstore.nonapp_pkgs and
+            not self.is_category_view_showing()):
             # We want to display the label if there are hidden packages
             # in the appstore.
             label = gettext.ngettext("_%i other_ technical item",
@@ -441,6 +437,7 @@ class AvailablePane(SoftwarePane):
         # remove pathbar stuff
         self.navigation_bar.remove_all()
         self.notebook.set_current_page(self.PAGE_CATEGORY)
+        self.cat_view.start_carousels()
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
 
@@ -534,6 +531,7 @@ class AvailablePane(SoftwarePane):
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return
 
     def display_list_subcat(self):
@@ -547,12 +545,14 @@ class AvailablePane(SoftwarePane):
         if model is not None:
             self.emit("app-list-changed", len(model))
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return
 
     def display_details(self):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
+        self.cat_view.stop_carousels()
         return
 
     def on_navigation_category(self, pathbar, part):
@@ -615,6 +615,9 @@ class AvailablePane(SoftwarePane):
 
     def on_nav_forward_clicked(self, widget, event):
         self.navhistory_forward_action.activate()
+        
+    def on_show_category_applist(self, widget):
+        self._show_hide_subcategories(show_category_applist=True)
 
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a

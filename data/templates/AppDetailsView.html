@@ -195,13 +195,13 @@
       </div>
      <h1 tabindex="0">$appname</h1>
      <h2 tabindex="0">$summary</h2>
-     <input type="button" id="button_${action_button_value}" 
+      <label for="button_${action_button_value}" id="install_info">
+      <input type="button" id="button_${action_button_value}" 
           class="action_button"
 	  alt="$action_button_label"
           value="$action_button_label"
           onclick='action_button_clicked()'
       />
-      <label for="button_${action_button_value}" id="install_info">
         <img id="installed_icon" src="file:${software_installed_icon}"/> $action_button_description
       </label>
       <div id="action_progress_total"><div id="action_progress"></div></div>
@@ -217,9 +217,7 @@
     />
    <div id="screenshot_wrap">
      <div id="screenshot" class="screenshot">
-       <a href="#" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")'>
-           <img src="${screenshot_large_url}" id="screenshot_img"/>
-       </a>
+       <input type="image" src="${screenshot_large_url}" id="screenshot_img" alt="${appname} screenshot" onclick='changeTitle("call:on_screenshot_thumbnail_clicked")' />
      </div>
   </div>
    <p tabindex="0" id="maintainance_time">$maintainance_time</p>

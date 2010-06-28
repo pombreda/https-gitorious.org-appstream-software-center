@@ -49,12 +49,12 @@ class ViewSwitcher(gtk.TreeView):
     }
 
 
-    def __init__(self, datadir, db, icons, store=None):
+    def __init__(self, datadir, db, cache, icons, store=None):
         super(ViewSwitcher, self).__init__()
         self.datadir = datadir
         self.icons = icons
         if not store:
-            store = ViewSwitcherList(datadir, db, icons)
+            store = ViewSwitcherList(datadir, db, cache, icons)
             # FIXME: this is just set here for app.py, make the
             #        transactions-changed signal part of the view api
             #        instead of the model
@@ -83,6 +83,7 @@ class ViewSwitcher(gtk.TreeView):
         self.set_enable_search(False)
 
         self.selected_channel_name = None
+        self.selected_channel_installed_only = False
         
         self.connect("row-expanded", self.on_treeview_row_expanded)
         self.connect("row-collapsed", self.on_treeview_row_collapsed)
@@ -106,9 +107,11 @@ class ViewSwitcher(gtk.TreeView):
     def on_cursor_changed(self, widget):
         (path, column) = self.get_cursor()
         model = self.get_model()
-        self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
         action = model[path][ViewSwitcherList.COL_ACTION]
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
+        self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
+        if channel:
+            self.selected_channel_installed_only = channel.installed_only
         self.emit("view-changed", action, channel)
         
     def get_view(self):
@@ -140,16 +143,29 @@ class ViewSwitcher(gtk.TreeView):
     def expand_available_node(self):
         """ expand the available pane node in the viewswitcher pane """
         model = self.get_model()
-        available_path = model.get_path(model.available_iter)
-        self.expand_row(available_path, False)
+        if model:
+            self.expand_row(model.get_path(model.available_iter), False)
             
     def is_available_node_expanded(self):
         """ return True if the available pane node in the viewswitcher pane is expanded """
+        model = self.get_model()
         expanded = False
+        if model:
+            expanded = self.row_expanded(model.get_path(model.available_iter))
+        return expanded
+        
+    def expand_installed_node(self):
+        """ expand the installed pane node in the viewswitcher pane """
         model = self.get_model()
         if model:
-            available_path = model.get_path(model.available_iter)
-            expanded = self.row_expanded(available_path)
+            self.expand_row(model.get_path(model.installed_iter), False)
+            
+    def is_installed_node_expanded(self):
+        """ return True if the installed pane node in the viewswitcher pane is expanded """
+        model = self.get_model()
+        expanded = False
+        if model:
+            expanded = self.row_expanded(model.get_path(model.installed_iter))
         return expanded
 
     def _on_channels_refreshed(self, model):
@@ -159,7 +175,8 @@ class ViewSwitcher(gtk.TreeView):
         """
         model = self.get_model()
         if model:
-            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name)
+            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name,
+                                                                     self.selected_channel_installed_only)
             if channel_iter_to_select:
                 self.set_cursor(model.get_path(channel_iter_to_select))
 
@@ -184,30 +201,36 @@ class ViewSwitcherList(gtk.TreeStore):
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
     __gsignals__ = {'channels-refreshed':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
-                                     ())}
+                                          gobject.TYPE_NONE,
+                                          ())}
 
-    def __init__(self, datadir, db, icons):
+
+    def __init__(self, datadir, db, cache, icons):
         gtk.TreeStore.__init__(self, AnimatedImage, str, int, gobject.TYPE_PYOBJECT)
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed", self.on_transactions_changed)
+        self.backend.connect("transaction-finished", self.on_transaction_finished)
         self.backend.connect("channels-changed", self.on_channels_changed)
         self.db = db
+        self.cache = cache
         self.distro = get_distro()
         # pending transactions
         self._pending = 0
         # setup the normal stuff
+        # first, the availablepane items
         available_icon = self._get_icon("softwarecenter")
         self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
-
+        # the installedpane items
+        icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
+        self.installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
+        
         # do initial channel list update
         self.channel_manager = ChannelsManager(db, icons)
         self._update_channel_list()
         
-        icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
+        # the historypane item
         icon = self._get_icon("clock")
         history_iter = self.append(None, [icon, _("History"), self.ACTION_ITEM_HISTORY, None])
         icon = AnimatedImage(None)
@@ -237,15 +260,26 @@ class ViewSwitcherList(gtk.TreeStore):
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
                     del self[(i,)]
+                    
+    def on_transaction_finished(self, backend, success):
+        if success:
+            self._update_channel_list_installed_view()
+            self.emit("channels-refreshed")
 
-    def get_channel_iter_for_name(self, channel_name):
+    def get_channel_iter_for_name(self, channel_name, installed_only):
         channel_iter_for_name = None
-        child = self.iter_children(self.available_iter)
+        if installed_only:
+            parent_iter = self.installed_iter
+        else:
+            parent_iter = self.available_iter
+        child = self.iter_children(parent_iter)
         while child:
             if self.get_value(child, self.COL_NAME) == channel_name:
                 channel_iter_for_name = child
                 break
             child = self.iter_next(child)
+        if not channel_iter_for_name:
+            return parent_iter
         return channel_iter_for_name
                     
     def _get_icon(self, icon_name):
@@ -258,6 +292,11 @@ class ViewSwitcherList(gtk.TreeStore):
         return icon
 
     def _update_channel_list(self):
+        self._update_channel_list_available_view()
+        self._update_channel_list_installed_view()
+        self.emit("channels-refreshed")
+        
+    def _update_channel_list_available_view(self):
         # check what needs to be cleared. we need to append first, kill
         # afterward because otherwise a row without children is collapsed
         # by the view.
@@ -273,15 +312,48 @@ class ViewSwitcherList(gtk.TreeStore):
         # iterate the channels and add as subnodes of the available node
         for channel in self.channel_manager.channels:
             self.append(self.available_iter, [
-                    channel.get_channel_icon(),
-                    channel.get_channel_display_name(),
-                    self.ACTION_ITEM_CHANNEL,
-                    channel])
+                        channel.get_channel_icon(),
+                        channel.get_channel_display_name(),
+                        self.ACTION_ITEM_CHANNEL,
+                        channel])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
-        self.emit("channels-refreshed")
-        
+    
+    def _update_channel_list_installed_view(self):
+        # see comments for _update_channel_list_available_view() method above
+        child = self.iter_children(self.installed_iter)
+        iters_to_kill = set()
+        while child:
+            iters_to_kill.add(child)
+            child = self.iter_next(child)
+        # iterate the channels and add as subnodes of the installed node
+        for channel in self.channel_manager.channels_installed_only:
+            # check for no installed items for each channel and do not
+            # append the channel item in this case
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(channel.get_channel_query())
+            matches = enquire.get_mset(0, len(self.db))
+            # only check channels that have a small number of items
+            add_channel_item = True
+            if len(matches) < 200:
+                add_channel_item = False
+                for m in matches:
+                    doc = m[xapian.MSET_DOCUMENT]
+                    pkgname = self.db.get_pkgname(doc)
+                    if (pkgname in self.cache and
+                        self.cache[pkgname].is_installed):
+                        add_channel_item = True
+                        break
+            if add_channel_item:
+                self.append(self.installed_iter, [
+                            channel.get_channel_icon(),
+                            channel.get_channel_display_name(),
+                            self.ACTION_ITEM_CHANNEL,
+                            channel])
+        # delete the old ones
+        for child in iters_to_kill:
+            self.remove(child)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
