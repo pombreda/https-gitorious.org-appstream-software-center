@@ -27,8 +27,9 @@ import gobject
 
 from gettext import gettext as _
 
-from softwarecenter.enums import *
+from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
+from softwarecenter.enums import *
 
 from appview import AppView, AppStore, AppViewFilter
 
@@ -44,9 +45,9 @@ class ChannelPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
 
-    def __init__(self, cache, db, distro, icons, datadir):
+    def __init__(self, cache, history, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
+        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir, show_ratings=False)
         self.channel = None
         self.apps_filter = None
         self.search_terms = ""
@@ -54,7 +55,9 @@ class ChannelPane(SoftwarePane):
         self.distro = get_distro()
         # UI
         self._build_ui()
-        
+        self.connect("app-list-changed", self._on_app_list_changed)
+        self.nonapps_visible = False
+
     def _build_ui(self):
         self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
@@ -98,8 +101,19 @@ class ChannelPane(SoftwarePane):
         # getting progress_changed events and eats CPU time until its
         # garbage collected
         old_model = self.app_view.get_model()
+        
+        # if the list is expected to contain many items, clear the current model to display
+        # an empty list while the full list is generated; this prevents a visual glitch when
+        # the list is replaced
+        if ((self.channel.get_channel_name() == self.distro.get_distro_channel_name() and
+             self.channel.get_channel_component() != "partner") and
+             not self.search_terms):
+            self.app_view.clear_model()
+        
         if old_model is not None:
             old_model.active = False
+            while gtk.events_pending():
+                gtk.main_iteration()
         gobject.idle_add(self._make_new_model, query, self.refresh_seq_nr)
         return False
 
@@ -113,6 +127,7 @@ class ChannelPane(SoftwarePane):
                              query, 
                              limit=0,
                              sort=True,
+                             nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
         # events may have happend
@@ -121,9 +136,13 @@ class ChannelPane(SoftwarePane):
         if seq_nr == self.refresh_seq_nr:
             self.app_view.set_model(new_model)
             self.app_view.get_model().active = True
-            self.emit("app-list-changed", len(new_model))
+            # we can not use "new_model" here, because set_model may actually
+            # discard new_model and just update the previous one
+            self.emit("app-list-changed", len(self.app_view.get_model()))
         else:
             logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+        # reset nonapps
+        self.nonapps_visible = False
         return False
 
     def set_channel(self, channel):
@@ -132,6 +151,26 @@ class ChannelPane(SoftwarePane):
         and set up the AppViewFilter if required
         """
         self.channel = channel
+        # check if the channel needs to added
+        if channel.needs_adding and channel._source_entry:
+            dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                       type=gtk.MESSAGE_QUESTION)
+            dialog.set_title("")
+            dialog.set_markup("<big><b>%s</b></big>" % _("Add channel"))
+            dialog.format_secondary_text(_("The selected channel is not yet "
+                                           "added, do you want to add it now?"))
+            dialog.add_buttons(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                               gtk.STOCK_ADD, gtk.RESPONSE_YES)
+            res = dialog.run()
+            dialog.destroy()
+            if res == gtk.RESPONSE_YES:
+                channel.needs_adding = False
+                backend = get_install_backend()
+                backend.add_sources_list_entry(channel._source_entry)
+                backend.emit("channels-changed", True)
+                backend.reload()
+            return
+        # normal operation
         if self.channel.filter_required:
             self.apps_filter = AppViewFilter(self.db, self.cache)
             self.apps_filter.set_only_packages_without_applications(True)
@@ -174,11 +213,39 @@ class ChannelPane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        self.action_bar.clear()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
+
+    def _on_app_list_changed(self, pane, length):
+        """internal helper that keeps the the action bar up-to-date by
+           keeping track of the app-list-changed signals
+        """
+        self._update_action_bar()
+
+    def _update_action_bar(self):
+        appstore = self.app_view.get_model()
+        # We want to display the label if there are hidden packages
+        # in the appstore.
+        if (appstore and
+            appstore.active and
+            not appstore.nonapps_visible and
+            appstore.nonapp_pkgs):
+            label = gettext.ngettext("_%i other_ technical item",
+                                     "_%i other_ technical items",
+                                     appstore.nonapp_pkgs
+                                     ) % appstore.nonapp_pkgs
+            self.action_bar.set_label(label, self._show_nonapp_pkgs)
+        else:
+            self.action_bar.unset_label()
+
+    def _show_nonapp_pkgs(self):
+        self.nonapps_visible = True
+        self.refresh_apps()
+        self._update_action_bar()
 
     def display_search(self):
         self.navigation_bar.remove_id("details")

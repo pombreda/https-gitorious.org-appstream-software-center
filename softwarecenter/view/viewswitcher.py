@@ -31,7 +31,7 @@ import aptdaemon.client
 
 from gettext import gettext as _
 
-from softwarecenter.backend.channel import SoftwareChannel
+from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.db.database import StoreDatabase
@@ -203,6 +203,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
 
         # do initial channel list update
+        self.channel_manager = ChannelsManager(db, icons)
         self._update_channel_list()
         
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
@@ -212,9 +213,6 @@ class ViewSwitcherList(gtk.TreeStore):
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
         
-        # kick off a background check for changes that may have been made
-        # in the channels list
-        glib.timeout_add(300, lambda: self._check_for_channel_updates(self.channels))
 
     def on_channels_changed(self, backend, res):
         logging.debug("on_channels_changed %s" % res)
@@ -260,7 +258,6 @@ class ViewSwitcherList(gtk.TreeStore):
         return icon
 
     def _update_channel_list(self):
-
         # check what needs to be cleared. we need to append first, kill
         # afterward because otherwise a row without children is collapsed
         # by the view.
@@ -273,121 +270,18 @@ class ViewSwitcherList(gtk.TreeStore):
         while child:
             iters_to_kill.add(child)
             child = self.iter_next(child)
-
-        # get list of software channels
-        self.channels = self._get_channels()
-        
         # iterate the channels and add as subnodes of the available node
-        for channel in self.channels:
-            self.append(self.available_iter, [channel.get_channel_icon(),
-                                              channel.get_channel_display_name(),
-                                              self.ACTION_ITEM_CHANNEL,
-                                              channel])
+        for channel in self.channel_manager.channels:
+            self.append(self.available_iter, [
+                    channel.get_channel_icon(),
+                    channel.get_channel_display_name(),
+                    self.ACTION_ITEM_CHANNEL,
+                    channel])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
-
         self.emit("channels-refreshed")
-
-    def _get_channels(self):
-        """
-        return a list of SoftwareChannel objects in display order
-        ordered according to:
-            Distribution, Partners, PPAs alphabetically, Other channels alphabetically,
-            Unknown channel last
-        """
-        distro_channel_name = self.distro.get_distro_channel_name()
         
-        # gather the set of software channels and order them
-        other_channel_list = []
-        for channel_iter in self.db.xapiandb.allterms("XOL"):
-            if len(channel_iter.term) == 3:
-                continue
-            channel_name = channel_iter.term[3:]
-            
-            # get origin information for this channel
-            m = self.db.xapiandb.postlist_begin(channel_iter.term)
-            doc = self.db.xapiandb.get_document(m.get_docid())
-            for term_iter in doc.termlist():
-                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
-                    channel_origin = term_iter.term[3:]
-                    break
-            logging.debug("channel_name: %s" % channel_name)
-            logging.debug("channel_origin: %s" % channel_origin)
-            other_channel_list.append((channel_name, channel_origin))
-        
-        dist_channel = None
-        ppa_channels = []
-        other_channels = []
-        unknown_channel = []
-        
-        for (channel_name, channel_origin) in other_channel_list:
-            if not channel_name:
-                unknown_channel.append(SoftwareChannel(self.icons, 
-                                                       channel_name,
-                                                       channel_origin,
-                                                       None))
-            elif channel_name == distro_channel_name:
-                dist_channel = (SoftwareChannel(self.icons,
-                                                distro_channel_name,
-                                                channel_origin,
-                                                None,
-                                                filter_required=True))
-            elif channel_origin and channel_origin.startswith("LP-PPA"):
-                ppa_channels.append(SoftwareChannel(self.icons, 
-                                                    channel_name,
-                                                    channel_origin,
-                                                    None))
-            # TODO: detect generic repository source (e.g., Google, Inc.)
-            else:
-                other_channels.append(SoftwareChannel(self.icons, 
-                                                      channel_name,
-                                                      channel_origin,
-                                                      None))
-        # FIXME: do not hardcode this, check instead for 
-        #        self.db.xapiandb.allterms("AH") and add all of those
-        #        and provide a mechanism in the channel to check
-        #        both origin (XAO) and channel name from app-install (AH)
-        # FIXME2: pass the AH name as well so that we do not need to special
-        #         case the AH query for partner
-        # also get the partner repository
-        partner_channel = SoftwareChannel(self.icons, 
-                                          distro_channel_name,
-                                          None,
-                                          "partner", 
-                                          filter_required=True)
-        
-        # set them in order
-        channels = []
-        if dist_channel is not None:
-            channels.append(dist_channel)
-        channels.append(partner_channel)
-        channels.extend(ppa_channels)
-        channels.extend(other_channels)
-        channels.extend(unknown_channel)
-        
-        return channels
-        
-    def _check_for_channel_updates(self, channels):
-        """ 
-        check current set of channel origins in the apt cache to see if anything
-        has changed, and refresh the channel list if needed
-        """
-        if not self.db._aptcache.ready:
-            glib.timeout_add(300, lambda: self._check_for_channel_updates(channels))
-            return False
-        cache_origins = self.db._aptcache.get_origins()
-        db_origins = set()
-        for channel in channels:
-            origin = channel.get_channel_origin()
-            if origin:
-                db_origins.add(origin)
-        logging.debug("cache_origins: %s" % cache_origins)
-        logging.debug("db_origins: %s" % cache_origins)
-        if cache_origins != db_origins:
-            logging.debug("running update_xapian_index")
-            self.backend.update_xapian_index()
-        return False
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

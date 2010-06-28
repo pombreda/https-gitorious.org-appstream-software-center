@@ -43,6 +43,7 @@ class ExecutionTime(object):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
+
 def htmlize_package_desc(desc):
     def _is_bullet(line):
         return re.match("^(\s*[-*])", line)
@@ -130,6 +131,23 @@ def unescape(text):
 
 def get_current_arch():
     return apt_pkg.config.find("Apt::Architecture")
+
+def human_readable_name_from_ppa_uri(ppa_uri):
+    """ takes a PPA uri and returns a human readable name for it """
+    from urlparse import urlsplit
+    name = urlsplit(ppa_uri).path
+    if name.endswith("/ubuntu"):
+        return name[0:-len("/ubuntu")]
+    return name
+
+def sources_filename_from_ppa_entry(entry):
+    """ 
+    takes a PPA SourceEntry and returns a filename suitable for sources.list.d
+    """
+    from urlparse import urlsplit
+    import apt_pkg
+    name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
+    return name
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

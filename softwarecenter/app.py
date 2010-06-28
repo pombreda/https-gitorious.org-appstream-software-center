@@ -50,9 +50,14 @@ from view.historypane import HistoryPane
 from backend.config import get_config
 from backend import get_install_backend
 
+# launchpad stuff
+from view.login import LoginDialog
+from backend.launchpad import GLaunchpad
+
 from distro import get_distro
 
 from apt.aptcache import AptCache
+from apt.apthistory import AptHistory
 from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -82,7 +87,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
 
-    def __init__(self, datadir, xapian_base_path):
+    # FIXME:  REMOVE THIS once launchpad integration is enabled
+    #         by default
+    def __init__(self, datadir, xapian_base_path, enable_lp_integration=False):
+    #def __init__(self, datadir, xapian_base_path):
+    
+        self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareCenter.ui", 
                                      "software-center")
@@ -119,7 +129,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("channels-changed", self.on_channels_changed)
-
+        #apt history
+        self.history = AptHistory()
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
@@ -159,7 +170,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._available_items_for_page = {}
 
         # available pane
-        self.available_pane = AvailablePane(self.cache, self.db,
+        self.available_pane = AvailablePane(self.cache,
+                                            self.history,
+                                            self.db,
                                             self.distro,
                                             self.icons,
                                             datadir,
@@ -176,9 +189,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_available.add(self.available_pane)
 
         # channel pane
-        self.channel_pane = ChannelPane(self.cache, self.db,
-                                            self.distro,
-                                            self.icons, datadir)
+        self.channel_pane = ChannelPane(self.cache,
+                                        self.history,
+                                        self.db,
+                                        self.distro,
+                                        self.icons,
+                                        datadir)
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_CHANNEL)
@@ -190,9 +206,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_channel.add(self.channel_pane)
         
         # installed pane
-        self.installed_pane = InstalledPane(self.cache, self.db,
+        self.installed_pane = InstalledPane(self.cache,
+                                            self.history,
+                                            self.db, 
                                             self.distro,
-                                            self.icons, datadir)
+                                            self.icons,
+                                            datadir)
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_INSTALLED)
@@ -204,9 +223,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_installed.add(self.installed_pane)
 
         # history pane
-        self.history_pane = HistoryPane(self.cache, self.db,
+        self.history_pane = HistoryPane(self.cache,
+                                        self.history,
+                                        self.db,
                                         self.distro,
-                                        self.icons, datadir)
+                                        self.icons,
+                                        datadir)
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,
                                   self.NOTEBOOK_PAGE_HISTORY)
@@ -261,6 +283,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
+        # FIXME:  REMOVE THIS once launchpad integration is enabled
+        #         by default
+        if not enable_lp_integration:
+            file_menu = self.builder.get_object("menu1")
+            file_menu.remove(self.builder.get_object("separator_login"))
+            file_menu.remove(self.builder.get_object("menuitem_login"))
+
     # callbacks
     def on_app_details_changed(self, widget, app, page):
         self.update_app_status_menu()
@@ -277,6 +306,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_app_status_menu()
 
     def on_window_main_delete_event(self, widget, event):
+        if hasattr(self, "glaunchpad"):
+            self.glaunchpad.shutdown()
         self.save_state()
         gtk.main_quit()
         
@@ -291,7 +322,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_CHANNEL:
-            self.channel_pane.set_channel(channel)
             self.active_pane = self.channel_pane
         elif action == self.NOTEBOOK_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
@@ -318,14 +348,35 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
-        self._show_navhistory_menu_items(action == self.NOTEBOOK_PAGE_AVAILABLE)
+        if action == self.NOTEBOOK_PAGE_AVAILABLE:
+            back_action = self.available_pane.nav_history.navhistory_back_action
+            forward_action = self.available_pane.nav_history.navhistory_forward_action
+            self.menuitem_go_back.set_sensitive(back_action.get_sensitive())
+            self.menuitem_go_forward.set_sensitive(forward_action.get_sensitive())
+        else:
+            self.menuitem_go_back.set_sensitive(False)
+            self.menuitem_go_forward.set_sensitive(False)
         # switch to new page
         self.notebook_view.set_current_page(action)
         self.update_app_list_view(channel)
         self.update_status_bar()
         self.update_app_status_menu()
 
+    def _on_lp_login(self, lp):
+        print "_on_lp_login"
+        self._lp_login_successful = True
+        private_archives = self.glaunchpad.get_subscribed_archives()
+        self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
+            private_archives)
+
     # Menu Items
+    def on_menuitem_login_activate(self, menuitem):
+        print "login"
+        self.glaunchpad = GLaunchpad()
+        self.glaunchpad.connect("login-successful", self._on_lp_login)
+        LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
+        self.glaunchpad.connect_to_server()
+        
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
         self.active_pane.app_details.init_app(app)
@@ -638,11 +689,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.searchentry.set_text(",".join(packages))
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
-                
-    def _show_navhistory_menu_items(self, show_items):
-        self.navitems_menu_separator.set_visible(show_items)
-        self.menuitem_go_back.set_visible(show_items)
-        self.menuitem_go_forward.set_visible(show_items)
 
     def restore_state(self):
         if self.config.has_option("general", "size"):

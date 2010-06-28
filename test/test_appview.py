@@ -25,6 +25,8 @@ class MockIconCache(object):
         return True
     def load_icon(self, name, size, flags):
         return None
+    def disconnect_by_func(self, func):
+        return True
 
 class testAppStore(unittest.TestCase):
     """ tests the AppStore GtkTreeViewModel """

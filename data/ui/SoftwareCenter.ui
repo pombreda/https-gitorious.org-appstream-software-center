@@ -45,7 +45,20 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparatorMenuItem" id="menuitem2">
+                      <object class="GtkSeparatorMenuItem" id="separator_login">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menuitem_login">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Login</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menuitem_login_activate"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="&lt;seperator&gt;">
                         <property name="visible">True</property>
                       </object>
                     </child>

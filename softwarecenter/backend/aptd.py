@@ -23,6 +23,8 @@ import logging
 import subprocess
 import sys
 
+from softwarecenter.utils import *
+
 from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
@@ -163,16 +165,31 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if entry.invalid:
                 continue
             sourcepart = os.path.basename(channelfile)
-            args = (entry.type, entry.uri, entry.dist, entry.comps,
-                    "Added by software-center", sourcepart)
-            try:
-                yield self.aptd_client.add_repository(*args, defer=True)
-            except dbus.DBusException, err:
-                if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                    logging.error("add_repository: '%s'" % err)
-                    return
-        # now update the cache
+            yield self.add_sources_list_entry(self, entry, sourcepart)
         yield self.reload()
+
+    @inline_callbacks
+    def add_sources_list_entry(self, source_entry, sourcepart=None):
+        from aptsources.sourceslist import SourceEntry
+
+        if isinstance(source_entry, basestring):
+            entry = SourceEntry(source_entry)
+        elif isinstance(source_entry, type(SourceEntry)):
+            entry = source_entry
+        else:
+            raise ValueError, "Unsupported entry type %s" % type(source_entry)
+
+        if not sourcepart:
+            sourcepart = sources_filename_from_ppa_entry(entry)
+
+        args = (entry.type, entry.uri, entry.dist, entry.comps,
+                "Added by software-center", sourcepart)
+        try:
+            yield self.aptd_client.add_repository(*args)
+        except dbus.DBusException, err:
+            if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
+                logging.error("add_repository: '%s'" % err)
+                return
 
     # internal helpers
     def on_transactions_changed(self, current, pending):

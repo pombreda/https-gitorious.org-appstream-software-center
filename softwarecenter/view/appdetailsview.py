@@ -70,13 +70,14 @@ class AppDetailsView(WebkitWidget):
                                 (gobject.TYPE_PYOBJECT, )),
                     }
 
-    def __init__(self, db, distro, icons, cache, datadir):
+    def __init__(self, db, distro, icons, cache, history, datadir):
         super(AppDetailsView, self).__init__(datadir)
         self.db = db
         self.distro = distro
         self.icons = icons
         self.cache = cache
         self.cache.connect("cache-ready", self._on_cache_ready)
+        self.history = history
 
         self.datadir = datadir
         self.arch = get_current_arch()
@@ -310,7 +311,7 @@ class AppDetailsView(WebkitWidget):
         """Add message specific to this package (e.g. how many dependenies"""
         if not self.pkg:
             return ""
-        return self.distro.get_installation_status(self.cache, self.pkg, self.app.name)
+        return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
     def wksub_homepage(self):
         s = _("Website")
         return s

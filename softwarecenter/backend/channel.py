@@ -2,6 +2,7 @@
 #
 # Authors:
 #  Gary Lasker
+#  Michael Vogt
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -16,11 +17,211 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import xapian
+import apt
+import glib
 import gettext
+import logging
+import urlparse
+import xapian
+
+from aptsources.sourceslist import SourceEntry, SourcesList
+
 from gettext import gettext as _
+
+from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.animatedimage import AnimatedImage
+from softwarecenter.utils import *
+
+class ChannelsManager(object):
+
+    def __init__(self, db, icons):
+        self.db = db
+        self.icons = icons
+        self.distro = get_distro()
+        self.backend = get_install_backend()
+        self.backend.connect("channels-changed", 
+                             self._remove_no_longer_needed_extra_channels)
+        # kick off a background check for changes that may have been made
+        # in the channels list
+        glib.timeout_add(300, self._check_for_channel_updates_timer)
+        # extra channels from e.g. external sources
+        self.extra_channels = []
+
+    # external API
+    @property
+    def channels(self):
+        """
+        return a list of SoftwareChannel objects in display order
+        ordered according to:
+            Distribution, Partners, PPAs alphabetically, 
+            Other channels alphabetically, Unknown channel last
+        """
+        return self._get_channels()
+
+
+    def feed_in_private_sources_list_entries(self, entries):
+        added = False
+        for entry in entries:
+            added |= self._feed_in_private_sources_list_entry(entry)
+        if added:
+            self.backend.emit("channels-changed", True)
+
+    # internal
+    def _feed_in_private_sources_list_entry(self, source_entry):
+        """
+        this feeds in a private sources.list entry that is
+        available to the user (like a private PPA) that may or
+        may not be active 
+        """
+        # FIXME: strip out password and use apt/auth.conf
+        potential_new_entry = SourceEntry(source_entry)
+        # look if we have it
+        sources = SourcesList()
+        for source in sources.list:
+            if source == potential_new_entry:
+                return False
+        # need to add it as a not yet enabled channel
+        name = human_readable_name_from_ppa_uri(potential_new_entry.uri)
+        # FIXME: use something better than uri as name
+        private_channel = SoftwareChannel(self.icons, name, None, None,
+                                          source_entry=source_entry)
+        private_channel.needs_adding = True
+        if private_channel in self.extra_channels:
+            return False
+        # add it
+        self.extra_channels.append(private_channel)
+        return True
+
+    def _remove_no_longer_needed_extra_channels(self, backend, res):
+        """ go over the extra channels and remove no longer needed ones"""
+        removed = False
+        for channel in self.extra_channels:
+            if not channel._source_entry:
+                continue
+            sources = SourcesList()
+            for source in sources.list:
+                if source == SourceEntry(channel._source_entry):
+                    self.extra_channels.remove(channel)
+                    removed = True
+        if removed:
+            self.backend.emit("channels-changed", True)
+
+    def _check_for_channel_updates_timer(self):
+        """
+        run a background timer to see if the a-x-i data we have is 
+        still fresh or if the cache has changed since
+        """
+        if not self.db._aptcache.ready:
+            return True
+        # see if we need a a-x-i update
+        if self._check_for_channel_updates():
+            # this will trigger a "channels-changed" signal from
+            # the backend object once a-x-i is finished
+            logging.debug("running update_xapian_index")
+            self.backend.update_xapian_index()
+        return False
+
+    def _check_for_channel_updates(self):
+        """ 
+        check current set of channel origins in a-x-i and
+        compare it to the apt cache to see if 
+        anything has changed, 
+        
+        returns True is a update is needed
+        """
+        # the operation get_origins can take some time (~60s?)
+        cache_origins = self.db._aptcache.get_origins()
+        db_origins = set()
+        for channel in self.channels:
+            origin = channel.get_channel_origin()
+            if origin:
+                db_origins.add(origin)
+        # origins
+        logging.debug("cache_origins: %s" % cache_origins)
+        logging.debug("db_origins: %s" % cache_origins)
+        if cache_origins != db_origins:
+            return True
+        return False
+    
+    def _get_channels(self):
+        """
+        (internal) implements 'channels()' property
+        """
+        distro_channel_name = self.distro.get_distro_channel_name()
+        
+        # gather the set of software channels and order them
+        other_channel_list = []
+        for channel_iter in self.db.xapiandb.allterms("XOL"):
+            if len(channel_iter.term) == 3:
+                continue
+            channel_name = channel_iter.term[3:]
+            
+            # get origin information for this channel
+            m = self.db.xapiandb.postlist_begin(channel_iter.term)
+            doc = self.db.xapiandb.get_document(m.get_docid())
+            for term_iter in doc.termlist():
+                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
+                    channel_origin = term_iter.term[3:]
+                    break
+            logging.debug("channel_name: %s" % channel_name)
+            logging.debug("channel_origin: %s" % channel_origin)
+            other_channel_list.append((channel_name, channel_origin))
+        
+        dist_channel = None
+        ppa_channels = []
+        other_channels = []
+        unknown_channel = []
+        
+        for (channel_name, channel_origin) in other_channel_list:
+            if not channel_name:
+                unknown_channel.append(SoftwareChannel(self.icons, 
+                                                       channel_name,
+                                                       channel_origin,
+                                                       None))
+            elif channel_name == distro_channel_name:
+                dist_channel = (SoftwareChannel(self.icons,
+                                                distro_channel_name,
+                                                channel_origin,
+                                                None,
+                                                filter_required=True))
+            elif channel_origin and channel_origin.startswith("LP-PPA"):
+                ppa_channels.append(SoftwareChannel(self.icons, 
+                                                    channel_name,
+                                                    channel_origin,
+                                                    None))
+            # TODO: detect generic repository source (e.g., Google, Inc.)
+            else:
+                other_channels.append(SoftwareChannel(self.icons, 
+                                                      channel_name,
+                                                      channel_origin,
+                                                      None))
+        # FIXME: do not hardcode this, check instead for 
+        #        self.db.xapiandb.allterms("AH") and add all of those
+        #        and provide a mechanism in the channel to check
+        #        both origin (XAO) and channel name from app-install (AH)
+        # FIXME2: pass the AH name as well so that we do not need to special
+        #         case the AH query for partner
+        # also get the partner repository
+        partner_channel = SoftwareChannel(self.icons, 
+                                          distro_channel_name,
+                                          None,
+                                          "partner", 
+                                          filter_required=True)
+        
+        # set them in order
+        channels = []
+        if dist_channel is not None:
+            channels.append(dist_channel)
+        channels.append(partner_channel)
+        channels.extend(ppa_channels)
+        channels.extend(other_channels)
+        channels.extend(unknown_channel)
+        channels.extend(self.extra_channels)
+        
+        return channels
+        
+
 
 class SoftwareChannel(object):
     """
@@ -29,7 +230,8 @@ class SoftwareChannel(object):
     
     ICON_SIZE = 24
     
-    def __init__(self, icons, channel_name, channel_origin, channel_component, filter_required=False):
+    def __init__(self, icons, channel_name, channel_origin, channel_component,
+                 filter_required=False, source_entry=None):
         """
         configure the software channel object based on channel name,
         origin, and component (the latter for detecting the partner
@@ -46,6 +248,11 @@ class SoftwareChannel(object):
         self._channel_display_name = self._get_display_name_for_channel(channel_name, channel_component)
         self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
         self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
+        # a sources.list entry attached to the channel (this is currently
+        # only used for not-yet-enabled channels)
+        self._source_entry = source_entry
+        # when the channel needs to be added to the systems sources.list
+        self.needs_adding = False
         
     def get_channel_name(self):
         """

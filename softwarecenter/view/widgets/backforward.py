@@ -33,6 +33,10 @@ PI_OVER_180 = 0.017453292519943295
 DEFAULT_PART_SIZE = (31, 27)
 DEFAULT_ARROW_SIZE = (12, 12)
 
+COLOR_ORANGE =  '#F15D22'   # hat tip OMG UBUNTU!
+COLOR_PURPLE =  '#4D1F40'   # hat tip OMG UBUNTU!
+
+
 
 
 class BackForwardButton(gtk.HBox):
@@ -51,6 +55,8 @@ class BackForwardButton(gtk.HBox):
         self.separator = SeparatorPart()
 
         self.use_hand = False
+        self._use_flat_palatte = False
+
         part_size = part_size or DEFAULT_PART_SIZE
         arrow_size = arrow_size or DEFAULT_ARROW_SIZE
 
@@ -114,6 +120,38 @@ class BackForwardButton(gtk.HBox):
         self.use_hand = use_hand
         return
 
+    def use_flat_palatte(self):
+        self._use_flat_palatte = True
+
+        gray   = self.theme.theme.mid[gtk.STATE_NORMAL]
+        orange = pathbar_common.color_from_string(COLOR_ORANGE)
+        purple = pathbar_common.color_from_string(COLOR_PURPLE)
+
+        #self.label.modify_fg(gtk.STATE_PRELIGHT, gtk.gdk.color_parse('#FFF'))
+        #self.label.modify_fg(gtk.STATE_ACTIVE, gtk.gdk.color_parse('#FFF'))
+
+        self.theme.gradients = {
+            gtk.STATE_NORMAL:      (gray, gray),
+            gtk.STATE_ACTIVE:      (purple, purple),
+            gtk.STATE_SELECTED:    (orange, orange),
+            gtk.STATE_PRELIGHT:    (orange, orange),
+            gtk.STATE_INSENSITIVE: (self.theme.theme.mid, self.theme.theme.mid)}
+
+        self.theme.dark_line = {
+            gtk.STATE_NORMAL:       gray,
+            gtk.STATE_ACTIVE:       purple,
+            gtk.STATE_PRELIGHT:     orange,
+            gtk.STATE_SELECTED:     orange,
+            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
+
+        self.theme.light_line = {
+            gtk.STATE_NORMAL:       gray,
+            gtk.STATE_ACTIVE:       purple,
+            gtk.STATE_PRELIGHT:     orange,
+            gtk.STATE_SELECTED:     orange,
+            gtk.STATE_INSENSITIVE:  self.theme.theme.mid}
+        return
+
     def _on_style_set(self, widget, oldstyle):
         # when alloc.width == 1, this is typical of an unallocated widget,
         # lets not break a sweat for nothing...
@@ -134,10 +172,11 @@ class BackForwardButton(gtk.HBox):
         self.queue_draw()
         return
 
-    def draw(self, cr, expose_area, alpha=1.0):
-        self.separator.alpha = alpha
-        self.left.draw(cr, expose_area, alpha)
-        self.right.draw(cr, expose_area, alpha)
+    def draw(self, cr, expose_area, left_alpha=1.0, right_alpha=1.0):
+        self.separator.alpha = max(left_alpha, right_alpha)
+        self.separator.queue_draw()
+        self.left.draw(cr, expose_area, left_alpha)
+        self.right.draw(cr, expose_area, right_alpha)
         return
 
 
@@ -279,10 +318,19 @@ class ButtonPart(gtk.EventBox):
         cr.rectangle(a)
         cr.clip()
 
-        self.parent.theme.paint_bg(cr,
-                                   self,
-                                   a.x+xo, a.y, a.width+wo, a.height,
-                                   alpha=alpha)
+
+        if not self.parent._use_flat_palatte:            
+            self.parent.theme.paint_bg(cr,
+                                       self,
+                                       a.x+xo, a.y,
+                                       a.width+wo, a.height,
+                                       alpha=alpha)
+        else:
+            self.parent.theme.paint_bg_flat(cr,
+                                            self,
+                                            a.x+xo, a.y,
+                                            a.width+wo, a.height,
+                                            alpha=alpha)
 
         if self.has_focus():
             self.style.paint_focus(self.window,
@@ -294,15 +342,16 @@ class ButtonPart(gtk.EventBox):
                                    a.width-8, a.height-8)
 
         # arrow
-        aw, ah = self.arrow_size
-        ax, ay = a.x + (a.width - aw)/2, a.y + (a.height - ah)/2
+        aw = ah = 12
+        ay = a.y + (a.height - ah)/2
+        ax = a.x + (a.width - aw)/2
 
         self.style.paint_arrow(self.window,
                                self.state,
                                self.shadow_type,
-                               None,
+                               (ax, ay, aw, ah),
                                self,
-                               "button",
+                               None,
                                self.arrow_type,
                                True,
                                ax, ay,
