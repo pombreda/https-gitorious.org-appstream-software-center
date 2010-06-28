@@ -637,15 +637,30 @@ class FramedSection(gtk.VBox):
         self.pack_start(self.body)
         self.pack_start(self.footer, False)
 
+        self.image = gtk.Image()
         self.label = gtk.Label()
+
         self.header.pack_start(self.label, False, padding=BORDER_WIDTH_SMALL)
 
         if label_markup:
             self.set_label(label_markup)
         return
 
-    def set_label(self, label):
-        self.label.set_markup('<b>%s</b>' % label)
+    def set_icon(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
+#        self.image.clear()
+        self.image.set_from_icon_name(icon_name, icon_size)
+        print icon_name, self.image.get_property('visible')
+        if not self.image.get_property('visible'):
+            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
+            self.header.reorder_child(self.image, 0)
+            self.image.show()
+        return
+
+    def set_label(self, label='', markup=None):
+        if markup:
+            self.label.set_markup(markup)
+        else:
+            self.label.set_markup('<b>%s</b>' % label)
 
         # atk stuff
         acc = self.get_accessible()

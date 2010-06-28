@@ -33,6 +33,7 @@ import sys
 import tempfile
 import urllib
 import xapian
+import pango
 
 from gettext import gettext as _
 
@@ -46,14 +47,15 @@ from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend import get_install_backend
 
-from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 import dialogs
+
+from widgets import mkit
 
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4
 
-class AppDetailsView(WebkitWidget):
+class AppDetailsView(gtk.ScrolledWindow):
     """The view that shows the application details """
 
     # the size of the icon on the left side
@@ -71,7 +73,37 @@ class AppDetailsView(WebkitWidget):
                     }
 
     def __init__(self, db, distro, icons, cache, history, datadir):
-        super(AppDetailsView, self).__init__(datadir)
+        gtk.ScrolledWindow.__init__(self)
+        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+        self.set_shadow_type(gtk.SHADOW_NONE)
+
+        # setup base widgets
+        # we have our own viewport so we know when the viewport grows/shrinks
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
+
+        viewport = gtk.Viewport()
+        viewport.set_shadow_type(gtk.SHADOW_NONE)
+        viewport.add(self.vbox)
+        self.add(viewport)
+        self.vbox.set_redraw_on_allocate(False)
+        self.show_all()
+
+        self.app_info = mkit.FramedSection()
+        self.app_info.footer.set_size_request(-1, 2*mkit.EM)
+        self.vbox.pack_start(self.app_info, False)
+
+        self.body_hbox = gtk.HBox(spacing=mkit.SPACING_MED)
+        self.body_hbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
+        self.app_info.body.pack_start(self.body_hbox)
+
+        self.app_long_desc = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.body_hbox.pack_start(self.app_long_desc)
+
+        # atk
+        atk_desc = self.get_accessible()
+        atk_desc.set_name(_("Description"))
+
         self.db = db
         self.distro = distro
         self.icons = icons
@@ -81,33 +113,193 @@ class AppDetailsView(WebkitWidget):
 
         self.datadir = datadir
         self.arch = get_current_arch()
-        # atk
-        atk_desc = self.get_accessible()
-        atk_desc.set_name(_("Description"))
+
         # aptdaemon
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+
         # data
         self.pkg = None
         self.app = None
         self.iconname = ""
-        # setup user-agent
-        settings = self.get_settings()
-        settings.set_property("user-agent", USER_AGENT)
-        self.connect("navigation-requested", self._on_navigation_requested)
 
-    def _show(self, widget):
-        if not self.app:
-            return
-        super(AppDetailsView, self)._show(widget)
+        self.vbox.connect('expose-event', self._on_expose)
+        return
+
+    def _on_expose(self, widget, event):
+        expose_area = event.area
+        cr = widget.window.cairo_create()
+        cr.rectangle(expose_area)
+        cr.clip()
+
+        self.app_info.draw(cr, self.app_info.allocation, expose_area)
+
+        del cr
+        return
+
+    def _get_component(self, pkg=None):
+        """ 
+        get the component (main, universe, ..) for the given pkg object
+        
+        this uses the data from apt, if there is none it uses the 
+        data from the app-install-data files
+        """
+        if not pkg or not pkg.candidate:
+            return self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        for origin in pkg.candidate.origins:
+            if (origin.origin == "Ubuntu" and 
+                origin.trusted and 
+                origin.component):
+                return origin.component
+
+    def _clear_description(self):
+        for child in self.app_long_desc.get_children():
+            self.app_long_desc.remove(child)
+            child.destroy()
+        return
+
+    def _append_paragraph(self, fragment, newline):
+        if not fragment.strip(): return
+        p = gtk.Label()
+        #p.set_selectable(True)
+
+        if newline:
+            p.set_markup('\n'+fragment)
+        else:
+            p.set_markup(fragment)
+
+        p.set_line_wrap(pango.WRAP_WORD_CHAR)
+        p.set_size_request(self.vbox.allocation.width - 6*mkit.BORDER_WIDTH_LARGE, -1)
+        self.app_long_desc.pack_start(p, False)
+        return True
+
+    def _append_bullet_point(self, fragment):
+        fragment = fragment.strip()
+        fragment = fragment.replace('* ', '')
+        fragment = fragment.replace('- ', '')
+
+        bullet = gtk.Label()
+        bullet.set_markup(u"\u2022")
+        bullet_align = gtk.Alignment(0.5, 0.0)
+        bullet_align.add(bullet)
+
+        point = gtk.Label()
+        #point.set_selectable(True)
+        point.set_markup(fragment)
+        point.set_line_wrap(pango.WRAP_WORD_CHAR)
+        point.set_size_request(self.allocation.width - 10*mkit.BORDER_WIDTH_LARGE, -1)
+
+        hb = gtk.HBox()
+        hb.pack_start(bullet_align, False, padding=10)
+        hb.pack_start(point, False)
+        hb.show_all()
+
+        self.app_long_desc.pack_start(hb, False,
+                                      padding=int(max(3, 0.33*mkit.EM+0.5)))
+        return False
+
+    def _format_description(self, desc, appname):
+        processed_desc = ''
+        prev_part = ''
+        parts = desc.split('\n')
+
+        newline = False
+        in_blist = False
+
+        for i, part in enumerate(parts):
+            part = part.strip()
+            if not part:
+                pass
+            elif part.startswith('* ') or part.startswith('- '):
+                if not in_blist:
+                    in_blist = True
+                    newline = self._append_paragraph(processed_desc, newline)
+                else:
+                    newline = self._append_bullet_point(processed_desc)
+
+                processed_desc = ''
+                processed_desc += part
+
+                # special for 7zip
+                if appname == '7zip' and \
+                    (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
+                    processed_desc += '\n'
+
+            elif prev_part.endswith('.'):
+                if in_blist:
+                    in_blist = False
+                    newline = self._append_bullet_point(processed_desc)
+                else:
+                    newline = self._append_paragraph(processed_desc, newline)
+
+                processed_desc = ''
+                processed_desc += part
+
+            elif not prev_part.endswith(',') and part[0].isupper():
+                if in_blist:
+                    in_blist = False
+                    newline = self._append_bullet_point(processed_desc)
+                else:
+                    newline = self._append_paragraph(processed_desc, newline)
+
+                processed_desc = ''
+                processed_desc += part
+            else:
+                if not part.endswith('.'):
+                    processed_desc += part + ' '
+                elif (i+1) < len(parts) and (parts[i+1].startswith('* ') or \
+                    parts[i+1].startswith('- ')):
+                    processed_desc += part
+                else:
+                    processed_desc += part
+
+            prev_part = part
+
+        if in_blist:
+            in_blist = False
+            self._append_bullet_point(processed_desc)
+        else:
+            self._append_paragraph(processed_desc, newline)
+
+        self.app_long_desc.show_all()
+        return
+
+    def _layout_page(self):
+        # application icon and name packed into header
+        font_size = 22*pango.SCALE  # make this relative to the appicon size (48x48)
+        appname = self.get_appname()
+
+        markup = '<b><span size="%s">%s</span></b>\n%s' % (font_size,
+                                                           appname,
+                                                           self.get_appsummary())
+
+        self.app_info.set_label(markup=markup)
+        self.app_info.set_icon(self.iconname, gtk.ICON_SIZE_DIALOG)
+
+        self._clear_description()
+        self._format_description(self.get_description(), appname)
+        return
 
     # public API
+    def show_app(self, app):
+        logging.debug("AppDetailsView.show_app '%s'" % app)
+        if app is None:
+            return
+
+        # initialize the app
+        self.init_app(app)
+        
+        #self._check_thumb_available()
+        return
+
     def init_app(self, app):
         logging.debug("AppDetailsView.init_app '%s'" % app)
+
         # init app specific data
         self.app = app
+
         # other data
         self.homepage_url = None
         self.channelfile = None
@@ -139,37 +331,8 @@ class AppDetailsView(WebkitWidget):
         # setup component
         self.component = self._get_component(self.pkg)
 
-    def _get_component(self, pkg=None):
-        """ 
-        get the component (main, universe, ..) for the given pkg object
-        
-        this uses the data from apt, if there is none it uses the 
-        data from the app-install-data files
-        """
-        if not pkg or not pkg.candidate:
-            return self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        for origin in pkg.candidate.origins:
-            if (origin.origin == "Ubuntu" and 
-                origin.trusted and 
-                origin.component):
-                return origin.component
-    
-    def show_app(self, app):
-        logging.debug("AppDetailsView.show_app '%s'" % app)
-        if app is None:
-            return
-
-        # clear first to avoid showing the old app details for
-        # some milliseconds before switching to the new app
-        self.clear()
-        
-        # initialize the app
-        self.init_app(app)
-        
-        # show (and let the wksub_ magic do the right substitutions)
-        self._show(self)
-        self.emit("selected", self.app)
-        self._check_thumb_available()
+        self._layout_page()
+        return
 
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -177,16 +340,10 @@ class AppDetailsView(WebkitWidget):
             iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
         return iconinfo.get_filename()
 
-    def clear(self):
-        " clear the current view "
-        self.load_string("", "text/plain", "ascii", "file:/")
-        while gtk.events_pending(): 
-            gtk.main_iteration()
-
     # substitute functions called during page display
-    def wksub_appname(self):
+    def get_appname(self):
         return self.app.name
-    def wksub_summary(self):
+    def get_appsummary(self):
         return self.db.get_summary(self.doc)
     def wksub_pkgname(self):
         return self.app.pkgname
@@ -195,7 +352,7 @@ class AppDetailsView(WebkitWidget):
             self.cache[self.app.pkgname].is_installed):
             return "section-installed"
         return "section-get"
-    def wksub_description(self):
+    def get_description(self):
         # if we do not have a package in our apt data explain why
         if not self.pkg:
             available_for_arch = self._available_for_our_arch()
@@ -217,13 +374,6 @@ class AppDetailsView(WebkitWidget):
         # format for html
         description = self.pkg.candidate.description
         logging.debug("Description (text) %r", description)
-        # format bullets (*-) as lists
-        description = "\n".join(htmlize_package_desc(description))
-        description = self.add_ul_tags(description)
-        # urls
-        regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
-        description = re.sub(regx, r'<a href="\1">\1</a>', description)
-        logging.debug("Description (HTML) %r", description)
         return description
 
     def add_ul_tags(self, description):
@@ -408,6 +558,7 @@ class AppDetailsView(WebkitWidget):
     # public interface
     def install(self):
         self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
+
     def remove(self):
         # generic removal text
         # FIXME: this text is not accurate, we look at recommends as

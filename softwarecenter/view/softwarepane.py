@@ -107,11 +107,6 @@ class SoftwarePane(gtk.VBox):
                                           self.cache, 
                                           self.history,
                                           self.datadir)
-        self.scroll_details = gtk.ScrolledWindow()
-        self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
-                                       gtk.POLICY_AUTOMATIC)
-        self.scroll_details.add(self.app_details)
-
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
