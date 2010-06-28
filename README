@@ -43,4 +43,4 @@ XAPIAN_VALUE_SUMMARY - summary text
 XAPIAN_VALUE_ARCHIVE_CHANNEL - channel (third party)
 XAPIAN_VALUE_DESKTOP_FILE - the desktop file that the information comes from
 XAPIAN_VALUE_PRICE - the price (if its a for-pay app)
-XAPIAN_VALUE_PPA - the PPA name that the application is in
+XAPIAN_VALUE_ARCHIVE_PPA - the PPA name that the application is in

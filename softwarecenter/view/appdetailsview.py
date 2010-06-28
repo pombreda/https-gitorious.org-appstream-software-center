@@ -128,8 +128,9 @@ class AppDetailsView(WebkitWidget):
         # will find fins a icon with it
         self.iconname = os.path.splitext(self.iconname)[0]
 
-        # get price
+        # get price & ppa 
         self.price = self.doc.get_value(XAPIAN_VALUE_PRICE)
+        self.ppa = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA)
 
         # get apt cache data
         pkgname = self.db.get_pkgname(self.doc)
@@ -368,7 +369,8 @@ class AppDetailsView(WebkitWidget):
     # callbacks
     def on_button_buy_app_clicked(self):
         logging.debug("on_button_buy_app_clicked")
-        dialog = PurchaseDialog()
+        url = self.distro.PURCHASE_APP_URL % urllib.urlencode(self.ppa)
+        dialog = PurchaseDialog(url=url)
         dialog.run()
         self._set_action_button_sensitive(True)
 

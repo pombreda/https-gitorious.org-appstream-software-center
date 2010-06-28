@@ -28,7 +28,7 @@ import urllib
 import gobject
 
 from softwarecenter.enums import *
-from softwarecenter.utils import get_http_proxy_string_from_gconf, GnomeProxyURLOpener
+from softwarecenter.utils import GnomeProxyURLopener
 
 ICON_EXCEPTIONS = ["gnome"]
 
