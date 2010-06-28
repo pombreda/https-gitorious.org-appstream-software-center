@@ -29,14 +29,20 @@ import threading
 
 from softwarecenter.distro import get_distro
 
+# possible workaround for bug #599332 is to try to import lazr.restful
+# import lazr.restful
+# import lazr.restfulclient
+
 from lazr.restfulclient.resource import ServiceRoot
 from lazr.restfulclient.authorize import BasicHttpAuthorizer
 from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
+from oauth.oauth import OAuthConsumer, OAuthToken
 
 from paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
 UBUNTU_SSO_SERVICE = "https://login.staging.ubuntu.com/api/1.0"
+UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = "http://localhost:8000/api/1.0"
 
 class RestfulClientWorker(threading.Thread):
     """ a generic worker thread for a lazr.restfulclient """
@@ -92,6 +98,47 @@ class RestfulClientWorker(threading.Thread):
             if (self._shutdown and
                 self._pending_requests.empty()):
                 return
+
+class SoftwareCenterAgent(gobject.GObject):
+
+    __gsignals__ = {
+        "available-for-me" : (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_NONE, 
+                              (gobject.TYPE_PYOBJECT,),
+                             ),
+        "available" : (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_NONE, 
+                              (gobject.TYPE_PYOBJECT,),
+                             ),
+        }
+
+    AVAILABLE_FOR_ME = "subscriptions.getForOAuthToken"
+    AVAILABLE = "applications.filter"
+
+    def __init__(self):
+        gobject.GObject.__init__(self)
+        self.service = UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE
+        # setup restful client
+        empty_token = OAuthToken("", "")
+        authorizer = OAuthAuthorizer("software-center", access_token=empty_token)
+        self.worker_thread =  RestfulClientWorker(authorizer, self.service)
+        self.worker_thread.start()
+
+    def _available_for_me_done(self, result):
+        print "result: ", result
+        self.emit("available-for-me", result)
+
+    def _available_for_me_error(self, error):
+        print "_available_for_me_error:", error
+        
+    def available_for_me(self, oauth_token):
+        kwargs = { "token_name" : "software-center", 
+                   "oauth_token" : oauth_token,
+                 }
+        self.worker_thread.queue_request(self.AVAILABLE_FOR_ME, (), kwargs,
+                                         self._available_for_me_done,
+                                         self._available_for_me_error)
+
 
 class UbuntuSSOlogin(gobject.GObject):
 
@@ -152,17 +199,46 @@ def _login_need_user_and_password(sso):
     password = sys.stdin.readline().strip()
     sso.login(user, password)
 
+def _available_for_me_result(self, scagent, result):
+    print "_available_for_me: ", result
+
+def _available(self, scagent, result):
+    print "_available_for_me: ", result
+
 if __name__ == "__main__":
+    import sys
     logging.basicConfig(level=logging.DEBUG)
 
-    sso = UbuntuSSOlogin()
-    sso.connect("login-successful", _login_success)
-    sso.connect("login-failed", _login_failed)
-    sso.connect("need-username-password", _login_need_user_and_password)
-    sso.login()
+    if len(sys.argv) < 2:
+        print "need agent or sso as arguemtn"
+        sys.exit(1)
+
+    if sys.argv[1] == "agent":
+        scagent = SoftwareCenterAgent()
+        scagent.connect("available-for-me", _available_for_me_result)
+        scagent.connect("available", _available)
+        scagent.available_for_me("dummy")
+
+    elif sys.argv[1] == "sso":
+        sso = UbuntuSSOlogin()
+        sso.connect("login-successful", _login_success)
+        sso.connect("login-failed", _login_failed)
+        sso.connect("need-username-password", _login_need_user_and_password)
+        sso.login()
+    else:
+        print "unknown option"
+        sys.exit(1)
+
 
     # wait
     try:
         glib.MainLoop().run()
     except KeyboardInterrupt:
-        sso.worker_thread.shutdown()
+        try:
+            sso.worker_thread.shutdown()
+        except:
+            pass
+        try:
+            scagent.worker_thread.shutdown()
+        except:
+            pass

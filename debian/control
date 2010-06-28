@@ -34,7 +34,8 @@ Depends: ${python:Depends},
          python-webkit,
          python-xdg,
          python-gconf,
-         aptdaemon (>= 0.31)
+         aptdaemon (>= 0.31),
+	 python-lazr.restfulclient
 Recommends: lsb-release, python-launchpad-integration, apt-xapian-index,
             update-notifier, software-properties-gtk
 Conflicts: software-store, gnome-app-install (<< 1)
