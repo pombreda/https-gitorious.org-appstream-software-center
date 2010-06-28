@@ -28,6 +28,7 @@ import time
 import threading
 
 from softwarecenter.distro import get_distro
+from softwarecenter.utils import get_current_arch
 
 # possible workaround for bug #599332 is to try to import lazr.restful
 # import lazr.restful
@@ -117,27 +118,45 @@ class SoftwareCenterAgent(gobject.GObject):
 
     def __init__(self):
         gobject.GObject.__init__(self)
-        self.service = UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE
+        # distro
+        self.distro = get_distro()
         # setup restful client
+        self.service = UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE
         empty_token = OAuthToken("", "")
         authorizer = OAuthAuthorizer("software-center", access_token=empty_token)
         self.worker_thread =  RestfulClientWorker(authorizer, self.service)
         self.worker_thread.start()
 
     def _available_for_me_done(self, result):
-        print "result: ", result
-        self.emit("available-for-me", result)
+        self.emit("available-for-me", [x for x in result])
 
     def _available_for_me_error(self, error):
         print "_available_for_me_error:", error
         
-    def available_for_me(self, oauth_token):
-        kwargs = { "token_name" : "software-center", 
-                   "oauth_token" : oauth_token,
+    def query_available_for_me(self, oauth_token):
+        kwargs = { "oauth_token" : oauth_token,
                  }
         self.worker_thread.queue_request(self.AVAILABLE_FOR_ME, (), kwargs,
                                          self._available_for_me_done,
                                          self._available_for_me_error)
+
+    def _available_done(self, result):
+        self.emit("available", [x for x in result])
+
+    def _available_error(self, error):
+        print "available_error: ", error
+
+    def query_available(self, series_name=None, arch_tag=None):
+        if not series_name:
+            series_name = self.distro.get_codename()
+        if not arch_tag:
+            arch_tag = get_current_arch()
+        kwargs = { "series_name" : series_name,
+                   "arch_tag" : arch_tag,
+                 }
+        self.worker_thread.queue_request(self.AVAILABLE, (), kwargs,
+                                         self._available_done,
+                                         self._available_error)
 
 
 class UbuntuSSOlogin(gobject.GObject):
@@ -199,11 +218,11 @@ def _login_need_user_and_password(sso):
     password = sys.stdin.readline().strip()
     sso.login(user, password)
 
-def _available_for_me_result(self, scagent, result):
-    print "_available_for_me: ", result
+def _available_for_me_result(scagent, result):
+    print "_available_for_me: ", [x.package_name for x in result]
 
-def _available(self, scagent, result):
-    print "_available_for_me: ", result
+def _available( scagent, result):
+    print "_available: ", [x.name for x in result]
 
 if __name__ == "__main__":
     import sys
@@ -217,7 +236,9 @@ if __name__ == "__main__":
         scagent = SoftwareCenterAgent()
         scagent.connect("available-for-me", _available_for_me_result)
         scagent.connect("available", _available)
-        scagent.available_for_me("dummy")
+        # argument is oauth token
+        scagent.query_available_for_me("dummy_oauth")
+        scagent.query_available()
 
     elif sys.argv[1] == "sso":
         sso = UbuntuSSOlogin()
