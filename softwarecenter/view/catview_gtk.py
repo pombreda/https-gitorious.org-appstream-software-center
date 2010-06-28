@@ -43,7 +43,7 @@ CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(6, int(0.7*mkit.EM+0.5))
 # as per spec transition timeout should be 15000 (15 seconds)
-CAROUSEL_TRANSITION_TIMEOUT =    5000
+CAROUSEL_TRANSITION_TIMEOUT =    15000
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         50 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
@@ -483,14 +483,6 @@ class CarouselView(mkit.FramedSection):
         self.page_sel.connect('page-selected', self._on_page_selected)
         return
 
-    def _on_realize(self, widget):
-        #self._cache_overlay_image("software-center-installed")
-        # init asset cache for each poster
-        self._set_next()
-        # start the carousel
-        self.start()
-        return
-
     def _on_page_selected(self, page_sel, page):
         self.stop()
         self._offset = page*self.n_posters
@@ -556,8 +548,7 @@ class CarouselView(mkit.FramedSection):
         self.page_sel.set_n_pages(int(pages))
         self.n_posters = n
 
-        if self.page_sel.selected:
-            self._update_pagesel()
+        self._update_pagesel()
         return
 
     def _fade_in(self):
@@ -772,7 +763,7 @@ class CarouselPoster(mkit.VButton):
 
     def draw(self, cr, a, expose_area, alpha=1.0):
         if mkit.not_overlapping(a, expose_area): return
-        mkit.VButton.draw(self, cr, a, expose_area)
+        mkit.VButton.draw(self, cr, a, expose_area, focus_draw=False)
 
         cr.save()
         cr.rectangle(a)
@@ -815,6 +806,20 @@ class CarouselPoster(mkit.VButton):
                                     la.x, la.y,
                                     layout)
         cr.restore()
+
+        # custom focus draw
+        if self.has_focus():
+            a = self.label.allocation
+            #x, y, w, h = a.x, a.y, a.width, a.height
+            x, y, w, h = layout.get_pixel_extents()[1] 
+            x += a.x
+            y += a.y
+            self.style.paint_focus(self.window,
+                                   self.state,
+                                   (x-2, y-1, w+4, h+2),
+                                   self,
+                                   'button',
+                                   x-2, y-1, w+4, h+2)
         return
 
 
