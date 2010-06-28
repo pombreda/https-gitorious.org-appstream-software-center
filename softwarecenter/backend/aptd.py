@@ -114,11 +114,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname):
+    def install(self, pkgname, appname, filename, iconname):
         """ install a single package """
         self.emit("transaction-started")
         try:
-            trans = yield self.aptd_client.install_packages([pkgname],
+            if filename:
+                trans = yield self.aptd_client.install_file(filename,
+                                                            defer=True)
+            else:
+                trans = yield self.aptd_client.install_packages([pkgname],
                                                             defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:

@@ -34,6 +34,7 @@ from appview import AppView, AppStore, AppViewFilter
 
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
 from catview_gtk import CategoriesViewGtk as CategoriesView
+from catview import Category
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
@@ -448,6 +449,14 @@ class AvailablePane(SoftwarePane):
         self.apps_search_term = ""
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
+
+    def show_deb_file(self, app): #(or apturl)
+        # FIXME: Determine real category
+        self.apps_category = Category("deb", "deb", None, None, False, True, None)
+        self.current_app_by_category[self.apps_category] = app
+        self.navigation_bar.add_with_id(app.appname, self.on_navigation_details, "details", animate=True)
+        self.app_details.show_app(app)
+        self.display_details()
 
     # callbacks
     def on_cache_ready(self, cache):

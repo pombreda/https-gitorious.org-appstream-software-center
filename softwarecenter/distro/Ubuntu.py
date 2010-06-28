@@ -199,7 +199,7 @@ class Ubuntu(Distro):
                                                          'support_end_month_str' : support_end_month_str,
                                                          'support_end_year' : support_end_year}
                
-        # if we couldn't fiure a support date, use a generic maintenance
+        # if we couldn't determine a support date, use a generic maintenance
         # string without the date
         if channel or component == "partner":
             return _("Canonical does not provide updates for %s. "

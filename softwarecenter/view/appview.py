@@ -203,7 +203,7 @@ class AppStore(gtk.GenericTreeModel):
                 # when doing multiple queries we need to ensure
                 # we don't add duplicates
                 popcon = self.db.get_popcon(doc)
-                app = Application(appname, pkgname, popcon)
+                app = Application(appname, pkgname, "", popcon)
                 if not app in already_added:
                     if self.sorted:
                         self._insert_app_sorted(app)
@@ -221,7 +221,7 @@ class AppStore(gtk.GenericTreeModel):
                     if term.startswith("AP"):
                         pkgname = term[2:]
                         break
-                app = Application("", pkgname)
+                app = Application("", pkgname, "")
                 self.app_index_map[app] = app_index
                 self.apps.append(app)
                 
@@ -1284,7 +1284,7 @@ class AppView(gtk.TreeView):
                 action_button.set_sensitive(False)
             else:
                 action_button.set_sensitive(True)
-        self.emit("application-selected", Application(name, pkgname, popcon))
+        self.emit("application-selected", Application(name, pkgname, "",  popcon))
         return False
 
     def _on_row_activated(self, view, path, column):
@@ -1294,7 +1294,7 @@ class AppView(gtk.TreeView):
             name = model[path][AppStore.COL_APP_NAME]
             pkgname = model[path][AppStore.COL_PKGNAME]
             popcon = model[path][AppStore.COL_POPCON]
-            self.emit("application-activated", Application(name, pkgname, popcon))
+            self.emit("application-activated", Application(name, pkgname, "", popcon))
 
     def _on_button_press_event(self, view, event, col):
         if event.button != 1:
@@ -1367,7 +1367,7 @@ class AppView(gtk.TreeView):
 
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
         if btn_id == 'info':
-            self.emit("application-activated", Application(appname, pkgname, popcon))
+            self.emit("application-activated", Application(appname, pkgname, "", popcon))
         elif btn_id == 'action':
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
@@ -1375,7 +1375,7 @@ class AppView(gtk.TreeView):
                 perform_action = "remove"
             else:
                 perform_action = "install"
-            self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
+            self.emit("application-request-action", Application(appname, pkgname, "", popcon), perform_action)
         return False
         
     def _on_transaction_started(self, backend):

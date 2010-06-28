@@ -25,9 +25,14 @@ class Application(object):
         
         There is also a __cmp__ method and a name property
     """
-    def __init__(self, appname, pkgname, popcon=0):
-        self.appname = appname
-        self.pkgname = pkgname
+    def __init__(self, appname, pkgname, filename, popcon=0):
+        if filename.count("/") > 0:
+            self.appname = filename.split('/')[-1].split('_')[0].split('.')[0].capitalize()
+            self.pkgname = filename.split('/')[-1].split('_')[0].split('.')[0].lower()
+        else:
+            self.appname = pkgname.capitalize()
+            self.pkgname = pkgname
+        self.filename = filename
         self._popcon = popcon
     @property
     def name(self):

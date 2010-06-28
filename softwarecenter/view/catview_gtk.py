@@ -335,7 +335,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
         popcon = app[AppStore.COL_POPCON]
-        self.emit("application-activated", Application(appname, pkgname, popcon))
+        self.emit("application-activated", Application(appname, pkgname, "", popcon))
         return False
 
     def _on_category_clicked(self, cat_btn, cat):

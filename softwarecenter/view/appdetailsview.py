@@ -34,10 +34,15 @@ import tempfile
 import urllib
 import xapian
 
+from apt import Cache
+from apt import debfile
+
 from gettext import gettext as _
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
+
+from mimetypes import guess_type
 
 from softwarecenter import Application
 from softwarecenter.enums import *
@@ -52,6 +57,9 @@ import dialogs
 
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4
+
+# Constants for comparing the local package file with the version in the cache
+(NOT_DEB, DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(-1,4)
 
 class AppDetailsView(WebkitWidget):
     """The view that shows the application details """
@@ -109,35 +117,157 @@ class AppDetailsView(WebkitWidget):
         # init app specific data
         self.app = app
         # other data
+        self.exist = True
+        self.warning = None
+        self.error = None
         self.homepage_url = None
         self.channelfile = None
         self.channelname = None
         self.doc = None
 
-        # get xapian document
-        self.doc = self.db.get_xapian_document(self.app.appname, 
-                                               self.app.pkgname)
-        if not self.doc:
-            raise IndexError, "No app '%s' for '%s' in database" % (
-                self.app.appname, self.app.pkgname)
+        # FIXME: We can probably merge these two sections together a bit more, but this works for the meantime
+        if self.app.filename:
+            # we are dealing with a deb file
 
-        # get icon
-        self.iconname = self.db.get_iconname(self.doc)
-        # remove extension (e.g. .png) because the gtk.IconTheme
-        # will find fins a icon with it
-        self.iconname = os.path.splitext(self.iconname)[0]
+            # open the package
+            try:
+                self._rezzlcache = Cache()
+                deb = debfile.DebPackage(self.app.filename, self._rezzlcache)
+            except (IOError,SystemError),e:
+                mimetype = guess_type(self.app.filename)
+                if (mimetype[0] != None and mimetype[0] != "application/x-debian-package"):
+                    self.exist = False
+                    self.error = _("The file \"%s\" is not a software package.") % self.app.filename
+                    self.iconname = MISSING_PKG_ICON
+                    return  
+                else:
+                    self.exist = False
+                    self.error = _("The file \"%s\" can not be opened. Please check that the file exists and that you have permission to access it.") % self.app.filename
+                    self.iconname = MISSING_PKG_ICON
+                    return
 
-        # get apt cache data
-        pkgname = self.db.get_pkgname(self.doc)
-        self.pkg = None
-        if (pkgname in self.cache and
-            self.cache[pkgname].candidate):
-            self.pkg = self.cache[pkgname]
-        if self.pkg:
-            self.homepage_url = self.pkg.candidate.homepage
+            # check arch
+            arch = deb._sections["Architecture"]
+            if  arch != "all" and arch != get_current_arch():
+                self.error = _("The file \"%s\" can not be installed on this type of computer.") %  self.app.filename.split('/')[-1]
 
-        # setup component
-        self.component = self._get_component(self.pkg)
+            # check conflicts and check if installing it would break anything on the current system
+            if not deb.check_conflicts() or not deb.check_breaks_existing_packages():
+                # this also occurs when a package provides and conflicts, so message is not accurate..
+                self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self.app.filename.split('/')[-1]
+
+            # try to satisfy the dependencies
+            if not deb._satisfy_depends(deb.depends):
+                self.error = _("The file \"%s\" requires other software packages to be installed that are not available, so can not be installed.") % self.app.filename.split('/')[-1]
+
+            # check for conflicts again (this time with the packages that are marked for install)
+            if not deb.check_conflicts():
+                self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self.app.filename.split('/')[-1]
+
+            # get warnings
+            # FIXME: we need nicer messages here..
+            self.version_status = deb.compare_to_version_in_cache()
+            if self.version_status == DEB_NOT_IN_CACHE:
+                # we allow users to install the deb file
+                self.warning = _("Only install deb files if you trust both the author and the distributor.")
+            if self.version_status == DEB_OLDER_THAN_CACHE:
+                if not self.cache[self.app.pkgname].installed:
+                    # we allow users to install the deb file
+                    self.warning = _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.app.appname
+            if self.version_status == DEB_EQUAL_TO_CACHE:
+                # we allow users to install the deb file (reinstall)
+                self.warning = _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.app.appname
+            if self.version_status == DEB_NEWER_THAN_CACHE:
+                # we allow users to install the deb file (install/upgrade)
+                self.warning = _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.app.appname
+
+            # extract info from control file
+            self.app.pkgname = deb._sections["Package"]
+            self.version = deb._sections["Version"]
+            description = deb._sections["Description"]
+            self.summary = description.split('\n')[0]
+            self.description = ('\n').join(description.split('\n')[1:])
+            try:
+                self.homepage_url = deb._sections["Homepage"]
+            except:
+                pass
+
+            # extract info from desktop file (we use the desktop file from app-install, rather than the desktop file included in the deb file)
+            desktop_file_path = APP_INSTALL_DESKTOP_PATH + self.app.pkgname + '.desktop'
+            if os.path.exists(desktop_file_path):
+                desktop_file = open(desktop_file_path, 'r')
+                for line in desktop_file.readlines():
+                    if line[:5] == "Name=": 
+                        #FIXME: different languages?
+                        self.app.appname = line[5:].strip('\n')
+                    if line[:5] == "Icon=":
+                        self.iconname = line[5:].strip('\n')
+                desktop_file.close()
+
+            # find related package in the archives
+            if (self.app.pkgname in self.cache and self.cache[self.app.pkgname].candidate):
+                self.pkg = self.cache[self.app.pkgname]
+
+            # and this also needs to be set
+            self.component = ''
+
+        else:
+            # we are dealing with a package from the archives
+
+            self.version_status = NOT_DEB
+
+            try:
+                # get xapian document
+                self.doc = self.db.get_xapian_document(self.app.appname, 
+                                                       self.app.pkgname)
+            except IndexError:
+                self.exist = False
+                self.error = _("There isn't a software package called \"%s\" in your current software sources.") % self.app.appname
+                self.iconname = MISSING_PKG_ICON
+                return
+                #raise IndexError, "No app '%s' for '%s' in database" % (
+                #    self.app.appname, self.app.pkgname)
+
+            # get icon
+            self.iconname = self.db.get_iconname(self.doc)
+            # remove extension (e.g. .png) because the gtk.IconTheme
+            # will find fins a icon with it
+            self.iconname = os.path.splitext(self.iconname)[0]
+
+            # get apt cache data
+            pkgname = self.db.get_pkgname(self.doc)
+            self.pkg = None
+            if (pkgname in self.cache and
+                self.cache[pkgname].candidate):
+                self.pkg = self.cache[pkgname]
+            if self.pkg:
+                self.homepage_url = self.pkg.candidate.homepage
+            # setup component
+            self.component = self._get_component(self.pkg)
+
+            # if we do not have a package in our apt data explain why
+            # FIXME: This needs a quick test
+            if not self.pkg:
+                available_for_arch = self._available_for_our_arch()
+                if not available_for_arch and (self.channelname or self.component):
+                    # if we don't have a package and it has no arch/component its
+                    # not available for us
+                    self.error = _("\"%s\" is not available for this type of computer.") % self.app.name.capitalize()
+
+            # if we do not have a package in our apt data explain why
+            # FIXME: This needs a quick test
+            # FIXME: Need nicer messages
+            if not self.pkg and not self.error:
+                if self.channelname:
+                    self.warning = _("\"%s\" is available from the \"%s\" source, "
+                             "which you are not currently using.") % (self.app.name.capitalize(), self.channelname)
+                # if we have no pkg in the apt cache, check if its available for
+                # the given architecture and if it has a component associated
+                if self.component:
+                    # FIXME: This occurs mostly when we have a desktop file for the app, but the app is not in the archives (afaik)
+                    # If this is the only case when this occurs, then we should change the text, else use seperate warnings
+                    self.warning = _("To show information about this item, "
+                             "the software catalog needs updating.")
 
     def _get_component(self, pkg=None):
         """ 
@@ -161,7 +291,8 @@ class AppDetailsView(WebkitWidget):
 
         # clear first to avoid showing the old app details for
         # some milliseconds before switching to the new app
-        self.clear()
+        # This causes a 5-10 second delay when launching s-c with package arguments, so I've commented it out. Let me know if it breaks anything --pgg
+        # self.clear()
         
         # initialize the app
         self.init_app(app)
@@ -185,8 +316,14 @@ class AppDetailsView(WebkitWidget):
 
     # substitute functions called during page display
     def wksub_appname(self):
+        if not self.exist:
+            return _("Not Found")
         return self.app.name
     def wksub_summary(self):
+        if not self.exist:
+            return self.error
+        if self.app.filename:
+            return self.summary
         return self.db.get_summary(self.doc)
     def wksub_pkgname(self):
         return self.app.pkgname
@@ -196,26 +333,18 @@ class AppDetailsView(WebkitWidget):
             return "section-installed"
         return "section-get"
     def wksub_description(self):
-        # if we do not have a package in our apt data explain why
-        if not self.pkg:
-            available_for_arch = self._available_for_our_arch()
-            if self.channelname and available_for_arch:
-                return _("This software is available from the '%s' source, "
-                         "which you are not currently using.") % self.channelname
-            # if we have no pkg in the apt cache, check if its available for
-            # the given architecture and if it has a component associated
-            if available_for_arch and self.component:
-                return _("To show information about this item, "
-                         "the software catalog needs updating.")
-            
-            # if we don't have a package and it has no arch/component its
-            # not available for us
-            return _("Sorry, '%s' is not available for "
-                     "this type of computer (%s).") % (
-                self.app.name, self.arch)
-
+        if not self.exist:
+            return ""
         # format for html
-        description = self.pkg.candidate.description
+        if self.app.filename:
+            description = self.description
+            # paragraphs
+            regw = re.compile("\n .\n")
+            description = re.sub(regw, r'<br /><br />', description)
+        elif self.pkg:
+            description = self.pkg.candidate.description
+        else:
+            description = ""
         logging.debug("Description (text) %r", description)
         # format bullets (*-) as lists
         description = "\n".join(htmlize_package_desc(description))
@@ -265,8 +394,6 @@ class AppDetailsView(WebkitWidget):
         return _("Application Screenshot")
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
-    def wksub_screenshot_alt(self):
-        return _("Application Screenshot")
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):
@@ -278,13 +405,16 @@ class AppDetailsView(WebkitWidget):
         self.action_button_value = self._get_action_button_label_and_value()[1]
         return self.action_button_value
     def wksub_action_button_visible(self):
-        if not self._available_for_our_arch():
+        if self.error or not self.exist:
             return "hidden"
-        if (not self.channelfile and 
-            not self._unavailable_component() and
-            not self.pkg):
-            return "hidden"
-        return "visible"
+        if self.app.filename: #FIXME pgg
+            return "visible"
+        else:
+            if (not self.channelfile and 
+                not self._unavailable_component() and
+                not self.pkg):
+                return "hidden"
+            return "visible"
     def wksub_homepage_button_visibility(self):
         if self.homepage_url:
             return "visible"
@@ -294,6 +424,11 @@ class AppDetailsView(WebkitWidget):
             return "visible"
         return "hidden"
     def wksub_package_information(self):
+        if not self.exist:
+            return ""
+        if self.app.filename:
+            s = _("Version: %s (%s)") % (self.version, self.app.pkgname)
+            return s
         if not self.pkg or not self.pkg.candidate:
             return ""
         version = self.pkg.candidate.version
@@ -305,27 +440,41 @@ class AppDetailsView(WebkitWidget):
         return self.datadir
     def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
+        if not self.exist:
+            return ""
         return self.distro.get_maintenance_status(self.cache,
             self.app.appname or self.app.pkgname, self.app.pkgname, self.component, self.channelfile)
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
-        if not self.pkg:
+        if not self.pkg or self.error:
             return ""
         return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
+    def wksub_error(self):
+        if self.error and self.exist:
+            return self.error
+        return ""
+    def wksub_warning(self):
+        if not self.error and self.warning:
+            return self.warning
+        return ""
     def wksub_homepage(self):
         s = _("Website")
         return s
     def wksub_share(self):
-        s = _("Share via microblog")
-        return s
+        if self.pkg and self.exist:
+            return _("Share via microblog")
+        return ""
     def wksub_license(self):
+        if not self.exist:
+            return ""
         return self.distro.get_license_text(self.component)
     def wksub_price(self):
-        price = self.distro.get_price(self.doc)
-        s = _("Price: %s") % price
-        return s
+        if not self.app.filename and self.exist:
+            price = self.distro.get_price(self.doc)
+            s = _("Price: %s") % price
+            return s
     def wksub_installed(self):
-        if self.pkg and self.pkg.installed:
+        if self.pkg and self.pkg.installed and not self.error:
             return "visible"
         return "hidden"
     def wksub_screenshot_installed(self):
@@ -405,9 +554,12 @@ class AppDetailsView(WebkitWidget):
     def on_button_install_clicked(self):
         self.install()
 
+    def on_button_invisible_clicked(self):
+        pass
+
     # public interface
     def install(self):
-        self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
+        self.backend.install(self.app.pkgname, self.app.appname, self.app.filename, self.iconname)
     def remove(self):
         # generic removal text
         # FIXME: this text is not accurate, we look at recommends as
@@ -497,9 +649,39 @@ class AppDetailsView(WebkitWidget):
                            thumb_query_info_async_callback)
 
     def _get_action_button_label_and_value(self):
+        if self.error or not self.exist:
+            return ("", "invisible")
         action_button_label = ""
         action_button_value = ""
-        if self.pkg:
+
+        # deb file
+        if self.version_status == DEB_NOT_IN_CACHE:
+            action_button_label = _("Install")
+            action_button_value = "install"
+        if self.version_status == DEB_OLDER_THAN_CACHE:
+            if self.pkg.installed:
+                action_button_label = _("Remove")
+                action_button_value = "remove"
+            else:
+                action_button_label = _("Install")
+                action_button_value = "install"
+        if self.version_status == DEB_EQUAL_TO_CACHE:
+            if self.pkg.installed:
+                action_button_label = _("Reinstall")
+                action_button_value = "install"
+            else:
+                action_button_label = _("Install")
+                action_button_value = "install"
+        if self.version_status == DEB_NEWER_THAN_CACHE:
+            if self.pkg.installed:
+                action_button_label = _("Upgrade")
+                action_button_value = "install"
+            else:
+                action_button_label = _("Install")
+                action_button_value = "install"
+
+        # not deb file
+        if self.pkg and self.version_status == NOT_DEB:
             pkg = self.pkg
             # Don't handle upgrades yet
             #if pkg.installed and pkg.isUpgradable:
@@ -521,7 +703,7 @@ class AppDetailsView(WebkitWidget):
                     #action_button_label = _("Install - %s") % price
                     logging.error("Can not handle price %s" % price)
                 action_button_value = "install"
-        elif self.doc:
+        elif self.doc and self.version_status == NOT_DEB:
             channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
             if channel:
                 path = APP_INSTALL_CHANNELS_PATH + channel +".list"
@@ -558,10 +740,13 @@ class AppDetailsView(WebkitWidget):
 
     def _available_for_our_arch(self):
         """ check if the given package is available for our arch """
-        arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+        if self.app.filename:
+            arches = self.app.architecture
+        else:
+            arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
         # if we don't have a arch entry in the document its available
         # on all architectures we know about
-        if not arches:
+        if not arches or arches == "all":
             return True
         # check the arch field and support both "," and ";"
         sep = ","
@@ -629,10 +814,10 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
-    #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
-    #view.show_app(Application("ACE", "unace"))
-    #view.show_app(Application("", "2vcard"))
+    #view.show_app(Application("3D Chess", "3dchess", ""))
+    view.show_app(Application("Movie Player", "totem", ""))
+    #view.show_app(Application("ACE", "unace", ""))
+    #view.show_app(Application("", "2vcard", ""))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")

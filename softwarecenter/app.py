@@ -60,6 +60,9 @@ from apt.aptcache import AptCache
 from apt.apthistory import AptHistory
 from gettext import gettext as _
 
+# Constants for comparing the local package file with the version in the cache
+(NOT_DEB, DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(-1,4)
+
 class SoftwarecenterDbusController(dbus.service.Object):
     """ 
     This is a helper to provide the SoftwarecenterIFace
@@ -506,9 +509,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             
     def on_navhistory_back_action_activate(self, navhistory_back_action):
         self.available_pane.nav_history.nav_back()
+        self.available_pane._status_text = ""
+        self.update_status_bar()
         
     def on_navhistory_forward_action_activate(self, navhistory_forward_action):
         self.available_pane.nav_history.nav_forward()
+        self.available_pane._status_text = ""
+        self.update_status_bar()
             
     def _on_transaction_started(self, backend):
         self.menuitem_install.set_sensitive(False)
@@ -547,6 +554,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """Helper that updates the 'File' and 'Edit' menu to enable/disable
            install/remove and Copy/Copy weblink
         """
+        # FIXME: This doesn't seem to work nicely with the navigation atm..
         logging.debug("update_app_status_menu")
         # check if we have a pkg for this page
         app = None
@@ -562,7 +570,28 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
         # update menu items
-        if (not self.active_pane.is_category_view_showing() and 
+        if app.filename and self.available_pane.app_details.exist:
+            error = self.available_pane.app_details.error
+            version_status = self.available_pane.app_details.version_status
+            self.menuitem_copy_web_link.set_sensitive(False)
+            if self.active_pane.app_view.is_action_in_progress_for_selected_app() or error:
+                self.menuitem_install.set_sensitive(False)
+                self.menuitem_remove.set_sensitive(False)
+            elif version_status == DEB_NOT_IN_CACHE:
+                self.menuitem_install.set_sensitive(True)
+                self.menuitem_remove.set_sensitive(False)
+            else:
+                self.menuitem_install.set_sensitive(True)
+                self.menuitem_remove.set_sensitive(True)
+                self.menuitem_copy_web_link.set_sensitive(True)
+                if version_status == DEB_OLDER_THAN_CACHE:
+                    if self.available_pane.app_details.pkg.installed:
+                        self.menuitem_install.set_sensitive(False)
+                    else:
+                        self.menuitem_install.set_sensitive(True)
+                        self.menuitem_remove.set_sensitive(False)
+            
+        elif (not self.active_pane.is_category_view_showing() and 
             app.pkgname in self.cache):
             if self.active_pane.app_view.is_action_in_progress_for_selected_app():
                 self.menuitem_install.set_sensitive(False)
@@ -673,15 +702,21 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             otherwise turn it into a comma seperated search
         """
         if len(packages) == 1:
+            # show a deb file
+            if packages[0].count("/") > 0:
+                filename = packages[0]
+                app = Application("", "", filename)               
             # show a single package
-            pkg_name = packages[0]
-            # FIXME: this currently only works with pkg names for apps
-            #        it needs to perform a search because a App name
-            #        is (in general) not unique
-            app = Application("", pkg_name)
-            self.available_pane.app_details.show_app(app)
-            self.available_pane.notebook.set_current_page(
-                self.available_pane.PAGE_APP_DETAILS)
+            else:
+                pkg_name = packages[0]
+                # FIXME: this currently only works with pkg names for apps
+                #        it needs to perform a search because a App name
+                #        is (in general) not unique
+                app = Application("", pkg_name, "")
+
+            self.available_pane.show_deb_file(app)
+
+
         if len(packages) > 1:
             # turn multiple packages into a search with ","
             # turn off de-duplication
@@ -689,6 +724,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.searchentry.set_text(",".join(packages))
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
+            self.available_pane.searchentry.hide()
 
     def restore_state(self):
         if self.config.has_option("general", "size"):

@@ -76,6 +76,22 @@
       margin:0 0 0.3em 0;
       font-weight:normal;
     }
+    #error {
+      font-size: 80%;
+      clear:left;
+      border-left: 5px solid #ea2824;
+      border-right: 5px solid #ea2824;
+      background-color: #fcb9b8;
+      padding: 0 5px;
+    }
+    #warning {
+      font-size: 80%;
+      clear:left;
+      border-left: 5px solid #fc9518;
+      border-right: 5px solid #fc9518;
+      background-color: #feeecc;
+      padding: 0 5px;
+    }
     #description {
       font-size: 80%;
       clear:left;
@@ -206,8 +222,11 @@
       </label>
       <div id="action_progress_total"><div id="action_progress"></div></div>
    </div>
-    
-   
+
+   <div id="error"><p tabindex="0">$error</p></div>
+
+   <div id="warning"><p tabindex="0">$warning</p></div>  
+
    <div id="description">$description</div>
    <input type="button" id="button_homepage" value="$homepage"
     onclick='changeTitle("call:on_button_homepage_clicked")'
