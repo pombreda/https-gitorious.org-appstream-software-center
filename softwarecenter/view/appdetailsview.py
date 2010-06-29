@@ -76,6 +76,7 @@ class PackageActionBar(gtk.HBox):
     
     def __init__(self, details_view):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
+        self.set_size_request(-1, 4*mkit.EM)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
 
         self.label = gtk.Label()
@@ -85,7 +86,6 @@ class PackageActionBar(gtk.HBox):
         self.pkg_state = None
         self.details_view = details_view
 
-        self.progress.set_size_request(10*mkit.EM, -1)
         self.pack_start(self.label, False)
         self.pack_end(self.button, False)
         self.pack_end(self.progress, False)
@@ -93,6 +93,13 @@ class PackageActionBar(gtk.HBox):
 
         self.button.connect('clicked', self._on_button_clicked,
                             details_view)
+        self.connect('realize', self._on_realize)
+        return
+
+    def _on_realize(self, widget):
+        # make the progress bar thte same height as the button
+        self.progress.set_size_request(10*mkit.EM,
+                                       self.button.allocation.height)
         return
 
     def _on_button_clicked(self, widget, details_view):
