@@ -280,7 +280,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # append an additional button to show all of the items in the category
         name = gobject.markup_escape_text(_("All %s") % num_items)
         show_all_btn = SubcategoryButton(name, icon_name="go-next")
-        show_all_btn.connect('clicked', self._on_show_all_clicked)
+        all_cat = Category("All", _("All"), "go-next", root_category.query)
+        show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
         self.departments.append(show_all_btn)
 
         # kinda hacky doing this here...

@@ -41,6 +41,9 @@ software-center (2.1.4) UNRELEASED; urgency=low
     to Matthew McGowan
   * merged lp:~mvo/software-center/update-from-var-lib-apt-lists
     to support meta-data in deb822 format in /var/lib/apt/lists
+  * softwarecenter/view/catview_gtk.py:
+    - append "all" to get pathbar when "all" button is clicked in
+      a subcategory
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 29 Jun 2010 01:22:18 -0400
 
