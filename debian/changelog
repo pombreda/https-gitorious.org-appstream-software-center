@@ -46,8 +46,11 @@ software-center (2.1.4) UNRELEASED; urgency=low
       a subcategory
   * support detecting a broken apt cache and repairing it
     (LP: #430200)
+  * debian/control:
+    - drop transitional gnome-app-install package, its no longer
+      required for clean upgrades
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Jun 2010 10:26:20 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Jun 2010 11:42:16 +0200
 
 software-center (2.1.3) maverick; urgency=low
 

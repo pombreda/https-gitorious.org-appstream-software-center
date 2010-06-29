@@ -51,10 +51,3 @@ Description: Utility for browsing, installing, and removing applications
  To install or remove software using the Center, you need administrator
  access on the computer.
 
-Package: gnome-app-install
-Architecture: all
-Depends: software-center
-Section: oldlibs
-Description: dummy upgrade package for gnome-app-install -> software-center
- This is a transitional package so that gnome-app-install users get
- software-center on upgrades. It can be safely removed.
