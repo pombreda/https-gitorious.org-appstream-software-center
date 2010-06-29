@@ -235,10 +235,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             # sanitize text so its pango friendly...
             name = gobject.markup_escape_text(cat.name.strip())
 
-            cat_btn = CategoryButton(name,
-                                     icon_name=cat.iconname,
-                                     icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
-
+            cat_btn = CategoryButton(name, icon_name=cat.iconname)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
             self.departments.append(cat_btn)
@@ -274,9 +271,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             # sanitize text so its pango friendly...
             name = gobject.markup_escape_text(cat.name.strip())
 
-            cat_btn = SubcategoryButton(name,
-                                        icon_name=cat.iconname,
-                                        icon_size=gtk.ICON_SIZE_DIALOG)
+            cat_btn = SubcategoryButton(name, icon_name=cat.iconname)
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -284,9 +279,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # append an additional button to show all of the items in the category
         name = gobject.markup_escape_text(_("All %s") % num_items)
-        show_all_btn = SubcategoryButton(name, 
-                                         icon_name="go-next",
-                                         icon_size= gtk.ICON_SIZE_DIALOG)
+        show_all_btn = SubcategoryButton(name, icon_name="go-next")
         show_all_btn.connect('clicked', self._on_show_all_clicked)
         self.departments.append(show_all_btn)
 
@@ -708,7 +701,7 @@ class CarouselView(mkit.FramedSection):
 
 class CategoryButton(mkit.HButton):
 
-    def __init__(self, markup, icon_name, icon_size):
+    def __init__(self, markup, icon_name, icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR):
         mkit.HButton.__init__(self, markup, icon_name, icon_size)
 
         self.set_relief(gtk.RELIEF_NONE)
@@ -721,7 +714,7 @@ class CategoryButton(mkit.HButton):
         
 class SubcategoryButton(mkit.VButton):
 
-    def __init__(self, markup, icon_name, icon_size):
+    def __init__(self, markup, icon_name, icon_size=gtk.ICON_SIZE_DIALOG):
         mkit.VButton.__init__(self, markup, icon_name, icon_size)
         self.set_relief(gtk.RELIEF_NONE)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
