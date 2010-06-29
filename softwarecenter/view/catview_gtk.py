@@ -568,7 +568,7 @@ class CarouselView(mkit.FramedSection):
         # set the PageSelector page
         # XXX: This needs improving!
         page = float(self._offset) / self.n_posters
-        print self._offset, page
+        #print self._offset, page
         self.page_sel.set_selected_page(int(page))
         return
 

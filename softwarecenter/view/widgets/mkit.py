@@ -130,17 +130,17 @@ SPACING_SMALL =         max(1, int(0.333*EM+0.5))
 CORNER_RADIUS =         max(2, int(0.333*EM+0.5))
 
 # DEBUGGING
-print '\n* MKIT METRICS'
-print '1EM:', EM
-print 'BORDER_WIDTH_L:',BORDER_WIDTH_LARGE
-print 'BORDER_WIDTH_M:',BORDER_WIDTH_MED
-print 'BORDER_WIDTH_S:', BORDER_WIDTH_SMALL
+#print '\n* MKIT METRICS'
+#print '1EM:', EM
+#print 'BORDER_WIDTH_L:',BORDER_WIDTH_LARGE
+#print 'BORDER_WIDTH_M:',BORDER_WIDTH_MED
+#print 'BORDER_WIDTH_S:', BORDER_WIDTH_SMALL
 
-print 'SPACING_L:', SPACING_LARGE
-print 'SPACING_M:', SPACING_MED
-print 'SPACING_S:', SPACING_SMALL
+#print 'SPACING_L:', SPACING_LARGE
+#print 'SPACING_M:', SPACING_MED
+#print 'SPACING_S:', SPACING_SMALL
 
-print 'CORNER_R:', CORNER_RADIUS
+#print 'CORNER_R:', CORNER_RADIUS
 
 
 
@@ -172,17 +172,17 @@ def update_em_metrics():
 
 
     # DEBUGGING
-    print '\n* METRICS'
-    print '1EM:', EM
-    print 'BORDER_WIDTH_L:',BORDER_WIDTH_LARGE
-    print 'BORDER_WIDTH_M:',BORDER_WIDTH_MED
-    print 'BORDER_WIDTH_S:', BORDER_WIDTH_SMALL
+    #print '\n* METRICS'
+    #print '1EM:', EM
+    #print 'BORDER_WIDTH_L:',BORDER_WIDTH_LARGE
+    #print 'BORDER_WIDTH_M:',BORDER_WIDTH_MED
+    #print 'BORDER_WIDTH_S:', BORDER_WIDTH_SMALL
 
-    print 'SPACING_L:', SPACING_LARGE
-    print 'SPACING_M:', SPACING_MED
-    print 'SPACING_S:', SPACING_SMALL
+    #print 'SPACING_L:', SPACING_LARGE
+    #print 'SPACING_M:', SPACING_MED
+    #print 'SPACING_S:', SPACING_SMALL
 
-    print 'CORNER_R:', CORNER_RADIUS
+    #print 'CORNER_R:', CORNER_RADIUS
     return
 
 
