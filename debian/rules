@@ -8,13 +8,11 @@ share:=usr/share/software-center
 # only ones using them.
 override_dh_auto_install:
 	dh_auto_install -- --install-lib /usr/share/software-center
-
 	dh_installmime -i
-
-	rm -r debian/tmp/usr/share/software-center/*.egg-info
+	rm -r debian/software-center/usr/share/software-center/*.egg-info
 	# Move the scripts to $(SHARE) and relink them again later.
-	mv debian/tmp/usr/*bin/* debian/tmp/$(share)
-	rmdir debian/tmp/usr/*bin
+	mv debian/software-center/usr/*bin/* debian/software-center/$(share)
+	rmdir debian/software-center/usr/*bin
 
 
 override_dh_install:

@@ -127,6 +127,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # a main iteration friendly apt cache
         self.cache = AptCache()
+        self.cache.connect("cache-broken", self._on_apt_cache_broken)
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
@@ -517,6 +518,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane._status_text = ""
         self.update_status_bar()
             
+    def _ask_and_repair_broken_cache(self):
+        # wait until the window window is available
+        if self.window_main.props.visible == False:
+            glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
+            return
+        if view.dialogs.confirm_repair_broken_cache(self.window_main):
+            self.backend.fix_broken_depends()
+        
+    def _on_apt_cache_broken(self, aptcache):
+        self._ask_and_repair_broken_cache()
+
     def _on_transaction_started(self, backend):
         self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(False)
