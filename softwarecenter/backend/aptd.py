@@ -92,6 +92,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         axi.update_async(True, True)
 
     @inline_callbacks
+    def fix_broken_depends(self):
+        self.emit("transaction-started")
+        try:
+            trans = yield self.aptd_client.fix_broken_depends(defer=True)
+            yield self._run_transaction(trans, None, None, None)
+        except Exception, error:
+            self._on_trans_error(error)
+
+    @inline_callbacks
     def upgrade(self, pkgname, appname, iconname):
         """ upgrade a single package """
         self.emit("transaction-started")

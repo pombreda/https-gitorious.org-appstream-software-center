@@ -65,7 +65,7 @@ def categories_sorted_by_name(categories):
 class Category(object):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query,
-                 only_unallocated, dont_display, subcategories):
+                 only_unallocated=True, dont_display=False, subcategories=None):
         self.name = name
         self.untranslated_name = untranslated_name
         self.iconname = iconname
