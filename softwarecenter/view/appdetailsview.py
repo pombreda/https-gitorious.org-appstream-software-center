@@ -231,10 +231,16 @@ class AppDetailsView(gtk.ScrolledWindow):
         m = '<b><big>%s</big></b>' % _('Description')
         label = gtk.Label()
         label.set_markup(m)
-        label_align = gtk.Alignment(0, 0.5)
-        label_align.add(label)
+        align = gtk.Alignment(0, 0.5)
+        align.add(label)
+        self.app_desc.pack_start(align, False, padding=mkit.SPACING_LARGE)
 
-        self.app_desc.pack_start(label_align, False, padding=mkit.SPACING_LARGE)
+        # homepage link button
+        self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
+        self.homepage_btn.set_relief(gtk.RELIEF_NONE)
+        align = gtk.Alignment(0, 0.5)
+        align.add(self.homepage_btn)
+        self.app_info.body.pack_start(align, False)
 
         # controls which are displayed if the app is installed
         self.action_bar = PackageActionBar(self)
@@ -457,7 +463,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app_desc.show_all()
         return
 
-    def _layout_page(self):
+    def _update_page(self):
         font_size = 22*pango.SCALE  # make this relative to the appicon size (48x48)
         appname = self.get_appname()
 
@@ -480,6 +486,14 @@ class AppDetailsView(gtk.ScrolledWindow):
         self._clear_description()
         # format new app description
         self._format_description(self.get_description(), appname)
+
+        if self.homepage_url:
+            self.homepage_btn.show()
+            self.homepage_btn.set_uri(self.homepage_url)
+            #self.homepage_btn.set_visited(False)
+        else:
+            self.homepage_btn.hide()
+            self.homepage_btn.set_uri('none')
         return
 
     # public API
@@ -531,7 +545,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         # setup component
         self.component = self._get_component(self.pkg)
 
-        self._layout_page()
+        self._update_page()
         return
 
     def get_icon_filename(self, iconname, iconsize):
@@ -653,7 +667,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         if not self.pkg:
             return ""
         return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
-    def wksub_homepage(self):
+    def get_homepage(self):
         s = _("Website")
         return s
     def wksub_share(self):
@@ -669,6 +683,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         if self.pkg and self.pkg.installed:
             return True
         return False
+
     def wksub_screenshot_installed(self):
         if (self.app.pkgname in self.cache and
             self.cache[self.app.pkgname].is_installed):
@@ -678,24 +693,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         return self.distro.IMAGE_THUMBNAIL_MISSING
     def wksub_no_screenshot_avaliable(self):
         return _('No screenshot available')
-    def wksub_text_direction(self):
-        direction = gtk.widget_get_default_direction()
-        if direction ==  gtk.TEXT_DIR_RTL:
-            return 'DIR="RTL"'
-        elif direction ==  gtk.TEXT_DIR_LTR:
-            return 'DIR="LTR"'
-    def wksub_font_family(self):
-        return self._get_font_description_property("family")
-    def wksub_font_weight(self):
-        try:
-            return self._get_font_description_property("weight").real
-        except:
-            return int(self._get_font_description_property("weight"))
-    def wksub_font_style(self):
-        return self._get_font_description_property("style").value_nick
-    def wksub_font_size(self):
-        return self._get_font_description_property("size")/1024
-
 
     # callbacks
     def on_button_reload_clicked(self):
