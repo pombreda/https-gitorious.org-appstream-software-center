@@ -154,8 +154,8 @@ class PackageActionBar(gtk.HBox):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x, a.y+1,
-                  a.x+a.width, a.y+a.height-2,
+                  a.x, a.y,
+                  a.x+a.width, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
         cr.set_source_rgb(*mkit.floats_from_string(bg_color))
@@ -165,8 +165,8 @@ class PackageActionBar(gtk.HBox):
         cr.translate(0.5, 0.5)
 
         rr.layout(cr,
-                  a.x, a.y+1,
-                  a.x+a.width, a.y+a.height-2,
+                  a.x, a.y,
+                  a.x+a.width, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
         cr.set_source_rgb(*mkit.floats_from_string(line_color))
@@ -217,15 +217,18 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app_info.header.set_border_width(int(1.5*mkit.BORDER_WIDTH_LARGE))
 
         self.app_info.body.set_border_width(mkit.BORDER_WIDTH_LARGE)
-        self.app_info.body.set_spacing(2*mkit.SPACING_LARGE)
+        self.app_info.body.set_spacing(mkit.SPACING_LARGE)
 
         self.app_info.footer.set_size_request(-1, 2*mkit.EM)
         self.vbox.pack_start(self.app_info, False)
         
         # vbox which contains textual paragraphs and bullet points
+        align = gtk.Alignment(0, 0.5)
+        align.set_padding(0, 0, int(mkit.EM*0.5), 0)
         self.app_desc = gtk.VBox()
+        align.add(self.app_desc)
         self.app_desc.set_border_width(mkit.BORDER_WIDTH_MED)
-        self.app_info.body.pack_start(self.app_desc)
+        self.app_info.body.pack_start(align)
 
         # app description title
         m = '<b><big>%s</big></b>' % _('Description')
@@ -239,6 +242,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
         self.homepage_btn.set_relief(gtk.RELIEF_NONE)
         align = gtk.Alignment(0, 0.5)
+        align.set_padding(0, 0, int(mkit.EM*0.5), 0)
         align.add(self.homepage_btn)
         self.app_info.body.pack_start(align, False)
 
@@ -282,9 +286,9 @@ class AppDetailsView(gtk.ScrolledWindow):
     def _on_allocate(self, widget, allocation):
         w = allocation.width
         for p in self._paragraphs:
-            p.set_size_request(w-6*mkit.EM, -1)
+            p.set_size_request(w-7*mkit.EM, -1)
         for pt in self._points:
-            pt.set_size_request(w-8*mkit.EM, -1)
+            pt.set_size_request(w-9*mkit.EM, -1)
 
         self._full_redraw()   #  ewww
         return
