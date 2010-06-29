@@ -55,12 +55,20 @@ from widgets import mkit
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4
 
+
+# installed colours, taken from synaptic
+COLOR_RED_LIGHT     = '#FF9595'
+COLOR_RED_NORMAL    = '#EF2929'
+COLOR_GREEN_LIGHT   = '#C3FF89'
+COLOR_GREEN_NORMAL  = '#8AE234'
+COLOR_BLACK         = '#323232'
+
+
 class AppDetailsView(gtk.ScrolledWindow):
     """The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 64
-    APP_ICON_PADDING = 8
+    APP_ICON_SIZE       = gtk.ICON_SIZE_DIALOG
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
@@ -69,7 +77,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
-                                (gobject.TYPE_PYOBJECT, )),
+                                (gobject.TYPE_PYOBJECT,)),
                     }
 
     def __init__(self, db, distro, icons, cache, history, datadir):
@@ -89,16 +97,34 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.vbox.set_redraw_on_allocate(False)
         self.show_all()
 
+        # framed section that contains all app details
         self.app_info = mkit.FramedSection()
+        self.app_info.header.set_spacing(mkit.SPACING_LARGE)
         self.app_info.footer.set_size_request(-1, 2*mkit.EM)
+        self.app_info.header.set_border_width(2*mkit.BORDER_WIDTH_LARGE)
+        self.app_info.body.set_border_width(2*mkit.BORDER_WIDTH_LARGE)
+        self.app_info.body.set_spacing(2*mkit.SPACING_LARGE)
         self.vbox.pack_start(self.app_info, False)
 
-        self.body_hbox = gtk.HBox(spacing=mkit.SPACING_MED)
-        self.body_hbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
-        self.app_info.body.pack_start(self.body_hbox)
+        # controls which are displayed if the app is installed
+        installed = gtk.image_new_from_icon_name("software-center-installed",
+                                                 gtk.ICON_SIZE_MENU)
+        label = gtk.Label()
+        markup = '<b><big><span color="%s">%s</span></big></b>' % (COLOR_BLACK, _('Installed'))
+        label.set_markup(markup)
+        self.remove_btn = gtk.Button(_('Remove'))
 
-        self.app_long_desc = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.body_hbox.pack_start(self.app_long_desc)
+        self.action_bar = gtk.HBox()
+        self.action_bar.set_spacing(mkit.SPACING_MED)
+        self.action_bar.set_border_width(mkit.BORDER_WIDTH_MED)
+        self.action_bar.pack_start(installed, False)
+        self.action_bar.pack_start(label, False)
+        self.action_bar.pack_end(self.remove_btn, False)
+        self.app_info.body.pack_start(self.action_bar, False)
+
+        # vbox which contains textual paragraphs and bullet points
+        self.app_desc = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.app_info.body.pack_start(self.app_desc)
 
         # atk
         atk_desc = self.get_accessible()
@@ -125,7 +151,21 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app = None
         self.iconname = ""
 
+        self._paragraphs = []
+        self._points = []
+
+        viewport.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
+        return
+
+    def _on_allocate(self, widget, allocation):
+        w = allocation.width
+        for p in self._paragraphs:
+            p.set_size_request(w-6*mkit.EM, -1)
+        for pt in self._points:
+            pt.set_size_request(w-8*mkit.EM, -1)
+
+        self._full_redraw()   #  ewww
         return
 
     def _on_expose(self, widget, event):
@@ -136,7 +176,61 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         self.app_info.draw(cr, self.app_info.allocation, expose_area)
 
+        # if installed draw border around installed controls
+        self._draw_action_bar_bg(cr,
+                                 COLOR_GREEN_LIGHT,
+                                 COLOR_GREEN_NORMAL)
+
         del cr
+        return
+
+    def _full_redraw_cb(self):
+        self.queue_draw()
+        return False
+
+    def _full_redraw(self):
+        # If we relied on a single queue_draw newly exposed (previously
+        # clipped) regions of the Viewport are blighted with
+        # visual artefacts, so...
+
+        # Two draws are queued; one immediately and one as an idle process
+
+        # The immediate draw results in visual artefacts
+        # but without which the resize feels 'laggy'.
+        # The idle redraw cleans up the regions affected by 
+        # visual artefacts.
+
+        # This all seems to happen fast enough such that the user will
+        # not to notice the temporary visual artefacts.  Peace out.
+
+        self.queue_draw()
+        gobject.idle_add(self._full_redraw_cb)
+        return
+
+    def _draw_action_bar_bg(self, cr, bg_color, line_color):
+        a = self.action_bar.allocation
+        rr = mkit.ShapeRoundedRectangle()
+
+        rr.layout(cr,
+                  a.x, a.y,
+                  a.x+a.width, a.y+a.height,
+                  radius=mkit.CORNER_RADIUS)
+
+        cr.set_source_rgb(*mkit.floats_from_string(bg_color))
+        cr.fill()
+
+        cr.save()
+        cr.set_line_width(1)
+        cr.translate(0.5, 0.5)
+
+        rr.layout(cr,
+                  a.x, a.y,
+                  a.x+a.width, a.y+a.height,
+                  radius=mkit.CORNER_RADIUS)
+
+        cr.set_source_rgb(*mkit.floats_from_string(line_color))
+        cr.stroke()
+        cr.restore()
         return
 
     def _get_component(self, pkg=None):
@@ -155,24 +249,31 @@ class AppDetailsView(gtk.ScrolledWindow):
                 return origin.component
 
     def _clear_description(self):
-        for child in self.app_long_desc.get_children():
-            self.app_long_desc.remove(child)
+        for child in self.app_desc.get_children():
+            self.app_desc.remove(child)
             child.destroy()
+
+        self._paragraphs = []
+        self._points = []
         return
 
     def _append_paragraph(self, fragment, newline):
         if not fragment.strip(): return
         p = gtk.Label()
-        #p.set_selectable(True)
 
         if newline:
             p.set_markup('\n'+fragment)
         else:
             p.set_markup(fragment)
 
-        p.set_line_wrap(pango.WRAP_WORD_CHAR)
-        p.set_size_request(self.vbox.allocation.width - 6*mkit.BORDER_WIDTH_LARGE, -1)
-        self.app_long_desc.pack_start(p, False)
+        p.set_line_wrap(True)
+
+        hb = gtk.HBox()
+        hb.pack_start(p, False)
+        hb.show_all()
+
+        self.app_desc.pack_start(hb)
+        self._paragraphs.append(p)
         return True
 
     def _append_bullet_point(self, fragment):
@@ -181,23 +282,23 @@ class AppDetailsView(gtk.ScrolledWindow):
         fragment = fragment.replace('- ', '')
 
         bullet = gtk.Label()
-        bullet.set_markup(u"\u2022")
+        bullet.set_markup(u" \u2022")
         bullet_align = gtk.Alignment(0.5, 0.0)
         bullet_align.add(bullet)
 
         point = gtk.Label()
-        #point.set_selectable(True)
         point.set_markup(fragment)
-        point.set_line_wrap(pango.WRAP_WORD_CHAR)
-        point.set_size_request(self.allocation.width - 10*mkit.BORDER_WIDTH_LARGE, -1)
+        point.set_line_wrap(True)
 
-        hb = gtk.HBox()
-        hb.pack_start(bullet_align, False, padding=10)
+        hb = gtk.HBox(spacing=mkit.EM)
+        hb.pack_start(bullet_align, False)
         hb.pack_start(point, False)
         hb.show_all()
 
-        self.app_long_desc.pack_start(hb, False,
-                                      padding=int(max(3, 0.33*mkit.EM+0.5)))
+        self.app_desc.pack_start(hb,
+                                 padding=3)
+
+        self._points.append(point)
         return False
 
     def _format_description(self, desc, appname):
@@ -222,7 +323,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                 processed_desc = ''
                 processed_desc += part
 
-                # special for 7zip
+                # specialcase for 7zip
                 if appname == '7zip' and \
                     (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
                     processed_desc += '\n'
@@ -263,7 +364,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         else:
             self._append_paragraph(processed_desc, newline)
 
-        self.app_long_desc.show_all()
+        self.app_desc.show_all()
         return
 
     def _layout_page(self):
@@ -474,10 +575,10 @@ class AppDetailsView(gtk.ScrolledWindow):
         price = self.distro.get_price(self.doc)
         s = _("Price: %s") % price
         return s
-    def wksub_installed(self):
+    def get_installed(self):
         if self.pkg and self.pkg.installed:
-            return "visible"
-        return "hidden"
+            return True
+        return False
     def wksub_screenshot_installed(self):
         if (self.app.pkgname in self.cache and
             self.cache[self.app.pkgname].is_installed):
@@ -724,32 +825,12 @@ class AppDetailsView(gtk.ScrolledWindow):
             if arch == self.arch:
                 return True
         return False
-    def _set_action_button_sensitive(self, enabled):
-        if self.get_load_status() != 2:
-            return
-        if enabled:
-            self.execute_script("enable_action_button();")
-        else:
-            self.execute_script("disable_action_button();")
 
     def _url_launch_app(self):
         """return the most suitable program for opening a url"""
         if "GNOME_DESKTOP_SESSION_ID" in os.environ:
             return "gnome-open"
         return "xdg-open"
-
-    def _empty_pixbuf(self):
-        pix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8,
-                             self.APP_ICON_SIZE, self.APP_ICON_SIZE)
-        pix.fill(0)
-        return pix
-        
-    def _get_pango_font_description(self):
-        return gtk.Label("pango").get_pango_context().get_font_description()
-        
-    def _get_font_description_property(self, property):
-        description = self._get_pango_font_description()
-        return getattr(description, "get_%s" % property)()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
