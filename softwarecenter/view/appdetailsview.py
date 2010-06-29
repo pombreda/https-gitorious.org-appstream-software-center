@@ -98,7 +98,7 @@ class PackageActionBar(gtk.HBox):
 
     def _on_realize(self, widget):
         # make the progress bar thte same height as the button
-        self.progress.set_size_request(10*mkit.EM,
+        self.progress.set_size_request(12*mkit.EM,
                                        self.button.allocation.height)
         return
 
@@ -223,7 +223,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.vbox.pack_start(self.app_info, False)
         
         # vbox which contains textual paragraphs and bullet points
-        self.app_desc = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.app_desc = gtk.VBox()
         self.app_desc.set_border_width(mkit.BORDER_WIDTH_MED)
         self.app_info.body.pack_start(self.app_desc)
 
@@ -234,7 +234,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         label_align = gtk.Alignment(0, 0.5)
         label_align.add(label)
 
-        self.app_desc.pack_start(label_align, False, padding=mkit.SPACING_MED)
+        self.app_desc.pack_start(label_align, False, padding=mkit.SPACING_LARGE)
 
         # controls which are displayed if the app is installed
         self.action_bar = PackageActionBar(self)
