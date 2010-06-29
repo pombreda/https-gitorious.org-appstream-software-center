@@ -56,12 +56,81 @@ from widgets import mkit
 DEFAULT_SOCKET_TIMEOUT=4
 
 
-# installed colours, taken from synaptic
+# action colours, taken from synaptic
 COLOR_RED_LIGHT     = '#FF9595'
 COLOR_RED_NORMAL    = '#EF2929'
-COLOR_GREEN_LIGHT   = '#C3FF89'
+COLOR_GREEN_LIGHT   = '#D1FFA4'
 COLOR_GREEN_NORMAL  = '#8AE234'
 COLOR_BLACK         = '#323232'
+
+# action state constants
+PKG_STATE_INSTALLED     = 0
+PKG_STATE_UNINSTALLED   = 1
+PKG_STATE_UPGRADABLE    = 2
+
+
+class PackageActionBar(gtk.HBox):
+    
+    def __init__(self):
+        gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
+        self.set_border_width(mkit.BORDER_WIDTH_MED)
+
+        self.label = gtk.Label()
+        self.button = gtk.Button()
+
+        self.pack_start(self.label, False)
+        self.pack_end(self.button, False)
+        self.show_all()
+        return
+
+    def set_label(self, label):
+        m = '<b><big><span color="%s">%s</span></big></b>' % (COLOR_BLACK, label)
+        self.label.set_markup(m)
+        return
+
+    def set_button_label(self, label):
+        self.button.set_label(label)
+        return
+
+    def set_pkg_state(self, details_view, state):
+        if state == PKG_STATE_INSTALLED:
+            self.set_label(_('Installed'))
+            self.set_button_label(_('Remove'))
+        elif state == PKG_STATE_UNINSTALLED:
+            self.set_label(details_view.get_price())
+            self.set_button_label(_('Install'))
+        else:
+            self.set_label(_('Upgrade Available...'))
+            self.set_button_label(_('Upgrade'))
+        return
+
+    def draw(self, cr, a, expose_area, bg_color, line_color):
+        if mkit.not_overlapping(a, expose_area): return
+
+        cr.save()
+        rr = mkit.ShapeRoundedRectangle()
+        rr.layout(cr,
+                  a.x, a.y+1,
+                  a.x+a.width, a.y+a.height-2,
+                  radius=mkit.CORNER_RADIUS)
+
+        cr.set_source_rgb(*mkit.floats_from_string(bg_color))
+        cr.fill()
+
+        cr.set_line_width(1)
+        cr.translate(0.5, 0.5)
+
+        rr.layout(cr,
+                  a.x, a.y+1,
+                  a.x+a.width, a.y+a.height-2,
+                  radius=mkit.CORNER_RADIUS)
+
+        cr.set_source_rgb(*mkit.floats_from_string(line_color))
+        cr.stroke()
+
+        cr.restore()
+        return
+
 
 
 class AppDetailsView(gtk.ScrolledWindow):
@@ -99,32 +168,34 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
+        self.app_info.set_spacing(0)
+
         self.app_info.header.set_spacing(mkit.SPACING_LARGE)
-        self.app_info.footer.set_size_request(-1, 2*mkit.EM)
-        self.app_info.header.set_border_width(2*mkit.BORDER_WIDTH_LARGE)
-        self.app_info.body.set_border_width(2*mkit.BORDER_WIDTH_LARGE)
+        self.app_info.header.set_border_width(int(1.5*mkit.BORDER_WIDTH_LARGE))
+
+        self.app_info.body.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.app_info.body.set_spacing(2*mkit.SPACING_LARGE)
+
+        self.app_info.footer.set_size_request(-1, 2*mkit.EM)
         self.vbox.pack_start(self.app_info, False)
-
-        # controls which are displayed if the app is installed
-        installed = gtk.image_new_from_icon_name("software-center-installed",
-                                                 gtk.ICON_SIZE_MENU)
-        label = gtk.Label()
-        markup = '<b><big><span color="%s">%s</span></big></b>' % (COLOR_BLACK, _('Installed'))
-        label.set_markup(markup)
-        self.remove_btn = gtk.Button(_('Remove'))
-
-        self.action_bar = gtk.HBox()
-        self.action_bar.set_spacing(mkit.SPACING_MED)
-        self.action_bar.set_border_width(mkit.BORDER_WIDTH_MED)
-        self.action_bar.pack_start(installed, False)
-        self.action_bar.pack_start(label, False)
-        self.action_bar.pack_end(self.remove_btn, False)
-        self.app_info.body.pack_start(self.action_bar, False)
-
+        
         # vbox which contains textual paragraphs and bullet points
         self.app_desc = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.app_desc.set_border_width(mkit.BORDER_WIDTH_MED)
         self.app_info.body.pack_start(self.app_desc)
+
+        # app description title
+        m = '<b><big>%s</big></b>' % _('Description')
+        label = gtk.Label()
+        label.set_markup(m)
+        label_align = gtk.Alignment(0, 0.5)
+        label_align.add(label)
+
+        self.app_desc.pack_start(label_align, False, padding=mkit.SPACING_MED)
+
+        # controls which are displayed if the app is installed
+        self.action_bar = PackageActionBar()
+        self.app_info.body.pack_start(self.action_bar, False)
 
         # atk
         atk_desc = self.get_accessible()
@@ -176,10 +247,11 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         self.app_info.draw(cr, self.app_info.allocation, expose_area)
 
-        # if installed draw border around installed controls
-        self._draw_action_bar_bg(cr,
-                                 COLOR_GREEN_LIGHT,
-                                 COLOR_GREEN_NORMAL)
+        self.action_bar.draw(cr,
+                             self.action_bar.allocation,
+                             event.area,
+                             COLOR_GREEN_LIGHT,
+                             COLOR_GREEN_NORMAL)
 
         del cr
         return
@@ -207,32 +279,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         gobject.idle_add(self._full_redraw_cb)
         return
 
-    def _draw_action_bar_bg(self, cr, bg_color, line_color):
-        a = self.action_bar.allocation
-        rr = mkit.ShapeRoundedRectangle()
-
-        rr.layout(cr,
-                  a.x, a.y,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
-        cr.set_source_rgb(*mkit.floats_from_string(bg_color))
-        cr.fill()
-
-        cr.save()
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-
-        rr.layout(cr,
-                  a.x, a.y,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
-        cr.set_source_rgb(*mkit.floats_from_string(line_color))
-        cr.stroke()
-        cr.restore()
-        return
-
     def _get_component(self, pkg=None):
         """ 
         get the component (main, universe, ..) for the given pkg object
@@ -249,7 +295,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                 return origin.component
 
     def _clear_description(self):
-        for child in self.app_desc.get_children():
+        for child in self.app_desc.get_children()[1:]:
             self.app_desc.remove(child)
             child.destroy()
 
@@ -368,7 +414,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         return
 
     def _layout_page(self):
-        # application icon and name packed into header
         font_size = 22*pango.SCALE  # make this relative to the appicon size (48x48)
         appname = self.get_appname()
 
@@ -376,10 +421,19 @@ class AppDetailsView(gtk.ScrolledWindow):
                                                            appname,
                                                            self.get_appsummary())
 
+        # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
         self.app_info.set_icon(self.iconname, gtk.ICON_SIZE_DIALOG)
 
+        # depending on pkg install state set action labels
+        if not self.get_installed():
+            self.action_bar.set_pkg_state(self, PKG_STATE_UNINSTALLED)
+        else:
+            self.action_bar.set_pkg_state(self, PKG_STATE_INSTALLED)
+
+        # clear any old app description
         self._clear_description()
+        # format new app description
         self._format_description(self.get_description(), appname)
         return
 
@@ -571,10 +625,10 @@ class AppDetailsView(gtk.ScrolledWindow):
         return s
     def wksub_license(self):
         return self.distro.get_license_text(self.component)
-    def wksub_price(self):
+    def get_price(self):
         price = self.distro.get_price(self.doc)
-        s = _("Price: %s") % price
-        return s
+        #s = _("Price: %s") % price
+        return price
     def get_installed(self):
         if self.pkg and self.pkg.installed:
             return True
