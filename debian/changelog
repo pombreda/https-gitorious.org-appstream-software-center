@@ -44,8 +44,10 @@ software-center (2.1.4) UNRELEASED; urgency=low
   * softwarecenter/view/catview_gtk.py:
     - append "all" to get pathbar when "all" button is clicked in
       a subcategory
+  * support detecting a broken apt cache and repairing it
+    (LP: #430200)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 29 Jun 2010 01:22:18 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Jun 2010 10:26:20 +0200
 
 software-center (2.1.3) maverick; urgency=low
 
