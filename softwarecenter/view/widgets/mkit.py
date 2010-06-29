@@ -93,7 +93,6 @@ def not_overlapping(widget_area, expose_area):
     return gtk.gdk.region_rectangle(expose_area).rect_in(widget_area) == gtk.gdk.OVERLAP_RECTANGLE_OUT
 
 
-
 #######################
 ### HANDY CONSTANTS ###
 #######################
@@ -102,12 +101,17 @@ def not_overlapping(widget_area, expose_area):
 PI =            3.1415926535897931
 PI_OVER_180 =   0.017453292519943295
 
+# button constants
+ORIENTATION_HORIZONTAL =    0
+ORIENTATION_VERTICAL   =    1
+
 # shapes constants
 SHAPE_RECTANGLE =   0
 SHAPE_START_ARROW = 1   
 SHAPE_MID_ARROW =   2
 SHAPE_END_CAP =     3
 SHAPE_CIRCLE =      4
+SHAPE_PLAY_ARROW =  5
 
 # active paint modes
 ACTIVE_PAINT_MODE_NORMAL =  0
@@ -169,7 +173,6 @@ def update_em_metrics():
     # recommended corner radius
     global CORNER_RADIUS
     CORNER_RADIUS =         max(2, int(0.333*EM+0.5))
-
 
     # DEBUGGING
     print '\n* METRICS'
@@ -405,10 +408,14 @@ class ShapeCircle(Shape):
     def layout(self, cr, x, y, w, h, *args, **kwargs):
         cr.new_path()
 
-        r = min(w, h)*0.5
-        x += int((w-2*r)/2)
-        y += int((h-2*r)/2)
+        w -= x
+        h -= y
 
+        d = min(w, h)
+        x += (w-d)/2
+        y += (h-d)/2
+
+        r = d*0.5
         cr.arc(r+x, r+y, r, 0, 360*PI_OVER_180)
         cr.close_path()
         return
@@ -445,17 +452,17 @@ class Style:
 
     def _load_shape_map(self, widget):
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
-            shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_LTR),
-                     SHAPE_START_ARROW: ShapeStartArrow(gtk.TEXT_DIR_LTR),
-                     SHAPE_MID_ARROW:   ShapeMidArrow(gtk.TEXT_DIR_LTR),
-                     SHAPE_END_CAP:     ShapeEndCap(gtk.TEXT_DIR_LTR),
-                     SHAPE_CIRCLE :     ShapeCircle(gtk.TEXT_DIR_LTR)}
+            shmap = {SHAPE_RECTANGLE:       ShapeRoundedRectangle(gtk.TEXT_DIR_LTR),
+                     SHAPE_START_ARROW:     ShapeStartArrow(gtk.TEXT_DIR_LTR),
+                     SHAPE_MID_ARROW:       ShapeMidArrow(gtk.TEXT_DIR_LTR),
+                     SHAPE_END_CAP:         ShapeEndCap(gtk.TEXT_DIR_LTR),
+                     SHAPE_CIRCLE :         ShapeCircle(gtk.TEXT_DIR_LTR)}
         else:
-            shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_RTL),
-                     SHAPE_START_ARROW: ShapeStartArrow(gtk.TEXT_DIR_RTL),
-                     SHAPE_MID_ARROW:   ShapeMidArrow(gtk.TEXT_DIR_RTL),
-                     SHAPE_END_CAP:     ShapeEndCap(gtk.TEXT_DIR_RTL),
-                     SHAPE_CIRCLE :     ShapeCircle(gtk.TEXT_DIR_RTL)}
+            shmap = {SHAPE_RECTANGLE:       ShapeRoundedRectangle(gtk.TEXT_DIR_RTL),
+                     SHAPE_START_ARROW:     ShapeStartArrow(gtk.TEXT_DIR_RTL),
+                     SHAPE_MID_ARROW:       ShapeMidArrow(gtk.TEXT_DIR_RTL),
+                     SHAPE_END_CAP:         ShapeEndCap(gtk.TEXT_DIR_RTL),
+                     SHAPE_CIRCLE :         ShapeCircle(gtk.TEXT_DIR_RTL)}
         return shmap
 
     def _load_theme(self, gtksettings):
@@ -542,8 +549,10 @@ class Style:
         r, g, b = self.dark_line[state].floats()
         shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
         cr.set_source_rgba(r, g, b, alpha)
+        # double stroke so that arcs (which tend to be a bit faded)
+        # are mosdef strong
         cr.stroke_preserve()
-        cr.set_source_rgba(r, g, b, 0.5*alpha)
+        cr.set_source_rgba(r, g, b, 0.33*alpha)
         cr.stroke()
 
         # inner bevel/highlight
@@ -600,8 +609,10 @@ class Style:
         # strong outline
         shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
         cr.set_source_rgb(*self.dark_line[state].floats())
+        # double stroke so that arcs (which tend to be a bit faded)
+        # are mosdef strong
         cr.stroke_preserve()
-        cr.set_source_rgba(r, g, b, 0.5*alpha)
+        cr.set_source_rgba(r, g, b, 0.33*alpha)
         cr.stroke()
         cr.restore()
         return
@@ -975,14 +986,17 @@ class Button(gtk.EventBox):
                     self._paint_action_arrow(a)
 
         if self.has_focus() and focus_draw:
-            a = self.label.allocation
-            x, y, w, h = a.x, a.y, a.width, a.height
+            la = self.label.allocation
+            x, y, w, h = self.label.get_layout().get_pixel_extents()[1] 
+            x += la.x   # label x coordinate
+            y += la.y   # label y coordinate
             self.style.paint_focus(self.window,
                                    self.state,
                                    (x-2, y-1, w+4, h+2),
                                    self,
                                    'button',
                                    x-2, y-1, w+4, h+2)
+
         return
 
 
@@ -992,11 +1006,11 @@ class HButton(Button):
         Button.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.HBox()
-        self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
+        self.alignment = gtk.Alignment(0.5, 0.6)
         self.alignment.add(self.box)
         self.add(self.alignment)
 
-        if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
+        if self.image.get_storage_type() != gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
             self.box.pack_start(self.label, False)
@@ -1025,7 +1039,7 @@ class VButton(Button):
         Button.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.VBox()
-        self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
+        self.alignment = gtk.Alignment(0.5, 0.6)
         self.alignment.add(self.box)
         self.add(self.alignment)
 

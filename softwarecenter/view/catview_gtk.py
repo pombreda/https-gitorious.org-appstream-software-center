@@ -263,7 +263,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         # sort Category.name's alphabetically
-        sorted_cats = categories_sorted_by_name(self.categories[:-1])
+        sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
             #enquirer.set_query(cat.query)
@@ -458,11 +458,20 @@ class CarouselView(mkit.FramedSection):
         self.set_label(H2 % title)
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+        # pack 'All' button into header
         label = _('All')
         self.more_btn = mkit.HButton('<u>%s</u>' % label)
         self.more_btn.set_relief(gtk.RELIEF_NONE)
-
         self.header.pack_end(self.more_btn, False)
+
+        #label = _('Pause')
+        #self.play_pause_btn = mkit.HButton('<u><small>%s</small></u>' % label)
+        #self.play_pause_btn.set_relief(gtk.RELIEF_NONE)
+        #self.header.pack_end(self.play_pause_btn, False)
+
+        ## pack in PlayPauseButton into the header
+        #self.play_pause_btn = PlayPauseButton()
+        #self.header.pack_end(self.play_pause_btn, False)
 
         if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
@@ -719,6 +728,19 @@ class CategoryButton(mkit.HButton):
         return
 
 
+class PlayPauseButton(mkit.Button):
+
+    def __init__(self):
+        mkit.Button.__init__(self, None, None, None)
+        self.set_size_request(int(2*mkit.EM), int(2*mkit.EM))
+        self.shape = mkit.SHAPE_CIRCLE
+        self.set_relief(gtk.RELIEF_NONE)
+        return
+
+    def calc_width(self):
+        return int(2*mkit.EM)
+
+
 class CarouselPoster(mkit.VButton):
 
     def __init__(self, markup='none', icon_name='none', \
@@ -809,11 +831,9 @@ class CarouselPoster(mkit.VButton):
 
         # custom focus draw
         if self.has_focus():
-            a = self.label.allocation
-            #x, y, w, h = a.x, a.y, a.width, a.height
             x, y, w, h = layout.get_pixel_extents()[1] 
-            x += a.x
-            y += a.y
+            x += la.x   # label x coordinate
+            y += la.y   # label y coordinate
             self.style.paint_focus(self.window,
                                    self.state,
                                    (x-2, y-1, w+4, h+2),
