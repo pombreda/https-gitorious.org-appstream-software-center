@@ -91,9 +91,9 @@ class PackageActionBar(gtk.HBox):
         self.pack_end(self.progress, False)
         self.show_all()
 
+        self.connect('realize', self._on_realize)
         self.button.connect('clicked', self._on_button_clicked,
                             details_view)
-        self.connect('realize', self._on_realize)
         return
 
     def _on_realize(self, widget):
@@ -467,7 +467,8 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
-        self.app_info.set_icon(self.iconname, gtk.ICON_SIZE_DIALOG)
+        self.app_info.set_icon(self.iconname or 'gnome-other',
+                               gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
         if not self.get_installed():
@@ -542,15 +543,19 @@ class AppDetailsView(gtk.ScrolledWindow):
     # substitute functions called during page display
     def get_appname(self):
         return self.app.name
+
     def get_appsummary(self):
         return self.db.get_summary(self.doc)
+
     def wksub_pkgname(self):
         return self.app.pkgname
+
     def wksub_body_class(self):
         if (self.app.pkgname in self.cache and
             self.cache[self.app.pkgname].is_installed):
             return "section-installed"
         return "section-get"
+
     def get_description(self):
         # if we do not have a package in our apt data explain why
         if not self.pkg:
@@ -573,19 +578,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         # format for html
         description = self.pkg.candidate.description
         logging.debug("Description (text) %r", description)
-        return description
-
-    def add_ul_tags(self, description):
-        """ add <ul></ul> around a bunch of <li></li> lists
-        """
-        first_li = description.find("<li>")
-        last_li =  description.rfind("</li>")
-        if first_li >= 0 and last_li >= 0:
-            last_li += len("</li>")
-            return '%s<ul tabindex="0">%s</ul>%s' % (
-                description[:first_li],
-                description[first_li:last_li],
-                description[last_li:])
         return description
 
     def wksub_iconpath_loading(self):
