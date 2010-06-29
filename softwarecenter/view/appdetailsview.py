@@ -63,24 +63,46 @@ COLOR_GREEN_LIGHT   = '#D1FFA4'
 COLOR_GREEN_NORMAL  = '#8AE234'
 COLOR_BLACK         = '#323232'
 
-# action state constants
+# pkg action state constants
 PKG_STATE_INSTALLED     = 0
 PKG_STATE_UNINSTALLED   = 1
 PKG_STATE_UPGRADABLE    = 2
+PKG_STATE_INSTALLING    = 3
+PKG_STATE_REMOVING      = 4
+PKG_STATE_UPGRADING     = 5
 
 
 class PackageActionBar(gtk.HBox):
     
-    def __init__(self):
+    def __init__(self, details_view):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
 
         self.label = gtk.Label()
         self.button = gtk.Button()
+        self.progress = gtk.ProgressBar()
 
+        self.pkg_state = None
+        self.details_view = details_view
+
+        self.progress.set_size_request(10*mkit.EM, -1)
         self.pack_start(self.label, False)
         self.pack_end(self.button, False)
+        self.pack_end(self.progress, False)
         self.show_all()
+
+        self.button.connect('clicked', self._on_button_clicked,
+                            details_view)
+        return
+
+    def _on_button_clicked(self, widget, details_view):
+        state = self.pkg_state
+        if state == PKG_STATE_INSTALLED:
+            details_view.remove()
+        elif state == PKG_STATE_UNINSTALLED:
+            details_view.install()
+        else:
+            details_view.upgrade()
         return
 
     def set_label(self, label):
@@ -92,16 +114,31 @@ class PackageActionBar(gtk.HBox):
         self.button.set_label(label)
         return
 
-    def set_pkg_state(self, details_view, state):
+    def set_pkg_state(self, state):
+        view = self.details_view
+        self.pkg_state = state
+        self.progress.hide()
+
         if state == PKG_STATE_INSTALLED:
             self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
-            self.set_label(details_view.get_price())
+            self.set_label(view.get_price())
             self.set_button_label(_('Install'))
-        else:
-            self.set_label(_('Upgrade Available...'))
+        elif state == PKG_STATE_UPGRADABLE:
+            self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
+        elif state == PKG_STATE_INSTALLING:
+            self.set_label(_('Installing...'))
+            self.set_button_label(_('Install'))
+        elif state == PKG_STATE_REMOVING:
+            self.set_label(_('Removing...'))
+            self.set_button_label(_('Remove'))
+        elif state == PKG_STATE_UPGRADING:
+            self.set_label(_('Upgrading...'))
+            self.set_button_label(_('Upgrade Available'))
+        else:
+            print 'huh?'
         return
 
     def draw(self, cr, a, expose_area, bg_color, line_color):
@@ -130,7 +167,6 @@ class PackageActionBar(gtk.HBox):
 
         cr.restore()
         return
-
 
 
 class AppDetailsView(gtk.ScrolledWindow):
@@ -194,7 +230,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app_desc.pack_start(label_align, False, padding=mkit.SPACING_MED)
 
         # controls which are displayed if the app is installed
-        self.action_bar = PackageActionBar()
+        self.action_bar = PackageActionBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
 
         # atk
@@ -215,6 +251,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
         # data
@@ -427,9 +464,9 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # depending on pkg install state set action labels
         if not self.get_installed():
-            self.action_bar.set_pkg_state(self, PKG_STATE_UNINSTALLED)
+            self.action_bar.set_pkg_state(PKG_STATE_UNINSTALLED)
         else:
-            self.action_bar.set_pkg_state(self, PKG_STATE_INSTALLED)
+            self.action_bar.set_pkg_state(PKG_STATE_INSTALLED)
 
         # clear any old app description
         self._clear_description()
@@ -728,34 +765,53 @@ class AppDetailsView(gtk.ScrolledWindow):
             
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
-                self._set_action_button_sensitive(True)
+                self.action_bar.button.set_sensitive(True)
                 self.backend.emit("transaction-stopped")
                 return
         self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
+
     def upgrade(self):
         self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
+        return
 
     # internal callback
     def _on_cache_ready(self, cache):
         logging.debug("on_cache_ready")
         self.show_app(self.app)
+
     def _on_transaction_started(self, backend):
-        self._set_action_button_sensitive(False)
+        self.action_bar.button.set_sensitive(False)
+
+        state = self.action_bar.pkg_state
+        if state == PKG_STATE_UNINSTALLED:
+            self.action_bar.set_pkg_state(PKG_STATE_INSTALLING)
+        elif state == PKG_STATE_INSTALLED:
+            self.action_bar.set_pkg_state(PKG_STATE_REMOVING)
+        elif state == PKG_STATE_UPGRADABLE:
+            self.action_bar.set_pkg_state(PKG_STATE_UPGRADING)
+        return
+
     def _on_transaction_stopped(self, backend):
-        self._set_action_button_sensitive(True)
-        if not self.app:
-            return
-        self.execute_script("showProgress(false);")
+        self.action_bar.button.set_sensitive(True)
+        return
+
+    def _on_transaction_finished(self, *args):
+        self.action_bar.progress.hide()
+        self.action_bar.button.show()
+        self.action_bar.button.set_sensitive(True)
+        return
+
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if not self.app or not self.app.pkgname == pkgname:
             return
-        # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-        if self.get_load_status() != 2:
-            return
-        self._set_action_button_sensitive(False)
-        self.execute_script("showProgress(true);")
+
+        if not self.action_bar.progress.get_property('visible'):
+            self.action_bar.progress.show()
+            self.action_bar.button.hide()
+
         if pkgname in backend.pending_transactions:
-            self.execute_script("updateProgress(%s);" % progress)
+            self.action_bar.progress.set_fraction(progress/100.0)
+        return
 
     def _on_navigation_requested(self, view, frame, request):
         logging.debug("_on_navigation_requested %s" % request.get_uri())
