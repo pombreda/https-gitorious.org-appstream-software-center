@@ -499,7 +499,8 @@ class CarouselView(mkit.FramedSection):
         #return
 
     def _build_view(self, width):
-        if not self.carousel_apps: return
+        if not self.carousel_apps or len(self.carousel_apps) == 0:
+            return
 
         # number of posters we should have given available space
         n = width / CAROUSEL_POSTER_MIN_WIDTH
@@ -689,7 +690,6 @@ class CarouselView(mkit.FramedSection):
             if not poster.app:
                 app = self.carousel_apps[self._offset]
                 poster.set_application(app)
-
                 self._offset += 1
                 if self._offset == len(self.carousel_apps):
                     self._offset = 0
