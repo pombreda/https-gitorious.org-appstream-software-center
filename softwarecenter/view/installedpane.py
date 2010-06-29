@@ -175,6 +175,11 @@ class InstalledPane(SoftwarePane):
         # there is no category view in the installed pane
         return False
 
+    def show_deb_file(self, app): #(or apturl)
+        self.navigation_bar.add_with_id(app.appname, self.on_navigation_details, "details", animate=True)
+        self.current_appview_selection = app
+        self.app_details.show_app(app)
+
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
     xapian_base_path = XAPIAN_BASE_PATH

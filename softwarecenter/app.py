@@ -570,9 +570,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
         # update menu items
-        if app.filename and self.available_pane.app_details.exist:
-            error = self.available_pane.app_details.error
-            version_status = self.available_pane.app_details.version_status
+        if app.filename and self.active_pane.app_details.exist:
+            error = self.active_pane.app_details.error
+            version_status = self.active_pane.app_details.version_status
             self.menuitem_copy_web_link.set_sensitive(False)
             if self.active_pane.app_view.is_action_in_progress_for_selected_app() or error:
                 self.menuitem_install.set_sensitive(False)
@@ -585,12 +585,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self.menuitem_remove.set_sensitive(True)
                 self.menuitem_copy_web_link.set_sensitive(True)
                 if version_status == DEB_OLDER_THAN_CACHE:
-                    if self.available_pane.app_details.pkg.installed:
+                    if self.active_pane.app_details.pkg.installed:
                         self.menuitem_install.set_sensitive(False)
                     else:
                         self.menuitem_install.set_sensitive(True)
                         self.menuitem_remove.set_sensitive(False)
-            
         elif (not self.active_pane.is_category_view_showing() and 
             app.pkgname in self.cache):
             if self.active_pane.app_view.is_action_in_progress_for_selected_app():
@@ -713,8 +712,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 #        it needs to perform a search because a App name
                 #        is (in general) not unique
                 app = Application("", pkg_name, "")
-
-            self.available_pane.show_deb_file(app)
+            if (app.pkgname in self.available_pane.cache and self.available_pane.cache[app.pkgname].installed):
+                self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_INSTALLED)
+                self.installed_pane.show_deb_file(app)
+            else:
+                self.available_pane.show_deb_file(app)
 
 
         if len(packages) > 1:
