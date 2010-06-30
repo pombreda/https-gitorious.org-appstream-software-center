@@ -57,11 +57,22 @@ DEFAULT_SOCKET_TIMEOUT=4
 
 
 # action colours, taken from synaptic
-COLOR_RED_LIGHT     = '#FF9595'
-COLOR_RED_NORMAL    = '#EF2929'
-COLOR_GREEN_LIGHT   = '#D1FFA4'
-COLOR_GREEN_NORMAL  = '#8AE234'
+# reds: used for pkg_status errors or warnings
+COLOR_RED_FILL     = '#FF9595'
+COLOR_RED_OUTLINE  = '#EF2929'
+
+# yellows: some user action is required outside of install or remove
+COLOR_YELLOW_FILL    = '#FFF5A3'
+COLOR_YELLOW_OUTLINE = '#FCE94F'
+
+# greens: used for pkg installed or available for install
+# and no user actions required
+COLOR_GREEN_FILL    = '#D1FFA4'
+COLOR_GREEN_OUTLINE = '#8AE234'
+
+# fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
+
 
 # pkg action state constants
 PKG_STATE_INSTALLED     = 0
@@ -70,12 +81,16 @@ PKG_STATE_UPGRADABLE    = 2
 PKG_STATE_INSTALLING    = 3
 PKG_STATE_REMOVING      = 4
 PKG_STATE_UPGRADING     = 5
+PKG_STATE_NEEDS_SOURCE  = 6
+PKG_STATE_UNAVAILABLE   = 7
+PKG_STATE_UNKNOWN       = 8
 
 
 class PackageStatusBar(gtk.Alignment):
     
     def __init__(self, details_view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        self.set_size_request(-1, int(3.5*mkit.EM+0.5))
         self.set_padding(mkit.SPACING_SMALL,
                          mkit.SPACING_SMALL,
                          mkit.SPACING_LARGE,
@@ -141,13 +156,13 @@ class PackageStatusBar(gtk.Alignment):
             self.set_button_label(_('Upgrade'))
         elif state == PKG_STATE_INSTALLING:
             self.set_label(_('Installing...'))
-            self.set_button_label(_('Install'))
+            #self.set_button_label(_('Install'))
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
-            self.set_button_label(_('Remove'))
+            #self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
-            self.set_button_label(_('Upgrade Available'))
+            #self.set_button_label(_('Upgrade Available'))
         else:
             print 'huh?'
         return
@@ -394,8 +409,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
                              event.area,
-                             COLOR_GREEN_LIGHT,
-                             COLOR_GREEN_NORMAL)
+                             COLOR_GREEN_FILL,
+                             COLOR_GREEN_OUTLINE)
 
         del cr
         return
@@ -438,6 +453,34 @@ class AppDetailsView(gtk.ScrolledWindow):
                 origin.component):
                 return origin.component
         return
+
+    def _get_pkg_state(self):
+        if self.pkg:
+            # Don't handle upgrades yet
+            #if pkg.installed and pkg.isUpgradable:
+            #    return PKG_STATE_UPGRADABLE
+            if self.pkg.installed:
+                return PKG_STATE_INSTALLED
+            else:
+                return PKG_STATE_UNINSTALLED
+
+        elif self.doc:
+            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            if channel:
+                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+                #if os.path.exists(path):
+                    #self.channelname = channel
+                    #self.channelfile = path
+                    ## FIXME: deal with the EULA stuff
+                    return PKG_STATE_NEEDS_SOURCE
+            # check if it comes from a non-enabled component
+            elif self._unavailable_component():
+                # FIXME: use a proper message here, but we are in string freeze
+                return PKG_STATE_UNAVAILABLE
+            elif self._available_for_our_arch():
+                return PKG_STATE_NEEDS_SOURCE
+
+        return PKG_STATE_UNKNOWN
 
     def _layout_page(self):
         # setup widgets
@@ -492,11 +535,11 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _update_page(self):
         font_size = 22*pango.SCALE  # make this relative to the appicon size (48x48)
-        appname = self.get_appname()
+        appname = self.get_name()
 
         markup = '<b><span size="%s">%s</span></b>\n%s' % (font_size,
                                                            appname,
-                                                           self.get_appsummary())
+                                                           self.get_summary())
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
@@ -504,10 +547,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                                gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
-        if not self.get_installed():
-            self.action_bar.set_pkg_state(PKG_STATE_UNINSTALLED)
-        else:
-            self.action_bar.set_pkg_state(PKG_STATE_INSTALLED)
+        self.action_bar.set_pkg_state(self._get_pkg_state())
 
         # format new app description
         self.app_desc.set_description(self.get_description(), appname)
@@ -579,10 +619,10 @@ class AppDetailsView(gtk.ScrolledWindow):
         return iconinfo.get_filename()
 
     # substitute functions called during page display
-    def get_appname(self):
+    def get_name(self):
         return self.app.name
 
-    def get_appsummary(self):
+    def get_summary(self):
         return self.db.get_summary(self.doc)
 
     def wksub_pkgname(self):
@@ -859,51 +899,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         f=gio.File(url)
         f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
                            thumb_query_info_async_callback)
-
-    def _get_action_button_label_and_value(self):
-        action_button_label = ""
-        action_button_value = ""
-        if self.pkg:
-            pkg = self.pkg
-            # Don't handle upgrades yet
-            #if pkg.installed and pkg.isUpgradable:
-            #    action_button_label = _("Upgrade")
-            #    action_button_value = "upgrade"
-            if pkg.installed:
-                action_button_label = _("Remove")
-                action_button_value = "remove"
-            else:
-                price = self.distro.get_price(self.doc)
-                # we don't have price information
-                if price is None:
-                    action_button_label = _("Install")
-                # its free
-                elif price == _("Free"):
-                    action_button_label = _("Install - Free")
-                else:
-                    # FIXME: string freeze, so d
-                    #action_button_label = _("Install - %s") % price
-                    logging.error("Can not handle price %s" % price)
-                action_button_value = "install"
-        elif self.doc:
-            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                if os.path.exists(path):
-                    self.channelname = channel
-                    self.channelfile = path
-                    # FIXME: deal with the EULA stuff
-                    action_button_label = _("Use This Source")
-                    action_button_value = "enable_channel"
-            # check if it comes from a non-enabled component
-            elif self._unavailable_component():
-                # FIXME: use a proper message here, but we are in string freeze
-                action_button_label = _("Use This Source")
-                action_button_value = "enable_component"
-            elif self._available_for_our_arch():
-                action_button_label = _("Update Now")
-                action_button_value = "reload"
-        return (action_button_label, action_button_value)
 
     def _unavailable_component(self):
         """ 
