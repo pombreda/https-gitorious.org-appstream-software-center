@@ -383,7 +383,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         cr.clip()
 
         self.app_info.draw(cr, self.app_info.allocation, expose_area)
-        self.desc_section.draw(cr, self.desc_section.allocation, expose_area)
+        #self.desc_section.draw(cr, self.desc_section.allocation, expose_area)
 
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
@@ -447,8 +447,9 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
+        self.app_info.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
-        self.app_info.set_spacing(mkit.SPACING_LARGE)
+        self.app_info.body.set_spacing(mkit.SPACING_XLARGE)
         self.vbox.pack_start(self.app_info, False)
 
         # controls which are displayed if the app is installed
@@ -734,13 +735,9 @@ class AppDetailsView(gtk.ScrolledWindow):
         d.run()
         d.destroy()
 
-    def _on_link_button_clicked(self, *args):
-        print args
-        return
-
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s apturl:%(pkgname)s") % {
+        msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
             'appname' : self.app.appname, 
             'pkgname' : self.app.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
