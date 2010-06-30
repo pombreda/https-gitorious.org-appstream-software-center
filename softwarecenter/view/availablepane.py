@@ -457,13 +457,15 @@ class AvailablePane(SoftwarePane):
         for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
             if not cat_of_app and cat.untranslated_name != "New Applications" and cat.untranslated_name != "Featured Applications":
                 if self.db.pkg_in_category(app.pkgname, cat.query):
-                    cat_of_app = cat.untranslated_name
+                    cat_of_app = cat
                     continue
-        print cat_of_app
-                
-        self.apps_category = Category("deb", "deb", None, None, False, True, None)
-        self.current_app_by_category[self.apps_category] = app
+        if cat_of_app:
+            self.apps_category = cat_of_app
+            self.navigation_bar.add_with_id(cat_of_app.name, self.on_navigation_list, "list", do_callback=False, animate=True)
+        else:
+            self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.navigation_bar.add_with_id(app.appname, self.on_navigation_details, "details", animate=True)
+        self.current_app_by_category[self.apps_category] = app
         self.app_details.show_app(app)
         self.display_details()
 
