@@ -1,4 +1,4 @@
-software-center (2.1.4) UNRELEASED; urgency=low
+software-center (2.1.4) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/availablepane.py:
