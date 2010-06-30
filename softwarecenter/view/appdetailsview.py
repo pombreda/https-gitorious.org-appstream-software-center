@@ -72,12 +72,17 @@ PKG_STATE_REMOVING      = 4
 PKG_STATE_UPGRADING     = 5
 
 
-class PackageActionBar(gtk.HBox):
+class PackageStatusBar(gtk.Alignment):
     
     def __init__(self, details_view):
-        gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
-        self.set_size_request(-1, 4*mkit.EM)
-        self.set_border_width(mkit.BORDER_WIDTH_MED)
+        gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        self.set_padding(mkit.SPACING_SMALL,
+                         mkit.SPACING_SMALL,
+                         mkit.SPACING_LARGE,
+                         mkit.SPACING_LARGE)
+
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.add(self.hbox)
 
         self.label = gtk.Label()
         self.button = gtk.Button()
@@ -86,23 +91,22 @@ class PackageActionBar(gtk.HBox):
         self.pkg_state = None
         self.details_view = details_view
 
-        self.pack_start(self.label, False)
-        self.pack_end(self.button, False)
-        self.pack_end(self.progress, False)
+        self.hbox.pack_start(self.label, False)
+        self.hbox.pack_end(self.button, False)
+        self.hbox.pack_end(self.progress, False)
         self.show_all()
 
-        self.connect('realize', self._on_realize)
-        self.button.connect('clicked', self._on_button_clicked,
-                            details_view)
+        self.button.connect('size-allocate', self._on_button_size_allocate)
+        self.button.connect('clicked', self._on_button_clicked, details_view)
         return
 
-    def _on_realize(self, widget):
-        # make the progress bar thte same height as the button
+    def _on_button_size_allocate(self, button, allocation):
+        # make the progress bar the same height as the button
         self.progress.set_size_request(12*mkit.EM,
-                                       self.button.allocation.height)
+                                       allocation.height)
         return
 
-    def _on_button_clicked(self, widget, details_view):
+    def _on_button_clicked(self, button, details_view):
         state = self.pkg_state
         if state == PKG_STATE_INSTALLED:
             details_view.remove()
@@ -154,8 +158,8 @@ class PackageActionBar(gtk.HBox):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x, a.y,
-                  a.x+a.width, a.y+a.height,
+                  a.x+1, a.y-1,
+                  a.x+a.width-2, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
         cr.set_source_rgb(*mkit.floats_from_string(bg_color))
@@ -165,8 +169,8 @@ class PackageActionBar(gtk.HBox):
         cr.translate(0.5, 0.5)
 
         rr.layout(cr,
-                  a.x, a.y,
-                  a.x+a.width, a.y+a.height,
+                  a.x+1, a.y-1,
+                  a.x+a.width-2, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
         cr.set_source_rgb(*mkit.floats_from_string(line_color))
@@ -175,6 +179,137 @@ class PackageActionBar(gtk.HBox):
         cr.restore()
         return
 
+
+class AppDescription(gtk.VBox):
+
+    def __init__(self):
+        gtk.VBox.__init__(self)
+
+        self.paragraphs = []
+        self.points = []
+        return
+
+    def clear(self):
+        for child in self.get_children():
+            self.remove(child)
+            child.destroy()
+
+        self.paragraphs = []
+        self.points = []
+        return
+
+    def append_paragraph(self, fragment, newline):
+        if not fragment.strip(): return
+        p = gtk.Label()
+
+        if newline:
+            p.set_markup('\n'+fragment)
+        else:
+            p.set_markup(fragment)
+
+        p.set_line_wrap(True)
+
+        hb = gtk.HBox()
+        hb.pack_start(p, False)
+
+        self.pack_start(hb)
+        self.paragraphs.append(p)
+        return True
+
+    def append_bullet_point(self, fragment):
+        fragment = fragment.strip()
+        fragment = fragment.replace('* ', '')
+        fragment = fragment.replace('- ', '')
+
+        bullet = gtk.Label()
+        bullet.set_markup(u" <big>\u2022</big>")
+        bullet_align = gtk.Alignment(0.5, 0.0)
+        bullet_align.set_padding(0, 0,
+                                 max(3, int(0.333*mkit.EM+0.5)), 0)
+        bullet_align.add(bullet)
+
+        point = gtk.Label()
+        point.set_markup(fragment)
+        point.set_line_wrap(True)
+
+        hb = gtk.HBox(spacing=mkit.EM)
+        hb.pack_start(bullet_align, False)
+        hb.pack_start(point, False)
+        a = gtk.Alignment(xscale=1.0, yscale=1.0)
+        a.set_padding(2, 2, 0, 0)
+        a.add(hb)
+
+        self.pack_start(a)
+        self.points.append(point)
+        return False
+
+    def set_description(self, desc, appname):
+        self.clear()
+
+        processed_desc = ''
+        prev_part = ''
+        parts = desc.split('\n')
+
+        newline = False
+        in_blist = False
+
+        for i, part in enumerate(parts):
+            part = part.strip()
+            if not part:
+                pass
+            elif part.startswith('* ') or part.startswith('- '):
+                if not in_blist:
+                    in_blist = True
+                    newline = self.append_paragraph(processed_desc, newline)
+                else:
+                    newline = self.append_bullet_point(processed_desc)
+
+                processed_desc = ''
+                processed_desc += part
+
+                # specialcase for 7zip
+                if appname == '7zip' and \
+                    (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
+                    processed_desc += '\n'
+
+            elif prev_part.endswith('.'):
+                if in_blist:
+                    in_blist = False
+                    newline = self.append_bullet_point(processed_desc)
+                else:
+                    newline = self.append_paragraph(processed_desc, newline)
+
+                processed_desc = ''
+                processed_desc += part
+
+            elif not prev_part.endswith(',') and part[0].isupper():
+                if in_blist:
+                    in_blist = False
+                    newline = self.append_bullet_point(processed_desc)
+                else:
+                    newline = self.append_paragraph(processed_desc, newline)
+
+                processed_desc = ''
+                processed_desc += part
+            else:
+                if not part.endswith('.'):
+                    processed_desc += part + ' '
+                elif (i+1) < len(parts) and (parts[i+1].startswith('* ') or \
+                    parts[i+1].startswith('- ')):
+                    processed_desc += part
+                else:
+                    processed_desc += part
+
+            prev_part = part
+
+        if in_blist:
+            in_blist = False
+            self.append_bullet_point(processed_desc)
+        else:
+            self.append_paragraph(processed_desc, newline)
+
+        self.show_all()
+        return
 
 class AppDetailsView(gtk.ScrolledWindow):
     """The view that shows the application details """
@@ -196,59 +331,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         gtk.ScrolledWindow.__init__(self)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         self.set_shadow_type(gtk.SHADOW_NONE)
-
-        # setup base widgets
-        # we have our own viewport so we know when the viewport grows/shrinks
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
-
-        viewport = gtk.Viewport()
-        viewport.set_shadow_type(gtk.SHADOW_NONE)
-        viewport.add(self.vbox)
-        self.add(viewport)
-        self.vbox.set_redraw_on_allocate(False)
-        self.show_all()
-
-        # framed section that contains all app details
-        self.app_info = mkit.FramedSection()
-        self.app_info.set_spacing(0)
-
-        self.app_info.header.set_spacing(mkit.SPACING_LARGE)
-        self.app_info.header.set_border_width(int(1.5*mkit.BORDER_WIDTH_LARGE))
-
-        self.app_info.body.set_border_width(mkit.BORDER_WIDTH_LARGE)
-        self.app_info.body.set_spacing(mkit.SPACING_LARGE)
-
-        self.app_info.footer.set_size_request(-1, 2*mkit.EM)
-        self.vbox.pack_start(self.app_info, False)
-        
-        # vbox which contains textual paragraphs and bullet points
-        align = gtk.Alignment(0, 0.5)
-        align.set_padding(0, 0, int(mkit.EM*0.5), 0)
-        self.app_desc = gtk.VBox()
-        align.add(self.app_desc)
-        self.app_desc.set_border_width(mkit.BORDER_WIDTH_MED)
-        self.app_info.body.pack_start(align)
-
-        # app description title
-        m = '<b><big>%s</big></b>' % _('Description')
-        label = gtk.Label()
-        label.set_markup(m)
-        align = gtk.Alignment(0, 0.5)
-        align.add(label)
-        self.app_desc.pack_start(align, False, padding=mkit.SPACING_LARGE)
-
-        # homepage link button
-        self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
-        self.homepage_btn.set_relief(gtk.RELIEF_NONE)
-        align = gtk.Alignment(0, 0.5)
-        align.set_padding(0, 0, int(mkit.EM*0.5), 0)
-        align.add(self.homepage_btn)
-        self.app_info.body.pack_start(align, False)
-
-        # controls which are displayed if the app is installed
-        self.action_bar = PackageActionBar(self)
-        self.app_info.body.pack_start(self.action_bar, False)
 
         # atk
         atk_desc = self.get_accessible()
@@ -276,8 +358,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app = None
         self.iconname = ""
 
-        self._paragraphs = []
-        self._points = []
+        # page elements are packed
+        viewport = self._layout_page()
 
         viewport.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
@@ -285,9 +367,9 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
-        for p in self._paragraphs:
+        for p in self.app_desc.paragraphs:
             p.set_size_request(w-7*mkit.EM, -1)
-        for pt in self._points:
+        for pt in self.app_desc.points:
             pt.set_size_request(w-9*mkit.EM, -1)
 
         self._full_redraw()   #  ewww
@@ -300,6 +382,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         cr.clip()
 
         self.app_info.draw(cr, self.app_info.allocation, expose_area)
+        self.desc_section.draw(cr, self.desc_section.allocation, expose_area)
 
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
@@ -347,125 +430,48 @@ class AppDetailsView(gtk.ScrolledWindow):
                 origin.trusted and 
                 origin.component):
                 return origin.component
-
-    def _clear_description(self):
-        for child in self.app_desc.get_children()[1:]:
-            self.app_desc.remove(child)
-            child.destroy()
-
-        self._paragraphs = []
-        self._points = []
         return
 
-    def _append_paragraph(self, fragment, newline):
-        if not fragment.strip(): return
-        p = gtk.Label()
+    def _layout_page(self):
+        # setup widgets
+        self.vbox = gtk.VBox()
+        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
 
-        if newline:
-            p.set_markup('\n'+fragment)
-        else:
-            p.set_markup(fragment)
+        # we have our own viewport so we know when the viewport grows/shrinks
+        viewport = gtk.Viewport()
+        viewport.set_shadow_type(gtk.SHADOW_NONE)
+        viewport.add(self.vbox)
+        self.add(viewport)
+        self.vbox.set_redraw_on_allocate(False)
 
-        p.set_line_wrap(True)
+        # framed section that contains all app details
+        self.app_info = mkit.FramedSection()
+        self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
+        self.app_info.set_spacing(mkit.SPACING_LARGE)
+        self.vbox.pack_start(self.app_info, False)
 
-        hb = gtk.HBox()
-        hb.pack_start(p, False)
-        hb.show_all()
+        # controls which are displayed if the app is installed
+        self.action_bar = PackageStatusBar(self)
+        self.app_info.body.pack_start(self.action_bar, False)
 
-        self.app_desc.pack_start(hb)
-        self._paragraphs.append(p)
-        return True
+        # FramedSection which contains textual paragraphs and bullet points
+        self.desc_section = mkit.FramedSection(_('Description'),
+                                           xpadding=mkit.SPACING_LARGE)
+        self.app_info.body.pack_start(self.desc_section, False)
 
-    def _append_bullet_point(self, fragment):
-        fragment = fragment.strip()
-        fragment = fragment.replace('* ', '')
-        fragment = fragment.replace('- ', '')
+        # application description wigdets
+        self.app_desc = AppDescription()
+        self.desc_section.body.pack_start(self.app_desc, False)
 
-        bullet = gtk.Label()
-        bullet.set_markup(u" \u2022")
-        bullet_align = gtk.Alignment(0.5, 0.0)
-        bullet_align.add(bullet)
+        # homepage link button
+        self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
+        self.homepage_btn.set_relief(gtk.RELIEF_NONE)
+        align = gtk.Alignment(0, 0.5)
+        align.add(self.homepage_btn)
+        self.desc_section.body.pack_end(align, False)
 
-        point = gtk.Label()
-        point.set_markup(fragment)
-        point.set_line_wrap(True)
-
-        hb = gtk.HBox(spacing=mkit.EM)
-        hb.pack_start(bullet_align, False)
-        hb.pack_start(point, False)
-        hb.show_all()
-
-        self.app_desc.pack_start(hb,
-                                 padding=3)
-
-        self._points.append(point)
-        return False
-
-    def _format_description(self, desc, appname):
-        processed_desc = ''
-        prev_part = ''
-        parts = desc.split('\n')
-
-        newline = False
-        in_blist = False
-
-        for i, part in enumerate(parts):
-            part = part.strip()
-            if not part:
-                pass
-            elif part.startswith('* ') or part.startswith('- '):
-                if not in_blist:
-                    in_blist = True
-                    newline = self._append_paragraph(processed_desc, newline)
-                else:
-                    newline = self._append_bullet_point(processed_desc)
-
-                processed_desc = ''
-                processed_desc += part
-
-                # specialcase for 7zip
-                if appname == '7zip' and \
-                    (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
-                    processed_desc += '\n'
-
-            elif prev_part.endswith('.'):
-                if in_blist:
-                    in_blist = False
-                    newline = self._append_bullet_point(processed_desc)
-                else:
-                    newline = self._append_paragraph(processed_desc, newline)
-
-                processed_desc = ''
-                processed_desc += part
-
-            elif not prev_part.endswith(',') and part[0].isupper():
-                if in_blist:
-                    in_blist = False
-                    newline = self._append_bullet_point(processed_desc)
-                else:
-                    newline = self._append_paragraph(processed_desc, newline)
-
-                processed_desc = ''
-                processed_desc += part
-            else:
-                if not part.endswith('.'):
-                    processed_desc += part + ' '
-                elif (i+1) < len(parts) and (parts[i+1].startswith('* ') or \
-                    parts[i+1].startswith('- ')):
-                    processed_desc += part
-                else:
-                    processed_desc += part
-
-            prev_part = part
-
-        if in_blist:
-            in_blist = False
-            self._append_bullet_point(processed_desc)
-        else:
-            self._append_paragraph(processed_desc, newline)
-
-        self.app_desc.show_all()
-        return
+        self.show_all()
+        return viewport
 
     def _update_page(self):
         font_size = 22*pango.SCALE  # make this relative to the appicon size (48x48)
@@ -486,15 +492,12 @@ class AppDetailsView(gtk.ScrolledWindow):
         else:
             self.action_bar.set_pkg_state(PKG_STATE_INSTALLED)
 
-        # clear any old app description
-        self._clear_description()
         # format new app description
-        self._format_description(self.get_description(), appname)
+        self.app_desc.set_description(self.get_description(), appname)
 
         if self.homepage_url:
             self.homepage_btn.show()
             self.homepage_btn.set_uri(self.homepage_url)
-            #self.homepage_btn.set_visited(False)
         else:
             self.homepage_btn.hide()
             self.homepage_btn.set_uri('none')

@@ -32,8 +32,6 @@ from softwarecenter.distro import get_distro
 from catview import *
 
 
-FOOTER_HEIGHT = 2*mkit.EM   # as per spec
-
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
@@ -219,7 +217,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
-        self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
 #        enquirer = xapian.Enquire(self.db.xapiandb)
 
@@ -257,7 +254,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # set the departments section to use the label
         header = gobject.markup_escape_text(self.header)
         self.departments.set_label(H2 % header)
-        self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories[:-1])
@@ -315,9 +311,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _get_best_fit_width(self):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - \
-                2*(mkit.BORDER_WIDTH_LARGE + mkit.BORDER_WIDTH_MED) - \
-                mkit.BORDER_WIDTH_LARGE
+        return self.parent.allocation.width - 8*(mkit.BORDER_WIDTH_LARGE)
 
     def _on_style_set(self, widget, old_style):
         mkit.update_em_metrics()
@@ -430,7 +424,6 @@ class CarouselView(mkit.FramedSection):
 
     def __init__(self, carousel_apps, title):
         mkit.FramedSection.__init__(self)
-        self.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.hbox.set_homogeneous(True)
