@@ -360,7 +360,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
-        if action == self.NOTEBOOK_PAGE_INSTALLED and not self.installed_pane.loaded:
+        if action == self.NOTEBOOK_PAGE_INSTALLED and not self.installed_pane.loaded and not self.installed_pane.current_appview_selection:
             self.installed_pane.refresh_apps()
         # switch to new page
         self.notebook_view.set_current_page(action)
