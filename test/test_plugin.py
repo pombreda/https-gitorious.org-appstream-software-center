@@ -20,8 +20,9 @@ class testPlugin(unittest.TestCase):
     def test_plugin_manager(self):
         app = MockApp()
         pm = PluginManager(app, "./data/plugins")
-        plugins = pm.get_plugins()
-        self.assertEqual(len(plugins), 1)
+        pm.load_plugins()
+        self.assertEqual(len(pm.plugins), 1)
+        self.assertTrue(pm.plugins[0].i_am_happy)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

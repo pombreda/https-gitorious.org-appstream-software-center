@@ -27,10 +27,12 @@ class Plugin(object):
     """Base class for plugins.
     
     """
-    def init(self):
+    def init_plugin(self):
         """ Init the plugin (UI, connect signals etc)
            
-            This should be overwriten by the individual plugins
+        This should be overwriten by the individual plugins
+        and should return as fast as possible. if some longer
+        init is required, start a glib timer or a thread
         """
 
 
@@ -103,7 +105,7 @@ class PluginManager(object):
                 module = self._load_module(filenames[i])
                 for plugin in self._find_plugins(module):
                     plugin.app = self._app
-                    plugin.init()
+                    plugin.init_plugin()
                     self._plugins.append(plugin)
         # get the matching plugins
         plugins = [p for p in self._plugins]

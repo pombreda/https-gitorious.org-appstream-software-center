@@ -119,10 +119,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # distro specific stuff
         self.distro = get_distro()
 
-        # plugin manager
-        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
-        self.plugin_manager.load_plugins()
-
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
             sources = self.builder.get_object("menuitem_software_sources")
@@ -289,6 +285,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # restore state
         self.config = get_config()
         self.restore_state()
+
+        # open plugin manager and load plugins
+        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
+        self.plugin_manager.load_plugins()
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default
