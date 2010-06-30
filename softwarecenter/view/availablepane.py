@@ -74,6 +74,8 @@ class AvailablePane(SoftwarePane):
                  navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
+        self.datadir = datadir
+        self.db = db
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
@@ -451,7 +453,14 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
 
     def show_deb_file(self, app): #(or apturl)
-        # FIXME: Determine real category
+        cat_of_app = None
+        for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
+            if not cat_of_app and cat.untranslated_name != "New Applications" and cat.untranslated_name != "Featured Applications":
+                if self.db.pkg_in_category(app.pkgname, cat.query):
+                    cat_of_app = cat.untranslated_name
+                    continue
+        print cat_of_app
+                
         self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
         self.navigation_bar.add_with_id(app.appname, self.on_navigation_details, "details", animate=True)
