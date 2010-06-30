@@ -368,6 +368,12 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
+        l = self.app_info.label.get_layout()
+        if l.get_pixel_extents()[1][2] > w-48-6*mkit.EM:
+            self.app_info.label.set_size_request(w-48-6*mkit.EM, -1)
+        else:
+            self.app_info.label.set_size_request(-1, -1)
+
         for p in self.app_desc.paragraphs:
             p.set_size_request(w-6*mkit.EM, -1)
         for pt in self.app_desc.points:
@@ -467,9 +473,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # hbox for web related links (homepage and microbloggers)
         web_hb = gtk.HBox(spacing=mkit.SPACING_MED)
-        a = gtk.Alignment(0, 0.5)
-        a.add(web_hb)
-        self.desc_section.body.pack_end(a, False)
+        self.desc_section.body.pack_end(web_hb, False)
 
         # homepage link button
         self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
