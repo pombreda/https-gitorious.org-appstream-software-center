@@ -514,11 +514,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.nav_history.nav_back()
         self.available_pane._status_text = ""
         self.update_status_bar()
+        self.update_app_status_menu()
         
     def on_navhistory_forward_action_activate(self, navhistory_forward_action):
         self.available_pane.nav_history.nav_forward()
         self.available_pane._status_text = ""
         self.update_status_bar()
+        self.update_app_status_menu()
             
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
@@ -568,7 +570,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """Helper that updates the 'File' and 'Edit' menu to enable/disable
            install/remove and Copy/Copy weblink
         """
-        # FIXME: This doesn't seem to work nicely with the navigation atm..
         logging.debug("update_app_status_menu")
         # check if we have a pkg for this page
         app = None
