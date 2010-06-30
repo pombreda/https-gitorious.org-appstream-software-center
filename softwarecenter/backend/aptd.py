@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import aptsources.sourceslist
 import dbus
 import gobject
 import os
@@ -167,8 +168,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     @inline_callbacks
     def enable_channel(self, channelfile):
-        import aptsources.sourceslist
-
         # read channel file and add all relevant lines
         for line in open(channelfile):
             line = line.strip()
@@ -178,16 +177,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if entry.invalid:
                 continue
             sourcepart = os.path.basename(channelfile)
-            yield self.add_sources_list_entry(self, entry, sourcepart)
+            yield self.add_sources_list_entry(entry, sourcepart)
         yield self.reload()
 
     @inline_callbacks
     def add_sources_list_entry(self, source_entry, sourcepart=None):
-        from aptsources.sourceslist import SourceEntry
-
         if isinstance(source_entry, basestring):
             entry = SourceEntry(source_entry)
-        elif isinstance(source_entry, type(SourceEntry)):
+        elif isinstance(source_entry, aptsources.sourceslist.SourceEntry):
             entry = source_entry
         else:
             raise ValueError, "Unsupported entry type %s" % type(source_entry)
