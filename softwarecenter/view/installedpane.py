@@ -47,6 +47,7 @@ class InstalledPane(SoftwarePane):
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_installed_only(True)
         self.current_appview_selection = None
+        self.loaded = False
         # UI
         self._build_ui()
     def _build_ui(self):
@@ -56,7 +57,6 @@ class InstalledPane(SoftwarePane):
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # initial refresh
         self.search_terms = ""
-        self.refresh_apps()
 
     def _show_installed_overview(self):
         " helper that goes back to the overview page "
@@ -74,6 +74,8 @@ class InstalledPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
+        #print "DBG: Loading installed_pane listview"
+        self.loaded = True
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms)
             self.navigation_bar.add_with_id(_("Search Results"),
@@ -118,6 +120,8 @@ class InstalledPane(SoftwarePane):
         
     def on_navigation_list(self, pathbar, part):
         """callback when the navigation button with id 'list' is clicked"""
+        if not self.loaded:
+            self.refresh_apps()
         if not pathbar.get_active():
             return
         self._clear_search()
@@ -176,9 +180,11 @@ class InstalledPane(SoftwarePane):
         return False
 
     def show_deb_file(self, app): #(or apturl)
+        self.navigation_bar.add_with_id(_("Installed Software"), self.on_navigation_list, "list", do_callback=False, animate=False)
         self.navigation_bar.add_with_id(app.appname, self.on_navigation_details, "details", animate=True)
-        self.current_appview_selection = app
         self.app_details.show_app(app)
+        self.app_view.emit("application-selected", app)
+        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

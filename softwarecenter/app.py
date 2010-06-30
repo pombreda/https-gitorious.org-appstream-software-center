@@ -360,6 +360,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
+        if action == self.NOTEBOOK_PAGE_INSTALLED and not self.installed_pane.loaded:
+            self.installed_pane.refresh_apps()
         # switch to new page
         self.notebook_view.set_current_page(action)
         self.update_app_list_view(channel)
@@ -725,7 +727,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 #        is (in general) not unique
                 app = Application("", pkg_name, "")
             if (app.pkgname in self.available_pane.cache and self.available_pane.cache[app.pkgname].installed):
+                self.installed_pane.loaded = True
                 self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_INSTALLED)
+                self.installed_pane.loaded = False
                 self.installed_pane.show_deb_file(app)
             else:
                 self.available_pane.show_deb_file(app)

@@ -293,10 +293,10 @@ class AppDetailsView(WebkitWidget):
         # some milliseconds before switching to the new app
         # This causes a 5-10 second delay when launching s-c with package arguments, so I've commented it out. Let me know if it breaks anything --pgg
         # self.clear()
-        
+
         # initialize the app
         self.init_app(app)
-        
+
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
         self.emit("selected", self.app)

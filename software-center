@@ -79,7 +79,7 @@ if __name__ == "__main__":
         xapian_base_path = XAPIAN_BASE_PATH
     
     from softwarecenter.app import SoftwareCenterApp
-    
+
     app = SoftwareCenterApp(datadir, xapian_base_path, enable_lp_integration=options.enable_lp)
     # app = SoftwareCenterApp(datadir, xapian_base_path)
     app.run(args)
