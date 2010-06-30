@@ -223,20 +223,21 @@ class AppDescription(gtk.VBox):
 
         bullet = gtk.Label()
         bullet.set_markup(u" <big>\u2022</big>")
-        bullet_align = gtk.Alignment(0.5, 0.0)
-        bullet_align.set_padding(0, 0,
-                                 max(3, int(0.333*mkit.EM+0.5)), 0)
-        bullet_align.add(bullet)
+        
+        bullet_padding = max(3, int(0.333*mkit.EM+0.5))
+        a = gtk.Alignment(0.5, 0.0)
+        a.add(bullet)
 
         point = gtk.Label()
         point.set_markup(fragment)
         point.set_line_wrap(True)
 
         hb = gtk.HBox(spacing=mkit.EM)
-        hb.pack_start(bullet_align, False)
+        hb.pack_start(a, False, padding=bullet_padding)
         hb.pack_start(point, False)
+
         a = gtk.Alignment(xscale=1.0, yscale=1.0)
-        a.set_padding(2, 2, 0, 0)
+        a.set_padding(bullet_padding, bullet_padding, 0, 0)
         a.add(hb)
 
         self.pack_start(a)
@@ -368,9 +369,9 @@ class AppDetailsView(gtk.ScrolledWindow):
     def _on_allocate(self, widget, allocation):
         w = allocation.width
         for p in self.app_desc.paragraphs:
-            p.set_size_request(w-7*mkit.EM, -1)
+            p.set_size_request(w-6*mkit.EM, -1)
         for pt in self.app_desc.points:
-            pt.set_size_request(w-9*mkit.EM, -1)
+            pt.set_size_request(w-8*mkit.EM, -1)
 
         self._full_redraw()   #  ewww
         return
@@ -463,12 +464,23 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app_desc = AppDescription()
         self.desc_section.body.pack_start(self.app_desc, False)
 
+        # hbox for web related links (homepage and microbloggers)
+        web_hb = gtk.HBox(spacing=mkit.SPACING_MED)
+        a = gtk.Alignment(0, 0.5)
+        a.add(web_hb)
+        self.desc_section.body.pack_end(a, False)
+
         # homepage link button
         self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
         self.homepage_btn.set_relief(gtk.RELIEF_NONE)
-        align = gtk.Alignment(0, 0.5)
-        align.add(self.homepage_btn)
-        self.desc_section.body.pack_end(align, False)
+        web_hb.pack_start(self.homepage_btn, False)
+
+        # share app with microbloggers button
+        self.share_btn = gtk.LinkButton(uri=_('Share via micro-blogging service'),
+                                        label=_('Share...'))
+        self.share_btn.set_relief(gtk.RELIEF_NONE)
+        self.share_btn.connect('clicked', self._on_share_clicked)
+        web_hb.pack_start(self.share_btn, False)
 
         self.show_all()
         return viewport
@@ -495,12 +507,12 @@ class AppDetailsView(gtk.ScrolledWindow):
         # format new app description
         self.app_desc.set_description(self.get_description(), appname)
 
+        # show or hide the homepage button and set uri if homepage specified
         if self.homepage_url:
             self.homepage_btn.show()
             self.homepage_btn.set_uri(self.homepage_url)
         else:
             self.homepage_btn.hide()
-            self.homepage_btn.set_uri('none')
         return
 
     # public API
@@ -674,12 +686,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         if not self.pkg:
             return ""
         return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
-    def get_homepage(self):
-        s = _("Website")
-        return s
-    def wksub_share(self):
-        s = _("Share via microblog")
-        return s
     def wksub_license(self):
         return self.distro.get_license_text(self.component)
     def get_price(self):
@@ -728,11 +734,11 @@ class AppDetailsView(gtk.ScrolledWindow):
         d.run()
         d.destroy()
 
-    def on_button_homepage_clicked(self):
-        cmd = self._url_launch_app()
-        subprocess.call([cmd, self.homepage_url])
+    def _on_link_button_clicked(self, *args):
+        print args
+        return
 
-    def on_button_share_clicked(self):
+    def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s apturl:%(pkgname)s") % {
             'appname' : self.app.appname, 
@@ -740,15 +746,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
         glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
-
-    def on_button_upgrade_clicked(self):
-        self.upgrade()
-
-    def on_button_remove_clicked(self):
-        self.remove()
-
-    def on_button_install_clicked(self):
-        self.install()
+        return
 
     # public interface
     def install(self):
