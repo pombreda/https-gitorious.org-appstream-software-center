@@ -50,6 +50,8 @@ from view.historypane import HistoryPane
 from backend.config import get_config
 from backend import get_install_backend
 
+from plugin import PluginManager
+
 # launchpad stuff
 from view.login import LoginDialog
 from backend.launchpad import GLaunchpad
@@ -116,6 +118,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # distro specific stuff
         self.distro = get_distro()
+
+        # plugin manager
+        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
+        self.plugin_manager.load_plugins()
 
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
