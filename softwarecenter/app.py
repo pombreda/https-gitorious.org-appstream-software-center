@@ -51,7 +51,7 @@ from backend.config import get_config
 from backend import get_install_backend
 
 # launchpad stuff
-from view.login import LoginDialog
+from view.logindialog import LoginDialog
 from backend.launchpad import GLaunchpad
 
 from distro import get_distro
