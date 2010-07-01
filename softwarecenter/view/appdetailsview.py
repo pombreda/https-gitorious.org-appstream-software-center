@@ -334,7 +334,6 @@ class PackageInfoTable(gtk.VBox):
 
     def __init__(self, rows=3, columns=2):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
-        self.connect('realize', self._on_realize)
 
         self.version_label = gtk.Label()
         self.license_label = gtk.Label()
@@ -343,6 +342,8 @@ class PackageInfoTable(gtk.VBox):
         self.version_label.set_selectable(True)
         self.license_label.set_selectable(True)
         self.support_label.set_selectable(True)
+
+        self.connect('realize', self._on_realize)
         return
 
     def _on_realize(self, widget):
@@ -372,6 +373,12 @@ class PackageInfoTable(gtk.VBox):
             k.set_size_request(max_lw+3*mkit.EM, -1)
 
         self.show_all()
+        return
+
+    def set_width(self, width):
+        for row in self.get_children():
+            k, v = row.get_children()
+            v.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
         return
 
     def set_version(self, version):
@@ -454,6 +461,8 @@ class AppDetailsView(gtk.ScrolledWindow):
             p.set_size_request(w-6*mkit.EM, -1)
         for pt in self.app_desc.points:
             pt.set_size_request(w-8*mkit.EM, -1)
+
+        self.info_table.set_width(w-6*mkit.EM)
 
         self._full_redraw()   #  ewww
         return
