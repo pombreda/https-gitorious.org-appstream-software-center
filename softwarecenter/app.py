@@ -362,7 +362,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_status_bar()
         self.update_app_status_menu()
 
-    def _on_lp_login(self, lp):
+    def _on_lp_login(self, lp, token):
         print "_on_lp_login"
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()

@@ -214,6 +214,7 @@ class GLaunchpad(LoginBackend):
     def __init__(self):
         LoginBackend.__init__(self)
         self.distro = get_distro()
+        self.oauth_token = None
 
     def connect_to_server(self):
         """ Connects to launchpad and emits one of:
@@ -236,6 +237,12 @@ class GLaunchpad(LoginBackend):
         lp_worker_thread.login_username = user
         lp_worker_thread.login_password = password
         lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS        
+
+    def login(self, username=None, password=None):
+        if username and password:
+            self.enter_username_password(username, password)
+        else:
+            self.connect_to_server()
 
     def cancel_login(self):
         lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
@@ -268,7 +275,7 @@ class GLaunchpad(LoginBackend):
         elif state == LOGIN_STATE_ASK_USER_AND_PASS:
             self.emit("need-username-password")
         elif state == LOGIN_STATE_SUCCESS:
-            self.emit("login-successful")
+            self.emit("login-successful", self.oauth_token)
             return False
         elif state == LOGIN_STATE_USER_CANCEL:
             return False
