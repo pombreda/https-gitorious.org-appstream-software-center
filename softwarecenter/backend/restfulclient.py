@@ -171,6 +171,8 @@ class UbuntuSSOlogin(LoginBackend):
     def __init__(self):
         LoginBackend.__init__(self)
         self.service = UBUNTU_SSO_SERVICE
+        self.oauth_credentials = None
+        self._login_failure = None
 
     def login(self, username=None, password=None):
         if not username or not password:
@@ -181,17 +183,28 @@ class UbuntuSSOlogin(LoginBackend):
         self.worker_thread.start()
         kwargs = { "token_name" : "software-center", }
         self.worker_thread.queue_request(self.SSO_AUTHENTICATE_FUNC, (), kwargs,
-                                         self._authentication_done,
-                                         self._authentication_error)
+                                         self._thread_authentication_done,
+                                         self._thread_authentication_error)
+        glib.timeout_add(200, self._monitor_thread)
 
-    def _authentication_done(self, result):
+    def _monitor_thread(self):
+        # glib bit of the threading, runs in the main thread
+        if self.oauth_credentials:
+            self.emit("login-successful", result)
+        if self._login_failure:
+            self.emit("login-failed")
+            self._login_failure = None
+        return True
+
+    def _thread_authentication_done(self, result):
+        # runs in the thread context, can not touch gui or glib
         print "_authentication_done", result
         self.oauth_credentials = result
-        self.emit("login-successful", result)
 
-    def _authentication_error(self, e):
+    def _thread_authentication_error(self, e):
+        # runs in the thread context, can not touch gui or glib
         print "_authentication_error", type(e)
-        self.emit("login-failed")
+        self._login_failure = e
 
     def __del__(self):
         print "del"
