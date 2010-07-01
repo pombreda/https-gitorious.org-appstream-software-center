@@ -211,7 +211,7 @@ def update_from_webservice(db, cache, url):
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """
     if not listsdir:
-        listsdir = apt_pkg.Config.FindDir("Dir::State::lists")
+        listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
     context = glib.main_context_default()
     for appinfo in glob("%s/*AppInfo" % listsdir):
         logging.debug("processing %s" % appinfo)
