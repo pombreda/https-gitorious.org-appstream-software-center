@@ -122,30 +122,44 @@ class SoftwareCenterAgent(gobject.GObject):
         gobject.GObject.__init__(self)
         # distro
         self.distro = get_distro()
+        # data
+        self._available = None
+        self._available_for_me = None
         # setup restful client
         self.service = UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE
         empty_token = OAuthToken("", "")
         authorizer = OAuthAuthorizer("software-center", access_token=empty_token)
         self.worker_thread =  RestfulClientWorker(authorizer, self.service)
         self.worker_thread.start()
+        glib.timeout_add(200, self._monitor_thread)
 
-    def _available_for_me_done(self, result):
-        self.emit("available-for-me", [x for x in result])
+    def _monitor_thread(self):
+        # glib bit of the threading, runs in the main thread
+        if self._available:
+            self.emit("available", self._available)
+            self._available = None
+        if self._available_for_me:
+            self.emit("available-for-me", self._available_for_me)
+            self._available_for_me = None
+        return True
 
-    def _available_for_me_error(self, error):
+    def _thread_available_for_me_done(self, result):
+        self._available_for_me =  [x for x in result]
+
+    def _thread_available_for_me_error(self, error):
         print "_available_for_me_error:", error
         
     def query_available_for_me(self, oauth_token):
         kwargs = { "oauth_token" : oauth_token,
                  }
         self.worker_thread.queue_request(self.AVAILABLE_FOR_ME, (), kwargs,
-                                         self._available_for_me_done,
-                                         self._available_for_me_error)
+                                         self._thread_available_for_me_done,
+                                         self._thread_available_for_me_error)
 
-    def _available_done(self, result):
-        self.emit("available", [x for x in result])
+    def _thread_available_done(self, result):
+        self._available = [x for x in result]
 
-    def _available_error(self, error):
+    def _thread_available_error(self, error):
         print "available_error: ", error
 
     def query_available(self, series_name=None, arch_tag=None):
@@ -157,8 +171,8 @@ class SoftwareCenterAgent(gobject.GObject):
                    "arch_tag" : arch_tag,
                  }
         self.worker_thread.queue_request(self.AVAILABLE, (), kwargs,
-                                         self._available_done,
-                                         self._available_error)
+                                         self._thread_available_done,
+                                         self._thread_available_error)
 
 
 class UbuntuSSOlogin(LoginBackend):
