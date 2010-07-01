@@ -32,8 +32,6 @@ from softwarecenter.distro import get_distro
 from catview import *
 
 
-FOOTER_HEIGHT = 2*mkit.EM   # as per spec
-
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
@@ -219,29 +217,28 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
-        self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
 #        enquirer = xapian.Enquire(self.db.xapiandb)
 
         # sort Category.name's alphabetically
-        sorted_cats = categories_sorted_by_name(self.categories[:-1])
+        sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            #enquirer.set_query(cat.query)
-            ## limiting the size here does not make it faster
-            #matches = enquirer.get_mset(0, len(self.db))
-            #estimate = matches.get_matches_estimated()
+            
+            if cat.untranslated_name not in ('Featured Applications',
+                                             'New Applications'):
+                #enquirer.set_query(cat.query)
+                ## limiting the size here does not make it faster
+                #matches = enquirer.get_mset(0, len(self.db))
+                #estimate = matches.get_matches_estimated()
 
-            # sanitize text so its pango friendly...
-            name = gobject.markup_escape_text(cat.name.strip())
+                # sanitize text so its pango friendly...
+                name = gobject.markup_escape_text(cat.name.strip())
 
-            cat_btn = CategoryButton(name,
-                                     icon_name=cat.iconname,
-                                     icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
-
-            cat_btn.connect('clicked', self._on_category_clicked, cat)
-            # append the department to the departments widget
-            self.departments.append(cat_btn)
+                cat_btn = CategoryButton(name, icon_name=cat.iconname)
+                cat_btn.connect('clicked', self._on_category_clicked, cat)
+                # append the department to the departments widget
+                self.departments.append(cat_btn)
 
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
@@ -260,7 +257,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # set the departments section to use the label
         header = gobject.markup_escape_text(self.header)
         self.departments.set_label(H2 % header)
-        self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories[:-1])
@@ -274,9 +270,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
             # sanitize text so its pango friendly...
             name = gobject.markup_escape_text(cat.name.strip())
 
-            cat_btn = CategoryButton(name,
-                                     icon_name=cat.iconname,
-                                     icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR)
+            cat_btn = SubcategoryButton(name, icon_name=cat.iconname)
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -284,10 +278,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # append an additional button to show all of the items in the category
         name = gobject.markup_escape_text(_("All %s") % num_items)
-        show_all_btn = CategoryButton(name, 
-                                      icon_name="go-next",
-                                      icon_size= gtk.ICON_SIZE_LARGE_TOOLBAR)
-        show_all_btn.connect('clicked', self._on_show_all_clicked)
+        show_all_btn = SubcategoryButton(name, icon_name="go-next")
+        all_cat = Category("All", _("All"), "go-next", root_category.query)
+        show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
         self.departments.append(show_all_btn)
 
         # kinda hacky doing this here...
@@ -321,9 +314,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _get_best_fit_width(self):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - \
-                2*(mkit.BORDER_WIDTH_LARGE + mkit.BORDER_WIDTH_MED) - \
-                mkit.BORDER_WIDTH_LARGE
+        return self.parent.allocation.width - 8*(mkit.BORDER_WIDTH_LARGE)
 
     def _on_style_set(self, widget, old_style):
         mkit.update_em_metrics()
@@ -436,7 +427,6 @@ class CarouselView(mkit.FramedSection):
 
     def __init__(self, carousel_apps, title):
         mkit.FramedSection.__init__(self)
-        self.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.hbox.set_homogeneous(True)
@@ -505,7 +495,8 @@ class CarouselView(mkit.FramedSection):
         #return
 
     def _build_view(self, width):
-        if not self.carousel_apps: return
+        if not self.carousel_apps or len(self.carousel_apps) == 0:
+            return
 
         # number of posters we should have given available space
         n = width / CAROUSEL_POSTER_MIN_WIDTH
@@ -574,7 +565,7 @@ class CarouselView(mkit.FramedSection):
         # set the PageSelector page
         # XXX: This needs improving!
         page = float(self._offset) / self.n_posters
-        print self._offset, page
+        #print self._offset, page
         self.page_sel.set_selected_page(int(page))
         return
 
@@ -695,7 +686,6 @@ class CarouselView(mkit.FramedSection):
             if not poster.app:
                 app = self.carousel_apps[self._offset]
                 poster.set_application(app)
-
                 self._offset += 1
                 if self._offset == len(self.carousel_apps):
                     self._offset = 0
@@ -708,13 +698,22 @@ class CarouselView(mkit.FramedSection):
 
 class CategoryButton(mkit.HButton):
 
-    def __init__(self, markup, icon_name, icon_size):
+    def __init__(self, markup, icon_name, icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR):
         mkit.HButton.__init__(self, markup, icon_name, icon_size)
 
         self.set_relief(gtk.RELIEF_NONE)
         self.set_has_action_arrow(True)
         self.set_internal_xalignment(0.0)    # basically justify-left
         self.set_internal_spacing(mkit.SPACING_LARGE)
+        self.set_border_width(mkit.BORDER_WIDTH_MED)
+        return
+        
+        
+class SubcategoryButton(mkit.VButton):
+
+    def __init__(self, markup, icon_name, icon_size=gtk.ICON_SIZE_DIALOG):
+        mkit.VButton.__init__(self, markup, icon_name, icon_size)
+        self.set_relief(gtk.RELIEF_NONE)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
         return
 

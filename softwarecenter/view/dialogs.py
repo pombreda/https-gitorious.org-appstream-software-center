@@ -74,6 +74,22 @@ def error(parent, primary, secondary, details=None):
                          details=details,
                          type=gtk.MESSAGE_ERROR)
 
+def confirm_repair_broken_cache(parent):
+    primary = _("Items cannot be installed or removed until the packages "
+                "catalog is repaired. Do you want to repair it now?")
+    button_text = _("Repair")
+    dialog = gtk.MessageDialog(parent=parent, flags=0, 
+                               type=gtk.MESSAGE_QUESTION, 
+                               message_format=None)
+    dialog.set_markup(primary)
+    dialog.add_button(_("Cancel"), gtk.RESPONSE_CANCEL)
+    dialog.add_button(button_text, gtk.RESPONSE_ACCEPT)
+    result = dialog.run()
+    dialog.destroy()
+    if result == gtk.RESPONSE_ACCEPT:
+        return True
+    return False
+
 def confirm_remove(parent, primary, cache, button_text, icon_path, depends=None):
     """Confirm removing of the given app with the given depends"""
     dialog = gtk.MessageDialog(parent=parent, flags=0, 

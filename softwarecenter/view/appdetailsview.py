@@ -56,12 +56,336 @@ from widgets import mkit
 DEFAULT_SOCKET_TIMEOUT=4
 
 
-# installed colours, taken from synaptic
-COLOR_RED_LIGHT     = '#FF9595'
-COLOR_RED_NORMAL    = '#EF2929'
-COLOR_GREEN_LIGHT   = '#C3FF89'
-COLOR_GREEN_NORMAL  = '#8AE234'
+# action colours, taken from synaptic
+# reds: used for pkg_status errors or warnings
+COLOR_RED_FILL     = '#FF9595'
+COLOR_RED_OUTLINE  = '#EF2929'
+
+# yellows: some user action is required outside of install or remove
+COLOR_YELLOW_FILL    = '#FFF5A3'
+COLOR_YELLOW_OUTLINE = '#FCE94F'
+
+# greens: used for pkg installed or available for install
+# and no user actions required
+COLOR_GREEN_FILL    = '#D1FFA4'
+COLOR_GREEN_OUTLINE = '#8AE234'
+
+# fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
+
+
+# pkg action state constants
+PKG_STATE_INSTALLED     = 0
+PKG_STATE_UNINSTALLED   = 1
+PKG_STATE_UPGRADABLE    = 2
+PKG_STATE_INSTALLING    = 3
+PKG_STATE_REMOVING      = 4
+PKG_STATE_UPGRADING     = 5
+PKG_STATE_NEEDS_SOURCE  = 6
+PKG_STATE_UNAVAILABLE   = 7
+PKG_STATE_UNKNOWN       = 8
+
+
+class PackageStatusBar(gtk.Alignment):
+    
+    def __init__(self, details_view):
+        gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        self.set_size_request(-1, int(3.5*mkit.EM+0.5))
+        self.set_padding(mkit.SPACING_SMALL,
+                         mkit.SPACING_SMALL,
+                         mkit.SPACING_LARGE,
+                         mkit.SPACING_LARGE)
+
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.add(self.hbox)
+
+        self.label = gtk.Label()
+        self.button = gtk.Button()
+        self.progress = gtk.ProgressBar()
+
+        self.pkg_state = None
+        self.details_view = details_view
+
+        self.hbox.pack_start(self.label, False)
+        self.hbox.pack_end(self.button, False)
+        self.hbox.pack_end(self.progress, False)
+        self.show_all()
+
+        self.button.connect('size-allocate', self._on_button_size_allocate)
+        self.button.connect('clicked', self._on_button_clicked, details_view)
+        return
+
+    def _on_button_size_allocate(self, button, allocation):
+        # make the progress bar the same height as the button
+        self.progress.set_size_request(12*mkit.EM,
+                                       allocation.height)
+        return
+
+    def _on_button_clicked(self, button, details_view):
+        state = self.pkg_state
+        if state == PKG_STATE_INSTALLED:
+            details_view.remove()
+        elif state == PKG_STATE_UNINSTALLED:
+            details_view.install()
+        else:
+            details_view.upgrade()
+        return
+
+    def set_label(self, label):
+        m = '<b><big><span color="%s">%s</span></big></b>' % (COLOR_BLACK, label)
+        self.label.set_markup(m)
+        return
+
+    def set_button_label(self, label):
+        self.button.set_label(label)
+        return
+
+    def set_pkg_state(self, state):
+        view = self.details_view
+        self.pkg_state = state
+        self.progress.hide()
+
+        if state == PKG_STATE_INSTALLED:
+            self.set_label(_('Installed'))
+            self.set_button_label(_('Remove'))
+        elif state == PKG_STATE_UNINSTALLED:
+            self.set_label(view.get_price())
+            self.set_button_label(_('Install'))
+        elif state == PKG_STATE_UPGRADABLE:
+            self.set_label(_('Upgrade Available'))
+            self.set_button_label(_('Upgrade'))
+        elif state == PKG_STATE_INSTALLING:
+            self.set_label(_('Installing...'))
+            #self.set_button_label(_('Install'))
+        elif state == PKG_STATE_REMOVING:
+            self.set_label(_('Removing...'))
+            #self.set_button_label(_('Remove'))
+        elif state == PKG_STATE_UPGRADING:
+            self.set_label(_('Upgrading...'))
+            #self.set_button_label(_('Upgrade Available'))
+        else:
+            print 'huh?'
+        return
+
+    def draw(self, cr, a, expose_area, bg_color, line_color):
+        if mkit.not_overlapping(a, expose_area): return
+
+        cr.save()
+        rr = mkit.ShapeRoundedRectangle()
+        rr.layout(cr,
+                  a.x+1, a.y-1,
+                  a.x+a.width-2, a.y+a.height,
+                  radius=mkit.CORNER_RADIUS)
+
+        cr.set_source_rgb(*mkit.floats_from_string(bg_color))
+        cr.fill()
+
+        cr.set_line_width(1)
+        cr.translate(0.5, 0.5)
+
+        rr.layout(cr,
+                  a.x+1, a.y-1,
+                  a.x+a.width-2, a.y+a.height,
+                  radius=mkit.CORNER_RADIUS)
+
+        cr.set_source_rgb(*mkit.floats_from_string(line_color))
+        cr.stroke()
+
+        cr.restore()
+        return
+
+
+class AppDescription(gtk.VBox):
+
+    def __init__(self):
+        gtk.VBox.__init__(self)
+
+        self.paragraphs = []
+        self.points = []
+        return
+
+    def clear(self):
+        for child in self.get_children():
+            self.remove(child)
+            child.destroy()
+
+        self.paragraphs = []
+        self.points = []
+        return
+
+    def append_paragraph(self, fragment, newline):
+        if not fragment.strip(): return
+        p = gtk.Label()
+
+        if newline:
+            p.set_markup('\n'+fragment)
+        else:
+            p.set_markup(fragment)
+
+        p.set_line_wrap(True)
+        p.set_selectable(True)
+
+        hb = gtk.HBox()
+        hb.pack_start(p, False)
+
+        self.pack_start(hb)
+        self.paragraphs.append(p)
+        return True
+
+    def append_bullet_point(self, fragment):
+        fragment = fragment.strip()
+        fragment = fragment.replace('* ', '')
+        fragment = fragment.replace('- ', '')
+
+        bullet = gtk.Label()
+        bullet.set_markup(u"  <big>\u2022</big>")
+
+        a = gtk.Alignment(0.5, 0.0)
+        a.add(bullet)
+
+        point = gtk.Label()
+        point.set_markup(fragment)
+        point.set_line_wrap(True)
+        point.set_selectable(True)
+
+        hb = gtk.HBox(spacing=mkit.EM)
+        hb.pack_start(a, False)
+        hb.pack_start(point, False)
+
+        bullet_padding = max(3, int(0.333*mkit.EM+0.5))
+        a = gtk.Alignment(xscale=1.0, yscale=1.0)
+        a.set_padding(bullet_padding, bullet_padding, 0, 0)
+        a.add(hb)
+
+        self.pack_start(a)
+        self.points.append(point)
+        return False
+
+    def set_description(self, desc, appname):
+        self.clear()
+
+        processed_desc = ''
+        prev_part = ''
+        parts = desc.split('\n')
+
+        newline = False
+        in_blist = False
+
+        for i, part in enumerate(parts):
+            part = part.strip()
+            if not part:
+                pass
+            elif part.startswith('* ') or part.startswith('- '):
+                if not in_blist:
+                    in_blist = True
+                    newline = self.append_paragraph(processed_desc, newline)
+                else:
+                    newline = self.append_bullet_point(processed_desc)
+
+                processed_desc = ''
+                processed_desc += part
+
+                # specialcase for 7zip
+                if appname == '7zip' and \
+                    (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
+                    processed_desc += '\n'
+
+            elif prev_part.endswith('.'):
+                if in_blist:
+                    in_blist = False
+                    newline = self.append_bullet_point(processed_desc)
+                else:
+                    newline = self.append_paragraph(processed_desc, newline)
+
+                processed_desc = ''
+                processed_desc += part
+
+            elif not prev_part.endswith(',') and part[0].isupper():
+                if in_blist:
+                    in_blist = False
+                    newline = self.append_bullet_point(processed_desc)
+                else:
+                    newline = self.append_paragraph(processed_desc, newline)
+
+                processed_desc = ''
+                processed_desc += part
+            else:
+                if not part.endswith('.'):
+                    processed_desc += part + ' '
+                elif (i+1) < len(parts) and (parts[i+1].startswith('* ') or \
+                    parts[i+1].startswith('- ')):
+                    processed_desc += part
+                else:
+                    processed_desc += part
+
+            prev_part = part
+
+        if in_blist:
+            in_blist = False
+            self.append_bullet_point(processed_desc)
+        else:
+            self.append_paragraph(processed_desc, newline)
+
+        self.show_all()
+        return
+
+
+class PackageInfoTable(gtk.VBox):
+
+    def __init__(self, rows=3, columns=2):
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
+        self.connect('realize', self._on_realize)
+
+        self.version_label = gtk.Label()
+        self.license_label = gtk.Label()
+        self.support_label = gtk.Label()
+
+        self.version_label.set_selectable(True)
+        self.license_label.set_selectable(True)
+        self.support_label.set_selectable(True)
+        return
+
+    def _on_realize(self, widget):
+        dark = self.style.dark[self.state].to_string()
+        key_markup = '<b><span color="%s">%s</span></b>'
+        max_lw = 0  # max key label width
+
+        for kstr, v in [(_('Version:'), self.version_label),
+                        (_('License:'), self.license_label),
+                        (_('Updates:'), self.support_label)]:
+     
+            k = gtk.Label()
+            k.set_markup(key_markup  % (dark, kstr))
+            v.set_line_wrap(True)
+            max_lw = max(max_lw, k.get_layout().get_pixel_extents()[1][2])
+
+            a = gtk.Alignment(1.0, 0.0)
+            a.add(k)
+
+            row = gtk.HBox(spacing=mkit.SPACING_XLARGE)
+            row.pack_start(a, False)
+            row.pack_start(v, False)
+            self.pack_start(row, False)
+
+        for row in self.get_children():
+            k, v = row.get_children()
+            k.set_size_request(max_lw+3*mkit.EM, -1)
+
+        self.show_all()
+        return
+
+    def set_version(self, version):
+        self.version_label.set_text(version)
+        return
+
+    def set_license(self, license):
+        self.license_label.set_text(license)
+        return
+
+    def set_support_status(self, support_status):
+        self.support_label.set_text(support_status)
+        return
+
 
 
 class AppDetailsView(gtk.ScrolledWindow):
@@ -85,47 +409,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
-        # setup base widgets
-        # we have our own viewport so we know when the viewport grows/shrinks
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
-
-        viewport = gtk.Viewport()
-        viewport.set_shadow_type(gtk.SHADOW_NONE)
-        viewport.add(self.vbox)
-        self.add(viewport)
-        self.vbox.set_redraw_on_allocate(False)
-        self.show_all()
-
-        # framed section that contains all app details
-        self.app_info = mkit.FramedSection()
-        self.app_info.header.set_spacing(mkit.SPACING_LARGE)
-        self.app_info.footer.set_size_request(-1, 2*mkit.EM)
-        self.app_info.header.set_border_width(2*mkit.BORDER_WIDTH_LARGE)
-        self.app_info.body.set_border_width(2*mkit.BORDER_WIDTH_LARGE)
-        self.app_info.body.set_spacing(2*mkit.SPACING_LARGE)
-        self.vbox.pack_start(self.app_info, False)
-
-        # controls which are displayed if the app is installed
-        installed = gtk.image_new_from_icon_name("software-center-installed",
-                                                 gtk.ICON_SIZE_MENU)
-        label = gtk.Label()
-        markup = '<b><big><span color="%s">%s</span></big></b>' % (COLOR_BLACK, _('Installed'))
-        label.set_markup(markup)
-        self.remove_btn = gtk.Button(_('Remove'))
-
-        self.action_bar = gtk.HBox()
-        self.action_bar.set_spacing(mkit.SPACING_MED)
-        self.action_bar.set_border_width(mkit.BORDER_WIDTH_MED)
-        self.action_bar.pack_start(installed, False)
-        self.action_bar.pack_start(label, False)
-        self.action_bar.pack_end(self.remove_btn, False)
-        self.app_info.body.pack_start(self.action_bar, False)
-
-        # vbox which contains textual paragraphs and bullet points
-        self.app_desc = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.app_info.body.pack_start(self.app_desc)
-
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
@@ -144,6 +427,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
         # data
@@ -151,8 +435,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app = None
         self.iconname = ""
 
-        self._paragraphs = []
-        self._points = []
+        # page elements are packed
+        viewport = self._layout_page()
 
         viewport.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
@@ -160,9 +444,15 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
-        for p in self._paragraphs:
+        l = self.app_info.label.get_layout()
+        if l.get_pixel_extents()[1][2] > w-48-6*mkit.EM:
+            self.app_info.label.set_size_request(w-48-6*mkit.EM, -1)
+        else:
+            self.app_info.label.set_size_request(-1, -1)
+
+        for p in self.app_desc.paragraphs:
             p.set_size_request(w-6*mkit.EM, -1)
-        for pt in self._points:
+        for pt in self.app_desc.points:
             pt.set_size_request(w-8*mkit.EM, -1)
 
         self._full_redraw()   #  ewww
@@ -175,11 +465,13 @@ class AppDetailsView(gtk.ScrolledWindow):
         cr.clip()
 
         self.app_info.draw(cr, self.app_info.allocation, expose_area)
+        #self.desc_section.draw(cr, self.desc_section.allocation, expose_area)
 
-        # if installed draw border around installed controls
-        self._draw_action_bar_bg(cr,
-                                 COLOR_GREEN_LIGHT,
-                                 COLOR_GREEN_NORMAL)
+        self.action_bar.draw(cr,
+                             self.action_bar.allocation,
+                             event.area,
+                             COLOR_GREEN_FILL,
+                             COLOR_GREEN_OUTLINE)
 
         del cr
         return
@@ -207,32 +499,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         gobject.idle_add(self._full_redraw_cb)
         return
 
-    def _draw_action_bar_bg(self, cr, bg_color, line_color):
-        a = self.action_bar.allocation
-        rr = mkit.ShapeRoundedRectangle()
-
-        rr.layout(cr,
-                  a.x, a.y,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
-        cr.set_source_rgb(*mkit.floats_from_string(bg_color))
-        cr.fill()
-
-        cr.save()
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-
-        rr.layout(cr,
-                  a.x, a.y,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
-        cr.set_source_rgb(*mkit.floats_from_string(line_color))
-        cr.stroke()
-        cr.restore()
-        return
-
     def _get_component(self, pkg=None):
         """ 
         get the component (main, universe, ..) for the given pkg object
@@ -247,140 +513,121 @@ class AppDetailsView(gtk.ScrolledWindow):
                 origin.trusted and 
                 origin.component):
                 return origin.component
-
-    def _clear_description(self):
-        for child in self.app_desc.get_children():
-            self.app_desc.remove(child)
-            child.destroy()
-
-        self._paragraphs = []
-        self._points = []
         return
 
-    def _append_paragraph(self, fragment, newline):
-        if not fragment.strip(): return
-        p = gtk.Label()
-
-        if newline:
-            p.set_markup('\n'+fragment)
-        else:
-            p.set_markup(fragment)
-
-        p.set_line_wrap(True)
-
-        hb = gtk.HBox()
-        hb.pack_start(p, False)
-        hb.show_all()
-
-        self.app_desc.pack_start(hb)
-        self._paragraphs.append(p)
-        return True
-
-    def _append_bullet_point(self, fragment):
-        fragment = fragment.strip()
-        fragment = fragment.replace('* ', '')
-        fragment = fragment.replace('- ', '')
-
-        bullet = gtk.Label()
-        bullet.set_markup(u" \u2022")
-        bullet_align = gtk.Alignment(0.5, 0.0)
-        bullet_align.add(bullet)
-
-        point = gtk.Label()
-        point.set_markup(fragment)
-        point.set_line_wrap(True)
-
-        hb = gtk.HBox(spacing=mkit.EM)
-        hb.pack_start(bullet_align, False)
-        hb.pack_start(point, False)
-        hb.show_all()
-
-        self.app_desc.pack_start(hb,
-                                 padding=3)
-
-        self._points.append(point)
-        return False
-
-    def _format_description(self, desc, appname):
-        processed_desc = ''
-        prev_part = ''
-        parts = desc.split('\n')
-
-        newline = False
-        in_blist = False
-
-        for i, part in enumerate(parts):
-            part = part.strip()
-            if not part:
-                pass
-            elif part.startswith('* ') or part.startswith('- '):
-                if not in_blist:
-                    in_blist = True
-                    newline = self._append_paragraph(processed_desc, newline)
-                else:
-                    newline = self._append_bullet_point(processed_desc)
-
-                processed_desc = ''
-                processed_desc += part
-
-                # specialcase for 7zip
-                if appname == '7zip' and \
-                    (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
-                    processed_desc += '\n'
-
-            elif prev_part.endswith('.'):
-                if in_blist:
-                    in_blist = False
-                    newline = self._append_bullet_point(processed_desc)
-                else:
-                    newline = self._append_paragraph(processed_desc, newline)
-
-                processed_desc = ''
-                processed_desc += part
-
-            elif not prev_part.endswith(',') and part[0].isupper():
-                if in_blist:
-                    in_blist = False
-                    newline = self._append_bullet_point(processed_desc)
-                else:
-                    newline = self._append_paragraph(processed_desc, newline)
-
-                processed_desc = ''
-                processed_desc += part
+    def _get_pkg_state(self):
+        if self.pkg:
+            # Don't handle upgrades yet
+            #if pkg.installed and pkg.isUpgradable:
+            #    return PKG_STATE_UPGRADABLE
+            if self.pkg.installed:
+                return PKG_STATE_INSTALLED
             else:
-                if not part.endswith('.'):
-                    processed_desc += part + ' '
-                elif (i+1) < len(parts) and (parts[i+1].startswith('* ') or \
-                    parts[i+1].startswith('- ')):
-                    processed_desc += part
-                else:
-                    processed_desc += part
+                return PKG_STATE_UNINSTALLED
 
-            prev_part = part
+        elif self.doc:
+            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            if channel:
+                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+                #if os.path.exists(path):
+                    #self.channelname = channel
+                    #self.channelfile = path
+                    ## FIXME: deal with the EULA stuff
+                    return PKG_STATE_NEEDS_SOURCE
+            # check if it comes from a non-enabled component
+            elif self._unavailable_component():
+                # FIXME: use a proper message here, but we are in string freeze
+                return PKG_STATE_UNAVAILABLE
+            elif self._available_for_our_arch():
+                return PKG_STATE_NEEDS_SOURCE
 
-        if in_blist:
-            in_blist = False
-            self._append_bullet_point(processed_desc)
-        else:
-            self._append_paragraph(processed_desc, newline)
-
-        self.app_desc.show_all()
-        return
+        return PKG_STATE_UNKNOWN
 
     def _layout_page(self):
-        # application icon and name packed into header
+        # setup widgets
+        self.vbox = gtk.VBox()
+        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
+
+        # we have our own viewport so we know when the viewport grows/shrinks
+        viewport = gtk.Viewport()
+        viewport.set_shadow_type(gtk.SHADOW_NONE)
+        viewport.add(self.vbox)
+        self.add(viewport)
+        self.vbox.set_redraw_on_allocate(False)
+
+        # framed section that contains all app details
+        self.app_info = mkit.FramedSection()
+        self.app_info.set_spacing(mkit.SPACING_XLARGE)
+        self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
+        self.app_info.body.set_spacing(mkit.SPACING_XLARGE)
+        self.vbox.pack_start(self.app_info, False)
+
+        # controls which are displayed if the app is installed
+        self.action_bar = PackageStatusBar(self)
+        self.app_info.body.pack_start(self.action_bar, False)
+
+        # FramedSection which contains textual paragraphs and bullet points
+        self.desc_section = mkit.FramedSection(_('Description'),
+                                           xpadding=mkit.SPACING_LARGE)
+        self.app_info.body.pack_start(self.desc_section, False)
+
+        # application description wigdets
+        self.app_desc = AppDescription()
+        self.desc_section.body.pack_start(self.app_desc, False)
+
+        # hbox for web related links (homepage and microbloggers)
+        web_hb = gtk.HBox(spacing=mkit.SPACING_MED)
+        self.desc_section.body.pack_end(web_hb, False)
+
+        # homepage link button
+        self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
+        self.homepage_btn.set_relief(gtk.RELIEF_NONE)
+        web_hb.pack_start(self.homepage_btn, False)
+
+        # share app with microbloggers button
+        self.share_btn = gtk.LinkButton(uri=_('Share via micro-blogging service'),
+                                        label=_('Share...'))
+        self.share_btn.set_relief(gtk.RELIEF_NONE)
+        self.share_btn.connect('clicked', self._on_share_clicked)
+        web_hb.pack_start(self.share_btn, False)
+
+        # package info table
+        self.info_table = PackageInfoTable()
+        self.app_info.body.pack_start(self.info_table, False)
+
+        self.show_all()
+        return viewport
+
+    def _update_page(self):
         font_size = 22*pango.SCALE  # make this relative to the appicon size (48x48)
-        appname = self.get_appname()
+        appname = self.get_name()
 
         markup = '<b><span size="%s">%s</span></b>\n%s' % (font_size,
                                                            appname,
-                                                           self.get_appsummary())
+                                                           self.get_summary())
 
+        # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
-        self.app_info.set_icon(self.iconname, gtk.ICON_SIZE_DIALOG)
+        self.app_info.set_icon(self.iconname or 'gnome-other',
+                               gtk.ICON_SIZE_DIALOG)
 
-        self._clear_description()
-        self._format_description(self.get_description(), appname)
+        # depending on pkg install state set action labels
+        self.action_bar.set_pkg_state(self._get_pkg_state())
+
+        # format new app description
+        self.app_desc.set_description(self.get_description(), appname)
+
+        # show or hide the homepage button and set uri if homepage specified
+        if self.homepage_url:
+            self.homepage_btn.show()
+            self.homepage_btn.set_uri(self.homepage_url)
+        else:
+            self.homepage_btn.hide()
+
+        # set the strings in the package info table
+        self.info_table.set_version(self.get_version_string())
+        self.info_table.set_license(self.get_license())
+        self.info_table.set_support_status(self.get_maintainance_time())
         return
 
     # public API
@@ -432,7 +679,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         # setup component
         self.component = self._get_component(self.pkg)
 
-        self._layout_page()
+        self._update_page()
         return
 
     def get_icon_filename(self, iconname, iconsize):
@@ -442,17 +689,21 @@ class AppDetailsView(gtk.ScrolledWindow):
         return iconinfo.get_filename()
 
     # substitute functions called during page display
-    def get_appname(self):
+    def get_name(self):
         return self.app.name
-    def get_appsummary(self):
+
+    def get_summary(self):
         return self.db.get_summary(self.doc)
+
     def wksub_pkgname(self):
         return self.app.pkgname
+
     def wksub_body_class(self):
         if (self.app.pkgname in self.cache and
             self.cache[self.app.pkgname].is_installed):
             return "section-installed"
         return "section-get"
+
     def get_description(self):
         # if we do not have a package in our apt data explain why
         if not self.pkg:
@@ -475,19 +726,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         # format for html
         description = self.pkg.candidate.description
         logging.debug("Description (text) %r", description)
-        return description
-
-    def add_ul_tags(self, description):
-        """ add <ul></ul> around a bunch of <li></li> lists
-        """
-        first_li = description.find("<li>")
-        last_li =  description.rfind("</li>")
-        if first_li >= 0 and last_li >= 0:
-            last_li += len("</li>")
-            return '%s<ul tabindex="0">%s</ul>%s' % (
-                description[:first_li],
-                description[first_li:last_li],
-                description[last_li:])
         return description
 
     def wksub_iconpath_loading(self):
@@ -528,33 +766,17 @@ class AppDetailsView(gtk.ScrolledWindow):
     def wksub_action_button_value(self):
         self.action_button_value = self._get_action_button_label_and_value()[1]
         return self.action_button_value
-    def wksub_action_button_visible(self):
-        if not self._available_for_our_arch():
-            return "hidden"
-        if (not self.channelfile and 
-            not self._unavailable_component() and
-            not self.pkg):
-            return "hidden"
-        return "visible"
-    def wksub_homepage_button_visibility(self):
-        if self.homepage_url:
-            return "visible"
-        return "hidden"
-    def wksub_share_button_visibility(self):
-        if os.path.exists("/usr/bin/gwibber-poster"):
-            return "visible"
-        return "hidden"
-    def wksub_package_information(self):
+
+    def get_version_string(self):
         if not self.pkg or not self.pkg.candidate:
             return ""
         version = self.pkg.candidate.version
         if version:
-            s = _("Version: %s (%s)") % (version, self.pkg.name)
-            return s
+            return "%s (%s)" % (version, self.pkg.name)
         return ""
     def wksub_datadir(self):
         return self.datadir
-    def wksub_maintainance_time(self):
+    def get_maintainance_time(self):
         """add the end of the maintainance time"""
         return self.distro.get_maintenance_status(self.cache,
             self.app.appname or self.app.pkgname, self.app.pkgname, self.component, self.channelfile)
@@ -563,22 +785,17 @@ class AppDetailsView(gtk.ScrolledWindow):
         if not self.pkg:
             return ""
         return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
-    def wksub_homepage(self):
-        s = _("Website")
-        return s
-    def wksub_share(self):
-        s = _("Share via microblog")
-        return s
-    def wksub_license(self):
-        return self.distro.get_license_text(self.component)
-    def wksub_price(self):
+    def get_license(self):
+        return self.distro.get_license_text(self.component).split()[1]
+    def get_price(self):
         price = self.distro.get_price(self.doc)
-        s = _("Price: %s") % price
-        return s
+        #s = _("Price: %s") % price
+        return price
     def get_installed(self):
         if self.pkg and self.pkg.installed:
             return True
         return False
+
     def wksub_screenshot_installed(self):
         if (self.app.pkgname in self.cache and
             self.cache[self.app.pkgname].is_installed):
@@ -588,24 +805,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         return self.distro.IMAGE_THUMBNAIL_MISSING
     def wksub_no_screenshot_avaliable(self):
         return _('No screenshot available')
-    def wksub_text_direction(self):
-        direction = gtk.widget_get_default_direction()
-        if direction ==  gtk.TEXT_DIR_RTL:
-            return 'DIR="RTL"'
-        elif direction ==  gtk.TEXT_DIR_LTR:
-            return 'DIR="LTR"'
-    def wksub_font_family(self):
-        return self._get_font_description_property("family")
-    def wksub_font_weight(self):
-        try:
-            return self._get_font_description_property("weight").real
-        except:
-            return int(self._get_font_description_property("weight"))
-    def wksub_font_style(self):
-        return self._get_font_description_property("style").value_nick
-    def wksub_font_size(self):
-        return self._get_font_description_property("size")/1024
-
 
     # callbacks
     def on_button_reload_clicked(self):
@@ -634,27 +833,15 @@ class AppDetailsView(gtk.ScrolledWindow):
         d.run()
         d.destroy()
 
-    def on_button_homepage_clicked(self):
-        cmd = self._url_launch_app()
-        subprocess.call([cmd, self.homepage_url])
-
-    def on_button_share_clicked(self):
+    def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s apturl:%(pkgname)s") % {
+        msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
             'appname' : self.app.appname, 
             'pkgname' : self.app.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
         glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
-
-    def on_button_upgrade_clicked(self):
-        self.upgrade()
-
-    def on_button_remove_clicked(self):
-        self.remove()
-
-    def on_button_install_clicked(self):
-        self.install()
+        return
 
     # public interface
     def install(self):
@@ -674,34 +861,53 @@ class AppDetailsView(gtk.ScrolledWindow):
             
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
-                self._set_action_button_sensitive(True)
+                self.action_bar.button.set_sensitive(True)
                 self.backend.emit("transaction-stopped")
                 return
         self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
+
     def upgrade(self):
         self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
+        return
 
     # internal callback
     def _on_cache_ready(self, cache):
         logging.debug("on_cache_ready")
         self.show_app(self.app)
+
     def _on_transaction_started(self, backend):
-        self._set_action_button_sensitive(False)
+        self.action_bar.button.set_sensitive(False)
+
+        state = self.action_bar.pkg_state
+        if state == PKG_STATE_UNINSTALLED:
+            self.action_bar.set_pkg_state(PKG_STATE_INSTALLING)
+        elif state == PKG_STATE_INSTALLED:
+            self.action_bar.set_pkg_state(PKG_STATE_REMOVING)
+        elif state == PKG_STATE_UPGRADABLE:
+            self.action_bar.set_pkg_state(PKG_STATE_UPGRADING)
+        return
+
     def _on_transaction_stopped(self, backend):
-        self._set_action_button_sensitive(True)
-        if not self.app:
-            return
-        self.execute_script("showProgress(false);")
+        self.action_bar.button.set_sensitive(True)
+        return
+
+    def _on_transaction_finished(self, *args):
+        self.action_bar.progress.hide()
+        self.action_bar.button.show()
+        self.action_bar.button.set_sensitive(True)
+        return
+
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if not self.app or not self.app.pkgname == pkgname:
             return
-        # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-        if self.get_load_status() != 2:
-            return
-        self._set_action_button_sensitive(False)
-        self.execute_script("showProgress(true);")
+
+        if not self.action_bar.progress.get_property('visible'):
+            self.action_bar.progress.show()
+            self.action_bar.button.hide()
+
         if pkgname in backend.pending_transactions:
-            self.execute_script("updateProgress(%s);" % progress)
+            self.action_bar.progress.set_fraction(progress/100.0)
+        return
 
     def _on_navigation_requested(self, view, frame, request):
         logging.debug("_on_navigation_requested %s" % request.get_uri())
@@ -747,51 +953,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         f=gio.File(url)
         f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
                            thumb_query_info_async_callback)
-
-    def _get_action_button_label_and_value(self):
-        action_button_label = ""
-        action_button_value = ""
-        if self.pkg:
-            pkg = self.pkg
-            # Don't handle upgrades yet
-            #if pkg.installed and pkg.isUpgradable:
-            #    action_button_label = _("Upgrade")
-            #    action_button_value = "upgrade"
-            if pkg.installed:
-                action_button_label = _("Remove")
-                action_button_value = "remove"
-            else:
-                price = self.distro.get_price(self.doc)
-                # we don't have price information
-                if price is None:
-                    action_button_label = _("Install")
-                # its free
-                elif price == _("Free"):
-                    action_button_label = _("Install - Free")
-                else:
-                    # FIXME: string freeze, so d
-                    #action_button_label = _("Install - %s") % price
-                    logging.error("Can not handle price %s" % price)
-                action_button_value = "install"
-        elif self.doc:
-            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                if os.path.exists(path):
-                    self.channelname = channel
-                    self.channelfile = path
-                    # FIXME: deal with the EULA stuff
-                    action_button_label = _("Use This Source")
-                    action_button_value = "enable_channel"
-            # check if it comes from a non-enabled component
-            elif self._unavailable_component():
-                # FIXME: use a proper message here, but we are in string freeze
-                action_button_label = _("Use This Source")
-                action_button_value = "enable_component"
-            elif self._available_for_our_arch():
-                action_button_label = _("Update Now")
-                action_button_value = "reload"
-        return (action_button_label, action_button_value)
 
     def _unavailable_component(self):
         """ 
