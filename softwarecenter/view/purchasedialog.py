@@ -25,8 +25,9 @@ from softwarecenter.distro import get_distro
 
 class PurchaseDialog(gtk.Dialog):
 
-    def __init__(self, url=None, html=None):
+    def __init__(self, app, url=None, html=None):
         gtk.Dialog.__init__(self)
+        self.app = app
         self.set_size_request(500, 300)
         self.webkit = webkit.WebView()
         settings = self.webkit.get_settings()
@@ -63,11 +64,10 @@ class PurchaseDialog(gtk.Dialog):
         print res
         if res["successful"] == False:
             self.response(gtk.RESPONSE_CANCEL)
+            return
         # gather data
         source_entry = res["deb_line"]
         signing_key = res["signing_key_id"]
-        pkgname = res["package_name"]
-        appname = res["application_name"]
         # do it
         backend = get_install_backend()
         backend.add_vendor_key_from_keyserver(signing_key)
@@ -75,7 +75,7 @@ class PurchaseDialog(gtk.Dialog):
         backend.emit("channels-changed", True)
         backend.reload()
         # now queue installing the app
-        backend.install(pkgname, appname, "")
+        backend.install(self.app.pkgname, self.app.appname, "")
         self.response(gtk.RESPONSE_OK)
 
 
