@@ -76,12 +76,17 @@ class AppInfoParserBase(object):
 class SoftwareCenterAgentParser(AppInfoParserBase):
     """ map the data we get from the software-center-agent """
 
+    # map from requested key to sca_entry attribute
     MAPPING = { 'Name'       : 'name',
                 'Comment'    : 'description',
                 'Price'      : 'price',
                 'Package'    : 'package_name',
                 'Categories' : 'categories',
               }
+
+    # map from requested key to a static data element
+    STATIC_DATA = { 'Type' : 'Application',
+                  }
 
     def __init__(self, sca_entry):
         self.sca_entry = sca_entry
@@ -94,9 +99,12 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
             return self.MAPPING[key]
         return key
     def get_desktop(self, key):
+        if key in self.STATIC_DATA:
+            return self.STATIC_DATA[key]
         return getattr(self.sca_entry, self._apply_mapping(key))
     def has_option_desktop(self, key):
-        return hasattr(self.sca_entry, self._apply_mapping(key))
+        return (key in self.STATIC_DATA or
+                hasattr(self.sca_entry, self._apply_mapping(key)))
     @property
     def desktopf(self):
         return self.origin
