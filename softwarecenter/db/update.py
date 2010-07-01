@@ -199,12 +199,11 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
     logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
 
-def update_from_webservice(db, cache, url):
-    """ index from a json webservice """
-    urllib._urlopener = GnomeProxyURLopener()
-    f = urllib.urlopen(url)
-    for sec in simplejson.loads(f.read()):
-        parser = JsonTagSectionParser(sec, url)
+def update_from_json_string(db, cache, json_string, origin):
+    """ index from a json string, should include origin url (free form string)
+    """
+    for sec in simplejson.loads(json_string):
+        parser = JsonTagSectionParser(sec, origin)
         index_app_info_from_parser(parser, db, cache)
     return True
 

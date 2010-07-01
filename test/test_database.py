@@ -79,13 +79,13 @@ class testDatabase(unittest.TestCase):
         self.assertTrue(found_gettext_translation)
 
 
-    def test_update_from_webservice(self):
-        from softwarecenter.db.update import update_from_webservice
+    def test_update_from_json_string(self):
+        from softwarecenter.db.update import update_from_json_string
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         cache = apt.Cache()
         p = os.path.abspath("./data/app-info-json/apps.json")
-        res = update_from_webservice(db, cache, url="file:%s" % p)
+        res = update_from_json_string(db, cache, open(p).read(), origin=p)
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 1)
 
