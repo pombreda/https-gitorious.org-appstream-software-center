@@ -89,6 +89,15 @@ class testDatabase(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 1)
 
+    def test_build_from_software_center_agent(self):
+        from softwarecenter.db.update import update_from_software_center_agent
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        cache = apt.Cache()
+        res = update_from_software_center_agent(db, cache)
+        self.assertTrue(res)
+        self.assertEqual(db.get_doccount(), 1)
+        
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)

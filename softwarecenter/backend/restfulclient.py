@@ -57,6 +57,7 @@ class RestfulClientWorker(threading.Thread):
         self._authorizer = authorizer
         self._pending_requests = Queue()
         self._shutdown = False
+        self.daemon = True
 
     def run(self):
         """
@@ -135,15 +136,16 @@ class SoftwareCenterAgent(gobject.GObject):
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
-        if self._available:
+        if self._available is not None:
             self.emit("available", self._available)
             self._available = None
-        if self._available_for_me:
+        if self._available_for_me is not None:
             self.emit("available-for-me", self._available_for_me)
             self._available_for_me = None
         return True
 
     def _thread_available_for_me_done(self, result):
+        print "_availalbe_for_me_done"
         self._available_for_me =  [x for x in result]
 
     def _thread_available_for_me_error(self, error):
@@ -157,6 +159,7 @@ class SoftwareCenterAgent(gobject.GObject):
                                          self._thread_available_for_me_error)
 
     def _thread_available_done(self, result):
+        print "_availalbe", result
         self._available = [x for x in result]
 
     def _thread_available_error(self, error):
