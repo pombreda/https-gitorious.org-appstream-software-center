@@ -35,6 +35,7 @@ from launchpadlib.uris import EDGE_SERVICE_ROOT, STAGING_SERVICE_ROOT
 from paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
+from login import LoginBackend
 
 # LP to use
 SERVICE_ROOT = EDGE_SERVICE_ROOT
@@ -202,28 +203,16 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         self.lp_worker.login_state = LOGIN_STATE_SUCCESS_PENDING
 
 
-class GLaunchpad(gobject.GObject):
+class GLaunchpad(LoginBackend):
     """ A launchpad connection that uses GObject signals
         for communication and async tasks
     """
 
-    __gsignals__ = {
-        "login-successful" : (gobject.SIGNAL_RUN_LAST,
-                             gobject.TYPE_NONE, 
-                             (),
-                            ),
-        "login-failed" : (gobject.SIGNAL_RUN_LAST,
-                          gobject.TYPE_NONE, 
-                          (),
-                         ),
-        "need-username-password" : (gobject.SIGNAL_RUN_LAST,
-                                    gobject.TYPE_NONE, 
-                                    (),
-                                   ),
-        }
+    NEW_ACCOUNT_URL = "https://login.launchpad.net/+standalone-login"
+    FORGOT_PASSWORD_URL =  "https://login.launchpad.net/+standalone-login"
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        LoginBackend.__init__(self)
         self.distro = get_distro()
 
     def connect_to_server(self):

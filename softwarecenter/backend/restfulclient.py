@@ -42,6 +42,8 @@ from oauth.oauth import OAuthConsumer, OAuthToken
 from paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
+from login import LoginBackend
+
 UBUNTU_SSO_SERVICE = "https://login.staging.ubuntu.com/api/1.0"
 UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = "http://localhost:8000/api/1.0"
 
@@ -159,27 +161,15 @@ class SoftwareCenterAgent(gobject.GObject):
                                          self._available_error)
 
 
-class UbuntuSSOlogin(gobject.GObject):
+class UbuntuSSOlogin(LoginBackend):
 
-    __gsignals__ = {
-        "login-successful" : (gobject.SIGNAL_RUN_LAST,
-                             gobject.TYPE_NONE, 
-                             (gobject.TYPE_PYOBJECT,),
-                            ),
-        "login-failed" : (gobject.SIGNAL_RUN_LAST,
-                          gobject.TYPE_NONE, 
-                          (),
-                         ),
-        "need-username-password" : (gobject.SIGNAL_RUN_LAST,
-                                    gobject.TYPE_NONE, 
-                                    (),
-                                   ),
-        }
+    NEW_ACCOUNT_URL = "https://login.launchpad.net/+standalone-login"
+    FORGOT_PASSWORD_URL = "https://login.ubuntu.com/+forgot_password"
 
     SSO_AUTHENTICATE_FUNC = "authentications.authenticate"
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        LoginBackend.__init__(self)
         self.service = UBUNTU_SSO_SERVICE
 
     def login(self, username=None, password=None):
@@ -202,6 +192,10 @@ class UbuntuSSOlogin(gobject.GObject):
     def _authentication_error(self, e):
         print "_authentication_error", type(e)
         self.emit("login-failed")
+
+    def __del__(self):
+        print "del"
+        self.worker_thread.shutdown()
 
 # test code
 def _login_success(lp, token):
