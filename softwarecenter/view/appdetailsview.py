@@ -223,6 +223,7 @@ class AppDescription(gtk.VBox):
             p.set_markup(fragment)
 
         p.set_line_wrap(True)
+        p.set_selectable(True)
 
         hb = gtk.HBox()
         hb.pack_start(p, False)
@@ -237,20 +238,21 @@ class AppDescription(gtk.VBox):
         fragment = fragment.replace('- ', '')
 
         bullet = gtk.Label()
-        bullet.set_markup(u" <big>\u2022</big>")
-        
-        bullet_padding = max(3, int(0.333*mkit.EM+0.5))
+        bullet.set_markup(u"  <big>\u2022</big>")
+
         a = gtk.Alignment(0.5, 0.0)
         a.add(bullet)
 
         point = gtk.Label()
         point.set_markup(fragment)
         point.set_line_wrap(True)
+        point.set_selectable(True)
 
         hb = gtk.HBox(spacing=mkit.EM)
-        hb.pack_start(a, False, padding=bullet_padding)
+        hb.pack_start(a, False)
         hb.pack_start(point, False)
 
+        bullet_padding = max(3, int(0.333*mkit.EM+0.5))
         a = gtk.Alignment(xscale=1.0, yscale=1.0)
         a.set_padding(bullet_padding, bullet_padding, 0, 0)
         a.add(hb)
@@ -326,6 +328,65 @@ class AppDescription(gtk.VBox):
 
         self.show_all()
         return
+
+
+class PackageInfoTable(gtk.VBox):
+
+    def __init__(self, rows=3, columns=2):
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
+        self.connect('realize', self._on_realize)
+
+        self.version_label = gtk.Label()
+        self.license_label = gtk.Label()
+        self.support_label = gtk.Label()
+
+        self.version_label.set_selectable(True)
+        self.license_label.set_selectable(True)
+        self.support_label.set_selectable(True)
+        return
+
+    def _on_realize(self, widget):
+        dark = self.style.dark[self.state].to_string()
+        key_markup = '<b><span color="%s">%s</span></b>'
+        max_lw = 0  # max key label width
+
+        for kstr, v in [(_('Version:'), self.version_label),
+                        (_('License:'), self.license_label),
+                        (_('Updates:'), self.support_label)]:
+     
+            k = gtk.Label()
+            k.set_markup(key_markup  % (dark, kstr))
+            v.set_line_wrap(True)
+            max_lw = max(max_lw, k.get_layout().get_pixel_extents()[1][2])
+
+            a = gtk.Alignment(1.0, 0.0)
+            a.add(k)
+
+            row = gtk.HBox(spacing=mkit.SPACING_XLARGE)
+            row.pack_start(a, False)
+            row.pack_start(v, False)
+            self.pack_start(row, False)
+
+        for row in self.get_children():
+            k, v = row.get_children()
+            k.set_size_request(max_lw+3*mkit.EM, -1)
+
+        self.show_all()
+        return
+
+    def set_version(self, version):
+        self.version_label.set_text(version)
+        return
+
+    def set_license(self, license):
+        self.license_label.set_text(license)
+        return
+
+    def set_support_status(self, support_status):
+        self.support_label.set_text(support_status)
+        return
+
+
 
 class AppDetailsView(gtk.ScrolledWindow):
     """The view that shows the application details """
@@ -530,6 +591,10 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.share_btn.connect('clicked', self._on_share_clicked)
         web_hb.pack_start(self.share_btn, False)
 
+        # package info table
+        self.info_table = PackageInfoTable()
+        self.app_info.body.pack_start(self.info_table, False)
+
         self.show_all()
         return viewport
 
@@ -558,6 +623,11 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.homepage_btn.set_uri(self.homepage_url)
         else:
             self.homepage_btn.hide()
+
+        # set the strings in the package info table
+        self.info_table.set_version(self.get_version_string())
+        self.info_table.set_license(self.get_license())
+        self.info_table.set_support_status(self.get_maintainance_time())
         return
 
     # public API
@@ -696,33 +766,17 @@ class AppDetailsView(gtk.ScrolledWindow):
     def wksub_action_button_value(self):
         self.action_button_value = self._get_action_button_label_and_value()[1]
         return self.action_button_value
-    def wksub_action_button_visible(self):
-        if not self._available_for_our_arch():
-            return "hidden"
-        if (not self.channelfile and 
-            not self._unavailable_component() and
-            not self.pkg):
-            return "hidden"
-        return "visible"
-    def wksub_homepage_button_visibility(self):
-        if self.homepage_url:
-            return "visible"
-        return "hidden"
-    def wksub_share_button_visibility(self):
-        if os.path.exists("/usr/bin/gwibber-poster"):
-            return "visible"
-        return "hidden"
-    def wksub_package_information(self):
+
+    def get_version_string(self):
         if not self.pkg or not self.pkg.candidate:
             return ""
         version = self.pkg.candidate.version
         if version:
-            s = _("Version: %s (%s)") % (version, self.pkg.name)
-            return s
+            return "%s (%s)" % (version, self.pkg.name)
         return ""
     def wksub_datadir(self):
         return self.datadir
-    def wksub_maintainance_time(self):
+    def get_maintainance_time(self):
         """add the end of the maintainance time"""
         return self.distro.get_maintenance_status(self.cache,
             self.app.appname or self.app.pkgname, self.app.pkgname, self.component, self.channelfile)
@@ -731,8 +785,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         if not self.pkg:
             return ""
         return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
-    def wksub_license(self):
-        return self.distro.get_license_text(self.component)
+    def get_license(self):
+        return self.distro.get_license_text(self.component).split()[1]
     def get_price(self):
         price = self.distro.get_price(self.doc)
         #s = _("Price: %s") % price

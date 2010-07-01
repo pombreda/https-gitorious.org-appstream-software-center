@@ -221,21 +221,24 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 #        enquirer = xapian.Enquire(self.db.xapiandb)
 
         # sort Category.name's alphabetically
-        sorted_cats = categories_sorted_by_name(self.categories[:-1])
+        sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            #enquirer.set_query(cat.query)
-            ## limiting the size here does not make it faster
-            #matches = enquirer.get_mset(0, len(self.db))
-            #estimate = matches.get_matches_estimated()
+            
+            if cat.untranslated_name not in ('Featured Applications',
+                                             'New Applications'):
+                #enquirer.set_query(cat.query)
+                ## limiting the size here does not make it faster
+                #matches = enquirer.get_mset(0, len(self.db))
+                #estimate = matches.get_matches_estimated()
 
-            # sanitize text so its pango friendly...
-            name = gobject.markup_escape_text(cat.name.strip())
+                # sanitize text so its pango friendly...
+                name = gobject.markup_escape_text(cat.name.strip())
 
-            cat_btn = CategoryButton(name, icon_name=cat.iconname)
-            cat_btn.connect('clicked', self._on_category_clicked, cat)
-            # append the department to the departments widget
-            self.departments.append(cat_btn)
+                cat_btn = CategoryButton(name, icon_name=cat.iconname)
+                cat_btn.connect('clicked', self._on_category_clicked, cat)
+                # append the department to the departments widget
+                self.departments.append(cat_btn)
 
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
