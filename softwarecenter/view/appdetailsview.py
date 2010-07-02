@@ -90,6 +90,7 @@ class PackageStatusBar(gtk.Alignment):
     
     def __init__(self, details_view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        self.set_redraw_on_allocate(False)
         self.set_size_request(-1, int(3.5*mkit.EM+0.5))
         self.set_padding(mkit.SPACING_SMALL,
                          mkit.SPACING_SMALL,
@@ -228,7 +229,7 @@ class AppDescription(gtk.VBox):
         hb = gtk.HBox()
         hb.pack_start(p, False)
 
-        self.pack_start(hb)
+        self.pack_start(hb, False)
         self.paragraphs.append(p)
         return True
 
@@ -257,7 +258,7 @@ class AppDescription(gtk.VBox):
         a.set_padding(bullet_padding, bullet_padding, 0, 0)
         a.add(hb)
 
-        self.pack_start(a)
+        self.pack_start(a, False)
         self.points.append(point)
         return False
 
@@ -415,7 +416,7 @@ class ScreenshotLoader(gobject.GObject):
 
     def _actually_download_screenshot(self, file, url):
 
-        def download_screenshot_complete_cb(file, result):
+        def download_screenshot_cb(file, result):
             """Method called after the file has downloaded"""
 
             # the result from the download is actually a tuple with three elements. The first element is the actual content
@@ -430,7 +431,7 @@ class ScreenshotLoader(gobject.GObject):
             self.emit('download-complete', path)
             return
 
-        file.load_contents_async(download_screenshot_complete_cb)
+        file.load_contents_async(download_screenshot_cb)
         return
 
     def download_screenshot(self, url):
@@ -497,6 +498,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
+        # screenshot stuff
         self.loader = ScreenshotLoader()
         self.loader.connect('query-complete', self._on_screenshot_query_complete)
         self.loader.connect('download-complete', self._on_screenshot_download_complete)
@@ -522,10 +524,10 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.app_info.label.set_size_request(-1, -1)
 
         for p in self.app_desc.paragraphs:
-            p.set_size_request(w-magic_number, -1)
+            p.set_size_request(w-8*mkit.EM-148, -1)
             
         for pt in self.app_desc.points:
-            pt.set_size_request(w-8*mkit.EM, -1)
+            pt.set_size_request(w-10*mkit.EM-148, -1)
 
         self.info_table.set_width(w-magic_number)
 
@@ -546,6 +548,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                              event.area,
                              COLOR_GREEN_FILL,
                              COLOR_GREEN_OUTLINE)
+
         del cr
         return
 
@@ -555,6 +558,13 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_screenshot_download_complete(self, loader, screenshot_path):
         print screenshot_path
+
+        def setter_cb(path):
+            self.screenshot.set_from_file(path)
+            print self.screenshot.allocation
+            return False
+
+        gobject.idle_add(setter_cb, screenshot_path)
         return
 
     def _full_redraw_cb(self):
@@ -649,12 +659,21 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # FramedSection which contains textual paragraphs and bullet points
         self.desc_section = mkit.FramedSection(_('Description'),
-                                           xpadding=mkit.SPACING_LARGE)
+                                               xpadding=mkit.SPACING_LARGE)
         self.app_info.body.pack_start(self.desc_section, False)
+
+        app_desc_hb = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.desc_section.body.pack_start(app_desc_hb)
 
         # application description wigdets
         self.app_desc = AppDescription()
-        self.desc_section.body.pack_start(self.app_desc, False)
+        app_desc_hb.pack_start(self.app_desc, False)
+
+        # screenshot
+        self.screenshot = gtk.Image()
+        a = gtk.Alignment(0.5, 0.0)
+        a.add(self.screenshot)
+        app_desc_hb.pack_end(a)
 
         # hbox for web related links (homepage and microbloggers)
         web_hb = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -706,7 +725,7 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.homepage_btn.hide()
 
         # get screenshot url and load then render into page
-        url = self.get_screenshot_large_url()
+        url = self.get_screenshot_thumbnail_url()
         self.loader.download_screenshot(url)
 
         # set the strings in the package info table
