@@ -148,6 +148,8 @@ class NavigationItem(object):
         in_replay_history_mode = True
         available_pane = self.available_pane
         available_pane.apps_category = self.apps_category
+        #if self.apps_category:
+        #    available_pane.current_app_by_category[self.apps_category] = self.current_app
         available_pane.apps_subcategory = self.apps_subcategory
         available_pane.apps_search_term = self.apps_search_term
         available_pane.searchentry.set_text(self.apps_search_term)
