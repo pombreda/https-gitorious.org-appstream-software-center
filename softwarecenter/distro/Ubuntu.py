@@ -36,7 +36,7 @@ class Ubuntu(Distro):
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
 
     # purchase subscription
-    PURCHASE_APP_URL = "http://localhost:8000/subscriptions/en/ubuntu/maverick/+new/?archive_id=%s"
+    PURCHASE_APP_URL = "http://localhost:8000/subscriptions/en/ubuntu/maverick/+new/?archive_id=%s&distro_series=%s"
 
     def get_app_name(self):
         return _("Ubuntu Software Center")

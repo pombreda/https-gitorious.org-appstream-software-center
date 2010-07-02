@@ -369,7 +369,8 @@ class AppDetailsView(WebkitWidget):
     # callbacks
     def on_button_buy_app_clicked(self):
         logging.debug("on_button_buy_app_clicked")
-        url = self.distro.PURCHASE_APP_URL % urllib.urlencode(self.ppa)
+        url = self.distro.PURCHASE_APP_URL % (urllib.urlencode(self.ppa),
+                                              self.distro.get_distro_codename())
         dialog = PurchaseDialog(url=url, app=self.app)
         dialog.run()
         dialog.destroy()
