@@ -457,11 +457,25 @@ gobject.type_register(ScreenshotLoader)
 
 
 class ScreenshotView(gtk.Alignment):
-    
+
     def __init__(self):
-        gtk.Alignment.__init__(self, 0.5, 0.0)
+        gtk.Alignment.__init__(self, 0.5, 0.0, xscale=0.0, yscale=0.0)
+
+        event = gtk.EventBox()
+        self.add(event)
         self.image = gtk.Image()
-        self.add(self.image)
+        event.add(self.image)
+
+        event.set_flags(gtk.CAN_FOCUS)
+        event.set_events(gtk.gdk.BUTTON_PRESS_MASK|
+                         gtk.gdk.BUTTON_RELEASE_MASK|
+                         gtk.gdk.KEY_RELEASE_MASK|
+                         gtk.gdk.KEY_PRESS_MASK|
+                         gtk.gdk.ENTER_NOTIFY_MASK|
+                         gtk.gdk.LEAVE_NOTIFY_MASK)
+
+        event.connect('enter-notify-event', self._on_enter)
+        event.connect('leave-notify-event', self._on_leave)
 
         self.thumbnail_url = None
         self.large_url = None
@@ -469,6 +483,14 @@ class ScreenshotView(gtk.Alignment):
         self.loader = ScreenshotLoader()
         self.loader.connect('query-complete', self._on_screenshot_query_complete)
         self.loader.connect('download-complete', self._on_screenshot_download_complete)
+        return
+
+    def _on_enter(self, widget, event):
+        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+        return
+
+    def _on_leave(self, widget, event):
+        self.window.set_cursor(None)
         return
 
     def _on_screenshot_query_complete(self, loader, success):
@@ -494,9 +516,22 @@ class ScreenshotView(gtk.Alignment):
         self.loader.download_screenshot(thumb_url)
         return
 
+    def draw(self, cr, a, expose_area):
+        if mkit.not_overlapping(a, expose_area): return
+        ia = self.image.allocation
+        x = a.x + (a.width - ia.width)/2 - 3
+        cr.rectangle(x, a.y-3, ia.width+6, ia.height+6)
+        cr.clip_preserve()
+        cr.set_source_rgba(1,1,1)
+        cr.fill_preserve()
+        cr.set_source_rgb(0,0,0)
+        cr.stroke()
+        return
+
 
 class AppDetailsView(gtk.ScrolledWindow):
-    """The view that shows the application details """
+
+    """ The view that shows the application details """
 
     # the size of the icon on the left side
     APP_ICON_SIZE       = gtk.ICON_SIZE_DIALOG
@@ -506,10 +541,12 @@ class AppDetailsView(gtk.ScrolledWindow):
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
+
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
                     }
+
 
     def __init__(self, db, distro, icons, cache, history, datadir):
         gtk.ScrolledWindow.__init__(self)
@@ -543,7 +580,6 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # page elements are packed into our lovely viewport
         viewport = self._layout_page()
-
         viewport.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         return
@@ -582,6 +618,8 @@ class AppDetailsView(gtk.ScrolledWindow):
                              event.area,
                              COLOR_GREEN_FILL,
                              COLOR_GREEN_OUTLINE)
+
+        self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
         del cr
         return
 
