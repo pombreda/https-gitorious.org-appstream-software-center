@@ -456,6 +456,45 @@ class ScreenshotLoader(gobject.GObject):
 gobject.type_register(ScreenshotLoader)
 
 
+class ScreenshotView(gtk.Alignment):
+    
+    def __init__(self):
+        gtk.Alignment.__init__(self, 0.5, 0.0)
+        self.image = gtk.Image()
+        self.add(self.image)
+
+        self.thumbnail_url = None
+        self.large_url = None
+
+        self.loader = ScreenshotLoader()
+        self.loader.connect('query-complete', self._on_screenshot_query_complete)
+        self.loader.connect('download-complete', self._on_screenshot_download_complete)
+        return
+
+    def _on_screenshot_query_complete(self, loader, success):
+        print 'ThumbAvailable:', success
+        return
+
+    def _on_screenshot_download_complete(self, loader, screenshot_path):
+        print screenshot_path
+
+        def setter_cb(path):
+            self.image.set_from_file(path)
+            return False
+
+        gobject.idle_add(setter_cb, screenshot_path)
+        return
+
+    def set_urls(self, thumb_url, large_url):
+        self.image.clear()
+
+        self.thumbnail_url = thumb_url
+        self.large_url = large_url
+
+        self.loader.download_screenshot(thumb_url)
+        return
+
+
 class AppDetailsView(gtk.ScrolledWindow):
     """The view that shows the application details """
 
@@ -498,11 +537,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
-        # screenshot stuff
-        self.loader = ScreenshotLoader()
-        self.loader.connect('query-complete', self._on_screenshot_query_complete)
-        self.loader.connect('download-complete', self._on_screenshot_download_complete)
-
         # data
         self.pkg = None
         self.app = None
@@ -524,10 +558,10 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.app_info.label.set_size_request(-1, -1)
 
         for p in self.app_desc.paragraphs:
-            p.set_size_request(w-8*mkit.EM-148, -1)
+            p.set_size_request(w-7*mkit.EM-160, -1)
             
         for pt in self.app_desc.points:
-            pt.set_size_request(w-10*mkit.EM-148, -1)
+            pt.set_size_request(w-9*mkit.EM-160, -1)
 
         self.info_table.set_width(w-magic_number)
 
@@ -548,23 +582,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                              event.area,
                              COLOR_GREEN_FILL,
                              COLOR_GREEN_OUTLINE)
-
         del cr
-        return
-
-    def _on_screenshot_query_complete(self, loader, success):
-        print success
-        return
-
-    def _on_screenshot_download_complete(self, loader, screenshot_path):
-        print screenshot_path
-
-        def setter_cb(path):
-            self.screenshot.set_from_file(path)
-            print self.screenshot.allocation
-            return False
-
-        gobject.idle_add(setter_cb, screenshot_path)
         return
 
     def _full_redraw_cb(self):
@@ -670,10 +688,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         app_desc_hb.pack_start(self.app_desc, False)
 
         # screenshot
-        self.screenshot = gtk.Image()
-        a = gtk.Alignment(0.5, 0.0)
-        a.add(self.screenshot)
-        app_desc_hb.pack_end(a)
+        self.screenshot = ScreenshotView()
+        app_desc_hb.pack_end(self.screenshot)
 
         # hbox for web related links (homepage and microbloggers)
         web_hb = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -687,6 +703,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         # share app with microbloggers button
         self.share_btn = gtk.LinkButton(uri=_('Share via micro-blogging service'),
                                         label=_('Share...'))
+
         self.share_btn.set_relief(gtk.RELIEF_NONE)
         self.share_btn.connect('clicked', self._on_share_clicked)
         web_hb.pack_start(self.share_btn, False)
@@ -725,8 +742,8 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.homepage_btn.hide()
 
         # get screenshot url and load then render into page
-        url = self.get_screenshot_thumbnail_url()
-        self.loader.download_screenshot(url)
+        self.screenshot.set_urls(self.get_screenshot_thumbnail_url(),
+                                 self.get_screenshot_large_url())
 
         # set the strings in the package info table
         self.info_table.set_version(self.get_version())
