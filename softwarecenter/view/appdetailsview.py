@@ -263,6 +263,7 @@ class AppDescription(gtk.VBox):
 
     def set_description(self, desc, appname):
         self.clear()
+        desc = gobject.markup_escape_text(desc)
 
         processed_desc = ''
         prev_part = ''
@@ -276,6 +277,7 @@ class AppDescription(gtk.VBox):
             if not part:
                 pass
             elif part.startswith('* ') or part.startswith('- '):
+
                 if not in_blist:
                     in_blist = True
                     newline = self.append_paragraph(processed_desc, newline)
@@ -334,7 +336,6 @@ class PackageInfoTable(gtk.VBox):
 
     def __init__(self, rows=3, columns=2):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
-        self.connect('realize', self._on_realize)
 
         self.version_label = gtk.Label()
         self.license_label = gtk.Label()
@@ -343,6 +344,8 @@ class PackageInfoTable(gtk.VBox):
         self.version_label.set_selectable(True)
         self.license_label.set_selectable(True)
         self.support_label.set_selectable(True)
+
+        self.connect('realize', self._on_realize)
         return
 
     def _on_realize(self, widget):
@@ -353,7 +356,7 @@ class PackageInfoTable(gtk.VBox):
         for kstr, v in [(_('Version:'), self.version_label),
                         (_('License:'), self.license_label),
                         (_('Updates:'), self.support_label)]:
-     
+
             k = gtk.Label()
             k.set_markup(key_markup  % (dark, kstr))
             v.set_line_wrap(True)
@@ -374,6 +377,12 @@ class PackageInfoTable(gtk.VBox):
         self.show_all()
         return
 
+    def set_width(self, width):
+        for row in self.get_children():
+            k, v = row.get_children()
+            v.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
+        return
+
     def set_version(self, version):
         self.version_label.set_text(version)
         return
@@ -386,6 +395,64 @@ class PackageInfoTable(gtk.VBox):
         self.support_label.set_text(support_status)
         return
 
+
+class ScreenshotLoader(gobject.GObject):
+
+    __gsignals__ = {
+        "query-complete"    : (gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_NONE,
+                               (bool,),),
+
+        "download-complete" : (gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_NONE,
+                               (str,),),
+        }
+
+
+    def __init__(self):
+        gobject.GObject.__init__(self)
+        return
+
+    def _actually_download_screenshot(self, file, url):
+
+        def download_screenshot_complete_cb(file, result):
+            """Method called after the file has downloaded"""
+
+            # the result from the download is actually a tuple with three elements. The first element is the actual content
+            # so let's grab that
+            content = file.load_contents_finish(result)[0]
+
+            # let's now save the content to the user's home directory
+            path = os.path.join(os.path.expanduser('~'), "screenshot.png")
+            outputfile = open(path, "w")
+            outputfile.write(content)
+
+            self.emit('download-complete', path)
+            return
+
+        file.load_contents_async(download_screenshot_complete_cb)
+        return
+
+    def download_screenshot(self, url):
+
+        def query_screenshot_cb(file, result):
+            try:
+                result = file.query_info_finish(result)
+                self.emit('query-complete', True)
+                self._actually_download_screenshot(file, url)
+            except glib.GError, e:
+                self.emit('query-complete', False)
+
+            del file
+            return
+
+        # use gio (its so nice)
+        file=gio.File(url)
+        file.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
+                              query_screenshot_cb)
+        return
+
+gobject.type_register(ScreenshotLoader)
 
 
 class AppDetailsView(gtk.ScrolledWindow):
@@ -430,12 +497,15 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
+        self.loader = ScreenshotLoader()
+        self.loader.connect('query-complete', self._on_screenshot_query_complete)
+        self.loader.connect('download-complete', self._on_screenshot_download_complete)
+
         # data
         self.pkg = None
         self.app = None
-        self.iconname = ""
 
-        # page elements are packed
+        # page elements are packed into our lovely viewport
         viewport = self._layout_page()
 
         viewport.connect('size-allocate', self._on_allocate)
@@ -444,16 +514,20 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
+        magic_number = 6*mkit.EM    # !?
         l = self.app_info.label.get_layout()
-        if l.get_pixel_extents()[1][2] > w-48-6*mkit.EM:
-            self.app_info.label.set_size_request(w-48-6*mkit.EM, -1)
+        if l.get_pixel_extents()[1][2] > w-48-magic_number:
+            self.app_info.label.set_size_request(w-48-magic_number, -1)
         else:
             self.app_info.label.set_size_request(-1, -1)
 
         for p in self.app_desc.paragraphs:
-            p.set_size_request(w-6*mkit.EM, -1)
+            p.set_size_request(w-magic_number, -1)
+            
         for pt in self.app_desc.points:
             pt.set_size_request(w-8*mkit.EM, -1)
+
+        self.info_table.set_width(w-magic_number)
 
         self._full_redraw()   #  ewww
         return
@@ -472,8 +546,15 @@ class AppDetailsView(gtk.ScrolledWindow):
                              event.area,
                              COLOR_GREEN_FILL,
                              COLOR_GREEN_OUTLINE)
-
         del cr
+        return
+
+    def _on_screenshot_query_complete(self, loader, success):
+        print success
+        return
+
+    def _on_screenshot_download_complete(self, loader, screenshot_path):
+        print screenshot_path
         return
 
     def _full_redraw_cb(self):
@@ -502,7 +583,7 @@ class AppDetailsView(gtk.ScrolledWindow):
     def _get_component(self, pkg=None):
         """ 
         get the component (main, universe, ..) for the given pkg object
-        
+
         this uses the data from apt, if there is none it uses the 
         data from the app-install-data files
         """
@@ -624,8 +705,12 @@ class AppDetailsView(gtk.ScrolledWindow):
         else:
             self.homepage_btn.hide()
 
+        # get screenshot url and load then render into page
+        url = self.get_screenshot_large_url()
+        self.loader.download_screenshot(url)
+
         # set the strings in the package info table
-        self.info_table.set_version(self.get_version_string())
+        self.info_table.set_version(self.get_version())
         self.info_table.set_license(self.get_license())
         self.info_table.set_support_status(self.get_maintainance_time())
         return
@@ -682,13 +767,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         self._update_page()
         return
 
-    def get_icon_filename(self, iconname, iconsize):
-        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
-        if not iconinfo:
-            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
-        return iconinfo.get_filename()
-
-    # substitute functions called during page display
     def get_name(self):
         return self.app.name
 
@@ -733,64 +811,48 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.cache[self.app.pkgname].is_installed):
             return self.IMAGE_LOADING_INSTALLED
         return self.IMAGE_LOADING
-    def wksub_iconpath(self):
-        # the iconname in the theme is without extension
-        iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
-        # *meh* if not png -> convert
-        # FIXME: make webkit understand xpm files instead
-        if os.path.exists(iconpath) and iconpath.endswith(".xpm"):
-            self.tf = tempfile.NamedTemporaryFile()
-            pix = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
-            pix.save(self.tf.name, "png")
-            iconpath = self.tf.name
-        return iconpath
-    def wksub_screenshot_thumbnail_url(self):
+
+    def get_screenshot_thumbnail_url(self):
         url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
         return url
-    def wksub_screenshot_large_url(self):
+
+    def get_screenshot_large_url(self):
         url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
         return url
-    def wksub_screenshot_alt(self):
-        return _("Application Screenshot")
+
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
-    def wksub_screenshot_alt(self):
-        return _("Application Screenshot")
-    def wksub_icon_width(self):
-        return self.APP_ICON_SIZE
-    def wksub_icon_height(self):
-        return self.APP_ICON_SIZE
-    def wksub_action_button_label(self):
-        self.action_button_label = self._get_action_button_label_and_value()[0]
-        return self.action_button_label
-    def wksub_action_button_value(self):
-        self.action_button_value = self._get_action_button_label_and_value()[1]
-        return self.action_button_value
 
-    def get_version_string(self):
+    def get_version(self):
         if not self.pkg or not self.pkg.candidate:
             return ""
         version = self.pkg.candidate.version
         if version:
             return "%s (%s)" % (version, self.pkg.name)
         return ""
+
     def wksub_datadir(self):
         return self.datadir
+
     def get_maintainance_time(self):
         """add the end of the maintainance time"""
         return self.distro.get_maintenance_status(self.cache,
             self.app.appname or self.app.pkgname, self.app.pkgname, self.component, self.channelfile)
+
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
         if not self.pkg:
             return ""
         return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
+
     def get_license(self):
         return self.distro.get_license_text(self.component).split()[1]
+
     def get_price(self):
         price = self.distro.get_price(self.doc)
         #s = _("Price: %s") % price
         return price
+
     def get_installed(self):
         if self.pkg and self.pkg.installed:
             return True
@@ -801,8 +863,10 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.cache[self.app.pkgname].is_installed):
             return "screenshot_thumbnail-installed"
         return "screenshot_thumbnail"
+
     def wksub_screenshot_thumbnail_missing(self):
         return self.distro.IMAGE_THUMBNAIL_MISSING
+
     def wksub_no_screenshot_avaliable(self):
         return _('No screenshot available')
 
@@ -923,37 +987,6 @@ class AppDetailsView(gtk.ScrolledWindow):
             return 1
         return 0
 
-    # internal helpers
-    def _check_thumb_available(self):
-        """ check for 404 on the given thumbnail image and run
-            JS thumbMissing() if the thumb is not available
-        """
-        # internal helpers for the internal helper
-        def thumb_query_info_async_callback(source, result):
-            logging.debug("thumb_query_info_async_callback")
-            try:
-                result = source.query_info_finish(result)
-                self.execute_script("showThumbnail();")
-            except glib.GError, e:
-                logging.debug("no thumb available")
-                glib.timeout_add(200, run_thumb_missing_js)
-            del source
-        def run_thumb_missing_js():
-            logging.debug("run_thumb_missing_js")
-            # wait until its ready for JS injection
-            # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-            if self.get_load_status() != 2:
-                return True
-            # we don't show "thumb-missing" anymore
-            #self.execute_script("thumbMissing();"
-            return False
-        # use gio (its so nice)
-        url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
-        logging.debug("_check_thumb_available '%s'" % url)
-        f=gio.File(url)
-        f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                           thumb_query_info_async_callback)
-
     def _unavailable_component(self):
         """ 
         check if the given doc refers to a component (like universe)
@@ -987,11 +1020,6 @@ class AppDetailsView(gtk.ScrolledWindow):
                 return True
         return False
 
-    def _url_launch_app(self):
-        """return the most suitable program for opening a url"""
-        if "GNOME_DESKTOP_SESSION_ID" in os.environ:
-            return "gnome-open"
-        return "xdg-open"
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
