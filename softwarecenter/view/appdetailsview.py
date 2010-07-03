@@ -915,6 +915,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # depending on pkg install state set action labels
         self.action_bar.set_pkg_state(self._get_pkg_state())
+        self.action_bar.button.grab_focus()
 
         # format new app description
         self.app_desc.set_description(self.get_description(), appname)
