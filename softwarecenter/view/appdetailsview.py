@@ -464,15 +464,17 @@ gobject.type_register(ScreenshotDownloader)
 class ScreenshotView(gtk.Alignment):
 
     def __init__(self, distro, icons):
-        gtk.Alignment.__init__(self, 0.5, 0.0, xscale=0.0, yscale=0.0)
+        gtk.Alignment.__init__(self, 0.5, 0.0)
         self.set_redraw_on_allocate(False)
-        event = gtk.EventBox()
-        event.set_border_width(3)
+        self.set_border_width(3)
 
+        event = gtk.EventBox()
         self.add(event)
         self.image = gtk.Image()
+        self.image.set_redraw_on_allocate(False)
         event.add(self.image)
         self.eventbox = event
+        self.image.connect('expose-event', self._on_image_expose)
 
         # unavailable layout
         l = gtk.Label(_('No screenshot'))
@@ -503,6 +505,7 @@ class ScreenshotView(gtk.Alignment):
 
         self.ready = False
         self.screenshot_available = False
+        self.alpha = 0.0
 
         self.loader = ScreenshotDownloader()
         self.loader.connect('url-reachable', self._on_screenshot_query_complete)
@@ -543,6 +546,29 @@ class ScreenshotView(gtk.Alignment):
             self._show_image_dialog()
         return
 
+    def _on_image_expose(self, widget, event):
+        pb = widget.get_pixbuf()
+        if not pb: return True
+
+        a = widget.allocation
+        cr = widget.window.cairo_create()
+
+        cr.rectangle(a)
+        cr.clip()
+
+        cr.set_source_pixbuf(pb, a.x, a.y)
+        cr.paint_with_alpha(self.alpha)
+        return True
+
+    def _fade_in(self):
+        self.alpha += 0.2
+        if self.alpha >= 1.0:
+            self.alpha = 1.0
+            self.queue_draw()
+            return False
+        self.queue_draw()
+        return True
+
     def _show_image_dialog(self):
         url = self.large_url
         title = _("%s - Screenshot") % self.appname
@@ -565,11 +591,13 @@ class ScreenshotView(gtk.Alignment):
     def _on_screenshot_download_complete(self, loader, screenshot_path):
 
         def setter_cb(path):
-            self.image.set_from_file(path)
+            self.image.set_size_request(-1, -1)
+            pb = gtk.gdk.pixbuf_new_from_file(path)
+            self.image.set_from_pixbuf(pb)
+            gobject.timeout_add(50, self._fade_in)
             self.ready = True
             return False
 
-        self.image.set_size_request(-1, -1)
         gobject.idle_add(setter_cb, screenshot_path)
         return
 
@@ -602,6 +630,7 @@ class ScreenshotView(gtk.Alignment):
     def clear(self):
         self.image.clear()
         self.ready = False
+        self.alpha = 0.0
 
         if self.unavailable.parent:
             self.eventbox.remove(self.unavailable)
@@ -620,12 +649,11 @@ class ScreenshotView(gtk.Alignment):
 
         if self.image.parent:
             ia = self.image.allocation
-            x = a.x + (a.width - ia.width)/2
-            y = a.y + ia.y
         else:
             ia = self.unavailable.allocation
-            x = a.x + (a.width - ia.width)/2
-            y = a.y + ia.y
+
+        x = a.x + (a.width - ia.width)/2
+        y = a.y + ia.y
 
         if self.has_focus() or self.state == gtk.STATE_ACTIVE:
             cr.rectangle(x-2, y+1, ia.width+4, ia.height+4)
