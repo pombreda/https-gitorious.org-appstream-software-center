@@ -294,7 +294,7 @@ class AppDescription(gtk.VBox):
                 processed_desc = ''
                 processed_desc += part
 
-                # specialcase for 7zip
+                # special case for 7zip
                 if appname == '7zip' and \
                     (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
                     processed_desc += '\n'
@@ -469,6 +469,7 @@ class ScreenshotView(gtk.Alignment):
         self.set_border_width(3)
 
         event = gtk.EventBox()
+        event.set_visible_window(False)
         self.add(event)
         self.image = gtk.Image()
         self.image.set_redraw_on_allocate(False)
@@ -518,8 +519,7 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def _on_leave(self, widget, event):
-        if self.get_is_actionable():
-            self.window.set_cursor(None)
+        self.window.set_cursor(None)
         return
 
     def _on_press(self, widget, event):
@@ -547,6 +547,9 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def _on_image_expose(self, widget, event):
+        if widget.get_storage_type() != gtk.IMAGE_PIXBUF:
+            return
+
         pb = widget.get_pixbuf()
         if not pb: return True
 
@@ -611,16 +614,23 @@ class ScreenshotView(gtk.Alignment):
                 self.eventbox.add(self.unavailable)
                 self.unavailable.set_size_request(160, 100)
                 self.unavailable.show_all()
+                acc = self.get_accessible()
+                acc.set_name(_('%s - No screenshot available' % self.appname))
         else:
             if self.unavailable.parent:
                 self.eventbox.remove(self.unavailable)
                 self.eventbox.add(self.image)
                 self.image.show()
+                acc = self.get_accessible()
+                acc.set_name(_('%s - Screenshot' % self.appname))
 
         self.screenshot_available = available
         return
  
     def configure(self, name, thumb_url, large_url):
+        acc = self.get_accessible()
+        acc.set_name(_('Fetching screenshot ...'))
+
         self.clear()
         self.appname = name
         self.thumbnail_url = thumb_url
@@ -628,7 +638,7 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def clear(self):
-        self.image.clear()
+        self.screenshot_available = True
         self.ready = False
         self.alpha = 0.0
 
@@ -637,6 +647,7 @@ class ScreenshotView(gtk.Alignment):
             self.eventbox.add(self.image)
             self.image.show()
 
+        self.image.set_from_file(AppDetailsView.IMAGE_LOADING_INSTALLED)
         self.image.set_size_request(160, 100)
         return
 
@@ -653,10 +664,10 @@ class ScreenshotView(gtk.Alignment):
             ia = self.unavailable.allocation
 
         x = a.x + (a.width - ia.width)/2
-        y = a.y + ia.y
+        y = ia.y
 
         if self.has_focus() or self.state == gtk.STATE_ACTIVE:
-            cr.rectangle(x-2, y+1, ia.width+4, ia.height+4)
+            cr.rectangle(x-2, y-2, ia.width+4, ia.height+4)
             cr.set_source_rgb(1,1,1)
             cr.fill_preserve()
             if self.state == gtk.STATE_ACTIVE:
@@ -666,18 +677,23 @@ class ScreenshotView(gtk.Alignment):
             cr.set_source_rgb(*color)
             cr.stroke()
         else:
-            cr.rectangle(x-3, y, ia.width+6, ia.height+6)
+            cr.rectangle(x-3, y-3, ia.width+6, ia.height+6)
             cr.set_source_rgb(1,1,1)
             cr.fill()
             cr.save()
             cr.translate(0.5, 0.5)
             cr.set_line_width(1)
-            cr.rectangle(x-3, y, ia.width+5, ia.height+5)
+            cr.rectangle(x-3, y-3, ia.width+5, ia.height+5)
 
             dark = mkit.floats_from_gdkcolor(self.style.dark[self.state])
             cr.set_source_rgb(*dark)
             cr.stroke()
             cr.restore()
+
+        if not self.screenshot_available:
+            cr.rectangle(x, y, ia.width, ia.height)
+            cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.bg[self.state]))
+            cr.fill()
         return
 
 
@@ -692,7 +708,6 @@ class AppDetailsView(gtk.ScrolledWindow):
     INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
-
 
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
