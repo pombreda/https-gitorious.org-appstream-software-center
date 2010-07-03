@@ -262,7 +262,7 @@ class AppDescription(gtk.VBox):
         hb.pack_start(a, False)
         hb.pack_start(point, False)
 
-        bullet_padding = max(3, int(0.333*mkit.EM+0.5))
+        bullet_padding = 4
         a = gtk.Alignment(xscale=1.0, yscale=1.0)
         a.set_padding(bullet_padding, bullet_padding, 0, 0)
         a.add(hb)
@@ -274,9 +274,12 @@ class AppDescription(gtk.VBox):
     def set_description(self, desc, appname):
         self.clear()
         desc = gobject.markup_escape_text(desc)
+        
+        print
+        print desc
+        print
 
-        processed_desc = ''
-        prev_part = ''
+        processed_desc = prev_part = ''
         parts = desc.split('\n')
 
         newline = False
@@ -284,8 +287,10 @@ class AppDescription(gtk.VBox):
 
         for i, part in enumerate(parts):
             part = part.strip()
+
             if not part:
                 pass
+
             elif part.startswith('* ') or part.startswith('- '):
 
                 if not in_blist:
@@ -309,7 +314,10 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_paragraph(processed_desc, newline)
 
-                processed_desc = ''
+                if prev_part:
+                    processed_desc = '\n'
+                else:
+                    processed_desc = ''
                 processed_desc += part
 
             elif not prev_part.endswith(',') and part[0].isupper():
@@ -319,8 +327,12 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_paragraph(processed_desc, newline)
 
-                processed_desc = ''
+                if prev_part:
+                    processed_desc = '\n'
+                else:
+                    processed_desc = ''
                 processed_desc += part
+
             else:
                 if not part.endswith('.'):
                     processed_desc += part + ' '
@@ -328,7 +340,10 @@ class AppDescription(gtk.VBox):
                     parts[i+1].startswith('- ')):
                     processed_desc += part
                 else:
-                    processed_desc += part
+                    if part.endswith('.'):
+                        processed_desc += part + '\n\n'
+                    else:
+                        processed_desc += part
 
             prev_part = part
 
