@@ -861,9 +861,12 @@ class AppDetailsView(gtk.ScrolledWindow):
         # show or hide the homepage button and set uri if homepage specified
         if self.homepage_url:
             self.homepage_btn.show()
+            self.homepage_btn.set_property('visited', False)
             self.homepage_btn.set_uri(self.homepage_url)
         else:
             self.homepage_btn.hide()
+
+        self.share_btn.set_property('visited', False)
 
         # get screenshot url and load then render into page
         self.screenshot.configure(appname,
