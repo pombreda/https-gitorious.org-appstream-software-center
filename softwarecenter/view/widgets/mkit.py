@@ -58,17 +58,43 @@ def floats_from_string_with_alpha(spec, a):
     r, g, b = floats_from_string(spec)
     return r, g, b, a
 
-def get_em_value():
-    # retrieve the gtk-font-name and return the font size to be used at 1em
-    raw_desc = gtk.settings_get_default().get_property("gtk-font-name")
-    font_name, font_size = raw_desc.rsplit(' ', 1)
-    try:
-        return int(font_size)
-    except:
-        logging.warn("Could not parse font size for font description: %s" % raw_desc)
+#def get_gtk_color_scheme_dict():
+    ## Color names as provided by gtk.Settings:
+    ## Note: Not all Gtk themes support this method of color retrieval!
 
-    # fall back to default font size, as per default gtk font size "Sans 10"
-    return 10
+    ## 'tooltip_fg_color'
+    ## 'fg_color'
+    ## 'base_color'
+    ## 'selected_bg_color'
+    ## 'selected_fg_color'
+    ## 'text_color'
+    ## 'bg_color'
+    ## 'tooltip_bg_color'
+
+    #scheme_str = gtk.settings_get_default().get_property("gtk-color-scheme")
+    #d = {}
+    #lines = scheme_str.splitlines()
+    #if not lines: return
+
+    #for ln in lines:
+        #try:
+            #k, v = ln.split(':')
+            #d[k.strip()] = v.strip()
+        #except:
+            #pass
+    #return d
+
+def get_em_value():
+    # calc the width of a wide character, use as 1em
+    w = gtk.Window()
+    w.realize()
+    pc = w.get_pango_context()
+    l = pango.Layout(pc)
+    # 'M' is wide
+    l.set_markup('M')
+    w = l.get_pixel_extents()[1][2]
+    print w
+    return w
 
 def get_nearest_stock_size(desired_size):
     stock_sizes = (16, 24, 32, 48, 64)
@@ -658,6 +684,9 @@ class FramedSection(gtk.VBox):
         self.image = gtk.Image()
         self.label = gtk.Label()
 
+        self.image_alignment = gtk.Alignment(0.5, 0.5)
+        self.image_alignment.add(self.image)
+
         self.header.pack_start(self.label, False)
 
         if label_markup:
@@ -665,13 +694,12 @@ class FramedSection(gtk.VBox):
         return
 
     def set_icon(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
-#        self.image.clear()
         self.image.set_from_icon_name(icon_name, icon_size)
-        print icon_name, self.image.get_property('visible')
-        if not self.image.get_property('visible'):
-            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
-            self.header.reorder_child(self.image, 0)
-            self.image.show()
+
+        if not self.image_alignment.parent:
+            self.header.pack_start(self.image_alignment, False, padding=BORDER_WIDTH_SMALL)
+            self.header.reorder_child(self.image_alignment, 0)
+            self.image_alignment.show_all()
         return
 
     def set_label(self, label='', markup=None):

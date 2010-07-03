@@ -16,24 +16,16 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
-import dbus
-import gettext
 import gio
 import glib
 import gobject
 import gtk
 import logging
 import os
-import re
-import socket
-import string
-import subprocess
 import sys
-import tempfile
-import urllib
 import xapian
 import pango
+import string
 
 from gettext import gettext as _
 
@@ -57,12 +49,12 @@ DEFAULT_SOCKET_TIMEOUT=4
 
 
 # action colours, taken from synaptic
-# reds: used for pkg_status errors or warnings
+# reds: used for pkg_status errors or serious warnings
 COLOR_RED_FILL     = '#FF9595'
 COLOR_RED_OUTLINE  = '#EF2929'
 
 # yellows: some user action is required outside of install or remove
-COLOR_YELLOW_FILL    = '#FFF5A3'
+COLOR_YELLOW_FILL    = '#FFF7B3'
 COLOR_YELLOW_OUTLINE = '#FCE94F'
 
 # greens: used for pkg installed or available for install
@@ -90,6 +82,7 @@ class PackageStatusBar(gtk.Alignment):
     
     def __init__(self, details_view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        self.set_redraw_on_allocate(False)
         self.set_size_request(-1, int(3.5*mkit.EM+0.5))
         self.set_padding(mkit.SPACING_SMALL,
                          mkit.SPACING_SMALL,
@@ -102,6 +95,9 @@ class PackageStatusBar(gtk.Alignment):
         self.label = gtk.Label()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
+
+        self.fill_color = COLOR_GREEN_FILL
+        self.line_color = COLOR_GREEN_OUTLINE
 
         self.pkg_state = None
         self.details_view = details_view
@@ -140,16 +136,19 @@ class PackageStatusBar(gtk.Alignment):
         self.button.set_label(label)
         return
 
-    def set_pkg_state(self, state):
-        view = self.details_view
+    def configure(self, state, price, install_date):
         self.pkg_state = state
         self.progress.hide()
 
+        self.fill_color = COLOR_GREEN_FILL
+        self.line_color = COLOR_GREEN_OUTLINE
+
         if state == PKG_STATE_INSTALLED:
-            self.set_label(_('Installed'))
+            install_date = str(install_date).split()[0]
+            self.set_label(_('Installed %s' % install_date))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
-            self.set_label(view.get_price())
+            self.set_label(price)
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
@@ -163,11 +162,16 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             #self.set_button_label(_('Upgrade Available'))
+        elif state == PKG_STATE_NEEDS_SOURCE:
+            self.set_button_label(_('Add Source'))
+            self.set_label(_('Source Unavailable'))
+            self.fill_color = COLOR_YELLOW_FILL
+            self.line_color = COLOR_YELLOW_OUTLINE
         else:
-            print 'huh?'
+            print 'PkgStateUnknown:', state
         return
 
-    def draw(self, cr, a, expose_area, bg_color, line_color):
+    def draw(self, cr, a, expose_area):
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
@@ -177,7 +181,7 @@ class PackageStatusBar(gtk.Alignment):
                   a.x+a.width-2, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
-        cr.set_source_rgb(*mkit.floats_from_string(bg_color))
+        cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
         cr.fill()
 
         cr.set_line_width(1)
@@ -188,7 +192,7 @@ class PackageStatusBar(gtk.Alignment):
                   a.x+a.width-2, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
-        cr.set_source_rgb(*mkit.floats_from_string(line_color))
+        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.stroke()
 
         cr.restore()
@@ -198,15 +202,21 @@ class PackageStatusBar(gtk.Alignment):
 class AppDescription(gtk.VBox):
 
     def __init__(self):
-        gtk.VBox.__init__(self)
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+        self.body = gtk.VBox()
+        self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
+
+        self.pack_start(self.body, False)
+        self.pack_start(self.footer, False)
+        self.show_all()
 
         self.paragraphs = []
         self.points = []
         return
 
     def clear(self):
-        for child in self.get_children():
-            self.remove(child)
+        for child in self.body.get_children():
+            self.body.remove(child)
             child.destroy()
 
         self.paragraphs = []
@@ -228,7 +238,7 @@ class AppDescription(gtk.VBox):
         hb = gtk.HBox()
         hb.pack_start(p, False)
 
-        self.pack_start(hb)
+        self.body.pack_start(hb, False)
         self.paragraphs.append(p)
         return True
 
@@ -238,7 +248,7 @@ class AppDescription(gtk.VBox):
         fragment = fragment.replace('- ', '')
 
         bullet = gtk.Label()
-        bullet.set_markup(u"  <big>\u2022</big>")
+        bullet.set_markup(u"  <b>\u2022</b>")
 
         a = gtk.Alignment(0.5, 0.0)
         a.add(bullet)
@@ -252,30 +262,35 @@ class AppDescription(gtk.VBox):
         hb.pack_start(a, False)
         hb.pack_start(point, False)
 
-        bullet_padding = max(3, int(0.333*mkit.EM+0.5))
+        bullet_padding = 4
         a = gtk.Alignment(xscale=1.0, yscale=1.0)
         a.set_padding(bullet_padding, bullet_padding, 0, 0)
         a.add(hb)
 
-        self.pack_start(a)
+        self.body.pack_start(a, False)
         self.points.append(point)
         return False
 
     def set_description(self, desc, appname):
         self.clear()
         desc = gobject.markup_escape_text(desc)
+        
+        print
+        print desc
+        print
 
-        processed_desc = ''
-        prev_part = ''
+        processed_desc = prev_part = ''
         parts = desc.split('\n')
 
         newline = False
-        in_blist = False
+        in_blist = False    # within bullet list
 
         for i, part in enumerate(parts):
             part = part.strip()
+
             if not part:
                 pass
+
             elif part.startswith('* ') or part.startswith('- '):
 
                 if not in_blist:
@@ -287,7 +302,7 @@ class AppDescription(gtk.VBox):
                 processed_desc = ''
                 processed_desc += part
 
-                # specialcase for 7zip
+                # special case for 7zip
                 if appname == '7zip' and \
                     (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
                     processed_desc += '\n'
@@ -299,7 +314,10 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_paragraph(processed_desc, newline)
 
-                processed_desc = ''
+                if prev_part:
+                    processed_desc = '\n'
+                else:
+                    processed_desc = ''
                 processed_desc += part
 
             elif not prev_part.endswith(',') and part[0].isupper():
@@ -309,8 +327,12 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_paragraph(processed_desc, newline)
 
-                processed_desc = ''
+                if prev_part:
+                    processed_desc = '\n'
+                else:
+                    processed_desc = ''
                 processed_desc += part
+
             else:
                 if not part.endswith('.'):
                     processed_desc += part + ' '
@@ -318,7 +340,10 @@ class AppDescription(gtk.VBox):
                     parts[i+1].startswith('- ')):
                     processed_desc += part
                 else:
-                    processed_desc += part
+                    if part.endswith('.'):
+                        processed_desc += part + '\n\n'
+                    else:
+                        processed_desc += part
 
             prev_part = part
 
@@ -396,10 +421,10 @@ class PackageInfoTable(gtk.VBox):
         return
 
 
-class ScreenshotLoader(gobject.GObject):
+class ScreenshotDownloader(gobject.GObject):
 
     __gsignals__ = {
-        "query-complete"    : (gobject.SIGNAL_RUN_LAST,
+        "url-reachable"     : (gobject.SIGNAL_RUN_LAST,
                                gobject.TYPE_NONE,
                                (bool,),),
 
@@ -415,33 +440,32 @@ class ScreenshotLoader(gobject.GObject):
 
     def _actually_download_screenshot(self, file, url):
 
-        def download_screenshot_complete_cb(file, result):
-            """Method called after the file has downloaded"""
+        def download_complete_cb(file, result, path="/tmp/SoftwareCenterScreenshot.png"):
+            """Helper called after the file has downloaded"""
 
-            # the result from the download is actually a tuple with three elements. The first element is the actual content
-            # so let's grab that
+            # The result from the download is actually a tuple with three elements.
+            # The first element is the actual content so let's grab that
             content = file.load_contents_finish(result)[0]
 
-            # let's now save the content to the user's home directory
-            path = os.path.join(os.path.expanduser('~'), "screenshot.png")
+            # let's now save the content to the tmp dir
             outputfile = open(path, "w")
             outputfile.write(content)
 
             self.emit('download-complete', path)
             return
 
-        file.load_contents_async(download_screenshot_complete_cb)
+        file.load_contents_async(download_complete_cb)
         return
 
-    def download_screenshot(self, url):
+    def download_from_url(self, url):
 
-        def query_screenshot_cb(file, result):
+        def query_complete_cb(file, result):
             try:
                 result = file.query_info_finish(result)
-                self.emit('query-complete', True)
+                self.emit('url-reachable', True)
                 self._actually_download_screenshot(file, url)
             except glib.GError, e:
-                self.emit('query-complete', False)
+                self.emit('url-reachable', False)
 
             del file
             return
@@ -449,14 +473,253 @@ class ScreenshotLoader(gobject.GObject):
         # use gio (its so nice)
         file=gio.File(url)
         file.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                              query_screenshot_cb)
+                              query_complete_cb)
         return
 
-gobject.type_register(ScreenshotLoader)
+gobject.type_register(ScreenshotDownloader)
+
+
+class ScreenshotView(gtk.Alignment):
+
+    def __init__(self, distro, icons):
+        gtk.Alignment.__init__(self, 0.5, 0.0)
+        self.set_redraw_on_allocate(False)
+        self.set_border_width(3)
+
+        event = gtk.EventBox()
+        event.set_visible_window(False)
+        self.add(event)
+        self.image = gtk.Image()
+        self.image.set_redraw_on_allocate(False)
+        event.add(self.image)
+        self.eventbox = event
+        self.image.connect('expose-event', self._on_image_expose)
+
+        # unavailable layout
+        l = gtk.Label(_('No screenshot'))
+        l.set_state(gtk.STATE_INSENSITIVE)
+        self.unavailable = gtk.Alignment(0.5, 0.5)
+        self.unavailable.add(l)
+
+        self.set_flags(gtk.CAN_FOCUS)
+        event.set_events(gtk.gdk.BUTTON_PRESS_MASK|
+                         gtk.gdk.BUTTON_RELEASE_MASK|
+                         gtk.gdk.KEY_RELEASE_MASK|
+                         gtk.gdk.KEY_PRESS_MASK|
+                         gtk.gdk.ENTER_NOTIFY_MASK|
+                         gtk.gdk.LEAVE_NOTIFY_MASK)
+
+        event.connect('enter-notify-event', self._on_enter)
+        event.connect('leave-notify-event', self._on_leave)
+        event.connect('button-press-event', self._on_press)
+        event.connect('button-release-event', self._on_release)
+        self.connect("key-press-event", self._on_key_press)
+        self.connect("key-release-event", self._on_key_release)
+
+        self.distro = distro
+        self.icons = icons
+        self.appname = None
+        self.thumbnail_url = None
+        self.large_url = None
+
+        self.ready = False
+        self.screenshot_available = False
+        self.alpha = 0.0
+
+        self.loader = ScreenshotDownloader()
+        self.loader.connect('url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('download-complete', self._on_screenshot_download_complete)
+        return
+
+    def _on_enter(self, widget, event):
+        if self.get_is_actionable():
+            self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+        return
+
+    def _on_leave(self, widget, event):
+        self.window.set_cursor(None)
+        return
+
+    def _on_press(self, widget, event):
+        if event.button != 1 or not self.get_is_actionable(): return
+        self.set_state(gtk.STATE_ACTIVE)
+        return
+
+    def _on_release(self, widget, event):
+        if event.button != 1 or not self.get_is_actionable(): return
+        self.set_state(gtk.STATE_NORMAL)
+        self._show_image_dialog()
+        return
+
+    def _on_key_press(self, widget, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421) and self.get_is_actionable():
+            self.set_state(gtk.STATE_ACTIVE)
+        return
+
+    def _on_key_release(self, widget, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421) and self.get_is_actionable():
+            self.set_state(gtk.STATE_NORMAL)
+            self._show_image_dialog()
+        return
+
+    def _on_image_expose(self, widget, event):
+        if widget.get_storage_type() != gtk.IMAGE_PIXBUF:
+            return
+
+        pb = widget.get_pixbuf()
+        if not pb: return True
+
+        a = widget.allocation
+        cr = widget.window.cairo_create()
+
+        cr.rectangle(a)
+        cr.clip()
+
+        cr.set_source_pixbuf(pb, a.x, a.y)
+        cr.paint_with_alpha(self.alpha)
+        return True
+
+    def _fade_in(self):
+        self.alpha += 0.05
+        if self.alpha >= 1.0:
+            self.alpha = 1.0
+            self.queue_draw()
+            return False
+        self.queue_draw()
+        return True
+
+    def _show_image_dialog(self):
+        url = self.large_url
+        title = _("%s - Screenshot") % self.appname
+        d = ShowImageDialog(
+            title, url,
+            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
+            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
+            self.distro.IMAGE_FULL_MISSING)
+
+        d.run()
+        d.destroy()
+        return
+
+    def _on_screenshot_query_complete(self, loader, reachable):
+        print self.appname
+        print 'ThumbAvailable:', reachable
+
+        self.set_screenshot_available(reachable)
+        if not reachable: self.ready = True
+        return
+
+    def _on_screenshot_download_complete(self, loader, screenshot_path):
+
+        def setter_cb(path):
+            self.image.set_size_request(-1, -1)
+            pb = gtk.gdk.pixbuf_new_from_file(path)
+            self.image.set_from_pixbuf(pb)
+            gobject.timeout_add(50, self._fade_in)
+            self.ready = True
+            return False
+
+        gobject.idle_add(setter_cb, screenshot_path)
+        return
+
+    def get_is_actionable(self):
+        return self.screenshot_available and self.ready
+
+    def set_screenshot_available(self, available):
+        if not available:
+            if self.image.parent:
+                self.eventbox.remove(self.image)
+                self.eventbox.add(self.unavailable)
+                self.unavailable.set_size_request(160, 100)
+                self.unavailable.show_all()
+                acc = self.get_accessible()
+                acc.set_name(_('%s - No screenshot available' % self.appname))
+        else:
+            if self.unavailable.parent:
+                self.eventbox.remove(self.unavailable)
+                self.eventbox.add(self.image)
+                self.image.show()
+                acc = self.get_accessible()
+                acc.set_name(_('%s - Screenshot' % self.appname))
+
+        self.screenshot_available = available
+        return
+ 
+    def configure(self, name, thumb_url, large_url):
+        acc = self.get_accessible()
+        acc.set_name(_('Fetching screenshot ...'))
+
+        self.clear()
+        self.appname = name
+        self.thumbnail_url = thumb_url
+        self.large_url = large_url
+        return
+
+    def clear(self):
+        self.screenshot_available = True
+        self.ready = False
+        self.alpha = 0.0
+
+        if self.unavailable.parent:
+            self.eventbox.remove(self.unavailable)
+            self.eventbox.add(self.image)
+            self.image.show()
+
+        self.image.set_from_file(AppDetailsView.IMAGE_LOADING_INSTALLED)
+        self.image.set_size_request(160, 100)
+        return
+
+    def download_and_display(self):
+        self.loader.download_from_url(self.thumbnail_url)
+        return
+
+    def draw(self, cr, a, expose_area):
+        if mkit.not_overlapping(a, expose_area): return
+
+        if self.image.parent:
+            ia = self.image.allocation
+        else:
+            ia = self.unavailable.allocation
+
+        x = a.x + (a.width - ia.width)/2
+        y = ia.y
+
+        if self.has_focus() or self.state == gtk.STATE_ACTIVE:
+            cr.rectangle(x-2, y-2, ia.width+4, ia.height+4)
+            cr.set_source_rgb(1,1,1)
+            cr.fill_preserve()
+            if self.state == gtk.STATE_ACTIVE:
+                color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+            else:
+                color = mkit.floats_from_gdkcolor(self.style.dark[gtk.STATE_SELECTED])
+            cr.set_source_rgb(*color)
+            cr.stroke()
+        else:
+            cr.rectangle(x-3, y-3, ia.width+6, ia.height+6)
+            cr.set_source_rgb(1,1,1)
+            cr.fill()
+            cr.save()
+            cr.translate(0.5, 0.5)
+            cr.set_line_width(1)
+            cr.rectangle(x-3, y-3, ia.width+5, ia.height+5)
+
+            dark = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+            cr.set_source_rgb(*dark)
+            cr.stroke()
+            cr.restore()
+
+        if not self.screenshot_available:
+            cr.rectangle(x, y, ia.width, ia.height)
+            cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.bg[self.state]))
+            cr.fill()
+        return
 
 
 class AppDetailsView(gtk.ScrolledWindow):
-    """The view that shows the application details """
+
+    """ The view that shows the application details """
 
     # the size of the icon on the left side
     APP_ICON_SIZE       = gtk.ICON_SIZE_DIALOG
@@ -470,6 +733,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
                     }
+
 
     def __init__(self, db, distro, icons, cache, history, datadir):
         gtk.ScrolledWindow.__init__(self)
@@ -487,6 +751,9 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.cache.connect("cache-ready", self._on_cache_ready)
         self.history = history
 
+        self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+
+
         self.datadir = datadir
         self.arch = get_current_arch()
 
@@ -497,17 +764,12 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
-        self.loader = ScreenshotLoader()
-        self.loader.connect('query-complete', self._on_screenshot_query_complete)
-        self.loader.connect('download-complete', self._on_screenshot_download_complete)
-
         # data
         self.pkg = None
         self.app = None
 
         # page elements are packed into our lovely viewport
         viewport = self._layout_page()
-
         viewport.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         return
@@ -522,10 +784,10 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.app_info.label.set_size_request(-1, -1)
 
         for p in self.app_desc.paragraphs:
-            p.set_size_request(w-magic_number, -1)
+            p.set_size_request(w-7*mkit.EM-166, -1)
             
         for pt in self.app_desc.points:
-            pt.set_size_request(w-8*mkit.EM, -1)
+            pt.set_size_request(w-9*mkit.EM-166, -1)
 
         self.info_table.set_width(w-magic_number)
 
@@ -539,22 +801,13 @@ class AppDetailsView(gtk.ScrolledWindow):
         cr.clip()
 
         self.app_info.draw(cr, self.app_info.allocation, expose_area)
-        #self.desc_section.draw(cr, self.desc_section.allocation, expose_area)
 
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
-                             event.area,
-                             COLOR_GREEN_FILL,
-                             COLOR_GREEN_OUTLINE)
+                             event.area)
+
+        self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
         del cr
-        return
-
-    def _on_screenshot_query_complete(self, loader, success):
-        print success
-        return
-
-    def _on_screenshot_download_complete(self, loader, screenshot_path):
-        print screenshot_path
         return
 
     def _full_redraw_cb(self):
@@ -596,36 +849,10 @@ class AppDetailsView(gtk.ScrolledWindow):
                 return origin.component
         return
 
-    def _get_pkg_state(self):
-        if self.pkg:
-            # Don't handle upgrades yet
-            #if pkg.installed and pkg.isUpgradable:
-            #    return PKG_STATE_UPGRADABLE
-            if self.pkg.installed:
-                return PKG_STATE_INSTALLED
-            else:
-                return PKG_STATE_UNINSTALLED
-
-        elif self.doc:
-            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                #if os.path.exists(path):
-                    #self.channelname = channel
-                    #self.channelfile = path
-                    ## FIXME: deal with the EULA stuff
-                    return PKG_STATE_NEEDS_SOURCE
-            # check if it comes from a non-enabled component
-            elif self._unavailable_component():
-                # FIXME: use a proper message here, but we are in string freeze
-                return PKG_STATE_UNAVAILABLE
-            elif self._available_for_our_arch():
-                return PKG_STATE_NEEDS_SOURCE
-
-        return PKG_STATE_UNKNOWN
-
     def _layout_page(self):
         # setup widgets
+
+        # root vbox
         self.vbox = gtk.VBox()
         self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
 
@@ -649,28 +876,32 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # FramedSection which contains textual paragraphs and bullet points
         self.desc_section = mkit.FramedSection(_('Description'),
-                                           xpadding=mkit.SPACING_LARGE)
+                                               xpadding=mkit.SPACING_LARGE)
         self.app_info.body.pack_start(self.desc_section, False)
+
+        app_desc_hb = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.desc_section.body.pack_start(app_desc_hb)
 
         # application description wigdets
         self.app_desc = AppDescription()
-        self.desc_section.body.pack_start(self.app_desc, False)
+        app_desc_hb.pack_start(self.app_desc, False)
 
-        # hbox for web related links (homepage and microbloggers)
-        web_hb = gtk.HBox(spacing=mkit.SPACING_MED)
-        self.desc_section.body.pack_end(web_hb, False)
+        # screenshot
+        self.screenshot = ScreenshotView(self.distro, self.icons)
+        app_desc_hb.pack_end(self.screenshot)
 
         # homepage link button
         self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
         self.homepage_btn.set_relief(gtk.RELIEF_NONE)
-        web_hb.pack_start(self.homepage_btn, False)
+        self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
         self.share_btn = gtk.LinkButton(uri=_('Share via micro-blogging service'),
                                         label=_('Share...'))
+
         self.share_btn.set_relief(gtk.RELIEF_NONE)
         self.share_btn.connect('clicked', self._on_share_clicked)
-        web_hb.pack_start(self.share_btn, False)
+        self.app_desc.footer.pack_start(self.share_btn, False)
 
         # package info table
         self.info_table = PackageInfoTable()
@@ -680,20 +911,26 @@ class AppDetailsView(gtk.ScrolledWindow):
         return viewport
 
     def _update_page(self):
-        font_size = 22*pango.SCALE  # make this relative to the appicon size (48x48)
+        # make title font size fixed as they should look good compared to the 
+        # icon (also fixed).
+        big = 20*pango.SCALE
+        small = 9*pango.SCALE
         appname = self.get_name()
 
-        markup = '<b><span size="%s">%s</span></b>\n%s' % (font_size,
-                                                           appname,
-                                                           self.get_summary())
+        markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
+        markup = markup % (big, appname, small, self.get_summary())
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
-        self.app_info.set_icon(self.iconname or 'gnome-other',
+        self.app_info.set_icon(self.iconname,
                                gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
-        self.action_bar.set_pkg_state(self._get_pkg_state())
+        self.action_bar.configure(self.get_pkg_state(),
+                                  self.get_price(),
+                                  self.get_installed_date())
+
+        self.action_bar.button.grab_focus()
 
         # format new app description
         self.app_desc.set_description(self.get_description(), appname)
@@ -701,13 +938,25 @@ class AppDetailsView(gtk.ScrolledWindow):
         # show or hide the homepage button and set uri if homepage specified
         if self.homepage_url:
             self.homepage_btn.show()
+            self.homepage_btn.set_property('visited', False)
             self.homepage_btn.set_uri(self.homepage_url)
         else:
             self.homepage_btn.hide()
 
-        # get screenshot url and load then render into page
-        url = self.get_screenshot_large_url()
-        self.loader.download_screenshot(url)
+        # check if gwibber-poster is available, if so display Share... btn
+        if self.gwibber_is_available:
+            self.share_btn.show()
+            self.share_btn.set_property('visited', False)
+        else:
+            self.share_btn.hide()
+
+        # get screenshot urls and configure the ScreenshotView...
+        self.screenshot.configure(appname,
+                                  self.get_screenshot_thumbnail_url(),
+                                  self.get_screenshot_large_url())
+
+        # then begin screenshot download and display sequence
+        self.screenshot.download_and_display()
 
         # set the strings in the package info table
         self.info_table.set_version(self.get_version())
@@ -723,8 +972,6 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # initialize the app
         self.init_app(app)
-        
-        #self._check_thumb_available()
         return
 
     def init_app(self, app):
@@ -746,11 +993,7 @@ class AppDetailsView(gtk.ScrolledWindow):
             raise IndexError, "No app '%s' for '%s' in database" % (
                 self.app.appname, self.app.pkgname)
 
-        # get icon
-        self.iconname = self.db.get_iconname(self.doc)
-        # remove extension (e.g. .png) because the gtk.IconTheme
-        # will find fins a icon with it
-        self.iconname = os.path.splitext(self.iconname)[0]
+        self.iconname = self.get_iconname()
 
         # get apt cache data
         pkgname = self.db.get_pkgname(self.doc)
@@ -767,20 +1010,55 @@ class AppDetailsView(gtk.ScrolledWindow):
         self._update_page()
         return
 
+    def get_iconname(self):
+        # get icon
+        iconname = self.db.get_iconname(self.doc)
+        # remove extension (e.g. .png) because the gtk.IconTheme
+        # will find fins a icon with it
+        iconname = os.path.splitext(iconname)[0]
+        # this iconname may not be valid,
+        # so we need to check it exists in the IconTheme
+        if self.icons.has_icon(iconname):
+            return iconname
+        return 'gnome-other'
+
     def get_name(self):
-        return self.app.name
+        return gobject.markup_escape_text(self.app.name)
 
     def get_summary(self):
-        return self.db.get_summary(self.doc)
+        return gobject.markup_escape_text(self.db.get_summary(self.doc))
 
-    def wksub_pkgname(self):
+    def get_pkgname(self):
         return self.app.pkgname
 
-    def wksub_body_class(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
-            return "section-installed"
-        return "section-get"
+    def get_pkg_state(self):
+        if self.pkg:
+            # Don't handle upgrades yet
+            #if pkg.installed and pkg.isUpgradable:
+            #    return PKG_STATE_UPGRADABLE
+            if self.pkg.installed:
+                return PKG_STATE_INSTALLED
+            else:
+                return PKG_STATE_UNINSTALLED
+
+        elif self.doc:
+            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            if channel:
+                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+                #if os.path.exists(path):
+                    #self.channelname = channel
+                    #self.channelfile = path
+                    ## FIXME: deal with the EULA stuff
+                    print channel
+                    return PKG_STATE_NEEDS_SOURCE
+            # check if it comes from a non-enabled component
+            elif self._unavailable_component():
+                # FIXME: use a proper message here, but we are in string freeze
+                return PKG_STATE_UNAVAILABLE
+            elif self._available_for_our_arch():
+                return PKG_STATE_NEEDS_SOURCE
+
+        return PKG_STATE_UNKNOWN
 
     def get_description(self):
         # if we do not have a package in our apt data explain why
@@ -806,30 +1084,25 @@ class AppDetailsView(gtk.ScrolledWindow):
         logging.debug("Description (text) %r", description)
         return description
 
-    def wksub_iconpath_loading(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
-            return self.IMAGE_LOADING_INSTALLED
-        return self.IMAGE_LOADING
+    def get_installed_date(self):
+        return self.history.get_installed_date(self.get_pkgname())
 
     def get_screenshot_thumbnail_url(self):
-        url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
-        return url
+        return self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
 
     def get_screenshot_large_url(self):
-        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
-        return url
+        return self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
 
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
 
     def get_version(self):
         if not self.pkg or not self.pkg.candidate:
-            return ""
+            return _("Unknown")
         version = self.pkg.candidate.version
         if version:
             return "%s (%s)" % (version, self.pkg.name)
-        return ""
+        return _("Unknown")
 
     def wksub_datadir(self):
         return self.datadir
@@ -857,28 +1130,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         if self.pkg and self.pkg.installed:
             return True
         return False
-
-    def wksub_screenshot_installed(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
-            return "screenshot_thumbnail-installed"
-        return "screenshot_thumbnail"
-
-    def wksub_screenshot_thumbnail_missing(self):
-        return self.distro.IMAGE_THUMBNAIL_MISSING
-
-    def wksub_no_screenshot_avaliable(self):
-        return _('No screenshot available')
-
-    # callbacks
-    def on_button_reload_clicked(self):
-        self.backend.reload()
-        self._set_action_button_sensitive(False)
-
-    def on_button_enable_channel_clicked(self):
-        #print "on_enable_channel_clicked"
-        self.backend.enable_channel(self.channelfile)
-        self._set_action_button_sensitive(False)
 
     def on_button_enable_component_clicked(self):
         #print "on_enable_component_clicked", component
