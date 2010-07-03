@@ -57,7 +57,7 @@ DEFAULT_SOCKET_TIMEOUT=4
 
 
 # action colours, taken from synaptic
-# reds: used for pkg_status errors or warnings
+# reds: used for pkg_status errors or serious warnings
 COLOR_RED_FILL     = '#FF9595'
 COLOR_RED_OUTLINE  = '#EF2929'
 
@@ -403,10 +403,10 @@ class PackageInfoTable(gtk.VBox):
         return
 
 
-class ScreenshotLoader(gobject.GObject):
+class ScreenshotDownloader(gobject.GObject):
 
     __gsignals__ = {
-        "query-complete"    : (gobject.SIGNAL_RUN_LAST,
+        "url-reachable"     : (gobject.SIGNAL_RUN_LAST,
                                gobject.TYPE_NONE,
                                (bool,),),
 
@@ -422,33 +422,32 @@ class ScreenshotLoader(gobject.GObject):
 
     def _actually_download_screenshot(self, file, url):
 
-        def download_complete_cb(file, result):
-            """Method called after the file has downloaded"""
+        def download_complete_cb(file, result, path="/tmp/SoftwareCenterScreenshot.png"):
+            """Helper called after the file has downloaded"""
 
-            # the result from the download is actually a tuple with three elements. The first element is the actual content
-            # so let's grab that
+            # The result from the download is actually a tuple with three elements.
+            # The first element is the actual content so let's grab that
             content = file.load_contents_finish(result)[0]
 
             # let's now save the content to the tmp dir
-            outputfile = open("/tmp/SoftwareCenterScreenshot.png", "w")
+            outputfile = open(path, "w")
             outputfile.write(content)
 
-            self.emit('download-complete',
-                      "/tmp/SoftwareCenterScreenshot.png")
+            self.emit('download-complete', path)
             return
 
         file.load_contents_async(download_complete_cb)
         return
 
-    def download_screenshot(self, url):
+    def download_from_url(self, url):
 
         def query_complete_cb(file, result):
             try:
                 result = file.query_info_finish(result)
-                self.emit('query-complete', True)
+                self.emit('url-reachable', True)
                 self._actually_download_screenshot(file, url)
             except glib.GError, e:
-                self.emit('query-complete', False)
+                self.emit('url-reachable', False)
 
             del file
             return
@@ -459,7 +458,7 @@ class ScreenshotLoader(gobject.GObject):
                               query_complete_cb)
         return
 
-gobject.type_register(ScreenshotLoader)
+gobject.type_register(ScreenshotDownloader)
 
 
 class ScreenshotView(gtk.Alignment):
@@ -474,6 +473,12 @@ class ScreenshotView(gtk.Alignment):
         self.image = gtk.Image()
         event.add(self.image)
         self.eventbox = event
+
+        # unavailable layout
+        l = gtk.Label(_('No screenshot'))
+        l.set_state(gtk.STATE_INSENSITIVE)
+        self.unavailable = gtk.Alignment(0.5, 0.5)
+        self.unavailable.add(l)
 
         self.set_flags(gtk.CAN_FOCUS)
         event.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -495,43 +500,45 @@ class ScreenshotView(gtk.Alignment):
         self.appname = None
         self.thumbnail_url = None
         self.large_url = None
+
+        self.ready = False
         self.screenshot_available = False
 
-        self.loader = ScreenshotLoader()
-        self.loader.connect('query-complete', self._on_screenshot_query_complete)
+        self.loader = ScreenshotDownloader()
+        self.loader.connect('url-reachable', self._on_screenshot_query_complete)
         self.loader.connect('download-complete', self._on_screenshot_download_complete)
         return
 
     def _on_enter(self, widget, event):
-        if self.screenshot_available:
+        if self.get_is_actionable():
             self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
         return
 
     def _on_leave(self, widget, event):
-        if self.screenshot_available:
+        if self.get_is_actionable():
             self.window.set_cursor(None)
         return
 
     def _on_press(self, widget, event):
-        if event.button != 1 or not self.screenshot_available: return
+        if event.button != 1 or not self.get_is_actionable(): return
         self.set_state(gtk.STATE_ACTIVE)
         return
 
     def _on_release(self, widget, event):
-        if event.button != 1 or not self.screenshot_available: return
+        if event.button != 1 or not self.get_is_actionable(): return
         self.set_state(gtk.STATE_NORMAL)
         self._show_image_dialog()
         return
 
     def _on_key_press(self, widget, event):
         # react to spacebar, enter, numpad-enter
-        if event.keyval in (32, 65293, 65421) and self.screenshot_available:
+        if event.keyval in (32, 65293, 65421) and self.get_is_actionable():
             self.set_state(gtk.STATE_ACTIVE)
         return
 
     def _on_key_release(self, widget, event):
         # react to spacebar, enter, numpad-enter
-        if event.keyval in (32, 65293, 65421) and self.screenshot_available:
+        if event.keyval in (32, 65293, 65421) and self.get_is_actionable():
             self.set_state(gtk.STATE_NORMAL)
             self._show_image_dialog()
         return
@@ -549,28 +556,42 @@ class ScreenshotView(gtk.Alignment):
         d.destroy()
         return
 
-    def _on_screenshot_query_complete(self, loader, success):
-        print 'ThumbAvailable:', success
-        self.screenshot_available = success
+    def _on_screenshot_query_complete(self, loader, reachable):
+        print 'ThumbAvailable:', reachable
+        self.set_screenshot_available(reachable)
+        if not reachable: self.ready = True
         return
 
     def _on_screenshot_download_complete(self, loader, screenshot_path):
 
         def setter_cb(path):
             self.image.set_from_file(path)
+            self.ready = True
             return False
 
         self.image.set_size_request(-1, -1)
         gobject.idle_add(setter_cb, screenshot_path)
         return
 
-    def set_is_working(self, is_working):
-        if is_working:
-            pass
-        else:
-            pass
-        return
+    def get_is_actionable(self):
+        return self.screenshot_available and self.ready
 
+    def set_screenshot_available(self, available):
+        if not available:
+            if self.image.parent:
+                self.eventbox.remove(self.image)
+                self.eventbox.add(self.unavailable)
+                self.unavailable.set_size_request(160, 100)
+                self.unavailable.show_all()
+        else:
+            if self.unavailable.parent:
+                self.eventbox.remove(self.unavailable)
+                self.eventbox.add(self.image)
+                self.image.show()
+
+        self.screenshot_available = available
+        return
+ 
     def configure(self, name, thumb_url, large_url):
         self.clear()
         self.appname = name
@@ -580,22 +601,34 @@ class ScreenshotView(gtk.Alignment):
 
     def clear(self):
         self.image.clear()
-        self.screenshot_available = False
+        self.ready = False
+
+        if self.unavailable.parent:
+            self.eventbox.remove(self.unavailable)
+            self.eventbox.add(self.image)
+            self.image.show()
+
         self.image.set_size_request(160, 100)
         return
 
-    def download(self):
-        self.loader.download_screenshot(self.thumbnail_url)
+    def download_and_display(self):
+        self.loader.download_from_url(self.thumbnail_url)
         return
 
     def draw(self, cr, a, expose_area):
         if mkit.not_overlapping(a, expose_area): return
 
-        ia = self.image.allocation
-        x = a.x + (a.width - ia.width)/2
+        if self.image.parent:
+            ia = self.image.allocation
+            x = a.x + (a.width - ia.width)/2
+            y = a.y + ia.y
+        else:
+            ia = self.unavailable.allocation
+            x = a.x + (a.width - ia.width)/2
+            y = a.y + ia.y
 
         if self.has_focus() or self.state == gtk.STATE_ACTIVE:
-            cr.rectangle(x-2, a.y+ia.y+1, ia.width+4, ia.height+4)
+            cr.rectangle(x-2, y+1, ia.width+4, ia.height+4)
             cr.set_source_rgb(1,1,1)
             cr.fill_preserve()
             if self.state == gtk.STATE_ACTIVE:
@@ -605,13 +638,13 @@ class ScreenshotView(gtk.Alignment):
             cr.set_source_rgb(*color)
             cr.stroke()
         else:
-            cr.rectangle(x-3, a.y+ia.y, ia.width+6, ia.height+6)
+            cr.rectangle(x-3, y, ia.width+6, ia.height+6)
             cr.set_source_rgb(1,1,1)
             cr.fill()
             cr.save()
             cr.translate(0.5, 0.5)
             cr.set_line_width(1)
-            cr.rectangle(x-3, a.y+ia.y, ia.width+5, ia.height+5)
+            cr.rectangle(x-3, y, ia.width+5, ia.height+5)
 
             dark = mkit.floats_from_gdkcolor(self.style.dark[self.state])
             cr.set_source_rgb(*dark)
@@ -866,13 +899,20 @@ class AppDetailsView(gtk.ScrolledWindow):
         else:
             self.homepage_btn.hide()
 
-        self.share_btn.set_property('visited', False)
+        # check if gwibber-poster is available, if so display Share... btn
+        if self.get_gwibber_is_available():
+            self.share_btn.show()
+            self.share_btn.set_property('visited', False)
+        else:
+            self.share_btn.hide()
 
-        # get screenshot url and load then render into page
+        # get screenshot urls and configure the ScreenshotView...
         self.screenshot.configure(appname,
                                   self.get_screenshot_thumbnail_url(),
                                   self.get_screenshot_large_url())
-        self.screenshot.download()
+
+        # then begin screenshot download and display sequence
+        self.screenshot.download_and_display()
 
         # set the strings in the package info table
         self.info_table.set_version(self.get_version())
@@ -1022,6 +1062,9 @@ class AppDetailsView(gtk.ScrolledWindow):
         if self.pkg and self.pkg.installed:
             return True
         return False
+
+    def get_gwibber_is_available(self):
+        return os.path.exists("/usr/bin/gwibber-poster")
 
     def wksub_screenshot_installed(self):
         if (self.app.pkgname in self.cache and
