@@ -49,6 +49,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.app_details import ApplicationDetails
 from softwarecenter.backend import get_install_backend
 
 from widgets.wkwidget import WebkitWidget
@@ -129,6 +130,9 @@ class AppDetailsView(WebkitWidget):
         # FIXME: We can probably merge these two sections together a bit more, but this works for the meantime
         if self.app.request.count('/') > 0:
             # we are dealing with a deb file
+
+            appdet = ApplicationDetails("skype", "/home/pgg/Downloads/skype.deb")
+
 
             # open the package
             try:
