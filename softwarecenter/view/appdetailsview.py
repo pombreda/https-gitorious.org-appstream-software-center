@@ -904,7 +904,7 @@ class AppDetailsView(gtk.ScrolledWindow):
     def _update_page(self):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
-        big = 22*pango.SCALE
+        big = 20*pango.SCALE
         small = 9*pango.SCALE
         appname = self.get_name()
 
@@ -1008,10 +1008,10 @@ class AppDetailsView(gtk.ScrolledWindow):
         return
 
     def get_name(self):
-        return self.app.name
+        return gobject.markup_escape_text(self.app.name)
 
     def get_summary(self):
-        return self.db.get_summary(self.doc)
+        return gobject.markup_escape_text(self.db.get_summary(self.doc))
 
     def get_pkgname(self):
         return self.app.pkgname
@@ -1073,12 +1073,10 @@ class AppDetailsView(gtk.ScrolledWindow):
         return self.history.get_installed_date(self.get_pkgname())
 
     def get_screenshot_thumbnail_url(self):
-        url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
-        return url
+        return self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
 
     def get_screenshot_large_url(self):
-        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
-        return url
+        return self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
 
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
@@ -1117,28 +1115,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         if self.pkg and self.pkg.installed:
             return True
         return False
-
-    def wksub_screenshot_installed(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
-            return "screenshot_thumbnail-installed"
-        return "screenshot_thumbnail"
-
-    def wksub_screenshot_thumbnail_missing(self):
-        return self.distro.IMAGE_THUMBNAIL_MISSING
-
-    def wksub_no_screenshot_avaliable(self):
-        return _('No screenshot available')
-
-    # callbacks
-    def on_button_reload_clicked(self):
-        self.backend.reload()
-        self._set_action_button_sensitive(False)
-
-    def on_button_enable_channel_clicked(self):
-        #print "on_enable_channel_clicked"
-        self.backend.enable_channel(self.channelfile)
-        self._set_action_button_sensitive(False)
 
     def on_button_enable_component_clicked(self):
         #print "on_enable_component_clicked", component

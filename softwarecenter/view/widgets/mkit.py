@@ -90,6 +90,7 @@ def get_em_value():
     w.realize()
     pc = w.get_pango_context()
     l = pango.Layout(pc)
+    # 'M' is wide
     l.set_markup('M')
     w = l.get_pixel_extents()[1][2]
     print w
