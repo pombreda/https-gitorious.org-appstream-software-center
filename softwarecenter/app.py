@@ -585,9 +585,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
         # update menu items
-        if app.filename and self.active_pane.app_details.exist:
+        version_status = self.active_pane.app_details.version_status
+        if version_status == DEB_NOT_IN_CACHE or version_status == DEB_OLDER_THAN_CACHE or version_status == DEB_EQUAL_TO_CACHE or version_status == DEB_NEWER_THAN_CACHE:
             error = self.active_pane.app_details.error
-            version_status = self.active_pane.app_details.version_status
             self.menuitem_copy_web_link.set_sensitive(False)
             if self.active_pane.app_view.is_action_in_progress_for_selected_app() or error:
                 self.menuitem_install.set_sensitive(False)
@@ -716,24 +716,29 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             otherwise turn it into a comma seperated search
         """
         if len(packages) == 1:
-            # show a deb file
-            if packages[0].count("/") > 0:
-                filename = packages[0]
-                app = Application("", "", filename)               
-            # show a single package
+            request = packages[0]
+            if request.count("/") > 0:
+                # deb file
+                app = Application("", "", request)
+            elif request.count("?") > 0:
+                # apt url
+                #FIXME: atm we will assume that there is only on apturl argument
+                app = Application("", request.split('?')[0], request.split('?')[1])
             else:
-                pkg_name = packages[0]
+                # single package
+
                 # FIXME: this currently only works with pkg names for apps
                 #        it needs to perform a search because a App name
                 #        is (in general) not unique
-                app = Application("", pkg_name, "")
+                # -- Do we really want to fix this? The whole aim of launching s-c with an app preloaded is that we know precisely which app will launch, ie we want something unique (the packagename), rather than something not unique (the appname)
+                app = Application("", request, "")
             if (app.pkgname in self.available_pane.cache and self.available_pane.cache[app.pkgname].installed):
                 self.installed_pane.loaded = True
                 self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_INSTALLED)
                 self.installed_pane.loaded = False
-                self.installed_pane.show_deb_file(app)
+                self.installed_pane.show_app(app)
             else:
-                self.available_pane.show_deb_file(app)
+                self.available_pane.show_app(app)
 
 
         if len(packages) > 1:

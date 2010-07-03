@@ -452,7 +452,8 @@ class AvailablePane(SoftwarePane):
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
 
-    def show_deb_file(self, app): #(or apturl)
+    def show_app(self, app):
+        """ Display an application in the available_pane """
         cat_of_app = None
         for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
             if not cat_of_app and cat.untranslated_name != "New Applications" and cat.untranslated_name != "Featured Applications":

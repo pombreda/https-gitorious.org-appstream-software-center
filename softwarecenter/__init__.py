@@ -19,20 +19,23 @@
 import locale
 
 class Application(object):
-    """ The central software item abstraction. it conaints a 
+    """ The central software item abstraction. it contains a 
         pkgname that is always available and a optional appname
         for packages with multiple applications
         
         There is also a __cmp__ method and a name property
     """
-    def __init__(self, appname, pkgname, filename, popcon=0):
-        if filename.count("/") > 0:
-            self.appname = filename.split('/')[-1].split('_')[0].split('.')[0].capitalize()
-            self.pkgname = filename.split('/')[-1].split('_')[0].split('.')[0].lower()
+    def __init__(self, appname, pkgname, request, popcon=0):
+        if request.count("/") > 0:
+            self.appname = request.split('/')[-1].split('_')[0].split('.')[0].capitalize()
+            self.pkgname = request.split('/')[-1].split('_')[0].split('.')[0].lower()
+        elif request.count("?") > 0:
+            self.appname = request.split('?')[0].capitalize()
+            self.pkgname = request.split('?')[0]
         else:
             self.appname = pkgname.capitalize()
             self.pkgname = pkgname
-        self.filename = filename
+        self.request = request
         self._popcon = popcon
     @property
     def name(self):

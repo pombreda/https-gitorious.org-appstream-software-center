@@ -120,49 +120,50 @@ class AppDetailsView(WebkitWidget):
         self.exist = True
         self.warning = None
         self.error = None
+        self.version_status = None
         self.homepage_url = None
         self.channelfile = None
         self.channelname = None
         self.doc = None
 
         # FIXME: We can probably merge these two sections together a bit more, but this works for the meantime
-        if self.app.filename:
+        if self.app.request.count('/') > 0:
             # we are dealing with a deb file
 
             # open the package
             try:
                 self._rezzlcache = Cache()
-                deb = debfile.DebPackage(self.app.filename, self._rezzlcache)
+                deb = debfile.DebPackage(self.app.request, self._rezzlcache)
             except (IOError,SystemError),e:
-                mimetype = guess_type(self.app.filename)
+                mimetype = guess_type(self.app.request)
                 if (mimetype[0] != None and mimetype[0] != "application/x-debian-package"):
                     self.exist = False
-                    self.error = _("The file \"%s\" is not a software package.") % self.app.filename
+                    self.error = _("The file \"%s\" is not a software package.") % self.app.request
                     self.iconname = MISSING_PKG_ICON
                     return  
                 else:
                     self.exist = False
-                    self.error = _("The file \"%s\" can not be opened. Please check that the file exists and that you have permission to access it.") % self.app.filename
+                    self.error = _("The file \"%s\" can not be opened. Please check that the file exists and that you have permission to access it.") % self.app.request
                     self.iconname = MISSING_PKG_ICON
                     return
 
             # check arch
             arch = deb._sections["Architecture"]
             if  arch != "all" and arch != get_current_arch():
-                self.error = _("The file \"%s\" can not be installed on this type of computer.") %  self.app.filename.split('/')[-1]
+                self.error = _("The file \"%s\" can not be installed on this type of computer.") %  self.app.request.split('/')[-1]
 
             # check conflicts and check if installing it would break anything on the current system
             if not deb.check_conflicts() or not deb.check_breaks_existing_packages():
                 # this also occurs when a package provides and conflicts, so message is not accurate..
-                self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self.app.filename.split('/')[-1]
+                self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self.app.request.split('/')[-1]
 
             # try to satisfy the dependencies
             if not deb._satisfy_depends(deb.depends):
-                self.error = _("The file \"%s\" requires other software packages to be installed that are not available, so can not be installed.") % self.app.filename.split('/')[-1]
+                self.error = _("The file \"%s\" requires other software packages to be installed that are not available, so can not be installed.") % self.app.request.split('/')[-1]
 
             # check for conflicts again (this time with the packages that are marked for install)
             if not deb.check_conflicts():
-                self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self.app.filename.split('/')[-1]
+                self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self.app.request.split('/')[-1]
 
             # get warnings
             # FIXME: we need nicer messages here..

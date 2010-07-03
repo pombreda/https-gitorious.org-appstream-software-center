@@ -179,7 +179,8 @@ class InstalledPane(SoftwarePane):
         # there is no category view in the installed pane
         return False
 
-    def show_deb_file(self, app): #(or apturl)
+    def show_app(self, app):
+        """ Display an application in the installed_pane """
         self.navigation_bar.add_with_id(_("Installed Software"), self.on_navigation_list, "list", do_callback=False, animate=False)
         self.navigation_bar.add_with_id(app.appname, self.on_navigation_details, "details", animate=True)
         self.app_details.show_app(app)
