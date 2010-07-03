@@ -141,16 +141,16 @@ class PackageStatusBar(gtk.Alignment):
         self.button.set_label(label)
         return
 
-    def set_pkg_state(self, state):
-        view = self.details_view
+    def configure(self, state, price, install_date):
         self.pkg_state = state
         self.progress.hide()
 
         if state == PKG_STATE_INSTALLED:
-            self.set_label(_('Installed'))
+            install_date = str(install_date).split()[0]
+            self.set_label(_('Installed %s' % install_date))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
-            self.set_label(view.get_price())
+            self.set_label(price)
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
@@ -564,7 +564,7 @@ class ScreenshotView(gtk.Alignment):
         return True
 
     def _fade_in(self):
-        self.alpha += 0.2
+        self.alpha += 0.1
         if self.alpha >= 1.0:
             self.alpha = 1.0
             self.queue_draw()
@@ -731,6 +731,9 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.cache.connect("cache-ready", self._on_cache_ready)
         self.history = history
 
+        self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+
+
         self.datadir = datadir
         self.arch = get_current_arch()
 
@@ -828,34 +831,6 @@ class AppDetailsView(gtk.ScrolledWindow):
                 return origin.component
         return
 
-    def _get_pkg_state(self):
-        if self.pkg:
-            # Don't handle upgrades yet
-            #if pkg.installed and pkg.isUpgradable:
-            #    return PKG_STATE_UPGRADABLE
-            if self.pkg.installed:
-                return PKG_STATE_INSTALLED
-            else:
-                return PKG_STATE_UNINSTALLED
-
-        elif self.doc:
-            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                #if os.path.exists(path):
-                    #self.channelname = channel
-                    #self.channelfile = path
-                    ## FIXME: deal with the EULA stuff
-                    return PKG_STATE_NEEDS_SOURCE
-            # check if it comes from a non-enabled component
-            elif self._unavailable_component():
-                # FIXME: use a proper message here, but we are in string freeze
-                return PKG_STATE_UNAVAILABLE
-            elif self._available_for_our_arch():
-                return PKG_STATE_NEEDS_SOURCE
-
-        return PKG_STATE_UNKNOWN
-
     def _layout_page(self):
         # setup widgets
         self.vbox = gtk.VBox()
@@ -929,7 +904,10 @@ class AppDetailsView(gtk.ScrolledWindow):
                                gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
-        self.action_bar.set_pkg_state(self._get_pkg_state())
+        self.action_bar.configure(self.get_pkg_state(),
+                                  self.get_price(),
+                                  self.get_installed_date())
+
         self.action_bar.button.grab_focus()
 
         # format new app description
@@ -944,7 +922,7 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self.get_gwibber_is_available():
+        if self.gwibber_is_available:
             self.share_btn.show()
             self.share_btn.set_property('visited', False)
         else:
@@ -1022,14 +1000,36 @@ class AppDetailsView(gtk.ScrolledWindow):
     def get_summary(self):
         return self.db.get_summary(self.doc)
 
-    def wksub_pkgname(self):
+    def get_pkgname(self):
         return self.app.pkgname
 
-    def wksub_body_class(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
-            return "section-installed"
-        return "section-get"
+    def get_pkg_state(self):
+        if self.pkg:
+            # Don't handle upgrades yet
+            #if pkg.installed and pkg.isUpgradable:
+            #    return PKG_STATE_UPGRADABLE
+            if self.pkg.installed:
+                return PKG_STATE_INSTALLED
+            else:
+                return PKG_STATE_UNINSTALLED
+
+        elif self.doc:
+            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            if channel:
+                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+                #if os.path.exists(path):
+                    #self.channelname = channel
+                    #self.channelfile = path
+                    ## FIXME: deal with the EULA stuff
+                    return PKG_STATE_NEEDS_SOURCE
+            # check if it comes from a non-enabled component
+            elif self._unavailable_component():
+                # FIXME: use a proper message here, but we are in string freeze
+                return PKG_STATE_UNAVAILABLE
+            elif self._available_for_our_arch():
+                return PKG_STATE_NEEDS_SOURCE
+
+        return PKG_STATE_UNKNOWN
 
     def get_description(self):
         # if we do not have a package in our apt data explain why
@@ -1055,11 +1055,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         logging.debug("Description (text) %r", description)
         return description
 
-    def wksub_iconpath_loading(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
-            return self.IMAGE_LOADING_INSTALLED
-        return self.IMAGE_LOADING
+    def get_installed_date(self):
+        return self.history.get_installed_date(self.get_pkgname())
 
     def get_screenshot_thumbnail_url(self):
         url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
@@ -1106,9 +1103,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         if self.pkg and self.pkg.installed:
             return True
         return False
-
-    def get_gwibber_is_available(self):
-        return os.path.exists("/usr/bin/gwibber-poster")
 
     def wksub_screenshot_installed(self):
         if (self.app.pkgname in self.cache and
