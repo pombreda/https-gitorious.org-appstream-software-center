@@ -210,6 +210,7 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.footer, False)
         self.show_all()
 
+        self._newline = False
         self.paragraphs = []
         self.points = []
         return
@@ -225,13 +226,12 @@ class AppDescription(gtk.VBox):
 
     def append_paragraph(self, fragment, newline):
         if not fragment.strip(): return
+
+        if fragment.endswith('\n\n'):
+            fragment = fragment[:-2]
+
         p = gtk.Label()
-
-        if newline:
-            p.set_markup('\n'+fragment)
-        else:
-            p.set_markup(fragment)
-
+        p.set_markup(fragment)
         p.set_line_wrap(True)
         p.set_selectable(True)
 
@@ -272,12 +272,9 @@ class AppDescription(gtk.VBox):
         return False
 
     def set_description(self, desc, appname):
+        # This is arcane shit maaaaannn...
         self.clear()
         desc = gobject.markup_escape_text(desc)
-        
-        print
-        print desc
-        print
 
         processed_desc = prev_part = ''
         parts = desc.split('\n')
@@ -287,9 +284,10 @@ class AppDescription(gtk.VBox):
 
         for i, part in enumerate(parts):
             part = part.strip()
+            print part
 
             if not part:
-                pass
+                processed_desc += '\n'
 
             elif part.startswith('* ') or part.startswith('- '):
 
@@ -299,7 +297,10 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_bullet_point(processed_desc)
 
-                processed_desc = ''
+                if prev_part:
+                    processed_desc = '\n'
+                else:
+                    processed_desc = ''
                 processed_desc += part
 
                 # special case for 7zip
@@ -341,7 +342,7 @@ class AppDescription(gtk.VBox):
                     processed_desc += part
                 else:
                     if part.endswith('.'):
-                        processed_desc += part + '\n\n'
+                        processed_desc += part + '\n'
                     else:
                         processed_desc += part
 

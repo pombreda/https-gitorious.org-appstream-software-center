@@ -1049,7 +1049,7 @@ class Button(gtk.EventBox):
                                    self.state,
                                    (x-2, y-1, w+4, h+2),
                                    self,
-                                   'button',
+                                   'expander',
                                    x-2, y-1, w+4, h+2)
         return
 
