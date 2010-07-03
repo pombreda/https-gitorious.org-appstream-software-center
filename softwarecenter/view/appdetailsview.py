@@ -16,24 +16,16 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
-import dbus
-import gettext
 import gio
 import glib
 import gobject
 import gtk
 import logging
 import os
-import re
-import socket
-import string
-import subprocess
 import sys
-import tempfile
-import urllib
 import xapian
 import pango
+import string
 
 from gettext import gettext as _
 
@@ -62,7 +54,7 @@ COLOR_RED_FILL     = '#FF9595'
 COLOR_RED_OUTLINE  = '#EF2929'
 
 # yellows: some user action is required outside of install or remove
-COLOR_YELLOW_FILL    = '#FFF5A3'
+COLOR_YELLOW_FILL    = '#FFF7B3'
 COLOR_YELLOW_OUTLINE = '#FCE94F'
 
 # greens: used for pkg installed or available for install
@@ -288,7 +280,7 @@ class AppDescription(gtk.VBox):
         parts = desc.split('\n')
 
         newline = False
-        in_blist = False
+        in_blist = False    # within bullet list
 
         for i, part in enumerate(parts):
             part = part.strip()
@@ -844,6 +836,8 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _layout_page(self):
         # setup widgets
+
+        # root vbox
         self.vbox = gtk.VBox()
         self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
 
@@ -913,7 +907,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
-        self.app_info.set_icon(self.iconname or 'gnome-other',
+        self.app_info.set_icon(self.iconname,
                                gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
@@ -963,8 +957,6 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # initialize the app
         self.init_app(app)
-        
-        #self._check_thumb_available()
         return
 
     def init_app(self, app):
@@ -986,11 +978,7 @@ class AppDetailsView(gtk.ScrolledWindow):
             raise IndexError, "No app '%s' for '%s' in database" % (
                 self.app.appname, self.app.pkgname)
 
-        # get icon
-        self.iconname = self.db.get_iconname(self.doc)
-        # remove extension (e.g. .png) because the gtk.IconTheme
-        # will find fins a icon with it
-        self.iconname = os.path.splitext(self.iconname)[0]
+        self.iconname = self.get_iconname()
 
         # get apt cache data
         pkgname = self.db.get_pkgname(self.doc)
@@ -1006,6 +994,18 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         self._update_page()
         return
+
+    def get_iconname(self):
+        # get icon
+        iconname = self.db.get_iconname(self.doc)
+        # remove extension (e.g. .png) because the gtk.IconTheme
+        # will find fins a icon with it
+        iconname = os.path.splitext(iconname)[0]
+        # this iconname may not be valid,
+        # so we need to check it exists in the IconTheme
+        if self.icons.has_icon(iconname):
+            return iconname
+        return 'gnome-other'
 
     def get_name(self):
         return gobject.markup_escape_text(self.app.name)
