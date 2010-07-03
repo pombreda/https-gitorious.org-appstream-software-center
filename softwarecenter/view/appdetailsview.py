@@ -199,15 +199,21 @@ class PackageStatusBar(gtk.Alignment):
 class AppDescription(gtk.VBox):
 
     def __init__(self):
-        gtk.VBox.__init__(self)
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+        self.body = gtk.VBox()
+        self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
+
+        self.pack_start(self.body, False)
+        self.pack_start(self.footer, False)
+        self.show_all()
 
         self.paragraphs = []
         self.points = []
         return
 
     def clear(self):
-        for child in self.get_children():
-            self.remove(child)
+        for child in self.body.get_children():
+            self.body.remove(child)
             child.destroy()
 
         self.paragraphs = []
@@ -229,7 +235,7 @@ class AppDescription(gtk.VBox):
         hb = gtk.HBox()
         hb.pack_start(p, False)
 
-        self.pack_start(hb, False)
+        self.body.pack_start(hb, False)
         self.paragraphs.append(p)
         return True
 
@@ -258,7 +264,7 @@ class AppDescription(gtk.VBox):
         a.set_padding(bullet_padding, bullet_padding, 0, 0)
         a.add(hb)
 
-        self.pack_start(a, False)
+        self.body.pack_start(a, False)
         self.points.append(point)
         return False
 
@@ -416,27 +422,27 @@ class ScreenshotLoader(gobject.GObject):
 
     def _actually_download_screenshot(self, file, url):
 
-        def download_screenshot_cb(file, result):
+        def download_complete_cb(file, result):
             """Method called after the file has downloaded"""
 
             # the result from the download is actually a tuple with three elements. The first element is the actual content
             # so let's grab that
             content = file.load_contents_finish(result)[0]
 
-            # let's now save the content to the user's home directory
-            path = os.path.join(os.path.expanduser('~'), "screenshot.png")
-            outputfile = open(path, "w")
+            # let's now save the content to the tmp dir
+            outputfile = open("/tmp/SoftwareCenterScreenshot.png", "w")
             outputfile.write(content)
 
-            self.emit('download-complete', path)
+            self.emit('download-complete',
+                      "/tmp/SoftwareCenterScreenshot.png")
             return
 
-        file.load_contents_async(download_screenshot_cb)
+        file.load_contents_async(download_complete_cb)
         return
 
     def download_screenshot(self, url):
 
-        def query_screenshot_cb(file, result):
+        def query_complete_cb(file, result):
             try:
                 result = file.query_info_finish(result)
                 self.emit('query-complete', True)
@@ -450,7 +456,7 @@ class ScreenshotLoader(gobject.GObject):
         # use gio (its so nice)
         file=gio.File(url)
         file.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                              query_screenshot_cb)
+                              query_complete_cb)
         return
 
 gobject.type_register(ScreenshotLoader)
@@ -458,15 +464,18 @@ gobject.type_register(ScreenshotLoader)
 
 class ScreenshotView(gtk.Alignment):
 
-    def __init__(self):
+    def __init__(self, distro, icons):
         gtk.Alignment.__init__(self, 0.5, 0.0, xscale=0.0, yscale=0.0)
-
+        self.set_redraw_on_allocate(False)
         event = gtk.EventBox()
+        event.set_border_width(3)
+
         self.add(event)
         self.image = gtk.Image()
         event.add(self.image)
+        self.eventbox = event
 
-        event.set_flags(gtk.CAN_FOCUS)
+        self.set_flags(gtk.CAN_FOCUS)
         event.set_events(gtk.gdk.BUTTON_PRESS_MASK|
                          gtk.gdk.BUTTON_RELEASE_MASK|
                          gtk.gdk.KEY_RELEASE_MASK|
@@ -476,9 +485,17 @@ class ScreenshotView(gtk.Alignment):
 
         event.connect('enter-notify-event', self._on_enter)
         event.connect('leave-notify-event', self._on_leave)
+        event.connect('button-press-event', self._on_press)
+        event.connect('button-release-event', self._on_release)
+        self.connect("key-press-event", self._on_key_press)
+        self.connect("key-release-event", self._on_key_release)
 
+        self.distro = distro
+        self.icons = icons
+        self.appname = None
         self.thumbnail_url = None
         self.large_url = None
+        self.screenshot_available = False
 
         self.loader = ScreenshotLoader()
         self.loader.connect('query-complete', self._on_screenshot_query_complete)
@@ -486,46 +503,120 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def _on_enter(self, widget, event):
-        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+        if self.screenshot_available:
+            self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
         return
 
     def _on_leave(self, widget, event):
-        self.window.set_cursor(None)
+        if self.screenshot_available:
+            self.window.set_cursor(None)
+        return
+
+    def _on_press(self, widget, event):
+        if event.button != 1 or not self.screenshot_available: return
+        self.set_state(gtk.STATE_ACTIVE)
+        return
+
+    def _on_release(self, widget, event):
+        if event.button != 1 or not self.screenshot_available: return
+        self.set_state(gtk.STATE_NORMAL)
+        self._show_image_dialog()
+        return
+
+    def _on_key_press(self, widget, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421) and self.screenshot_available:
+            self.set_state(gtk.STATE_ACTIVE)
+        return
+
+    def _on_key_release(self, widget, event):
+        # react to spacebar, enter, numpad-enter
+        if event.keyval in (32, 65293, 65421) and self.screenshot_available:
+            self.set_state(gtk.STATE_NORMAL)
+            self._show_image_dialog()
+        return
+
+    def _show_image_dialog(self):
+        url = self.large_url
+        title = _("%s - Screenshot") % self.appname
+        d = ShowImageDialog(
+            title, url,
+            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
+            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
+            self.distro.IMAGE_FULL_MISSING)
+
+        d.run()
+        d.destroy()
         return
 
     def _on_screenshot_query_complete(self, loader, success):
         print 'ThumbAvailable:', success
+        self.screenshot_available = success
         return
 
     def _on_screenshot_download_complete(self, loader, screenshot_path):
-        print screenshot_path
 
         def setter_cb(path):
             self.image.set_from_file(path)
             return False
 
+        self.image.set_size_request(-1, -1)
         gobject.idle_add(setter_cb, screenshot_path)
         return
 
-    def set_urls(self, thumb_url, large_url):
-        self.image.clear()
+    def set_is_working(self, is_working):
+        if is_working:
+            pass
+        else:
+            pass
+        return
 
+    def configure(self, name, thumb_url, large_url):
+        self.clear()
+        self.appname = name
         self.thumbnail_url = thumb_url
         self.large_url = large_url
+        return
 
-        self.loader.download_screenshot(thumb_url)
+    def clear(self):
+        self.image.clear()
+        self.screenshot_available = False
+        self.image.set_size_request(160, 100)
+        return
+
+    def download(self):
+        self.loader.download_screenshot(self.thumbnail_url)
         return
 
     def draw(self, cr, a, expose_area):
         if mkit.not_overlapping(a, expose_area): return
+
         ia = self.image.allocation
-        x = a.x + (a.width - ia.width)/2 - 3
-        cr.rectangle(x, a.y-3, ia.width+6, ia.height+6)
-        cr.clip_preserve()
-        cr.set_source_rgba(1,1,1)
-        cr.fill_preserve()
-        cr.set_source_rgb(0,0,0)
-        cr.stroke()
+        x = a.x + (a.width - ia.width)/2
+
+        if self.has_focus() or self.state == gtk.STATE_ACTIVE:
+            cr.rectangle(x-2, a.y+ia.y+1, ia.width+4, ia.height+4)
+            cr.set_source_rgb(1,1,1)
+            cr.fill_preserve()
+            if self.state == gtk.STATE_ACTIVE:
+                color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+            else:
+                color = mkit.floats_from_gdkcolor(self.style.dark[gtk.STATE_SELECTED])
+            cr.set_source_rgb(*color)
+            cr.stroke()
+        else:
+            cr.rectangle(x-3, a.y+ia.y, ia.width+6, ia.height+6)
+            cr.set_source_rgb(1,1,1)
+            cr.fill()
+            cr.save()
+            cr.translate(0.5, 0.5)
+            cr.set_line_width(1)
+            cr.rectangle(x-3, a.y+ia.y, ia.width+5, ia.height+5)
+
+            dark = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+            cr.set_source_rgb(*dark)
+            cr.stroke()
+            cr.restore()
         return
 
 
@@ -594,10 +685,10 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.app_info.label.set_size_request(-1, -1)
 
         for p in self.app_desc.paragraphs:
-            p.set_size_request(w-7*mkit.EM-160, -1)
+            p.set_size_request(w-7*mkit.EM-166, -1)
             
         for pt in self.app_desc.points:
-            pt.set_size_request(w-9*mkit.EM-160, -1)
+            pt.set_size_request(w-9*mkit.EM-166, -1)
 
         self.info_table.set_width(w-magic_number)
 
@@ -611,7 +702,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         cr.clip()
 
         self.app_info.draw(cr, self.app_info.allocation, expose_area)
-        #self.desc_section.draw(cr, self.desc_section.allocation, expose_area)
 
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
@@ -726,17 +816,13 @@ class AppDetailsView(gtk.ScrolledWindow):
         app_desc_hb.pack_start(self.app_desc, False)
 
         # screenshot
-        self.screenshot = ScreenshotView()
+        self.screenshot = ScreenshotView(self.distro, self.icons)
         app_desc_hb.pack_end(self.screenshot)
-
-        # hbox for web related links (homepage and microbloggers)
-        web_hb = gtk.HBox(spacing=mkit.SPACING_MED)
-        self.desc_section.body.pack_end(web_hb, False)
 
         # homepage link button
         self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
         self.homepage_btn.set_relief(gtk.RELIEF_NONE)
-        web_hb.pack_start(self.homepage_btn, False)
+        self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
         self.share_btn = gtk.LinkButton(uri=_('Share via micro-blogging service'),
@@ -744,7 +830,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         self.share_btn.set_relief(gtk.RELIEF_NONE)
         self.share_btn.connect('clicked', self._on_share_clicked)
-        web_hb.pack_start(self.share_btn, False)
+        self.app_desc.footer.pack_start(self.share_btn, False)
 
         # package info table
         self.info_table = PackageInfoTable()
@@ -780,8 +866,10 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.homepage_btn.hide()
 
         # get screenshot url and load then render into page
-        self.screenshot.set_urls(self.get_screenshot_thumbnail_url(),
-                                 self.get_screenshot_large_url())
+        self.screenshot.configure(appname,
+                                  self.get_screenshot_thumbnail_url(),
+                                  self.get_screenshot_large_url())
+        self.screenshot.download()
 
         # set the strings in the package info table
         self.info_table.set_version(self.get_version())

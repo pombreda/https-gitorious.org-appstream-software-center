@@ -58,6 +58,32 @@ def floats_from_string_with_alpha(spec, a):
     r, g, b = floats_from_string(spec)
     return r, g, b, a
 
+#def get_gtk_color_scheme_dict():
+    ## Color names as provided by gtk.Settings:
+    ## Note: Not all Gtk themes support this method of color retrieval!
+
+    ## 'tooltip_fg_color'
+    ## 'fg_color'
+    ## 'base_color'
+    ## 'selected_bg_color'
+    ## 'selected_fg_color'
+    ## 'text_color'
+    ## 'bg_color'
+    ## 'tooltip_bg_color'
+
+    #scheme_str = gtk.settings_get_default().get_property("gtk-color-scheme")
+    #d = {}
+    #lines = scheme_str.splitlines()
+    #if not lines: return
+
+    #for ln in lines:
+        #try:
+            #k, v = ln.split(':')
+            #d[k.strip()] = v.strip()
+        #except:
+            #pass
+    #return d
+
 def get_em_value():
     # retrieve the gtk-font-name and return the font size to be used at 1em
     raw_desc = gtk.settings_get_default().get_property("gtk-font-name")
