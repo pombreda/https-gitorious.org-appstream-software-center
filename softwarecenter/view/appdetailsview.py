@@ -104,6 +104,9 @@ class PackageStatusBar(gtk.Alignment):
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
 
+        self.fill_color = COLOR_GREEN_FILL
+        self.line_color = COLOR_GREEN_OUTLINE
+
         self.pkg_state = None
         self.details_view = details_view
 
@@ -145,6 +148,9 @@ class PackageStatusBar(gtk.Alignment):
         self.pkg_state = state
         self.progress.hide()
 
+        self.fill_color = COLOR_GREEN_FILL
+        self.line_color = COLOR_GREEN_OUTLINE
+
         if state == PKG_STATE_INSTALLED:
             install_date = str(install_date).split()[0]
             self.set_label(_('Installed %s' % install_date))
@@ -164,11 +170,16 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             #self.set_button_label(_('Upgrade Available'))
+        elif state == PKG_STATE_NEEDS_SOURCE:
+            self.set_button_label(_('Add Source'))
+            self.set_label(_('Source Unavailable'))
+            self.fill_color = COLOR_YELLOW_FILL
+            self.line_color = COLOR_YELLOW_OUTLINE
         else:
-            print 'huh?'
+            print 'PkgStateUnknown:', state
         return
 
-    def draw(self, cr, a, expose_area, bg_color, line_color):
+    def draw(self, cr, a, expose_area):
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
@@ -178,7 +189,7 @@ class PackageStatusBar(gtk.Alignment):
                   a.x+a.width-2, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
-        cr.set_source_rgb(*mkit.floats_from_string(bg_color))
+        cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
         cr.fill()
 
         cr.set_line_width(1)
@@ -189,7 +200,7 @@ class PackageStatusBar(gtk.Alignment):
                   a.x+a.width-2, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
-        cr.set_source_rgb(*mkit.floats_from_string(line_color))
+        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.stroke()
 
         cr.restore()
@@ -245,7 +256,7 @@ class AppDescription(gtk.VBox):
         fragment = fragment.replace('- ', '')
 
         bullet = gtk.Label()
-        bullet.set_markup(u"  <big>\u2022</big>")
+        bullet.set_markup(u"  <b>\u2022</b>")
 
         a = gtk.Alignment(0.5, 0.0)
         a.add(bullet)
@@ -564,7 +575,7 @@ class ScreenshotView(gtk.Alignment):
         return True
 
     def _fade_in(self):
-        self.alpha += 0.1
+        self.alpha += 0.05
         if self.alpha >= 1.0:
             self.alpha = 1.0
             self.queue_draw()
@@ -586,7 +597,9 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def _on_screenshot_query_complete(self, loader, reachable):
+        print self.appname
         print 'ThumbAvailable:', reachable
+
         self.set_screenshot_available(reachable)
         if not reachable: self.ready = True
         return
@@ -784,9 +797,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
-                             event.area,
-                             COLOR_GREEN_FILL,
-                             COLOR_GREEN_OUTLINE)
+                             event.area)
 
         self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
         del cr
@@ -891,12 +902,14 @@ class AppDetailsView(gtk.ScrolledWindow):
         return viewport
 
     def _update_page(self):
-        font_size = 22*pango.SCALE  # make this relative to the appicon size (48x48)
+        # make title font size fixed as they should look good compared to the 
+        # icon (also fixed).
+        big = 22*pango.SCALE
+        small = 9*pango.SCALE
         appname = self.get_name()
 
-        markup = '<b><span size="%s">%s</span></b>\n%s' % (font_size,
-                                                           appname,
-                                                           self.get_summary())
+        markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
+        markup = markup % (big, appname, small, self.get_summary())
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
@@ -1021,6 +1034,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                     #self.channelname = channel
                     #self.channelfile = path
                     ## FIXME: deal with the EULA stuff
+                    print channel
                     return PKG_STATE_NEEDS_SOURCE
             # check if it comes from a non-enabled component
             elif self._unavailable_component():
@@ -1071,11 +1085,11 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def get_version(self):
         if not self.pkg or not self.pkg.candidate:
-            return ""
+            return _("Unknown")
         version = self.pkg.candidate.version
         if version:
             return "%s (%s)" % (version, self.pkg.name)
-        return ""
+        return _("Unknown")
 
     def wksub_datadir(self):
         return self.datadir

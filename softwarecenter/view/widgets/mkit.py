@@ -85,16 +85,15 @@ def floats_from_string_with_alpha(spec, a):
     #return d
 
 def get_em_value():
-    # retrieve the gtk-font-name and return the font size to be used at 1em
-    raw_desc = gtk.settings_get_default().get_property("gtk-font-name")
-    font_name, font_size = raw_desc.rsplit(' ', 1)
-    try:
-        return int(font_size)
-    except:
-        logging.warn("Could not parse font size for font description: %s" % raw_desc)
-
-    # fall back to default font size, as per default gtk font size "Sans 10"
-    return 10
+    # calc the width of a wide character, use as 1em
+    w = gtk.Window()
+    w.realize()
+    pc = w.get_pango_context()
+    l = pango.Layout(pc)
+    l.set_markup('M')
+    w = l.get_pixel_extents()[1][2]
+    print w
+    return w
 
 def get_nearest_stock_size(desired_size):
     stock_sizes = (16, 24, 32, 48, 64)
