@@ -90,15 +90,10 @@ class AppStore(gtk.GenericTreeModel):
     # the default result size for a search
     DEFAULT_SEARCH_LIMIT = 200
 
-    def __init__(self,
-                 xapt,
-                 search_query=None, 
+    def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
-                 sort=False,
-                 filter=None,
-                 exact=False,
-                 icon_size=ICON_SIZE,
-                 global_icon_cache=True, 
+                 sort=False, filter=None, exact=False,
+                 icon_size=ICON_SIZE, global_icon_cache=True, 
                  nonapps_visible=False):
         """
         Initalize a AppStore.
@@ -119,11 +114,10 @@ class AppStore(gtk.GenericTreeModel):
         """
         gtk.GenericTreeModel.__init__(self)
         self.search_query = search_query
-        self.cache = xapt.cache
-        self.db = xapt.db
-        self.icons = xapt.icons
+        self.cache = cache
+        self.db = db
+        self.icons = icons
         self.icon_size = icon_size
-
         if global_icon_cache:
             self.icon_cache = _app_icon_cache
         else:

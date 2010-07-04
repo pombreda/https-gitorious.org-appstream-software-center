@@ -57,15 +57,20 @@ class HistoryPane(gtk.VBox):
     ICON_SIZE = 24
     PADDING = 6
 
-    def __init__(self, xapt, datadir):
+    def __init__(self, cache, history, db, distro, icons, datadir):
         gtk.VBox.__init__(self)
-        self.xapt = xapt
+        self.cache = cache
+        self.db = db
+        self.distro = distro
+        self.icons = icons
+        self.datadir = datadir
+
         self.apps_filter = None
 
         # Icon cache, invalidated upon icon theme changes
         self._app_icon_cache = {}
         self._reset_icon_cache()
-        xapt.icons.connect('changed', self._reset_icon_cache)
+        self.icons.connect('changed', self._reset_icon_cache)
 
         self.header = gtk.HBox()
         self.header.show()
@@ -127,9 +132,10 @@ class HistoryPane(gtk.VBox):
         self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
         
-        self.history = xapt.history
+        self.history = history
         self.parse_history()
         self.history.set_on_update(self.parse_history)
+        
 
         self.column = gtk.TreeViewColumn(_('Date'))
         self.view.append_column(self.column)
@@ -143,8 +149,7 @@ class HistoryPane(gtk.VBox):
     def _reset_icon_cache(self, theme=None):
         self._app_icon_cache.clear()
         try:
-            missing = self.xapt.icons.load_icon(MISSING_APP_ICON,
-                                                self.ICON_SIZE, 0)
+            missing = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
         except glib.GError:
             missing = None
         self._app_icon_cache[MISSING_APP_ICON] = missing

@@ -29,7 +29,6 @@ import os
 import subprocess
 import sys
 import xapian
-import xapt
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
@@ -115,20 +114,56 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         except Exception, e:
             logging.exception("setlocale failed")
 
+        # distro specific stuff
+        self.distro = get_distro()
+
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
             sources = self.builder.get_object("menuitem_software_sources")
             sources.set_sensitive(False)
 
         # a main iteration friendly apt cache
-        self.xapt = xapt.XaptSource(datadir, xapian_base_path)
-
-        self.xapt.cache.connect("cache-broken", self._on_apt_cache_broken)
-        self.xapt.backend.connect("transaction-started", self._on_transaction_started)
-        self.xapt.backend.connect("transaction-finished", self._on_transaction_finished)
-        self.xapt.backend.connect("transaction-stopped", self._on_transaction_stopped)
-        self.xapt.backend.connect("channels-changed", self.on_channels_changed)
-
+        self.cache = AptCache()
+        self.cache.connect("cache-broken", self._on_apt_cache_broken)
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-started", self._on_transaction_started)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("channels-changed", self.on_channels_changed)
+        #apt history
+        self.history = AptHistory()
+        # xapian
+        pathname = os.path.join(xapian_base_path, "xapian")
+        try:
+            self.db = StoreDatabase(pathname, self.cache)
+            self.db.open()
+        except xapian.DatabaseOpeningError:
+            # Couldn't use that folder as a database
+            # This may be because we are in a bzr checkout and that
+            #   folder is empty. If the folder is empty, and we can find the
+            # script that does population, populate a database in it.
+            if os.path.isdir(pathname) and not os.listdir(pathname):
+                from softwarecenter.db.update import rebuild_database
+                logging.info("building local database")
+                rebuild_database(pathname)
+                self.db = StoreDatabase(pathname, self.cache)
+                self.db.open()
+        except xapian.DatabaseCorruptError, e:
+            logging.exception("xapian open failed")
+            view.dialogs.error(None, 
+                               _("Sorry, can not open the software database"),
+                               _("Please re-install the 'software-center' "
+                                 "package."))
+            # FIXME: force rebuild by providing a dbus service for this
+            sys.exit(1)
+    
+        # additional icons come from app-install-data
+        self.icons = gtk.icon_theme_get_default()
+        self.icons.append_search_path(ICON_PATH)
+        self.icons.append_search_path(os.path.join(datadir,"icons"))
+        self.icons.append_search_path(os.path.join(datadir,"emblems"))
+        # HACK: make it more friendly for local installs (for mpt)
+        self.icons.append_search_path(datadir+"/icons/32x32/status")
         gtk.window_set_default_icon_name("softwarecenter")
 
         # misc state
@@ -136,7 +171,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._available_items_for_page = {}
 
         # available pane
-        self.available_pane = AvailablePane(self.xapt,
+        self.available_pane = AvailablePane(self.cache,
+                                            self.history,
+                                            self.db,
+                                            self.distro,
+                                            self.icons,
                                             datadir,
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
@@ -151,7 +190,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_available.add(self.available_pane)
 
         # channel pane
-        self.channel_pane = ChannelPane(self.xapt, datadir)
+        self.channel_pane = ChannelPane(self.cache,
+                                        self.history,
+                                        self.db,
+                                        self.distro,
+                                        self.icons,
+                                        datadir)
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_CHANNEL)
@@ -163,7 +207,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_channel.add(self.channel_pane)
         
         # installed pane
-        self.installed_pane = InstalledPane(self.xapt, datadir)
+        self.installed_pane = InstalledPane(self.cache,
+                                            self.history,
+                                            self.db, 
+                                            self.distro,
+                                            self.icons,
+                                            datadir)
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 self.NOTEBOOK_PAGE_INSTALLED)
@@ -175,18 +224,23 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.alignment_installed.add(self.installed_pane)
 
         # history pane
-        self.history_pane = HistoryPane(self.xapt, datadir)
+        self.history_pane = HistoryPane(self.cache,
+                                        self.history,
+                                        self.db,
+                                        self.distro,
+                                        self.icons,
+                                        datadir)
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,
                                   self.NOTEBOOK_PAGE_HISTORY)
         self.alignment_history.add(self.history_pane)
 
         # pending view
-        self.pending_view = PendingView(self.xapt.icons)
+        self.pending_view = PendingView(self.icons)
         self.scrolledwindow_transactions.add(self.pending_view)
 
         # view switcher
-        self.view_switcher = ViewSwitcher(self.xapt, datadir)
+        self.view_switcher = ViewSwitcher(datadir, self.db, self.cache, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
@@ -220,10 +274,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.window_main.set_size_request(600, 400)
 
         # setup window name and about information (needs branding)
-        name = self.xapt.distro.get_app_name()
+        name = self.distro.get_app_name()
         self.window_main.set_title(name)
         self.aboutdialog.set_name(name)
-        about_description = self.xapt.distro.get_app_description()
+        about_description = self.distro.get_app_description()
         self.aboutdialog.set_comments(about_description)
 
         # restore state
@@ -485,7 +539,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """ callback when the set of software channels has changed """
         logging.debug("on_channels_changed %s" % res)
         if res:
-            self.xapt.db.open()
+            self.db.open()
             # reset the navigation history because software items stored
             # in the history stack might no longer be available
             self.available_pane.nav_history.reset()
@@ -516,18 +570,18 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_copy_web_link.set_sensitive(False)
             return False
         # wait for the cache to become ready (if needed)
-        if not self.xapt.cache.ready:
+        if not self.cache.ready:
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
         # update menu items
         if (not self.active_pane.is_category_view_showing() and 
-            app.pkgname in self.xapt.cache):
+            app.pkgname in self.cache):
             if self.active_pane.app_view.is_action_in_progress_for_selected_app():
                 self.menuitem_install.set_sensitive(False)
                 self.menuitem_remove.set_sensitive(False)
                 self.menuitem_copy_web_link.set_sensitive(False)
             else:
-                pkg = self.xapt.cache[app.pkgname]
+                pkg = self.cache[app.pkgname]
                 installed = bool(pkg.installed)
                 self.menuitem_install.set_sensitive(not installed)
                 self.menuitem_remove.set_sensitive(installed)
@@ -574,7 +628,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.window_rebuilding.show()
         else:
             # we need to reopen when the database finished updating
-            self.xapt.db.reopen()
+            self.db.reopen()
             self.window_rebuilding.hide()
 
     def setup_database_rebuilding_listener(self):
@@ -699,3 +753,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
+
+
+

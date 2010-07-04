@@ -49,15 +49,12 @@ class ViewSwitcher(gtk.TreeView):
     }
 
 
-    def __init__(self, xapt, datadir, store=None):
+    def __init__(self, datadir, db, cache, icons, store=None):
         super(ViewSwitcher, self).__init__()
         self.datadir = datadir
-        self.icons = xapt.icons
+        self.icons = icons
         if not store:
-            store = ViewSwitcherList(datadir,
-                                     xapt.db,
-                                     xapt.cache,
-                                     xapt.icons)
+            store = ViewSwitcherList(datadir, db, cache, icons)
             # FIXME: this is just set here for app.py, make the
             #        transactions-changed signal part of the view api
             #        instead of the model

@@ -62,9 +62,17 @@ class AvailablePane(SoftwarePane):
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
 
-    def __init__(self, xapt, datadir, navhistory_back_action, navhistory_forward_action):
+    def __init__(self, 
+                 cache,
+                 history,
+                 db, 
+                 distro, 
+                 icons, 
+                 datadir, 
+                 navhistory_back_action, 
+                 navhistory_forward_action):
         # parent
-        SoftwarePane.__init__(self, xapt, datadir)
+        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
@@ -74,7 +82,7 @@ class AvailablePane(SoftwarePane):
         self.apps_search_term = ""
         self.apps_sorted = True
         self.apps_limit = 0
-        self.apps_filter = AppViewFilter(xapt.db, xapt.cache)
+        self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
         self.nonapps_visible = False
         # the spec says we mix installed/not installed
@@ -86,24 +94,28 @@ class AvailablePane(SoftwarePane):
         # search mode
         self.custom_list_mode = False
         # install backend
-        xapt.backend.connect("transactions-changed",
+        self.backend = get_install_backend()
+        self.backend.connect("transactions-changed",
                              self._on_transactions_changed)
         # UI
-        self._build_ui(xapt, datadir)
+        self._build_ui()
 
-    def _build_ui(self, xapt, datadir):
+    def _build_ui(self):
         # categories, appview and details into the notebook in the bottom
-        self.cat_view = CategoriesView(xapt,
-                                       datadir,
-                                       APP_INSTALL_PATH,
+        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
+                                       self.cache,
+                                       self.db,
+                                       self.icons,
                                        self.apps_filter)
 
         #scroll_categories = gtk.ScrolledWindow()
         self.notebook.append_page(self.cat_view, gtk.Label("categories"))
         # sub-categories view
-        self.subcategories_view = CategoriesView(xapt,
-                                                 datadir,
+        self.subcategories_view = CategoriesView(self.datadir,
                                                  APP_INSTALL_PATH,
+                                                 self.cache,
+                                                 self.db,
+                                                 self.icons,
                                                  self.apps_filter,
                                                  root_category=self.cat_view.categories[0])
         self.subcategories_view.connect(
@@ -142,7 +154,7 @@ class AvailablePane(SoftwarePane):
         # details
         self.notebook.append_page(self.app_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
         # set status text
-        self._update_status_text(len(self.xapt.db))
+        self._update_status_text(len(self.db))
         # home button
         self.navigation_bar.add_with_id(_("Get Software"),
                                         self.on_navigation_category,
@@ -162,7 +174,8 @@ class AvailablePane(SoftwarePane):
         elif self.apps_category:
             cat_query = self.apps_category.query
         # mix category with the search terms and return query
-        return self.xapt.get_query_list(self.apps_search_term, cat_query)
+        return self.db.get_query_list_from_search_entry(self.apps_search_term,
+                                                        cat_query)
 
     def _in_no_display_category(self):
         """return True if we are in a category with NoDisplay set in the XML"""
@@ -234,7 +247,9 @@ class AvailablePane(SoftwarePane):
             self.apps_category.untranslated_name) == "Featured Applications":
             self.nonapps_visible = True
         # In custom list mode, search should yield the exact package name.
-        new_model = AppStore(self.xapt,
+        new_model = AppStore(self.cache,
+                             self.db,
+                             self.icons,
                              query,
                              limit=self.apps_limit,
                              sort=self.apps_sorted,
@@ -326,7 +341,7 @@ class AvailablePane(SoftwarePane):
         """
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
-            length = len(self.xapt.db)
+            length = len(self.db)
 
         if self.custom_list_mode:
             appstore = self.app_view.get_model()
@@ -423,7 +438,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_all()
         self.notebook.set_current_page(self.PAGE_CATEGORY)
         self.cat_view.start_carousels()
-        self.emit("app-list-changed", len(self.xapt.db))
+        self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
 
     def _clear_search(self):

@@ -148,7 +148,6 @@ class CategoriesView(object):
 
     def _parse_and_or_not_tag(self, element, query, xapian_op):
         """parse a <And>, <Or>, <Not> tag """
-        db = self.xapt.db
         for and_elem in element.getchildren():
             if and_elem.tag == "Not":
                 query = self._parse_and_or_not_tag(and_elem, query, xapian.Query.OP_AND_NOT)
@@ -190,7 +189,7 @@ class CategoriesView(object):
                 logging.debug("adding tag: %s" % and_elem.text)
                 # query both axi and s-c
                 s = "pkg_wildcard:%s" % and_elem.text.lower()
-                q = db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
+                q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
                 query = xapian.Query(xapian_op, query, q)
             else: 
                 print "UNHANDLED: ", and_elem.tag, and_elem.text

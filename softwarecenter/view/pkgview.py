@@ -22,7 +22,7 @@ import pango
 
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
-MISSING_APP_ICON = "/usr/share/icons/gnome/48x48/categories/gnome-other.png"
+MISSING_APP_ICON = "/usr/share/icons/gnome/scalable/categories/applications-other.svg"
 
 class PkgNamesView(gtk.TreeView):
     """ show a bunch of pkgnames with description """

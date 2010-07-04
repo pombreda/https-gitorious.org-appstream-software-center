@@ -82,25 +82,35 @@ PKG_STATE_UNKNOWN       = 8
 
 class AppSource(object):
 
-    def __init__(self, xapt, app):
-        self.xapt = xapt
+    def __init__(self, db, distro, icons, cache, history):
+        self.cache = cache
+        self.db = db
+        self.distro = distro
+        self.icons = icons
+        self.history = history
 
         # init app specific data
-        self.app = app
+        self.app = None
         self.doc = None
         self.pkg = None
+
+        # other stuff
         self.iconname = None
         self.channelfile = None
         self.channelname = None
+        return
+
+    def set_application(self, app):
+        self.app = app
 
         # get xapian document
-        self.doc = xapt.get_xapian_document(app.appname, app.pkgname)
+        self.doc = self.db.get_xapian_document(app.appname, app.pkgname)
         if not self.doc:
             raise IndexError, "No app '%s' for '%s' in database" % (
                 app.appname, app.pkgname)
 
         # get apt cache data
-        self.pkg = xapt.get_package(app.pkgname)
+        self.pkg = self.get_package()
 
         # other commonly requested stuff
         self.appname = self.get_name()
@@ -122,7 +132,7 @@ class AppSource(object):
         # if there is no component accociated, it can not be unavailable
         if not component:
             return False
-        distro_codename = self.xapt.distro.get_codename()
+        distro_codename = self.distro.get_codename()
         available = self.cache.component_available(distro_codename, component)
         return (not available)
 
@@ -144,6 +154,14 @@ class AppSource(object):
                 return True
         return False
 
+    def get_package(self):
+        # get apt cache data
+        pkgname = self.get_pkgname()
+        if (pkgname in self.cache and
+            self.cache[pkgname].candidate):
+            return self.cache[pkgname]
+        return None
+
     def get_component(self):
         """ 
         get the component (main, universe, ..) for the given pkg object
@@ -162,17 +180,14 @@ class AppSource(object):
         return
 
     def get_iconname(self):
-        if self.iconname:
-            return self.iconname
-
         # get icon
-        iconname = self.xapt.db.get_iconname(self.doc)
+        iconname = self.db.get_iconname(self.doc)
         # remove extension (e.g. .png) because the gtk.IconTheme
         # will find fins a icon with it
         iconname = os.path.splitext(iconname)[0]
         # this iconname may not be valid,
         # so we need to check it exists in the IconTheme
-        if self.xapt.icons.has_icon(iconname):
+        if self.icons.has_icon(iconname):
             return iconname
         return 'gnome-other'
 
@@ -180,7 +195,7 @@ class AppSource(object):
         return gobject.markup_escape_text(self.app.name)
 
     def get_summary(self):
-        return gobject.markup_escape_text(self.xapt.db.get_summary(self.doc))
+        return gobject.markup_escape_text(self.db.get_summary(self.doc))
 
     def get_pkgname(self):
         return self.app.pkgname
@@ -242,13 +257,13 @@ class AppSource(object):
         return self.pkg.candidate.homepage
 
     def get_installed_date(self):
-        return self.xapt.history.get_installed_date(self.get_pkgname())
+        return self.history.get_installed_date(self.get_pkgname())
 
     def get_screenshot_thumbnail_url(self):
-        return self.xapt.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
+        return self.distro.SCREENSHOT_THUMB_URL % self.pkgname
 
     def get_screenshot_large_url(self):
-        return self.xapt.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
+        return self.distro.SCREENSHOT_LARGE_URL % self.pkgname
 
     def get_version(self):
         if not self.pkg or not self.pkg.candidate:
@@ -260,54 +275,27 @@ class AppSource(object):
 
     def get_maintainance_time(self):
         """add the end of the maintainance time"""
-        return self.xapt.get_package_maintainance_status(self.appname,
-            self.pkgname, self.component, self.channelfile)
+        return self.distro.get_maintenance_status(self.cache,
+            self.appname or self.pkgname, self.pkgname, self.component, self.channelfile)
 
     def get_installation_status(self):
-        return self.xapt.get_package_installation_status(self.pkg, self.appname)
+        return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.appname)
 
     def get_license(self):
-        return self.xapt.distro.get_license_text(self.component).split()[1]
+        return self.distro.get_license_text(self.component).split()[1]
 
     def get_price(self):
-        return self.xapt.distro.get_price(self.doc)
+        return self.distro.get_price(self.doc)
 
     def get_installed(self):
         if self.pkg and self.pkg.installed:
             return True
         return False
 
-    # public interface
-    def install(self):
-        self.xapt.backend.install(self.pkgname, self.appname, self.iconname)
-
-    def remove(self):
-        # generic removal text
-        # FIXME: this text is not accurate, we look at recommends as
-        #        well as part of the rdepends, but those do not need to
-        #        be removed, they just may be limited in functionatlity
-        (primary, button_text) = self.xapt.distro.get_removal_warning_text(self.xapt.cache, self.pkg, self.appname)
-
-        # ask for confirmation if we have rdepends
-        depends = self.cache.get_installed_rdepends(self.pkg)
-        if depends:
-            iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
-            
-            if not dialogs.confirm_remove(None, primary, self.cache,
-                                        button_text, iconpath, depends):
-                self.action_bar.button.set_sensitive(True)
-                self.backend.emit("transaction-stopped")
-                return
-        self.xapt.backend.remove(self.pkgname, self.appname, self.iconname)
-
-    def upgrade(self):
-        self.xapt.backend.upgrade(self.pkgname, self.appname, self.iconname)
-        return
-
 
 class PackageStatusBar(gtk.Alignment):
     
-    def __init__(self):
+    def __init__(self, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_redraw_on_allocate(False)
         self.set_size_request(-1, int(3.5*mkit.EM+0.5))
@@ -319,6 +307,7 @@ class PackageStatusBar(gtk.Alignment):
         self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
         self.add(self.hbox)
 
+        self.view = view
         self.label = gtk.Label()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
@@ -344,13 +333,14 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def _on_button_clicked(self, button):
+        button.set_sensitive(False)
         state = self.pkg_state
         if state == PKG_STATE_INSTALLED:
-            self.appsrc.remove()
+            self.view.remove()
         elif state == PKG_STATE_UNINSTALLED:
-            self.appsrc.install()
+            self.view.install()
         elif state == PKG_STATE_UPGRADABLE:
-            self.appsrc.upgrade()
+            self.view.upgrade()
         return
 
     def set_label(self, label):
@@ -362,11 +352,10 @@ class PackageStatusBar(gtk.Alignment):
         self.button.set_label(label)
         return
 
-    def configure(self, appsrc):
+    def configure(self, appsrc, state):
         self.pkg_state = appsrc.get_pkg_state()
         self.appsrc = appsrc
         self.progress.hide()
-        state = appsrc.get_pkg_state()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
@@ -708,7 +697,7 @@ gobject.type_register(ScreenshotDownloader)
 
 class ScreenshotView(gtk.Alignment):
 
-    def __init__(self, xapt):
+    def __init__(self, distro, icons):
         gtk.Alignment.__init__(self, 0.5, 0.0)
         self.set_redraw_on_allocate(False)
         self.set_border_width(3)
@@ -743,9 +732,11 @@ class ScreenshotView(gtk.Alignment):
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
 
-        self.xapt = xapt
+        self.distro = distro
+        self.icons = icons
+
         self.appname = None
-        self.thumbnail_url = None
+        self.thumb_url = None
         self.large_url = None
 
         self.ready = False
@@ -821,18 +812,15 @@ class ScreenshotView(gtk.Alignment):
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(
             title, url,
-            self.xapt.icons.lookup_icon("process-working", 32, ()).get_filename(),
-            self.xapt.icons.lookup_icon("process-working", 32, ()).get_base_size(),
-            self.xapt.distro.IMAGE_FULL_MISSING)
+            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
+            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
+            self.distro.IMAGE_FULL_MISSING)
 
         d.run()
         d.destroy()
         return
 
     def _on_screenshot_query_complete(self, loader, reachable):
-        print self.appname
-        print 'ThumbAvailable:', reachable
-
         self.set_screenshot_available(reachable)
         if not reachable: self.ready = True
         return
@@ -873,14 +861,14 @@ class ScreenshotView(gtk.Alignment):
         self.screenshot_available = available
         return
  
-    def configure(self, name, thumb_url, large_url):
+    def configure(self, appsrc):
         acc = self.get_accessible()
         acc.set_name(_('Fetching screenshot ...'))
 
         self.clear()
-        self.appname = name
-        self.thumbnail_url = thumb_url
-        self.large_url = large_url
+        self.appname = appsrc.appname
+        self.thumbnail_url = appsrc.get_screenshot_thumbnail_url()
+        self.large_url = appsrc.get_screenshot_large_url()
         return
 
     def clear(self):
@@ -961,7 +949,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                     }
 
 
-    def __init__(self, xapt):
+    def __init__(self, db, distro, icons, cache, history, datadir):
         gtk.ScrolledWindow.__init__(self)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         self.set_shadow_type(gtk.SHADOW_NONE)
@@ -970,20 +958,31 @@ class AppDetailsView(gtk.ScrolledWindow):
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
 
-        self.xapt = xapt    # XaptSource
-        xapt.cache.connect("cache-ready", self._on_cache_ready)
-
-        self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
-
-        # aptdaemon
-        xapt.backend.connect("transaction-started", self._on_transaction_started)
-        xapt.backend.connect("transaction-stopped", self._on_transaction_stopped)
-        xapt.backend.connect("transaction-finished", self._on_transaction_finished)
-        xapt.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+        self.cache = cache
+        self.cache.connect("cache-ready", self._on_cache_ready)
+        self.db = db
+        self.distro = distro
+        self.icons = icons
+        self.history = history
+        self.datadir = datadir
 
         # data
-        self.pkg = None
         self.app = None
+        self.appsrc = AppSource(self.db,
+                                self.distro,
+                                self.icons,
+                                self.cache,
+                                self.history)
+
+
+        # aptdaemon
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-started", self._on_transaction_started)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("transaction-finished", self._on_transaction_finished)
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+
+        self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
 
         # page elements are packed into our lovely viewport
         viewport = self._layout_page()
@@ -1093,7 +1092,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.vbox.pack_start(self.app_info, False)
 
         # controls which are displayed if the app is installed
-        self.action_bar = PackageStatusBar()
+        self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
 
         # FramedSection which contains textual paragraphs and bullet points
@@ -1109,7 +1108,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         app_desc_hb.pack_start(self.app_desc, False)
 
         # screenshot
-        self.screenshot = ScreenshotView(self.xapt)
+        self.screenshot = ScreenshotView(self.distro, self.icons)
         app_desc_hb.pack_end(self.screenshot)
 
         # homepage link button
@@ -1148,7 +1147,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                                gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
-        self.action_bar.configure(appsrc)
+        self.action_bar.configure(appsrc, appsrc.get_pkg_state())
 
         self.action_bar.button.grab_focus()
 
@@ -1172,9 +1171,7 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.share_btn.hide()
 
         # get screenshot urls and configure the ScreenshotView...
-        self.screenshot.configure(appname,
-                                  appsrc.get_screenshot_thumbnail_url(),
-                                  appsrc.get_screenshot_large_url())
+        self.screenshot.configure(appsrc)
 
         # then begin screenshot download and display sequence
         self.screenshot.download_and_display()
@@ -1190,9 +1187,50 @@ class AppDetailsView(gtk.ScrolledWindow):
         logging.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             return
+        
+        self.init_app(app)
+        return
+
+    def init_app(self, app):
         # initialize the app
-        self.appsrc = AppSource(self.xapt, app)
+        self.app = app
+        self.appsrc.set_application(app)
         self._update_page(self.appsrc)
+        return
+
+    # public interface
+    def install(self):
+        self.backend.install(self.appsrc.pkgname,
+                             self.appsrc.appname,
+                             self.appsrc.iconname)
+        return
+
+    def remove(self):
+        # generic removal text
+        # FIXME: this text is not accurate, we look at recommends as
+        #        well as part of the rdepends, but those do not need to
+        #        be removed, they just may be limited in functionatlity
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.appsrc.pkg, self.appsrc.appname)
+
+        # ask for confirmation if we have rdepends
+        depends = self.cache.get_installed_rdepends(self.appsrc.pkg)
+        if depends:
+            iconpath = self.get_icon_filename(self.appsrc.iconname, self.APP_ICON_SIZE)
+            
+            if not dialogs.confirm_remove(None, primary, self.cache,
+                                        button_text, iconpath, depends):
+                self.action_bar.button.set_sensitive(True)
+                self.backend.emit("transaction-stopped")
+                return
+        self.backend.remove(self.appsrc.pkgname,
+                            self.appsrc.appname,
+                            self.appsrc.iconname)
+        return
+
+    def upgrade(self):
+        self.backend.upgrade(self.appsrc.pkgname,
+                                  self.appsrc.appname,
+                                  self.appsrc.iconname)
         return
 
     # internal callback
@@ -1202,38 +1240,38 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.set_sensitive(False)
+        self.action_bar.button.hide()
+        self.action_bar.progress.show()
+        print 'Started'
 
         state = self.action_bar.pkg_state
         if state == PKG_STATE_UNINSTALLED:
-            self.action_bar.set_pkg_state(PKG_STATE_INSTALLING)
+            self.action_bar.configure(self.appsrc, PKG_STATE_INSTALLING)
         elif state == PKG_STATE_INSTALLED:
-            self.action_bar.set_pkg_state(PKG_STATE_REMOVING)
+            self.action_bar.configure(self.appsrc, PKG_STATE_REMOVING)
         elif state == PKG_STATE_UPGRADABLE:
-            self.action_bar.set_pkg_state(PKG_STATE_UPGRADING)
+            self.action_bar.configure(self.appsrc, PKG_STATE_UPGRADING)
         return
 
     def _on_transaction_stopped(self, backend):
         self.action_bar.button.set_sensitive(True)
+        self.action_bar.button.show()
+        self.action_bar.progress.hide()
         return
 
     def _on_transaction_finished(self, *args):
-        self.action_bar.progress.hide()
-        self.action_bar.button.show()
+        print 'Finished'
         self.action_bar.button.set_sensitive(True)
+        self.action_bar.button.show()
+        self.action_bar.progress.hide()
         return
 
-    def _on_transaction_progress_changed(self, backend, pkgname, progress):s
-        print self.app, self.app.pkgname, pkgnames
-        
-        if not self.app or not self.app.pkgname == pkgname:
-            return
-
-        
-
-        if not self.action_bar.progress.get_property('visible'):
-            self.action_bar.progress.show()
-            self.action_bar.button.hide()
-
+    def _on_transaction_progress_changed(self, backend, pkgname, progress):
+        #print self.app, self.appsrc.pkgname, pkgname
+        #if not self.app or not self.appsrc.pkgname == pkgname:
+            #return
+        print 'Progress'
+        self.action_bar.progress.show()
         if pkgname in backend.pending_transactions:
             self.action_bar.progress.set_fraction(progress/100.0)
         return

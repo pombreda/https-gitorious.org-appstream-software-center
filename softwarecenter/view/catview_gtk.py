@@ -77,8 +77,15 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         }
 
 
-    def __init__(self, xapt, datadir, desktopdir, 
-                 apps_filter, apps_limit=0, root_category=None):
+    def __init__(self, 
+                 datadir,
+                 desktopdir, 
+                 cache,
+                 db,
+                 icons,
+                 apps_filter,
+                 apps_limit=0,
+                 root_category=None):
 
         """ init the widget, takes
         
@@ -88,6 +95,11 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         icons - a gtk.IconTheme
         root_category - a Category class with subcategories or None
         """
+
+        self.cache = cache
+        self.db = db
+        self.icons = icons
+
         gtk.ScrolledWindow.__init__(self)
         CategoriesView.__init__(self)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
@@ -116,7 +128,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # appstore stuff
         self.categories = []
-        self.xapt = xapt
         self.header = ''
         self.apps_filter = apps_filter
         self.apps_limit = apps_limit
@@ -169,8 +180,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # icon size
         best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
 
-        xapt = self.xapt
-        featured_apps = AppStore(xapt,
+        featured_apps = AppStore(self.cache,
+                                 self.db, 
+                                 self.icons,
                                  featured_cat.query,
                                  self.apps_limit,
                                  True,
@@ -188,7 +200,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # create new-apps widget
         new_cat = get_category_by_name(self.categories, 'New Applications')
         if new_cat:
-            new_apps = AppStore(xapt,
+            new_apps = AppStore(self.cache,
+                                self.db,
+                                self.icons,
                                 new_cat.query,
                                 self.apps_limit,
                                 True,
@@ -223,7 +237,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            
             if cat.untranslated_name not in ('Featured Applications',
                                              'New Applications'):
                 #enquirer.set_query(cat.query)
@@ -258,7 +271,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.departments.set_label(H2 % header)
 
         # sort Category.name's alphabetically
-        sorted_cats = categories_sorted_by_name(self.categories[:-1])
+        sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
             #enquirer.set_query(cat.query)
@@ -415,7 +428,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
     def set_subcategory(self, root_category, num_items=0, block=False):
         # nothing to do
-        print root_category
         if self.categories == root_category.subcategories:
             return
         self.header = root_category.name
@@ -834,7 +846,7 @@ class PageSelector(gtk.Alignment):
 
     def __init__(self):
         gtk.Alignment.__init__(self, 0.5, 0.5)
-        self.set_size_request(-1, CAROUSEL_PAGING_DOT_SIZE)
+        #self.set_size_request(-1, 2*CAROUSEL_PAGING_DOT_SIZE)
         self.vbox = gtk.VBox(spacing=mkit.SPACING_MED)
         self.add(self.vbox)
         self.show_all()
