@@ -76,7 +76,7 @@ PKG_STATE_REINSTALLABLE = 9
 
 class PackageStatusBar(gtk.Alignment):
     
-    def __init__(self, details_view):
+    def __init__(self, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_redraw_on_allocate(False)
         self.set_size_request(-1, int(3.5*mkit.EM+0.5))
@@ -88,6 +88,7 @@ class PackageStatusBar(gtk.Alignment):
         self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
         self.add(self.hbox)
 
+        self.view = view
         self.label = gtk.Label()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
@@ -96,7 +97,6 @@ class PackageStatusBar(gtk.Alignment):
         self.line_color = COLOR_GREEN_OUTLINE
 
         self.pkg_state = None
-        self.details_view = details_view
 
         self.hbox.pack_start(self.label, False)
         self.hbox.pack_end(self.button, False)
@@ -104,7 +104,7 @@ class PackageStatusBar(gtk.Alignment):
         self.show_all()
 
         self.button.connect('size-allocate', self._on_button_size_allocate)
-        self.button.connect('clicked', self._on_button_clicked, details_view)
+        self.button.connect('clicked', self._on_button_clicked)
         return
 
     def _on_button_size_allocate(self, button, allocation):
@@ -113,16 +113,17 @@ class PackageStatusBar(gtk.Alignment):
                                        allocation.height)
         return
 
-    def _on_button_clicked(self, button, details_view):
+    def _on_button_clicked(self, button):
+        button.set_sensitive(False)
         state = self.pkg_state
         if state == PKG_STATE_INSTALLED:
-            details_view.remove()
+            self.view.remove()
         elif state == PKG_STATE_UNINSTALLED:
-            details_view.install()
+            self.view.install()
         elif state == PKG_STATE_REINSTALLABLE:
-            details_view.install()
-        else:
-            details_view.upgrade()
+            self.view.install()
+        elif state == PKG_STATE_UPGRADABLE:
+            self.view.upgrade()
         return
 
     def set_label(self, label):
@@ -171,8 +172,8 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Source Unavailable'))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
-        #else:
-        #    print 'PkgStateUnknown:', state
+        else:
+            print 'PkgStateUnknown:', state
         return
 
     def draw(self, cr, a, expose_area):
@@ -198,7 +199,6 @@ class PackageStatusBar(gtk.Alignment):
 
         cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.stroke()
-
         cr.restore()
         return
 
@@ -214,6 +214,7 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.footer, False)
         self.show_all()
 
+        self._newline = False
         self.paragraphs = []
         self.points = []
         return
@@ -229,13 +230,12 @@ class AppDescription(gtk.VBox):
 
     def append_paragraph(self, fragment, newline):
         if not fragment.strip(): return
+
+        if fragment.endswith('\n\n'):
+            fragment = fragment[:-2]
+
         p = gtk.Label()
-
-        if newline:
-            p.set_markup('\n'+fragment)
-        else:
-            p.set_markup(fragment)
-
+        p.set_markup(fragment)
         p.set_line_wrap(True)
         p.set_selectable(True)
 
@@ -276,12 +276,9 @@ class AppDescription(gtk.VBox):
         return False
 
     def set_description(self, desc, appname):
+        # This is arcane shit maaaaannn...
         self.clear()
         desc = gobject.markup_escape_text(desc)
-        
-        #print
-        #print desc
-        #print
 
         processed_desc = prev_part = ''
         parts = desc.split('\n')
@@ -293,7 +290,7 @@ class AppDescription(gtk.VBox):
             part = part.strip()
 
             if not part:
-                pass
+                processed_desc += '\n'
 
             elif part.startswith('* ') or part.startswith('- '):
 
@@ -303,7 +300,10 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_bullet_point(processed_desc)
 
-                processed_desc = ''
+                if prev_part and (i+1) < len(parts):
+                    processed_desc = '\n'
+                else:
+                    processed_desc = ''
                 processed_desc += part
 
                 # special case for 7zip
@@ -318,7 +318,7 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_paragraph(processed_desc, newline)
 
-                if prev_part:
+                if prev_part and (i+1) < len(parts):
                     processed_desc = '\n'
                 else:
                     processed_desc = ''
@@ -331,7 +331,7 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_paragraph(processed_desc, newline)
 
-                if prev_part:
+                if prev_part and (i+1) < len(parts):
                     processed_desc = '\n'
                 else:
                     processed_desc = ''
@@ -344,8 +344,8 @@ class AppDescription(gtk.VBox):
                     parts[i+1].startswith('- ')):
                     processed_desc += part
                 else:
-                    if part.endswith('.'):
-                        processed_desc += part + '\n\n'
+                    if part.endswith('.') and (i+1) < len(parts):
+                        processed_desc += part + '\n'
                     else:
                         processed_desc += part
 
@@ -363,7 +363,7 @@ class AppDescription(gtk.VBox):
 
 class PackageInfoTable(gtk.VBox):
 
-    def __init__(self, rows=3, columns=2):
+    def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.version_label = gtk.Label()
@@ -522,8 +522,9 @@ class ScreenshotView(gtk.Alignment):
 
         self.distro = distro
         self.icons = icons
+
         self.appname = None
-        self.thumbnail_url = None
+        self.thumb_url = None
         self.large_url = None
 
         self.ready = False
@@ -608,9 +609,6 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def _on_screenshot_query_complete(self, loader, reachable):
-        #print self.appname
-        #print 'ThumbAvailable:', reachable
-
         self.set_screenshot_available(reachable)
         if not reachable: self.ready = True
         return
@@ -726,7 +724,7 @@ class AppDetailsView(gtk.ScrolledWindow):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE       = gtk.ICON_SIZE_DIALOG
+    APP_ICON_SIZE = gtk.ICON_SIZE_DIALOG
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
@@ -739,7 +737,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                     }
 
 
-    def __init__(self, db, distro, icons, cache, history, *datadir):
+    def __init__(self, db, distro, icons, cache, history, datadir):
         gtk.ScrolledWindow.__init__(self)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.set_shadow_type(gtk.SHADOW_NONE)
@@ -748,16 +746,16 @@ class AppDetailsView(gtk.ScrolledWindow):
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
 
-        self.app = None
-
+        self.cache = cache
+        self.cache.connect("cache-ready", self._on_cache_ready)
         self.db = db
         self.distro = distro
         self.icons = icons
-        self.cache = cache
-        self.cache.connect("cache-ready", self._on_cache_ready)
         self.history = history
+        self.datadir = datadir
 
-        self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+        # data
+        self.app = None
 
         # aptdaemon
         self.backend = get_install_backend()
@@ -765,6 +763,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+
+        self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
 
         # page elements are packed into our lovely viewport
         viewport = self._layout_page()
@@ -776,8 +776,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         w = allocation.width
         magic_number = 6*mkit.EM    # !?
         l = self.app_info.label.get_layout()
-        if l.get_pixel_extents()[1][2] > w-48-magic_number:
-            self.app_info.label.set_size_request(w-48-magic_number, -1)
+        if l.get_pixel_extents()[1][2] > w-48-7*mkit.EM:
+            self.app_info.label.set_size_request(w-48-7*mkit.EM, -1)
         else:
             self.app_info.label.set_size_request(-1, -1)
 
@@ -806,6 +806,22 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
         del cr
+        return
+
+    #def on_button_enable_component_clicked(self):
+        ##print "on_enable_component_clicked", component
+        #component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        #self.backend.enable_component(component)
+        #self._set_action_button_sensitive(False)
+
+    def _on_share_clicked(self, button):
+        # TRANSLATORS: apturl:%(pkgname) is the apt protocol
+        msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
+            'appname' : self.app_details.title, 
+            'pkgname' : self.app_details.pkgname }
+        p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
+        # setup timeout handler to avoid zombies
+        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
         return
 
     def _full_redraw_cb(self):
@@ -849,6 +865,11 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app_info = mkit.FramedSection()
         self.app_info.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
+        self.app_info.header_alignment.set_padding(mkit.SPACING_XLARGE,
+                                                   mkit.SPACING_LARGE,
+                                                   mkit.SPACING_XLARGE,
+                                                   mkit.SPACING_XLARGE)
+
         self.app_info.body.set_spacing(mkit.SPACING_XLARGE)
         self.vbox.pack_start(self.app_info, False)
 
@@ -989,11 +1010,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.emit("selected", self.app)
         return
 
-    def on_button_enable_component_clicked(self):
-        #print "on_enable_component_clicked", self.app_details.component
-        self.backend.enable_component(self.app_details.component)
-        self._set_action_button_sensitive(False)
-
     def on_screenshot_thumbnail_clicked(self):
         url = self.distro.SCREENSHOT_LARGE_URL % self.app_details.pkgname
         title = _("%s - Screenshot") % self.app_details.title
@@ -1004,16 +1020,6 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.distro.IMAGE_FULL_MISSING)
         d.run()
         d.destroy()
-
-    def _on_share_clicked(self, button):
-        # TRANSLATORS: apturl:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-            'appname' : self.app_details.title, 
-            'pkgname' : self.app_details.pkgname }
-        p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
-        # setup timeout handler to avoid zombies
-        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
-        return
 
     # public interface
     def install(self):
@@ -1049,6 +1055,9 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.set_sensitive(False)
+        self.action_bar.button.hide()
+        self.action_bar.progress.show()
+        print 'Started'
 
         state = self.action_bar.pkg_state
         if state == PKG_STATE_UNINSTALLED:
@@ -1061,22 +1070,23 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_transaction_stopped(self, backend):
         self.action_bar.button.set_sensitive(True)
+        self.action_bar.button.show()
+        self.action_bar.progress.hide()
         return
 
     def _on_transaction_finished(self, *args):
-        self.action_bar.progress.hide()
-        self.action_bar.button.show()
+        print 'Finished'
         self.action_bar.button.set_sensitive(True)
+        self.action_bar.button.show()
+        self.action_bar.progress.hide()
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        if not self.app_details or not self.app_details.pkgname == pkgname:
-            return
-
-        if not self.action_bar.progress.get_property('visible'):
-            self.action_bar.progress.show()
-            self.action_bar.button.hide()
-
+        #print self.app, self.app_details.pkgname, pkgname
+        #if not self.app or not self.app_details.pkgname == pkgname:
+            #return
+        print 'Progress'
+        self.action_bar.progress.show()
         if pkgname in backend.pending_transactions:
             self.action_bar.progress.set_fraction(progress/100.0)
         return
@@ -1094,6 +1104,7 @@ class AppDetailsView(gtk.ScrolledWindow):
             subprocess.call(["xdg-open", uri])
             return 1
         return 0
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

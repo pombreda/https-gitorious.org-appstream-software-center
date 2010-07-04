@@ -162,7 +162,8 @@ class AppStore(gtk.GenericTreeModel):
         if isinstance(search_query, xapian.Query):
             search_query = [search_query]
         self.search_query = search_query
-        self._perform_search()
+        with ExecutionTime("populate model from query"):
+            self._perform_search()
 
     def _perform_search(self):
         already_added = set()

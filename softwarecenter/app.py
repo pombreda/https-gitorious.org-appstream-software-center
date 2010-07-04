@@ -51,7 +51,7 @@ from backend.config import get_config
 from backend import get_install_backend
 
 # launchpad stuff
-from view.login import LoginDialog
+from view.logindialog import LoginDialog
 from backend.launchpad import GLaunchpad
 
 from distro import get_distro
@@ -368,7 +368,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_status_bar()
         self.update_app_status_menu()
 
-    def _on_lp_login(self, lp):
+    def _on_lp_login(self, lp, token):
         print "_on_lp_login"
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()
