@@ -255,7 +255,7 @@ class AppDetailsView(WebkitWidget):
             pix.save(self.tf.name, "png")
             iconpath = self.tf.name
         return iconpath
-    def wksub_screenshot_thumbnail_url(self):
+    def get_screenshot_thumbnail_url(self):
         url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
         return url
     def wksub_screenshot_large_url(self):

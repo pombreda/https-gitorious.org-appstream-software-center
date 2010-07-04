@@ -32,8 +32,6 @@ from softwarecenter.distro import get_distro
 from catview import *
 
 
-FOOTER_HEIGHT = 2*mkit.EM   # as per spec
-
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
@@ -42,8 +40,10 @@ CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)
 CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(6, int(0.7*mkit.EM+0.5))
+
 # as per spec transition timeout should be 15000 (15 seconds)
 CAROUSEL_TRANSITION_TIMEOUT =    15000
+
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         50 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
@@ -77,7 +77,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         }
 
 
-    def __init__(self, datadir, desktopdir, cache, db, icons, apps_filter, apps_limit=0, root_category=None):
+    def __init__(self, xapt, datadir, desktopdir, 
+                 apps_filter, apps_limit=0, root_category=None):
+
         """ init the widget, takes
         
         datadir - the base directory of the app-store data
@@ -114,9 +116,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # appstore stuff
         self.categories = []
-        self.cache = cache
-        self.db = db
-        self.icons = icons
+        self.xapt = xapt
         self.header = ''
         self.apps_filter = apps_filter
         self.apps_limit = apps_limit
@@ -169,9 +169,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # icon size
         best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
 
-        featured_apps = AppStore(self.cache,
-                                 self.db,
-                                 self.icons,
+        xapt = self.xapt
+        featured_apps = AppStore(xapt,
                                  featured_cat.query,
                                  self.apps_limit,
                                  True,
@@ -189,9 +188,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # create new-apps widget
         new_cat = get_category_by_name(self.categories, 'New Applications')
         if new_cat:
-            new_apps = AppStore(self.cache,
-                                self.db,
-                                self.icons,
+            new_apps = AppStore(xapt,
                                 new_cat.query,
                                 self.apps_limit,
                                 True,
@@ -219,26 +216,28 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
-        self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
 #        enquirer = xapian.Enquire(self.db.xapiandb)
 
         # sort Category.name's alphabetically
-        sorted_cats = categories_sorted_by_name(self.categories[:-1])
+        sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            #enquirer.set_query(cat.query)
-            ## limiting the size here does not make it faster
-            #matches = enquirer.get_mset(0, len(self.db))
-            #estimate = matches.get_matches_estimated()
+            
+            if cat.untranslated_name not in ('Featured Applications',
+                                             'New Applications'):
+                #enquirer.set_query(cat.query)
+                ## limiting the size here does not make it faster
+                #matches = enquirer.get_mset(0, len(self.db))
+                #estimate = matches.get_matches_estimated()
 
-            # sanitize text so its pango friendly...
-            name = gobject.markup_escape_text(cat.name.strip())
+                # sanitize text so its pango friendly...
+                name = gobject.markup_escape_text(cat.name.strip())
 
-            cat_btn = CategoryButton(name, icon_name=cat.iconname)
-            cat_btn.connect('clicked', self._on_category_clicked, cat)
-            # append the department to the departments widget
-            self.departments.append(cat_btn)
+                cat_btn = CategoryButton(name, icon_name=cat.iconname)
+                cat_btn.connect('clicked', self._on_category_clicked, cat)
+                # append the department to the departments widget
+                self.departments.append(cat_btn)
 
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
@@ -257,10 +256,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # set the departments section to use the label
         header = gobject.markup_escape_text(self.header)
         self.departments.set_label(H2 % header)
-        self.departments.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         # sort Category.name's alphabetically
-        sorted_cats = categories_sorted_by_name(self.categories)
+        sorted_cats = categories_sorted_by_name(self.categories[:-1])
 
         for cat in sorted_cats:
             #enquirer.set_query(cat.query)
@@ -279,8 +277,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # append an additional button to show all of the items in the category
         name = gobject.markup_escape_text(_("All %s") % num_items)
-        show_all_btn = SubcategoryButton(name, icon_name="go-next")
-        all_cat = Category("All", _("All"), "go-next", root_category.query)
+        show_all_btn = SubcategoryButton(name, icon_name="category-show-all")
+        all_cat = Category("All", _("All"), "category-show-all", root_category.query)
         show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
         self.departments.append(show_all_btn)
 
@@ -315,9 +313,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
     def _get_best_fit_width(self):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - \
-                2*(mkit.BORDER_WIDTH_LARGE + mkit.BORDER_WIDTH_MED) - \
-                mkit.BORDER_WIDTH_LARGE
+        return self.parent.allocation.width - 8*(mkit.BORDER_WIDTH_LARGE)
 
     def _on_style_set(self, widget, old_style):
         mkit.update_em_metrics()
@@ -430,7 +426,6 @@ class CarouselView(mkit.FramedSection):
 
     def __init__(self, carousel_apps, title):
         mkit.FramedSection.__init__(self)
-        self.footer.set_size_request(-1, FOOTER_HEIGHT)
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.hbox.set_homogeneous(True)
@@ -452,20 +447,11 @@ class CarouselView(mkit.FramedSection):
         self.set_label(H2 % title)
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-        # pack 'All' button into header
         label = _('All')
         self.more_btn = mkit.HButton('<u>%s</u>' % label)
         self.more_btn.set_relief(gtk.RELIEF_NONE)
+
         self.header.pack_end(self.more_btn, False)
-
-        #label = _('Pause')
-        #self.play_pause_btn = mkit.HButton('<u><small>%s</small></u>' % label)
-        #self.play_pause_btn.set_relief(gtk.RELIEF_NONE)
-        #self.header.pack_end(self.play_pause_btn, False)
-
-        ## pack in PlayPauseButton into the header
-        #self.play_pause_btn = PlayPauseButton()
-        #self.header.pack_end(self.play_pause_btn, False)
 
         if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
@@ -547,7 +533,10 @@ class CarouselView(mkit.FramedSection):
                 poster.show()
 
         # set how many PagingDot's the PageSelector should display
-        pages = float(len(self.carousel_apps)) / n + 1
+        pages = float(len(self.carousel_apps)) / n
+        if pages - int(pages) > 0.0:
+            pages += 1
+
         #print len(self.carousel_apps), n, pages
         self.page_sel.set_n_pages(int(pages))
         self.n_posters = n
@@ -731,19 +720,6 @@ class SubcategoryButton(mkit.VButton):
         return
 
 
-class PlayPauseButton(mkit.Button):
-
-    def __init__(self):
-        mkit.Button.__init__(self, None, None, None)
-        self.set_size_request(int(2*mkit.EM), int(2*mkit.EM))
-        self.shape = mkit.SHAPE_CIRCLE
-        self.set_relief(gtk.RELIEF_NONE)
-        return
-
-    def calc_width(self):
-        return int(2*mkit.EM)
-
-
 class CarouselPoster(mkit.VButton):
 
     def __init__(self, markup='none', icon_name='none', \
@@ -765,7 +741,6 @@ class CarouselPoster(mkit.VButton):
 
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
-        
         self.connect('size-allocate', self._on_allocate)
         return
 
@@ -834,14 +809,16 @@ class CarouselPoster(mkit.VButton):
 
         # custom focus draw
         if self.has_focus():
+            a = self.label.allocation
+            #x, y, w, h = a.x, a.y, a.width, a.height
             x, y, w, h = layout.get_pixel_extents()[1] 
-            x += la.x   # label x coordinate
-            y += la.y   # label y coordinate
+            x += a.x
+            y += a.y
             self.style.paint_focus(self.window,
                                    self.state,
                                    (x-2, y-1, w+4, h+2),
                                    self,
-                                   'button',
+                                   'expander',
                                    x-2, y-1, w+4, h+2)
         return
 
@@ -856,12 +833,15 @@ class PageSelector(gtk.Alignment):
 
     def __init__(self):
         gtk.Alignment.__init__(self, 0.5, 0.5)
-        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
-        self.add(self.hbox)
         self.set_size_request(-1, CAROUSEL_PAGING_DOT_SIZE)
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_MED)
+        self.add(self.vbox)
+        self.show_all()
 
         self.n_pages = 0
         self.selected = None
+
+        self.dots = []
         self._signals = []
         return
 
@@ -870,35 +850,55 @@ class PageSelector(gtk.Alignment):
         dot.is_selected = True
         if self.selected:
             self.selected.is_selected = False
+            self.selected.queue_draw()
         self.selected = dot
         return
 
     def clear_paging_dots(self):
         # remove all dots and clear dot signal handlers
-        for i, dot in enumerate(self.hbox.get_children()):
-            gobject.source_remove(self._signals[i])
-            self.hbox.remove(dot)
-            dot.destroy()
+        for row in self.vbox.get_children():
+            for dot in row.get_children():
+                row.remove(dot)
+                dot.destroy()
+            self.vbox.remove(row)
+            row.destroy()
 
+        for sig in self._signals:
+            gobject.source_remove(sig)
+
+        self.dots = []
         self._signals = []
         return
 
     def set_n_pages(self, n_pages):
         self.n_pages = n_pages
         self.clear_paging_dots()
-        for i in range(int(n_pages)):
-            dot = PagingDot(i)
-            self._signals.append(dot.connect('clicked', self._on_dot_clicked))
-            self.hbox.pack_start(dot, False)
 
-        self.hbox.show_all()
+        row = gtk.HBox(spacing=mkit.SPACING_MED)
+        self.vbox.pack_start(row, False)
+
+        max_w = self.allocation.width - 50
+        w = 0
+        for i in range(int(n_pages)):
+            w += CAROUSEL_PAGING_DOT_SIZE + mkit.SPACING_MED
+            if w >= max_w:
+                row = gtk.HBox(spacing=mkit.SPACING_MED)
+                self.vbox.pack_start(row, False)
+                w = 0
+
+            dot = PagingDot(i)
+            row.pack_start(dot, False)
+            self.dots.append(dot)
+            self._signals.append(dot.connect('clicked', self._on_dot_clicked))
+
+        self.vbox.show_all()
         return
 
     def get_n_pages(self):
         return self.n_pages
 
     def set_selected_page(self, page_n):
-        dot = self.hbox.get_children()[page_n]
+        dot = self.dots[page_n]
         dot.is_selected = True
 
         if self.selected:
@@ -910,9 +910,9 @@ class PageSelector(gtk.Alignment):
         return
 
     def draw(self, cr, a, expose_area, alpha):
-        if mkit.not_overlapping(a, expose_area): return
+#        if mkit.not_overlapping(a, expose_area): return
 
-        for dot in self.hbox.get_children():
+        for dot in self.dots:
             dot.draw(cr, dot.allocation, expose_area, alpha)
         return
 
@@ -930,8 +930,6 @@ class PagingDot(mkit.Button):
         return CAROUSEL_PAGING_DOT_SIZE
 
     def draw(self, cr, a, expose_area, alpha):
-        if mkit.not_overlapping(a, expose_area): return
-
         cr.save()
         cr.rectangle(a)
         cr.clip_preserve()
