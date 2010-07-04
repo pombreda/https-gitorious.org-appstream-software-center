@@ -30,7 +30,6 @@ from mkit_themes import Color, ColorArray, ThemeRegistry
 import logging
 
 
-
 #######################
 ### HANDY FUNCTIONS ###
 #######################
@@ -684,11 +683,7 @@ class FramedSection(gtk.VBox):
         self.image = gtk.Image()
         self.label = gtk.Label()
 
-        self.image_alignment = gtk.Alignment(0.5, 0.5)
-        self.image_alignment.add(self.image)
-
         self.header.pack_start(self.label, False)
-
         if label_markup:
             self.set_label(label_markup)
         return
@@ -696,10 +691,10 @@ class FramedSection(gtk.VBox):
     def set_icon(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
         self.image.set_from_icon_name(icon_name, icon_size)
 
-        if not self.image_alignment.parent:
-            self.header.pack_start(self.image_alignment, False, padding=BORDER_WIDTH_SMALL)
-            self.header.reorder_child(self.image_alignment, 0)
-            self.image_alignment.show_all()
+        if not self.image.parent:
+            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
+            self.header.reorder_child(self.image, 0)
+            self.image.show()
         return
 
     def set_label(self, label='', markup=None):

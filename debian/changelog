@@ -1,4 +1,22 @@
-software-center (2.1.4) UNRELEASED; urgency=low
+software-center (2.1.5) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - fix in channel adding code
+  * merged lp:~mvo/software-center/lazr to support gobject
+    based wrapper around lazr.restfulclient apps
+
+  [ Gary Lasker ]
+  * data/icons/scalable/apps/category-show-all.svg,
+    data/icons_unbranded/scalable/apps/category-show-all.svg,
+    softwarecenter/view/catview_gtk.py:
+    - add custom icon for single-pane dept view "All" button;
+      icon created by Dani Planas Armangue, many thanks!
+      (LP: #599644)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 01 Jul 2010 18:52:16 -0400
+
+software-center (2.1.4) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/availablepane.py:

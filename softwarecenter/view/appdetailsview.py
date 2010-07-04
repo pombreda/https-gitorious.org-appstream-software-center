@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+
 import gio
 import glib
 import gobject
@@ -26,6 +27,7 @@ import sys
 import xapian
 import pango
 import string
+
 
 from gettext import gettext as _
 
@@ -194,7 +196,6 @@ class PackageStatusBar(gtk.Alignment):
 
         cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.stroke()
-
         cr.restore()
         return
 
@@ -284,7 +285,6 @@ class AppDescription(gtk.VBox):
 
         for i, part in enumerate(parts):
             part = part.strip()
-            print part
 
             if not part:
                 processed_desc += '\n'
@@ -360,7 +360,7 @@ class AppDescription(gtk.VBox):
 
 class PackageInfoTable(gtk.VBox):
 
-    def __init__(self, rows=3, columns=2):
+    def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.version_label = gtk.Label()
@@ -779,8 +779,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         w = allocation.width
         magic_number = 6*mkit.EM    # !?
         l = self.app_info.label.get_layout()
-        if l.get_pixel_extents()[1][2] > w-48-magic_number:
-            self.app_info.label.set_size_request(w-48-magic_number, -1)
+        if l.get_pixel_extents()[1][2] > w-48-7*mkit.EM:
+            self.app_info.label.set_size_request(w-48-7*mkit.EM, -1)
         else:
             self.app_info.label.set_size_request(-1, -1)
 
@@ -868,6 +868,11 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app_info = mkit.FramedSection()
         self.app_info.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
+        self.app_info.header_alignment.set_padding(mkit.SPACING_XLARGE,
+                                                   mkit.SPACING_LARGE,
+                                                   mkit.SPACING_XLARGE,
+                                                   mkit.SPACING_XLARGE)
+
         self.app_info.body.set_spacing(mkit.SPACING_XLARGE)
         self.vbox.pack_start(self.app_info, False)
 
