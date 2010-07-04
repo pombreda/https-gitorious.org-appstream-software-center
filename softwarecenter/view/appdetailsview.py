@@ -25,6 +25,7 @@ import logging
 import os
 import pango
 import string
+import subprocess
 import sys
 import xapian
 
@@ -141,8 +142,11 @@ class PackageStatusBar(gtk.Alignment):
         self.line_color = COLOR_GREEN_OUTLINE
 
         if state == PKG_STATE_INSTALLED:
-            install_date = str(install_date).split()[0]
-            self.set_label(_('Installed %s' % install_date))
+            if install_date:
+                install_date = str(install_date).split()[0]
+                self.set_label(_('Installed %s' % install_date))
+            else:
+                self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
             self.set_label(price)
@@ -928,7 +932,8 @@ class AppDetailsView(gtk.ScrolledWindow):
                 description = "Warning: " + self.app_details.warning
         else:
             description = self.app_details.description
-        self.app_desc.set_description(description, appname)
+        if description:
+            self.app_desc.set_description(description, appname)
 
         # show or hide the homepage button and set uri if homepage specified
         if self.app_details.homepage:
@@ -946,18 +951,18 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.share_btn.hide()
 
         # get screenshot urls and configure the ScreenshotView...
-        self.screenshot.configure(appname,
-                                  self.app_details.screenshot_small,
-                                  self.app_details.screenshot_large)
+        if self.app_details.thumbnail and self.app_details.screenshot:
+            self.screenshot.configure(appname,
+                                      self.app_details.thumbnail,
+                                      self.app_details.screenshot)
 
-        # then begin screenshot download and display sequence
-        self.screenshot.download_and_display()
+            # then begin screenshot download and display sequence
+            self.screenshot.download_and_display()
 
         # set the strings in the package info table
         if self.app_details.version:
             self.info_table.set_version(self.app_details.version + "(" + self.app_details.pkgname + ")")
         else:
-            # don't like this.., if we don't know the version, then it shouldn't be displayed
             self.info_table.set_version(_("Unknown"))
         if self.app_details.license:
             self.info_table.set_license(self.app_details.license)
@@ -966,7 +971,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         if self.app_details.maintainance_time:
             self.info_table.set_support_status(self.app_details.maintainance_time)
         else:
-            # don't like this.., if we don't know the version, then it shouldn't be displayed
             self.info_table.set_support_status(_("Unknown"))
         return
 
@@ -1013,7 +1017,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     # public interface
     def install(self):
-        self.backend.install(self.app_details.pkgname, self.app_details.title, self.app_details.request, self.app_details.icon)
+        self.backend.install(self.app_details.pkgname, self.app_details.title, self.app_details._request, self.app_details.icon)
 
     def remove(self):
         # generic removal text
@@ -1111,9 +1115,6 @@ if __name__ == "__main__":
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
-
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
