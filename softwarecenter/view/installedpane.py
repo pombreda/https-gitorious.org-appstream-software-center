@@ -40,11 +40,11 @@ class InstalledPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, xapt, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir, show_ratings=False)
+        SoftwarePane.__init__(self, xapt, datadir, show_ratings=False)
         # state
-        self.apps_filter = AppViewFilter(db, cache)
+        self.apps_filter = AppViewFilter(xapt.db, xapt.cache)
         self.apps_filter.set_installed_only(True)
         self.current_appview_selection = None
         # UI
@@ -92,9 +92,7 @@ class InstalledPane(SoftwarePane):
         if old_model is not None:
             old_model.active = False
         # get a new store and attach it to the view
-        new_model = AppStore(self.cache,
-                             self.db, 
-                             self.icons, 
+        new_model = AppStore(self.xapt,
                              query, 
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)

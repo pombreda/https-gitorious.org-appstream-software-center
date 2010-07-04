@@ -36,6 +36,7 @@ class NavigationHistory(object):
                  back_forward_button,
                  navhistory_back_action,
                  navhistory_forward_action):
+
         self.back_button = back_forward_button.left
         self.forward_button = back_forward_button.right
         self.available_pane = available_pane

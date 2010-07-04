@@ -40,8 +40,10 @@ CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)
 CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(6, int(0.7*mkit.EM+0.5))
+
 # as per spec transition timeout should be 15000 (15 seconds)
 CAROUSEL_TRANSITION_TIMEOUT =    15000
+
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         50 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
@@ -75,7 +77,9 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         }
 
 
-    def __init__(self, datadir, desktopdir, cache, db, icons, apps_filter, apps_limit=0, root_category=None):
+    def __init__(self, xapt, datadir, desktopdir, 
+                 apps_filter, apps_limit=0, root_category=None):
+
         """ init the widget, takes
         
         datadir - the base directory of the app-store data
@@ -112,9 +116,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
         # appstore stuff
         self.categories = []
-        self.cache = cache
-        self.db = db
-        self.icons = icons
+        self.xapt = xapt
         self.header = ''
         self.apps_filter = apps_filter
         self.apps_limit = apps_limit
@@ -167,9 +169,8 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # icon size
         best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
 
-        featured_apps = AppStore(self.cache,
-                                 self.db,
-                                 self.icons,
+        xapt = self.xapt
+        featured_apps = AppStore(xapt,
                                  featured_cat.query,
                                  self.apps_limit,
                                  True,
@@ -187,9 +188,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         # create new-apps widget
         new_cat = get_category_by_name(self.categories, 'New Applications')
         if new_cat:
-            new_apps = AppStore(self.cache,
-                                self.db,
-                                self.icons,
+            new_apps = AppStore(xapt,
                                 new_cat.query,
                                 self.apps_limit,
                                 True,
@@ -851,6 +850,7 @@ class PageSelector(gtk.Alignment):
         dot.is_selected = True
         if self.selected:
             self.selected.is_selected = False
+            self.selected.queue_draw()
         self.selected = dot
         return
 

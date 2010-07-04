@@ -46,7 +46,7 @@ def wait_for_apt_cache_ready(f):
     def wrapper(*args, **kwargs):
         self = args[0]
         # check if the cache is ready and 
-        if not self.cache.ready:
+        if not self.xapt.cache.ready:
             if self.app_view.window:
                 self.app_view.window.set_cursor(self.busy_cursor)
             glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
@@ -70,16 +70,11 @@ class SoftwarePane(gtk.VBox):
     }
     PADDING = 6
 
-    def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
+    def __init__(self, xapt, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
         # other classes we need
-        self.cache = cache
-        self.history = history
-        self.db = db
-        self.distro = distro
-        self.db.connect("reopen", self.on_db_reopen)
-        self.icons = icons
-        self.datadir = datadir
+        self.xapt = xapt
+        xapt.db.connect("reopen", self.on_db_reopen)
         # refreshes can happen out-of-bound so we need to be sure
         # that we only set the new model (when its available) if
         # the refresh_seq_nr of the ready model matches that of the
@@ -92,40 +87,40 @@ class SoftwarePane(gtk.VBox):
         self.app_view = AppView(show_ratings)
         self.app_view.connect("application-selected", 
                               self.on_application_selected)
-        self.scroll_app_list = gtk.ScrolledWindow()
-        self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
-                                        gtk.POLICY_AUTOMATIC)
-        self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         self.app_view.connect("application-request-action", 
                               self.on_application_request_action)
+
+        self.scroll_app_list = gtk.ScrolledWindow()
+        self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
+                                        gtk.POLICY_AUTOMATIC)
+        self.scroll_app_list.add(self.app_view)
+
         # details
-        self.app_details = AppDetailsView(self.db, 
-                                          self.distro,
-                                          self.icons, 
-                                          self.cache, 
-                                          self.history,
-                                          self.datadir)
+        self.app_details = AppDetailsView(xapt)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
-        self.cache.connect("cache-ready", self.on_cache_ready)
+        xapt.cache.connect("cache-ready", self.on_cache_ready)
         # COMMON UI elements
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
+
         self.top_hbox = gtk.HBox()
         self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
         self.pack_start(gtk.HSeparator(), expand=False)
+
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
         self.pack_start(self.notebook)
+
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False, padding=self.PADDING)

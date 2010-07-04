@@ -45,15 +45,14 @@ class ChannelPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, xapt, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir,
-                              show_ratings=False)
+        SoftwarePane.__init__(self, xapt, datadir, show_ratings=False)
         self.channel = None
         self.apps_filter = None
         self.search_terms = ""
         self.current_appview_selection = None
-        self.distro = get_distro()
+
         # UI
         self._build_ui()
         self.connect("app-list-changed", self._on_app_list_changed)
@@ -85,8 +84,8 @@ class ChannelPane(SoftwarePane):
         self.refresh_seq_nr += 1
         channel_query = self.channel.get_channel_query()
         if self.search_terms:
-            query = self.db.get_query_list_from_search_entry(self.search_terms,
-                                                             channel_query)
+            query = self.xapt.db.get_query_list_from_search_entry(self.search_terms,
+                                                                  channel_query)
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
                                             "search")

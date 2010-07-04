@@ -482,7 +482,7 @@ gobject.type_register(ScreenshotDownloader)
 
 class ScreenshotView(gtk.Alignment):
 
-    def __init__(self, distro, icons):
+    def __init__(self, xapt):
         gtk.Alignment.__init__(self, 0.5, 0.0)
         self.set_redraw_on_allocate(False)
         self.set_border_width(3)
@@ -517,8 +517,7 @@ class ScreenshotView(gtk.Alignment):
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
 
-        self.distro = distro
-        self.icons = icons
+        self.xapt = xapt
         self.appname = None
         self.thumbnail_url = None
         self.large_url = None
@@ -596,9 +595,9 @@ class ScreenshotView(gtk.Alignment):
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(
             title, url,
-            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
-            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
-            self.distro.IMAGE_FULL_MISSING)
+            self.xapt.icons.lookup_icon("process-working", 32, ()).get_filename(),
+            self.xapt.icons.lookup_icon("process-working", 32, ()).get_base_size(),
+            self.xapt.distro.IMAGE_FULL_MISSING)
 
         d.run()
         d.destroy()
@@ -736,7 +735,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                     }
 
 
-    def __init__(self, db, distro, icons, cache, history, datadir):
+    def __init__(self, xapt):
         gtk.ScrolledWindow.__init__(self)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         self.set_shadow_type(gtk.SHADOW_NONE)
@@ -745,25 +744,16 @@ class AppDetailsView(gtk.ScrolledWindow):
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
 
-        self.db = db
-        self.distro = distro
-        self.icons = icons
-        self.cache = cache
-        self.cache.connect("cache-ready", self._on_cache_ready)
-        self.history = history
+        self.xapt = xapt    # XaptSource
+        xapt.cache.connect("cache-ready", self._on_cache_ready)
 
         self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
 
-
-        self.datadir = datadir
-        self.arch = get_current_arch()
-
         # aptdaemon
-        self.backend = get_install_backend()
-        self.backend.connect("transaction-started", self._on_transaction_started)
-        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
-        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+        xapt.backend.connect("transaction-started", self._on_transaction_started)
+        xapt.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        xapt.backend.connect("transaction-finished", self._on_transaction_finished)
+        xapt.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
         # data
         self.pkg = None
@@ -834,22 +824,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         gobject.idle_add(self._full_redraw_cb)
         return
 
-    def _get_component(self, pkg=None):
-        """ 
-        get the component (main, universe, ..) for the given pkg object
-
-        this uses the data from apt, if there is none it uses the 
-        data from the app-install-data files
-        """
-        if not pkg or not pkg.candidate:
-            return self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        for origin in pkg.candidate.origins:
-            if (origin.origin == "Ubuntu" and 
-                origin.trusted and 
-                origin.component):
-                return origin.component
-        return
-
     def _layout_page(self):
         # setup widgets
 
@@ -893,7 +867,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         app_desc_hb.pack_start(self.app_desc, False)
 
         # screenshot
-        self.screenshot = ScreenshotView(self.distro, self.icons)
+        self.screenshot = ScreenshotView(self.xapt)
         app_desc_hb.pack_end(self.screenshot)
 
         # homepage link button
@@ -916,12 +890,12 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.show_all()
         return viewport
 
-    def _update_page(self):
+    def _update_page(self, xapt):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = self.get_name()
+        appname = xapt.get_name()
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
         markup = markup % (big, appname, small, self.get_summary())
@@ -932,9 +906,9 @@ class AppDetailsView(gtk.ScrolledWindow):
                                gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
-        self.action_bar.configure(self.get_pkg_state(),
-                                  self.get_price(),
-                                  self.get_installed_date())
+        self.action_bar.configure(xapt.get_pkg_state(),
+                                  xapt.get_price(),
+                                  xapt.get_installed_date())
 
         self.action_bar.button.grab_focus()
 
@@ -958,16 +932,16 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # get screenshot urls and configure the ScreenshotView...
         self.screenshot.configure(appname,
-                                  self.get_screenshot_thumbnail_url(),
-                                  self.get_screenshot_large_url())
+                                  xapt.get_screenshot_thumbnail_url(),
+                                  xapt.get_screenshot_large_url())
 
         # then begin screenshot download and display sequence
         self.screenshot.download_and_display()
 
         # set the strings in the package info table
-        self.info_table.set_version(self.get_version())
-        self.info_table.set_license(self.get_license())
-        self.info_table.set_support_status(self.get_maintainance_time())
+        self.info_table.set_version(xapt.get_version())
+        self.info_table.set_license(xapt.get_license())
+        self.info_table.set_support_status(xapt.get_maintainance_time())
         return
 
     # public API
@@ -982,7 +956,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def init_app(self, app):
         logging.debug("AppDetailsView.init_app '%s'" % app)
-
+        xapt = self.xapt
         # init app specific data
         self.app = app
 
@@ -993,149 +967,25 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.doc = None
 
         # get xapian document
-        self.doc = self.db.get_xapian_document(self.app.appname, 
-                                               self.app.pkgname)
+        self.doc = xapt.get_xapian_document(app.appname, app.pkgname)
         if not self.doc:
             raise IndexError, "No app '%s' for '%s' in database" % (
-                self.app.appname, self.app.pkgname)
-
-        self.iconname = self.get_iconname()
+                app.appname, app.pkgname)
 
         # get apt cache data
-        pkgname = self.db.get_pkgname(self.doc)
+        pkgname = xapt.get_pkgname(self.doc)
         self.pkg = None
-        if (pkgname in self.cache and
-            self.cache[pkgname].candidate):
-            self.pkg = self.cache[pkgname]
+        if (pkgname in xapt.cache and
+            xapt.cache[pkgname].candidate):
+            self.pkg = xapt.cache[pkgname]
         if self.pkg:
             self.homepage_url = self.pkg.candidate.homepage
 
         # setup component
-        self.component = self._get_component(self.pkg)
+        self.component = xapt.get_component(self.pkg)
 
-        self._update_page()
+        self._update_page(xapt)
         return
-
-    def get_iconname(self):
-        # get icon
-        iconname = self.db.get_iconname(self.doc)
-        # remove extension (e.g. .png) because the gtk.IconTheme
-        # will find fins a icon with it
-        iconname = os.path.splitext(iconname)[0]
-        # this iconname may not be valid,
-        # so we need to check it exists in the IconTheme
-        if self.icons.has_icon(iconname):
-            return iconname
-        return 'gnome-other'
-
-    def get_name(self):
-        return gobject.markup_escape_text(self.app.name)
-
-    def get_summary(self):
-        return gobject.markup_escape_text(self.db.get_summary(self.doc))
-
-    def get_pkgname(self):
-        return self.app.pkgname
-
-    def get_pkg_state(self):
-        if self.pkg:
-            # Don't handle upgrades yet
-            #if pkg.installed and pkg.isUpgradable:
-            #    return PKG_STATE_UPGRADABLE
-            if self.pkg.installed:
-                return PKG_STATE_INSTALLED
-            else:
-                return PKG_STATE_UNINSTALLED
-
-        elif self.doc:
-            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                #if os.path.exists(path):
-                    #self.channelname = channel
-                    #self.channelfile = path
-                    ## FIXME: deal with the EULA stuff
-                    print channel
-                    return PKG_STATE_NEEDS_SOURCE
-            # check if it comes from a non-enabled component
-            elif self._unavailable_component():
-                # FIXME: use a proper message here, but we are in string freeze
-                return PKG_STATE_UNAVAILABLE
-            elif self._available_for_our_arch():
-                return PKG_STATE_NEEDS_SOURCE
-
-        return PKG_STATE_UNKNOWN
-
-    def get_description(self):
-        # if we do not have a package in our apt data explain why
-        if not self.pkg:
-            available_for_arch = self._available_for_our_arch()
-            if self.channelname and available_for_arch:
-                return _("This software is available from the '%s' source, "
-                         "which you are not currently using.") % self.channelname
-            # if we have no pkg in the apt cache, check if its available for
-            # the given architecture and if it has a component associated
-            if available_for_arch and self.component:
-                return _("To show information about this item, "
-                         "the software catalog needs updating.")
-            
-            # if we don't have a package and it has no arch/component its
-            # not available for us
-            return _("Sorry, '%s' is not available for "
-                     "this type of computer (%s).") % (
-                self.app.name, self.arch)
-
-        # format for html
-        description = self.pkg.candidate.description
-        logging.debug("Description (text) %r", description)
-        return description
-
-    def get_installed_date(self):
-        return self.history.get_installed_date(self.get_pkgname())
-
-    def get_screenshot_thumbnail_url(self):
-        return self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
-
-    def get_screenshot_large_url(self):
-        return self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
-
-    def wksub_software_installed_icon(self):
-        return self.INSTALLED_ICON
-
-    def get_version(self):
-        if not self.pkg or not self.pkg.candidate:
-            return _("Unknown")
-        version = self.pkg.candidate.version
-        if version:
-            return "%s (%s)" % (version, self.pkg.name)
-        return _("Unknown")
-
-    def wksub_datadir(self):
-        return self.datadir
-
-    def get_maintainance_time(self):
-        """add the end of the maintainance time"""
-        return self.distro.get_maintenance_status(self.cache,
-            self.app.appname or self.app.pkgname, self.app.pkgname, self.component, self.channelfile)
-
-    def wksub_action_button_description(self):
-        """Add message specific to this package (e.g. how many dependenies"""
-        if not self.pkg:
-            return ""
-        return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
-
-    def get_license(self):
-        return self.distro.get_license_text(self.component).split()[1]
-
-    def get_price(self):
-        price = self.distro.get_price(self.doc)
-        #s = _("Price: %s") % price
-        return price
-
-    def get_installed(self):
-        if self.pkg and self.pkg.installed:
-            return True
-        return False
 
     def on_button_enable_component_clicked(self):
         #print "on_enable_component_clicked", component
