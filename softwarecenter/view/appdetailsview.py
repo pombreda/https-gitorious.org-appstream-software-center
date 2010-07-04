@@ -512,7 +512,7 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_bullet_point(processed_desc)
 
-                if prev_part:
+                if prev_part and (i+1) < len(parts):
                     processed_desc = '\n'
                 else:
                     processed_desc = ''
@@ -530,7 +530,7 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_paragraph(processed_desc, newline)
 
-                if prev_part:
+                if prev_part and (i+1) < len(parts):
                     processed_desc = '\n'
                 else:
                     processed_desc = ''
@@ -543,7 +543,7 @@ class AppDescription(gtk.VBox):
                 else:
                     newline = self.append_paragraph(processed_desc, newline)
 
-                if prev_part:
+                if prev_part and (i+1) < len(parts):
                     processed_desc = '\n'
                 else:
                     processed_desc = ''
@@ -556,7 +556,7 @@ class AppDescription(gtk.VBox):
                     parts[i+1].startswith('- ')):
                     processed_desc += part
                 else:
-                    if part.endswith('.'):
+                    if part.endswith('.') and (i+1) < len(parts):
                         processed_desc += part + '\n'
                     else:
                         processed_desc += part
