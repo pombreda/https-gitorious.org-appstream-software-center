@@ -415,6 +415,7 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
 
     def set_subcategory(self, root_category, num_items=0, block=False):
         # nothing to do
+        print root_category
         if self.categories == root_category.subcategories:
             return
         self.header = root_category.name

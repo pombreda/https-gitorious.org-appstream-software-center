@@ -516,18 +516,18 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_copy_web_link.set_sensitive(False)
             return False
         # wait for the cache to become ready (if needed)
-        if not self.cache.ready:
+        if not self.xapt.cache.ready:
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
         # update menu items
         if (not self.active_pane.is_category_view_showing() and 
-            app.pkgname in self.cache):
+            app.pkgname in self.xapt.cache):
             if self.active_pane.app_view.is_action_in_progress_for_selected_app():
                 self.menuitem_install.set_sensitive(False)
                 self.menuitem_remove.set_sensitive(False)
                 self.menuitem_copy_web_link.set_sensitive(False)
             else:
-                pkg = self.cache[app.pkgname]
+                pkg = self.xapt.cache[app.pkgname]
                 installed = bool(pkg.installed)
                 self.menuitem_install.set_sensitive(not installed)
                 self.menuitem_remove.set_sensitive(installed)
@@ -574,7 +574,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.window_rebuilding.show()
         else:
             # we need to reopen when the database finished updating
-            self.db.reopen()
+            self.xapt.db.reopen()
             self.window_rebuilding.hide()
 
     def setup_database_rebuilding_listener(self):
@@ -699,6 +699,3 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
-
-
-

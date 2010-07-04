@@ -80,9 +80,234 @@ PKG_STATE_UNAVAILABLE   = 7
 PKG_STATE_UNKNOWN       = 8
 
 
+class AppSource(object):
+
+    def __init__(self, xapt, app):
+        self.xapt = xapt
+
+        # init app specific data
+        self.app = app
+        self.doc = None
+        self.pkg = None
+        self.iconname = None
+        self.channelfile = None
+        self.channelname = None
+
+        # get xapian document
+        self.doc = xapt.get_xapian_document(app.appname, app.pkgname)
+        if not self.doc:
+            raise IndexError, "No app '%s' for '%s' in database" % (
+                app.appname, app.pkgname)
+
+        # get apt cache data
+        self.pkg = xapt.get_package(app.pkgname)
+
+        # other commonly requested stuff
+        self.appname = self.get_name()
+        self.pkgname = app.pkgname
+        self.iconname = self.get_iconname()
+
+        # setup component
+        self.component = self.get_component()
+        return
+
+    def _unavailable_component(self, doc):
+        """ 
+        check if the given doc refers to a component (like universe)
+        that is currently not enabled
+        """
+        # FIXME: use self.component here instead?
+        component =  doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        logging.debug("component: '%s'" % component)
+        # if there is no component accociated, it can not be unavailable
+        if not component:
+            return False
+        distro_codename = self.xapt.distro.get_codename()
+        available = self.cache.component_available(distro_codename, component)
+        return (not available)
+
+    def _available_for_our_arch(self, doc):
+        """ check if the given package is available for our arch """
+        arches = doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+        # if we don't have a arch entry in the document its available
+        # on all architectures we know about
+        if not arches:
+            return True
+        # check the arch field and support both "," and ";"
+        sep = ","
+        if ";" in arches:
+            sep = ";"
+        elif "," in arches:
+            sep = ","
+        for arch in map(string.strip, arches.split(sep)):
+            if arch == self.arch:
+                return True
+        return False
+
+    def get_component(self):
+        """ 
+        get the component (main, universe, ..) for the given pkg object
+
+        this uses the data from apt, if there is none it uses the 
+        data from the app-install-data files
+        """
+        pkg = self.pkg
+        if not pkg or not pkg.candidate:
+            return self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        for origin in pkg.candidate.origins:
+            if (origin.origin == "Ubuntu" and 
+                origin.trusted and 
+                origin.component):
+                return origin.component
+        return
+
+    def get_iconname(self):
+        if self.iconname:
+            return self.iconname
+
+        # get icon
+        iconname = self.xapt.db.get_iconname(self.doc)
+        # remove extension (e.g. .png) because the gtk.IconTheme
+        # will find fins a icon with it
+        iconname = os.path.splitext(iconname)[0]
+        # this iconname may not be valid,
+        # so we need to check it exists in the IconTheme
+        if self.xapt.icons.has_icon(iconname):
+            return iconname
+        return 'gnome-other'
+
+    def get_name(self):
+        return gobject.markup_escape_text(self.app.name)
+
+    def get_summary(self):
+        return gobject.markup_escape_text(self.xapt.db.get_summary(self.doc))
+
+    def get_pkgname(self):
+        return self.app.pkgname
+
+    def get_pkg_state(self):
+        if self.pkg:
+            # Don't handle upgrades yet
+            #if pkg.installed and pkg.isUpgradable:
+            #    return PKG_STATE_UPGRADABLE
+            if self.pkg.installed:
+                return PKG_STATE_INSTALLED
+            else:
+                return PKG_STATE_UNINSTALLED
+
+        elif self.doc:
+            channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            if channel:
+                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+                #if os.path.exists(path):
+                    #self.channelname = channel
+                    #self.channelfile = path
+                    ## FIXME: deal with the EULA stuff
+                    print channel
+                    return PKG_STATE_NEEDS_SOURCE
+            # check if it comes from a non-enabled component
+            elif self._unavailable_component():
+                # FIXME: use a proper message here, but we are in string freeze
+                return PKG_STATE_UNAVAILABLE
+            elif self._available_for_our_arch():
+                return PKG_STATE_NEEDS_SOURCE
+
+        return PKG_STATE_UNKNOWN
+
+    def get_description(self):
+        # if we do not have a package in our apt data explain why
+        if not self.pkg:
+            available_for_arch = self._available_for_our_arch()
+            if self.channelname and available_for_arch:
+                return _("This software is available from the '%s' source, "
+                         "which you are not currently using.") % self.channelname
+            # if we have no pkg in the apt cache, check if its available for
+            # the given architecture and if it has a component associated
+            if available_for_arch and self.component:
+                return _("To show information about this item, "
+                         "the software catalog needs updating.")
+            
+            # if we don't have a package and it has no arch/component its
+            # not available for us
+            return _("Sorry, '%s' is not available for "
+                     "this type of computer (%s).") % (
+                self.app.name, self.arch)
+
+        # format for html
+        description = self.pkg.candidate.description
+        logging.debug("Description (text) %r", description)
+        return description
+
+    def get_homepage_url(self):
+        return self.pkg.candidate.homepage
+
+    def get_installed_date(self):
+        return self.xapt.history.get_installed_date(self.get_pkgname())
+
+    def get_screenshot_thumbnail_url(self):
+        return self.xapt.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
+
+    def get_screenshot_large_url(self):
+        return self.xapt.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
+
+    def get_version(self):
+        if not self.pkg or not self.pkg.candidate:
+            return _("Unknown")
+        version = self.pkg.candidate.version
+        if version:
+            return "%s (%s)" % (version, self.pkg.name)
+        return _("Unknown")
+
+    def get_maintainance_time(self):
+        """add the end of the maintainance time"""
+        return self.xapt.get_package_maintainance_status(self.appname,
+            self.pkgname, self.component, self.channelfile)
+
+    def get_installation_status(self):
+        return self.xapt.get_package_installation_status(self.pkg, self.appname)
+
+    def get_license(self):
+        return self.xapt.distro.get_license_text(self.component).split()[1]
+
+    def get_price(self):
+        return self.xapt.distro.get_price(self.doc)
+
+    def get_installed(self):
+        if self.pkg and self.pkg.installed:
+            return True
+        return False
+
+    # public interface
+    def install(self):
+        self.xapt.backend.install(self.pkgname, self.appname, self.iconname)
+
+    def remove(self):
+        # generic removal text
+        # FIXME: this text is not accurate, we look at recommends as
+        #        well as part of the rdepends, but those do not need to
+        #        be removed, they just may be limited in functionatlity
+        (primary, button_text) = self.xapt.distro.get_removal_warning_text(self.xapt.cache, self.pkg, self.appname)
+
+        # ask for confirmation if we have rdepends
+        depends = self.cache.get_installed_rdepends(self.pkg)
+        if depends:
+            iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
+            
+            if not dialogs.confirm_remove(None, primary, self.cache,
+                                        button_text, iconpath, depends):
+                self.action_bar.button.set_sensitive(True)
+                self.backend.emit("transaction-stopped")
+                return
+        self.xapt.backend.remove(self.pkgname, self.appname, self.iconname)
+
+    def upgrade(self):
+        self.xapt.backend.upgrade(self.pkgname, self.appname, self.iconname)
+        return
+
+
 class PackageStatusBar(gtk.Alignment):
     
-    def __init__(self, details_view):
+    def __init__(self):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_redraw_on_allocate(False)
         self.set_size_request(-1, int(3.5*mkit.EM+0.5))
@@ -102,7 +327,6 @@ class PackageStatusBar(gtk.Alignment):
         self.line_color = COLOR_GREEN_OUTLINE
 
         self.pkg_state = None
-        self.details_view = details_view
 
         self.hbox.pack_start(self.label, False)
         self.hbox.pack_end(self.button, False)
@@ -110,7 +334,7 @@ class PackageStatusBar(gtk.Alignment):
         self.show_all()
 
         self.button.connect('size-allocate', self._on_button_size_allocate)
-        self.button.connect('clicked', self._on_button_clicked, details_view)
+        self.button.connect('clicked', self._on_button_clicked)
         return
 
     def _on_button_size_allocate(self, button, allocation):
@@ -119,14 +343,14 @@ class PackageStatusBar(gtk.Alignment):
                                        allocation.height)
         return
 
-    def _on_button_clicked(self, button, details_view):
+    def _on_button_clicked(self, button):
         state = self.pkg_state
         if state == PKG_STATE_INSTALLED:
-            details_view.remove()
+            self.appsrc.remove()
         elif state == PKG_STATE_UNINSTALLED:
-            details_view.install()
-        else:
-            details_view.upgrade()
+            self.appsrc.install()
+        elif state == PKG_STATE_UPGRADABLE:
+            self.appsrc.upgrade()
         return
 
     def set_label(self, label):
@@ -138,19 +362,21 @@ class PackageStatusBar(gtk.Alignment):
         self.button.set_label(label)
         return
 
-    def configure(self, state, price, install_date):
-        self.pkg_state = state
+    def configure(self, appsrc):
+        self.pkg_state = appsrc.get_pkg_state()
+        self.appsrc = appsrc
         self.progress.hide()
+        state = appsrc.get_pkg_state()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
 
         if state == PKG_STATE_INSTALLED:
-            install_date = str(install_date).split()[0]
+            install_date = str(appsrc.get_installed_date()).split()[0]
             self.set_label(_('Installed %s' % install_date))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
-            self.set_label(price)
+            self.set_label(appsrc.get_price())
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
@@ -722,7 +948,7 @@ class AppDetailsView(gtk.ScrolledWindow):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE       = gtk.ICON_SIZE_DIALOG
+    APP_ICON_SIZE = gtk.ICON_SIZE_DIALOG
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
@@ -801,6 +1027,22 @@ class AppDetailsView(gtk.ScrolledWindow):
         del cr
         return
 
+    #def on_button_enable_component_clicked(self):
+        ##print "on_enable_component_clicked", component
+        #component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        #self.backend.enable_component(component)
+        #self._set_action_button_sensitive(False)
+
+    def _on_share_clicked(self, button):
+        # TRANSLATORS: apturl:%(pkgname) is the apt protocol
+        msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
+            'appname' : self.app.appname, 
+            'pkgname' : self.app.pkgname }
+        p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
+        # setup timeout handler to avoid zombies
+        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
+        return
+
     def _full_redraw_cb(self):
         self.queue_draw()
         return False
@@ -851,7 +1093,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.vbox.pack_start(self.app_info, False)
 
         # controls which are displayed if the app is installed
-        self.action_bar = PackageStatusBar(self)
+        self.action_bar = PackageStatusBar()
         self.app_info.body.pack_start(self.action_bar, False)
 
         # FramedSection which contains textual paragraphs and bullet points
@@ -890,36 +1132,35 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.show_all()
         return viewport
 
-    def _update_page(self, xapt):
+    def _update_page(self, appsrc):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = xapt.get_name()
+        appname = appsrc.get_name()
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
-        markup = markup % (big, appname, small, self.get_summary())
+        markup = markup % (big, appname, small, appsrc.get_summary())
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
-        self.app_info.set_icon(self.iconname,
+        self.app_info.set_icon(appsrc.get_iconname(),
                                gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
-        self.action_bar.configure(xapt.get_pkg_state(),
-                                  xapt.get_price(),
-                                  xapt.get_installed_date())
+        self.action_bar.configure(appsrc)
 
         self.action_bar.button.grab_focus()
 
         # format new app description
-        self.app_desc.set_description(self.get_description(), appname)
+        self.app_desc.set_description(appsrc.get_description(), appname)
 
         # show or hide the homepage button and set uri if homepage specified
-        if self.homepage_url:
+        homepage = appsrc.get_homepage_url()
+        if homepage:
             self.homepage_btn.show()
             self.homepage_btn.set_property('visited', False)
-            self.homepage_btn.set_uri(self.homepage_url)
+            self.homepage_btn.set_uri(homepage)
         else:
             self.homepage_btn.hide()
 
@@ -932,16 +1173,16 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # get screenshot urls and configure the ScreenshotView...
         self.screenshot.configure(appname,
-                                  xapt.get_screenshot_thumbnail_url(),
-                                  xapt.get_screenshot_large_url())
+                                  appsrc.get_screenshot_thumbnail_url(),
+                                  appsrc.get_screenshot_large_url())
 
         # then begin screenshot download and display sequence
         self.screenshot.download_and_display()
 
         # set the strings in the package info table
-        self.info_table.set_version(xapt.get_version())
-        self.info_table.set_license(xapt.get_license())
-        self.info_table.set_support_status(xapt.get_maintainance_time())
+        self.info_table.set_version(appsrc.get_version())
+        self.info_table.set_license(appsrc.get_license())
+        self.info_table.set_support_status(appsrc.get_maintainance_time())
         return
 
     # public API
@@ -949,96 +1190,9 @@ class AppDetailsView(gtk.ScrolledWindow):
         logging.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             return
-
         # initialize the app
-        self.init_app(app)
-        return
-
-    def init_app(self, app):
-        logging.debug("AppDetailsView.init_app '%s'" % app)
-        xapt = self.xapt
-        # init app specific data
-        self.app = app
-
-        # other data
-        self.homepage_url = None
-        self.channelfile = None
-        self.channelname = None
-        self.doc = None
-
-        # get xapian document
-        self.doc = xapt.get_xapian_document(app.appname, app.pkgname)
-        if not self.doc:
-            raise IndexError, "No app '%s' for '%s' in database" % (
-                app.appname, app.pkgname)
-
-        # get apt cache data
-        pkgname = xapt.get_pkgname(self.doc)
-        self.pkg = None
-        if (pkgname in xapt.cache and
-            xapt.cache[pkgname].candidate):
-            self.pkg = xapt.cache[pkgname]
-        if self.pkg:
-            self.homepage_url = self.pkg.candidate.homepage
-
-        # setup component
-        self.component = xapt.get_component(self.pkg)
-
-        self._update_page(xapt)
-        return
-
-    def on_button_enable_component_clicked(self):
-        #print "on_enable_component_clicked", component
-        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        self.backend.enable_component(component)
-        self._set_action_button_sensitive(False)
-
-    def on_screenshot_thumbnail_clicked(self):
-        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
-        title = _("%s - Screenshot") % self.app.name
-        d = ShowImageDialog(
-            title, url,
-            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
-            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
-            self.distro.IMAGE_FULL_MISSING)
-        d.run()
-        d.destroy()
-
-    def _on_share_clicked(self, button):
-        # TRANSLATORS: apturl:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-            'appname' : self.app.appname, 
-            'pkgname' : self.app.pkgname }
-        p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
-        # setup timeout handler to avoid zombies
-        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
-        return
-
-    # public interface
-    def install(self):
-        self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
-
-    def remove(self):
-        # generic removal text
-        # FIXME: this text is not accurate, we look at recommends as
-        #        well as part of the rdepends, but those do not need to
-        #        be removed, they just may be limited in functionatlity
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.pkg, self.app.name)
-
-        # ask for confirmation if we have rdepends
-        depends = self.cache.get_installed_rdepends(self.pkg)
-        if depends:
-            iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
-            
-            if not dialogs.confirm_remove(None, primary, self.cache,
-                                        button_text, iconpath, depends):
-                self.action_bar.button.set_sensitive(True)
-                self.backend.emit("transaction-stopped")
-                return
-        self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
-
-    def upgrade(self):
-        self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
+        self.appsrc = AppSource(self.xapt, app)
+        self._update_page(self.appsrc)
         return
 
     # internal callback
@@ -1068,9 +1222,13 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.action_bar.button.set_sensitive(True)
         return
 
-    def _on_transaction_progress_changed(self, backend, pkgname, progress):
+    def _on_transaction_progress_changed(self, backend, pkgname, progress):s
+        print self.app, self.app.pkgname, pkgnames
+        
         if not self.app or not self.app.pkgname == pkgname:
             return
+
+        
 
         if not self.action_bar.progress.get_property('visible'):
             self.action_bar.progress.show()
@@ -1093,39 +1251,6 @@ class AppDetailsView(gtk.ScrolledWindow):
             subprocess.call(["xdg-open", uri])
             return 1
         return 0
-
-    def _unavailable_component(self):
-        """ 
-        check if the given doc refers to a component (like universe)
-        that is currently not enabled
-        """
-        # FIXME: use self.component here instead?
-        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        logging.debug("component: '%s'" % component)
-        # if there is no component accociated, it can not be unavailable
-        if not component:
-            return False
-        distro_codename = self.distro.get_codename()
-        available = self.cache.component_available(distro_codename, component)
-        return (not available)
-
-    def _available_for_our_arch(self):
-        """ check if the given package is available for our arch """
-        arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
-        # if we don't have a arch entry in the document its available
-        # on all architectures we know about
-        if not arches:
-            return True
-        # check the arch field and support both "," and ";"
-        sep = ","
-        if ";" in arches:
-            sep = ";"
-        elif "," in arches:
-            sep = ","
-        for arch in map(string.strip, arches.split(sep)):
-            if arch == self.arch:
-                return True
-        return False
 
 
 if __name__ == "__main__":
