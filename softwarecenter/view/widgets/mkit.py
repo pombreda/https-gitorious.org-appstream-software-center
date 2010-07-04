@@ -30,7 +30,6 @@ from mkit_themes import Color, ColorArray, ThemeRegistry
 import logging
 
 
-
 #######################
 ### HANDY FUNCTIONS ###
 #######################
@@ -58,17 +57,43 @@ def floats_from_string_with_alpha(spec, a):
     r, g, b = floats_from_string(spec)
     return r, g, b, a
 
-def get_em_value():
-    # retrieve the gtk-font-name and return the font size to be used at 1em
-    raw_desc = gtk.settings_get_default().get_property("gtk-font-name")
-    font_name, font_size = raw_desc.rsplit(' ', 1)
-    try:
-        return int(font_size)
-    except:
-        logging.warn("Could not parse font size for font description: %s" % raw_desc)
+#def get_gtk_color_scheme_dict():
+    ## Color names as provided by gtk.Settings:
+    ## Note: Not all Gtk themes support this method of color retrieval!
 
-    # fall back to default font size, as per default gtk font size "Sans 10"
-    return 10
+    ## 'tooltip_fg_color'
+    ## 'fg_color'
+    ## 'base_color'
+    ## 'selected_bg_color'
+    ## 'selected_fg_color'
+    ## 'text_color'
+    ## 'bg_color'
+    ## 'tooltip_bg_color'
+
+    #scheme_str = gtk.settings_get_default().get_property("gtk-color-scheme")
+    #d = {}
+    #lines = scheme_str.splitlines()
+    #if not lines: return
+
+    #for ln in lines:
+        #try:
+            #k, v = ln.split(':')
+            #d[k.strip()] = v.strip()
+        #except:
+            #pass
+    #return d
+
+def get_em_value():
+    # calc the width of a wide character, use as 1em
+    w = gtk.Window()
+    w.realize()
+    pc = w.get_pango_context()
+    l = pango.Layout(pc)
+    # 'M' is wide
+    l.set_markup('M')
+    w = l.get_pixel_extents()[1][2]
+    print w
+    return w
 
 def get_nearest_stock_size(desired_size):
     stock_sizes = (16, 24, 32, 48, 64)
@@ -122,9 +147,10 @@ BORDER_WIDTH_MED =      max(2, int(0.666*EM+0.5))
 BORDER_WIDTH_SMALL =    max(1, int(0.333*EM+0.5))
 
 # recommended spacings between elements
-SPACING_LARGE =         max(3, EM)
-SPACING_MED =           max(2, int(0.666*EM+0.5))
-SPACING_SMALL =         max(1, int(0.333*EM+0.5))
+SPACING_XLARGE      = max(5, int(1.333*EM+0.5))    
+SPACING_LARGE       = max(3, EM)
+SPACING_MED         = max(2, int(0.666*EM+0.5))
+SPACING_SMALL       = max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
 CORNER_RADIUS =         max(2, int(0.333*EM+0.5))
@@ -621,32 +647,61 @@ class Style:
 
 class FramedSection(gtk.VBox):
 
-    def __init__(self, label_markup=None):
+    def __init__(self, label_markup=None, xpadding=SPACING_MED):
         gtk.VBox.__init__(self)
         self.set_redraw_on_allocate(False)
 
+        self.header_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.header = gtk.HBox()
+        self.header_alignment.add(self.header)
+        self.header_alignment.set_padding(SPACING_MED,
+                                          SPACING_LARGE,
+                                          xpadding,
+                                          xpadding)
+
+        self.body_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.body = gtk.VBox()
+        self.body_alignment.add(self.body)
+        self.body_alignment.set_padding(0, 0,
+                                        xpadding,
+                                        xpadding)
+
+        self.footer_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.footer = gtk.HBox()
-        self.footer.set_size_request(-1, 2*mkit.EM)
+        self.footer_alignment.add(self.footer)
+        self.footer_alignment.set_padding(0, 0,
+                                          xpadding,
+                                          xpadding)
 
-        self.header.set_border_width(BORDER_WIDTH_MED)
-        self.body.set_border_width(BORDER_WIDTH_MED)
-        self.body.set_spacing(SPACING_SMALL)
+        self.body.set_spacing(SPACING_MED)
+        self.footer.set_size_request(-1, 2*EM)
 
-        self.pack_start(self.header, False)
-        self.pack_start(self.body)
-        self.pack_start(self.footer, False)
+        self.pack_start(self.header_alignment, False)
+        self.pack_start(self.body_alignment)
+        self.pack_start(self.footer_alignment, False)
 
+        self.image = gtk.Image()
         self.label = gtk.Label()
-        self.header.pack_start(self.label, False, padding=BORDER_WIDTH_SMALL)
 
+        self.header.pack_start(self.label, False)
         if label_markup:
             self.set_label(label_markup)
         return
 
-    def set_label(self, label):
-        self.label.set_markup('<b>%s</b>' % label)
+    def set_icon(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
+        self.image.set_from_icon_name(icon_name, icon_size)
+
+        if not self.image.parent:
+            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
+            self.header.reorder_child(self.image, 0)
+            self.image.show()
+        return
+
+    def set_label(self, label='', markup=None):
+        if markup:
+            self.label.set_markup(markup)
+        else:
+            self.label.set_markup('<b>%s</b>' % label)
 
         # atk stuff
         acc = self.get_accessible()
@@ -654,7 +709,13 @@ class FramedSection(gtk.VBox):
         acc.set_role(atk.ROLE_SECTION)
         return
 
-    def draw(self, cr, a, expose_area):
+    def set_xpadding(self, xpadding):
+        self.header_alignment.set_padding(0, 0, xpadding, xpadding)
+        self.body_alignment.set_padding(0, 0, xpadding, xpadding)
+        self.footer_alignment.set_padding(0, 0, xpadding, xpadding)
+        return
+
+    def draw(self, cr, a, expose_area, draw_border=True):
         if not_overlapping(a, expose_area): return
 
         cr.save()
@@ -672,18 +733,19 @@ class FramedSection(gtk.VBox):
         cr.set_source_rgba(*floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
         cr.fill()
 
-        cr.save()
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-        rr.layout(cr,
-                  a.x+1, a.y+1,
-                  a.x + a.width-2, a.y + a.height-2,
-                  radius=CORNER_RADIUS)
+        if draw_border:
+            cr.save()
+            cr.set_line_width(1)
+            cr.translate(0.5, 0.5)
+            rr.layout(cr,
+                      a.x+1, a.y+1,
+                      a.x + a.width-2, a.y + a.height-2,
+                      radius=CORNER_RADIUS)
 
-        cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[gtk.STATE_NORMAL]))
-        cr.stroke_preserve()
-        cr.stroke()
-        cr.restore()
+            cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[gtk.STATE_NORMAL]))
+            cr.stroke_preserve()
+            cr.stroke()
+            cr.restore()
 
         cr.restore()
         return
@@ -982,7 +1044,7 @@ class Button(gtk.EventBox):
                                    self.state,
                                    (x-2, y-1, w+4, h+2),
                                    self,
-                                   'button',
+                                   'expander',
                                    x-2, y-1, w+4, h+2)
         return
 
