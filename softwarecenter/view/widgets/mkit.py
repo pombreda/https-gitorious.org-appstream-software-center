@@ -628,6 +628,7 @@ class FramedSection(gtk.VBox):
         self.header = gtk.HBox()
         self.body = gtk.VBox()
         self.footer = gtk.HBox()
+        self.footer.set_size_request(-1, 2*mkit.EM)
 
         self.header.set_border_width(BORDER_WIDTH_MED)
         self.body.set_border_width(BORDER_WIDTH_MED)
