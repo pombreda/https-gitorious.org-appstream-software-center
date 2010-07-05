@@ -66,6 +66,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     'channels-changed':(gobject.SIGNAL_RUN_FIRST,
                                         gobject.TYPE_NONE,
                                         (bool,)),
+                    # cache reload emits this specific signal as well
+                    'reload-finished':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (bool,)),
                     }
 
     def __init__(self):
@@ -273,6 +277,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # if it was a cache-reload, trigger a-x-i update
         if trans.role == enums.ROLE_UPDATE_CACHE:
             self.update_xapian_index()
+            self.emit("reload-finished", enum != enums.EXIT_FAILED)
         # send appropriate signals
         self.emit("transactions-changed", self.pending_transactions)
         self.emit("transaction-finished", enum != enums.EXIT_FAILED)

@@ -61,22 +61,37 @@ class PurchaseDialog(gtk.Dialog):
 
     def _process_json(self, json_string):
         res = simplejson.loads(json_string)
-        print res
+        #print res
         if res["successful"] == False:
             self.response(gtk.RESPONSE_CANCEL)
             return
-        # gather data
+        self.response(gtk.RESPONSE_OK)
+        # gather data from response
         source_entry = res["deb_line"]
         signing_key = res["signing_key_id"]
-        # do it
+        # add repo and key
         backend = get_install_backend()
-        backend.add_vendor_key_from_keyserver(signing_key)
         backend.add_sources_list_entry(source_entry)
+        backend.add_vendor_key_from_keyserver(signing_key)
         backend.emit("channels-changed", True)
+        # teload to ensure we have the new package data
         backend.reload()
-        # now queue installing the app
+        # and then queue the install only when the reload finished
+        # otherwise the daemon will fail because he does not know
+        # the new package name yet
+        self._reload_signal_id = backend.connect(
+            "reload-finished", self._on_reload_finished, backend)
+
+    def _on_reload_finished(self, trans, result, backend):
+        """ 
+        callback that is called once after reload was queued
+        and will trigger the install of the for-pay package itself
+        (after that it will automatically de-register)
+        """
         backend.install(self.app.pkgname, self.app.appname, "")
-        self.response(gtk.RESPONSE_OK)
+        # disconnect again, this is only a one-time operation
+        backend.handler_disconnect(self._reload_signal_id)
+        self._reload_signal_id = None
 
 
 # just used for testing
