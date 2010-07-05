@@ -1261,7 +1261,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.show_app(self.app)
         return
 
-    def _interface_trans_ended(self):
+    def _update_interface_on_trans_ended(self):
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
 
@@ -1287,12 +1287,12 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_transaction_stopped(self, backend):
         self.action_bar.progress.hide()
-        self._interface_trans_ended()
+        self._update_interface_on_trans_ended()
         return
 
     def _on_transaction_finished(self, backend, success):
         self.action_bar.progress.hide()
-        self._interface_trans_ended()
+        self._update_interface_on_trans_ended()
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
@@ -1304,6 +1304,9 @@ class AppDetailsView(gtk.ScrolledWindow):
         return
 
     def _show_prog_idle_cb(self):
+        # without using an idle callback, the progressbar suffers from
+        # gitter as it gets allocated on show().  This approach either eliminates
+        # the issue or makes it unnoticeable... 
         self.action_bar.progress.show()
         return False
 if __name__ == "__main__":
