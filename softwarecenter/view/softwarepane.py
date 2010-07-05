@@ -107,6 +107,7 @@ class SoftwarePane(gtk.VBox):
                                           self.cache, 
                                           self.history,
                                           self.datadir)
+
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
