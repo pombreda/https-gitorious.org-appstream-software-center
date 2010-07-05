@@ -151,8 +151,9 @@ class SoftwareCenterAgent(gobject.GObject):
     def _thread_available_for_me_error(self, error):
         print "_available_for_me_error:", error
         
-    def query_available_for_me(self, oauth_token):
+    def query_available_for_me(self, oauth_token, openid_identifier):
         kwargs = { "oauth_token" : oauth_token,
+                   "openid_identifier" : openid_identifier,
                  }
         self.worker_thread.queue_request(self.AVAILABLE_FOR_ME, (), kwargs,
                                          self._thread_available_for_me_done,
@@ -188,6 +189,12 @@ class UbuntuSSOlogin(LoginBackend):
     def __init__(self):
         LoginBackend.__init__(self)
         self.service = UBUNTU_SSO_SERVICE
+        # we get a dict here with the following keys:
+        #  token
+        #  consumer_key (also the openid identifier)
+        #  consumer_secret
+        #  token_secret
+        #  name (that is just 'software-center')
         self.oauth_credentials = None
         self._login_failure = None
 
@@ -198,7 +205,8 @@ class UbuntuSSOlogin(LoginBackend):
         authorizer = BasicHttpAuthorizer(username, password)
         self.worker_thread =  RestfulClientWorker(authorizer, self.service)
         self.worker_thread.start()
-        kwargs = { "token_name" : "software-center", }
+        kwargs = { "token_name" : "software-center", 
+                 }
         self.worker_thread.queue_request(self.SSO_AUTHENTICATE_FUNC, (), kwargs,
                                          self._thread_authentication_done,
                                          self._thread_authentication_error)
