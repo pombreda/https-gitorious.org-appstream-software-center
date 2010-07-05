@@ -172,8 +172,8 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Source Unavailable'))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
-        else:
-            print 'PkgStateUnknown:', state
+        #else:
+            #print 'PkgStateUnknown:', state
         return
 
     def draw(self, cr, a, expose_area):
@@ -1012,9 +1012,13 @@ class AppDetailsView(gtk.ScrolledWindow):
     def install(self):
 
         def install_cb():
+            request = self.app_details._request
+            if request:
+                if request.count('/') < 1:
+                    request = None
             self.backend.install(self.app_details.pkgname,
                                  self.app_details.title,
-                                 self.app_details._request,
+                                 request,
                                  self.app_details.icon)
             return False
 
