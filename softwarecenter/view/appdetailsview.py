@@ -80,27 +80,17 @@ PKG_STATE_UNAVAILABLE   = 7
 PKG_STATE_UNKNOWN       = 8
 
 
-class AppSource(object):
+class AppDetails(object):
 
-    def __init__(self, db, distro, icons, cache, history):
+    def __init__(self, app, db, distro, icons, cache, history):
         self.cache = cache
         self.db = db
         self.distro = distro
         self.icons = icons
         self.history = history
+        self.arch = get_current_arch()
 
         # init app specific data
-        self.app = None
-        self.doc = None
-        self.pkg = None
-
-        # other stuff
-        self.iconname = None
-        self.channelfile = None
-        self.channelname = None
-        return
-
-    def set_application(self, app):
         self.app = app
 
         # get xapian document
@@ -112,47 +102,20 @@ class AppSource(object):
         # get apt cache data
         self.pkg = self.get_package()
 
-        # other commonly requested stuff
+        # commonly requested stuff
         self.appname = self.get_name()
         self.pkgname = app.pkgname
         self.iconname = self.get_iconname()
 
         # setup component
         self.component = self.get_component()
+
+        # other stuff
+        self.channelfile = None
+        self.channelname = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+        if self.channelname:
+            self.channelfile = APP_INSTALL_CHANNELS_PATH + channel +".list"
         return
-
-    def _unavailable_component(self, doc):
-        """ 
-        check if the given doc refers to a component (like universe)
-        that is currently not enabled
-        """
-        # FIXME: use self.component here instead?
-        component =  doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        logging.debug("component: '%s'" % component)
-        # if there is no component accociated, it can not be unavailable
-        if not component:
-            return False
-        distro_codename = self.distro.get_codename()
-        available = self.cache.component_available(distro_codename, component)
-        return (not available)
-
-    def _available_for_our_arch(self, doc):
-        """ check if the given package is available for our arch """
-        arches = doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
-        # if we don't have a arch entry in the document its available
-        # on all architectures we know about
-        if not arches:
-            return True
-        # check the arch field and support both "," and ";"
-        sep = ","
-        if ";" in arches:
-            sep = ";"
-        elif "," in arches:
-            sep = ","
-        for arch in map(string.strip, arches.split(sep)):
-            if arch == self.arch:
-                return True
-        return False
 
     def get_package(self):
         # get apt cache data
@@ -201,6 +164,7 @@ class AppSource(object):
         return self.app.pkgname
 
     def get_pkg_state(self):
+
         if self.pkg:
             # Don't handle upgrades yet
             #if pkg.installed and pkg.isUpgradable:
@@ -211,7 +175,7 @@ class AppSource(object):
                 return PKG_STATE_UNINSTALLED
 
         elif self.doc:
-            channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
             if channel:
                 #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
                 #if os.path.exists(path):
@@ -221,10 +185,10 @@ class AppSource(object):
                     print channel
                     return PKG_STATE_NEEDS_SOURCE
             # check if it comes from a non-enabled component
-            elif self._unavailable_component():
+            elif not self.component_is_available():
                 # FIXME: use a proper message here, but we are in string freeze
                 return PKG_STATE_UNAVAILABLE
-            elif self._available_for_our_arch():
+            elif self.our_arch_is_available():
                 return PKG_STATE_NEEDS_SOURCE
 
         return PKG_STATE_UNKNOWN
@@ -232,7 +196,7 @@ class AppSource(object):
     def get_description(self):
         # if we do not have a package in our apt data explain why
         if not self.pkg:
-            available_for_arch = self._available_for_our_arch()
+            available_for_arch = self.our_arch_is_available()
             if self.channelname and available_for_arch:
                 return _("This software is available from the '%s' source, "
                          "which you are not currently using.") % self.channelname
@@ -248,10 +212,7 @@ class AppSource(object):
                      "this type of computer (%s).") % (
                 self.app.name, self.arch)
 
-        # format for html
-        description = self.pkg.candidate.description
-        logging.debug("Description (text) %r", description)
-        return description
+        return self.pkg.candidate.description
 
     def get_homepage_url(self):
         return self.pkg.candidate.homepage
@@ -290,6 +251,42 @@ class AppSource(object):
     def get_installed(self):
         if self.pkg and self.pkg.installed:
             return True
+        return False
+
+    def get_icon_filename(self):
+        "stub"
+        return
+
+    def component_is_available(self):
+        """ 
+        check if the given doc refers to a component (like universe)
+        that is currently not enabled
+        """
+        # FIXME: use self.component here instead?
+        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        logging.debug("component: '%s'" % component)
+        # if there is no component accociated, it can not be unavailable
+        if not component:
+            return False
+        distro_codename = self.distro.get_codename()
+        return self.cache.component_available(distro_codename, component)
+
+    def our_arch_is_available(self):
+        """ check if the given package is available for our arch """
+        arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+        # if we don't have a arch entry in the document its available
+        # on all architectures we know about
+        if not arches:
+            return True
+        # check the arch field and support both "," and ";"
+        sep = ","
+        if ";" in arches:
+            sep = ";"
+        elif "," in arches:
+            sep = ","
+        for arch in map(string.strip, arches.split(sep)):
+            if arch == self.arch:
+                return True
         return False
 
 
@@ -354,7 +351,7 @@ class PackageStatusBar(gtk.Alignment):
 
     def configure(self, appsrc, state):
         self.pkg_state = appsrc.get_pkg_state()
-        self.appsrc = appsrc
+        self.appd = appsrc
         self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
@@ -966,25 +963,21 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.history = history
         self.datadir = datadir
 
-        # data
-        self.app = None
-        self.appsrc = AppSource(self.db,
-                                self.distro,
-                                self.icons,
-                                self.cache,
-                                self.history)
-
-
         # aptdaemon
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
-        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+        self.backend.connect("transaction-progress-changed",
+                             self._on_transaction_progress_changed)
+
+        # app specific data
+        self.app = None
+        self.appd = None
 
         self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
 
-        # page elements are packed into our lovely viewport
+        # page elements are packed into our very own lovely viewport
         viewport = self._layout_page()
         viewport.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
@@ -1182,6 +1175,9 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.info_table.set_support_status(appsrc.get_maintainance_time())
         return
 
+    def _get_appdetails(self):
+        return self.appd
+
     # public API
     def show_app(self, app):
         logging.debug("AppDetailsView.show_app '%s'" % app)
@@ -1194,15 +1190,26 @@ class AppDetailsView(gtk.ScrolledWindow):
     def init_app(self, app):
         # initialize the app
         self.app = app
-        self.appsrc.set_application(app)
-        self._update_page(self.appsrc)
+        self.appd = AppDetails(app,
+                               self.db,
+                               self.distro,
+                               self.icons,
+                               self.cache,
+                               self.history)
+        self._update_page(self.appd)
         return
 
     # public interface
     def install(self):
-        self.backend.install(self.appsrc.pkgname,
-                             self.appsrc.appname,
-                             self.appsrc.iconname)
+
+        def install_cb():
+            self.backend.install(self.appd.pkgname,
+                                 self.appd.appname,
+                                 self.appd.iconname)
+            return False
+
+        self.action_bar.button.set_sensitive(False)
+        gobject.idle_add(install_cb)
         return
 
     def remove(self):
@@ -1210,86 +1217,95 @@ class AppDetailsView(gtk.ScrolledWindow):
         # FIXME: this text is not accurate, we look at recommends as
         #        well as part of the rdepends, but those do not need to
         #        be removed, they just may be limited in functionatlity
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.appsrc.pkg, self.appsrc.appname)
+
+        def remove_cb():
+            self.backend.remove(self.appd.pkgname,
+                    self.appd.appname,
+                    self.appd.iconname)
+            return False
+
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.appd.pkg, self.appd.appname)
 
         # ask for confirmation if we have rdepends
-        depends = self.cache.get_installed_rdepends(self.appsrc.pkg)
+        depends = self.cache.get_installed_rdepends(self.appd.pkg)
         if depends:
-            iconpath = self.get_icon_filename(self.appsrc.iconname, self.APP_ICON_SIZE)
+            iconpath = self.get_icon_filename(self.appd.iconname, self.APP_ICON_SIZE)
             
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
                 self.action_bar.button.set_sensitive(True)
                 self.backend.emit("transaction-stopped")
                 return
-        self.backend.remove(self.appsrc.pkgname,
-                            self.appsrc.appname,
-                            self.appsrc.iconname)
+
+        self.action_bar.button.set_sensitive(False)
+        gobject.idle_add(remove_cb)
         return
 
     def upgrade(self):
-        self.backend.upgrade(self.appsrc.pkgname,
-                                  self.appsrc.appname,
-                                  self.appsrc.iconname)
+
+        def upgrade_cb():
+            self.backend.upgrade(self.appd.pkgname,
+                                      self.appd.appname,
+                                      self.appd.iconname)
+            return False
+
+        self.action_bar.button.set_sensitive(False)
+        gobject.idle_add(upgrade_cb)
         return
 
     # internal callback
     def _on_cache_ready(self, cache):
+        if self.appd and self.appd.pkgname in self.backend.pending_transactions:
+            return
         logging.debug("on_cache_ready")
         self.show_app(self.app)
+        return
 
-    def _on_transaction_started(self, backend):
-        self.action_bar.button.set_sensitive(False)
-        self.action_bar.button.hide()
-        self.action_bar.progress.show()
-        print 'Started'
-
+    def _interface_trans_started(self):
         state = self.action_bar.pkg_state
         if state == PKG_STATE_UNINSTALLED:
-            self.action_bar.configure(self.appsrc, PKG_STATE_INSTALLING)
+            self.action_bar.configure(self.appd, PKG_STATE_INSTALLING)
         elif state == PKG_STATE_INSTALLED:
-            self.action_bar.configure(self.appsrc, PKG_STATE_REMOVING)
+            self.action_bar.configure(self.appd, PKG_STATE_REMOVING)
         elif state == PKG_STATE_UPGRADABLE:
-            self.action_bar.configure(self.appsrc, PKG_STATE_UPGRADING)
+            self.action_bar.configure(self.appd, PKG_STATE_UPGRADING)
+        return False
+
+    def _interface_trans_ended(self):
+        self.action_bar.button.set_sensitive(True)
+        self.action_bar.button.show()
+
+        state = self.action_bar.pkg_state
+        if state == PKG_STATE_REMOVING:
+            self.action_bar.configure(self.appd, PKG_STATE_UNINSTALLED)
+        elif state == PKG_STATE_INSTALLING:
+            self.action_bar.configure(self.appd, PKG_STATE_INSTALLED)
+        elif state == PKG_STATE_UPGRADING:
+            self.action_bar.configure(self.appd, PKG_STATE_INSTALLED)
+        return False
+
+    def _on_transaction_started(self, backend):
+        self.action_bar.button.hide()
+        gobject.timeout_add(50, self._interface_trans_started)
         return
 
     def _on_transaction_stopped(self, backend):
-        self.action_bar.button.set_sensitive(True)
-        self.action_bar.button.show()
         self.action_bar.progress.hide()
+        self._interface_trans_ended()
         return
 
-    def _on_transaction_finished(self, *args):
-        print 'Finished'
-        self.action_bar.button.set_sensitive(True)
-        self.action_bar.button.show()
+    def _on_transaction_finished(self, backend, success):
         self.action_bar.progress.hide()
+        self._interface_trans_ended()
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        #print self.app, self.appsrc.pkgname, pkgname
-        #if not self.app or not self.appsrc.pkgname == pkgname:
-            #return
-        print 'Progress'
-        self.action_bar.progress.show()
-        if pkgname in backend.pending_transactions:
-            self.action_bar.progress.set_fraction(progress/100.0)
+        if self.appd and self.appd.pkgname and self.appd.pkgname == pkgname:
+            if not self.action_bar.progress.get_property('visible'):
+                self.action_bar.progress.show()
+            if pkgname in backend.pending_transactions:
+                self.action_bar.progress.set_fraction(progress/100.0)
         return
-
-    def _on_navigation_requested(self, view, frame, request):
-        logging.debug("_on_navigation_requested %s" % request.get_uri())
-        # not available in the python bindings yet
-        # typedef enum {
-        #  WEBKIT_NAVIGATION_RESPONSE_ACCEPT,
-        #  WEBKIT_NAVIGATION_RESPONSE_IGNORE,
-        #  WEBKIT_NAVIGATION_RESPONSE_DOWNLOAD
-        # } WebKitNavigationResponse;
-        uri = request.get_uri()
-        if uri.startswith("http:") or uri.startswith("https:") or uri.startswith("www"):
-            subprocess.call(["xdg-open", uri])
-            return 1
-        return 0
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
