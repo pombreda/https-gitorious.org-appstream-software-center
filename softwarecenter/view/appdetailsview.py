@@ -160,6 +160,11 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Component Unavailable'))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
+        elif state == PKG_STATE_UNKNOWN:
+            self.set_button_label("")
+            self.set_label(_("Error"))
+            self.fill_color = COLOR_RED_FILL
+            self.line_color = COLOR_RED_OUTLINE
         elif state == PKG_STATE_NEEDS_SOURCE:
             self.set_button_label(_('Add Source'))
             self.set_label(_('Source Unavailable'))

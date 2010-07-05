@@ -205,25 +205,28 @@ class ApplicationDetails(object):
 
     def set_status_for_deb_files(self, version_status):
         """ Set status and warning for deb files """
-        (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
-        if version_status == DEB_NOT_IN_CACHE:
-            self.status = PKG_STATE_UNINSTALLED
-            self.warning = _("Only install deb files if you trust both the author and the distributor.")
-        elif version_status == DEB_OLDER_THAN_CACHE:
-            if self._cache[self.pkgname].installed:
-                self.status = PKG_STATE_INSTALLED
-            else:
+        if self.error:
+            self.status = PKG_STATE_UNKNOWN
+        else:
+            (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
+            if version_status == DEB_NOT_IN_CACHE:
                 self.status = PKG_STATE_UNINSTALLED
+                self.warning = _("Only install deb files if you trust both the author and the distributor.")
+            elif version_status == DEB_OLDER_THAN_CACHE:
+                if self._cache[self.pkgname].installed:
+                    self.status = PKG_STATE_INSTALLED
+                else:
+                    self.status = PKG_STATE_UNINSTALLED
+                    self.warning = _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
+            elif version_status == DEB_EQUAL_TO_CACHE:
+                self.status = PKG_STATE_REINSTALLABLE
                 self.warning = _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
-        elif version_status == DEB_EQUAL_TO_CACHE:
-            self.status = PKG_STATE_REINSTALLABLE
-            self.warning = _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
-        elif version_status == DEB_NEWER_THAN_CACHE:
-            if self._cache[self.pkgname].installed:
-                self.status = PKG_STATE_UPGRADABLE
-            else:
-                self.status = PKG_STATE_UNINSTALLED
-            self.warning = _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
+            elif version_status == DEB_NEWER_THAN_CACHE:
+                if self._cache[self.pkgname].installed:
+                    self.status = PKG_STATE_UPGRADABLE
+                else:
+                    self.status = PKG_STATE_UNINSTALLED
+                self.warning = _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
 
     def _unavailable_component(self):
         """ Check if the given doc refers to a component that is currently not enabled """
