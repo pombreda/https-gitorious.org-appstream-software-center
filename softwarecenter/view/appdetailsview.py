@@ -137,25 +137,25 @@ class PackageStatusBar(gtk.Alignment):
         self.button.set_label(label)
         return
 
-    def configure(self, state, price, install_date):
-        self.pkg_state = state
+    def configure(self, app_details, state):
+        self.pkg_state = app_details.status
         self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
 
         if state == PKG_STATE_INSTALLED:
-            if install_date:
-                install_date = str(install_date).split()[0]
-                self.set_label(_('Installed %s' % install_date))
+            if app_details.installed_date:
+                installed_date = str(app_details.installed_date).split()[0]
+                self.set_label(_('Installed %s' % installed_date))
             else:
                 self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
-            self.set_label(price)
+            self.set_label(app_details.price)
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_REINSTALLABLE:
-            self.set_label(price)
+            self.set_label(app_details.price)
             self.set_button_label(_('Reinstall'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
@@ -773,7 +773,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
 
-        # page elements are packed into our lovely viewport
+        # page elements are packed into our very own lovely viewport
         viewport = self._layout_page()
         viewport.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
@@ -940,9 +940,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         else:
             # FIXME: this may not be accurate
             price = _("Free")
-        self.action_bar.configure(self.app_details.status,
-                                  price,
-                                  self.app_details.installed_date)
+        self.action_bar.configure(self.app_details, self.app_details.status)
 
         self.action_bar.button.grab_focus()
 
@@ -1011,27 +1009,33 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.emit("selected", self.app)
         return
 
-    def on_screenshot_thumbnail_clicked(self):
-        url = self.distro.SCREENSHOT_LARGE_URL % self.app_details.pkgname
-        title = _("%s - Screenshot") % self.app_details.title
-        d = ShowImageDialog(
-            title, url,
-            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
-            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
-            self.distro.IMAGE_FULL_MISSING)
-        d.run()
-        d.destroy()
-
     # public interface
     def install(self):
-        self.backend.install(self.app_details.pkgname, self.app_details.title, self.app_details._request, self.app_details.icon)
+
+        def install_cb():
+            self.backend.install(self.app_details.pkgname,
+                                 self.app_details.title,
+                                 self.app_details._request,
+                                 self.app_details.icon)
+            return False
+
+        self.action_bar.button.set_sensitive(False)
+        gobject.idle_add(install_cb)
+        return
 
     def remove(self):
         # generic removal text
         # FIXME: this text is not accurate, we look at recommends as
         #        well as part of the rdepends, but those do not need to
         #        be removed, they just may be limited in functionatlity
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.app_details.pkg, self.app_details.title)
+
+        def remove_cb():
+            self.backend.remove(self.app_details.pkgname,
+                    self.app_details.title,
+                    self.app_details.icon)
+            return False
+
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.appd.pkg, self.appd.appname)
 
         # ask for confirmation if we have rdepends
         depends = self.cache.get_installed_rdepends(self.app_details.pkg)
@@ -1043,10 +1047,21 @@ class AppDetailsView(gtk.ScrolledWindow):
                 self.action_bar.button.set_sensitive(True)
                 self.backend.emit("transaction-stopped")
                 return
-        self.backend.remove(self.app_details.pkgname, self.app_details.title, self.app_details.icon)
+
+        self.action_bar.button.set_sensitive(False)
+        gobject.idle_add(remove_cb)
+        return
 
     def upgrade(self):
-        self.backend.upgrade(self.app_details.pkgname, self.app_details.title, self.app_details.icon)
+
+        def upgrade_cb():
+            self.backend.upgrade(self.app_details.pkgname,
+                                      self.app_details.title,
+                                      self.app_details.icon)
+            return False
+
+        self.action_bar.button.set_sensitive(False)
+        gobject.idle_add(upgrade_cb)
         return
 
     def enable_component(self):
@@ -1055,58 +1070,56 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     # internal callback
     def _on_cache_ready(self, cache):
+        if self.app_details and self.app_details.pkgname in self.backend.pending_transactions:
+            return
         logging.debug("on_cache_ready")
         self.show_app(self.app)
 
-    def _on_transaction_started(self, backend):
-        self.action_bar.button.set_sensitive(False)
-        self.action_bar.button.hide()
-        self.action_bar.progress.show()
+    def _interface_trans_ended(self):
+        self.action_bar.button.set_sensitive(True)
+        self.action_bar.button.show()
 
         state = self.action_bar.pkg_state
+        if state == PKG_STATE_REMOVING:
+            self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
+        elif state == PKG_STATE_INSTALLING:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+        elif state == PKG_STATE_UPGRADING:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+        return False
+
+    def _on_transaction_started(self, backend):
+        self.action_bar.button.hide()
+        state = self.action_bar.pkg_state
         if state == PKG_STATE_UNINSTALLED:
-            self.action_bar.set_pkg_state(PKG_STATE_INSTALLING)
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
         elif state == PKG_STATE_INSTALLED:
-            self.action_bar.set_pkg_state(PKG_STATE_REMOVING)
+            self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
         elif state == PKG_STATE_UPGRADABLE:
-            self.action_bar.set_pkg_state(PKG_STATE_UPGRADING)
+            self.action_bar.configure(self.app_details, PKG_STATE_UPGRADING)
         return
 
     def _on_transaction_stopped(self, backend):
-        self.action_bar.button.set_sensitive(True)
-        self.action_bar.button.show()
         self.action_bar.progress.hide()
+        self._interface_trans_ended()
         return
 
-    def _on_transaction_finished(self, *args):
-        self.action_bar.button.set_sensitive(True)
-        self.action_bar.button.show()
+    def _on_transaction_finished(self, backend, success):
         self.action_bar.progress.hide()
+        self._interface_trans_ended()
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        #print self.app, self.app_details.pkgname, pkgname
-        #if not self.app or not self.app_details.pkgname == pkgname:
-            #return
-        self.action_bar.progress.show()
-        if pkgname in backend.pending_transactions:
-            self.action_bar.progress.set_fraction(progress/100.0)
+        if self.app_details and self.app_details.pkgname and self.app_details.pkgname == pkgname:
+            if not self.action_bar.progress.get_property('visible'):
+                gobject.idle_add(self._show_prog_idle_cb)
+            if pkgname in backend.pending_transactions:
+                self.action_bar.progress.set_fraction(progress/100.0)
         return
 
-    def _on_navigation_requested(self, view, frame, request):
-        logging.debug("_on_navigation_requested %s" % request.get_uri())
-        # not available in the python bindings yet
-        # typedef enum {
-        #  WEBKIT_NAVIGATION_RESPONSE_ACCEPT,
-        #  WEBKIT_NAVIGATION_RESPONSE_IGNORE,
-        #  WEBKIT_NAVIGATION_RESPONSE_DOWNLOAD
-        # } WebKitNavigationResponse;
-        uri = request.get_uri()
-        if uri.startswith("http:") or uri.startswith("https:") or uri.startswith("www"):
-            subprocess.call(["xdg-open", uri])
-            return 1
-        return 0
-
+    def _show_prog_idle_cb(self):
+        self.action_bar.progress.show()
+        return False
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

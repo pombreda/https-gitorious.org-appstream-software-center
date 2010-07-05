@@ -801,6 +801,3 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
-
-
-
