@@ -60,20 +60,6 @@ COLOR_GREEN_OUTLINE = '#8AE234'
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
 
-
-# pkg action state constants
-PKG_STATE_INSTALLED     = 0
-PKG_STATE_UNINSTALLED   = 1
-PKG_STATE_UPGRADABLE    = 2
-PKG_STATE_INSTALLING    = 3
-PKG_STATE_REMOVING      = 4
-PKG_STATE_UPGRADING     = 5
-PKG_STATE_NEEDS_SOURCE  = 6
-PKG_STATE_UNAVAILABLE   = 7
-PKG_STATE_UNKNOWN       = 8
-PKG_STATE_REINSTALLABLE = 9
-
-
 class PackageStatusBar(gtk.Alignment):
     
     def __init__(self, view):
@@ -763,6 +749,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # data
         self.app = None
+        self.app_details = None
 
         # aptdaemon
         self.backend = get_install_backend()
@@ -1009,6 +996,11 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.emit("selected", self.app)
         return
 
+    def init_app(self, app):
+        self.app = app
+        self.app_details = ApplicationDetails(self.cache, self.db, self.distro, self.history, app)
+        return
+
     # public interface
     def install(self):
 
@@ -1035,7 +1027,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                     self.app_details.icon)
             return False
 
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.appd.pkg, self.appd.appname)
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.app_details.pkg, self.app_details.title)
 
         # ask for confirmation if we have rdepends
         depends = self.cache.get_installed_rdepends(self.app_details.pkg)
@@ -1070,8 +1062,9 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     # internal callback
     def _on_cache_ready(self, cache):
-        if self.app_details and self.app_details.pkgname in self.backend.pending_transactions:
-            return
+        if self.app_details:
+            if self.app_details.pkgname in self.backend.pending_transactions:
+                return
         logging.debug("on_cache_ready")
         self.show_app(self.app)
 

@@ -585,44 +585,35 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
         # update menu items
-        version_status = self.active_pane.app_details.version_status
-        if version_status == DEB_NOT_IN_CACHE or version_status == DEB_OLDER_THAN_CACHE or version_status == DEB_EQUAL_TO_CACHE or version_status == DEB_NEWER_THAN_CACHE:
-            error = self.active_pane.app_details.error
-            self.menuitem_copy_web_link.set_sensitive(False)
-            if self.active_pane.app_view.is_action_in_progress_for_selected_app() or error:
-                self.menuitem_install.set_sensitive(False)
-                self.menuitem_remove.set_sensitive(False)
-            elif version_status == DEB_NOT_IN_CACHE:
-                self.menuitem_install.set_sensitive(True)
-                self.menuitem_remove.set_sensitive(False)
-            else:
-                self.menuitem_install.set_sensitive(True)
-                self.menuitem_remove.set_sensitive(True)
-                self.menuitem_copy_web_link.set_sensitive(True)
-                if version_status == DEB_OLDER_THAN_CACHE:
-                    if self.active_pane.app_details.pkg.installed:
-                        self.menuitem_install.set_sensitive(False)
-                    else:
-                        self.menuitem_install.set_sensitive(True)
-                        self.menuitem_remove.set_sensitive(False)
-        elif (not self.active_pane.is_category_view_showing() and 
-            app.pkgname in self.cache):
-            if self.active_pane.app_view.is_action_in_progress_for_selected_app():
-                self.menuitem_install.set_sensitive(False)
-                self.menuitem_remove.set_sensitive(False)
-                self.menuitem_copy_web_link.set_sensitive(False)
-            else:
-                pkg = self.cache[app.pkgname]
-                installed = bool(pkg.installed)
-                self.menuitem_install.set_sensitive(not installed)
-                self.menuitem_remove.set_sensitive(installed)
-                self.menuitem_copy_web_link.set_sensitive(True)
+        pkg_state = None
+        error = None
+        if self.active_pane.app_details.app_details:
+            pkg_state = self.active_pane.app_details.app_details.status
+            error = self.active_pane.app_details.app_details.error
+        if self.active_pane.app_view.is_action_in_progress_for_selected_app():
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
+        elif pkg_state == PKG_STATE_UPGRADABLE or pkg_state == PKG_STATE_REINSTALLABLE and not error:
+            self.menuitem_install.set_sensitive(True)
+            self.menuitem_remove.set_sensitive(True)
+        elif pkg_state == PKG_STATE_INSTALLED:
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(True)
+        elif pkg_state == PKG_STATE_UNINSTALLED and not error:
+            self.menuitem_install.set_sensitive(True)
+            self.menuitem_remove.set_sensitive(False)
+        elif (not pkg_state and not self.active_pane.is_category_view_showing() and app.pkgname in self.cache and not self.active_pane.app_view.is_action_in_progress_for_selected_app() and not error):
+            pkg = self.cache[app.pkgname]
+            installed = bool(pkg.installed)
+            self.menuitem_install.set_sensitive(not installed)
+            self.menuitem_remove.set_sensitive(installed)
+            self.menuitem_copy_web_link.set_sensitive(True)
         else:
-            # clear menu items if category view or if the package is not
-            # in the cache
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
+        if pkg_state:
+            self.menuitem_copy_web_link.set_sensitive(True)
         # return False to ensure that a possible glib.timeout_add ends
         return False
 

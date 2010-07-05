@@ -27,17 +27,6 @@ from mimetypes import guess_type
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 
-PKG_STATE_INSTALLED     = 0
-PKG_STATE_UNINSTALLED   = 1
-PKG_STATE_UPGRADABLE    = 2
-PKG_STATE_INSTALLING    = 3
-PKG_STATE_REMOVING      = 4
-PKG_STATE_UPGRADING     = 5
-PKG_STATE_NEEDS_SOURCE  = 6
-PKG_STATE_UNAVAILABLE   = 7
-PKG_STATE_UNKNOWN       = 8
-PKG_STATE_REINSTALLABLE = 9
-
 class ApplicationDetails(object):
     """ This is a centralised place for all application details """
     def __init__(self, cache, db, distro, history, app):
@@ -59,6 +48,7 @@ class ApplicationDetails(object):
         self.installed_date = self._history.get_installed_date(self.pkgname)
         self.license = None
         self.maintainance_time = None
+        self.pkg = None
         self.price = None
         self.screenshot = self._distro.SCREENSHOT_LARGE_URL % self.pkgname
         self.status = None
