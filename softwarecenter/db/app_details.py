@@ -55,7 +55,6 @@ class ApplicationDetails(object):
         self.status = None
         self.subtitle = None
         self.thumbnail = self._distro.SCREENSHOT_THUMB_URL % self.pkgname
-        self.type = None
         self.title = app.appname
         self.version = None
         self.warning = None
@@ -167,7 +166,6 @@ class ApplicationDetails(object):
             pass
         self.subtitle = description.split('\n')[0]
         self.title = self.pkgname.capitalize()
-        self.type = "deb-file"
         self.version = deb._sections["Version"]
 
         # additional info from app-install desktop file
