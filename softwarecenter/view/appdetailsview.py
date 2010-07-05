@@ -958,7 +958,7 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self.gwibber_is_available:
+        if self.gwibber_is_available and not self.app_details.error:
             self.share_btn.show()
             self.share_btn.set_property('visited', False)
         else:
