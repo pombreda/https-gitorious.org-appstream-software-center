@@ -1261,16 +1261,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.show_app(self.app)
         return
 
-    def _interface_trans_started(self):
-        state = self.action_bar.pkg_state
-        if state == PKG_STATE_UNINSTALLED:
-            self.action_bar.configure(self.appd, PKG_STATE_INSTALLING)
-        elif state == PKG_STATE_INSTALLED:
-            self.action_bar.configure(self.appd, PKG_STATE_REMOVING)
-        elif state == PKG_STATE_UPGRADABLE:
-            self.action_bar.configure(self.appd, PKG_STATE_UPGRADING)
-        return False
-
     def _interface_trans_ended(self):
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
@@ -1286,7 +1276,13 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
-        gobject.timeout_add(50, self._interface_trans_started)
+        state = self.action_bar.pkg_state
+        if state == PKG_STATE_UNINSTALLED:
+            self.action_bar.configure(self.appd, PKG_STATE_INSTALLING)
+        elif state == PKG_STATE_INSTALLED:
+            self.action_bar.configure(self.appd, PKG_STATE_REMOVING)
+        elif state == PKG_STATE_UPGRADABLE:
+            self.action_bar.configure(self.appd, PKG_STATE_UPGRADING)
         return
 
     def _on_transaction_stopped(self, backend):
@@ -1302,11 +1298,14 @@ class AppDetailsView(gtk.ScrolledWindow):
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if self.appd and self.appd.pkgname and self.appd.pkgname == pkgname:
             if not self.action_bar.progress.get_property('visible'):
-                self.action_bar.progress.show()
+                gobject.idle_add(self._show_prog_idle_cb)
             if pkgname in backend.pending_transactions:
                 self.action_bar.progress.set_fraction(progress/100.0)
         return
 
+    def _show_prog_idle_cb(self):
+        self.action_bar.progress.show()
+        return False
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
