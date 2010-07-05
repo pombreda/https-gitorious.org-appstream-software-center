@@ -171,19 +171,14 @@ class ApplicationDetails(object):
         self.version = deb._sections["Version"]
 
         # additional info from app-install desktop file
-        # FIXME: use xapian for this again..
-        desktop_file_path = APP_INSTALL_DESKTOP_PATH + self.pkgname + '.desktop'
-        if os.path.exists(desktop_file_path):
-            desktop_file = open(desktop_file_path, 'r')
-            for line in desktop_file.readlines():
-                if line[:5] == "Name=": 
-                    #FIXME: different languages?
-                    self.title = line[5:].strip('\n')
-                if line[:5] == "Icon=":
-                    db_icon = line[5:].strip('\n')
-                    if self._icons.has_icon(db_icon):
-                        self.icon = db_icon
-            desktop_file.close()
+        try:
+            self.doc = self._db.get_xapian_document("", self.pkgname)
+            self.title = self.doc.get_value(XAPIAN_VALUE_APPNAME)
+            db_icon = os.path.splitext(self._db.get_iconname(self.doc))[0]
+            if self._icons.has_icon(db_icon):
+                self.icon = db_icon
+        except:
+            pass
 
         # get errors and warnings
         self.check_deb_file_for_errors(deb)
