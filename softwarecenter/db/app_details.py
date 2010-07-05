@@ -29,12 +29,13 @@ from softwarecenter.utils import *
 
 class ApplicationDetails(object):
     """ This is a centralised place for all application details """
-    def __init__(self, cache, db, distro, history, app):
+    def __init__(self, cache, db, distro, history, icons, app):
 
         self._cache = cache
         self._db = db
         self._distro = distro
         self._history = history
+        self._icons = icons
         self._request = app.request
 
         self.pkgname = app.pkgname
@@ -75,7 +76,9 @@ class ApplicationDetails(object):
             return
 
         # pkg may or may not be in cache
-        self.icon = os.path.splitext(self._db.get_iconname(self.doc))[0]
+        db_icon = os.path.splitext(self._db.get_iconname(self.doc))[0]
+        if self._icons.has_icon(db_icon):
+            self.icon = db_icon
         self.price = self._distro.get_price(self.doc)
         self.subtitle = self._db.get_summary(self.doc)
 
@@ -177,7 +180,9 @@ class ApplicationDetails(object):
                     #FIXME: different languages?
                     self.title = line[5:].strip('\n')
                 if line[:5] == "Icon=":
-                    self.icon = line[5:].strip('\n')
+                    db_icon = line[5:].strip('\n')
+                    if self._icons.has_icon(db_icon):
+                        self.icon = db_icon
             desktop_file.close()
 
         # get errors and warnings

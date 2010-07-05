@@ -138,10 +138,12 @@ class PackageStatusBar(gtk.Alignment):
                 self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
-            self.set_label(app_details.price)
+            if app_details.price:
+                self.set_label(app_details.price)
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_REINSTALLABLE:
-            self.set_label(app_details.price)
+            if app_details.price:
+                self.set_label(app_details.price)
             self.set_button_label(_('Reinstall'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
@@ -995,7 +997,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.app = app
 
         # initialize the app
-        self.app_details = ApplicationDetails(self.cache, self.db, self.distro, self.history, app)
+        self.app_details = ApplicationDetails(self.cache, self.db, self.distro, self.history, self.icons, app)
 
         self._update_page()
         self.emit("selected", self.app)
@@ -1003,7 +1005,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def init_app(self, app):
         self.app = app
-        self.app_details = ApplicationDetails(self.cache, self.db, self.distro, self.history, app)
+        self.app_details = ApplicationDetails(self.cache, self.db, self.distro, self.history, self.icons, app)
         return
 
     # public interface
