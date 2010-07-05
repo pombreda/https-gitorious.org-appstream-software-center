@@ -42,7 +42,6 @@ class ApplicationDetails(object):
         self.pkgname = app.pkgname
 
         self.channel = None
-        self.channelfile = None
         self.component = None
         self.description = None
         self.error = None
@@ -74,9 +73,19 @@ class ApplicationDetails(object):
             if self._request[:8] == "section=":
                 self.component = self._request[8:]
                 if self._unavailable_component():
-                    self.pkg_state = PKG_STATE_UNAVAILABLE
+                    self.pkg_state = PKG_STATE_NEEDS_SOURCE
                     self.subtitle = ""
                     self.warning = _("This software may be available from the \"%s\" source, which you are not currently using.") % self.component
+                    return
+            # check if we have an apturl request to enable a channel
+            if self._request[:8] == "channel=":
+                channel = self._request[8:]
+                channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
+                if os.path.exists(channelfile):
+                    self.channel = channel
+                    self.pkg_state = PKG_STATE_NEEDS_SOURCE
+                    self.subtitle = ""
+                    self.warning = _("This software may be available from the \"%s\" source, which you are not currently using.") % self.channel
                     return
             # pkg not found (well, we don't have it in app-install data)
             self.error = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
@@ -104,7 +113,11 @@ class ApplicationDetails(object):
 
         # post decision stuff
         self.license = self._distro.get_license_text(self.component).split()[1]
-        self.maintainance_time = self._distro.get_maintenance_status(self._cache, self.title or self.pkgname, self.pkgname, self.component, self.channelfile)
+        if self.channel:
+            channelfile = APP_INSTALL_CHANNELS_PATH + self.channel + ".list"
+        else:
+            channelfile = None
+        self.maintainance_time = self._distro.get_maintenance_status(self._cache, self.title or self.pkgname, self.pkgname, self.component, channelfile)
         self.check_for_apturl_minver()
 
     def pkg_in_cache(self):
@@ -124,27 +137,24 @@ class ApplicationDetails(object):
 
     def pkg_not_in_cache(self):
         self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        self.channelname = None
         channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
         if channel:
             path = APP_INSTALL_CHANNELS_PATH + channel +".list"
             if os.path.exists(path):
-                self.channelname = channel
-                self.channelfile = path
+                self.channel = channel
                 ## FIXME: deal with the EULA stuff
                 self.pkg_state = PKG_STATE_NEEDS_SOURCE
         available_for_arch = self._available_for_our_arch()
-        if not available_for_arch and (self.channelname or self.component):
+        if not available_for_arch and (self.channel or self.component):
             self.error = _("\"%s\" is not available for this type of computer.") % self.title
-        if self.channelname:
-            self.warning = _("\"%s\" is available from the \"%s\" source, "
-                         "which you are not currently using.") % (self.title, self.channelname)
-        if self.component:
-            self.warning = _("To show information about this item, the software catalog needs updating.")
+        if self.channel or self.component:
+            if self.channel:
+                source = self.channel
+            else:
+                source = self.component
+            self.warning = _("This software is available from the \"%s\" source, which you are not currently using.") % source
         if not channel:
-            if self._unavailable_component():
-                self.pkg_state = PKG_STATE_UNAVAILABLE
-            elif self._available_for_our_arch():
+            if self._unavailable_component() or self._available_for_our_arch():
                 self.pkg_state = PKG_STATE_NEEDS_SOURCE
 
 

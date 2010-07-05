@@ -110,10 +110,8 @@ class PackageStatusBar(gtk.Alignment):
             self.view.install()
         elif state == PKG_STATE_UPGRADABLE:
             self.view.upgrade()
-        elif state == PKG_STATE_UNAVAILABLE:
-            self.view.enable_component()
         elif state == PKG_STATE_NEEDS_SOURCE:
-            self.view.enable_channel()
+            self.view.use_this_source()
         return
 
     def set_label(self, label):
@@ -159,18 +157,13 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             #self.set_button_label(_('Upgrade Available'))
-        elif state == PKG_STATE_UNAVAILABLE:
-            self.set_button_label(_('Add Component'))
-            self.set_label(_('Component Unavailable'))
-            self.fill_color = COLOR_YELLOW_FILL
-            self.line_color = COLOR_YELLOW_OUTLINE
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
             self.fill_color = COLOR_RED_FILL
             self.line_color = COLOR_RED_OUTLINE
         elif state == PKG_STATE_NEEDS_SOURCE:
-            self.set_button_label(_('Add Source'))
+            self.set_button_label(_('Use This Source'))
             self.set_label(_('Source Unavailable'))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
@@ -1069,12 +1062,13 @@ class AppDetailsView(gtk.ScrolledWindow):
         gobject.idle_add(upgrade_cb)
         return
 
-    def enable_component(self):
-        # this is broken atm?
-        self.backend.enable_component(self.app_details.component)
-
-    def enable_channel(self):
-        self.backend.enable_channel(self.app_details.channelfile)
+    def use_this_source(self):
+        if self.app_details.channel:
+            channelfile = APP_INSTALL_CHANNELS_PATH + self.app_details.channel + ".list"
+            self.backend.enable_channel(channelfile)
+        elif self.app_details.component:
+            # this is broken atm?
+            self.backend.enable_component(self.app_details.component)
 
     # internal callback
     def _on_cache_ready(self, cache):
