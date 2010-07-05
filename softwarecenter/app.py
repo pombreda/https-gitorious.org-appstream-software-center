@@ -588,7 +588,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         pkg_state = None
         error = None
         if self.active_pane.app_details.app_details:
-            pkg_state = self.active_pane.app_details.app_details.status
+            pkg_state = self.active_pane.app_details.app_details.pkg_state
             error = self.active_pane.app_details.app_details.error
         if self.active_pane.app_view.is_action_in_progress_for_selected_app():
             self.menuitem_install.set_sensitive(False)

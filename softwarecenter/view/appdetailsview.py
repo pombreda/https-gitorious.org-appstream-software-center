@@ -124,7 +124,7 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def configure(self, app_details, state):
-        self.pkg_state = app_details.status
+        self.pkg_state = app_details.pkg_state
         self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
@@ -934,7 +934,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         else:
             # FIXME: this may not be accurate
             price = _("Free")
-        self.action_bar.configure(self.app_details, self.app_details.status)
+        self.action_bar.configure(self.app_details, self.app_details.pkg_state)
 
         self.action_bar.button.grab_focus()
 

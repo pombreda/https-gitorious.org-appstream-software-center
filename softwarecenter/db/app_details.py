@@ -50,9 +50,9 @@ class ApplicationDetails(object):
         self.license = None
         self.maintainance_time = None
         self.pkg = None
+        self.pkg_state = None
         self.price = None
         self.screenshot = self._distro.SCREENSHOT_LARGE_URL % self.pkgname
-        self.status = None
         self.subtitle = None
         self.thumbnail = self._distro.SCREENSHOT_THUMB_URL % self.pkgname
         self.title = app.appname
@@ -109,9 +109,9 @@ class ApplicationDetails(object):
         #if self.pkg.installed and self.pkg.isUpgradable:
         #    return PKG_STATE_UPGRADABLE
         if self.pkg.installed:
-            self.status = PKG_STATE_INSTALLED
+            self.pkg_state = PKG_STATE_INSTALLED
         else:
-            self.status = PKG_STATE_UNINSTALLED
+            self.pkg_state = PKG_STATE_UNINSTALLED
 
     def pkg_not_in_cache(self):
         self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
@@ -123,7 +123,7 @@ class ApplicationDetails(object):
                 self.channelname = channel
                 self.channelfile = path
                 ## FIXME: deal with the EULA stuff
-                self.status = PKG_STATE_NEEDS_SOURCE
+                self.pkg_state = PKG_STATE_NEEDS_SOURCE
         available_for_arch = self._available_for_our_arch()
         if not available_for_arch and (self.channelname or self.component):
             self.error = _("\"%s\" is not available for this type of computer.") % self.title
@@ -134,9 +134,9 @@ class ApplicationDetails(object):
             self.warning = _("To show information about this item, the software catalog needs updating.")
         if not channel:
             if self._unavailable_component():
-                self.status = PKG_STATE_UNAVAILABLE
+                self.pkg_state = PKG_STATE_UNAVAILABLE
             elif self._available_for_our_arch():
-                self.status = PKG_STATE_NEEDS_SOURCE
+                self.pkg_state = PKG_STATE_NEEDS_SOURCE
 
 
 ### deb file stuff ###
@@ -180,7 +180,7 @@ class ApplicationDetails(object):
 
         # get errors and warnings
         self.check_deb_file_for_errors(deb)
-        self.set_status_for_deb_files(deb.compare_to_version_in_cache())
+        self.set_pkg_state_for_deb_files(deb.compare_to_version_in_cache())
 
     def check_deb_file_for_errors(self, deb):
         """ Set error messages for deb files """
@@ -201,29 +201,29 @@ class ApplicationDetails(object):
         if not deb.check_conflicts():
             self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._equest.split('/')[-1]
 
-    def set_status_for_deb_files(self, version_status):
-        """ Set status and warning for deb files """
+    def set_pkg_state_for_deb_files(self, deb_state):
+        """ Set pkg_state and warning for deb files """
         if self.error:
-            self.status = PKG_STATE_UNKNOWN
+            self.pkg_state = PKG_STATE_UNKNOWN
         else:
             (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
-            if version_status == DEB_NOT_IN_CACHE:
-                self.status = PKG_STATE_UNINSTALLED
+            if deb_state == DEB_NOT_IN_CACHE:
+                self.pkg_state = PKG_STATE_UNINSTALLED
                 self.warning = _("Only install deb files if you trust both the author and the distributor.")
-            elif version_status == DEB_OLDER_THAN_CACHE:
+            elif deb_state == DEB_OLDER_THAN_CACHE:
                 if self._cache[self.pkgname].installed:
-                    self.status = PKG_STATE_INSTALLED
+                    self.pkg_state = PKG_STATE_INSTALLED
                 else:
-                    self.status = PKG_STATE_UNINSTALLED
+                    self.pkg_state = PKG_STATE_UNINSTALLED
                     self.warning = _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
-            elif version_status == DEB_EQUAL_TO_CACHE:
-                self.status = PKG_STATE_REINSTALLABLE
+            elif deb_state == DEB_EQUAL_TO_CACHE:
+                self.pkg_state = PKG_STATE_REINSTALLABLE
                 self.warning = _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
-            elif version_status == DEB_NEWER_THAN_CACHE:
+            elif deb_state == DEB_NEWER_THAN_CACHE:
                 if self._cache[self.pkgname].installed:
-                    self.status = PKG_STATE_UPGRADABLE
+                    self.pkg_state = PKG_STATE_UPGRADABLE
                 else:
-                    self.status = PKG_STATE_UNINSTALLED
+                    self.pkg_state = PKG_STATE_UNINSTALLED
                 self.warning = _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
 
     def _unavailable_component(self):
