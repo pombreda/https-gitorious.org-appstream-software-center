@@ -68,6 +68,14 @@ class ApplicationDetails(object):
         try:
             self.doc = self._db.get_xapian_document(self.title, self.pkgname)
         except IndexError:
+            # check if we have an apturl request to enable a component
+            if self._request[:8] == "section=":
+                self.component = self._request[8:]
+                if self._unavailable_component():
+                    self.pkg_state = PKG_STATE_UNAVAILABLE
+                    self.subtitle = ""
+                    self.warning = _("This software may be available from the \"%s\" source, which you are not currently using.") % self.component
+                    return
             # pkg not found (well, we don't have it in app-install data)
             self.error = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
             self.icon = MISSING_PKG_ICON
@@ -228,8 +236,10 @@ class ApplicationDetails(object):
 
     def _unavailable_component(self):
         """ Check if the given doc refers to a component that is currently not enabled """
-        # FIXME: use self.component here instead?
-        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        if self.component:
+            component = self.component
+        else:
+            component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
         if not component:
             return False
         distro_codename = self._distro.get_codename()
