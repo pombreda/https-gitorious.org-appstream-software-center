@@ -19,6 +19,7 @@
 import apt
 import apt_pkg
 import os
+import string
 
 from apt import Cache
 from apt import debfile
@@ -41,6 +42,7 @@ class ApplicationDetails(object):
         self.pkgname = app.pkgname
 
         self.channel = None
+        self.channelfile = None
         self.component = None
         self.description = None
         self.error = None
@@ -102,7 +104,6 @@ class ApplicationDetails(object):
 
         # post decision stuff
         self.license = self._distro.get_license_text(self.component).split()[1]
-        self.channelfile = None
         self.maintainance_time = self._distro.get_maintenance_status(self._cache, self.title or self.pkgname, self.pkgname, self.component, self.channelfile)
         self.check_for_apturl_minver()
 

@@ -112,6 +112,8 @@ class PackageStatusBar(gtk.Alignment):
             self.view.upgrade()
         elif state == PKG_STATE_UNAVAILABLE:
             self.view.enable_component()
+        elif state == PKG_STATE_NEEDS_SOURCE:
+            self.view.enable_channel()
         return
 
     def set_label(self, label):
@@ -1070,6 +1072,9 @@ class AppDetailsView(gtk.ScrolledWindow):
     def enable_component(self):
         # this is broken atm?
         self.backend.enable_component(self.app_details.component)
+
+    def enable_channel(self):
+        self.backend.enable_channel(self.app_details.channelfile)
 
     # internal callback
     def _on_cache_ready(self, cache):
