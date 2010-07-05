@@ -122,17 +122,6 @@ class Ubuntu(Distro):
                     return True
         return False
 
-    def get_price(self, doc):
-        # SPECIAL CASE for partner, we don't know the prices there
-        # see bug #552830 so we return None
-        for term_iter in doc.termlist():
-            if (term_iter.term == "XOCpartner" or
-                term_iter.term == "AH%s-partner" % self.get_distro_codename()):
-                return None
-        #TRANSLATORS: This text will be showed as price of the software
-        price = _("Free")
-        return price
-
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
         # try to figure out the support dates of the release and make
         # sure to look only for stuff in "Ubuntu" and "distro_codename"

@@ -528,17 +528,7 @@ class AppDetailsView(WebkitWidget):
                 action_button_label = _("Remove")
                 action_button_value = "remove"
             else:
-                price = self.distro.get_price(self.doc)
-                # we don't have price information
-                if price is None:
-                    action_button_label = _("Install")
-                # its free
-                elif price == _("Free"):
-                    action_button_label = _("Install - Free")
-                else:
-                    # FIXME: string freeze, so d
-                    #action_button_label = _("Install - %s") % price
-                    logging.error("Can not handle price %s" % price)
+                action_button_label = _("Install")
                 action_button_value = "install"
         elif self.doc:
             price =  self.doc.get_value(XAPIAN_VALUE_PRICE)
