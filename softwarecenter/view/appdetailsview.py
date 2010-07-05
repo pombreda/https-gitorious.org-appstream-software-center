@@ -124,6 +124,8 @@ class PackageStatusBar(gtk.Alignment):
             self.view.install()
         elif state == PKG_STATE_UPGRADABLE:
             self.view.upgrade()
+        elif state == PKG_STATE_UNAVAILABLE:
+            self.view.enable_component()
         return
 
     def set_label(self, label):
@@ -167,6 +169,11 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             #self.set_button_label(_('Upgrade Available'))
+        elif state == PKG_STATE_UNAVAILABLE:
+            self.set_button_label(_('Add Component'))
+            self.set_label(_('Component Unavailable'))
+            self.fill_color = COLOR_YELLOW_FILL
+            self.line_color = COLOR_YELLOW_OUTLINE
         elif state == PKG_STATE_NEEDS_SOURCE:
             self.set_button_label(_('Add Source'))
             self.set_label(_('Source Unavailable'))
@@ -808,12 +815,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         del cr
         return
 
-    #def on_button_enable_component_clicked(self):
-        ##print "on_enable_component_clicked", component
-        #component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        #self.backend.enable_component(component)
-        #self._set_action_button_sensitive(False)
-
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
@@ -1048,6 +1049,10 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend.upgrade(self.app_details.pkgname, self.app_details.title, self.app_details.icon)
         return
 
+    def enable_component(self):
+        # this is broken atm?
+        self.backend.enable_component(self.app_details.component)
+
     # internal callback
     def _on_cache_ready(self, cache):
         logging.debug("on_cache_ready")
@@ -1057,7 +1062,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.action_bar.button.set_sensitive(False)
         self.action_bar.button.hide()
         self.action_bar.progress.show()
-        print 'Started'
 
         state = self.action_bar.pkg_state
         if state == PKG_STATE_UNINSTALLED:
@@ -1075,7 +1079,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         return
 
     def _on_transaction_finished(self, *args):
-        print 'Finished'
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
         self.action_bar.progress.hide()
@@ -1085,7 +1088,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         #print self.app, self.app_details.pkgname, pkgname
         #if not self.app or not self.app_details.pkgname == pkgname:
             #return
-        print 'Progress'
         self.action_bar.progress.show()
         if pkgname in backend.pending_transactions:
             self.action_bar.progress.set_fraction(progress/100.0)

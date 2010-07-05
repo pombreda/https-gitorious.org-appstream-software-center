@@ -226,6 +226,11 @@ class StoreDatabase(gobject.GObject):
             doc = self.xapiandb.get_document(m.docid)
             if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
                 return doc
+        # then search for pkgname in the app-install-data namespace
+        for m in self.xapiandb.postlist("AP"+pkgname):
+            doc = self.xapiandb.get_document(m.docid)
+            if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
+                return doc
         # then look for matching packages from a-x-i
         for m in self.xapiandb.postlist("XP"+pkgname):
             doc = self.xapiandb.get_document(m.docid)

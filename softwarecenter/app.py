@@ -722,7 +722,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 app = Application("", "", request)
             elif request.count("?") > 0:
                 # apt url
-                #FIXME: atm we will assume that there is only on apturl argument
+                #FIXME: atm we will assume that there is only one apturl argument
                 app = Application("", request.split('?')[0], request.split('?')[1])
             else:
                 # single package

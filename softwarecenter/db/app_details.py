@@ -50,6 +50,8 @@ class ApplicationDetails(object):
 
         self.pkgname = app.pkgname
 
+        self.channel = None
+        self.component = None
         self.description = None
         self.error = None
         self.homepage = None
@@ -70,106 +72,84 @@ class ApplicationDetails(object):
         if self._request.count('/') > 0:
             self.init_deb_file()
         else:
-            try:
-                # get xapian document
-                self.doc = self._db.get_xapian_document(self.title, self.pkgname)
-            except IndexError:
-                self.error = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
-                self.icon = MISSING_PKG_ICON
-                self.title = _("Not Fund")
-                return
+            self.init_pkg()
 
-            self.icon = os.path.splitext(self._db.get_iconname(self.doc))[0]
-            self.price = self._distro.get_price(self.doc)
-            self.subtitle = self._db.get_summary(self.doc)
+    def init_pkg(self):
+        try:
+            self.doc = self._db.get_xapian_document(self.title, self.pkgname)
+        except IndexError:
+            # pkg not found (well, we don't have it in app-install data)
+            self.error = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            self.icon = MISSING_PKG_ICON
+            self.title = _("Not Found")
+            return
 
-            # get apt cache data
-            pkg_in_cache = None
-            if (self.pkgname in self._cache and self._cache[self.pkgname].candidate):
-                pkg_in_cache = self._cache[self.pkgname]
-            if pkg_in_cache:
-                self.homepage_url = pkg_in_cache.candidate.homepage
-                if pkg_in_cache.candidate:
-                    self.version = pkg_in_cache.candidate.version
+        # pkg may or may not be in cache
+        self.icon = os.path.splitext(self._db.get_iconname(self.doc))[0]
+        self.price = self._distro.get_price(self.doc)
+        self.subtitle = self._db.get_summary(self.doc)
 
-            # get the component (main, universe, ..) for the given pkg object
-            # this uses the data from apt, if there is none it uses the 
-            # data from the app-install-data files
-            if not pkg_in_cache or not pkg_in_cache.candidate:
-                self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-            else:
-                for origin in pkg_in_cache.candidate.origins:
-                    if (origin.origin == "Ubuntu" and 
-                        origin.trusted and 
-                        origin.component):
-                        self.component =  origin.component
+        # check if pkg in cache
+        self.pkg = None
+        if (self.pkgname in self._cache and self._cache[self.pkgname].candidate):
+            self.pkg = self._cache[self.pkgname]
 
-            # other data
-            self.channelfile = None
-            self.channelname = None
+        # do stuff depending on above
+        if self.pkg:
+            self.pkg_in_cache()
+        else:
+            self.pkg_not_in_cache()
 
-            self.maintainance_time = self._distro.get_maintenance_status(self._cache, self.title or self.pkgname, self.pkgname, self.component, self.channelfile)
-            self.license = self._distro.get_license_text(self.component).split()[1]
+        # post decision stuff
+        self.license = self._distro.get_license_text(self.component).split()[1]
+        self.channelfile = None
+        self.maintainance_time = self._distro.get_maintenance_status(self._cache, self.title or self.pkgname, self.pkgname, self.component, self.channelfile)
+        self.check_for_apturl_minver()
 
-            # if we do not have a package in our apt data explain why
-            # FIXME: This needs a quick test
-            if not pkg_in_cache:
-                available_for_arch = self._available_for_our_arch()
-                if not available_for_arch and (self.channelname or self.component):
-                    # if we don't have a package and it has no arch/component its
-                    # not available for us
-                    self.error = _("\"%s\" is not available for this type of computer.") % self.title
+    def pkg_in_cache(self):
+        self.homepage_url = self.pkg.candidate.homepage
+        self.version = self.pkg.candidate.version
+        for origin in self.pkg.candidate.origins:
+            if (origin.origin == "Ubuntu" and origin.trusted and origin.component):
+                self.component =  origin.component
+        self.description = self.pkg.candidate.description
+        # Don't handle upgrades yet
+        #if self.pkg.installed and self.pkg.isUpgradable:
+        #    return PKG_STATE_UPGRADABLE
+        if self.pkg.installed:
+            self.status = PKG_STATE_INSTALLED
+        else:
+            self.status = PKG_STATE_UNINSTALLED
 
-            # if we do not have a package in our apt data explain why
-            # FIXME: This needs a quick test
-            # FIXME: Need nicer messages
-            if not pkg_in_cache and not self.error:
-                if self.channelname:
-                    self.warning = _("\"%s\" is available from the \"%s\" source, "
-                             "which you are not currently using.") % (self.title, self.channelname)
-                # if we have no pkg in the apt cache, check if its available for
-                # the given architecture and if it has a component associated
-                if self.component:
-                    # FIXME: This occurs mostly when we have a desktop file for the app, but the app is not in the archives (afaik)
-                    # If this is the only case when this occurs, then we should change the text, else use seperate warnings
-                    self.warning = _("To show information about this item, "
-                             "the software catalog needs updating.")
-
-            self.check_for_apturl_minver()
-
-            if pkg_in_cache:
-                self.description = pkg_in_cache.candidate.description
-                # Don't handle upgrades yet
-                #if pkg.installed and pkg.isUpgradable:
-                #    return PKG_STATE_UPGRADABLE
-                if pkg_in_cache.installed:
-                    self.status = PKG_STATE_INSTALLED
-                else:
-                    self.status = PKG_STATE_UNINSTALLED
-
-            elif self.doc:
-                channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-                if channel:
-                    #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                    #if os.path.exists(path):
-                        #self.channelname = channel
-                        #self.channelfile = path
-                        ## FIXME: deal with the EULA stuff
-                        #print channel
-                        self.status = PKG_STATE_NEEDS_SOURCE
-                # check if it comes from a non-enabled component
-                elif self._unavailable_component():
-                    # FIXME: use a proper message here, but we are in string freeze
-                    self.status = PKG_STATE_UNAVAILABLE
-                elif self._available_for_our_arch():
-                    self.status = PKG_STATE_NEEDS_SOURCE
-
-            #return PKG_STATE_UNKNOWN
+    def pkg_not_in_cache(self):
+        self.component = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        self.channelname = None
+        channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+        if channel:
+            path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+            if os.path.exists(path):
+                self.channelname = channel
+                self.channelfile = path
+                ## FIXME: deal with the EULA stuff
+                self.status = PKG_STATE_NEEDS_SOURCE
+        available_for_arch = self._available_for_our_arch()
+        if not available_for_arch and (self.channelname or self.component):
+            self.error = _("\"%s\" is not available for this type of computer.") % self.title
+        if self.channelname:
+            self.warning = _("\"%s\" is available from the \"%s\" source, "
+                         "which you are not currently using.") % (self.title, self.channelname)
+        if self.component:
+            self.warning = _("To show information about this item, the software catalog needs updating.")
+        if not channel:
+            if self._unavailable_component():
+                self.status = PKG_STATE_UNAVAILABLE
+            elif self._available_for_our_arch():
+                self.status = PKG_STATE_NEEDS_SOURCE
 
 
 ### deb file stuff ###
     def init_deb_file(self):
-        # try to open the deb file
+        """ Initialise a deb file """
         try:
             deb = debfile.DebPackage(self._request, Cache())
         except (IOError,SystemError),e:
@@ -198,6 +178,7 @@ class ApplicationDetails(object):
         self.version = deb._sections["Version"]
 
         # additional info from app-install desktop file
+        # FIXME: use xapian for this again..
         desktop_file_path = APP_INSTALL_DESKTOP_PATH + self.pkgname + '.desktop'
         if os.path.exists(desktop_file_path):
             desktop_file = open(desktop_file_path, 'r')
@@ -214,6 +195,7 @@ class ApplicationDetails(object):
         self.set_status_for_deb_files(deb.compare_to_version_in_cache())
 
     def check_deb_file_for_errors(self, deb):
+        """ Set error messages for deb files """
         # check arch
         arch = deb._sections["Architecture"]
         if  arch != "all" and arch != get_current_arch():
@@ -232,6 +214,7 @@ class ApplicationDetails(object):
             self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._equest.split('/')[-1]
 
     def set_status_for_deb_files(self, version_status):
+        """ Set status and warning for deb files """
         (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
         if version_status == DEB_NOT_IN_CACHE:
             self.status = PKG_STATE_UNINSTALLED
@@ -253,14 +236,9 @@ class ApplicationDetails(object):
             self.warning = _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
 
     def _unavailable_component(self):
-        """ 
-        check if the given doc refers to a component (like universe)
-        that is currently not enabled
-        """
+        """ Check if the given doc refers to a component that is currently not enabled """
         # FIXME: use self.component here instead?
         component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        logging.debug("component: '%s'" % component)
-        # if there is no component accociated, it can not be unavailable
         if not component:
             return False
         distro_codename = self._distro.get_codename()
@@ -286,24 +264,8 @@ class ApplicationDetails(object):
         return False
 
     def check_for_apturl_minver(self):
-        # check for apturl minver requirements
+        """ Insert warning if apturl minver requirements are not met """
         if self._request[:7] == "minver=":
             minver = self._request[7:]
             if apt_pkg.version_compare(minver, self.version) > 0:
                 self.warning = _("Version %s or later is not available from your current software sources.") % minver
-
-    #FIXME: pgg - unneeded afaics
-
-    def get_iconname(self):
-        if self.app_details.icon:
-            if self.icons.has_icon(iconname):
-                return self.app_details.icon
-        return 'gnome-other'
-
-    def get_installed(self):
-        if self.pkg and self.pkg.installed:
-            return True
-        return False
-
-    #FIXME: pgg
-
