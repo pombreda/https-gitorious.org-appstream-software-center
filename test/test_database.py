@@ -92,6 +92,16 @@ class testDatabase(unittest.TestCase):
             break
         self.assertEqual(appdetails.appname, "Ubuntu Software Center Test")
         self.assertEqual(appdetails.pkgname, "software-center")
+        # FIXME: add a dekstop file with a real channel to test
+        #        and monkey-patch/modify the APP_INSTALL_CHANNELS_PATH
+        self.assertEqual(appdetails.channel, None)
+        self.assertEqual(appdetails.component, "main")
+        self.assertNotEqual(appdetails.pkg, None)
+        # FIXME: test description for unavailable pkg
+        self.assertTrue(
+            appdetails.description.startswith("The Ubuntu Software Center"))
+        # FIXME: test appdetails.homepage
+        self.assertEqual(appdetails.icon, "softwarecenter")
 
 if __name__ == "__main__":
     import logging

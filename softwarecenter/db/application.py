@@ -19,6 +19,8 @@
 import locale
 import os
 
+from softwarecenter.enums import *
+
 class Application(object):
     """ The central software item abstraction. it conaints a 
         pkgname that is always available and a optional appname
@@ -91,7 +93,9 @@ class AppDetails(object):
                 self._app.appname, self._app.pkgname)
         self._init_common()
     def _init_common(self):
-        pass
+        if (self.pkgname in self._cache and 
+            self._cache[self.pkgname].candidate):
+            self._pkg = self._cache[self.pkgname]
     @property
     def pkgname(self):
         return self._app.pkgname
@@ -99,20 +103,35 @@ class AppDetails(object):
     def appname(self):
         return self._app.appname
     @property
-    def channel (self):
-        pass
+    def channel(self):
+        channel = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+        if channel:
+            path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+            if os.path.exists(path):
+                return channel
     @property
     def component (self):
-        pass
+        comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        # FIXME: get component from apt 
+        #if comp is None:
+        return comp
+    @property
+    def pkg(self):
+        return self._pkg
     @property
     def description (self):
-        pass
+        if self._pkg:
+            return self._pkg.candidate.description
     @property
     def homepage (self):
-        pass
+        if self._pkg:
+            return self._pkg.candidate.homepage
     @property
     def icon(self):
-        pass
+        db_icon = os.path.splitext(self._db.get_iconname(self._doc))[0]
+        if not db_icon:
+            return MISSING_PKG_ICON
+        return db_icon
     @property
     def installed_date(self):
         pass
@@ -124,9 +143,6 @@ class AppDetails(object):
         pass
     @property
     def version(self):
-        pass
-    @property
-    def pkg(self):
         pass
     @property
     def pkg_state (self):
@@ -144,7 +160,13 @@ class AppDetails(object):
     def title(self):
         pass
     @property
-    def subtitle (self):
+    def subtitle(self):
+        pass
+    @property
+    def error(self):
+        pass
+    @property
+    def warning(self):
         pass
 
 
