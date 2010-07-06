@@ -17,26 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import locale
-
-class AppDetails(object):
-    def __init__(self, db, document=None, application=None):
-        self.db = db
-        self.app = application
-        self.doc = document
-        if not self.doc and not self.app:
-            raise Exception, "Need either document or application"
-        if not self.doc:
-            self.doc = self.db.get_xapian_document(self.app.appgname,
-                                                   self.app.pkgname)
-        if not self.app:
-            self.app = Application(self.db.get_appname(self.doc),
-                                   self.db.get_pkgname(self.doc))
-    @property
-    def pkgname(self):
-        return self.app.pkgname
-    @property
-    def appname(self):
-        return self.app.appname
+import os
 
 class Application(object):
     """ The central software item abstraction. it conaints a 
@@ -78,3 +59,94 @@ class Application(object):
             return locale.strcoll(x.pkgname, y.appname)
         else:
             return cmp(x.pkgname, y.pkgname)
+
+class AppDetails(object):
+    """ The details for a Application. This contains all the information
+        we have available like homepage url etc
+    """
+
+    def __init__(self, db, doc=None, application=None):
+        """ Create a new AppDetails object. It can be created from
+            a xapian.Document or from a db.application.Application object
+        """
+        if not doc and not application:
+            raise ValueError, "Need either document or application"
+        self._db = db
+        self._cache = self._db._aptcache
+        if doc:
+            self.init_from_doc(doc)
+        elif application:
+            self.init_from_application(application)
+    def init_from_doc(self, doc):
+        self._doc = doc
+        self._app = Application(self._db.get_appname(self._doc),
+                                self._db.get_pkgname(self._doc))
+        self._init_common()
+    def init_from_application(self, app):
+        self._app = app
+        self._doc = self._db.get_xapian_document(self._app.appgname,
+                                                 self._app.pkgname)
+        if not self._doc:
+            raise IndexError, "No app '%s' for '%s' in database" % (
+                self._app.appname, self._app.pkgname)
+        self._init_common()
+    def _init_common(self):
+        pass
+    @property
+    def pkgname(self):
+        return self._app.pkgname
+    @property
+    def appname(self):
+        return self._app.appname
+    @property
+    def channel (self):
+        pass
+    @property
+    def component (self):
+        pass
+    @property
+    def description (self):
+        pass
+    @property
+    def homepage (self):
+        pass
+    @property
+    def icon(self):
+        pass
+    @property
+    def installed_date(self):
+        pass
+    @property
+    def license(self):
+        pass
+    @property
+    def maintainance_time(self):
+        pass
+    @property
+    def version(self):
+        pass
+    @property
+    def pkg(self):
+        pass
+    @property
+    def pkg_state (self):
+        pass
+    @property
+    def price (self):
+        pass
+    @property
+    def screenshot(self):
+        pass
+    @property
+    def thumbnail(self):
+        pass
+    @property
+    def title(self):
+        pass
+    @property
+    def subtitle (self):
+        pass
+
+
+
+

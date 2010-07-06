@@ -88,7 +88,7 @@ class testDatabase(unittest.TestCase):
         self.assertTrue(len(db), 1)
         # get the first document
         for doc in db:
-            appdetails = AppDetails(db, document=doc)
+            appdetails = AppDetails(db, doc=doc)
             break
         self.assertEqual(appdetails.appname, "Ubuntu Software Center Test")
         self.assertEqual(appdetails.pkgname, "software-center")
