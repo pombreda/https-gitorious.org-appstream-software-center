@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import locale
+import os
 
 class Application(object):
     """ The central software item abstraction. it contains a 
@@ -35,6 +36,8 @@ class Application(object):
         else:
             self.appname = pkgname.capitalize()
             self.pkgname = pkgname
+        self.appname = self.appname.replace("$kernel", os.uname()[2])
+        self.pkgname = self.pkgname.replace("$kernel", os.uname()[2])
         self.request = request
         self._popcon = popcon
     @property

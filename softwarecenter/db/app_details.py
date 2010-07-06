@@ -37,7 +37,7 @@ class ApplicationDetails(object):
         self._distro = distro
         self._history = history
         self._icons = icons
-        self._request = app.request
+        self._request = app.request.replace("$distro", self._distro.get_distro_codename())
 
         self.pkgname = app.pkgname
 
