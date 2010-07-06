@@ -20,6 +20,7 @@ import locale
 import os
 
 from softwarecenter.distro import get_distro
+from softwarecenter.apt.apthistory import get_apt_history
 from softwarecenter.enums import *
 
 class Application(object):
@@ -77,6 +78,7 @@ class AppDetails(object):
         self._db = db
         self._cache = self._db._aptcache
         self._distro = get_distro()
+        self._history = get_apt_history()
         if doc:
             self.init_from_doc(doc)
         elif application:
@@ -136,7 +138,7 @@ class AppDetails(object):
         return db_icon
     @property
     def installed_date(self):
-        pass
+        return self._history.get_installed_date(self.pkgname)
     @property
     def license(self):
         return self._distro.get_license_text(self.component)
