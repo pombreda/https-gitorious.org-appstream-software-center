@@ -19,6 +19,7 @@
 import apt
 import apt_pkg
 import os
+import re
 import string
 
 from apt import Cache
@@ -69,23 +70,35 @@ class ApplicationDetails(object):
         try:
             self.doc = self._db.get_xapian_document(self.title, self.pkgname)
         except IndexError:
-            # check if we have an apturl request to enable a component
-            if self._request[:8] == "section=":
-                self.component = self._request[8:]
-                if self._unavailable_component():
-                    self.pkg_state = PKG_STATE_NEEDS_SOURCE
-                    self.subtitle = ""
-                    self.warning = _("This software may be available from the \"%s\" source, which you are not currently using.") % self.component
-                    return
             # check if we have an apturl request to enable a channel
-            if self._request[:8] == "channel=":
-                channel = self._request[8:]
+            channel_matches = re.findall(r'channel=[a-z,-]*', self._request)
+            if channel_matches:
+                channel = channel_matches[0][8:]
                 channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
                 if os.path.exists(channelfile):
                     self.channel = channel
                     self.pkg_state = PKG_STATE_NEEDS_SOURCE
                     self.subtitle = ""
                     self.warning = _("This software may be available from the \"%s\" source, which you are not currently using.") % self.channel
+                    return
+            # check if we have an apturl request to enable a component
+            section_matches = re.findall(r'section=[a-z]*', self._request)
+            if section_matches:
+                valid_section_matches = []
+                for section_match in section_matches:
+                    self.component = section_match[8:]
+                    if self._unavailable_component() and valid_section_matches.count(self.component) == 0:
+                        valid_section_matches.append(self.component)
+                    self.component = None
+                if valid_section_matches:
+                    self.component = ('&').join(valid_section_matches)
+                    self.pkg_state = PKG_STATE_NEEDS_SOURCE
+                    self.subtitle = ""
+                    self.warning = _("This software may be available from the \"%s\" source") % valid_section_matches[0]
+                    if len(valid_section_matches) > 1:
+                        for valid_section_match in valid_section_matches[1:]:
+                            self.warning += _(", or from the \"%s\" source") % valid_section_match
+                    self.warning += _(", which you are not currently using.")
                     return
             # pkg not found (well, we don't have it in app-install data)
             self.error = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
@@ -220,7 +233,7 @@ class ApplicationDetails(object):
 
         # check for conflicts again (this time with the packages that are marked for install)
         if not deb.check_conflicts():
-            self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._equest.split('/')[-1]
+            self.error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._request.split('/')[-1]
 
     def set_pkg_state_for_deb_files(self, deb_state):
         """ Set pkg_state and warning for deb files """
@@ -279,7 +292,8 @@ class ApplicationDetails(object):
 
     def check_for_apturl_minver(self):
         """ Insert warning if apturl minver requirements are not met """
-        if self._request[:7] == "minver=":
-            minver = self._request[7:]
+        minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._request)
+        if minver_matches:
+            minver = minver_matches[0][7:]
             if apt_pkg.version_compare(minver, self.version) > 0:
                 self.warning = _("Version %s or later is not available from your current software sources.") % minver

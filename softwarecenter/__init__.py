@@ -30,9 +30,6 @@ class Application(object):
         if request.count("/") > 0:
             self.appname = request.split('/')[-1].split('_')[0].split('.')[0].capitalize()
             self.pkgname = request.split('/')[-1].split('_')[0].split('.')[0].lower()
-        elif request.count("?") > 0:
-            self.appname = request.split('?')[0].capitalize()
-            self.pkgname = request.split('?')[0]
         else:
             self.appname = pkgname.capitalize()
             self.pkgname = pkgname

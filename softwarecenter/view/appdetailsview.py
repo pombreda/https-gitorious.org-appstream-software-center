@@ -1068,7 +1068,10 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.backend.enable_channel(channelfile)
         elif self.app_details.component:
             # this is broken atm?
-            self.backend.enable_component(self.app_details.component)
+            components = self.app_details.component.split('&')
+            self.app_details.component = components[0]
+            for component in components:
+                self.backend.enable_component(component)
 
     # internal callback
     def _on_cache_ready(self, cache):

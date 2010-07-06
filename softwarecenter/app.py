@@ -718,15 +718,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 app = Application("", "", request)
             elif request.count("?") > 0:
                 # apt url
-                #FIXME: atm we will assume that there is only one apturl argument
-                app = Application("", request.split('?')[0], request.split('?')[1])
+                app = Application("", request.split('?')[0], ('?').join(request.split('?')[1:]))
             else:
-                # single package
-
-                # FIXME: this currently only works with pkg names for apps
-                #        it needs to perform a search because a App name
-                #        is (in general) not unique
-                # -- Do we really want to fix this? The whole aim of launching s-c with an app preloaded is that we know precisely which app will launch, ie we want something unique (the packagename), rather than something not unique (the appname)
+                # package from archive
                 app = Application("", request, "")
             if (app.pkgname in self.available_pane.cache and self.available_pane.cache[app.pkgname].installed):
                 self.installed_pane.loaded = True
@@ -735,7 +729,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self.installed_pane.show_app(app)
             else:
                 self.available_pane.show_app(app)
-
 
         if len(packages) > 1:
             # turn multiple packages into a search with ","
