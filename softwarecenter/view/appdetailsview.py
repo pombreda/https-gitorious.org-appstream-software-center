@@ -626,9 +626,12 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
+    from softwarecenter.apt.apthistory import AptHistory
+    history = AptHistory()
+
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsView(db, distro, icons, cache, datadir)
+    view = AppDetailsView(db, distro, icons, cache, history, datadir)
     #view.show_app(Application("3D Chess", "3dchess"))
     view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
