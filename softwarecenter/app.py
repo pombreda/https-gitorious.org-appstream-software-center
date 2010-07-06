@@ -706,6 +706,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             If the list of packages is only one element long show that,
             otherwise turn it into a comma seperated search
         """
+        if packages[0][:6] == "apt://":
+            packages[0] = packages[0][6:]
         if packages[0][:4] == "apt:":
             packages[0] = packages[0][4:]
 
