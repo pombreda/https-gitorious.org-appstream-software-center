@@ -190,7 +190,9 @@ class ApplicationDetails(object):
         # additional info from app-install desktop file
         try:
             self.doc = self._db.get_xapian_document("", self.pkgname)
-            self.title = self.doc.get_value(XAPIAN_VALUE_APPNAME)
+            db_title = self.doc.get_value(XAPIAN_VALUE_APPNAME)
+            if db_title:
+                self.title = db_title
             db_icon = os.path.splitext(self._db.get_iconname(self.doc))[0]
             if self._icons.has_icon(db_icon):
                 self.icon = db_icon
