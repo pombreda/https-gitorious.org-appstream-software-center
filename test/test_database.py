@@ -9,7 +9,9 @@ import os
 import unittest
 import xapian
 
+from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists
 from softwarecenter.enums import *
 
 class testDatabase(unittest.TestCase):
@@ -19,9 +21,9 @@ class testDatabase(unittest.TestCase):
         # FIXME: create a fixture DB instead of using the system one
         # but for now that does not matter that much, only if we
         # call open the db is actually read and the path checked
+        self.cache = apt.Cache()
         self.db = StoreDatabase("/var/cache/software-center/xapian", 
-                                apt.Cache())
-        #self.db.open()
+                                self.cache)
 
     def test_comma_seperation(self):
         # normal
@@ -38,13 +40,11 @@ class testDatabase(unittest.TestCase):
         self.assertEqual(querries, None)
 
     def test_update_from_desktop_file(self):
-        from softwarecenter.db.update import update_from_app_install_data
-        db = xapian.WritableDatabase("./data/test.db", 
-                                     xapian.DB_CREATE_OR_OVERWRITE)
-        cache = apt.Cache()
         # ensure we index with german locales to test i18n
         os.environ["LANGUAGE"] = "de"
-        res = update_from_app_install_data(db, cache, datadir="./data/")
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_app_install_data(db, self.cache, datadir="./data/")
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 1)
         # test if Name[de] was picked up
@@ -54,13 +54,11 @@ class testDatabase(unittest.TestCase):
         self.assertEqual(i, 1)
 
     def test_update_from_var_lib_apt_lists(self):
-        from softwarecenter.db.update import update_from_var_lib_apt_lists
-        db = xapian.WritableDatabase("./data/test.db", 
-                                     xapian.DB_CREATE_OR_OVERWRITE)
-        cache = apt.Cache()
         # ensure we index with german locales to test i18n
         os.environ["LANGUAGE"] = "de"
-        res = update_from_var_lib_apt_lists(db, cache, listsdir="./data/app-info/")
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_var_lib_apt_lists(db, self.cache, listsdir="./data/app-info/")
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 1)
         # test if Name-de was picked up
@@ -77,6 +75,23 @@ class testDatabase(unittest.TestCase):
                     found_gettext_translation = True
                     break
         self.assertTrue(found_gettext_translation)
+
+    def test_application(self):
+        self.assertRaises(AppDetails(self.db))
+
+    def test_application(self):
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        db = StoreDatabase("./data/test.db", self.cache)
+        db.open(use_axi=False)
+        self.assertTrue(len(db), 1)
+        # get the first document
+        for doc in db:
+            appdetails = AppDetails(db, document=doc)
+            break
+        self.assertEqual(appdetails.appname, "Ubuntu Software Center Test")
+        self.assertEqual(appdetails.pkgname, "software-center")
 
 if __name__ == "__main__":
     import logging
