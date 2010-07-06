@@ -90,7 +90,7 @@ class AppDetails(object):
         self._init_common()
     def init_from_application(self, app):
         self._app = app
-        self._doc = self._db.get_xapian_document(self._app.appgname,
+        self._doc = self._db.get_xapian_document(self._app.appname,
                                                  self._app.pkgname)
         if not self._doc:
             raise IndexError, "No app '%s' for '%s' in database" % (
@@ -120,8 +120,14 @@ class AppDetails(object):
         #if comp is None:
         return comp
     @property
+    def arches(self):
+        return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+    @property
     def pkg(self):
         return self._pkg
+    @property
+    def summary(self):
+        return self._db.get_summary(self._doc)
     @property
     def description (self):
         if self._pkg:
