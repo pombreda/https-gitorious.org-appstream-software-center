@@ -39,7 +39,7 @@ Depends: ${python:Depends},
 Recommends: lsb-release, python-launchpad-integration, apt-xapian-index,
             update-notifier, software-properties-gtk
 Conflicts: software-store, gnome-app-install (<< 1)
-Replaces: software-store, gnome-app-install
+Replaces: software-store, gnome-app-install, gdebi
 Provides: software-store, gnome-app-install
 XB-Python-Version: ${python:Versions}
 Description: Utility for browsing, installing, and removing applications
