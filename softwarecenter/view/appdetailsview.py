@@ -91,7 +91,7 @@ class AppDetailsViewBase(object):
     def reload(self):
         self.backend.reload()
     def install(self):
-        self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
+        self.backend.install(self.app.pkgname, self.app.appname, self.appdetails.icon)
     def remove(self):
         # generic removal text
         # FIXME: this text is not accurate, we look at recommends as
@@ -102,16 +102,16 @@ class AppDetailsViewBase(object):
         # ask for confirmation if we have rdepends
         depends = self.cache.get_installed_rdepends(self.pkg)
         if depends:
-            iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
+            iconpath = self.get_icon_filename(self.appdetails.icon, self.APP_ICON_SIZE)
             
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
                 self._set_action_button_sensitive(True)
                 self.backend.emit("transaction-stopped")
                 return
-        self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
+        self.backend.remove(self.app.pkgname, self.app.appname, self.appdetails.icon)
     def upgrade(self):
-        self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
+        self.backend.upgrade(self.app.pkgname, self.app.appname, self.appdetails.icon)
     # internal callbacks
     def _on_cache_ready(self, cache):
         logging.debug("on_cache_ready")
@@ -270,7 +270,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         # FIXME: make webkit understand xpm files instead
         if os.path.exists(iconpath) and iconpath.endswith(".xpm"):
             self.tf = tempfile.NamedTemporaryFile()
-            pix = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
+            pix = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
             pix.save(self.tf.name, "png")
             iconpath = self.tf.name
         return iconpath
