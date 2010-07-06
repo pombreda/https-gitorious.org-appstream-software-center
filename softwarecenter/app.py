@@ -707,7 +707,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             otherwise turn it into a comma seperated search
         """
         if len(packages) == 1:
-            request = packages[0]
+            request = packages[0].lstrip("apt:")
             if request.count("/") > 0:
                 # deb file
                 app = Application("", "", request)
