@@ -3,14 +3,14 @@
 all: check # mago_test
 
 check:
-	set -e; \
-	find . -name 'test_*.py' | \
-	while read file; do \
-	    if [ -f $$file ]; then \
-		echo "Testing $$file"; \
-	    	python $$file ; \
-	    fi \
-	done
+#	set -e; \
+#	find . -name 'test_*.py' | \
+#	while read file; do \
+#	    if [ -f $$file ]; then \
+#		echo "Testing $$file"; \
+#	    	python $$file ; \
+#	    fi \
+#	done
 
 mago_test:
 	#MAGO_SHARE=./mago/ mago -f basic.xml

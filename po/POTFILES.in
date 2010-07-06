@@ -31,7 +31,7 @@ softwarecenter/view/pendingview.py
 softwarecenter/view/softwarepane.py
 softwarecenter/view/channelpane.py
 softwarecenter/view/viewswitcher.py
-softwarecenter/view/login.py
+softwarecenter/view/logindialog.py
 softwarecenter/view/widgets/backforward.py
 softwarecenter/view/widgets/pathbar_gtk_atk.py
 softwarecenter/view/widgets/searchentry.py
