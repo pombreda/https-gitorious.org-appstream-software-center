@@ -19,6 +19,7 @@
 import locale
 import os
 
+from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 
 class Application(object):
@@ -75,6 +76,7 @@ class AppDetails(object):
             raise ValueError, "Need either document or application"
         self._db = db
         self._cache = self._db._aptcache
+        self._distro = get_distro()
         if doc:
             self.init_from_doc(doc)
         elif application:
@@ -137,25 +139,28 @@ class AppDetails(object):
         pass
     @property
     def license(self):
-        pass
+        return self._distro.get_license_text(self.component)
     @property
     def maintainance_time(self):
-        pass
+        return self._distro.get_maintenance_status(
+            self._cache, self.appname, self.pkgname, self.component, 
+            self.channel)
     @property
     def version(self):
-        pass
+        if self._pkg:
+            return self._pkg.candidate.version
     @property
     def pkg_state (self):
         pass
     @property
     def price (self):
-        pass
+        return self._distro.get_price(self._doc)
     @property
     def screenshot(self):
-        pass
+        return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
     @property
     def thumbnail(self):
-        pass
+        return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
     @property
     def title(self):
         pass

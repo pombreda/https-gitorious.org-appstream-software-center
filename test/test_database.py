@@ -102,6 +102,16 @@ class testDatabase(unittest.TestCase):
             appdetails.description.startswith("The Ubuntu Software Center"))
         # FIXME: test appdetails.homepage
         self.assertEqual(appdetails.icon, "softwarecenter")
+        # crude, crude
+        self.assertTrue(len(appdetails.version) > 2)
+        # FIXME: screenshots will only work on ubuntu
+        self.assertEqual(appdetails.screenshot,
+                         "http://screenshots.ubuntu.com/screenshot-404/software-center")
+        self.assertEqual(appdetails.thumbnail,
+                         "http://screenshots.ubuntu.com/thumbnail-404/software-center")
+        # FIXME: add document that has a price
+        self.assertEqual(appdetails.price, "Free")
+        self.assertEqual(appdetails.license, "License: Open Source")
 
 if __name__ == "__main__":
     import logging
