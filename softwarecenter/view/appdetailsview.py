@@ -1336,7 +1336,6 @@ if __name__ == "__main__":
     distro = softwarecenter.distro.get_distro()
 
     # gui
-    scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
     #view.show_app(Application("3D Chess", "3dchess"))
     view.show_app(Application("Movie Player", "totem"))
@@ -1350,8 +1349,7 @@ if __name__ == "__main__":
     #view.show_app("Qlix")
 
     win = gtk.Window()
-    scroll.add(view)
-    win.add(scroll)
+    win.add(view)
     win.set_size_request(600,400)
     win.show_all()
 
