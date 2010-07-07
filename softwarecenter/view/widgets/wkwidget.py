@@ -80,7 +80,8 @@ class WebkitWidget(webkit.WebView):
         self._load()
         self._substitute()
         self._render()
-        #print self._html
+        print 'Show'
+        print self._html
 
     def _load(self):
         class_name = self.__class__.__name__        
