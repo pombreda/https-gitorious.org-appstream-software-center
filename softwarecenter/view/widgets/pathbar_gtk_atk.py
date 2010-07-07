@@ -328,7 +328,7 @@ class PathBar(gtk.HBox):
                                            part.state,
                                            (a.x+x-4, a.y+y-2, w+8, h+4),
                                            self,
-                                           'button',
+                                           'expander',
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
                 theme.paint_layout(cr, widget, part, a.x+x, a.y+y)
