@@ -16,35 +16,28 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
+import dialogs
 import gio
 import glib
 import gobject
 import gtk
 import logging
 import os
-import sys
-import xapian
 import pango
 import string
-
+import subprocess
+import sys
+import xapian
 
 from gettext import gettext as _
+from softwarecenter.backend import get_install_backend
+from softwarecenter.db.application import AppDetails
+from softwarecenter.enums import *
+from widgets import mkit
+from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
-
-from softwarecenter import Application
-from softwarecenter.enums import *
-from softwarecenter.utils import *
-from softwarecenter.version import *
-from softwarecenter.db.database import StoreDatabase
-from softwarecenter.backend import get_install_backend
-
-from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
-import dialogs
-
-from widgets import mkit
 
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4
@@ -66,229 +59,6 @@ COLOR_GREEN_OUTLINE = '#8AE234'
 
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
-
-
-# pkg action state constants
-PKG_STATE_INSTALLED     = 0
-PKG_STATE_UNINSTALLED   = 1
-PKG_STATE_UPGRADABLE    = 2
-PKG_STATE_INSTALLING    = 3
-PKG_STATE_REMOVING      = 4
-PKG_STATE_UPGRADING     = 5
-PKG_STATE_NEEDS_SOURCE  = 6
-PKG_STATE_UNAVAILABLE   = 7
-PKG_STATE_UNKNOWN       = 8
-
-
-class AppDetails(object):
-
-    def __init__(self, app, db, distro, icons, cache, history):
-        self.cache = cache
-        self.db = db
-        self.distro = distro
-        self.icons = icons
-        self.history = history
-        self.arch = get_current_arch()
-
-        # init app specific data
-        self.app = app
-
-        # get xapian document
-        self.doc = self.db.get_xapian_document(app.appname, app.pkgname)
-        if not self.doc:
-            raise IndexError, "No app '%s' for '%s' in database" % (
-                app.appname, app.pkgname)
-
-        # get apt cache data
-        self.pkg = self.get_package()
-
-        # commonly requested stuff
-        self.appname = self.get_name()
-        self.pkgname = app.pkgname
-        self.iconname = self.get_iconname()
-
-        # setup component
-        self.component = self.get_component()
-
-        # other stuff
-        self.channelfile = None
-        self.channelname = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-        if self.channelname:
-            self.channelfile = APP_INSTALL_CHANNELS_PATH + channel +".list"
-        return
-
-    def get_package(self):
-        # get apt cache data
-        pkgname = self.get_pkgname()
-        if (pkgname in self.cache and
-            self.cache[pkgname].candidate):
-            return self.cache[pkgname]
-        return None
-
-    def get_component(self):
-        """ 
-        get the component (main, universe, ..) for the given pkg object
-
-        this uses the data from apt, if there is none it uses the 
-        data from the app-install-data files
-        """
-        pkg = self.pkg
-        if not pkg or not pkg.candidate:
-            return self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        for origin in pkg.candidate.origins:
-            if (origin.origin == "Ubuntu" and 
-                origin.trusted and 
-                origin.component):
-                return origin.component
-        return
-
-    def get_iconname(self):
-        # get icon
-        iconname = self.db.get_iconname(self.doc)
-        # remove extension (e.g. .png) because the gtk.IconTheme
-        # will find fins a icon with it
-        iconname = os.path.splitext(iconname)[0]
-        # this iconname may not be valid,
-        # so we need to check it exists in the IconTheme
-        if self.icons.has_icon(iconname):
-            return iconname
-        return 'gnome-other'
-
-    def get_name(self):
-        return gobject.markup_escape_text(self.app.name)
-
-    def get_summary(self):
-        return gobject.markup_escape_text(self.db.get_summary(self.doc))
-
-    def get_pkgname(self):
-        return self.app.pkgname
-
-    def get_pkg_state(self):
-
-        if self.pkg:
-            # Don't handle upgrades yet
-            #if pkg.installed and pkg.isUpgradable:
-            #    return PKG_STATE_UPGRADABLE
-            if self.pkg.installed:
-                return PKG_STATE_INSTALLED
-            else:
-                return PKG_STATE_UNINSTALLED
-
-        elif self.doc:
-            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                #path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                #if os.path.exists(path):
-                    #self.channelname = channel
-                    #self.channelfile = path
-                    ## FIXME: deal with the EULA stuff
-                    print channel
-                    return PKG_STATE_NEEDS_SOURCE
-            # check if it comes from a non-enabled component
-            elif not self.component_is_available():
-                # FIXME: use a proper message here, but we are in string freeze
-                return PKG_STATE_UNAVAILABLE
-            elif self.our_arch_is_available():
-                return PKG_STATE_NEEDS_SOURCE
-
-        return PKG_STATE_UNKNOWN
-
-    def get_description(self):
-        # if we do not have a package in our apt data explain why
-        if not self.pkg:
-            available_for_arch = self.our_arch_is_available()
-            if self.channelname and available_for_arch:
-                return _("This software is available from the '%s' source, "
-                         "which you are not currently using.") % self.channelname
-            # if we have no pkg in the apt cache, check if its available for
-            # the given architecture and if it has a component associated
-            if available_for_arch and self.component:
-                return _("To show information about this item, "
-                         "the software catalog needs updating.")
-            
-            # if we don't have a package and it has no arch/component its
-            # not available for us
-            return _("Sorry, '%s' is not available for "
-                     "this type of computer (%s).") % (
-                self.app.name, self.arch)
-
-        return self.pkg.candidate.description
-
-    def get_homepage_url(self):
-        return self.pkg.candidate.homepage
-
-    def get_installed_date(self):
-        return self.history.get_installed_date(self.get_pkgname())
-
-    def get_screenshot_thumbnail_url(self):
-        return self.distro.SCREENSHOT_THUMB_URL % self.pkgname
-
-    def get_screenshot_large_url(self):
-        return self.distro.SCREENSHOT_LARGE_URL % self.pkgname
-
-    def get_version(self):
-        if not self.pkg or not self.pkg.candidate:
-            return _("Unknown")
-        version = self.pkg.candidate.version
-        if version:
-            return "%s (%s)" % (version, self.pkg.name)
-        return _("Unknown")
-
-    def get_maintainance_time(self):
-        """add the end of the maintainance time"""
-        return self.distro.get_maintenance_status(self.cache,
-            self.appname or self.pkgname, self.pkgname, self.component, self.channelfile)
-
-    def get_installation_status(self):
-        return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.appname)
-
-    def get_license(self):
-        return self.distro.get_license_text(self.component).split()[1]
-
-    def get_price(self):
-        return self.distro.get_price(self.doc)
-
-    def get_installed(self):
-        if self.pkg and self.pkg.installed:
-            return True
-        return False
-
-    def get_icon_filename(self):
-        "stub"
-        return
-
-    def component_is_available(self):
-        """ 
-        check if the given doc refers to a component (like universe)
-        that is currently not enabled
-        """
-        # FIXME: use self.component here instead?
-        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        logging.debug("component: '%s'" % component)
-        # if there is no component accociated, it can not be unavailable
-        if not component:
-            return False
-        distro_codename = self.distro.get_codename()
-        return self.cache.component_available(distro_codename, component)
-
-    def our_arch_is_available(self):
-        """ check if the given package is available for our arch """
-        arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
-        # if we don't have a arch entry in the document its available
-        # on all architectures we know about
-        if not arches:
-            return True
-        # check the arch field and support both "," and ";"
-        sep = ","
-        if ";" in arches:
-            sep = ";"
-        elif "," in arches:
-            sep = ","
-        for arch in map(string.strip, arches.split(sep)):
-            if arch == self.arch:
-                return True
-        return False
-
 
 class PackageStatusBar(gtk.Alignment):
     
@@ -336,8 +106,12 @@ class PackageStatusBar(gtk.Alignment):
             self.view.remove()
         elif state == PKG_STATE_UNINSTALLED:
             self.view.install()
+        elif state == PKG_STATE_REINSTALLABLE:
+            self.view.install()
         elif state == PKG_STATE_UPGRADABLE:
             self.view.upgrade()
+        elif state == PKG_STATE_NEEDS_SOURCE:
+            self.view.use_this_source()
         return
 
     def set_label(self, label):
@@ -349,21 +123,29 @@ class PackageStatusBar(gtk.Alignment):
         self.button.set_label(label)
         return
 
-    def configure(self, appsrc, state):
-        self.pkg_state = appsrc.get_pkg_state()
-        self.appd = appsrc
+    def configure(self, app_details, state):
+        self.pkg_state = app_details.pkg_state
+        self.app_details = app_details
         self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
 
         if state == PKG_STATE_INSTALLED:
-            install_date = str(appsrc.get_installed_date()).split()[0]
-            self.set_label(_('Installed %s' % install_date))
+            if app_details.installation_date:
+                installation_date = str(app_details.installation_date).split()[0]
+                self.set_label(_('Installed %s' % installation_date))
+            else:
+                self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
-            self.set_label(appsrc.get_price())
+            if app_details.price:
+                self.set_label(app_details.price)
             self.set_button_label(_('Install'))
+        elif state == PKG_STATE_REINSTALLABLE:
+            if app_details.price:
+                self.set_label(app_details.price)
+            self.set_button_label(_('Reinstall'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
@@ -376,13 +158,16 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             #self.set_button_label(_('Upgrade Available'))
+        elif state == PKG_STATE_UNKNOWN:
+            self.set_button_label("")
+            self.set_label(_("Error"))
+            self.fill_color = COLOR_RED_FILL
+            self.line_color = COLOR_RED_OUTLINE
         elif state == PKG_STATE_NEEDS_SOURCE:
-            self.set_button_label(_('Add Source'))
+            self.set_button_label(_('Use This Source'))
             self.set_label(_('Source Unavailable'))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
-        else:
-            print 'PkgStateUnknown:', state
         return
 
     def draw(self, cr, a, expose_area):
@@ -858,14 +643,14 @@ class ScreenshotView(gtk.Alignment):
         self.screenshot_available = available
         return
  
-    def configure(self, appsrc):
+    def configure(self, app_details):
         acc = self.get_accessible()
         acc.set_name(_('Fetching screenshot ...'))
 
         self.clear()
-        self.appname = appsrc.appname
-        self.thumbnail_url = appsrc.get_screenshot_thumbnail_url()
-        self.large_url = appsrc.get_screenshot_large_url()
+        self.appname = app_details.name
+        self.thumbnail_url = app_details.thumbnail
+        self.large_url = app_details.screenshot
         return
 
     def clear(self):
@@ -948,7 +733,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     def __init__(self, db, distro, icons, cache, history, datadir):
         gtk.ScrolledWindow.__init__(self)
-        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         # atk
@@ -968,12 +753,11 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
-        self.backend.connect("transaction-progress-changed",
-                             self._on_transaction_progress_changed)
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
         # app specific data
         self.app = None
-        self.appd = None
+        self.app_details = None
 
         self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
 
@@ -1019,17 +803,11 @@ class AppDetailsView(gtk.ScrolledWindow):
         del cr
         return
 
-    #def on_button_enable_component_clicked(self):
-        ##print "on_enable_component_clicked", component
-        #component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        #self.backend.enable_component(component)
-        #self._set_action_button_sensitive(False)
-
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-            'appname' : self.app.appname, 
-            'pkgname' : self.app.pkgname }
+            'appname' : self.app_details.name, 
+            'pkgname' : self.app_details.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
         glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
@@ -1124,59 +902,87 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.show_all()
         return viewport
 
-    def _update_page(self, appsrc):
+    def _update_page(self, app_details):
+        # FIXME: check if we actually need that argument up there..
+        self.app_details = app_details
+
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = appsrc.get_name()
+        appname = gobject.markup_escape_text(self.app_details.name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
-        markup = markup % (big, appname, small, appsrc.get_summary())
+        # FIXME: Once again (yes, I am working from the end to the beginning of the file..) this is tmp until we find a better place for the errors
+        if self.app_details.error:
+            summary = self.app_details.error
+        else:
+            summary = self.app_details.summary
+        markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
-        self.app_info.set_icon(appsrc.get_iconname(),
-                               gtk.ICON_SIZE_DIALOG)
+        icon = None
+        if self.app_details.icon:
+            if self.icons.has_icon(self.app_details.icon):
+                icon = self.app_details.icon
+        if not icon:
+            icon = MISSING_APP_ICON
+        self.app_info.set_icon(icon, gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
-        self.action_bar.configure(appsrc, appsrc.get_pkg_state())
+        self.action_bar.configure(self.app_details, self.app_details.pkg_state)
 
         self.action_bar.button.grab_focus()
 
         # format new app description
-        self.app_desc.set_description(appsrc.get_description(), appname)
+        # FIXME: This is a bit messy, but the warnings need to be displayed somewhere until we find a better place for them
+        if self.app_details.warning:
+            if self.app_details.description:
+                description = "Warning: " + self.app_details.warning + "\n\n" + self.app_details.description
+            else:
+                description = "Warning: " + self.app_details.warning
+        else:
+            description = self.app_details.description
+        if description:
+            self.app_desc.set_description(description, appname)
 
         # show or hide the homepage button and set uri if homepage specified
-        homepage = appsrc.get_homepage_url()
-        if homepage:
+        if self.app_details.website:
             self.homepage_btn.show()
             self.homepage_btn.set_property('visited', False)
-            self.homepage_btn.set_uri(homepage)
+            self.homepage_btn.set_uri(self.app_details.website)
         else:
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self.gwibber_is_available:
+        if self.gwibber_is_available and not self.app_details.error:
             self.share_btn.show()
             self.share_btn.set_property('visited', False)
         else:
             self.share_btn.hide()
 
         # get screenshot urls and configure the ScreenshotView...
-        self.screenshot.configure(appsrc)
+        if self.app_details.thumbnail and self.app_details.screenshot:
+            self.screenshot.configure(self.app_details)
 
-        # then begin screenshot download and display sequence
-        self.screenshot.download_and_display()
+            # then begin screenshot download and display sequence
+            self.screenshot.download_and_display()
 
         # set the strings in the package info table
-        self.info_table.set_version(appsrc.get_version())
-        self.info_table.set_license(appsrc.get_license())
-        self.info_table.set_support_status(appsrc.get_maintainance_time())
+        if self.app_details.version:
+            self.info_table.set_version(self.app_details.version + "(" + self.app_details.pkgname + ")")
+        else:
+            self.info_table.set_version(_("Unknown"))
+        if self.app_details.license:
+            self.info_table.set_license(self.app_details.license)
+        else:
+            self.info_table.set_license(_("Unknown"))
+        if self.app_details.maintenance_status:
+            self.info_table.set_support_status(self.app_details.maintenance_status)
+        else:
+            self.info_table.set_support_status(_("Unknown"))
         return
-
-    def _get_appdetails(self):
-        return self.appd
 
     # public API
     def show_app(self, app):
@@ -1190,22 +996,24 @@ class AppDetailsView(gtk.ScrolledWindow):
     def init_app(self, app):
         # initialize the app
         self.app = app
-        self.appd = AppDetails(app,
-                               self.db,
-                               self.distro,
-                               self.icons,
-                               self.cache,
-                               self.history)
-        self._update_page(self.appd)
+        self.app_details = AppDetails(self.db, application=self.app)
+        self._update_page(self.app_details)
+        self.emit("selected", self.app)
         return
 
     # public interface
     def install(self):
 
         def install_cb():
-            self.backend.install(self.appd.pkgname,
-                                 self.appd.appname,
-                                 self.appd.iconname)
+            icon = None
+            if self.app_details.icon:
+                if self.icons.has_icon(self.app_details.icon):
+                    icon = self.app_details.icon
+            if not icon:
+                icon = MISSING_APP_ICON
+            self.backend.install(self.app_details.pkgname,
+                                 self.app_details.name,
+                                 icon)
             return False
 
         self.action_bar.button.set_sensitive(False)
@@ -1218,18 +1026,25 @@ class AppDetailsView(gtk.ScrolledWindow):
         #        well as part of the rdepends, but those do not need to
         #        be removed, they just may be limited in functionatlity
 
+        icon = None
+        if self.app_details.icon:
+            if self.icons.has_icon(self.app_details.icon):
+                icon = self.app_details.icon
+        if not icon:
+            icon = MISSING_APP_ICON
+
         def remove_cb():
-            self.backend.remove(self.appd.pkgname,
-                    self.appd.appname,
-                    self.appd.iconname)
+            self.backend.remove(self.app_details.pkgname,
+                    self.app_details.name,
+                    icon)
             return False
 
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.appd.pkg, self.appd.appname)
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.app_details.pkg, self.app_details.name)
 
         # ask for confirmation if we have rdepends
-        depends = self.cache.get_installed_rdepends(self.appd.pkg)
+        depends = self.cache.get_installed_rdepends(self.app_details.pkg)
         if depends:
-            iconpath = self.get_icon_filename(self.appd.iconname, self.APP_ICON_SIZE)
+            iconpath = self.get_icon_filename(icon, self.APP_ICON_SIZE)
             
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
@@ -1244,18 +1059,32 @@ class AppDetailsView(gtk.ScrolledWindow):
     def upgrade(self):
 
         def upgrade_cb():
-            self.backend.upgrade(self.appd.pkgname,
-                                      self.appd.appname,
-                                      self.appd.iconname)
+            icon = None
+            if self.app_details.icon:
+                if self.icons.has_icon(self.app_details.icon):
+                    icon = self.app_details.icon
+            if not icon:
+                icon = MISSING_APP_ICON
+            self.backend.upgrade(self.app_details.pkgname,
+                                      self.app_details.name,
+                                      icon)
             return False
 
         self.action_bar.button.set_sensitive(False)
         gobject.idle_add(upgrade_cb)
         return
 
+    def use_this_source(self):
+        if self.app_details.channel:
+            channelfile = APP_INSTALL_CHANNELS_PATH + self.app_details.channel + ".list"
+            self.backend.enable_channel(channelfile)
+        elif self.app_details.component:
+            # this is broken atm?
+            self.backend.enable_component(self.app_details.component)
+
     # internal callback
     def _on_cache_ready(self, cache):
-        if self.appd and self.appd.pkgname in self.backend.pending_transactions:
+        if self.app_details and self.app_details.pkgname in self.backend.pending_transactions:
             return
         logging.debug("on_cache_ready")
         self.show_app(self.app)
@@ -1267,22 +1096,22 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         state = self.action_bar.pkg_state
         if state == PKG_STATE_REMOVING:
-            self.action_bar.configure(self.appd, PKG_STATE_UNINSTALLED)
+            self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         elif state == PKG_STATE_INSTALLING:
-            self.action_bar.configure(self.appd, PKG_STATE_INSTALLED)
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         elif state == PKG_STATE_UPGRADING:
-            self.action_bar.configure(self.appd, PKG_STATE_INSTALLED)
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         return False
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
         state = self.action_bar.pkg_state
         if state == PKG_STATE_UNINSTALLED:
-            self.action_bar.configure(self.appd, PKG_STATE_INSTALLING)
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
         elif state == PKG_STATE_INSTALLED:
-            self.action_bar.configure(self.appd, PKG_STATE_REMOVING)
+            self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
         elif state == PKG_STATE_UPGRADABLE:
-            self.action_bar.configure(self.appd, PKG_STATE_UPGRADING)
+            self.action_bar.configure(self.app_details, PKG_STATE_UPGRADING)
         return
 
     def _on_transaction_stopped(self, backend):
@@ -1296,7 +1125,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        if self.appd and self.appd.pkgname and self.appd.pkgname == pkgname:
+        if self.app_details and self.app_details.pkgname and self.app_details.pkgname == pkgname:
             if not self.action_bar.progress.get_property('visible'):
                 gobject.idle_add(self._show_prog_idle_cb)
             if pkgname in backend.pending_transactions:
@@ -1309,6 +1138,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         # the issue or makes it unnoticeable... 
         self.action_bar.progress.show()
         return False
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
@@ -1323,14 +1153,12 @@ if __name__ == "__main__":
     pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
+    from softwarecenter.db.database import StoreDatabase
     db = StoreDatabase(pathname, cache)
     db.open()
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
-
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
@@ -1338,6 +1166,7 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
+    from softwarecenter.db.application import Application
     #view.show_app(Application("3D Chess", "3dchess"))
     view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))

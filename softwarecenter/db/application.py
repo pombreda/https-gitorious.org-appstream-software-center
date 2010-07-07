@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2010 Canonical
 #
 # Authors:
 #  Michael Vogt
@@ -18,10 +18,13 @@
 
 import locale
 import os
+import string
 
-from softwarecenter.distro import get_distro
+from gettext import gettext as _
 from softwarecenter.apt.apthistory import get_apt_history
+from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
+from softwarecenter.utils import *
 
 class Application(object):
     """ The central software item abstraction. it conaints a 
@@ -66,7 +69,7 @@ class Application(object):
 
 class AppDetails(object):
     """ The details for a Application. This contains all the information
-        we have available like homepage url etc
+        we have available like website etc
     """
 
     def __init__(self, db, doc=None, application=None):
@@ -86,17 +89,21 @@ class AppDetails(object):
     def init_from_doc(self, doc):
         self._doc = doc
         self._app = Application(self._db.get_appname(self._doc),
-                                self._db.get_pkgname(self._doc))
+                                self._db.get_pkgname(self._doc),)
         self._init_common()
     def init_from_application(self, app):
         self._app = app
-        self._doc = self._db.get_xapian_document(self._app.appname,
-                                                 self._app.pkgname)
-        if not self._doc:
-            raise IndexError, "No app '%s' for '%s' in database" % (
-                self._app.appname, self._app.pkgname)
+        try:
+            self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
+        except IndexError:
+            # pkg not found (well, we don't have it in app-install data)
+            self.error = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            self.icon = MISSING_PKG_ICON
+            self.name = _("Not Found")
         self._init_common()
+
     def _init_common(self):
+        self._pkg = None
         if (self.pkgname in self._cache and 
             self._cache[self.pkgname].candidate):
             self._pkg = self._cache[self.pkgname]
@@ -117,10 +124,12 @@ class AppDetails(object):
 
     @property
     def component(self):
+        if self._pkg:
+            for origin in self._pkg.candidate.origins:
+                if (origin.origin == "Ubuntu" and origin.trusted and origin.component):
+                    return origin.component
         if self._doc:
             comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-            # FIXME: get component from apt 
-            #if comp is None:
             return comp
 
     @property
@@ -130,7 +139,11 @@ class AppDetails(object):
 
     @property
     def error(self):
-        pass
+        if not self._pkg:
+            available_for_arch = self._available_for_our_arch()
+            if not available_for_arch and (self.channel or self.component):
+                return _("\"%s\" is not available for this type of computer.") % self.title
+
 
     @property
     def icon(self):
@@ -147,9 +160,13 @@ class AppDetails(object):
 
     @property
     def maintenance_status(self):
+        if self.channel:
+            channelfile = APP_INSTALL_CHANNELS_PATH + self.channel + ".list"
+        else:
+            channelfile = None
         return self._distro.get_maintenance_status(
-            self._cache, self.appname, self.pkgname, self.component, 
-            self.channel)
+            self._cache, self.name, self.pkgname, self.component, 
+            channelfile)
 
     @property
     def name(self):
@@ -166,7 +183,17 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
-        pass
+        if self._pkg:
+            # Don't handle upgrades yet
+            #if self._pkg.installed and self.pkg._isUpgradable:
+            #    return PKG_STATE_UPGRADABLE
+            if self._pkg.installed:
+                return PKG_STATE_INSTALLED
+            else:
+                return PKG_STATE_UNINSTALLED
+        if not self._pkg and not self._deb:
+            if self.channel or (not self.channel and (self._unavailable_component() or self._available_for_our_arch())):
+                return PKG_STATE_NEEDS_SOURCE
 
     @property
     def price(self):
@@ -193,9 +220,46 @@ class AppDetails(object):
 
     @property
     def warning(self):
-        pass
+        if not self._pkg:
+            source = None
+            if self.channel:
+                source = self.channel
+            elif self.component:
+                source = self.component
+            if source:
+                return _("This software is available from the \"%s\" source, which you are not currently using.") % source
 
     @property
     def website(self):
         if self._pkg:
             return self._pkg.candidate.homepage
+
+    def _unavailable_component(self):
+        """ Check if the given doc refers to a component that is currently not enabled """
+        if self.component:
+            component = self.component
+        else:
+            component =  self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        if not component:
+            return False
+        distro_codename = self._distro.get_codename()
+        available = self._cache.component_available(distro_codename, component)
+        return (not available)
+
+    def _available_for_our_arch(self):
+        """ check if the given package is available for our arch """
+        arches = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+        # if we don't have a arch entry in the document its available
+        # on all architectures we know about
+        if not arches:
+            return True
+        # check the arch field and support both "," and ";"
+        sep = ","
+        if ";" in arches:
+            sep = ";"
+        elif "," in arches:
+            sep = ","
+        for arch in map(string.strip, arches.split(sep)):
+            if arch == get_current_arch():
+                return True
+        return False
