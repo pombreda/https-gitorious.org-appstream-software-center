@@ -666,7 +666,7 @@ class ScreenshotView(gtk.Alignment):
             self.eventbox.add(self.image)
             self.image.show()
 
-        self.image.set_from_file(AppDetailsView.IMAGE_LOADING_INSTALLED)
+        self.image.set_from_file(AppDetailsViewGtk.IMAGE_LOADING_INSTALLED)
         self.image.set_size_request(160, 100)
         return
 
@@ -716,7 +716,7 @@ class ScreenshotView(gtk.Alignment):
         return
 
 
-class AppDetailsView(gtk.ScrolledWindow, AppDetailsViewBase):
+class AppDetailsViewGtk(gtk.ScrolledWindow, AppDetailsViewBase):
 
     """ The view that shows the application details """
 
@@ -736,7 +736,7 @@ class AppDetailsView(gtk.ScrolledWindow, AppDetailsViewBase):
 
     def __init__(self, db, distro, icons, cache, history, datadir):
         gtk.ScrolledWindow.__init__(self)
-        AppDetailsViewBase.__init__(self)
+        AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
@@ -1076,7 +1076,7 @@ if __name__ == "__main__":
 
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsView(db, distro, icons, cache, datadir)
+    view = AppDetailsViewGtk(db, distro, icons, cache, datadir)
     from softwarecenter.db.application import Application
     #view.show_app(Application("3D Chess", "3dchess"))
     view.show_app(Application("Movie Player", "totem"))

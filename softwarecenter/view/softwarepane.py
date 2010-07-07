@@ -38,7 +38,8 @@ from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
 
-from appdetailsview import AppDetailsView
+#from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
+from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
 
 from softwarecenter.db.database import Application
 
