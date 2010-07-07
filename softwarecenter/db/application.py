@@ -191,7 +191,7 @@ class AppDetails(object):
                 return PKG_STATE_INSTALLED
             else:
                 return PKG_STATE_UNINSTALLED
-        if not self._pkg and not self._deb:
+        if not self._pkg:
             if self.channel or (not self.channel and (self._unavailable_component() or self._available_for_our_arch())):
                 return PKG_STATE_NEEDS_SOURCE
 

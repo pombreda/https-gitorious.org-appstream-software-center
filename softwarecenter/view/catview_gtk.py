@@ -39,7 +39,7 @@ CAROUSEL_ICON_SIZE =             4*mkit.EM
 CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
 CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
-CAROUSEL_PAGING_DOT_SIZE =       max(6, int(0.7*mkit.EM+0.5))
+CAROUSEL_PAGING_DOT_SIZE =       mkit.EM
 
 # as per spec transition timeout should be 15000 (15 seconds)
 CAROUSEL_TRANSITION_TIMEOUT =    15000
@@ -492,7 +492,6 @@ class CarouselView(mkit.FramedSection):
         self._alpha = 1.0
         self.queue_draw()
         self.start()
-        print 'PageSel:', self._offset, self.n_posters, page, len(self.carousel_apps)
         return
 
     #def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
@@ -547,6 +546,7 @@ class CarouselView(mkit.FramedSection):
 
         # set how many PagingDot's the PageSelector should display
         pages = float(len(self.carousel_apps)) / n
+        #print "pages: ", pages
         if pages - int(pages) > 0.0:
             pages += 1
 
@@ -578,9 +578,10 @@ class CarouselView(mkit.FramedSection):
 
     def _update_pagesel(self):
         # set the PageSelector page
-        # XXX: This needs improving!
-        page = float(self._offset) / self.n_posters
-        #print self._offset, page
+        if self._offset >= len(self.carousel_apps):
+            self._offset = 0
+
+        page = self._offset / self.n_posters
         self.page_sel.set_selected_page(int(page))
         return
 
@@ -701,6 +702,7 @@ class CarouselView(mkit.FramedSection):
             if not poster.app:
                 app = self.carousel_apps[self._offset]
                 poster.set_application(app)
+
                 self._offset += 1
                 if self._offset == len(self.carousel_apps):
                     self._offset = 0
@@ -923,7 +925,7 @@ class PageSelector(gtk.Alignment):
         return
 
     def draw(self, cr, a, expose_area, alpha):
-#        if mkit.not_overlapping(a, expose_area): return
+        if mkit.not_overlapping(a, expose_area): return
 
         for dot in self.dots:
             dot.draw(cr, dot.allocation, expose_area, alpha)

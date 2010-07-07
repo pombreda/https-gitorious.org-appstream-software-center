@@ -52,7 +52,7 @@ class StoreDatabase(gobject.GObject):
         self._db_pathname = pathname
         self._aptcache = cache
 
-    def open(self, pathname=None):
+    def open(self, pathname=None, use_axi=True):
         " open the database "
         if pathname:
             self._db_pathname = pathname
@@ -60,11 +60,12 @@ class StoreDatabase(gobject.GObject):
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
-        try:
-            axi = xapian.Database("/var/lib/apt-xapian-index/index")
-            self.xapiandb.add_database(axi)
-        except:
-            logging.exception("failed to add apt-xapian-index")
+        if use_axi:
+            try:
+                axi = xapian.Database("/var/lib/apt-xapian-index/index")
+                self.xapiandb.add_database(axi)
+            except:
+                logging.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
@@ -188,6 +189,15 @@ class StoreDatabase(gobject.GObject):
             pkgname = doc.get_data()
         return pkgname
 
+    def get_appname(self, doc):
+        """ Return a appname from a xapian document """
+        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        # if there is no value it means we use the apt-xapian-index 
+        # and that has no appname
+        if not pkgname:
+            return None
+        return doc.get_data()
+
     def get_iconname(self, doc):
         """ Return the iconname from the xapian document """
         iconname = doc.get_value(XAPIAN_VALUE_ICON)
@@ -233,6 +243,11 @@ class StoreDatabase(gobject.GObject):
         """return the doc count of the database"""
         return self.xapiandb.get_doccount()
 
+    def __iter__(self):
+        """ support iterating over the documents """
+        for it in self.xapiandb.postlist(""):
+            doc = self.xapiandb.get_document(it.docid)
+            yield doc
 
 if __name__ == "__main__":
     import apt

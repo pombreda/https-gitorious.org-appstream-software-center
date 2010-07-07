@@ -57,7 +57,7 @@ from backend.launchpad import GLaunchpad
 from distro import get_distro
 
 from apt.aptcache import AptCache
-from apt.apthistory import AptHistory
+from apt.apthistory import get_apt_history
 from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -131,7 +131,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("channels-changed", self.on_channels_changed)
         #apt history
-        self.history = AptHistory()
+        self.history = get_apt_history()
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
@@ -372,7 +372,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # Menu Items
     def on_menuitem_login_activate(self, menuitem):
-        print "login"
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
         LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
@@ -380,13 +379,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.active_pane.app_details.init_app(app)
-        self.active_pane.app_details.install()
+        self.backend.install(app.pkgname, app.appname, 
+                             app.get_details(self.db).icon)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.active_pane.app_details.init_app(app)
-        self.active_pane.app_details.remove()
+        self.backend.remove(app.pkgname, app.appname, 
+                            app.get_details(self.db).icon)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -405,7 +404,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                            self.menuitem_search]
         for item in edit_menu_items:
             item.set_sensitive(False)
-        if self.active_pane.searchentry.flags() & gtk.VISIBLE:
+        if (self.active_pane and
+            self.active_pane.searchentry.flags() & gtk.VISIBLE):
             # undo, redo, cut, copy, paste, delete, select_all sensitive 
             # if searchentry is focused (and other more specific conditions)
             if self.active_pane.searchentry.is_focus():

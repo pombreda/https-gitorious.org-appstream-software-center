@@ -72,18 +72,6 @@ class Debian(Distro):
                 break
         return (primary, button_text)
 
-    def get_installation_status(self, cache, history, pkg, appname):
-        s = ""
-        if pkg.installed:
-            # generic message
-            installed_date = history.get_installed_date(pkg.name)
-            if installed_date:
-                # FIXME: use local datetime format
-                s = _("Installed since") + " " + installed_date.isoformat(" ")
-            else:
-                s = _("Installed")
-        return s
-
     def get_distro_codename(self):
         if not hasattr(self ,"codename"):
             self.codename = subprocess.Popen(
