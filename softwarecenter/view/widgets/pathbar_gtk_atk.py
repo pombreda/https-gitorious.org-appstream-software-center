@@ -546,6 +546,8 @@ class PathBar(gtk.HBox):
             #      when self._out_of_width is True.  So atm, no scroll in this case.
             tail = parts[-1]
             root.layout.set_width(-1)   # eww but it has to be done :(
+            #root.set_shape(mkit.SHAPE_RECTANGLE)
+            tail.set_shape(mkit.SHAPE_END_CAP)
             self._animate = True, tail
             self._animate_mode = self.ANIMATE_REMOVE
             self._part_scroll_in(tail)
