@@ -103,7 +103,6 @@ class AppDetails(object):
 
     @property
     def architecture(self):
-        # arches isn't quite as explicit as architecture, feel free to revert
         if self._doc:
             return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
 
@@ -137,7 +136,6 @@ class AppDetails(object):
     def icon(self):
         if self._doc:
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
-        # the missing app icon code I removed here should probably be in the appdetailsview code
 
     @property
     def installation_date(self):
@@ -155,7 +153,6 @@ class AppDetails(object):
 
     @property
     def name(self):
-        # I changed this from appname to name, as appdetails.appname seems a bit repetitive, if you want to change it back, feel free
         return self._app.appname
 
     @property
@@ -200,6 +197,5 @@ class AppDetails(object):
 
     @property
     def website(self):
-    # I think the term website is a bit more common than the term homepage, feel free to revert
         if self._pkg:
             return self._pkg.candidate.homepage

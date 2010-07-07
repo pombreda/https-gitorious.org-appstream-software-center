@@ -303,7 +303,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             return "hidden"
         return "visible"
     def wksub_homepage_button_visibility(self):
-        if self.appdetails.homepage:
+        if self.appdetails.website:
             return "visible"
         return "hidden"
     def wksub_share_button_visibility(self):
@@ -322,7 +322,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         return self.datadir
     def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
-        return self.appdetails.maintainance_time
+        return self.appdetails.maintenance_status
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
         # FIXME: port to appdetails
@@ -399,7 +399,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
     def on_button_homepage_clicked(self):
         cmd = self._url_launch_app()
-        subprocess.call([cmd, self.homepage_url])
+        subprocess.call([cmd, self.appdetails.website])
 
     def on_button_share_clicked(self):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
@@ -545,7 +545,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
     def _available_for_our_arch(self):
         """ check if the given package is available for our arch """
-        arches = self.appdetails.arches
+        arches = self.appdetails.architecture
         # if we don't have a arch entry in the document its available
         # on all architectures we know about
         if not arches:
