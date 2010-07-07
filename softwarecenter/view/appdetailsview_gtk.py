@@ -987,6 +987,8 @@ class AppDetailsViewGtk(gtk.ScrolledWindow, AppDetailsViewBase):
         
         self.app = app
         self.app_details = AppDetails(self.db, application=self.app)
+        # for compat with the base class
+        self.appdetails = self.app_details
         self.emit("selected", self.app)
         self._update_page(self.app_details)
         self.emit("selected", self.app)
