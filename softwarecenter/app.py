@@ -372,7 +372,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # Menu Items
     def on_menuitem_login_activate(self, menuitem):
-        print "login"
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
         LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
@@ -380,13 +379,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.active_pane.app_details.init_app(app)
-        self.active_pane.app_details.install()
+        self.backend.install(app.pkgname, app.appname, 
+                             app.get_details(self.db).icon)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.active_pane.app_details.init_app(app)
-        self.active_pane.app_details.remove()
+        self.backend.remove(app.pkgname, app.appname, 
+                            app.get_details(self.db).icon)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()

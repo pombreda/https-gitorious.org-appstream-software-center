@@ -43,11 +43,6 @@ class AppDetailsViewBase(object):
         """
         pass
     # public API
-    def init_app(self, app):
-        """ init the given Application object """
-        # FIXME: init_app should really go
-        self.app = app
-        self.appdetails = AppDetails(self.db, application=app)
     def show_app(self, app):
         """ show the given application """
         if app is None:

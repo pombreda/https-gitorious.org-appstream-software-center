@@ -28,7 +28,6 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
-from softwarecenter.backend import get_install_backend
 
 from appview import AppView, AppStore, AppViewFilter
 
@@ -94,7 +93,6 @@ class AvailablePane(SoftwarePane):
         # search mode
         self.custom_list_mode = False
         # install backend
-        self.backend = get_install_backend()
         self.backend.connect("transactions-changed",
                              self._on_transactions_changed)
         # UI

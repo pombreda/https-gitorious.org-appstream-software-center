@@ -78,9 +78,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
     # public API
-    def init_app(self, app):
-        AppDetailsViewBase.init_app(self, app)
-
     def _draw(self):
         # clear first to avoid showing the old app details for
         # some milliseconds before switching to the new app
