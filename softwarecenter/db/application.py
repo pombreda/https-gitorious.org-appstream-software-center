@@ -117,6 +117,20 @@ class AppDetails(object):
 
     @property
     def component(self):
+        """ 
+        get the component (main, universe, ..)
+        
+        this uses the data from apt, if there is none it uses the 
+        data from the app-install-data files
+        """
+        # try apt first
+        if self._pkg:
+            for origin in self._pkg.candidate.origins:
+                if (origin.origin == "Ubuntu" and 
+                    origin.trusted and 
+                    origin.component):
+                    return origin.component
+        # then xapian
         if self._doc:
             comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
             # FIXME: get component from apt 

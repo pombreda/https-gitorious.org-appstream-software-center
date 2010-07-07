@@ -83,23 +83,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     # public API
     def init_app(self, app):
         AppDetailsViewBase.init_app(self, app)
-        # FIXME: move to AppDetails
-        self.component = self._get_component(self.appdetails.pkg)
-
-    def _get_component(self, pkg=None):
-        """ 
-        get the component (main, universe, ..) for the given pkg object
-        
-        this uses the data from apt, if there is none it uses the 
-        data from the app-install-data files
-        """
-        if not pkg or not pkg.candidate:
-            return self.appdetails.component
-        for origin in pkg.candidate.origins:
-            if (origin.origin == "Ubuntu" and 
-                origin.trusted and 
-                origin.component):
-                return origin.component
 
     def _draw(self):
         # clear first to avoid showing the old app details for
@@ -145,7 +128,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
                          "which you are not currently using.") % self.channelname
             # if we have no pkg in the apt cache, check if its available for
             # the given architecture and if it has a component associated
-            if available_for_arch and self.component:
+            if available_for_arch and self.appdetails.component:
                 return _("To show information about this item, "
                          "the software catalog needs updating.")
             
@@ -456,7 +439,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         check if the given doc refers to a component (like universe)
         that is currently not enabled
         """
-        # FIXME: use self.component here instead?
         component =  self.appdetails.component
         logging.debug("component: '%s'" % component)
         # if there is no component accociated, it can not be unavailable
