@@ -106,15 +106,15 @@ class PackageStatusBar(gtk.Alignment):
         button.set_sensitive(False)
         state = self.pkg_state
         if state == PKG_STATE_INSTALLED:
-            self.view.remove()
+            AppDetailsViewBase.remove(self.view)
         elif state == PKG_STATE_UNINSTALLED:
-            self.view.install()
+            AppDetailsViewBase.install(self.view)
         elif state == PKG_STATE_REINSTALLABLE:
-            self.view.install()
+            AppDetailsViewBase.install(self.view)
         elif state == PKG_STATE_UPGRADABLE:
-            self.view.upgrade()
+            AppDetailsViewBase.upgrade(self.view)
         elif state == PKG_STATE_NEEDS_SOURCE:
-            self.view.use_this_source()
+            AppDetailsViewBase.use_this_source(self.view)
         return
 
     def set_label(self, label):
