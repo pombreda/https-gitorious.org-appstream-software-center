@@ -16,12 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import logging
 
-from gettext import gettext as _
+import logging
 
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
+import softwarecenter.view.dialogs as dialogs
 
 class AppDetailsViewBase(object):
 
@@ -58,10 +58,15 @@ class AppDetailsViewBase(object):
         self.emit("selected", self.app)
     # public interface
     def reload(self):
+        """ reload the package cache, this goes straight to the backend """
         self.backend.reload()
     def install(self):
+        """ install the current application, this goes straight to the backend """
         self.backend.install(self.app.pkgname, self.app.appname, self.appdetails.icon)
     def remove(self):
+        """ remove the current application and show dialog if other
+            dependencies need to be removed as well
+        """
         # generic removal text
         # FIXME: this text is not accurate, we look at recommends as
         #        well as part of the rdepends, but those do not need to
@@ -80,9 +85,12 @@ class AppDetailsViewBase(object):
                 return
         self.backend.remove(self.app.pkgname, self.app.appname, self.appdetails.icon)
     def upgrade(self):
+        """ upgrade the current application, this goes straight to the backend """
         self.backend.upgrade(self.app.pkgname, self.app.appname, self.appdetails.icon)
     # internal callbacks
     def _on_cache_ready(self, cache):
+        # re-show the application if the cache changes, it may affect the
+        # current application
         logging.debug("on_cache_ready")
         self.show_app(self.app)
 

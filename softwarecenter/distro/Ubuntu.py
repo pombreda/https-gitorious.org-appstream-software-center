@@ -78,18 +78,6 @@ class Ubuntu(Distro):
                 break
         return (primary, button_text)
 
-    def get_installation_status(self, cache, history, pkg, appname):
-        s = ""
-        if pkg.installed:
-            # generic message
-            installed_date = history.get_installed_date(pkg.name)
-            if installed_date:
-                # FIXME: use local datetime format
-                s = _("Installed since") + " " + installed_date.isoformat(" ")
-            else:
-                s = _("Installed")
-        return s
-
     def get_distro_codename(self):
         if not hasattr(self ,"codename"):
             self.codename = subprocess.Popen(
@@ -130,7 +118,7 @@ class Ubuntu(Distro):
         price = _("Free")
         return price
 
-    def get_maintenance_status(self, cache, appname, pkgname, component, channel):
+    def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
         # try to figure out the support dates of the release and make
         # sure to look only for stuff in "Ubuntu" and "distro_codename"
         # (to exclude stuff in ubuntu-updates for the support time 
@@ -201,7 +189,7 @@ class Ubuntu(Distro):
                
         # if we couldn't fiure a support date, use a generic maintenance
         # string without the date
-        if channel or component == "partner":
+        if channelname or component == "partner":
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the third party "
                      "vendor.") % appname

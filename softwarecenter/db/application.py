@@ -108,6 +108,7 @@ class AppDetails(object):
                 self._app.appname, self._app.pkgname)
         self._init_common()
     def _init_common(self):
+        self._pkg = None
         if (self.pkgname in self._cache and 
             self._cache[self.pkgname].candidate):
             self._pkg = self._cache[self.pkgname]
@@ -118,14 +119,16 @@ class AppDetails(object):
             return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
 
     @property
-    def channel(self):
+    def channelname(self):
         if self._doc:
-            channel = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                if os.path.exists(path):
-                    return channel
-
+            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+    @property
+    def channelfile(self):
+        channel = self.channelname
+        if channel:
+            path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+            if os.path.exists(path):
+                return path
     @property
     def component(self):
         """ 
@@ -174,7 +177,7 @@ class AppDetails(object):
     def maintenance_status(self):
         return self._distro.get_maintenance_status(
             self._cache, self.name, self.pkgname, self.component, 
-            self.channel)
+            self.channelname)
 
     @property
     def name(self):

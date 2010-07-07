@@ -31,13 +31,12 @@ import tempfile
 from gettext import gettext as _
 
 from softwarecenter.db.application import Application
-from softwarecenter.enums import USER_AGENT
+from softwarecenter.enums import USER_AGENT, MISSING_APP_ICON
 from softwarecenter.view.appdetailsview import AppDetailsViewBase
 from softwarecenter.utils import get_current_arch, htmlize_package_desc
 from widgets.wkwidget import WebkitWidget
 
-from widgets.imagedialog import ShowImageDialog, Url404Error, Url403Error
-import dialogs
+from widgets.imagedialog import ShowImageDialog
 
 
 class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
@@ -77,8 +76,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-        # FIXME:
-        self.channelfile = None
 
     # public API
     def init_app(self, app):
@@ -123,9 +120,9 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         # FIXME: portme to AppDetails class
         if not self.appdetails.pkg:
             available_for_arch = self._available_for_our_arch()
-            if self.channelname and available_for_arch:
+            if self.appdetails.channelfile and available_for_arch:
                 return _("This software is available from the '%s' source, "
-                         "which you are not currently using.") % self.channelname
+                         "which you are not currently using.") % self.appdetails.channelname
             # if we have no pkg in the apt cache, check if its available for
             # the given architecture and if it has a component associated
             if available_for_arch and self.appdetails.component:
@@ -188,8 +185,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         return _("Application Screenshot")
     def wksub_software_installed_icon(self):
         return self.INSTALLED_ICON
-    def wksub_screenshot_alt(self):
-        return _("Application Screenshot")
     def wksub_icon_width(self):
         return self.APP_ICON_SIZE
     def wksub_icon_height(self):
@@ -203,7 +198,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     def wksub_action_button_visible(self):
         if not self._available_for_our_arch():
             return "hidden"
-        if (not self.channelfile and 
+        if (not self.appdetails.channelfile and 
             not self._unavailable_component() and
             not self.appdetails.pkg):
             return "hidden"
@@ -231,10 +226,13 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         return self.appdetails.maintenance_status
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
-        # FIXME: port to appdetails
-        if not self.appdetails.pkg:
-            return ""
-        return self.distro.get_installation_status(self.cache, self.history, self.appdetails.pkg, self.app.name)
+        if self.appdetails.pkg and self.appdetails.pkg.installed:
+            installed_date = self.appdetails.installation_date
+            if installed_date:
+                return _("Installed since %s") % installed_date.isoformat(" ")
+            else:
+                return _("Installed")
+        return ""
     def wksub_homepage(self):
         s = _("Website")
         return s
@@ -283,7 +281,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
     def on_button_enable_channel_clicked(self):
         #print "on_enable_channel_clicked"
-        self.backend.enable_channel(self.channelfile)
+        self.backend.enable_channel(self.appdetails.channelfile)
         self._set_action_button_sensitive(False)
 
     def on_button_enable_component_clicked(self):
@@ -309,7 +307,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
     def on_button_share_clicked(self):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s apturl:%(pkgname)s") % {
+        msg = _("Check out %(appname)s apt:%(pkgname)s") % {
             'appname' : self.app.appname, 
             'pkgname' : self.app.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
@@ -414,16 +412,13 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
                     #action_button_label = _("Install - %s") % price
                     logging.error("Can not handle price %s" % price)
                 action_button_value = "install"
-        elif self.doc:
-            channel = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-            if channel:
-                path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-                if os.path.exists(path):
-                    self.channelname = channel
-                    self.channelfile = path
-                    # FIXME: deal with the EULA stuff
-                    action_button_label = _("Use This Source")
-                    action_button_value = "enable_channel"
+        # FIXME: use a state from the appdetails class here
+        elif self.appdetails._doc:
+            channelfile = self.appdetails.channelfile
+            if channelfile:
+                # FIXME: deal with the EULA stuff
+                action_button_label = _("Use This Source")
+                action_button_value = "enable_channel"
             # check if it comes from a non-enabled component
             elif self._unavailable_component():
                 # FIXME: use a proper message here, but we are in string freeze
