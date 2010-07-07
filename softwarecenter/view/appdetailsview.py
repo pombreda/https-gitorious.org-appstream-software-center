@@ -31,8 +31,8 @@ import xapian
 
 from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
+from softwarecenter.db.application import AppDetails
 from softwarecenter.enums import *
-from softwarecenter.db.app_details import ApplicationDetails
 from widgets import mkit
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 
@@ -125,15 +125,16 @@ class PackageStatusBar(gtk.Alignment):
 
     def configure(self, app_details, state):
         self.pkg_state = app_details.pkg_state
+        self.app_details = app_details
         self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
 
         if state == PKG_STATE_INSTALLED:
-            if app_details.installed_date:
-                installed_date = str(app_details.installed_date).split()[0]
-                self.set_label(_('Installed %s' % installed_date))
+            if app_details.installation_date:
+                installation_date = str(app_details.installation_date).split()[0]
+                self.set_label(_('Installed %s' % installation_date))
             else:
                 self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
@@ -167,8 +168,6 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Source Unavailable'))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
-        #else:
-            #print 'PkgStateUnknown:', state
         return
 
     def draw(self, cr, a, expose_area):
@@ -644,14 +643,14 @@ class ScreenshotView(gtk.Alignment):
         self.screenshot_available = available
         return
  
-    def configure(self, name, thumb_url, large_url):
+    def configure(self, app_details):
         acc = self.get_accessible()
         acc.set_name(_('Fetching screenshot ...'))
 
         self.clear()
-        self.appname = name
-        self.thumbnail_url = thumb_url
-        self.large_url = large_url
+        self.appname = app_details.name
+        self.thumbnail_url = app_details.thumbnail
+        self.large_url = app_details.screenshot
         return
 
     def clear(self):
@@ -749,16 +748,16 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.history = history
         self.datadir = datadir
 
-        # data
-        self.app = None
-        self.app_details = None
-
         # aptdaemon
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+
+        # app specific data
+        self.app = None
+        self.app_details = None
 
         self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
 
@@ -807,7 +806,7 @@ class AppDetailsView(gtk.ScrolledWindow):
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-            'appname' : self.app_details.title, 
+            'appname' : self.app_details.name, 
             'pkgname' : self.app_details.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
@@ -903,37 +902,37 @@ class AppDetailsView(gtk.ScrolledWindow):
         self.show_all()
         return viewport
 
-    def _update_page(self):
+    def _update_page(self, app_details):
+        # FIXME: check if we actually need that argument up there..
+        self.app_details = app_details
+
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = gobject.markup_escape_text(self.app_details.title)
+        appname = gobject.markup_escape_text(self.app_details.name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
+        # FIXME: Once again (yes, I am working from the end to the beginning of the file..) this is tmp until we find a better place for the errors
         if self.app_details.error:
-            subtitle = self.app_details.error
+            summary = self.app_details.error
         else:
-            subtitle = self.app_details.subtitle
-        markup = markup % (big, appname, small, gobject.markup_escape_text(subtitle))
+            summary = self.app_details.summary
+        markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
         if self.app_details.icon:
-            self.app_info.set_icon(self.app_details.icon,
-                                   gtk.ICON_SIZE_DIALOG)
+            # FIXME: missing app icon stuff and checking if icon in icontheme needs to come here-ish
+            self.app_info.set_icon(self.app_details.icon, gtk.ICON_SIZE_DIALOG)
 
         # depending on pkg install state set action labels
-        if self.app_details.price:
-            price = self.app_details.price
-        else:
-            # FIXME: this may not be accurate
-            price = _("Free")
         self.action_bar.configure(self.app_details, self.app_details.pkg_state)
 
         self.action_bar.button.grab_focus()
 
         # format new app description
+        # FIXME: This is a bit messy, but the warnings need to be displayed somewhere until we find a better place for them
         if self.app_details.warning:
             if self.app_details.description:
                 description = "Warning: " + self.app_details.warning + "\n\n" + self.app_details.description
@@ -945,10 +944,10 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.app_desc.set_description(description, appname)
 
         # show or hide the homepage button and set uri if homepage specified
-        if self.app_details.homepage:
+        if self.app_details.website:
             self.homepage_btn.show()
             self.homepage_btn.set_property('visited', False)
-            self.homepage_btn.set_uri(self.app_details.homepage)
+            self.homepage_btn.set_uri(self.app_details.website)
         else:
             self.homepage_btn.hide()
 
@@ -961,9 +960,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         # get screenshot urls and configure the ScreenshotView...
         if self.app_details.thumbnail and self.app_details.screenshot:
-            self.screenshot.configure(appname,
-                                      self.app_details.thumbnail,
-                                      self.app_details.screenshot)
+            self.screenshot.configure(self.app_details)
 
             # then begin screenshot download and display sequence
             self.screenshot.download_and_display()
@@ -977,8 +974,8 @@ class AppDetailsView(gtk.ScrolledWindow):
             self.info_table.set_license(self.app_details.license)
         else:
             self.info_table.set_license(_("Unknown"))
-        if self.app_details.maintainance_time:
-            self.info_table.set_support_status(self.app_details.maintainance_time)
+        if self.app_details.maintenance_status:
+            self.info_table.set_support_status(self.app_details.maintenance_status)
         else:
             self.info_table.set_support_status(_("Unknown"))
         return
@@ -988,19 +985,16 @@ class AppDetailsView(gtk.ScrolledWindow):
         logging.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             return
-
-        self.app = app
-
-        # initialize the app
-        self.app_details = ApplicationDetails(self.cache, self.db, self.distro, self.history, self.icons, app)
-
-        self._update_page()
-        self.emit("selected", self.app)
+        
+        self.init_app(app)
         return
 
     def init_app(self, app):
+        # initialize the app
         self.app = app
-        self.app_details = ApplicationDetails(self.cache, self.db, self.distro, self.history, self.icons, app)
+        self.app_details = AppDetails(self.db, application=self.app)
+        self._update_page(self.app_details)
+        self.emit("selected", self.app)
         return
 
     # public interface
@@ -1012,7 +1006,7 @@ class AppDetailsView(gtk.ScrolledWindow):
                 if request.count('/') < 1:
                     request = None
             self.backend.install(self.app_details.pkgname,
-                                 self.app_details.title,
+                                 self.app_details.name,
                                  request,
                                  self.app_details.icon)
             return False
@@ -1029,11 +1023,11 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         def remove_cb():
             self.backend.remove(self.app_details.pkgname,
-                    self.app_details.title,
+                    self.app_details.name,
                     self.app_details.icon)
             return False
 
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.app_details.pkg, self.app_details.title)
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.app_details.pkg, self.app_details.name)
 
         # ask for confirmation if we have rdepends
         depends = self.cache.get_installed_rdepends(self.app_details.pkg)
@@ -1054,7 +1048,7 @@ class AppDetailsView(gtk.ScrolledWindow):
 
         def upgrade_cb():
             self.backend.upgrade(self.app_details.pkgname,
-                                      self.app_details.title,
+                                      self.app_details.name,
                                       self.app_details.icon)
             return False
 
@@ -1075,11 +1069,11 @@ class AppDetailsView(gtk.ScrolledWindow):
 
     # internal callback
     def _on_cache_ready(self, cache):
-        if self.app_details:
-            if self.app_details.pkgname in self.backend.pending_transactions:
-                return
+        if self.app_details and self.app_details.pkgname in self.backend.pending_transactions:
+            return
         logging.debug("on_cache_ready")
         self.show_app(self.app)
+        return
 
     def _update_interface_on_trans_ended(self):
         self.action_bar.button.set_sensitive(True)
@@ -1157,7 +1151,7 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
-    from softwarecenter import Application
+    from softwarecenter.db.application import Application
     #view.show_app(Application("3D Chess", "3dchess", ""))
     view.show_app(Application("Movie Player", "totem", ""))
     #view.show_app(Application("ACE", "unace", ""))
