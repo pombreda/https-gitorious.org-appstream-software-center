@@ -5,8 +5,10 @@ software-center (2.1.5) UNRELEASED; urgency=low
     - fix in channel adding code
   * merged lp:~mvo/software-center/lazr to support gobject
     based wrapper around lazr.restfulclient apps
- * merged lp:~mmcg069/software-center/pathbar-tweaks,
-   many thanks
+  * merged lp:~mmcg069/software-center/pathbar-tweaks,
+    many thanks
+  * merged  lp:~mvo/software-center/appdetails-in-db that
+    improve the AppDetails abstraction 
   
   [ Gary Lasker ]
   * data/icons/scalable/apps/category-show-all.svg,
