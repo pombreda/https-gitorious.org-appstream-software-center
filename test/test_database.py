@@ -90,7 +90,7 @@ class testDatabase(unittest.TestCase):
         for doc in db:
             appdetails = AppDetails(db, doc=doc)
             break
-        self.assertEqual(appdetails.appname, "Ubuntu Software Center Test")
+        self.assertEqual(appdetails.name, "Ubuntu Software Center Test")
         self.assertEqual(appdetails.pkgname, "software-center")
         # FIXME: add a dekstop file with a real channel to test
         #        and monkey-patch/modify the APP_INSTALL_CHANNELS_PATH
@@ -100,7 +100,7 @@ class testDatabase(unittest.TestCase):
         # FIXME: test description for unavailable pkg
         self.assertTrue(
             appdetails.description.startswith("The Ubuntu Software Center"))
-        # FIXME: test appdetails.homepage
+        # FIXME: test appdetails.website
         self.assertEqual(appdetails.icon, "softwarecenter")
         # crude, crude
         self.assertTrue(len(appdetails.version) > 2)
@@ -113,7 +113,7 @@ class testDatabase(unittest.TestCase):
         self.assertEqual(appdetails.price, "Free")
         self.assertEqual(appdetails.license, "License: Open Source")
         # FIXME: this will only work if software-center is installed
-        self.assertNotEqual(appdetails.installed_date, None)
+        self.assertNotEqual(appdetails.installation_date, None)
 
 if __name__ == "__main__":
     import logging

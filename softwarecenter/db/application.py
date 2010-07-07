@@ -100,88 +100,106 @@ class AppDetails(object):
         if (self.pkgname in self._cache and 
             self._cache[self.pkgname].candidate):
             self._pkg = self._cache[self.pkgname]
+
     @property
-    def pkgname(self):
-        return self._app.pkgname
-    @property
-    def appname(self):
-        return self._app.appname
+    def architecture(self):
+        # arches isn't quite as explicit as architecture, feel free to revert
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+
     @property
     def channel(self):
-        channel = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-        if channel:
-            path = APP_INSTALL_CHANNELS_PATH + channel +".list"
-            if os.path.exists(path):
-                return channel
+        if self._doc:
+            channel = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            if channel:
+                path = APP_INSTALL_CHANNELS_PATH + channel +".list"
+                if os.path.exists(path):
+                    return channel
+
     @property
-    def component (self):
-        comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        # FIXME: get component from apt 
-        #if comp is None:
-        return comp
+    def component(self):
+        if self._doc:
+            comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+            # FIXME: get component from apt 
+            #if comp is None:
+            return comp
+
     @property
-    def arches(self):
-        return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
-    @property
-    def pkg(self):
-        return self._pkg
-    @property
-    def summary(self):
-        return self._db.get_summary(self._doc)
-    @property
-    def description (self):
+    def description(self):
         if self._pkg:
             return self._pkg.candidate.description
+
     @property
-    def homepage (self):
-        if self._pkg:
-            return self._pkg.candidate.homepage
+    def error(self):
+        pass
+
     @property
     def icon(self):
-        db_icon = os.path.splitext(self._db.get_iconname(self._doc))[0]
-        if not db_icon:
-            return MISSING_PKG_ICON
-        return db_icon
+        if self._doc:
+            return os.path.splitext(self._db.get_iconname(self._doc))[0]
+        # the missing app icon code I removed here should probably be in the appdetailsview code
+
     @property
-    def installed_date(self):
+    def installation_date(self):
         return self._history.get_installed_date(self.pkgname)
+
     @property
     def license(self):
         return self._distro.get_license_text(self.component)
+
     @property
-    def maintainance_time(self):
+    def maintenance_status(self):
         return self._distro.get_maintenance_status(
             self._cache, self.appname, self.pkgname, self.component, 
             self.channel)
+
+    @property
+    def name(self):
+        # I changed this from appname to name, as appdetails.appname seems a bit repetitive, if you want to change it back, feel free
+        return self._app.appname
+
+    @property
+    def pkg(self):
+        if self._pkg:
+            return self._pkg
+
+    @property
+    def pkgname(self):
+        return self._app.pkgname
+
+    @property
+    def pkg_state(self):
+        pass
+
+    @property
+    def price(self):
+        if self._doc:
+            return self._distro.get_price(self._doc)
+
+    @property
+    def screenshot(self):
+        return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
+
+    @property
+    def summary(self):
+        if self._doc:
+            return self._db.get_summary(self._doc)
+
+    @property
+    def thumbnail(self):
+        return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
+
     @property
     def version(self):
         if self._pkg:
             return self._pkg.candidate.version
-    @property
-    def pkg_state (self):
-        pass
-    @property
-    def price (self):
-        return self._distro.get_price(self._doc)
-    @property
-    def screenshot(self):
-        return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
-    @property
-    def thumbnail(self):
-        return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
-    @property
-    def title(self):
-        pass
-    @property
-    def subtitle(self):
-        pass
-    @property
-    def error(self):
-        pass
+
     @property
     def warning(self):
         pass
 
-
-
-
+    @property
+    def website(self):
+    # I think the term website is a bit more common than the term homepage, feel free to revert
+        if self._pkg:
+            return self._pkg.candidate.homepage
