@@ -918,6 +918,8 @@ class AppDetailsView(gtk.ScrolledWindow):
             summary = self.app_details.error
         else:
             summary = self.app_details.summary
+        if not summary:
+            summary = _("There isn't a software package called \"%s\" in your current software sources.") % self.app_details.pkgname.capitalize()
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
@@ -926,6 +928,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         if self.app_details.icon:
             if self.icons.has_icon(self.app_details.icon):
                 icon = self.app_details.icon
+        if not icon and not self.app_details.summary:
+            icon = MISSING_PKG_ICON
         if not icon:
             icon = MISSING_APP_ICON
         self.app_info.set_icon(icon, gtk.ICON_SIZE_DIALOG)
@@ -997,6 +1001,7 @@ class AppDetailsView(gtk.ScrolledWindow):
         # initialize the app
         self.app = app
         self.app_details = AppDetails(self.db, application=self.app)
+        self.emit("selected", self.app)
         self._update_page(self.app_details)
         self.emit("selected", self.app)
         return
@@ -1044,8 +1049,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         # ask for confirmation if we have rdepends
         depends = self.cache.get_installed_rdepends(self.app_details.pkg)
         if depends:
-            iconpath = self.get_icon_filename(icon, self.APP_ICON_SIZE)
-            
+            iconpath = self.icons.lookup_icon(icon, self.APP_ICON_SIZE, 0).get_filename()
+
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
                 self.action_bar.button.set_sensitive(True)
@@ -1075,9 +1080,8 @@ class AppDetailsView(gtk.ScrolledWindow):
         return
 
     def use_this_source(self):
-        if self.app_details.channel:
-            channelfile = APP_INSTALL_CHANNELS_PATH + self.app_details.channel + ".list"
-            self.backend.enable_channel(channelfile)
+        if self.app_details.channelfile:
+            self.backend.enable_channel(self.app_details.channelfile)
         elif self.app_details.component:
             # this is broken atm?
             self.backend.enable_component(self.app_details.component)
