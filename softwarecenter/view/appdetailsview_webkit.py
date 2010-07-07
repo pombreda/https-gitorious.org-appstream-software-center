@@ -93,6 +93,11 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     def show_app(self, app):
         AppDetailsViewBase.show_app(self, app)
 
+    # private stuff
+    def _show(self, widget):
+        if not (self.app or self.appdetails):
+            return
+        WebkitWidget._show(self, widget)
     def _clear(self):
         " clear the current view "
         self.load_string("", "text/plain", "ascii", "file:/")
