@@ -63,7 +63,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     def __init__(self, db, distro, icons, cache, history, datadir):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         WebkitWidget.__init__(self, datadir)
-
         self.arch = get_current_arch()
         # atk
         atk_desc = self.get_accessible()
@@ -74,6 +73,10 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)
         self.connect("navigation-requested", self._on_navigation_requested)
+        # signals
+        self.backend.connect("transaction-started", self._on_transaction_started)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # FIXME:
         self.channelfile = None
 
@@ -81,7 +84,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     def init_app(self, app):
         AppDetailsViewBase.init_app(self, app)
         # FIXME: move to AppDetails
-        self.component = self._get_component(self.pkg)
+        self.component = self._get_component(self.appdetails.pkg)
 
     def _get_component(self, pkg=None):
         """ 

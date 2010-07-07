@@ -16,36 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
-import dbus
-import gettext
-import gio
-import glib
-import gobject
-import gtk
 import logging
-import os
-import re
-import socket
-import string
-import subprocess
-import sys
-import tempfile
-import urllib
-import xapian
 
 from gettext import gettext as _
 
-if os.path.exists("./softwarecenter/enums.py"):
-    sys.path.insert(0, ".")
-
-from softwarecenter.db.application import Application, AppDetails
-from softwarecenter.enums import *
-from softwarecenter.utils import *
-from softwarecenter.version import *
-from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
-
 
 class AppDetailsViewBase(object):
 
@@ -61,9 +37,6 @@ class AppDetailsViewBase(object):
         self.appdetails = None
         # aptdaemon
         self.backend = get_install_backend()
-        self.backend.connect("transaction-started", self._on_transaction_started)
-        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
-        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
     def _draw(self):
         """ draw the current app into the window, maybe the function
             you need to overwrite
@@ -93,10 +66,10 @@ class AppDetailsViewBase(object):
         # FIXME: this text is not accurate, we look at recommends as
         #        well as part of the rdepends, but those do not need to
         #        be removed, they just may be limited in functionatlity
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.pkg, self.app.name)
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.appdetails.pkg, self.app.name)
 
         # ask for confirmation if we have rdepends
-        depends = self.cache.get_installed_rdepends(self.pkg)
+        depends = self.cache.get_installed_rdepends(self.appdetails.pkg)
         if depends:
             iconpath = self.get_icon_filename(self.appdetails.icon, self.APP_ICON_SIZE)
             
