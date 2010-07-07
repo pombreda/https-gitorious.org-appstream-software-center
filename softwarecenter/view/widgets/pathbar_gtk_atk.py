@@ -338,34 +338,52 @@ class PathBar(gtk.HBox):
         return
 
     def _expose_scroll(self, widget, event):
+        theme = self.theme
         parts = self.get_children()
-        if len(parts) < 2: return
-        static_tail, scroller = parts[-2:]
+        parts.reverse()
+        region = gtk.gdk.region_rectangle(event.area)
+
+        cr = widget.window.cairo_create()
+        cr.rectangle(event.area)
+        cr.clip()
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             sxO = self._scroll_xO
         else:
             sxO = -self._scroll_xO
 
-        theme = self.theme
-
-        cr = widget.window.cairo_create()
-        cr.rectangle(event.area)
-        cr.clip()
-
-        a = scroller.get_allocation()
+        # draw the scrolling part
+        part = parts[0]
+        a = part.get_allocation()
+        xo = part.get_draw_xoffset()
         x, y, w, h = a.x, a.y, a.width, a.height
-        w = scroller.get_draw_width()
-        xo = scroller.get_draw_xoffset()
-        theme.paint_bg(cr, scroller, x+xo-sxO, y, w, h)
-        x, y, w, h = scroller.get_layout_points()
-        theme.paint_layout(cr, widget, scroller, a.x+x-int(sxO), a.y+y)
+        w = part.get_draw_width()
+        theme.paint_bg(cr, part, x+xo, y, w, h, sxO)
+        x, y, w, h = part.get_layout_points()
+        theme.paint_layout(cr, widget, part, a.x+x-int(sxO), a.y+y)
 
-        a = static_tail.get_allocation()
-        x, y, w, h = a.x, a.y, a.width, a.height
-        w = static_tail.get_draw_width()
-        xo = static_tail.get_draw_xoffset()
-        theme.paint_bg(cr, static_tail, x+xo, y, w, h)
+        # draw the rest of the parts
+        for part in parts[1:]:
+            if not part.invisible:
+                a = part.get_allocation()
+                xo = part.get_draw_xoffset()
+                x, y, w, h = a.x, a.y, a.width, a.height
+                w = part.get_draw_width()
+
+                theme.paint_bg(cr, part, x+xo, y, w, h)
+                x, y, w, h = part.get_layout_points()
+
+                if part.has_focus():
+                    self.style.paint_focus(self.window,
+                                           part.state,
+                                           (a.x+x-4, a.y+y-2, w+8, h+4),
+                                           self,
+                                           'expander',
+                                           a.x+x-4, a.y+y-2, w+8, h+4)
+
+                theme.paint_layout(cr, widget, part, a.x+x, a.y+y)
+            else:
+                part.invisible = False
         del cr
         return
 
