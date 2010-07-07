@@ -163,13 +163,16 @@ class AppDetails(object):
         if not self._pkg:
             available_for_arch = self._available_for_our_arch()
             if not available_for_arch and (self.channelname or self.component):
-                return _("\"%s\" is not available for this type of computer.") % self.title
-
+                return _("\"%s\" is not available for this type of computer.") % self.name
+        if not self.summary:
+            return _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
 
     @property
     def icon(self):
         if self._doc:
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
+        if not self.summary:
+            return MISSING_PKG_ICON
 
     @property
     def installation_date(self):

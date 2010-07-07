@@ -918,8 +918,6 @@ class AppDetailsView(gtk.ScrolledWindow):
             summary = self.app_details.error
         else:
             summary = self.app_details.summary
-        if not summary:
-            summary = _("There isn't a software package called \"%s\" in your current software sources.") % self.app_details.pkgname.capitalize()
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
@@ -928,8 +926,6 @@ class AppDetailsView(gtk.ScrolledWindow):
         if self.app_details.icon:
             if self.icons.has_icon(self.app_details.icon):
                 icon = self.app_details.icon
-        if not icon and not self.app_details.summary:
-            icon = MISSING_PKG_ICON
         if not icon:
             icon = MISSING_APP_ICON
         self.app_info.set_icon(icon, gtk.ICON_SIZE_DIALOG)
