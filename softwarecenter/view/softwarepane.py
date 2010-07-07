@@ -35,7 +35,8 @@ from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
-from appdetailsview import AppDetailsViewWebkit as AppDetailsView
+
+from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
 
 from softwarecenter.db.database import Application
 

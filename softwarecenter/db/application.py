@@ -148,7 +148,7 @@ class AppDetails(object):
     @property
     def maintenance_status(self):
         return self._distro.get_maintenance_status(
-            self._cache, self.appname, self.pkgname, self.component, 
+            self._cache, self.name, self.pkgname, self.component, 
             self.channel)
 
     @property
