@@ -66,8 +66,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
-        # data
-        self.appdetails = None
         # setup user-agent
         settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)

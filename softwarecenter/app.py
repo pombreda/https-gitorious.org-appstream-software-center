@@ -576,9 +576,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         pkg_state = None
         error = None
-        if self.active_pane.app_details.app_details:
-            pkg_state = self.active_pane.app_details.app_details.pkg_state
-            error = self.active_pane.app_details.app_details.error
+        if self.active_pane.app_details.appdetails:
+            pkg_state = self.active_pane.app_details.appdetails.pkg_state
+            error = self.active_pane.app_details.appdetails.error
         if self.active_pane.app_view.is_action_in_progress_for_selected_app():
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
@@ -591,7 +591,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         elif pkg_state == PKG_STATE_UNINSTALLED and not error:
             self.menuitem_install.set_sensitive(True)
             self.menuitem_remove.set_sensitive(False)
-        elif (not pkg_state and not self.active_pane.is_category_view_showing() and app.pkgname in self.cache and not self.active_pane.app_view.is_action_in_progress_for_selected_app() and not error):
+        elif (not pkg_state and 
+              not self.active_pane.is_category_view_showing() and 
+              app.pkgname in self.cache and 
+              not self.active_pane.app_view.is_action_in_progress_for_selected_app() and
+              not error):
             pkg = self.cache[app.pkgname]
             installed = bool(pkg.installed)
             self.menuitem_install.set_sensitive(not installed)
