@@ -86,6 +86,11 @@ class testDatabase(unittest.TestCase):
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False)
         self.assertTrue(len(db), 1)
+        # test details
+        app = Application("Ubuntu Software Center Test", "software-center")
+        details = app.get_details(db)
+        self.assertNotEqual(details, None)
+        self.assertEqual(details.component, "main")
         # get the first document
         for doc in db:
             appdetails = AppDetails(db, doc=doc)

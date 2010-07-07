@@ -23,6 +23,8 @@ from softwarecenter.distro import get_distro
 from softwarecenter.apt.apthistory import get_apt_history
 from softwarecenter.enums import *
 
+# this is a very lean class as its used in the main listview
+# and there are a lot of application objects in memory
 class Application(object):
     """ The central software item abstraction. it conaints a 
         pkgname that is always available and a optional appname
@@ -43,6 +45,10 @@ class Application(object):
     @property
     def popcon(self):
         return self._popcon
+    # get a AppDetails object for this Applications
+    def get_details(self, db):
+        """ return a new AppDetails object for this application """
+        return AppDetails(db, application=self)
     # special methods
     def __hash__(self):
         return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
@@ -64,6 +70,7 @@ class Application(object):
         else:
             return cmp(x.pkgname, y.pkgname)
 
+# the details
 class AppDetails(object):
     """ The details for a Application. This contains all the information
         we have available like homepage url etc
@@ -84,11 +91,15 @@ class AppDetails(object):
         elif application:
             self.init_from_application(application)
     def init_from_doc(self, doc):
+        """ init the application details from a xapian document """
         self._doc = doc
         self._app = Application(self._db.get_appname(self._doc),
                                 self._db.get_pkgname(self._doc))
         self._init_common()
     def init_from_application(self, app):
+        """ init the application details from a Application
+            class (appname, pkgname)
+        """
         self._app = app
         self._doc = self._db.get_xapian_document(self._app.appname,
                                                  self._app.pkgname)
