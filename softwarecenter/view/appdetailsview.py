@@ -63,6 +63,10 @@ class AppDetailsViewBase(object):
         self.cache.connect("cache-ready", self._on_cache_ready)
         self.history = history
         self.datadir = datadir
+        self.app = None
+        for doc in db:
+            self.appdetails = AppDetails(db, doc=doc)
+            break
         # aptdaemon
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
@@ -184,7 +188,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self._clear()
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
-        print "html: ", self._html
+        # print "html: ", self._html
         self._check_thumb_available()
     
     def show_app(self, app):
