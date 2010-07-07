@@ -39,7 +39,7 @@ from gettext import gettext as _
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 
-from softwarecenter import Application
+from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
@@ -53,7 +53,74 @@ import dialogs
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4
 
-class AppDetailsView(WebkitWidget):
+class AppDetailsViewBase(object):
+
+    def __init__(self, db, distro, icons, cache, history, datadir):
+        self.db = db
+        self.distro = distro
+        self.icons = icons
+        self.cache = cache
+        self.cache.connect("cache-ready", self._on_cache_ready)
+        self.history = history
+        self.datadir = datadir
+        # aptdaemon
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-started", self._on_transaction_started)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+    def _draw(self):
+        """ draw the current app into the window, maybe the function
+            you need to overwrite
+        """
+        pass
+    # public API
+    def init_app(self, app):
+        """ init the given Application object """
+        # FIXME: init_app should really go
+        self.app = app
+        self.appdetails = AppDetails(self.db, application=app)
+    def show_app(self, app):
+        """ show the given application """
+        if app is None:
+            return
+        self.app = app
+        self.appdetails = AppDetails(self.db, application=app)
+        self._draw()
+        self.emit("selected", self.app)
+    # public interface
+    def reload(self):
+        self.backend.reload()
+    def install(self):
+        self.backend.install(self.app.pkgname, self.app.appname, self.appdetails.icon)
+    def remove(self):
+        # generic removal text
+        # FIXME: this text is not accurate, we look at recommends as
+        #        well as part of the rdepends, but those do not need to
+        #        be removed, they just may be limited in functionatlity
+        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.pkg, self.app.name)
+
+        # ask for confirmation if we have rdepends
+        depends = self.cache.get_installed_rdepends(self.pkg)
+        if depends:
+            iconpath = self.get_icon_filename(self.appdetails.icon, self.APP_ICON_SIZE)
+            
+            if not dialogs.confirm_remove(None, primary, self.cache,
+                                        button_text, iconpath, depends):
+                self._set_action_button_sensitive(True)
+                self.backend.emit("transaction-stopped")
+                return
+        self.backend.remove(self.app.pkgname, self.app.appname, self.appdetails.icon)
+    def upgrade(self):
+        self.backend.upgrade(self.app.pkgname, self.app.appname, self.appdetails.icon)
+    # internal callbacks
+    def _on_cache_ready(self, cache):
+        logging.debug("on_cache_ready")
+        self.show_app(self.app)
+
+
+
+
+class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     """The view that shows the application details """
 
     # the size of the icon on the left side
@@ -65,78 +132,35 @@ class AppDetailsView(WebkitWidget):
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
+    # hrm, can not put this into AppDetailsViewBase as it overrides
+    # the webkit signals otherwise :/
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT, )),
                     }
+    
 
     def __init__(self, db, distro, icons, cache, history, datadir):
-        super(AppDetailsView, self).__init__(datadir)
-        self.db = db
-        self.distro = distro
-        self.icons = icons
-        self.cache = cache
-        self.cache.connect("cache-ready", self._on_cache_ready)
-        self.history = history
+        AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
+        WebkitWidget.__init__(self, datadir)
 
-        self.datadir = datadir
         self.arch = get_current_arch()
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
-        # aptdaemon
-        self.backend = get_install_backend()
-        self.backend.connect("transaction-started", self._on_transaction_started)
-        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
-        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
         # data
-        self.pkg = None
-        self.app = None
-        self.iconname = ""
+        self.appdetails = None
         # setup user-agent
         settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)
         self.connect("navigation-requested", self._on_navigation_requested)
-
-    def _show(self, widget):
-        if not self.app:
-            return
-        super(AppDetailsView, self)._show(widget)
+        # FIXME:
+        self.channelfile = None
 
     # public API
     def init_app(self, app):
-        logging.debug("AppDetailsView.init_app '%s'" % app)
-        # init app specific data
-        self.app = app
-        # other data
-        self.homepage_url = None
-        self.channelfile = None
-        self.channelname = None
-        self.doc = None
-
-        # get xapian document
-        self.doc = self.db.get_xapian_document(self.app.appname, 
-                                               self.app.pkgname)
-        if not self.doc:
-            raise IndexError, "No app '%s' for '%s' in database" % (
-                self.app.appname, self.app.pkgname)
-
-        # get icon
-        self.iconname = self.db.get_iconname(self.doc)
-        # remove extension (e.g. .png) because the gtk.IconTheme
-        # will find fins a icon with it
-        self.iconname = os.path.splitext(self.iconname)[0]
-
-        # get apt cache data
-        pkgname = self.db.get_pkgname(self.doc)
-        self.pkg = None
-        if (pkgname in self.cache and
-            self.cache[pkgname].candidate):
-            self.pkg = self.cache[pkgname]
-        if self.pkg:
-            self.homepage_url = self.pkg.candidate.homepage
-
-        # setup component
+        AppDetailsViewBase.init_app(self, app)
+        # FIXME: move to AppDetails
         self.component = self._get_component(self.pkg)
 
     def _get_component(self, pkg=None):
@@ -153,23 +177,24 @@ class AppDetailsView(WebkitWidget):
                 origin.trusted and 
                 origin.component):
                 return origin.component
-    
-    def show_app(self, app):
-        logging.debug("AppDetailsView.show_app '%s'" % app)
-        if app is None:
-            return
 
+    def _draw(self):
         # clear first to avoid showing the old app details for
         # some milliseconds before switching to the new app
-        self.clear()
-        
-        # initialize the app
-        self.init_app(app)
-        
+        self._clear()
         # show (and let the wksub_ magic do the right substitutions)
         self._show(self)
-        self.emit("selected", self.app)
+        print "html: ", self._html
         self._check_thumb_available()
+    
+    def show_app(self, app):
+        AppDetailsViewBase.show_app(self, app)
+
+    def _clear(self):
+        " clear the current view "
+        self.load_string("", "text/plain", "ascii", "file:/")
+        while gtk.events_pending(): 
+            gtk.main_iteration()
 
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -177,27 +202,20 @@ class AppDetailsView(WebkitWidget):
             iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
         return iconinfo.get_filename()
 
-    def clear(self):
-        " clear the current view "
-        self.load_string("", "text/plain", "ascii", "file:/")
-        while gtk.events_pending(): 
-            gtk.main_iteration()
-
     # substitute functions called during page display
     def wksub_appname(self):
         return self.app.name
     def wksub_summary(self):
-        return self.db.get_summary(self.doc)
+        return self.appdetails.summary
     def wksub_pkgname(self):
         return self.app.pkgname
     def wksub_body_class(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
+        if self.appdetails.pkg and self.appdetails.pkg.is_installed:
             return "section-installed"
         return "section-get"
     def wksub_description(self):
-        # if we do not have a package in our apt data explain why
-        if not self.pkg:
+        # FIXME: portme to AppDetails class
+        if not self.appdetails.pkg:
             available_for_arch = self._available_for_our_arch()
             if self.channelname and available_for_arch:
                 return _("This software is available from the '%s' source, "
@@ -213,9 +231,10 @@ class AppDetailsView(WebkitWidget):
             return _("Sorry, '%s' is not available for "
                      "this type of computer (%s).") % (
                 self.app.name, self.arch)
+        # ---------------------------------------
 
         # format for html
-        description = self.pkg.candidate.description
+        description = self.appdetails.description
         logging.debug("Description (text) %r", description)
         # format bullets (*-) as lists
         description = "\n".join(htmlize_package_desc(description))
@@ -240,27 +259,25 @@ class AppDetailsView(WebkitWidget):
         return description
 
     def wksub_iconpath_loading(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
+        if (self.appdetails.pkg and self.appdetails.pkg.is_installed):
             return self.IMAGE_LOADING_INSTALLED
         return self.IMAGE_LOADING
     def wksub_iconpath(self):
         # the iconname in the theme is without extension
-        iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
+        iconname = self.appdetails.icon
+        iconpath = self.get_icon_filename(iconname, self.APP_ICON_SIZE)
         # *meh* if not png -> convert
         # FIXME: make webkit understand xpm files instead
         if os.path.exists(iconpath) and iconpath.endswith(".xpm"):
             self.tf = tempfile.NamedTemporaryFile()
-            pix = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
+            pix = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
             pix.save(self.tf.name, "png")
             iconpath = self.tf.name
         return iconpath
     def wksub_screenshot_thumbnail_url(self):
-        url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
-        return url
+        return self.appdetails.thumbnail
     def wksub_screenshot_large_url(self):
-        url = self.distro.SCREENSHOT_LARGE_URL % self.app.pkgname
-        return url
+        return self.appdetails.screenshot
     def wksub_screenshot_alt(self):
         return _("Application Screenshot")
     def wksub_software_installed_icon(self):
@@ -282,11 +299,11 @@ class AppDetailsView(WebkitWidget):
             return "hidden"
         if (not self.channelfile and 
             not self._unavailable_component() and
-            not self.pkg):
+            not self.appdetails.pkg):
             return "hidden"
         return "visible"
     def wksub_homepage_button_visibility(self):
-        if self.homepage_url:
+        if self.appdetails.homepage:
             return "visible"
         return "hidden"
     def wksub_share_button_visibility(self):
@@ -294,24 +311,24 @@ class AppDetailsView(WebkitWidget):
             return "visible"
         return "hidden"
     def wksub_package_information(self):
-        if not self.pkg or not self.pkg.candidate:
+        if not self.appdetails.pkg:
             return ""
-        version = self.pkg.candidate.version
+        version = self.appdetails.version
         if version:
-            s = _("Version: %s (%s)") % (version, self.pkg.name)
+            s = _("Version: %s (%s)") % (version, self.appdetails.pkgname)
             return s
         return ""
     def wksub_datadir(self):
         return self.datadir
     def wksub_maintainance_time(self):
         """add the end of the maintainance time"""
-        return self.distro.get_maintenance_status(self.cache,
-            self.app.appname or self.app.pkgname, self.app.pkgname, self.component, self.channelfile)
+        return self.appdetails.maintainance_time
     def wksub_action_button_description(self):
         """Add message specific to this package (e.g. how many dependenies"""
-        if not self.pkg:
+        # FIXME: port to appdetails
+        if not self.appdetails.pkg:
             return ""
-        return self.distro.get_installation_status(self.cache, self.history, self.pkg, self.app.name)
+        return self.distro.get_installation_status(self.cache, self.history, self.appdetails.pkg, self.app.name)
     def wksub_homepage(self):
         s = _("Website")
         return s
@@ -319,18 +336,15 @@ class AppDetailsView(WebkitWidget):
         s = _("Share via microblog")
         return s
     def wksub_license(self):
-        return self.distro.get_license_text(self.component)
+        return self.appdetails.license
     def wksub_price(self):
-        price = self.distro.get_price(self.doc)
-        s = _("Price: %s") % price
-        return s
+        return self.appdetails.price
     def wksub_installed(self):
-        if self.pkg and self.pkg.installed:
+        if self.appdetails.pkg and self.appdetails.pkg.installed:
             return "visible"
         return "hidden"
     def wksub_screenshot_installed(self):
-        if (self.app.pkgname in self.cache and
-            self.cache[self.app.pkgname].is_installed):
+        if self.appdetails.pkg and self.appdetails.pkg.is_installed:
             return "screenshot_thumbnail-installed"
         return "screenshot_thumbnail"
     def wksub_screenshot_thumbnail_missing(self):
@@ -358,7 +372,7 @@ class AppDetailsView(WebkitWidget):
 
     # callbacks
     def on_button_reload_clicked(self):
-        self.backend.reload()
+        self.reload()
         self._set_action_button_sensitive(False)
 
     def on_button_enable_channel_clicked(self):
@@ -368,7 +382,7 @@ class AppDetailsView(WebkitWidget):
 
     def on_button_enable_component_clicked(self):
         #print "on_enable_component_clicked", component
-        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        component =  self.appdetails.component
         self.backend.enable_component(component)
         self._set_action_button_sensitive(False)
 
@@ -405,34 +419,7 @@ class AppDetailsView(WebkitWidget):
     def on_button_install_clicked(self):
         self.install()
 
-    # public interface
-    def install(self):
-        self.backend.install(self.app.pkgname, self.app.appname, self.iconname)
-    def remove(self):
-        # generic removal text
-        # FIXME: this text is not accurate, we look at recommends as
-        #        well as part of the rdepends, but those do not need to
-        #        be removed, they just may be limited in functionatlity
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.pkg, self.app.name)
-
-        # ask for confirmation if we have rdepends
-        depends = self.cache.get_installed_rdepends(self.pkg)
-        if depends:
-            iconpath = self.get_icon_filename(self.iconname, self.APP_ICON_SIZE)
-            
-            if not dialogs.confirm_remove(None, primary, self.cache,
-                                        button_text, iconpath, depends):
-                self._set_action_button_sensitive(True)
-                self.backend.emit("transaction-stopped")
-                return
-        self.backend.remove(self.app.pkgname, self.app.appname, self.iconname)
-    def upgrade(self):
-        self.backend.upgrade(self.app.pkgname, self.app.appname, self.iconname)
-
     # internal callback
-    def _on_cache_ready(self, cache):
-        logging.debug("on_cache_ready")
-        self.show_app(self.app)
     def _on_transaction_started(self, backend):
         self._set_action_button_sensitive(False)
     def _on_transaction_stopped(self, backend):
@@ -499,8 +486,8 @@ class AppDetailsView(WebkitWidget):
     def _get_action_button_label_and_value(self):
         action_button_label = ""
         action_button_value = ""
-        if self.pkg:
-            pkg = self.pkg
+        if self.appdetails.pkg:
+            pkg = self.appdetails.pkg
             # Don't handle upgrades yet
             #if pkg.installed and pkg.isUpgradable:
             #    action_button_label = _("Upgrade")
@@ -509,7 +496,7 @@ class AppDetailsView(WebkitWidget):
                 action_button_label = _("Remove")
                 action_button_value = "remove"
             else:
-                price = self.distro.get_price(self.doc)
+                price = self.appdetails.price
                 # we don't have price information
                 if price is None:
                     action_button_label = _("Install")
@@ -547,7 +534,7 @@ class AppDetailsView(WebkitWidget):
         that is currently not enabled
         """
         # FIXME: use self.component here instead?
-        component =  self.doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+        component =  self.appdetails.component
         logging.debug("component: '%s'" % component)
         # if there is no component accociated, it can not be unavailable
         if not component:
@@ -558,7 +545,7 @@ class AppDetailsView(WebkitWidget):
 
     def _available_for_our_arch(self):
         """ check if the given package is available for our arch """
-        arches = self.doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
+        arches = self.appdetails.arches
         # if we don't have a arch entry in the document its available
         # on all architectures we know about
         if not arches:
@@ -626,9 +613,12 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
+    from softwarecenter.apt.apthistory import get_apt_history
+    history = get_apt_history()
+
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsView(db, distro, icons, cache, datadir)
+    view = AppDetailsViewWebkit(db, distro, icons, cache, history, datadir)
     #view.show_app(Application("3D Chess", "3dchess"))
     view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))

@@ -112,6 +112,8 @@ class testDatabase(unittest.TestCase):
         # FIXME: add document that has a price
         self.assertEqual(appdetails.price, "Free")
         self.assertEqual(appdetails.license, "License: Open Source")
+        # FIXME: this will only work if software-center is installed
+        self.assertNotEqual(appdetails.installed_date, None)
 
 if __name__ == "__main__":
     import logging
