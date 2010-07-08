@@ -28,7 +28,6 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
-from softwarecenter.backend import get_install_backend
 
 from appview import AppView, AppStore, AppViewFilter
 
@@ -94,7 +93,6 @@ class AvailablePane(SoftwarePane):
         # search mode
         self.custom_list_mode = False
         # install backend
-        self.backend = get_install_backend()
         self.backend.connect("transactions-changed",
                              self._on_transactions_changed)
         # UI
@@ -102,14 +100,17 @@ class AvailablePane(SoftwarePane):
 
     def _build_ui(self):
         # categories, appview and details into the notebook in the bottom
+        self.scroll_categories = gtk.ScrolledWindow()
+        self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
+                                        gtk.POLICY_AUTOMATIC)
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
                                        self.cache,
                                        self.db,
                                        self.icons,
                                        self.apps_filter)
-
+        self.scroll_categories.add(self.cat_view)
         #scroll_categories = gtk.ScrolledWindow()
-        self.notebook.append_page(self.cat_view, gtk.Label("categories"))
+        self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
         # sub-categories view
         self.subcategories_view = CategoriesView(self.datadir,
                                                  APP_INSTALL_PATH,
@@ -437,6 +438,7 @@ class AvailablePane(SoftwarePane):
         # remove pathbar stuff
         self.navigation_bar.remove_all()
         self.notebook.set_current_page(self.PAGE_CATEGORY)
+        self.cat_view.start_carousels()
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
 
@@ -530,6 +532,7 @@ class AvailablePane(SoftwarePane):
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return
 
     def display_list_subcat(self):
@@ -543,12 +546,14 @@ class AvailablePane(SoftwarePane):
         if model is not None:
             self.emit("app-list-changed", len(model))
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return
 
     def display_details(self):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
+        self.cat_view.stop_carousels()
         return
 
     def on_navigation_category(self, pathbar, part):

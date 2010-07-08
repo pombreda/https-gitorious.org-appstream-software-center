@@ -1,3 +1,11 @@
+= User notes =
+
+The software-center application aims to make the software handling on
+the computer easy and consistent.
+
+= Developer notes =
+
+All non UI code must come with tests in the test/ subdirectoy.
 
 == aptdaemon ==
  * the dbus limits for the system bus are rather low, this means that

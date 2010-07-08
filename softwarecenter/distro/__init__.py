@@ -64,7 +64,7 @@ class Distro(object):
     def get_installation_status(self, pkg):
         raise UnimplementedError
 
-    def get_maintenance_status(self, cache, appname, pkgname, component, channel):
+    def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
         raise UnimplementedError
 
     def get_license_text(self, component):

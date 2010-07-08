@@ -57,7 +57,7 @@ from backend.launchpad import GLaunchpad
 from distro import get_distro
 
 from apt.aptcache import AptCache
-from apt.apthistory import AptHistory
+from apt.apthistory import get_apt_history
 from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -124,13 +124,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # a main iteration friendly apt cache
         self.cache = AptCache()
+        self.cache.connect("cache-broken", self._on_apt_cache_broken)
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("channels-changed", self.on_channels_changed)
         #apt history
-        self.history = AptHistory()
+        self.history = get_apt_history()
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
@@ -371,7 +372,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # Menu Items
     def on_menuitem_login_activate(self, menuitem):
-        print "login"
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
         LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
@@ -379,13 +379,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.active_pane.app_details.init_app(app)
-        self.active_pane.app_details.install()
+        self.backend.install(app.pkgname, app.appname, 
+                             app.get_details(self.db).icon)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.active_pane.app_details.init_app(app)
-        self.active_pane.app_details.remove()
+        self.backend.remove(app.pkgname, app.appname, 
+                            app.get_details(self.db).icon)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -511,6 +511,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_navhistory_forward_action_activate(self, navhistory_forward_action):
         self.available_pane.nav_history.nav_forward()
             
+    def _ask_and_repair_broken_cache(self):
+        # wait until the window window is available
+        if self.window_main.props.visible == False:
+            glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
+            return
+        if view.dialogs.confirm_repair_broken_cache(self.window_main):
+            self.backend.fix_broken_depends()
+        
+    def _on_apt_cache_broken(self, aptcache):
+        self._ask_and_repair_broken_cache()
+
     def _on_transaction_started(self, backend):
         self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(False)
@@ -563,24 +574,39 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             glib.timeout_add(100, lambda: self.update_app_status_menu())
             return False
         # update menu items
-        if (not self.active_pane.is_category_view_showing() and 
-            app.pkgname in self.cache):
-            if self.active_pane.app_view.is_action_in_progress_for_selected_app():
-                self.menuitem_install.set_sensitive(False)
-                self.menuitem_remove.set_sensitive(False)
-                self.menuitem_copy_web_link.set_sensitive(False)
-            else:
-                pkg = self.cache[app.pkgname]
-                installed = bool(pkg.installed)
-                self.menuitem_install.set_sensitive(not installed)
-                self.menuitem_remove.set_sensitive(installed)
-                self.menuitem_copy_web_link.set_sensitive(True)
+        pkg_state = None
+        error = None
+        if self.active_pane.app_details.appdetails:
+            pkg_state = self.active_pane.app_details.appdetails.pkg_state
+            error = self.active_pane.app_details.appdetails.error
+        if self.active_pane.app_view.is_action_in_progress_for_selected_app():
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
+        elif pkg_state == PKG_STATE_UPGRADABLE or pkg_state == PKG_STATE_REINSTALLABLE and not error:
+            self.menuitem_install.set_sensitive(True)
+            self.menuitem_remove.set_sensitive(True)
+        elif pkg_state == PKG_STATE_INSTALLED:
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(True)
+        elif pkg_state == PKG_STATE_UNINSTALLED and not error:
+            self.menuitem_install.set_sensitive(True)
+            self.menuitem_remove.set_sensitive(False)
+        elif (not pkg_state and 
+              not self.active_pane.is_category_view_showing() and 
+              app.pkgname in self.cache and 
+              not self.active_pane.app_view.is_action_in_progress_for_selected_app() and
+              not error):
+            pkg = self.cache[app.pkgname]
+            installed = bool(pkg.installed)
+            self.menuitem_install.set_sensitive(not installed)
+            self.menuitem_remove.set_sensitive(installed)
+            self.menuitem_copy_web_link.set_sensitive(True)
         else:
-            # clear menu items if category view or if the package is not
-            # in the cache
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
             self.menuitem_copy_web_link.set_sensitive(False)
+        if pkg_state:
+            self.menuitem_copy_web_link.set_sensitive(True)
         # return False to ensure that a possible glib.timeout_add ends
         return False
 
@@ -742,6 +768,3 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
-
-
-

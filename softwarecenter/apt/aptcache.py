@@ -59,6 +59,9 @@ class AptCache(gobject.GObject):
                     'cache-invalid':(gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
                                      ()),
+                    'cache-broken':(gobject.SIGNAL_RUN_FIRST,
+                                     gobject.TYPE_NONE,
+                                     ()),
                     }
 
     def __init__(self):
@@ -93,6 +96,8 @@ class AptCache(gobject.GObject):
             self._cache.open(GtkMainIterationProgress())
         self._ready = True
         self.emit("cache-ready")
+        if self._cache.broken_count > 0:
+            self.emit("cache-broken")
     def __getitem__(self, key):
         return self._cache[key]
     def __iter__(self):

@@ -1,4 +1,35 @@
-software-center (2.1.4) UNRELEASED; urgency=low
+software-center (2.1.5) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - fix in channel adding code
+  * merged lp:~mvo/software-center/lazr to support gobject
+    based wrapper around lazr.restfulclient apps
+  * merged lp:~mmcg069/software-center/pathbar-tweaks,
+    many thanks
+  * merged  lp:~mvo/software-center/appdetails-in-db that
+    improve the AppDetails abstraction 
+  
+  [ Gary Lasker ]
+  * data/icons/scalable/apps/category-show-all.svg,
+    data/icons_unbranded/scalable/apps/category-show-all.svg,
+    softwarecenter/view/catview_gtk.py:
+    - add custom icon for single-pane dept view "All" button;
+      icon created by Dani Planas Armangue, many thanks!
+      (LP: #599644)
+  * softwarecenter/view/pkgview.py:
+    - replace svg icon with png version because the svg version
+      has been removed from gnome-icon-theme (LP: #601987)
+  * po/POTFILES.in:
+    - update to latest set of modules
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk, adds
+    Matthew McGowan's new gtk-based appdetailsview, many thanks!
+    Thanks also to kiwinote and mvo for refactoring for new
+    AppDetails class and other changes.
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Jul 2010 00:15:10 -0400
+
+software-center (2.1.4) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/availablepane.py:
@@ -13,6 +44,19 @@ software-center (2.1.4) UNRELEASED; urgency=low
     softwarecenter/view/catview.py,
     softwarecenter/view/catview_gtk.py:
     - implement single-pane department screen
+  * softwarecenter/view/catview_gtk.py:
+    - use stock go-next icon for the show all button,
+      small fix in CarouselPoster's draw method
+  * merge lp:~mmcg069/software-center/catview-conform-w-spec:
+    many nice improvements to the category view and a fix
+    for the dept screen resize bug (LP: #598502), many thanks
+    to Matthew McGowan!
+  * merge lp:~mmcg069/software-center/catview-conform-w-spec:
+    fixes subcategory screen bug (LP: #598498), thanks Matthew
+    McGowan!
+  * softwarecenter/view/catview_gtk.py:
+    - use large icons in single-pane department screen per
+      the spec
 
   [ Michael Vogt ]
   * mergedp:~arky/ubuntu/maverick/software-center/fixes-595500:
@@ -28,8 +72,16 @@ software-center (2.1.4) UNRELEASED; urgency=low
     to Matthew McGowan
   * merged lp:~mvo/software-center/update-from-var-lib-apt-lists
     to support meta-data in deb822 format in /var/lib/apt/lists
+  * softwarecenter/view/catview_gtk.py:
+    - append "all" to get pathbar when "all" button is clicked in
+      a subcategory
+  * support detecting a broken apt cache and repairing it
+    (LP: #430200)
+  * debian/control:
+    - drop transitional gnome-app-install package, its no longer
+      required for clean upgrades
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 Jun 2010 22:50:56 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Jun 2010 11:42:16 +0200
 
 software-center (2.1.3) maverick; urgency=low
 
