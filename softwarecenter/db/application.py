@@ -104,6 +104,10 @@ class AppDetails(object):
         self._cache = self._db._aptcache
         self._distro = get_distro()
         self._history = get_apt_history()
+        self._deb = None
+        self._error = None
+        self._doc = None
+        self._pkg = None
         if doc:
             self.init_from_doc(doc)
         elif application:
@@ -120,11 +124,10 @@ class AppDetails(object):
             class (appname, pkgname, request)
         """
         self._app = app
-        self._doc = None
         self._app.request = self._app.request.replace("$distro", self._distro.get_distro_codename())
         if self._app.request:
             if self._app.request.count('/') > 0:
-                self._init_common()
+                self._init_common(deb=True)
                 self._init_deb_file()
                 return
         try:
@@ -159,28 +162,44 @@ class AppDetails(object):
                     self.warning += _(", which you are not currently using.")
                     return
             # pkg not found (well, we don't have it in app-install data)
-            error = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
-            self._app = Application(_("Not Found"), self._app.pkgname, error)
+            self._error = _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
         self._init_common()
 
-    def _init_common(self):
-        self._deb = None
-        self._pkg = None
+    def _init_common(self, deb=False):
         if (self.pkgname in self._cache and 
             self._cache[self.pkgname].candidate):
             self._pkg = self._cache[self.pkgname]
+        if not self._pkg and not deb:
+            available_for_arch = self._available_for_our_arch()
+            if not available_for_arch and (self.channelname or self.component):
+                self._error = _("\"%s\" is not available for this type of computer.") % self.name
 
     def _init_deb_file(self):
         try:
             self._deb = debfile.DebPackage(self._app.request, Cache())
         except (IOError,SystemError),e:
+            self._pkg = None
             mimetype = guess_type(self._app.request)
             if (mimetype[0] != None and mimetype[0] != "application/x-debian-package"):
-                error =  _("The file \"%s\" is not a software package.") % self._app.request
-                self._app = Application(_("Not Found"), self._app.pkgname, error)
+                self._error =  _("Not Found") + '@@' + _("The file \"%s\" is not a software package.") % self._app.request
             else:
-                error = _("The file \"%s\" can not be opened. Please check that the file exists and that you have permission to access it.") % self._app.request
-                self._app = Application(_("Not Found"), self._app.pkgname, error)
+                self._error = _("Not Found") + '@@' + _("The file \"%s\" can not be opened. Please check that the file exists and that you have permission to access it.") % self._app.request
+        if self._deb:
+            # check arch
+            if  self.architecture != "all" and self.architecture != get_current_arch():
+                self._error = _("The file \"%s\" can not be installed on this type of computer.") %  self._app.request.split('/')[-1]
+
+            # check conflicts and check if installing it would break anything on the current system
+            if not self._deb.check_conflicts() or not self._deb.check_breaks_existing_packages():
+                self._error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._app.request.split('/')[-1]
+
+            # try to satisfy the dependencies
+            if not self._deb._satisfy_depends(self._deb.depends):
+                self._error = _("The file \"%s\" requires other software packages to be installed that are not available, so can not be installed.") % self._app.request.split('/')[-1]
+
+            # check for conflicts again (this time with the packages that are marked for install)
+            if not self._deb.check_conflicts():
+                self._error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._app.request.split('/')[-1]
 
     @property
     def architecture(self):
@@ -232,28 +251,12 @@ class AppDetails(object):
 
     @property
     def error(self):
-        if self._deb:
-            # check arch
-            if  self.architecture != "all" and self.architecture != get_current_arch():
-                return _("The file \"%s\" can not be installed on this type of computer.") %  self._app.request.split('/')[-1]
-
-            # check conflicts and check if installing it would break anything on the current system
-            if not self._deb.check_conflicts() or not self._deb.check_breaks_existing_packages():
-                return _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._app.request.split('/')[-1]
-
-            # try to satisfy the dependencies
-            if not self._deb._satisfy_depends(self._deb.depends):
-                return _("The file \"%s\" requires other software packages to be installed that are not available, so can not be installed.") % self._app.request.split('/')[-1]
-
-            # check for conflicts again (this time with the packages that are marked for install)
-            if not self._deb.check_conflicts():
-                return _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._app.request.split('/')[-1]
-        if not self._pkg and not self._deb:
-            available_for_arch = self._available_for_our_arch()
-            if not available_for_arch and (self.channelname or self.component):
-                return _("\"%s\" is not available for this type of computer.") % self.name
-        if not self.summary:
-            return self._app.request
+        # doing this the old way gave massive performance regressions..
+        if self._error:
+            if self._error.count('@@') > 0:
+                return self._error.split('@@')[1]
+            else:
+                return self._error
 
     @property
     def icon(self):
@@ -278,6 +281,9 @@ class AppDetails(object):
 
     @property
     def name(self):
+        if self._error:
+            if self._error.count('@@') > 0:
+                return self._error.split('@@')[0]
         return self._app.name
 
     @property
