@@ -57,7 +57,7 @@ class AppDetailsViewBase(object):
         self.backend.reload()
     def install(self):
         """ install the current application, this goes straight to the backend """
-        request = self.appdetails._request
+        request = self.appdetails._app.request
         if request:
             if request.count('/') < 1:
                 request = None

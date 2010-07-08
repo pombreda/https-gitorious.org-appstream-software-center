@@ -127,7 +127,9 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def configure(self, app_details, state):
-        self.pkg_state = app_details.pkg_state
+        if not state:
+            state = app_details.pkg_state
+        self.pkg_state = state
         self.app_details = app_details
         self.progress.hide()
 
@@ -1066,6 +1068,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
         elif state == PKG_STATE_UPGRADABLE:
             self.action_bar.configure(self.app_details, PKG_STATE_UPGRADING)
+        elif state == PKG_STATE_REINSTALLABLE:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
+            # FIXME: is there a way to tell if we are installing/removing?
+            # we will assume that it is being installed, but this means that during removals we get the text "Installing.."
+            # self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
         return
 
     def _on_transaction_stopped(self, backend):

@@ -381,7 +381,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.backend.install(app.pkgname, app.appname, 
+        if app.request:
+            if app.request.count('/') < 1:
+                app.request = None
+        self.backend.install(app.pkgname, app.appname, app.request,
                              app.get_details(self.db).icon)
 
     def on_menuitem_remove_activate(self, menuitem):

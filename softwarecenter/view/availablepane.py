@@ -471,7 +471,6 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.add_with_id(app.appname, self.on_navigation_details, "details", animate=True)
         self.current_app_by_category[self.apps_category] = app
         self.app_details.show_app(app)
-        #self.current_app_by_category[self.apps_category] = app
         self.current_app_by_category[self.apps_category] = app
         self.display_details()
         self.current_app_by_category[self.apps_category] = app

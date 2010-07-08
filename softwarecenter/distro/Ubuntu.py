@@ -199,7 +199,7 @@ class Ubuntu(Distro):
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the "
                      "Ubuntu community.") % appname
-        return _("Application %s has an unknown maintenance status.") % appname
+        return
 
 
 if __name__ == "__main__":

@@ -41,12 +41,15 @@ class Application(object):
         There is also a __cmp__ method and a name property
     """
     def __init__(self, appname, pkgname, request, popcon=0):
-        if request.count("/") > 0:
+        if request.count("/") > 0 and not appname:
             self.appname = request.split('/')[-1].split('_')[0].split('.')[0].capitalize()
             self.pkgname = request.split('/')[-1].split('_')[0].split('.')[0].lower()
         else:
-            self.appname = pkgname.capitalize()
             self.pkgname = pkgname
+            if appname:
+                self.appname = appname
+            else:
+                self.appname = pkgname.capitalize()
         self.appname = self.appname.replace("$kernel", os.uname()[2])
         self.pkgname = self.pkgname.replace("$kernel", os.uname()[2])
         self.request = request
@@ -117,12 +120,18 @@ class AppDetails(object):
             class (appname, pkgname, request)
         """
         self._app = app
+        self._doc = None
+        self._app.request = self._app.request.replace("$distro", self._distro.get_distro_codename())
+        if self._app.request:
+            if self._app.request.count('/') > 0:
+                self._init_common()
+                self._init_deb_file()
+                return
         try:
             self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
         except IndexError:
-            self._doc = None
             # check if we have an apturl request to enable a channel
-            channel_matches = re.findall(r'channel=[a-z,-]*', self._request)
+            channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
             if channel_matches:
                 channel = channel_matches[0][8:]
                 channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
@@ -132,7 +141,7 @@ class AppDetails(object):
                     self.warning = _("This software may be available from the \"%s\" source, which you are not currently using.") % self.channel
                     return
             # check if we have an apturl request to enable a component
-            section_matches = re.findall(r'section=[a-z]*', self._request)
+            section_matches = re.findall(r'section=[a-z]*', self._app.request)
             if section_matches:
                 valid_section_matches = []
                 for section_match in section_matches:
@@ -150,7 +159,8 @@ class AppDetails(object):
                     self.warning += _(", which you are not currently using.")
                     return
             # pkg not found (well, we don't have it in app-install data)
-            self._app = Application("Not Found", app.pkgname)
+            error = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            self._app = Application(_("Not Found"), self._app.pkgname, error)
         self._init_common()
 
     def _init_common(self):
@@ -159,24 +169,18 @@ class AppDetails(object):
         if (self.pkgname in self._cache and 
             self._cache[self.pkgname].candidate):
             self._pkg = self._cache[self.pkgname]
-        self._request = self._app.request.replace("$distro", self._distro.get_distro_codename())
-        if self._request:
-            if self._request.count('/') > 0:
-                self._init_deb_file()
 
     def _init_deb_file(self):
         try:
-            self._deb = debfile.DebPackage(self._request, Cache())
+            self._deb = debfile.DebPackage(self._app.request, Cache())
         except (IOError,SystemError),e:
-            mimetype = guess_type(self._request)
+            mimetype = guess_type(self._app.request)
             if (mimetype[0] != None and mimetype[0] != "application/x-debian-package"):
-                self.error = _("The file \"%s\" is not a software package.") % self._request
-                self.icon = MISSING_PKG_ICON
-                self.name = _("Not Found")
+                error =  _("The file \"%s\" is not a software package.") % self._app.request
+                self._app = Application(_("Not Found"), self._app.pkgname, error)
             else:
-                self.error = _("The file \"%s\" can not be opened. Please check that the file exists and that you have permission to access it.") % self._request
-                self.icon = MISSING_PKG_ICON
-                self.name = _("Not Found")
+                error = _("The file \"%s\" can not be opened. Please check that the file exists and that you have permission to access it.") % self._app.request
+                self._app = Application(_("Not Found"), self._app.pkgname, error)
 
     @property
     def architecture(self):
@@ -231,25 +235,25 @@ class AppDetails(object):
         if self._deb:
             # check arch
             if  self.architecture != "all" and self.architecture != get_current_arch():
-                return _("The file \"%s\" can not be installed on this type of computer.") %  self._request.split('/')[-1]
+                return _("The file \"%s\" can not be installed on this type of computer.") %  self._app.request.split('/')[-1]
 
             # check conflicts and check if installing it would break anything on the current system
             if not self._deb.check_conflicts() or not self._deb.check_breaks_existing_packages():
-                return _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._request.split('/')[-1]
+                return _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._app.request.split('/')[-1]
 
             # try to satisfy the dependencies
             if not self._deb._satisfy_depends(self._deb.depends):
-                return _("The file \"%s\" requires other software packages to be installed that are not available, so can not be installed.") % self._request.split('/')[-1]
+                return _("The file \"%s\" requires other software packages to be installed that are not available, so can not be installed.") % self._app.request.split('/')[-1]
 
             # check for conflicts again (this time with the packages that are marked for install)
             if not self._deb.check_conflicts():
-                return _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._request.split('/')[-1]
+                return _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._app.request.split('/')[-1]
         if not self._pkg and not self._deb:
             available_for_arch = self._available_for_our_arch()
             if not available_for_arch and (self.channelname or self.component):
                 return _("\"%s\" is not available for this type of computer.") % self.name
         if not self.summary:
-            return _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            return self._app.request
 
     @property
     def icon(self):
@@ -357,13 +361,13 @@ class AppDetails(object):
                 return _("Only install deb files if you trust both the author and the distributor.")
             elif deb_state == DEB_OLDER_THAN_CACHE:
                 if not self._cache[self.pkgname].installed:
-                    return _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
+                    return _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.name
             elif deb_state == DEB_EQUAL_TO_CACHE:
-                return _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
+                return _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.name
             elif deb_state == DEB_NEWER_THAN_CACHE:
-                return _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.title
+                return _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.name
         # apturl minver matches
-        minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._request)
+        minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
         if minver_matches:
             minver = minver_matches[0][7:]
             if apt_pkg.version_compare(minver, self.version) > 0:
