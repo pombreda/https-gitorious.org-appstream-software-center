@@ -251,15 +251,15 @@ class AppDetails(object):
 
     @property
     def error(self):
-        # this may have changed since we inited the appdetails
-        if self.pkg_state == PKG_STATE_UNKNOWN:
-            self._error =  _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
         # doing this the old way gave massive performance regressions..
         if self._error:
             if self._error.count('@@') > 0:
                 return self._error.split('@@')[1]
             else:
                 return self._error
+        # this may have changed since we inited the appdetails
+        if self.pkg_state == PKG_STATE_UNKNOWN:
+            self._error =  _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
 
     @property
     def icon(self):
@@ -301,7 +301,7 @@ class AppDetails(object):
     @property
     def pkg_state(self):
         if self._deb:
-            if self.error:
+            if self._error:
                 return PKG_STATE_UNKNOWN
             else:
                 deb_state = self._deb.compare_to_version_in_cache()

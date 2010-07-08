@@ -146,10 +146,14 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UNINSTALLED:
             if app_details.price:
                 self.set_label(app_details.price)
+            else:
+                self.set_label("")
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_REINSTALLABLE:
             if app_details.price:
                 self.set_label(app_details.price)
+            else:
+                self.set_label("")
             self.set_button_label(_('Reinstall'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
