@@ -225,12 +225,7 @@ class AppDescription(gtk.VBox):
         self.points = []
         return
 
-    def append_paragraph(self, fragment, newline):
-        if not fragment.strip(): return
-
-        if fragment.endswith('\n\n'):
-            fragment = fragment[:-2]
-
+    def append_paragraph(self, fragment):
         p = gtk.Label()
         p.set_markup(fragment)
         p.set_line_wrap(True)
@@ -244,7 +239,6 @@ class AppDescription(gtk.VBox):
         return True
 
     def append_bullet_point(self, fragment):
-        fragment = fragment.strip()
         fragment = fragment.replace('* ', '')
         fragment = fragment.replace('- ', '')
 
@@ -263,9 +257,7 @@ class AppDescription(gtk.VBox):
         hb.pack_start(a, False)
         hb.pack_start(point, False)
 
-        bullet_padding = 4
         a = gtk.Alignment(xscale=1.0, yscale=1.0)
-        a.set_padding(bullet_padding, bullet_padding, 0, 0)
         a.add(hb)
 
         self.body.pack_start(a, False)
@@ -356,6 +348,55 @@ class AppDescription(gtk.VBox):
 
         self.show_all()
         return
+
+    def set_description2(self, desc, appname):
+        self.clear()
+        desc = gobject.markup_escape_text(desc)
+
+        parts = desc.splitlines()
+        l = len(parts)
+
+        in_blist = False
+        processed_frag = ''
+
+        for i, part in enumerate(parts):
+            part = part.strip()
+
+            # do the void
+            if not part:
+                pass
+
+            else:
+                if part[:2] in ('- ', '* '):
+                    in_blist = True
+
+                processed_frag += part
+
+                # ends with a terminator
+                if part[-1] in ('.', '!', '?', ':'): # latin terminal punctuators
+                    # not in a bullet list, so normal paragraph
+                    if not in_blist:
+                        # if not final text block, append newline
+                        if (i+1) < l:
+                            processed_frag += '\n'
+                        # append text block
+                        self.append_paragraph(processed_frag)
+                        # reset
+                        processed_frag = ''
+
+                    # we are in a bullet list
+                    else:
+                        # if not final text block, append newline
+                        if (i+1) < l:
+                            processed_frag += '\n'
+                        # append a bullet point
+                        self.append_bullet_point(processed_frag)
+                        # reset
+                        processed_frag = ''
+                        in_blist = False
+
+        self.show_all()
+        return    
 
 
 class PackageInfoTable(gtk.VBox):
@@ -928,6 +969,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # format new app description
         # FIXME: This is a bit messy, but the warnings need to be displayed somewhere until we find a better place for them
+        # IDEA:  Put warning into the PackageStatusBar.  Makes sense(?).
         if self.app_details.warning:
             if self.app_details.description:
                 description = "Warning: " + self.app_details.warning + "\n\n" + self.app_details.description
@@ -936,7 +978,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             description = self.app_details.description
         if description:
-            self.app_desc.set_description(description, appname)
+            self.app_desc.set_description2(description, appname)
 
         # show or hide the homepage button and set uri if homepage specified
         if self.app_details.website:
