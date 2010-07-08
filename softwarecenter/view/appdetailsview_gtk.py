@@ -324,7 +324,10 @@ class AppDescription(gtk.VBox):
                     processed_frag += ' '
 
         if processed_frag:
-            self.append_paragraph(processed_frag)
+            if processed_frag[:2] in ('- ', '* '):
+                self.append_bullet_point(processed_frag)
+            else:
+                self.append_paragraph(processed_frag)
 
         self.show_all()
         return    
