@@ -100,14 +100,17 @@ class AvailablePane(SoftwarePane):
 
     def _build_ui(self):
         # categories, appview and details into the notebook in the bottom
+        self.scroll_categories = gtk.ScrolledWindow()
+        self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
+                                        gtk.POLICY_AUTOMATIC)
         self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
                                        self.cache,
                                        self.db,
                                        self.icons,
                                        self.apps_filter)
-
+        self.scroll_categories.add(self.cat_view)
         #scroll_categories = gtk.ScrolledWindow()
-        self.notebook.append_page(self.cat_view, gtk.Label("categories"))
+        self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
         # sub-categories view
         self.subcategories_view = CategoriesView(self.datadir,
                                                  APP_INSTALL_PATH,
