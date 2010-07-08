@@ -1028,6 +1028,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             return
         
         self.app = app
+
         self.app_details = AppDetails(self.db, application=self.app)
         # for compat with the base class
         self.appdetails = self.app_details
@@ -1037,7 +1038,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # public interface
     def use_this_source(self):
-        if self.app_details.channelfile:
+        if self.app_details.channelfile and self.app_details._unavailable_channel():
             self.backend.enable_channel(self.app_details.channelfile)
         elif self.app_details.component:
             components = self.app_details.component.split('&')

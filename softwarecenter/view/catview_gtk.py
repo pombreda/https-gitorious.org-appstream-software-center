@@ -378,7 +378,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         cr.clip()
 
         # draw departments
-        self.departments.draw(cr, self.departments.allocation, expose_area)
+        if self.departments:
+            self.departments.draw(cr, self.departments.allocation, expose_area)
 
         if not self.in_subsection:
             # draw featured carousel

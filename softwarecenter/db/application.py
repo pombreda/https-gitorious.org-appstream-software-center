@@ -53,6 +53,11 @@ class Application(object):
         self.appname = self.appname.replace("$kernel", os.uname()[2])
         self.pkgname = self.pkgname.replace("$kernel", os.uname()[2])
         self.request = request
+        if not request:
+            if self.pkgname.count("?") > 0:
+                self.request = ('?').join(self.pkgname.split('?')[1:])
+                self.appname = self.appname.split('?')[0]
+                self.pkgname = self.pkgname.split('?')[0]
         self._popcon = popcon
     @property
     def name(self):
@@ -247,9 +252,8 @@ class AppDetails(object):
     @property
     def error(self):
         # this may have changed since we inited the appdetails
-        if not self._pkg and not self._deb:
-            if (self.channelname and not self._unavailable_channel()) or (not self.channelname and self.component and not (self._unavailable_component() or self._available_for_our_arch())):
-                self._error =  _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+        if self.pkg_state == PKG_STATE_UNKNOWN:
+            self._error =  _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
         # doing this the old way gave massive performance regressions..
         if self._error:
             if self._error.count('@@') > 0:
@@ -325,9 +329,13 @@ class AppDetails(object):
             else:
                 return PKG_STATE_UNINSTALLED
         if not self._pkg and not self._deb:
-            # FIXME: check to see if the channel is enabled or not..
-            if (self.channelname and self._unavailable_channel()) or (not self.channelname and self.component and (self._unavailable_component() or self._available_for_our_arch())):
+            if self.channelname and self._unavailable_channel():
                 return PKG_STATE_NEEDS_SOURCE
+            else:
+                components = self.component.split('&')
+                for component in components:
+                    if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
+                        return PKG_STATE_NEEDS_SOURCE
         return PKG_STATE_UNKNOWN
 
     @property
@@ -373,14 +381,15 @@ class AppDetails(object):
             elif deb_state == DEB_NEWER_THAN_CACHE:
                 return _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.name
         # apturl minver matches
-        minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
-        if minver_matches:
-            minver = minver_matches[0][7:]
-            if apt_pkg.version_compare(minver, self.version) > 0:
-                return _("Version %s or later is not available from your current software sources.") % minver
+        if not self.pkg_state == PKG_STATE_INSTALLED:
+            minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
+            if minver_matches:
+                minver = minver_matches[0][7:]
+                if apt_pkg.version_compare(minver, self.version) > 0:
+                    return _("Version %s or later is not available from your current software sources.") % minver
         if not self._pkg and not self._deb:
             source_to_enable = None
-            if self.channelname:
+            if self.channelname and self._unavailable_channel():
                 source_to_enable = self.channelname
             elif self.component:
                 source_to_enable = self.component
