@@ -38,8 +38,8 @@ from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
 
-from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
-#from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
+#from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
+from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
 
 from softwarecenter.db.database import Application
 
@@ -100,19 +100,23 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
+        
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         self.app_view.connect("application-request-action", 
                               self.on_application_request_action)
         # details
+        self.scroll_details = gtk.ScrolledWindow()
+        self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
+                                        gtk.POLICY_AUTOMATIC)
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
                                           self.icons, 
                                           self.cache, 
                                           self.history,
                                           self.datadir)
-
+        self.scroll_details.add(self.app_details)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list

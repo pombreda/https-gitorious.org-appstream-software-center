@@ -39,7 +39,7 @@ from widgets.wkwidget import WebkitWidget
 from widgets.imagedialog import ShowImageDialog
 
 
-class AppDetailsViewWebkit(gtk.ScrolledWindow, AppDetailsViewBase):
+class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     """The view that shows the application details """
 
     # the size of the icon on the left side
@@ -59,31 +59,21 @@ class AppDetailsViewWebkit(gtk.ScrolledWindow, AppDetailsViewBase):
                     }
     
 
-    def __init__(self, db, distro, icons, cache, history, datadir):
-        gtk.ScrolledWindow.__init__(self)
+    def __init__(self, db, distro, icons, cache, history, datadir, viewport=None):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
-        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.set_shadow_type(gtk.SHADOW_NONE)
-
-        self.view = WebkitWidget(datadir)
-        self.add(self.view)
-
-        #WebkitWidget.__init__(self, datadir)
+        WebkitWidget.__init__(self, datadir)
         self.arch = get_current_arch()
         # atk
-        atk_desc = self.view.get_accessible()
+        atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
-
         # setup user-agent
-        settings = self.view.get_settings()
+        settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)
-        self.view.connect("navigation-requested", self._on_navigation_requested)
-
+        self.connect("navigation-requested", self._on_navigation_requested)
         # signals
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-        self.show_all()
 
     # public API
     def _draw(self):
@@ -91,7 +81,7 @@ class AppDetailsViewWebkit(gtk.ScrolledWindow, AppDetailsViewBase):
         # some milliseconds before switching to the new app
         self._clear()
         # show (and let the wksub_ magic do the right substitutions)
-        self._show(self.view)
+        self._show(self)
         # print "html: ", self._html
         self._check_thumb_available()
     
@@ -102,12 +92,10 @@ class AppDetailsViewWebkit(gtk.ScrolledWindow, AppDetailsViewBase):
     def _show(self, widget):
         if not (self.app or self.appdetails):
             return
-        print 'Show', widget
-        self.view._show(widget)
-
+        WebkitWidget._show(self, widget)
     def _clear(self):
         " clear the current view "
-        self.view.load_string("", "text/plain", "ascii", "file:/")
+        self.load_string("", "text/plain", "ascii", "file:/")
         while gtk.events_pending(): 
             gtk.main_iteration()
 
@@ -350,9 +338,9 @@ class AppDetailsViewWebkit(gtk.ScrolledWindow, AppDetailsViewBase):
         if self.get_load_status() != 2:
             return
         self._set_action_button_sensitive(False)
-        self.view.execute_script("showProgress(true);")
+        self.execute_script("showProgress(true);")
         if pkgname in backend.pending_transactions:
-            self.view.execute_script("updateProgress(%s);" % progress)
+            self.execute_script("updateProgress(%s);" % progress)
 
     def _on_navigation_requested(self, view, frame, request):
         logging.debug("_on_navigation_requested %s" % request.get_uri())
@@ -378,7 +366,7 @@ class AppDetailsViewWebkit(gtk.ScrolledWindow, AppDetailsViewBase):
             logging.debug("thumb_query_info_async_callback")
             try:
                 result = source.query_info_finish(result)
-                self.view.execute_script("showThumbnail();")
+                self.execute_script("showThumbnail();")
             except glib.GError, e:
                 logging.debug("no thumb available")
                 glib.timeout_add(200, run_thumb_missing_js)
@@ -387,7 +375,7 @@ class AppDetailsViewWebkit(gtk.ScrolledWindow, AppDetailsViewBase):
             logging.debug("run_thumb_missing_js")
             # wait until its ready for JS injection
             # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
-            if self.view.get_load_status() != 2:
+            if self.get_load_status() != 2:
                 return True
             # we don't show "thumb-missing" anymore
             #self.execute_script("thumbMissing();"

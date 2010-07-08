@@ -716,7 +716,7 @@ class ScreenshotView(gtk.Alignment):
         return
 
 
-class AppDetailsViewGtk(gtk.ScrolledWindow, AppDetailsViewBase):
+class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     """ The view that shows the application details """
 
@@ -735,9 +735,8 @@ class AppDetailsViewGtk(gtk.ScrolledWindow, AppDetailsViewBase):
 
 
     def __init__(self, db, distro, icons, cache, history, datadir):
-        gtk.ScrolledWindow.__init__(self)
+        gtk.Viewport.__init__(self)
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
-        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         # atk
@@ -757,8 +756,8 @@ class AppDetailsViewGtk(gtk.ScrolledWindow, AppDetailsViewBase):
         self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
 
         # page elements are packed into our very own lovely viewport
-        viewport = self._layout_page()
-        viewport.connect('size-allocate', self._on_allocate)
+        self._layout_page()
+        self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         return
 
@@ -836,13 +835,10 @@ class AppDetailsViewGtk(gtk.ScrolledWindow, AppDetailsViewBase):
 
         # root vbox
         self.vbox = gtk.VBox()
+        self.add(self.vbox)
         self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
 
         # we have our own viewport so we know when the viewport grows/shrinks
-        viewport = gtk.Viewport()
-        viewport.set_shadow_type(gtk.SHADOW_NONE)
-        viewport.add(self.vbox)
-        self.add(viewport)
         self.vbox.set_redraw_on_allocate(False)
 
         # framed section that contains all app details
@@ -895,7 +891,7 @@ class AppDetailsViewGtk(gtk.ScrolledWindow, AppDetailsViewBase):
         self.app_info.body.pack_start(self.info_table, False)
 
         self.show_all()
-        return viewport
+        return
 
     def _update_page(self, app_details):
         # FIXME: check if we actually need that argument up there..
