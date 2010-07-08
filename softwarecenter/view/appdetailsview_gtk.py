@@ -296,7 +296,8 @@ class AppDescription(gtk.VBox):
 
                 # ends with a terminator or the following fragment starts with a capital letter
                 if part[-1] in ('.', '!', '?', ':') or \
-                    (i+1 < l and parts[i+1][0].isupper()):
+                    (i+1 < l and len(parts[i+1]) > 1 and \
+                        parts[i+1][0].isupper()):
 
                     # not in a bullet list, so normal paragraph
                     if not in_blist:
@@ -321,6 +322,9 @@ class AppDescription(gtk.VBox):
 
                 else:
                     processed_frag += ' '
+
+        if processed_frag:
+            self.append_paragraph(processed_frag)
 
         self.show_all()
         return    
