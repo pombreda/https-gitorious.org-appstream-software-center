@@ -236,7 +236,7 @@ class AppDescription(gtk.VBox):
 
         self.body.pack_start(hb, False)
         self.paragraphs.append(p)
-        return True
+        return
 
     def append_bullet_point(self, fragment):
         fragment = fragment.replace('* ', '')
@@ -262,98 +262,14 @@ class AppDescription(gtk.VBox):
 
         self.body.pack_start(a, False)
         self.points.append(point)
-        return False
-
-    def set_description(self, desc, appname):
-        # This is arcane shit maaaaannn...
-        self.clear()
-        desc = gobject.markup_escape_text(desc)
-
-        processed_desc = prev_part = ''
-        parts = desc.split('\n')
-
-        newline = False
-        in_blist = False    # within bullet list
-
-        for i, part in enumerate(parts):
-            part = part.strip()
-
-            if not part:
-                processed_desc += '\n'
-
-            elif part.startswith('* ') or part.startswith('- '):
-
-                if not in_blist:
-                    in_blist = True
-                    newline = self.append_paragraph(processed_desc, newline)
-                else:
-                    newline = self.append_bullet_point(processed_desc)
-
-                if prev_part and (i+1) < len(parts):
-                    processed_desc = '\n'
-                else:
-                    processed_desc = ''
-                processed_desc += part
-
-                # special case for 7zip
-                if appname == '7zip' and \
-                    (i+1) < len(parts) and parts[i+1].startswith('   '): #tab
-                    processed_desc += '\n'
-
-            elif prev_part.endswith('.'):
-                if in_blist:
-                    in_blist = False
-                    newline = self.append_bullet_point(processed_desc)
-                else:
-                    newline = self.append_paragraph(processed_desc, newline)
-
-                if prev_part and (i+1) < len(parts):
-                    processed_desc = '\n'
-                else:
-                    processed_desc = ''
-                processed_desc += part
-
-            elif not prev_part.endswith(',') and part[0].isupper():
-                if in_blist:
-                    in_blist = False
-                    newline = self.append_bullet_point(processed_desc)
-                else:
-                    newline = self.append_paragraph(processed_desc, newline)
-
-                if prev_part and (i+1) < len(parts):
-                    processed_desc = '\n'
-                else:
-                    processed_desc = ''
-                processed_desc += part
-
-            else:
-                if not part.endswith('.'):
-                    processed_desc += part + ' '
-                elif (i+1) < len(parts) and (parts[i+1].startswith('* ') or \
-                    parts[i+1].startswith('- ')):
-                    processed_desc += part
-                else:
-                    if part.endswith('.') and (i+1) < len(parts):
-                        processed_desc += part + '\n'
-                    else:
-                        processed_desc += part
-
-            prev_part = part
-
-        if in_blist:
-            in_blist = False
-            self.append_bullet_point(processed_desc)
-        else:
-            self.append_paragraph(processed_desc, newline)
-
-        self.show_all()
         return
 
-    def set_description2(self, desc, appname):
+    def set_description(self, desc, appname):
+        #print desc
         self.clear()
         desc = gobject.markup_escape_text(desc)
 
-        parts = desc.splitlines()
+        parts = desc.split('\n')
         l = len(parts)
 
         in_blist = False
@@ -368,12 +284,21 @@ class AppDescription(gtk.VBox):
 
             else:
                 if part[:2] in ('- ', '* '):
+                    # if there's an existing bullet, append it and start anew
+                    if in_blist:
+                        if (i+1) < l:
+                            processed_frag += '\n'
+
+                        self.append_bullet_point(processed_frag)
+                        processed_frag = ''
+
                     in_blist = True
 
                 processed_frag += part
 
-                # ends with a terminator
-                if part[-1] in ('.', '!', '?', ':'): # latin terminal punctuators
+                # ends with a terminator or the following fragment starts with a capital letter
+                if part[-1] in ('.', '!', '?', ':') or parts[i+1][0].isupper():
+
                     # not in a bullet list, so normal paragraph
                     if not in_blist:
                         # if not final text block, append newline
@@ -386,14 +311,17 @@ class AppDescription(gtk.VBox):
 
                     # we are in a bullet list
                     else:
-                        # if not final text block, append newline
+                        # append a bullet point
                         if (i+1) < l:
                             processed_frag += '\n'
-                        # append a bullet point
+
                         self.append_bullet_point(processed_frag)
                         # reset
                         processed_frag = ''
                         in_blist = False
+
+                else:
+                    processed_frag += ' '
 
         self.show_all()
         return    
@@ -978,7 +906,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             description = self.app_details.description
         if description:
-            self.app_desc.set_description2(description, appname)
+            self.app_desc.set_description(description, appname)
 
         # show or hide the homepage button and set uri if homepage specified
         if self.app_details.website:
