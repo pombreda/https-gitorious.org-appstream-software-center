@@ -59,15 +59,13 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
                     }
     
 
-    def __init__(self, db, distro, icons, cache, history, datadir):
+    def __init__(self, db, distro, icons, cache, history, datadir, viewport=None):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         WebkitWidget.__init__(self, datadir)
         self.arch = get_current_arch()
         # atk
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Description"))
-        # data
-        self.appdetails = None
         # setup user-agent
         settings = self.get_settings()
         settings.set_property("user-agent", USER_AGENT)

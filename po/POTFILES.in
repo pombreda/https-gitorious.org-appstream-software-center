@@ -14,6 +14,7 @@ softwarecenter/db/database.py
 softwarecenter/distro/Debian.py
 softwarecenter/distro/__init__.py
 softwarecenter/distro/Ubuntu.py
+softwarecenter/view/appdetailsview_gtk.py
 softwarecenter/view/appdetailsview_webkit.py
 softwarecenter/view/appview.py
 softwarecenter/view/availablepane.py

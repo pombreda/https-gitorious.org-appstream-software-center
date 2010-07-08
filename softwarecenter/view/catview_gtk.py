@@ -58,7 +58,7 @@ P =  '%s'
 P_SMALL = '<small>%s</small>'
 
 
-class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
+class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -100,21 +100,16 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.db = db
         self.icons = icons
 
-        gtk.ScrolledWindow.__init__(self)
+        gtk.Viewport.__init__(self)
         CategoriesView.__init__(self)
-        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
-
-        viewport = gtk.Viewport()
-        viewport.set_shadow_type(gtk.SHADOW_NONE)
-        viewport.add(self.vbox)
-        self.add(viewport)
         self.vbox.set_redraw_on_allocate(False)
+        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
+        self.add(self.vbox)
 
         # atk stuff
         atk_desc = self.get_accessible()
@@ -237,7 +232,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            
             if cat.untranslated_name not in ('Featured Applications',
                                              'New Applications'):
                 #enquirer.set_query(cat.query)
