@@ -332,10 +332,11 @@ class AppDetails(object):
             if self.channelname and self._unavailable_channel():
                 return PKG_STATE_NEEDS_SOURCE
             else:
-                components = self.component.split('&')
-                for component in components:
-                    if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
-                        return PKG_STATE_NEEDS_SOURCE
+                if self.component:
+                    components = self.component.split('&')
+                    for component in components:
+                        if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
+                            return PKG_STATE_NEEDS_SOURCE
         return PKG_STATE_UNKNOWN
 
     @property
