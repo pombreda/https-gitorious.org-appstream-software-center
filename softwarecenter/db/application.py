@@ -135,34 +135,11 @@ class AppDetails(object):
         except IndexError:
             # check if we have an apturl request to enable a channel
             channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
-            if channel_matches:
-                channel = channel_matches[0][8:]
-                channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
-                if os.path.exists(channelfile):
-                    self.channel = channel
-                    self.pkg_state = PKG_STATE_NEEDS_SOURCE
-                    self.warning = _("This software may be available from the \"%s\" source, which you are not currently using.") % self.channel
-                    return
             # check if we have an apturl request to enable a component
             section_matches = re.findall(r'section=[a-z]*', self._app.request)
-            if section_matches:
-                valid_section_matches = []
-                for section_match in section_matches:
-                    self.component = section_match[8:]
-                    if self._unavailable_component() and valid_section_matches.count(self.component) == 0:
-                        valid_section_matches.append(self.component)
-                    self.component = None
-                if valid_section_matches:
-                    self.component = ('&').join(valid_section_matches)
-                    self.pkg_state = PKG_STATE_NEEDS_SOURCE
-                    self.warning = _("This software may be available from the \"%s\" source") % valid_section_matches[0]
-                    if len(valid_section_matches) > 1:
-                        for valid_section_match in valid_section_matches[1:]:
-                            self.warning += _(", or from the \"%s\" source") % valid_section_match
-                    self.warning += _(", which you are not currently using.")
-                    return
             # pkg not found (well, we don't have it in app-install data)
-            self._error = _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            if not channel_matches and not section_matches:
+                self._error = _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
         self._init_common()
 
     def _init_common(self, deb=False):
@@ -215,6 +192,14 @@ class AppDetails(object):
             path = APP_INSTALL_CHANNELS_PATH + channel + ".list"
             if os.path.exists(path):
                 return channel
+        else:
+            # check if we have an apturl request to enable a channel
+            channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
+            if channel_matches:
+                channel = channel_matches[0][8:]
+                channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
+                if os.path.exists(channelfile):
+                    return channel
 
     @property
     def channelfile(self):
@@ -239,6 +224,16 @@ class AppDetails(object):
         if self._doc:
             comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
             return comp
+        # then apturl requests
+        if not self._doc:
+            section_matches = re.findall(r'section=[a-z]*', self._app.request)
+            if section_matches:
+                valid_section_matches = []
+                for section_match in section_matches:
+                    if self._unavailable_component(component_to_check=section_match[8:]) and valid_section_matches.count(section_match[8:]) == 0:
+                        valid_section_matches.append(section_match[8:])
+                if valid_section_matches:
+                    return ('&').join(valid_section_matches)
 
     @property
     def description(self):
@@ -251,6 +246,10 @@ class AppDetails(object):
 
     @property
     def error(self):
+        # this may have changed since we inited the appdetails
+        if not self._pkg and not self._deb:
+            if (self.channelname and not self._unavailable_channel()) or (not self.channelname and self.component and not (self._unavailable_component() or self._available_for_our_arch())):
+                self._error =  _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
         # doing this the old way gave massive performance regressions..
         if self._error:
             if self._error.count('@@') > 0:
@@ -281,7 +280,7 @@ class AppDetails(object):
 
     @property
     def name(self):
-        if self._error:
+        if self.error:
             if self._error.count('@@') > 0:
                 return self._error.split('@@')[0]
         return self._app.name
@@ -326,7 +325,8 @@ class AppDetails(object):
             else:
                 return PKG_STATE_UNINSTALLED
         if not self._pkg and not self._deb:
-            if self.channelname or (not self.channelname and self.component and (self._unavailable_component() or self._available_for_our_arch())):
+            # FIXME: check to see if the channel is enabled or not..
+            if (self.channelname and self._unavailable_channel()) or (not self.channelname and self.component and (self._unavailable_component() or self._available_for_our_arch())):
                 return PKG_STATE_NEEDS_SOURCE
         return PKG_STATE_UNKNOWN
 
@@ -379,13 +379,19 @@ class AppDetails(object):
             if apt_pkg.version_compare(minver, self.version) > 0:
                 return _("Version %s or later is not available from your current software sources.") % minver
         if not self._pkg and not self._deb:
-            source = None
+            source_to_enable = None
             if self.channelname:
-                source = self.channelname
+                source_to_enable = self.channelname
             elif self.component:
-                source = self.component
-            if source:
-                return _("This software is available from the \"%s\" source, which you are not currently using.") % source
+                source_to_enable = self.component
+            if source_to_enable:
+                sources = source_to_enable.split('&')
+                warning = _("This software may be available from the \"%s\" source") % sources[0]
+                if len(sources) > 1:
+                    for source in sources[1:]:
+                       warning += _(", or from the \"%s\" source") % source
+                warning += _(", which you are not currently using.")
+                return warning
 
     @property
     def website(self):
@@ -400,9 +406,22 @@ class AppDetails(object):
         if self._pkg:
             return self._pkg.candidate.homepage
 
-    def _unavailable_component(self):
+    def _unavailable_channel(self):
+        """ Check if the given doc refers to a channel that is currently not enabled """
+        # this is basically just a test to see if canonical-partner is enabled, it won't return true for anything else really..
+        channel = self.channelname
+        if not channel:
+            return False
+        if channel.count('-') != 1:
+            return False
+        available = self._cache.component_available(channel.split('-')[0], channel.split('-')[1])
+        return (not available)
+
+    def _unavailable_component(self, component_to_check=None):
         """ Check if the given doc refers to a component that is currently not enabled """
-        if self.component:
+        if component_to_check:
+            component = component_to_check
+        elif self.component:
             component = self.component
         else:
             component =  self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)

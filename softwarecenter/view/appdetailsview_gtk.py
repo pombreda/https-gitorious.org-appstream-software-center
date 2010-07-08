@@ -952,6 +952,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             summary = self.app_details.error
         else:
             summary = self.app_details.summary
+        if not summary:
+            summary = ""
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
@@ -972,7 +974,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # format new app description
         # FIXME: This is a bit messy, but the warnings need to be displayed somewhere until we find a better place for them
         # IDEA:  Put warning into the PackageStatusBar.  Makes sense(?).
-        if self.app_details.warning:
+        if self.app_details.warning and not self.app_details.error:
             if self.app_details.description:
                 description = "Warning: " + self.app_details.warning + "\n\n" + self.app_details.description
             else:
@@ -1029,7 +1031,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_details = AppDetails(self.db, application=self.app)
         # for compat with the base class
         self.appdetails = self.app_details
-        self.emit("selected", self.app)
         self._update_page(self.app_details)
         self.emit("selected", self.app)
         return
@@ -1040,7 +1041,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.backend.enable_channel(self.app_details.channelfile)
         elif self.app_details.component:
             components = self.app_details.component.split('&')
-            self.app_details.component = components[0]
             for component in components:
                 # this is broken atm?
                 self.backend.enable_component(component)

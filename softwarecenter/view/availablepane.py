@@ -466,15 +466,10 @@ class AvailablePane(SoftwarePane):
             self.navigation_bar.add_with_id(cat_of_app.name, self.on_navigation_list, "list", do_callback=False, animate=True)
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
-        self.app_details.app = app
         self.current_app_by_category[self.apps_category] = app
         self.navigation_bar.add_with_id(app.appname, self.on_navigation_details, "details", animate=True)
-        self.current_app_by_category[self.apps_category] = app
         self.app_details.show_app(app)
-        self.current_app_by_category[self.apps_category] = app
         self.display_details()
-        self.current_app_by_category[self.apps_category] = app
-
 
     # callbacks
     def on_cache_ready(self, cache):
