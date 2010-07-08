@@ -54,7 +54,7 @@ class InstalledPane(SoftwarePane):
         self.navigation_bar.set_size_request(26, -1)
         self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
         # details
-        self.notebook.append_page(self.app_details, gtk.Label("details"))
+        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # initial refresh
         self.search_terms = ""
 
@@ -74,7 +74,6 @@ class InstalledPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
-        #print "DBG: Loading installed_pane listview"
         self.loaded = True
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms)
