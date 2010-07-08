@@ -269,7 +269,7 @@ class AppDescription(gtk.VBox):
         #print desc
         self.clear()
         desc = gobject.markup_escape_text(desc)
-        print desc
+
         parts = desc.split('\n')
         l = len(parts)
 
