@@ -114,7 +114,7 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADABLE:
             AppDetailsViewBase.upgrade(self.view)
         elif state == PKG_STATE_NEEDS_SOURCE:
-            AppDetailsViewBase.use_this_source(self.view)
+            self.view.use_this_source()
         return
 
     def set_label(self, label):
@@ -258,6 +258,7 @@ class AppDescription(gtk.VBox):
         hb.pack_start(point, False)
 
         a = gtk.Alignment(xscale=1.0, yscale=1.0)
+        a.set_padding(4,4,0,0)
         a.add(hb)
 
         self.body.pack_start(a, False)
@@ -268,7 +269,7 @@ class AppDescription(gtk.VBox):
         #print desc
         self.clear()
         desc = gobject.markup_escape_text(desc)
-
+        print desc
         parts = desc.split('\n')
         l = len(parts)
 
@@ -286,9 +287,6 @@ class AppDescription(gtk.VBox):
                 if part[:2] in ('- ', '* '):
                     # if there's an existing bullet, append it and start anew
                     if in_blist:
-                        if (i+1) < l:
-                            processed_frag += '\n'
-
                         self.append_bullet_point(processed_frag)
                         processed_frag = ''
 
@@ -297,7 +295,8 @@ class AppDescription(gtk.VBox):
                 processed_frag += part
 
                 # ends with a terminator or the following fragment starts with a capital letter
-                if part[-1] in ('.', '!', '?', ':') or parts[i+1][0].isupper():
+                if part[-1] in ('.', '!', '?', ':') or \
+                    (i+1 < l and parts[i+1][0].isupper()):
 
                     # not in a bullet list, so normal paragraph
                     if not in_blist:
@@ -311,10 +310,10 @@ class AppDescription(gtk.VBox):
 
                     # we are in a bullet list
                     else:
-                        # append a bullet point
-                        if (i+1) < l:
+                        if (i+1) < l and not parts[i+1][:2] in ('- ', '* '):
                             processed_frag += '\n'
 
+                        # append a bullet point
                         self.append_bullet_point(processed_frag)
                         # reset
                         processed_frag = ''
