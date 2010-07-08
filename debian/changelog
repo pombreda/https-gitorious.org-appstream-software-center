@@ -17,8 +17,13 @@ software-center (2.1.5) UNRELEASED; urgency=low
     - add custom icon for single-pane dept view "All" button;
       icon created by Dani Planas Armangue, many thanks!
       (LP: #599644)
+  * softwarecenter/view/pkgview.py:
+    - replace svg icon with png version because the svg version
+      has been removed from gnome-icon-theme (LP: #601987)
+  * po/POTFILES.in:
+    - update to latest set of modules
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 01 Jul 2010 18:52:16 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Jul 2010 21:18:42 -0400
 
 software-center (2.1.4) maverick; urgency=low
 
