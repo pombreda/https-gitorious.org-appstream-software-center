@@ -75,7 +75,7 @@ class LoginDialog(object):
 
     def cb_login_successful(self, lp, token):
         """ callback when the login was successful """
-        print "login_successful"
+        print "login_successful", token
 
     def cb_login_failure(self, lp):
         """ callback when the login failed """

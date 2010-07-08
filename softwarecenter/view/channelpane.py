@@ -62,7 +62,7 @@ class ChannelPane(SoftwarePane):
     def _build_ui(self):
         self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
-        self.notebook.append_page(self.app_details, gtk.Label("details"))
+        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "

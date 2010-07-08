@@ -17,52 +17,5 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import locale
-import os
 
-class Application(object):
-    """ The central software item abstraction. it contains a 
-        pkgname that is always available and a optional appname
-        for packages with multiple applications
-        
-        There is also a __cmp__ method and a name property
-    """
-    def __init__(self, appname, pkgname, request, popcon=0):
-        if request.count("/") > 0:
-            self.appname = request.split('/')[-1].split('_')[0].split('.')[0].capitalize()
-            self.pkgname = request.split('/')[-1].split('_')[0].split('.')[0].lower()
-        else:
-            self.appname = pkgname.capitalize()
-            self.pkgname = pkgname
-        self.appname = self.appname.replace("$kernel", os.uname()[2])
-        self.pkgname = self.pkgname.replace("$kernel", os.uname()[2])
-        self.request = request
-        self._popcon = popcon
-    @property
-    def name(self):
-        """Show user visible name"""
-        if self.appname:
-            return self.appname
-        return self.pkgname
-    @property
-    def popcon(self):
-        return self._popcon
-    # special methods
-    def __hash__(self):
-        return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
-    def __cmp__(self, other):
-        return self.apps_cmp(self, other)
-    def __str__(self):
-        return "%s,%s" % (self.appname, self.pkgname)
-    @staticmethod
-    def apps_cmp(x, y):
-        """ sort method for the applications """
-        # sort(key=locale.strxfrm) would be more efficient, but its
-        # currently broken, see http://bugs.python.org/issue2481
-        if x.appname and y.appname:
-            return locale.strcoll(x.appname, y.appname)
-        elif x.appname:
-            return locale.strcoll(x.appname, y.pkgname)
-        elif y.appname:
-            return locale.strcoll(x.pkgname, y.appname)
-        else:
-            return cmp(x.pkgname, y.pkgname)
+from db.application import Application

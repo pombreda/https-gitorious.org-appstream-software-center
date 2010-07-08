@@ -92,7 +92,7 @@ def get_em_value():
     # 'M' is wide
     l.set_markup('M')
     w = l.get_pixel_extents()[1][2]
-    print w
+    # print w
     return w
 
 def get_nearest_stock_size(desired_size):

@@ -151,3 +151,11 @@ class AptHistory(object):
                     return term_lines
         return term_lines
 
+# make it a singleton
+apt_history = None
+def get_apt_history():
+    """ get the global AptHistory() singleton object """
+    global apt_history
+    if apt_history is None:
+        apt_history = AptHistory()
+    return apt_history

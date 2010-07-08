@@ -57,11 +57,8 @@ from backend.launchpad import GLaunchpad
 from distro import get_distro
 
 from apt.aptcache import AptCache
-from apt.apthistory import AptHistory
+from apt.apthistory import get_apt_history
 from gettext import gettext as _
-
-# Constants for comparing the local package file with the version in the cache
-(NOT_DEB, DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(-1,4)
 
 class SoftwarecenterDbusController(dbus.service.Object):
     """ 
@@ -134,7 +131,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("channels-changed", self.on_channels_changed)
         #apt history
-        self.history = AptHistory()
+        self.history = get_apt_history()
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
@@ -377,7 +374,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # Menu Items
     def on_menuitem_login_activate(self, menuitem):
-        print "login"
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
         LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
@@ -385,13 +381,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.active_pane.app_details.init_app(app)
-        self.active_pane.app_details.install()
+        self.backend.install(app.pkgname, app.appname, 
+                             app.get_details(self.db).icon)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.active_pane.app_details.init_app(app)
-        self.active_pane.app_details.remove()
+        self.backend.remove(app.pkgname, app.appname, 
+                            app.get_details(self.db).icon)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -410,7 +406,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                            self.menuitem_search]
         for item in edit_menu_items:
             item.set_sensitive(False)
-        if self.active_pane.searchentry.flags() & gtk.VISIBLE:
+        if (self.active_pane and
+            self.active_pane.searchentry.flags() & gtk.VISIBLE):
             # undo, redo, cut, copy, paste, delete, select_all sensitive 
             # if searchentry is focused (and other more specific conditions)
             if self.active_pane.searchentry.is_focus():
@@ -587,9 +584,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         pkg_state = None
         error = None
-        if self.active_pane.app_details.app_details:
-            pkg_state = self.active_pane.app_details.app_details.pkg_state
-            error = self.active_pane.app_details.app_details.error
+        if self.active_pane.app_details.appdetails:
+            pkg_state = self.active_pane.app_details.appdetails.pkg_state
+            error = self.active_pane.app_details.appdetails.error
         if self.active_pane.app_view.is_action_in_progress_for_selected_app():
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
@@ -602,7 +599,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         elif pkg_state == PKG_STATE_UNINSTALLED and not error:
             self.menuitem_install.set_sensitive(True)
             self.menuitem_remove.set_sensitive(False)
-        elif (not pkg_state and not self.active_pane.is_category_view_showing() and app.pkgname in self.cache and not self.active_pane.app_view.is_action_in_progress_for_selected_app() and not error):
+        elif (not pkg_state and 
+              not self.active_pane.is_category_view_showing() and 
+              app.pkgname in self.cache and 
+              not self.active_pane.app_view.is_action_in_progress_for_selected_app() and
+              not error):
             pkg = self.cache[app.pkgname]
             installed = bool(pkg.installed)
             self.menuitem_install.set_sensitive(not installed)
@@ -737,7 +738,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.searchentry.set_text(",".join(packages))
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
-            self.available_pane.searchentry.hide()
 
     def restore_state(self):
         if self.config.has_option("general", "size"):
