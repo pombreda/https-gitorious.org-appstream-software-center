@@ -266,10 +266,15 @@ class AppDescription(gtk.VBox):
         return
 
     def set_description(self, desc, appname):
+        """ Attempt to maintain original fixed width layout, while 
+            reconstructing the description into text blocks (either paragraphs or
+            bullets) which are line-wrap friendly.
+        """
+
         #print desc
         self.clear()
         desc = gobject.markup_escape_text(desc)
-        #print desc
+
         parts = desc.split('\n')
         l = len(parts)
 
@@ -279,11 +284,12 @@ class AppDescription(gtk.VBox):
         for i, part in enumerate(parts):
             part = part.strip()
 
-            # do the void
+            # if empty, do the void
             if not part:
                 pass
 
             else:
+                # frag looks like its a bullet point
                 if part[:2] in ('- ', '* '):
                     # if there's an existing bullet, append it and start anew
                     if in_blist:
@@ -296,7 +302,8 @@ class AppDescription(gtk.VBox):
 
                 # ends with a terminator or the following fragment starts with a capital letter
                 if part[-1] in ('.', '!', '?', ':') or \
-                    (i+1 < l and parts[i+1][0].isupper()):
+                    (i+1 < l and len(parts[i+1]) > 1 and \
+                        parts[i+1][0].isupper()):
 
                     # not in a bullet list, so normal paragraph
                     if not in_blist:
@@ -310,7 +317,10 @@ class AppDescription(gtk.VBox):
 
                     # we are in a bullet list
                     else:
-                        if (i+1) < l and not parts[i+1][:2] in ('- ', '* '):
+                        # append newline only if this is not the final
+                        # text block and its not followed by a bullet 
+                        if (i+1) < l and len(parts[i+1]) > 1 and not \
+                            parts[i+1][:2] in ('- ', '* '):
                             processed_frag += '\n'
 
                         # append a bullet point
@@ -321,6 +331,12 @@ class AppDescription(gtk.VBox):
 
                 else:
                     processed_frag += ' '
+
+        if processed_frag:
+            if processed_frag[:2] in ('- ', '* '):
+                self.append_bullet_point(processed_frag)
+            else:
+                self.append_paragraph(processed_frag)
 
         self.show_all()
         return    

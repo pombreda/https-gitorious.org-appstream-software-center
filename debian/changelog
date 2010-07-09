@@ -29,8 +29,10 @@ software-center (2.1.5) UNRELEASED; urgency=low
   * softwarecenter/apt/aptcache.py:
     - tweak timeout value when opening the apt cache
       (LP: #602610) 
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk, fixes
+    description parsing error for e.g. The Gimp.  Many thanks! 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Jul 2010 21:38:09 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Jul 2010 00:19:53 -0400
 
 software-center (2.1.4) maverick; urgency=low
 
