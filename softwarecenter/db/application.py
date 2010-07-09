@@ -109,49 +109,39 @@ class AppDetails(object):
         self._cache = self._db._aptcache
         self._distro = get_distro()
         self._history = get_apt_history()
-        self._deb = None
         self._error = None
-        self._doc = None
-        self._pkg = None
+
+        # load application
+        self._app = application
         if doc:
-            self.init_from_doc(doc)
-        elif application:
-            self.init_from_application(application)
-    def init_from_doc(self, doc):
-        """ init the application details from a xapian document """
-        self._doc = doc
-        self._app = Application(self._db.get_appname(self._doc),
-                                self._db.get_pkgname(self._doc),
-                                 "")
-        self._init_common()
-    def init_from_application(self, app):
-        """ init the application details from a Application
-            class (appname, pkgname, request)
-        """
-        self._app = app
+            self._app = Application(self._db.get_appname(self._doc), self._db.get_pkgname(self._doc), "")
         self._app.request = self._app.request.replace("$distro", self._distro.get_distro_codename())
+
+        # load pkg cache
+        self._pkg = None
+        if (self._app.pkgname in self._cache and self._cache[self._app.pkgname].candidate):
+            self._pkg = self._cache[self._app.pkgname]
+
+        # load xapian document
+        self._doc = doc
+        if not self._doc:
+            try:
+                self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
+            except IndexError:
+                debfile_matches = re.findall(r'/', self._app.request)
+                channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
+                section_matches = re.findall(r'section=[a-z]*', self._app.request)
+                if not self._pkg and not debfile_matches and not channel_matches and not section_matches:
+                    self._error = _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+
+        # see if someone is requesting a deb file to be loaded
+        self._deb = None
         if self._app.request:
             if self._app.request.count('/') > 0:
-                self._init_common(deb=True)
                 self._init_deb_file()
-                return
-        try:
-            self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
-        except IndexError:
-            # check if we have an apturl request to enable a channel
-            channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
-            # check if we have an apturl request to enable a component
-            section_matches = re.findall(r'section=[a-z]*', self._app.request)
-            # pkg not found (well, we don't have it in app-install data)
-            if not channel_matches and not section_matches:
-                self._error = _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
-        self._init_common()
 
-    def _init_common(self, deb=False):
-        if (self.pkgname in self._cache and 
-            self._cache[self.pkgname].candidate):
-            self._pkg = self._cache[self.pkgname]
-        if not self._pkg and not deb:
+        # finally we check to see if a pkg in a xapian document is available to install on our architecture
+        if self._doc and not self._pkg and not self._deb:
             available_for_arch = self._available_for_our_arch()
             if not available_for_arch and (self.channelname or self.component):
                 self._error = _("\"%s\" is not available for this type of computer.") % self.name
@@ -355,6 +345,8 @@ class AppDetails(object):
             return description.split('\n')[0]
         if self._doc:
             return self._db.get_summary(self._doc)
+        if self._pkg:
+            return self._pkg.candidate.summary
 
     @property
     def thumbnail(self):

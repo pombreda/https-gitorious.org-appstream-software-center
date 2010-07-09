@@ -136,6 +136,8 @@ class PackageStatusBar(gtk.Alignment):
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
 
+        if not state == PKG_STATE_UNKNOWN:
+            self.show()
         if state == PKG_STATE_INSTALLED:
             if app_details.installation_date:
                 installation_date = str(app_details.installation_date).split()[0]
@@ -168,10 +170,8 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Upgrading...'))
             #self.set_button_label(_('Upgrade Available'))
         elif state == PKG_STATE_UNKNOWN:
-            self.set_button_label("")
-            self.set_label(_("Error"))
-            self.fill_color = COLOR_RED_FILL
-            self.line_color = COLOR_RED_OUTLINE
+            # we have an error which we display in the summary field..
+            self.hide()
         elif state == PKG_STATE_NEEDS_SOURCE:
             self.set_button_label(_('Use This Source'))
             self.set_label(_('Source Unavailable'))
@@ -777,13 +777,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.rectangle(expose_area)
         cr.clip()
 
-        self.app_info.draw(cr, self.app_info.allocation, expose_area)
+        if self.app_info.get_property('visible'):
+            self.app_info.draw(cr, self.app_info.allocation, expose_area)
 
-        self.action_bar.draw(cr,
-                             self.action_bar.allocation,
-                             event.area)
+        if self.action_bar.get_property('visible'):
+            self.action_bar.draw(cr,
+                                 self.action_bar.allocation,
+                                 event.area)
 
-        self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
+        if self.screenshot.get_property('visible'):
+            self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
         del cr
         return
 
@@ -887,6 +890,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # FIXME: check if we actually need that argument up there..
         self.app_details = app_details
 
+        error = self.app_details.error
+
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
@@ -894,9 +899,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         appname = gobject.markup_escape_text(self.app_details.name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
-        # FIXME: Once again (yes, I am working from the end to the beginning of the file..) this is tmp until we find a better place for the errors
-        if self.app_details.error:
-            summary = self.app_details.error
+        if error:
+            summary = error
         else:
             summary = self.app_details.summary
         if not summary:
@@ -912,6 +916,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if not icon:
             icon = MISSING_APP_ICON
         self.app_info.set_icon(icon, gtk.ICON_SIZE_DIALOG)
+
+        # if we have an error, then hide everything else
+        if error:
+            self.desc_section.hide()
+            self.info_table.hide()
+            self.screenshot.hide()
+        else:
+            self.desc_section.show()
+            self.info_table.show()
+            self.screenshot.show()
 
         # depending on pkg install state set action labels
         self.action_bar.configure(self.app_details, self.app_details.pkg_state)
