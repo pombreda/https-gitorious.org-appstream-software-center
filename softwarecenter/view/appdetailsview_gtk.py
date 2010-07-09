@@ -114,6 +114,7 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADABLE:
             AppDetailsViewBase.upgrade(self.view)
         elif state == PKG_STATE_NEEDS_SOURCE:
+            # FIXME:  This should be in AppDetailsViewBase
             self.view.use_this_source()
         return
 
