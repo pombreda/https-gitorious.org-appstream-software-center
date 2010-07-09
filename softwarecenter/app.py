@@ -72,7 +72,9 @@ class SoftwarecenterDbusController(dbus.service.Object):
         self.parent = parent
 
     @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
-    def bringToFront(self):
+    def bringToFront(self, args):
+        if args != 'nothing-to-show':
+            self.parent.show_available_packages(args)
         self.parent.window_main.present()
         return True
 
@@ -89,9 +91,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # FIXME:  REMOVE THIS once launchpad integration is enabled
     #         by default
-    def __init__(self, datadir, xapian_base_path, enable_lp_integration=False):
+    def __init__(self, datadir, xapian_base_path, args, enable_lp_integration=False):
     #def __init__(self, datadir, xapian_base_path):
-    
+
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareCenter.ui", 
@@ -106,7 +108,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # setup dbus and exit if there is another instance already
         # running
-        self.setup_dbus_or_bring_other_instance_to_front()
+        self.setup_dbus_or_bring_other_instance_to_front(args)
         self.setup_database_rebuilding_listener()
         
         try:
@@ -684,7 +686,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                 "DatabaseRebuilding",
                                 "com.ubuntu.Softwarecenter")
 
-    def setup_dbus_or_bring_other_instance_to_front(self):
+    def setup_dbus_or_bring_other_instance_to_front(self, args):
         """ 
         This sets up a dbus listener
         """
@@ -699,7 +701,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             proxy_obj = bus.get_object('com.ubuntu.Softwarecenter', 
                                        '/com/ubuntu/Softwarecenter')
             iface = dbus.Interface(proxy_obj, 'com.ubuntu.SoftwarecenterIFace')
-            iface.bringToFront()
+            if args:
+                iface.bringToFront(args)
+            else:
+                iface.bringToFront('nothing-to-show')
             sys.exit()
         except dbus.DBusException, e:
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter',bus)

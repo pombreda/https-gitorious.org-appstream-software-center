@@ -166,7 +166,10 @@ class SoftwarePane(gtk.VBox):
         # action_func is "install" or "remove" of self.app_details
         action_func = getattr(self.backend, action)
         if callable(action_func):
-            action_func(app.pkgname, app.appname, app.get_details(self.db).icon)
+            if action == 'install':
+                action_func(app.pkgname, app.appname, app.request, app.get_details(self.db).icon)
+            elif action == 'remove':
+                action_func(app.pkgname, app.appname, app.get_details(self.db).icon)
         else:
             logging.error("can not find action '%s'" % action)
 
