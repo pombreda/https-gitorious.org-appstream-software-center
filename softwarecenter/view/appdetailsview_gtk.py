@@ -1031,6 +1031,7 @@ if __name__ == "__main__":
     pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
+
     from softwarecenter.db.database import StoreDatabase
     db = StoreDatabase(pathname, cache)
     db.open()
@@ -1041,12 +1042,16 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
+    from softwarecenter.apt.apthistory import get_apt_history
+    history = get_apt_history()
+
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsViewGtk(db, distro, icons, cache, datadir)
+    view = AppDetailsViewGtk(db, distro, icons, cache, history, datadir)
     from softwarecenter.db.application import Application
+    view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 
