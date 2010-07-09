@@ -35,7 +35,7 @@ from optparse import OptionParser
 
 if __name__ == "__main__":
 
-    parser = OptionParser("usage: %prog [options] package", 
+    parser = OptionParser("usage: %prog [options] [package-name | apturl | deb-file]", 
                           version="%prog "+VERSION)
     parser.add_option("--debug", action="store_true",
                       help="enable debug mode", default=False)
