@@ -89,6 +89,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     
     def show_app(self, app):
         AppDetailsViewBase.show_app(self, app)
+        print self.appdetails
 
     # private stuff
     def _show(self, widget):
@@ -486,9 +487,6 @@ if __name__ == "__main__":
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
-
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
@@ -498,8 +496,9 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsViewWebkit(db, distro, icons, cache, history, datadir)
+    view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 

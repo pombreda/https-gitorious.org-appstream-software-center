@@ -26,8 +26,11 @@ software-center (2.1.5) UNRELEASED; urgency=low
     Matthew McGowan's new gtk-based appdetailsview, many thanks!
     Thanks also to kiwinote and mvo for refactoring for new
     AppDetails class and other changes.
+  * softwarecenter/apt/aptcache.py:
+    - tweak timeout value when opening the apt cache
+      (LP: #602610) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Jul 2010 00:15:10 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Jul 2010 21:38:09 -0400
 
 software-center (2.1.4) maverick; urgency=low
 
