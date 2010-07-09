@@ -87,7 +87,7 @@ class testDatabase(unittest.TestCase):
         db.open(use_axi=False)
         self.assertTrue(len(db), 1)
         # test details
-        app = Application("Ubuntu Software Center Test", "software-center")
+        app = Application("Ubuntu Software Center Test", "software-center", "")
         details = app.get_details(db)
         self.assertNotEqual(details, None)
         self.assertEqual(details.component, "main")
@@ -99,7 +99,7 @@ class testDatabase(unittest.TestCase):
         self.assertEqual(appdetails.pkgname, "software-center")
         # FIXME: add a dekstop file with a real channel to test
         #        and monkey-patch/modify the APP_INSTALL_CHANNELS_PATH
-        self.assertEqual(appdetails.channel, None)
+        self.assertEqual(appdetails.channelname, None)
         self.assertEqual(appdetails.component, "main")
         self.assertNotEqual(appdetails.pkg, None)
         # FIXME: test description for unavailable pkg
