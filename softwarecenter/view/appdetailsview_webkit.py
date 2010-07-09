@@ -31,7 +31,7 @@ import urllib
 from gettext import gettext as _
 
 from softwarecenter.db.application import Application
-from softwarecenter.enums import USER_AGENT, MISSING_APP_ICON
+from softwarecenter.enums import *
 from softwarecenter.view.appdetailsview import AppDetailsViewBase
 from softwarecenter.utils import get_current_arch, htmlize_package_desc
 from widgets.wkwidget import WebkitWidget
@@ -122,7 +122,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     def wksub_description(self):
         # FIXME: portme to AppDetails class
         if not self.appdetails.pkg:
-            available_for_arch = self._available_for_our_arch()
+            available_for_arch = self.appdetails._available_for_our_arch()
             if self.appdetails.channelfile and available_for_arch:
                 return _("This software is available from the '%s' source, "
                          "which you are not currently using.") % self.appdetails.channelname
@@ -204,11 +204,11 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.action_button_value = self._get_action_button_label_and_value()[1]
         return self.action_button_value
     def wksub_action_button_visible(self):
-        if not self._available_for_our_arch():
+        if not self.appdetails._available_for_our_arch():
             return "hidden"
         if (not self.appdetails.channelfile and 
             not self.appdetails.price and
-            not self._unavailable_component() and
+            not self.appdetails._unavailable_component() and
             not self.appdetails.pkg):
             return "hidden"
         return "visible"
@@ -409,71 +409,35 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     def _get_action_button_label_and_value(self):
         action_button_label = ""
         action_button_value = ""
-        if self.appdetails.pkg:
-            pkg = self.appdetails.pkg
-            # Don't handle upgrades yet
-            #if pkg.installed and pkg.isUpgradable:
-            #    action_button_label = _("Upgrade")
-            #    action_button_value = "upgrade"
-            if pkg.installed:
-                action_button_label = _("Remove")
-                action_button_value = "remove"
-            else:
+        state = self.appdetails.pkg_state
+        if state == PKG_STATE_UNINSTALLED:
                 action_button_label = _("Install")
                 action_button_value = "install"
-        # FIXME: use a state from the appdetails class here
-        elif self.appdetails._doc:
+        elif state == PKG_STATE_INSTALLED:
+            action_button_label = _("Remove")
+            action_button_value = "remove"
+        # FIXME: make this a PKG_STATE_*
+        elif (self.appdetails.price and
+              self.appdetails._available_for_our_arch()):
+            action_button_label = _("Buy for %s") % self.appdetails.price
+            action_button_value = "buy_app"
+        elif state == PKG_STATE_NEEDS_SOURCE:
             channelfile = self.appdetails.channelfile
             # it has a price and is not available 
-            if (self.appdetails.price and 
-                self._available_for_our_arch()):
-                action_button_label = _("Buy for %s") % self.appdetails.price
-                action_button_value = "buy_app"
-            elif channelfile:
+            if channelfile:
                 # FIXME: deal with the EULA stuff
                 action_button_label = _("Use This Source")
                 action_button_value = "enable_channel"
             # check if it comes from a non-enabled component
-            elif self._unavailable_component():
+            elif self.appdetails._unavailable_component():
                 # FIXME: use a proper message here, but we are in string freeze
                 action_button_label = _("Use This Source")
                 action_button_value = "enable_component"
-            elif self._available_for_our_arch():
+            elif self.appdetails._available_for_our_arch():
                 action_button_label = _("Update Now")
                 action_button_value = "reload"
         return (action_button_label, action_button_value)
 
-    def _unavailable_component(self):
-        """ 
-        check if the given doc refers to a component (like universe)
-        that is currently not enabled
-        """
-        component =  self.appdetails.component
-        logging.debug("component: '%s'" % component)
-        # if there is no component accociated, it can not be unavailable
-        if not component:
-            return False
-        distro_codename = self.distro.get_codename()
-        available = self.cache.component_available(distro_codename, component)
-        return (not available)
-
-    def _available_for_our_arch(self):
-        """ check if the given package is available for our arch """
-        arches = self.appdetails.architecture
-        # if we don't have a arch entry in the document its available
-        # on all architectures we know about
-        if not arches:
-            return True
-        # check the arch field and support both "," and ";"
-        sep = ","
-        if ";" in arches:
-            sep = ";"
-        elif "," in arches:
-            sep = ","
-        for arch in map(string.strip, arches.split(sep)):
-            if arch == self.arch:
-                return True
-        return False
     def _set_action_button_sensitive(self, enabled):
         if self.get_load_status() != 2:
             return
