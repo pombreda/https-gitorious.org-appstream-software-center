@@ -952,7 +952,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             return
         
         self.app = app
-        self.app_details = AppDetails(self.db, application=self.app)
+        self.app_details = app.get_details(self.db)
         # for compat with the base class
         self.appdetails = self.app_details
         self.emit("selected", self.app)
