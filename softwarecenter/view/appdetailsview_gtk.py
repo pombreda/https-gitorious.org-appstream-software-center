@@ -122,6 +122,11 @@ class PackageStatusBar(gtk.Alignment):
         self.label.set_markup(m)
         return
 
+    def set_warning_label(self, label):
+        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
+        self.label.set_markup(m)
+        return
+
     def set_button_label(self, label):
         self.button.set_label(label)
         return
@@ -177,6 +182,8 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Source Unavailable'))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
+        if self.app_details.warning:
+            self.set_warning_label(self.app_details.warning)
         return
 
     def draw(self, cr, a, expose_area):
@@ -777,8 +784,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.rectangle(expose_area)
         cr.clip()
 
-        if self.app_info.get_property('visible'):
-            self.app_info.draw(cr, self.app_info.allocation, expose_area)
+        self.app_info.draw(cr, self.app_info.allocation, expose_area)
 
         if self.action_bar.get_property('visible'):
             self.action_bar.draw(cr,
@@ -887,9 +893,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_page(self, app_details):
-        # FIXME: check if we actually need that argument up there..
         self.app_details = app_details
-
         error = self.app_details.error
 
         # make title font size fixed as they should look good compared to the 
@@ -917,11 +921,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             icon = MISSING_APP_ICON
         self.app_info.set_icon(icon, gtk.ICON_SIZE_DIALOG)
 
-        # if we have an error, then hide everything else
-        if error:
-            self.desc_section.hide()
+        # if we have an error or if we need to enable a source, then hide everything else
+        if error or self.app_details.pkg_state == PKG_STATE_NEEDS_SOURCE:
             self.info_table.hide()
-            self.screenshot.hide()
+            if error:
+                self.screenshot.hide()
+                self.desc_section.hide()
+            else:
+                self.screenshot.show()
+                self.desc_section.show()
         else:
             self.desc_section.show()
             self.info_table.show()
@@ -933,20 +941,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.grab_focus()
 
         # format new app description
-        # FIXME: This is a bit messy, but the warnings need to be displayed somewhere until we find a better place for them
-        # IDEA:  Put warning into the PackageStatusBar.  Makes sense(?).
-        if self.app_details.warning and not self.app_details.error:
-            if self.app_details.description:
-                description = "Warning: " + self.app_details.warning + "\n\n" + self.app_details.description
-            else:
-                description = "Warning: " + self.app_details.warning
-        else:
-            description = self.app_details.description
+        description = self.app_details.description
         if description:
             self.app_desc.set_description(description, appname)
 
         # show or hide the homepage button and set uri if homepage specified
-        if self.app_details.website:
+        if self.app_details.website and self.info_table.get_property('visible'):
             self.homepage_btn.show()
             self.homepage_btn.set_property('visited', False)
             self.homepage_btn.set_uri(self.app_details.website)
@@ -954,7 +954,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self.gwibber_is_available and not self.app_details.error:
+        if self.gwibber_is_available and self.info_table.get_property('visible'):
             self.share_btn.show()
             self.share_btn.set_property('visited', False)
         else:

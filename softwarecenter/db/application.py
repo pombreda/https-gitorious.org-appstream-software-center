@@ -365,21 +365,23 @@ class AppDetails(object):
             deb_state = self._deb.compare_to_version_in_cache()
             (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
             if deb_state == DEB_NOT_IN_CACHE:
-                return _("Only install deb files if you trust both the author and the distributor.")
+                return _("Only install this file if you trust the origin.")
             elif deb_state == DEB_OLDER_THAN_CACHE:
                 if not self._cache[self.pkgname].installed:
-                    return _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.name
+                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
             elif deb_state == DEB_EQUAL_TO_CACHE:
-                return _("Please install \"%s\" via your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.name
+                return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
             elif deb_state == DEB_NEWER_THAN_CACHE:
-                return _("An older version of \"%s\" is available in your normal software channels. Only install deb files if you trust both the author and the distributor.") % self.name
+                return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
         # apturl minver matches
         if not self.pkg_state == PKG_STATE_INSTALLED:
             minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
             if minver_matches:
                 minver = minver_matches[0][7:]
                 if apt_pkg.version_compare(minver, self.version) > 0:
-                    return _("Version %s or later is not available from your current software sources.") % minver
+                    return _("Version %s or later not available.") % minver
+                    # below is mpt's warning text..
+                    #return _("Version %s or later is not available from your current software sources.") % minver
         if not self._pkg and not self._deb:
             source_to_enable = None
             if self.channelname and self._unavailable_channel():
@@ -388,11 +390,17 @@ class AppDetails(object):
                 source_to_enable = self.component
             if source_to_enable:
                 sources = source_to_enable.split('&')
-                warning = _("This software may be available from the \"%s\" source") % sources[0]
+                warning = _("Available from the \"%s\"") % sources[0]
                 if len(sources) > 1:
                     for source in sources[1:]:
-                       warning += _(", or from the \"%s\" source") % source
-                warning += _(", which you are not currently using.")
+                       warning += _(", or from the \"%s\"") % source
+                warning += _(" source.")
+                # below is mpt's warning text..
+                #warning = _("This software may be available from the \"%s\" source") % sources[0]
+                #if len(sources) > 1:
+                #    for source in sources[1:]:
+                #       warning += _(", or from the \"%s\" source") % source
+                #warning += _(", which you are not currently using.")
                 return warning
 
     @property
