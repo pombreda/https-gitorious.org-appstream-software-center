@@ -89,6 +89,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     
     def show_app(self, app):
         AppDetailsViewBase.show_app(self, app)
+        print self.appdetails
 
     # private stuff
     def _show(self, widget):
@@ -521,9 +522,6 @@ if __name__ == "__main__":
 
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
-
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()

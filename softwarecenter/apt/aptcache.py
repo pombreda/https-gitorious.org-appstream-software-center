@@ -70,7 +70,7 @@ class AptCache(gobject.GObject):
         self._ready = False
         self._timeout_id = None
         # async open cache
-        glib.timeout_add(100, self.open)
+        glib.timeout_add(10, self.open)
         # setup monitor watch for install/remove changes
         self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
         self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(

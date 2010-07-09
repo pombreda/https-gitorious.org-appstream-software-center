@@ -289,3 +289,27 @@ class AppDetails(object):
             if arch == get_current_arch():
                 return True
         return False
+        
+    def __str__(self):
+        details = []
+        details.append("* AppDetails")
+        details.append("                name: %s" % self.name)
+        details.append("                 pkg: %s" % self.pkg)
+        details.append("             pkgname: %s" % self.pkgname)
+        details.append("        architecture: %s" % self.architecture)
+        details.append("         channelname: %s" % self.channelname)
+        details.append("         channelfile: %s" % self.channelfile)
+        details.append("           component: %s" % self.component)
+        details.append("         description: %s" % self.description)
+        details.append("                icon: %s" % self.icon)
+        details.append("   installation_date: %s" % self.installation_date)
+        details.append("             license: %s" % self.license)
+        details.append("  maintenance_status: %s" % self.maintenance_status)
+        details.append("           pkg_state: %s" % self.pkg_state)
+        details.append("               price: %s" % self.price)
+        details.append("          screenshot: %s" % self.screenshot)
+        details.append("             summary: %s" % self.summary)
+        details.append("           thumbnail: %s" % self.thumbnail)
+        details.append("             version: %s" % self.version)
+        details.append("             website: %s" % self.website)
+        return '\n'.join(details)
