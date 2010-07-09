@@ -25,14 +25,14 @@ software-center (2.1.5) UNRELEASED; urgency=low
   * merge lp:~mmcg069/software-center/appdetailsview-gtk, adds
     Matthew McGowan's new gtk-based appdetailsview, many thanks!
     Thanks also to kiwinote and mvo for refactoring for new
-    AppDetails class and other changes.
+    AppDetails class and other changes.  Also fixes LP: #578650.
   * softwarecenter/apt/aptcache.py:
     - tweak timeout value when opening the apt cache
       (LP: #602610) 
   * merge lp:~mmcg069/software-center/appdetailsview-gtk, fixes
     description parsing error for e.g. The Gimp.  Many thanks! 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Jul 2010 00:19:53 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Jul 2010 00:43:42 -0400
 
 software-center (2.1.4) maverick; urgency=low
 
