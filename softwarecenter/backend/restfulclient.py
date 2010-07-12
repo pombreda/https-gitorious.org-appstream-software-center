@@ -215,7 +215,7 @@ class UbuntuSSOlogin(LoginBackend):
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
         if self.oauth_credentials:
-            self.emit("login-successful", self.oauth_credentials)  # TODO:  is this correct?  (second arg formally was "result", hrm)
+            self.emit("login-successful", self.oauth_credentials)  # TODO:  is this correct?  (second arg formerly "result", hrm)
         if self._login_failure:
             self.emit("login-failed")
             self._login_failure = None
