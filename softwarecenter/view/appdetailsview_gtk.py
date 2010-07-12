@@ -107,16 +107,12 @@ class PackageStatusBar(gtk.Alignment):
         state = self.pkg_state
         if state == PKG_STATE_INSTALLED:
             AppDetailsViewBase.remove(self.view)
+        elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+            # FIXME: implement this!
+            pass
+        elif state == PKG_STATE_NEEDS_PURCHASE:
+            AppDetailsViewBase.buy_app(self.view)
         elif state == PKG_STATE_UNINSTALLED:
-            if app_details.purchase_date:
-                # item was previously purchased, so just reinstall
-                # QUESTION:  is this the indented purpose of PKG_STATE_REINSTALLABLE?
-                # TODO:  Add magic for checking access to the corresponding repo, etc.
-                AppDetailsViewBase.install(self.view)
-            elif app_details.price:
-                AppDetailsViewBase.buy_app(self.view)
-            else:
-                self.set_button_label(_('Install'))
             AppDetailsViewBase.install(self.view)
         elif state == PKG_STATE_REINSTALLABLE:
             AppDetailsViewBase.install(self.view)
@@ -158,18 +154,15 @@ class PackageStatusBar(gtk.Alignment):
             else:
                 self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
+        elif state == PKG_STATE_NEEDS_PURCHASE:
+            self.set_label(_("Buy for %s") % app_details.price)
+            self.set_button_label(_('Buy'))
+        elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+            purchase_date = str(app_details.purchase_date).split()[0]
+            self.set_label(_('Purchased on %s' % purchase_date))
+            self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
-            if app_details.purchase_date:
-                # item was previously purchased, so just reinstall
-                # QUESTION:  is this the indented purpose of PKG_STATE_REINSTALLABLE?
-                purchase_date = str(app_details.purchase_date).split()[0]
-                self.set_label(_('Purchased on %s' % purchase_date))
-                self.set_button_label(_('Install'))
-            elif app_details.price:
-                self.set_label(app_details.price)
-                self.set_button_label(_('Buy'))
-            else:
-                self.set_button_label(_('Install'))
+            self.set_button_label(_('Install'))
         elif state == PKG_STATE_REINSTALLABLE:
             if app_details.price:
                 self.set_label(app_details.price)
@@ -1006,8 +999,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_details = app.get_details(self.db)
         # for compat with the base class
         self.appdetails = self.app_details
-        print "AppDetailsViewGtk:"
-        print self.appdetails
+        #print "AppDetailsViewGtk:"
+        #print self.appdetails
         # self.emit("selected", self.app)  # << redundant??
         self._update_page(self.app_details)
         self.emit("selected", self.app)

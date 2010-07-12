@@ -89,7 +89,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     
     def show_app(self, app):
         AppDetailsViewBase.show_app(self, app)
-        print self.appdetails
+        #print self.appdetails
 
     # private stuff
     def _show(self, widget):
@@ -411,9 +411,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         elif state == PKG_STATE_INSTALLED:
             action_button_label = _("Remove")
             action_button_value = "remove"
-        # FIXME: make this a PKG_STATE_*
-        elif (self.appdetails.price and
-              self.appdetails._available_for_our_arch()):
+        elif PKG_STATE_NEEDS_PURCHASE:
             action_button_label = _("Buy for %s") % self.appdetails.price
             action_button_value = "buy_app"
         elif state == PKG_STATE_NEEDS_SOURCE:

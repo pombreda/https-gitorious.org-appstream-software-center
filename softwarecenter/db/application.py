@@ -95,7 +95,7 @@ class AppDetails(object):
             self.init_from_application(application)
     def init_from_doc(self, doc):
         """ init the application details from a xapian document """
-        print "AppDetails.init_from_doc with doc: %s" % doc
+        logging.debug("AppDetails.init_from_doc with doc: %s" % doc)
         self._doc = doc
         self._app = Application(self._db.get_appname(self._doc),
                                 self._db.get_pkgname(self._doc),)
@@ -104,7 +104,7 @@ class AppDetails(object):
         """ init the application details from a Application
             class (appname, pkgname)
         """
-        print "AppDetails.init_from_app with app: %s" % app
+        logging.debug("AppDetails.init_from_app with app: %s" % app)
         self._app = app
         try:
             self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
@@ -211,6 +211,10 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
+        # if we have _pkg that means its either:
+        # - available for download (via sources.list)
+        # - locally installed
+        # - intalled and available for download
         if self._pkg:
             # Don't handle upgrades yet
             #if self._pkg.installed and self.pkg._isUpgradable:
@@ -219,11 +223,24 @@ class AppDetails(object):
                 return PKG_STATE_INSTALLED
             else:
                 return PKG_STATE_UNINSTALLED
+        # if we don't have a _pkg, then its either:
+        #  - its in a unavailable repo
+        #  - the repository information is outdated
+        #  - the repository information is missing (/var/lib/apt/lists empty)
+        #  - its a failure in our meta-data (e.g. typo in the pkgname in
+        #    the metadata)
         if not self._pkg:
-            if self.channelname or (not self.channelname and self.component and (self._unavailable_component() or self._available_for_our_arch())):
+            if self.channelname:
                 return PKG_STATE_NEEDS_SOURCE
+            if (self.component and
+                self._unavailable_component() and
+                self._available_for_our_arch()):
+                return PKG_STATE_NEEDS_SOURCE
+            if self.price and self._available_for_our_arch():
+                return PKG_STATE_NEEDS_PURCHASE
+            if app_details.purchase_date:
+                return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
         return PKG_STATE_UNKNOWN
-
     @property
     def price(self):
         if self._doc:

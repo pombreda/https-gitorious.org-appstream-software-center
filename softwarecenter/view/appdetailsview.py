@@ -18,10 +18,13 @@
 
 
 import logging
+import urllib
 
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 import softwarecenter.view.dialogs as dialogs
+
+from purchasedialog import PurchaseDialog
 
 class AppDetailsViewBase(object):
 
@@ -49,8 +52,8 @@ class AppDetailsViewBase(object):
             return
         self.app = app
         self.appdetails = AppDetails(self.db, application=app)
-        print "AppDetailsViewWebkit:"
-        print self.appdetails
+        #print "AppDetailsViewWebkit:"
+        #print self.appdetails
         self._draw()
         self.emit("selected", self.app)
     # public interface
