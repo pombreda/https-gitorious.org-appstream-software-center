@@ -9,6 +9,8 @@ software-center (2.1.5) UNRELEASED; urgency=low
     many thanks
   * merged  lp:~mvo/software-center/appdetails-in-db that
     improve the AppDetails abstraction 
+  * merged lp:~mvo/software-center/plugin-support (important
+    for the oneconf integration)
   
   [ Gary Lasker ]
   * data/icons/scalable/apps/category-show-all.svg,
