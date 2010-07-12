@@ -95,6 +95,7 @@ class AppDetails(object):
             self.init_from_application(application)
     def init_from_doc(self, doc):
         """ init the application details from a xapian document """
+        logging.debug("AppDetails.init_from_doc with doc: %s" % doc)
         self._doc = doc
         self._app = Application(self._db.get_appname(self._doc),
                                 self._db.get_pkgname(self._doc),)
@@ -103,6 +104,7 @@ class AppDetails(object):
         """ init the application details from a Application
             class (appname, pkgname)
         """
+        logging.debug("AppDetails.init_from_app with app: %s" % app)
         self._app = app
         try:
             self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
@@ -177,6 +179,12 @@ class AppDetails(object):
     @property
     def installation_date(self):
         return self._history.get_installed_date(self.pkgname)
+        
+    @property
+    def purchase_date(self):
+        # TODO: implement me, but only if we actually get this as part of
+        #       appdetails, maybe we will get this info from someplace else?
+        return None
 
     @property
     def license(self):
@@ -303,6 +311,7 @@ class AppDetails(object):
         details.append("         description: %s" % self.description)
         details.append("                icon: %s" % self.icon)
         details.append("   installation_date: %s" % self.installation_date)
+        details.append("       purchase_date: %s" % self.purchase_date)
         details.append("             license: %s" % self.license)
         details.append("  maintenance_status: %s" % self.maintenance_status)
         details.append("           pkg_state: %s" % self.pkg_state)

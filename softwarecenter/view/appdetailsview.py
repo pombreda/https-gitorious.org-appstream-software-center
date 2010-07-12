@@ -49,6 +49,8 @@ class AppDetailsViewBase(object):
             return
         self.app = app
         self.appdetails = AppDetails(self.db, application=app)
+        #print "AppDetailsViewWebkit:"
+        #print self.appdetails
         self._draw()
         self.emit("selected", self.app)
     # public interface
@@ -82,6 +84,15 @@ class AppDetailsViewBase(object):
     def upgrade(self):
         """ upgrade the current application, this goes straight to the backend """
         self.backend.upgrade(self.app.pkgname, self.app.appname, self.appdetails.icon)
+    def buy_app(self):
+        """ initiate the purchase transaction """
+        url = self.distro.PURCHASE_APP_URL % (
+            urllib.urlencode(self.appdetails.ppaname),
+            self.distro.get_distro_codename())
+        dialog = PurchaseDialog(url=url, app=self.app)
+        dialog.run()
+        dialog.destroy()
+        
     # internal callbacks
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the

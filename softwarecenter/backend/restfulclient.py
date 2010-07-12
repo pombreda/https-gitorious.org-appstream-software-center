@@ -215,7 +215,7 @@ class UbuntuSSOlogin(LoginBackend):
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
         if self.oauth_credentials:
-            self.emit("login-successful", result)
+            self.emit("login-successful", self.oauth_credentials)  # TODO:  is this correct?  (second arg formerly "result", hrm)
         if self._login_failure:
             self.emit("login-failed")
             self._login_failure = None
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) < 2:
-        print "need agent or sso as arguemtn"
+        print "need an argument, one of:  'agent' or 'sso'"
         sys.exit(1)
 
     if sys.argv[1] == "agent":

@@ -286,12 +286,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     # callbacks
     def on_button_buy_app_clicked(self):
         logging.debug("on_button_buy_app_clicked")
-        url = self.distro.PURCHASE_APP_URL % (
-            urllib.urlencode(self.appdetails.ppaname),
-            self.distro.get_distro_codename())
-        dialog = PurchaseDialog(url=url, app=self.app)
-        dialog.run()
-        dialog.destroy()
+        self.buy_app()
         self._set_action_button_sensitive(True)
 
     def on_button_reload_clicked(self):
