@@ -42,7 +42,7 @@ class LoginDialog(object):
 
         # setup ui
         self.builder = gtk.Builder()
-        self.builder.add_from_file(datadir+"/ui/login-spec.ui")
+        self.builder.add_from_file(datadir+"/ui/login.ui")
         self.builder.connect_signals(self)
         for o in self.builder.get_objects():
             if issubclass(type(o), gtk.Buildable):
