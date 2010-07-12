@@ -576,6 +576,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         pkg_state = None
         error = None
+        # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
+        #         so that all UI controls (menu item, applist view button and appdetails
+        #         view button) are managed centrally:  button text, button sensitivity,
+        #         and callback method
+        # FIXME:  Add buy support here by implementing the above
         if self.active_pane.app_details.appdetails:
             pkg_state = self.active_pane.app_details.appdetails.pkg_state
             error = self.active_pane.app_details.appdetails.error

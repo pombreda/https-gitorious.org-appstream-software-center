@@ -108,6 +108,15 @@ class PackageStatusBar(gtk.Alignment):
         if state == PKG_STATE_INSTALLED:
             AppDetailsViewBase.remove(self.view)
         elif state == PKG_STATE_UNINSTALLED:
+            if app_details.purchase_date:
+                # item was previously purchased, so just reinstall
+                # QUESTION:  is this the indented purpose of PKG_STATE_REINSTALLABLE?
+                # TODO:  Add magic for checking access to the corresponding repo, etc.
+                AppDetailsViewBase.install(self.view)
+            elif app_details.price:
+                AppDetailsViewBase.buy_app(self.view)
+            else:
+                self.set_button_label(_('Install'))
             AppDetailsViewBase.install(self.view)
         elif state == PKG_STATE_REINSTALLABLE:
             AppDetailsViewBase.install(self.view)
@@ -135,17 +144,32 @@ class PackageStatusBar(gtk.Alignment):
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
 
+        # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
+        #         so that all UI controls (menu item, applist view button and appdetails
+        #         view button) are managed centrally:  button text, button sensitivity,
+        #         and the associated callback.
         if state == PKG_STATE_INSTALLED:
-            if app_details.installation_date:
+            if app_details.purchase_date:
+                purchase_date = str(app_details.purchase_date).split()[0]
+                self.set_label(_('Purchased on %s' % purchase_date))
+            elif app_details.installation_date:
                 installation_date = str(app_details.installation_date).split()[0]
-                self.set_label(_('Installed %s' % installation_date))
+                self.set_label(_('Installed on %s' % installation_date))
             else:
                 self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_UNINSTALLED:
-            if app_details.price:
+            if app_details.purchase_date:
+                # item was previously purchased, so just reinstall
+                # QUESTION:  is this the indented purpose of PKG_STATE_REINSTALLABLE?
+                purchase_date = str(app_details.purchase_date).split()[0]
+                self.set_label(_('Purchased on %s' % purchase_date))
+                self.set_button_label(_('Install'))
+            elif app_details.price:
                 self.set_label(app_details.price)
-            self.set_button_label(_('Install'))
+                self.set_button_label(_('Buy'))
+            else:
+                self.set_button_label(_('Install'))
         elif state == PKG_STATE_REINSTALLABLE:
             if app_details.price:
                 self.set_label(app_details.price)
@@ -168,8 +192,17 @@ class PackageStatusBar(gtk.Alignment):
             self.fill_color = COLOR_RED_FILL
             self.line_color = COLOR_RED_OUTLINE
         elif state == PKG_STATE_NEEDS_SOURCE:
-            self.set_button_label(_('Use This Source'))
-            self.set_label(_('Source Unavailable'))
+            channelfile = self.appdetails.channelfile
+            # it has a price and is not available 
+            if channelfile:
+                # FIXME: deal with the EULA stuff
+                self.set_button_label(_("Use This Source"))
+            # check if it comes from a non-enabled component
+            elif self.appdetails._unavailable_component():
+                # FIXME: use a proper message here, but we are in string freeze
+                self.set_button_label(_("Use This Source"))
+            elif self.appdetails._available_for_our_arch():
+                self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
         return
@@ -962,6 +995,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     # public API
+    # FIXME:  port to AppDetailsViewBase as
+    #         AppDetailsViewBase.show_app(self, app)
     def show_app(self, app):
         logging.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
@@ -971,7 +1006,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_details = app.get_details(self.db)
         # for compat with the base class
         self.appdetails = self.app_details
-        self.emit("selected", self.app)
+        print "AppDetailsViewGtk:"
+        print self.appdetails
+        # self.emit("selected", self.app)  # << redundant??
         self._update_page(self.app_details)
         self.emit("selected", self.app)
         return
