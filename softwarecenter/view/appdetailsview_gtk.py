@@ -924,12 +924,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # if we have an error or if we need to enable a source, then hide everything else
         if error or self.app_details.pkg_state == PKG_STATE_NEEDS_SOURCE:
             self.info_table.hide()
-            if error:
-                self.screenshot.hide()
-                self.desc_section.hide()
-            else:
-                self.screenshot.show()
-                self.desc_section.show()
+            self.screenshot.hide()
+            self.desc_section.hide()
         else:
             self.desc_section.show()
             self.info_table.show()
