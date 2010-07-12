@@ -79,7 +79,7 @@ class testDatabase(unittest.TestCase):
     def test_application(self):
         self.assertRaises(AppDetails(self.db))
 
-    def test_application(self):
+    def test_application_details(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
@@ -99,7 +99,8 @@ class testDatabase(unittest.TestCase):
         self.assertEqual(appdetails.pkgname, "software-center")
         # FIXME: add a dekstop file with a real channel to test
         #        and monkey-patch/modify the APP_INSTALL_CHANNELS_PATH
-        self.assertEqual(appdetails.channel, None)
+        self.assertEqual(appdetails.channelname, None)
+        self.assertEqual(appdetails.channelfile, None)
         self.assertEqual(appdetails.component, "main")
         self.assertNotEqual(appdetails.pkg, None)
         # FIXME: test description for unavailable pkg
