@@ -50,6 +50,8 @@ from view.historypane import HistoryPane
 from backend.config import get_config
 from backend import get_install_backend
 
+from plugin import PluginManager
+
 # launchpad stuff
 from view.logindialog import LoginDialog
 from backend.launchpad import GLaunchpad
@@ -283,6 +285,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # restore state
         self.config = get_config()
         self.restore_state()
+
+        # open plugin manager and load plugins
+        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
+        self.plugin_manager.load_plugins()
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default

@@ -23,6 +23,7 @@ APP_INSTALL_PATH = "/usr/share/app-install"
 APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
+SOFTWARE_CENTER_PLUGIN_DIR = "/usr/share/software-center/plugins"
 
 # icons
 MISSING_APP_ICON = "applications-other"
