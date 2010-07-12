@@ -89,7 +89,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     
     def show_app(self, app):
         AppDetailsViewBase.show_app(self, app)
-        print self.appdetails
+        #print self.appdetails
 
     # private stuff
     def _show(self, widget):

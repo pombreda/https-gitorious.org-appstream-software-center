@@ -18,10 +18,13 @@
 
 
 import logging
+import urllib
 
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 import softwarecenter.view.dialogs as dialogs
+
+from purchasedialog import PurchaseDialog
 
 class AppDetailsViewBase(object):
 
