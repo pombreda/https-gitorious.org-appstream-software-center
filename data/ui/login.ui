@@ -4,7 +4,12 @@
   <!-- interface-naming-policy project-wide -->
   <object class="GtkDialog" id="dialog_login">
     <property name="border_width">5</property>
+    <property name="title" translatable="yes"> </property>
+    <property name="modal">True</property>
+    <property name="window_position">center</property>
+    <property name="destroy_with_parent">True</property>
     <property name="type_hint">normal</property>
+    <property name="skip_taskbar_hint">True</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox2">
@@ -22,7 +27,6 @@
                     <property name="visible">True</property>
                     <property name="yalign">0</property>
                     <property name="pixel_size">48</property>
-                    <property name="icon_name">distributor-logo</property>
                   </object>
                   <packing>
                     <property name="x_options">GTK_FILL</property>
@@ -157,9 +161,6 @@
                       </packing>
                     </child>
                     <child>
-                      <placeholder/>
-                    </child>
-                    <child>
                       <object class="GtkCheckButton" id="checkbutton_remember_password">
                         <property name="label" translatable="yes">Remember password</property>
                         <property name="visible">True</property>
@@ -177,6 +178,9 @@
                         <property name="x_padding">6</property>
                         <property name="y_padding">3</property>
                       </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
                     </child>
                   </object>
                   <packing>
@@ -201,34 +205,17 @@
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="button_login_cancel">
-                <property name="label">gtk-cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
+              <placeholder/>
             </child>
             <child>
-              <object class="GtkButton" id="button_login_continue">
-                <property name="label" translatable="yes">Continue</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
             </child>
           </object>
           <packing>
+            <property name="expand">False</property>
             <property name="padding">3</property>
             <property name="pack_type">end</property>
             <property name="position">0</property>
@@ -236,9 +223,5 @@
         </child>
       </object>
     </child>
-    <action-widgets>
-      <action-widget response="-6">button_login_cancel</action-widget>
-      <action-widget response="-5">button_login_continue</action-widget>
-    </action-widgets>
   </object>
 </interface>

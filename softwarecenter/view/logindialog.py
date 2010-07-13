@@ -56,6 +56,33 @@ class LoginDialog(object):
         self.parent = parent
 
         self.dialog_login.set_default_size(420, 315)
+        self.image_review_login.set_from_file(datadir+"/ubuntu_cof.svg")
+        # Put our own buttons in
+        self.dialog_internal_vbox = self.dialog_login.get_action_area().get_parent()
+        self.dialog_login.get_action_area().destroy()
+        
+        self.hbox_bottom = gtk.HBox()
+        self.hbuttonbox_bottom = gtk.HButtonBox()
+        self.hbuttonbox_bottom.set_layout(gtk.BUTTONBOX_END)
+        self.hbox_login_status = gtk.HBox()
+        self.image_login_status = gtk.Image()
+        self.image_login_status.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_MENU)
+        self.label_login_status = gtk.Label("Not connected to the Internet.")
+        
+        self.hbox_login_status.pack_start(self.image_login_status, False, False)
+        self.hbox_login_status.pack_start(self.label_login_status)
+        self.hbox_bottom.pack_start(self.hbox_login_status, padding=3)
+        self.hbox_bottom.pack_start(self.hbuttonbox_bottom, padding=3)
+        self.dialog_internal_vbox.pack_start(self.hbox_bottom)
+
+        #buttons
+        self.button_login_cancel = gtk.Button(_("Cancel"))
+        self.button_login_continue = gtk.Button(_("Continue"))
+        self.hbuttonbox_bottom.pack_start(self.button_login_cancel)
+        self.hbuttonbox_bottom.pack_start(self.button_login_continue)
+
+        # this is neccessary
+        self.hbox_bottom.show_all()
 
         # create spinner
         #self.login_spinner = gtk.Spinner()
@@ -63,6 +90,7 @@ class LoginDialog(object):
         #self.dialog_action_area_login.reorder_child(self.login_spinner, 0)
         #self.login_spinner.start()
         #self.login_spinner.show()
+        
 
     def login(self):
         self.loginbackend.login()
