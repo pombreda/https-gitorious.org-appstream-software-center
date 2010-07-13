@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gtk
+import logging
 import simplejson
 import webkit
 
@@ -60,8 +61,12 @@ class PurchaseDialog(gtk.Dialog):
         self._process_json(title)
 
     def _process_json(self, json_string):
-        res = simplejson.loads(json_string)
-        #print res
+        try:
+            res = simplejson.loads(json_string)
+            #print res
+        except:
+            logging.exception("error processing json")
+            return
         if res["successful"] == False:
             self.response(gtk.RESPONSE_CANCEL)
             return
@@ -111,7 +116,7 @@ DUMMY_HTML = """
                                       "application_name" : "The 2vcard app", \
                                       "signing_key_id" : "1024R/0EB12F05"\
                                     }') }
-  function cancel() { changeTitle('{ "successful" : "false" }') }
+  function cancel() { changeTitle('{ "successful" : false }') }
  </script>
  <h1>Purchase test page</h1>
  <p> To buy Frobunicator for 99$ you need to enter your credit card info</p>
@@ -134,5 +139,5 @@ DUMMY_HTML = """
 if __name__ == "__main__":
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
     #url = "http://www.ubuntu.com"
-    d = PurchaseDialog(html=DUMMY_HTML)
+    d = PurchaseDialog(app=None, html=DUMMY_HTML)
     d.run()
