@@ -61,7 +61,7 @@ class LoginDialog(object):
         self.parent = parent
 
         self.dialog_login.set_default_size(420, 315)
-        self.image_review_login.set_from_file(datadir+"/ubuntu_cof.svg")
+        self.image_review_login.set_from_file(datadir+"/images/ubuntu_cof.svg")
         
         # Put our own bottom in
         self.dialog_internal_vbox = self.dialog_login.get_action_area().get_parent()
