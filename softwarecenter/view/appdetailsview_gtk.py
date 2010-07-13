@@ -995,6 +995,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if app is None:
             return
         
+        # set button sensitive again
+        self.action_bar.button.set_sensitive(True)
+
+        # init data
         self.app = app
         self.app_details = app.get_details(self.db)
         # for compat with the base class

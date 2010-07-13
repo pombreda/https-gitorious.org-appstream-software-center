@@ -30,6 +30,9 @@ from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
+
+from aptsources.sourceslist import SourceEntry
+
 try:
     from aptdaemon.defer import inline_callbacks
 except ImportError:
@@ -173,7 +176,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             line = line.strip()
             if not line:
                 continue
-            entry = aptsources.sourceslist.SourceEntry(line)
+            entry = SourceEntry(line)
             if entry.invalid:
                 continue
             sourcepart = os.path.basename(channelfile)
@@ -193,7 +196,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def add_sources_list_entry(self, source_entry, sourcepart=None):
         if isinstance(source_entry, basestring):
             entry = SourceEntry(source_entry)
-        elif isinstance(source_entry, aptsources.sourceslist.SourceEntry):
+        elif isinstance(source_entry, SourceEntry):
             entry = source_entry
         else:
             raise ValueError, "Unsupported entry type %s" % type(source_entry)
