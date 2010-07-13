@@ -436,7 +436,7 @@ class AvailablePane(SoftwarePane):
         self.apps_category = None
         self.apps_subcategory = None
         # remove pathbar stuff
-        self.navigation_bar.remove_all()
+        self.navigation_bar.remove_all(do_callback=False)
         self.notebook.set_current_page(self.PAGE_CATEGORY)
         self.cat_view.start_carousels()
         self.emit("app-list-changed", len(self.db))
