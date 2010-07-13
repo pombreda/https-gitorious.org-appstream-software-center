@@ -18,8 +18,10 @@
 
 
 import logging
+import gtk
 import urllib
 
+from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 import softwarecenter.view.dialogs as dialogs
@@ -93,8 +95,18 @@ class AppDetailsViewBase(object):
             urllib.urlencode(self.appdetails.ppaname),
             self.distro.get_distro_codename())
         dialog = PurchaseDialog(url=url, app=self.app)
-        dialog.run()
+        res = dialog.run()
         dialog.destroy()
+        # re-init view if user canceled, otherwise the transactions 
+        # will finish it after some time
+        if res != gtk.RESPONSE_OK:
+            self.show_app(self.app)
+
+    def get_icon_filename(self, iconname, iconsize):
+        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
+        if not iconinfo:
+            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+        return iconinfo.get_filename()
         
     # internal callbacks
     def _on_cache_ready(self, cache):

@@ -102,12 +102,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         while gtk.events_pending(): 
             gtk.main_iteration()
 
-    def get_icon_filename(self, iconname, iconsize):
-        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
-        if not iconinfo:
-            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
-        return iconinfo.get_filename()
-
     # substitute functions called during page display
     def wksub_appname(self):
         return self.app.name

@@ -55,6 +55,7 @@ from plugin import PluginManager
 # launchpad stuff
 from view.logindialog import LoginDialog
 from backend.launchpad import GLaunchpad
+from backend.restfulclient import UbuntuSSOlogin, SoftwareCenterAgent
 
 from distro import get_distro
 
@@ -294,8 +295,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         #         by default
         if not enable_lp_integration:
             file_menu = self.builder.get_object("menu1")
-            file_menu.remove(self.builder.get_object("separator_login"))
-            file_menu.remove(self.builder.get_object("menuitem_login"))
+            #file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
 
     # callbacks
     def on_app_details_changed(self, widget, app, page):
@@ -373,15 +373,32 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         print "_on_lp_login"
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()
-        self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
-            private_archives)
+        self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(private_archives)
+
+    def _on_sso_login(self, sso, oauth_result):
+        print "_on_sso_login", sso, oauth_result
+        self._sso_login_successful = True
+        self.scagent = SoftwareCenterAgent()
+        self.scagent.connect("available-for-me", self._available_for_me_result)
+        # consumer key is the openid identifier
+        self.scagent.query_available_for_me(oauth_result["token"],
+                                            oauth_result["consumer_key"])
+
+    def _available_for_me_result(self, result):
+        print "availalbe_for_me_result", result
 
     # Menu Items
-    def on_menuitem_login_activate(self, menuitem):
+    def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
-        LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
-        self.glaunchpad.connect_to_server()
+        d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
+        d.login()
+
+    def on_menuitem_reinstall_purchases_activate(self, menuitem):
+        self.sso = UbuntuSSOlogin()
+        self.sso.connect("login-successful", self._on_sso_login)
+        d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
+        d.login()
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()

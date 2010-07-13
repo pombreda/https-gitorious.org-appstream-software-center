@@ -50,11 +50,19 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem_login">
+                      <object class="GtkMenuItem" id="menuitem_launchpad_private_ppas">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Login</property>
+                        <property name="label" translatable="yes">Get private launchpad repositories</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_menuitem_login_activate"/>
+                        <signal name="activate" handler="on_menuitem_launchpad_private_ppas_activate"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menuitem_reinstall_purchases">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Reinstall Previous Purchases</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menuitem_reinstall_purchases_activate"/>
                       </object>
                     </child>
                     <child>

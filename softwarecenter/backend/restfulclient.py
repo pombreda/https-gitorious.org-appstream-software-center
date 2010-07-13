@@ -50,6 +50,10 @@ UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = "http://localhost:8000/api/1.0"
 class RestfulClientWorker(threading.Thread):
     """ a generic worker thread for a lazr.restfulclient """
 
+    (NO_ERROR,
+     ERROR_SERVICE_ROOT,
+    ) = range(2)
+
     def __init__(self, authorizer, service_root):
         """ init the thread """
         threading.Thread.__init__(self)
@@ -58,13 +62,19 @@ class RestfulClientWorker(threading.Thread):
         self._pending_requests = Queue()
         self._shutdown = False
         self.daemon = True
+        self.error = self.NO_ERROR
 
     def run(self):
         """
         Main thread run interface, logs into launchpad
         """
         logging.debug("lp worker thread run")
-        self.service = ServiceRoot(self._authorizer, self._service_root_url)
+        try:
+            self.service = ServiceRoot(self._authorizer, self._service_root_url)
+        except AttributeError:
+            self.error = self.ERROR_SERVICE_ROOT
+            self._shutdown = True
+            return
         # loop
         self._wait_for_commands()
 
@@ -196,6 +206,7 @@ class UbuntuSSOlogin(LoginBackend):
         #  token_secret
         #  name (that is just 'software-center')
         self.oauth_credentials = None
+        self._oauth_credentials = None
         self._login_failure = None
 
     def login(self, username=None, password=None):
@@ -214,8 +225,10 @@ class UbuntuSSOlogin(LoginBackend):
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
-        if self.oauth_credentials:
-            self.emit("login-successful", self.oauth_credentials)  # TODO:  is this correct?  (second arg formerly "result", hrm)
+        if self._oauth_credentials:
+            self.emit("login-successful", self._oauth_credentials)
+            self.oauth_credentials = self._oauth_credentials
+            self._oauth_credentials = None
         if self._login_failure:
             self.emit("login-failed")
             self._login_failure = None
@@ -224,7 +237,7 @@ class UbuntuSSOlogin(LoginBackend):
     def _thread_authentication_done(self, result):
         # runs in the thread context, can not touch gui or glib
         print "_authentication_done", result
-        self.oauth_credentials = result
+        self._oauth_credentials = result
 
     def _thread_authentication_error(self, e):
         # runs in the thread context, can not touch gui or glib
@@ -269,7 +282,7 @@ if __name__ == "__main__":
         scagent.connect("available-for-me", _available_for_me_result)
         scagent.connect("available", _available)
         # argument is oauth token
-        scagent.query_available_for_me("dummy_oauth")
+        scagent.query_available_for_me("dummy_oauth", "dummy openid")
         scagent.query_available()
 
     elif sys.argv[1] == "sso":
