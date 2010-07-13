@@ -156,6 +156,10 @@ class SoftwareCenterAgent(gobject.GObject):
 
     def _thread_available_for_me_done(self, result):
         print "_availalbe_for_me_done"
+        # attributes for each element in the result list:
+        # 'application_name', 'archive_id', 'deb_line', 'description', 
+        # 'package_name', 'purchase_date', 'purchase_price', 'series', 
+        # 'signing_key_id'
         self._available_for_me =  [x for x in result]
 
     def _thread_available_for_me_error(self, error):
@@ -291,6 +295,7 @@ if __name__ == "__main__":
         sso.connect("login-failed", _login_failed)
         sso.connect("need-username-password", _login_need_user_and_password)
         sso.login()
+        
     else:
         print "unknown option"
         sys.exit(1)
