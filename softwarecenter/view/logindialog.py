@@ -65,19 +65,21 @@ class LoginDialog(object):
         self.dialog_login_internal_vbox.pack_start(self.alignment_bottom)
         
         self.dialog_login.set_default_size(420, 315)
-
-        # ..and then show it
+        self.button_login_continue.grab_default()
+        # ..and then show it..
         self.alignment_bottom.show_all()
+        
+        # ...but not the stop button
+        self.button_login_stop.hide()
 
     def login(self):
         self.loginbackend.login()
-        return False
 
     def cb_need_username_password(self, lp):
         res = self.dialog_login.run()
         self.dialog_login.hide()
         if res != gtk.RESPONSE_OK:
-            self.on_button_cancel_clicked()
+            self.on_button_login_cancel_clicked()
             return 
         self._enter_user_name_password_finished()
 
@@ -93,7 +95,7 @@ class LoginDialog(object):
         #                                  _("Sorry, please try again"))
         self.cb_need_username_password(None)
 
-    def on_button_cancel_clicked(self, button=None):
+    def on_button_login_cancel_clicked(self, button=None):
         self.loginbackend.cancel_login()
         self.dialog_login.hide()
         while gtk.events_pending():
@@ -124,17 +126,34 @@ class LoginDialog(object):
         self._do_frontend_action()
         self._do_backend_action()
         
+    def on_button_login_stop_clicked(self, button_login_stop):
+        self.loginbackend.cancel_login()
+        self.button_login_stop.hide()
+        self.button_login_cancel.show()
+        self.button_login_continue.set_sensitive(True)
+        self.button_login_cancel.set_sensitive(False)
+        gobject.timeout_add(2000, lambda self: self.button_login_cancel.set_sensitive(True), self)
+        self.clear_status()
+        self.enable_content_widgets()
+        
     def _do_frontend_action(self):
         if self.action == self.ACTION_LOGIN:
             self._change_login_status(gtk.Spinner(), _("Signing in..."))
+            
+            self.disable_content_widgets()
+            self.button_login_stop.show()
+            self.button_login_cancel.hide()
+            
             self.button_login_continue.set_sensitive(False)
-            self.button_login_cancel.set_label(_("Stop"))
+
         if self.action == self.ACTION_REGISTER or self.action == self.ACTION_RETRIEVE_PASSWORD:
             self._change_login_status(gtk.Spinner(), _("Opening web browser..."))
+            # TODO: Replace arbitrary timeout with checking if firefox is open
             gobject.timeout_add(5000, self.clear_status)
 
     def clear_status(self):
         self._change_login_status("", (""))
+        return False
 
     def _do_backend_action(self):
         """ run when the user finished with the login dialog box
@@ -198,6 +217,14 @@ class LoginDialog(object):
                 if state == 2:
                     return True
             return False
+            
+    def disable_content_widgets(self):
+        for widget in self.table_login.get_children():
+            widget.set_sensitive(False)
+            
+    def enable_content_widgets(self):
+        for widget in self.table_login.get_children():
+            widget.set_sensitive(True)
         
 
 
