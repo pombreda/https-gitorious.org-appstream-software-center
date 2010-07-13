@@ -4,6 +4,7 @@
 import sys
 sys.path.insert(0,"../")
 
+import apt_pkg
 import apt
 import os
 import unittest
@@ -18,25 +19,25 @@ class testDatabase(unittest.TestCase):
     """ tests the store database """
 
     def setUp(self):
-        # FIXME: create a fixture DB instead of using the system one
-        # but for now that does not matter that much, only if we
-        # call open the db is actually read and the path checked
+        apt_pkg.config.set("APT::Architecture", "i386")
+        apt_pkg.config.set("Dir::State::status",
+                           "./data/appdetails/var/lib/dpkg/status")
         self.cache = apt.Cache()
-        self.db = StoreDatabase("/var/cache/software-center/xapian", 
-                                self.cache)
 
     def test_comma_seperation(self):
+        db = StoreDatabase("/var/cache/software-center/xapian", 
+                           self.cache)
         # normal
-        querries = self.db._comma_expansion("apt,2vcard,7zip")
+        querries = db._comma_expansion("apt,2vcard,7zip")
         self.assertEqual(len(querries), 3)
         # multiple identical
-        querries = self.db._comma_expansion("apt,apt,apt")
+        querries = db._comma_expansion("apt,apt,apt")
         self.assertEqual(len(querries), 1)
         # too many commas
-        querries = self.db._comma_expansion(",,,apt,xxx,,,")
+        querries = db._comma_expansion(",,,apt,xxx,,,")
         self.assertEqual(len(querries), 2)
         # invalid query
-        querries = self.db._comma_expansion("??")
+        querries = db._comma_expansion("??")
         self.assertEqual(querries, None)
 
     def test_update_from_desktop_file(self):
@@ -77,9 +78,12 @@ class testDatabase(unittest.TestCase):
         self.assertTrue(found_gettext_translation)
 
     def test_application(self):
-        self.assertRaises(AppDetails(self.db))
+        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        # fail if AppDetails(db) without document= or application=
+        # is run
+        self.assertRaises(ValueError, AppDetails, db)
 
-    def test_application(self):
+    def test_application_details(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
@@ -99,9 +103,13 @@ class testDatabase(unittest.TestCase):
         self.assertEqual(appdetails.pkgname, "software-center")
         # FIXME: add a dekstop file with a real channel to test
         #        and monkey-patch/modify the APP_INSTALL_CHANNELS_PATH
-        self.assertEqual(appdetails.channel, None)
+        self.assertEqual(appdetails.channelname, None)
+        self.assertEqual(appdetails.channelfile, None)
         self.assertEqual(appdetails.component, "main")
         self.assertNotEqual(appdetails.pkg, None)
+        # from the fake test/data/appdetails/var/lib/dpkg/status
+        self.assertEqual(appdetails.pkg.is_installed, True)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_INSTALLED)
         # FIXME: test description for unavailable pkg
         self.assertTrue(
             appdetails.description.startswith("The Ubuntu Software Center"))
@@ -116,7 +124,7 @@ class testDatabase(unittest.TestCase):
                          "http://screenshots.ubuntu.com/thumbnail-404/software-center")
         # FIXME: add document that has a price
         self.assertEqual(appdetails.price, "Free")
-        self.assertEqual(appdetails.license, "License: Open Source")
+        self.assertEqual(appdetails.license, "Open Source")
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)
 

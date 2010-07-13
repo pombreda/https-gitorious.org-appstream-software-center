@@ -86,13 +86,10 @@ class Ubuntu(Distro):
         return self.codename
 
     def get_license_text(self, component):
-        li =  _("Unknown")
         if component in ("main", "universe"):
-            li = _("Open Source")
+            return _("Open Source")
         elif component == "restricted":
-            li = _("Proprietary")
-        s = _("License: %s") % li
-        return s
+            return _("Proprietary")
 
     def is_supported(self, cache, doc, pkgname):
         section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
