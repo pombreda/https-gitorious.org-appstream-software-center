@@ -58,21 +58,20 @@ class LoginDialog(object):
         # parent
         if parent:
             self.dialog_login.set_transient_for(parent)
-        self.parent = parent
 
-        self.dialog_login.set_default_size(420, 315)
-        self.image_review_login.set_from_file(datadir+"/images/ubuntu_cof.svg")
+        ## Dialog
+        # Put our own bottom in...
+        self.dialog_login_action_area.destroy()
+        self.dialog_login_internal_vbox.pack_start(self.alignment_bottom)
         
-        # Put our own bottom in
-        self.dialog_internal_vbox = self.dialog_login.get_action_area().get_parent()
-        self.dialog_login.get_action_area().destroy()
-        self.dialog_internal_vbox.pack_start(self.alignment_bottom)
+        self.dialog_login.set_default_size(420, 315)
 
-        # this is neccessary to show our new bottom stuff
+        # ..and then show it
         self.alignment_bottom.show_all()
 
     def login(self):
         self.loginbackend.login()
+        return False
 
     def cb_need_username_password(self, lp):
         res = self.dialog_login.run()
@@ -84,13 +83,14 @@ class LoginDialog(object):
 
     def cb_login_successful(self, lp, token):
         """ callback when the login was successful """
-        print "login_successful", token
+        logging.info("Login was successful %s" % token)
 
     def cb_login_failure(self, lp):
         """ callback when the login failed """
-        softwarecenter.view.dialogs.error(self.parent,
-                                          _("Authentication failure"),
-                                          _("Sorry, please try again"))
+        
+        #softwarecenter.view.dialogs.error(self.parent,
+        #                                  _("Authentication failure"),
+        #                                  _("Sorry, please try again"))
         self.cb_need_username_password(None)
 
     def on_button_cancel_clicked(self, button=None):
@@ -98,7 +98,6 @@ class LoginDialog(object):
         self.dialog_login.hide()
         while gtk.events_pending():
             gtk.main_iteration()
-
             
     def on_radiobutton_review_toggled(self, radio_button_review):
         if not radio_button_review.get_active():
@@ -109,69 +108,96 @@ class LoginDialog(object):
             # They are reversed for some reason
             radio_button_group.reverse()
             index = radio_button_group.index(radio_button_review)
-            
+            # Find where the radiobutton is in the window..
+            # and set the action appropriately
             self.action = index
             
-            if index != self.ACTION_LOGIN:
-                for widget in [self.label_review_login_password, self.entry_review_login_password, self.checkbutton_remember_password]:
-                    widget.set_sensitive(False)
-            else:
-                for widget in [self.label_review_login_password, self.entry_review_login_password, self.checkbutton_remember_password]:
-                    widget.set_sensitive(True)
+            # Make the widgets under the first radiobutton 
+            # insensitive if appropriate
+            for widget in [self.label_review_login_password, 
+                            self.entry_review_login_password, 
+                            self.checkbutton_remember_password]:
+                widget.set_sensitive(index == self.ACTION_LOGIN)
                 
             
     def on_button_login_continue_clicked(self, button_login_continue):
+        self._do_frontend_action()
+        self._do_backend_action()
+        
+    def _do_frontend_action(self):
         if self.action == self.ACTION_LOGIN:
-            login
-            self.spinner_login_status = gtk.Spinner()
-            self.label_login_status.set_text(_("Signing in..."))
-            # Remove first child
-            self.hbox_login_status.get_children()[0]
-                
-            self.hbox_login_status.pack_start(self.spinner_login_status, False, False)
-            self.hbox_login_status.reorder_child(self.spinner_login_status, 0)
-            self.spinner_login_status.start()
+            self._change_login_status(gtk.Spinner(), _("Signing in..."))
             self.button_login_continue.set_sensitive(False)
             self.button_login_cancel.set_label(_("Stop"))
-            
-            self.hbox_login_status.show_all()
+        if self.action == self.ACTION_REGISTER or self.action == self.ACTION_RETRIEVE_PASSWORD:
+            self._change_login_status(gtk.Spinner(), _("Opening web browser..."))
+            gobject.timeout_add(5000, self.clear_status)
 
-    def _enter_user_name_password_finished(self):
+    def clear_status(self):
+        self._change_login_status("", (""))
+
+    def _do_backend_action(self):
         """ run when the user finished with the login dialog box
             this checks the users choices and sets the appropriate state
         """
-        has_account = self.radiobutton_review_login_have_account.get_active()
-        new_account = self.radiobutton_review_login_register_new_account.get_active()
-        forgotten_pw = self.radiobutton_review_login_forgot_password.get_active()
-        if has_account:
+        if self.action == self.ACTION_LOGIN:
+            logging.info("Logging in...")
             username = self.entry_review_login_email.get_text()
             password = self.entry_review_login_password.get_text()
             self.loginbackend.login(username, password)
-        elif new_account:
-            #print "new_account"
+        elif self.action == self.ACTION_REGISTER:
+            logging.info("Registering new account...")
             subprocess.call(["xdg-open", self.loginbackend.new_account_url])
-        elif forgotten_pw:
-            #print "forgotten passowrd"
+        elif self.action == self.ACTION_RETRIEVE_PASSWORD:
+            logging.info("Retrieving forgotten password...")
             subprocess.call(["xdg-open", self.loginbackend.forgot_password_url])
+     
+    def _change_login_status(self, image, label):
+        # Remove image
+        self.image_login_status.destroy()
+        
+        # If we have a string, use it as a stock id for a Gtkimage
+        if isinstance(image, str):
+            self.image_login_status = gtk.Image()
+            self.image_login_status.set_from_stock(image, gtk.ICON_SIZE_MENU)
+        # Else if we have a gtk.Spinner, just use it
+        elif isinstance(image, gtk.Spinner):
+            self.image_login_status = image
+            self.image_login_status.start()
+        else:
+            raise TypeError
+            
+        # Set the label
+        self.label_login_status.set_text(label)
+            
+        # Pack the image/spinner and make it first in order
+        self.hbox_login_status.pack_start(self.image_login_status, False, False)
+        self.hbox_login_status.reorder_child(self.image_login_status, 0)
+        
+        self.hbox_login_status.show_all()
+     
+    def on_network_manager_state_changed(self):
+        #if has_active_internet_connection(self):
+        pass
             
     def has_active_internet_connection(self):
-        bus = dbus.SystemBus()
+            bus = dbus.SystemBus()
 
-        proxy = bus.get_object("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager")
-        manager = dbus.Interface(proxy, "org.freedesktop.NetworkManager")
+            proxy = bus.get_object("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager")
+            manager = dbus.Interface(proxy, "org.freedesktop.NetworkManager")
 
-        # Get ActiveConnections array
-        manager_prop_iface = dbus.Interface(proxy, "org.freedesktop.DBus.Properties")
-        active = manager_prop_iface.Get("org.freedesktop.NetworkManager", "ActiveConnections")
-        # Check each one's status
-        for a in active:
-            ac_proxy = bus.get_object("org.freedesktop.NetworkManager", a)
-            prop_iface = dbus.Interface(ac_proxy, "org.freedesktop.DBus.Properties")
-            state = prop_iface.Get("org.freedesktop.NetworkManager.ActiveConnection", "State")
-            # If at least one is activated
-            if state == 2:
-                return True
-        return False
+            # Get ActiveConnections array
+            manager_prop_iface = dbus.Interface(proxy, "org.freedesktop.DBus.Properties")
+            active = manager_prop_iface.Get("org.freedesktop.NetworkManager", "ActiveConnections")
+            # Check each one's status
+            for a in active:
+                ac_proxy = bus.get_object("org.freedesktop.NetworkManager", a)
+                prop_iface = dbus.Interface(ac_proxy, "org.freedesktop.DBus.Properties")
+                state = prop_iface.Get("org.freedesktop.NetworkManager.ActiveConnection", "State")
+                # If at least one is activated
+                if state == 2:
+                    return True
+            return False
         
 
 
