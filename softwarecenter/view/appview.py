@@ -80,7 +80,7 @@ class AppStore(gtk.GenericTreeModel):
                    int,
                    bool)
 
-    ICON_SIZE = 24
+    ICON_SIZE = 32
     MAX_STARS = 5
 
     (SEARCHES_SORTED_BY_POPCON,
@@ -1129,19 +1129,20 @@ class AppView(gtk.TreeView):
         # it needs to be the first one, because that is what the tools look
         # at by default
         tp = CellRendererPixbufWithOverlay("software-center-installed")
-        tp.set_property('ypad', 2)
+        tp.set_property('xpad', 6)
+        tp.set_property('ypad', 6)
 
         column = gtk.TreeViewColumn("Icon", tp,
                                     markup=AppStore.COL_MARKUP,
                                     pixbuf=AppStore.COL_ICON,
                                     overlay=AppStore.COL_INSTALLED)
-        column.set_fixed_width(32)
+        column.set_fixed_width(36)
         column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.append_column(column)
 
         tr = CellRendererAppView(show_ratings)
-        tr.set_property('xpad', 3)
-        tr.set_property('ypad', 2)
+        tr.set_property('xpad', 0)
+        tr.set_property('ypad', 0)
 
         column = gtk.TreeViewColumn("Apps", tr, 
                                     markup=AppStore.COL_MARKUP,

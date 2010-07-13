@@ -18,6 +18,7 @@
 
 import glib
 import gobject
+import dbus
 gobject.threads_init()
 import gtk
 import logging
@@ -32,7 +33,11 @@ import softwarecenter
 
 class LoginDialog(object):
 
+    (ACTION_LOGIN, ACTION_REGISTER, ACTION_RETRIEVE_PASSWORD) = range(3)
+
     def __init__(self, loginbackend, datadir, parent=None):
+        self.action = self.ACTION_LOGIN
+        
         # launchpad
         self.loginbackend = loginbackend
         self.loginbackend.connect("need-username-password", 
@@ -57,40 +62,14 @@ class LoginDialog(object):
 
         self.dialog_login.set_default_size(420, 315)
         self.image_review_login.set_from_file(datadir+"/ubuntu_cof.svg")
-        # Put our own buttons in
+        
+        # Put our own bottom in
         self.dialog_internal_vbox = self.dialog_login.get_action_area().get_parent()
         self.dialog_login.get_action_area().destroy()
-        
-        self.hbox_bottom = gtk.HBox()
-        self.hbuttonbox_bottom = gtk.HButtonBox()
-        self.hbuttonbox_bottom.set_layout(gtk.BUTTONBOX_END)
-        self.hbox_login_status = gtk.HBox()
-        self.image_login_status = gtk.Image()
-        self.image_login_status.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_MENU)
-        self.label_login_status = gtk.Label("Not connected to the Internet.")
-        
-        self.hbox_login_status.pack_start(self.image_login_status, False, False)
-        self.hbox_login_status.pack_start(self.label_login_status)
-        self.hbox_bottom.pack_start(self.hbox_login_status, padding=3)
-        self.hbox_bottom.pack_start(self.hbuttonbox_bottom, padding=3)
-        self.dialog_internal_vbox.pack_start(self.hbox_bottom)
+        self.dialog_internal_vbox.pack_start(self.alignment_bottom)
 
-        #buttons
-        self.button_login_cancel = gtk.Button(_("Cancel"))
-        self.button_login_continue = gtk.Button(_("Continue"))
-        self.hbuttonbox_bottom.pack_start(self.button_login_cancel)
-        self.hbuttonbox_bottom.pack_start(self.button_login_continue)
-
-        # this is neccessary
-        self.hbox_bottom.show_all()
-
-        # create spinner
-        #self.login_spinner = gtk.Spinner()
-        #self.dialog_action_area_login.pack_start(self.login_spinner)
-        #self.dialog_action_area_login.reorder_child(self.login_spinner, 0)
-        #self.login_spinner.start()
-        #self.login_spinner.show()
-        
+        # this is neccessary to show our new bottom stuff
+        self.alignment_bottom.show_all()
 
     def login(self):
         self.loginbackend.login()
@@ -120,6 +99,43 @@ class LoginDialog(object):
         while gtk.events_pending():
             gtk.main_iteration()
 
+            
+    def on_radiobutton_review_toggled(self, radio_button_review):
+        if not radio_button_review.get_active():
+            # Ignore the just untoggled radiobutton
+            pass
+        else:
+            radio_button_group = radio_button_review.get_group()
+            # They are reversed for some reason
+            radio_button_group.reverse()
+            index = radio_button_group.index(radio_button_review)
+            
+            self.action = index
+            
+            if index != self.ACTION_LOGIN:
+                for widget in [self.label_review_login_password, self.entry_review_login_password, self.checkbutton_remember_password]:
+                    widget.set_sensitive(False)
+            else:
+                for widget in [self.label_review_login_password, self.entry_review_login_password, self.checkbutton_remember_password]:
+                    widget.set_sensitive(True)
+                
+            
+    def on_button_login_continue_clicked(self, button_login_continue):
+        if self.action == self.ACTION_LOGIN:
+            login
+            self.spinner_login_status = gtk.Spinner()
+            self.label_login_status.set_text(_("Signing in..."))
+            # Remove first child
+            self.hbox_login_status.get_children()[0]
+                
+            self.hbox_login_status.pack_start(self.spinner_login_status, False, False)
+            self.hbox_login_status.reorder_child(self.spinner_login_status, 0)
+            self.spinner_login_status.start()
+            self.button_login_continue.set_sensitive(False)
+            self.button_login_cancel.set_label(_("Stop"))
+            
+            self.hbox_login_status.show_all()
+
     def _enter_user_name_password_finished(self):
         """ run when the user finished with the login dialog box
             this checks the users choices and sets the appropriate state
@@ -137,11 +153,30 @@ class LoginDialog(object):
         elif forgotten_pw:
             #print "forgotten passowrd"
             subprocess.call(["xdg-open", self.loginbackend.forgot_password_url])
+            
+    def has_active_internet_connection(self):
+        bus = dbus.SystemBus()
+
+        proxy = bus.get_object("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager")
+        manager = dbus.Interface(proxy, "org.freedesktop.NetworkManager")
+
+        # Get ActiveConnections array
+        manager_prop_iface = dbus.Interface(proxy, "org.freedesktop.DBus.Properties")
+        active = manager_prop_iface.Get("org.freedesktop.NetworkManager", "ActiveConnections")
+        # Check each one's status
+        for a in active:
+            ac_proxy = bus.get_object("org.freedesktop.NetworkManager", a)
+            prop_iface = dbus.Interface(ac_proxy, "org.freedesktop.DBus.Properties")
+            state = prop_iface.Get("org.freedesktop.NetworkManager.ActiveConnection", "State")
+            # If at least one is activated
+            if state == 2:
+                return True
+        return False
+        
 
 
 
 if __name__ == "__main__":
-
     logging.basicConfig(level=logging.DEBUG)
     # glaunchpad
     #loginbackend = GLaunchpad()

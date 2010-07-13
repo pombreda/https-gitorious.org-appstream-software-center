@@ -21,6 +21,57 @@ import gtk
 from gettext import gettext as _
 from pkgview import PkgNamesView
 
+class GladeDialog(object):
+    def __init__(self, datadir):
+        # setup ui
+        self.builder = gtk.Builder()
+        self.builder.add_from_file(datadir+"/ui/dialogs.ui")
+        self.builder.connect_signals(self)
+        for o in self.builder.get_objects():
+            if issubclass(type(o), gtk.Buildable):
+                name = gtk.Buildable.get_name(o)
+                setattr(self, name, o)
+            else:
+                print >> sys.stderr, "WARNING: can not get name for '%s'" % o
+
+def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depends):
+    """Confirm removing of the given app with the given depends"""
+    glade_dialog = GladeDialog(datadir)
+    dialog = glade_dialog.dialog_dependency_alert
+    dialog.set_resizable(True)
+
+    # fixes launchpad bug #560021
+    pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 32, 32)
+    glade_dialog.image_package_icon.set_from_pixbuf(pixbuf)
+
+    glade_dialog.label_dependency_primary.set_text("<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
+    glade_dialog.button_dependency_do.set_label(button_text)
+
+    # add the dependencies
+    vbox = dialog.get_content_area()
+    # FIXME: make this a generic pkgview widget
+    view = PkgNamesView(_("Dependency"), cache, depends)
+    view.set_headers_visible(False)
+    glade_dialog.scrolledwindow_dependencies.add(view)
+    glade_dialog.scrolledwindow_dependencies.show_all()
+        
+    result = dialog.run()
+    dialog.hide()
+    if result == gtk.RESPONSE_ACCEPT:
+        return True
+    return False
+    
+def confirm_repair_broken_cache(parent):
+    glade_dialog = GladeDialog(datadir)
+    dialog = glade_dialog.dialog_broken_cache
+    dialog.set_transient_for(parent)
+
+    result = dialog.run()
+    dialog.destroy()
+    if result == gtk.RESPONSE_ACCEPT:
+        return True
+    return False
+
 class DetailsMessageDialog(gtk.MessageDialog):
     """Message dialog with optional details expander"""
     def __init__(self,
@@ -74,56 +125,6 @@ def error(parent, primary, secondary, details=None):
                          details=details,
                          type=gtk.MESSAGE_ERROR)
 
-def confirm_repair_broken_cache(parent):
-    primary = _("Items cannot be installed or removed until the packages "
-                "catalog is repaired. Do you want to repair it now?")
-    button_text = _("Repair")
-    dialog = gtk.MessageDialog(parent=parent, flags=0, 
-                               type=gtk.MESSAGE_QUESTION, 
-                               message_format=None)
-    dialog.set_markup(primary)
-    dialog.add_button(_("Cancel"), gtk.RESPONSE_CANCEL)
-    dialog.add_button(button_text, gtk.RESPONSE_ACCEPT)
-    result = dialog.run()
-    dialog.destroy()
-    if result == gtk.RESPONSE_ACCEPT:
-        return True
-    return False
-
-def confirm_remove(parent, primary, cache, button_text, icon_path, depends=None):
-    """Confirm removing of the given app with the given depends"""
-    dialog = gtk.MessageDialog(parent=parent, flags=0, 
-                               type=gtk.MESSAGE_QUESTION, 
-                               message_format=None)
-    dialog.set_resizable(True)
-    dialog.add_button(_("Cancel"), gtk.RESPONSE_CANCEL)
-    dialog.add_button(button_text, gtk.RESPONSE_ACCEPT)
-
-    # fixes launchpad bug #560021
-    pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 32, 32)
-    image = dialog.get_image()
-    image.set_from_pixbuf(pixbuf)
-
-    dialog.set_markup(primary)
-    # add the dependencies
-    if depends:
-        vbox = dialog.get_content_area()
-        # FIXME: make this a generic pkgview widget
-        view = PkgNamesView(_("Dependency"), cache, depends)
-        view.set_headers_visible(False)
-        scrolled = gtk.ScrolledWindow()
-        scrolled.set_size_request(-1, 200)
-        scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
-        scrolled.add(view)
-        scrolled.show_all()
-        # FIXME: this needs padding on the left side so 
-        # it lines up with the text
-        vbox.pack_start(scrolled)
-    result = dialog.run()
-    dialog.hide()
-    if result == gtk.RESPONSE_ACCEPT:
-        return True
-    return False
     
 
 if __name__ == "__main__":
