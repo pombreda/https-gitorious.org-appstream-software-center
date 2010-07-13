@@ -1,4 +1,10 @@
 
+Buy something:
+- have one big transaction for "buy-something" in the daemon instead
+  of the current add-repo,add-password,add-repo-key,refresh,install-pkg
+- move what is availalbe into a seperate DB that is refreshed on 
+  startup
+- add what is available to me
 
 
 Code:

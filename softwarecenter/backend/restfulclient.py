@@ -206,6 +206,7 @@ class UbuntuSSOlogin(LoginBackend):
         #  token_secret
         #  name (that is just 'software-center')
         self.oauth_credentials = None
+        self._oauth_credentials = None
         self._login_failure = None
 
     def login(self, username=None, password=None):
@@ -224,8 +225,10 @@ class UbuntuSSOlogin(LoginBackend):
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
-        if self.oauth_credentials:
-            self.emit("login-successful", self.oauth_credentials)  # TODO:  is this correct?  (second arg formerly "result", hrm)
+        if self._oauth_credentials:
+            self.emit("login-successful", self._oauth_credentials)
+            self.oauth_credentials = self._oauth_credentials
+            self._oauth_credentials = None
         if self._login_failure:
             self.emit("login-failed")
             self._login_failure = None
@@ -234,7 +237,7 @@ class UbuntuSSOlogin(LoginBackend):
     def _thread_authentication_done(self, result):
         # runs in the thread context, can not touch gui or glib
         print "_authentication_done", result
-        self.oauth_credentials = result
+        self._oauth_credentials = result
 
     def _thread_authentication_error(self, e):
         # runs in the thread context, can not touch gui or glib
@@ -279,7 +282,7 @@ if __name__ == "__main__":
         scagent.connect("available-for-me", _available_for_me_result)
         scagent.connect("available", _available)
         # argument is oauth token
-        scagent.query_available_for_me("dummy_oauth")
+        scagent.query_available_for_me("dummy_oauth", "dummy openid")
         scagent.query_available()
 
     elif sys.argv[1] == "sso":
