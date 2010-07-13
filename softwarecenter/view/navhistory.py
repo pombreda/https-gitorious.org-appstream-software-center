@@ -57,7 +57,9 @@ class NavigationHistory(object):
         """
         append a new NavigationItem to the history stack
         """
+        print ">>> called navigate with nav_item: %s" % nav_item
         if in_replay_history_mode:
+            print "(in replay_history_mode)"
             return
 
         # reset navigation forward stack items on a direct navigation
@@ -139,6 +141,7 @@ class NavigationItem(object):
         self.apps_search_term = available_pane.apps_search_term
         self.current_app = available_pane.get_current_app()
         self.parts = self.available_pane.navigation_bar.get_parts()
+        # TODO: include the selected item here?
 
     def navigate_to(self):
         """
