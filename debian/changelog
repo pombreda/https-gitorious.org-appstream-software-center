@@ -33,8 +33,12 @@ software-center (2.1.5) UNRELEASED; urgency=low
       (LP: #602610) 
   * merge lp:~mmcg069/software-center/appdetailsview-gtk, fixes
     description parsing error for e.g. The Gimp.  Many thanks! 
+  * softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/navhistory.py:
+    - navigation history fixes 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Jul 2010 00:43:42 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 12 Jul 2010 23:53:48 -0400
 
 software-center (2.1.4) maverick; urgency=low
 

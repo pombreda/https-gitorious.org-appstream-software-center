@@ -63,7 +63,6 @@ class NavigationHistory(object):
         # reset navigation forward stack items on a direct navigation
         self._nav_stack.clear_forward_items()
 
-        nav_item.parent = self
         self._nav_stack.append(nav_item)
 
         if self._nav_stack.cursor > 0:
@@ -102,12 +101,6 @@ class NavigationHistory(object):
         """
         self._nav_stack[self._nav_stack.cursor].apps_search_term = terms
 
-    def get_last_label(self):
-        if self._nav_stack.stack:
-            if self._nav_stack[-1].parts:
-                return self._nav_stack[-1].parts[-1].label
-        return None
-
     def reset(self):
         """
         reset the navigation history by clearing the history stack and
@@ -139,6 +132,7 @@ class NavigationItem(object):
         self.apps_search_term = available_pane.apps_search_term
         self.current_app = available_pane.get_current_app()
         self.parts = self.available_pane.navigation_bar.get_parts()
+        # TODO: include the selected item here?
 
     def navigate_to(self):
         """
@@ -175,7 +169,7 @@ class NavigationItem(object):
 
     def __str__(self):
         details = []
-        details.append("\n%s" % type(self))
+        details.append("  self.update_available_pane: %s" % self.update_available_pane)
         category_name = ""
         if self.apps_category:
             category_name = self.apps_category.name
@@ -186,8 +180,8 @@ class NavigationItem(object):
         details.append("  apps_subcategory.name: %s" % subcategory_name)
         details.append("  current_app: %s" % self.current_app)
         details.append("  apps_search_term: %s" % self.apps_search_term)
+        details.append("  self.parts: %s" % self.parts)
         return '\n'.join(details)
-
 
 class NavigationStack(object):
     """
@@ -220,9 +214,8 @@ class NavigationStack(object):
         if len(self.stack) == 0: 
             return True
         pre_item = self.stack[-1]
-        if pre_item.parts[-1].label == item.parts[-1].label:
-            if pre_item.apps_search_term != item.apps_search_term:
-                return True
+        if (pre_item.parts[-1].label == item.parts[-1].label and
+            not pre_item.apps_search_term == item.apps_search_term):
             return False
         return True
 
