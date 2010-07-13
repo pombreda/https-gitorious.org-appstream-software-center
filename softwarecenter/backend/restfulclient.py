@@ -50,6 +50,10 @@ UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = "http://localhost:8000/api/1.0"
 class RestfulClientWorker(threading.Thread):
     """ a generic worker thread for a lazr.restfulclient """
 
+    (NO_ERROR,
+     ERROR_SERVICE_ROOT,
+    ) = range(2)
+
     def __init__(self, authorizer, service_root):
         """ init the thread """
         threading.Thread.__init__(self)
@@ -58,13 +62,19 @@ class RestfulClientWorker(threading.Thread):
         self._pending_requests = Queue()
         self._shutdown = False
         self.daemon = True
+        self.error = self.NO_ERROR
 
     def run(self):
         """
         Main thread run interface, logs into launchpad
         """
         logging.debug("lp worker thread run")
-        self.service = ServiceRoot(self._authorizer, self._service_root_url)
+        try:
+            self.service = ServiceRoot(self._authorizer, self._service_root_url)
+        except AttributeError:
+            self.error = self.ERROR_SERVICE_ROOT
+            self._shutdown = True
+            return
         # loop
         self._wait_for_commands()
 
