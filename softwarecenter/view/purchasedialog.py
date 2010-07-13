@@ -21,22 +21,39 @@ import logging
 import simplejson
 import webkit
 
+from gettext import gettext as _
+
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 
 class PurchaseDialog(gtk.Dialog):
 
+    LOADING_HTML = """
+<html>
+<head>
+ <title></title>
+</head>
+<body>
+ <h1>%s</h1>
+</body>
+</html>
+""" % _("Connecting to payment service...")
+
     def __init__(self, app, url=None, html=None):
         gtk.Dialog.__init__(self)
+        self.set_title("")
         self.app = app
-        self.set_size_request(500, 300)
+        self.set_size_request(700, 600)
         self.webkit = webkit.WebView()
         settings = self.webkit.get_settings()
         settings.set_property("enable-plugins", False)
         # a possible way to do IPC (script or title change)
         self.webkit.connect("script-alert", self._on_script_alert)
         self.webkit.connect("title-changed", self._on_title_changed)
+        self.webkit.load_html_string(self.LOADING_HTML, "file:///")
         self.webkit.show()
+        while gtk.events_pending():
+            gtk.main_iteration()
         if url:
             self.webkit.load_uri(url)
         elif html:
@@ -140,4 +157,5 @@ if __name__ == "__main__":
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
     #url = "http://www.ubuntu.com"
     d = PurchaseDialog(app=None, html=DUMMY_HTML)
+    #d = PurchaseDialog(app=None, url="http://spiegel.de")
     d.run()
