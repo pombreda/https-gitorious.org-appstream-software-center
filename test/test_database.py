@@ -13,6 +13,7 @@ import xapian
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists
+from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 
 class testDatabase(unittest.TestCase):
@@ -22,11 +23,12 @@ class testDatabase(unittest.TestCase):
         apt_pkg.config.set("APT::Architecture", "i386")
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
-        self.cache = apt.Cache()
+        self.cache = AptCache()
 
     def test_comma_seperation(self):
-        db = StoreDatabase("/var/cache/software-center/xapian", 
-                           self.cache)
+        xapian_base_path = XAPIAN_BASE_PATH
+        pathname = os.path.join(xapian_base_path, "xapian")
+        db = StoreDatabase(pathname, self.cache)
         # normal
         querries = db._comma_expansion("apt,2vcard,7zip")
         self.assertEqual(len(querries), 3)
@@ -47,7 +49,7 @@ class testDatabase(unittest.TestCase):
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
         self.assertTrue(res)
-        self.assertEqual(db.get_doccount(), 3)
+        self.assertEqual(db.get_doccount(), 5)
         # test if Name[de] was picked up
         i=0
         for it in db.postlist("AAUbuntu Software Zentrum"):
@@ -72,7 +74,7 @@ class testDatabase(unittest.TestCase):
         for it in db.postlist("AAFestplatten Ueberpruefer"):
             doc = db.get_document(it.docid)
             for term_iter in doc.termlist():
-                if term_iter.term == "fehler":
+                if term_iter.term == "platzes":
                     found_gettext_translation = True
                     break
         self.assertTrue(found_gettext_translation)
@@ -112,7 +114,7 @@ class testDatabase(unittest.TestCase):
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False)
-        self.assertEqual(len(db), 3)
+        self.assertEqual(len(db), 5)
         # test details
         app = Application("Ubuntu Software Center Test", "software-center")
         details = app.get_details(db)
@@ -152,6 +154,39 @@ class testDatabase(unittest.TestCase):
         self.assertEqual(appdetails.license, "Open Source")
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)
+        
+    def test_package_states(self):
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        db = StoreDatabase("./data/test.db", self.cache)
+        db.open(use_axi=False)
+        # test PKG_STATE_INSTALLED
+        # FIXME: this will only work if software-center is installed
+        app = Application("Ubuntu Software Center Test", "software-center")
+        appdetails = app.get_details(db)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_INSTALLED)
+        # test PKG_STATE_UNINSTALLED
+        # test PKG_STATE_UPGRADABLE
+        # test PKG_STATE_REINSTALLABLE
+        # test PKG_STATE_INSTALLING
+        # test PKG_STATE_REMOVING
+        # test PKG_STATE_UPGRADING
+        # test PKG_STATE_NEEDS_SOURCE
+        # FIXME:  better test here
+        app = Application("Zynjacku Test", "zynjacku")
+        appdetails = app.get_details(db)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_SOURCE)
+        # test PKG_STATE_NEEDS_PURCHASE
+        app = Application("The expensive gem", "expensive-gem")
+        appdetails = app.get_details(db)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_PURCHASE)
+        # test PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
+        # test PKG_STATE_UNKNOWN
+        app = Application("Scintillant Orange", "scintillant-orange")
+        appdetails = app.get_details(db)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_UNKNOWN)
+
 
 if __name__ == "__main__":
     import logging
