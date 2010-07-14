@@ -384,8 +384,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.scagent.query_available_for_me(oauth_result["token"],
                                             oauth_result["consumer_key"])
 
-    def _available_for_me_result(self, result):
+    def _available_for_me_result(self, result_list):
         print "availalbe_for_me_result", result
+        
 
     # Menu Items
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
