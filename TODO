@@ -6,7 +6,11 @@ Buy something:
 - move what is availalbe into a seperate DB that is refreshed on 
   startup
 - add what is available to me and a STATE for this in the appdetails
-- fetch the metadata
+- fetch the metadata as part of the update-software-center-agent-db
+- do screenshot by adding a new document part
+  X-AppInstall-Screenshot-Url that is then added to from-sc-agent
+  entries via entry.screenshot_url and constructed via the archive-id
+  and the meta directory
 
 Code:
 - make the order of "cache, db, datadir" identical 
