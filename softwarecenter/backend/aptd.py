@@ -212,6 +212,41 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 logging.error("add_repository: '%s'" % err)
                 return
+                
+    def add_repo_add_key_and_install_app(self,
+                                         source_entry,
+                                         signing_key,
+                                         app):
+        """ 
+        a convenience method that combines all of the steps needed
+        to install a for-pay application, including adding the
+        source entry and the vendor key, reloading the package list,
+        and finally installing the specified application once the
+        package list reload has completed.
+        """
+        # TODO:  add error checking as needed
+        self.app = app
+        self.add_sources_list_entry(source_entry)
+        self.add_vendor_key_from_keyserver(signing_key)
+        self.emit("channels-changed", True)
+        # reload to ensure we have the new package data
+        self.reload()
+        # and then queue the install only when the reload finished
+        # otherwise the daemon will fail because he does not know
+        # the new package name yet
+        self._reload_signal_id = self.connect(
+            "reload-finished", self._on_reload_finished, self)
+            
+    def _on_reload_finished(self, trans, result, backend):
+        """ 
+        callback that is called once after reload was queued
+        and will trigger the install of the for-pay package itself
+        (after that it will automatically de-register)
+        """
+        self.install(self.app.pkgname, self.app.appname, "")
+        # disconnect again, this is only a one-time operation
+        self.handler_disconnect(self._reload_signal_id)
+        self._reload_signal_id = None
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
