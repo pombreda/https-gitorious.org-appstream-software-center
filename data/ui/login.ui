@@ -271,7 +271,7 @@
                 <property name="label" translatable="yes">Stop</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="receives_default">False</property>
                 <signal name="clicked" handler="on_button_login_stop_clicked"/>
               </object>
               <packing>
@@ -285,7 +285,7 @@
                 <property name="label" translatable="yes">Cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="receives_default">False</property>
                 <signal name="clicked" handler="on_button_login_cancel_clicked"/>
               </object>
               <packing>
@@ -300,6 +300,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
+                <property name="has_default">True</property>
                 <property name="receives_default">True</property>
                 <signal name="clicked" handler="on_button_login_continue_clicked"/>
               </object>

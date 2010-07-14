@@ -61,9 +61,10 @@ def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depe
         return True
     return False
     
-def confirm_repair_broken_cache(parent):
+def confirm_repair_broken_cache(parent, datadir):
     glade_dialog = GladeDialog(datadir)
     dialog = glade_dialog.dialog_broken_cache
+    dialog.set_default_size(380, -1)
     dialog.set_transient_for(parent)
 
     result = dialog.run()
