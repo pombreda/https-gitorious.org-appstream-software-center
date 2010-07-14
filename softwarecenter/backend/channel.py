@@ -196,6 +196,13 @@ class ChannelsManager(object):
                                                 None,
                                                 only_packages_without_applications=True,
                                                 installed_only=installed_only))
+            elif channel_name == "Partner archive":
+                partner_channel = SoftwareChannel(self.icons, 
+                                                  channel_name,
+                                                  channel_origin,
+                                                  "partner", 
+                                                  only_packages_without_applications=True,
+                                                  installed_only=installed_only)
             elif channel_origin and channel_origin.startswith("LP-PPA"):
                 ppa_channels.append(SoftwareChannel(self.icons, 
                                                     channel_name,
@@ -209,19 +216,6 @@ class ChannelsManager(object):
                                                       channel_origin,
                                                       None,
                                                       installed_only=installed_only))
-        # FIXME: do not hardcode this, check instead for 
-        #        self.db.xapiandb.allterms("AH") and add all of those
-        #        and provide a mechanism in the channel to check
-        #        both origin (XAO) and channel name from app-install (AH)
-        # FIXME2: pass the AH name as well so that we do not need to special
-        #         case the AH query for partner
-        # also get the partner repository
-        partner_channel = SoftwareChannel(self.icons, 
-                                          distro_channel_name,
-                                          None,
-                                          "partner", 
-                                          only_packages_without_applications=True,
-                                          installed_only=installed_only)
         
         # set them in order
         channels = []
