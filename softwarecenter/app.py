@@ -378,14 +378,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _on_sso_login(self, sso, oauth_result):
         print "_on_sso_login", sso, oauth_result
         self._sso_login_successful = True
-        self.scagent = SoftwareCenterAgent()
-        self.scagent.connect("available-for-me", self._available_for_me_result)
         # consumer key is the openid identifier
         self.scagent.query_available_for_me(oauth_result["token"],
                                             oauth_result["consumer_key"])
 
-    def _available_for_me_result(self, result_list):
-        print "availalbe_for_me_result", result
+    def _available_for_me_result(self, scagent, result_list):
+        print "availalbe_for_me_result", result_list
         
 
     # Menu Items
@@ -398,8 +396,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.sso = UbuntuSSOlogin()
         self.sso.connect("login-successful", self._on_sso_login)
-        d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
-        d.login()
+        self.scagent = SoftwareCenterAgent()
+        self.scagent.connect("available-for-me", self._available_for_me_result)
+        if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
+            self.scagent.query_available_for_me("dummy", "mvo")
+        else:
+            d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
+            d.login()
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()

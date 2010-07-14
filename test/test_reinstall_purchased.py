@@ -6,6 +6,7 @@ sys.path.insert(0,"../")
 
 import apt_pkg
 import apt
+import logging
 import os
 import simplejson
 import unittest
@@ -14,7 +15,7 @@ import xapian
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.db.update import update_from_app_install_data
+from softwarecenter.db.update import SoftwareCenterAgentParser, index_app_info_from_parser
 
 # from
 #  https://wiki.canonical.com/Ubuntu/SoftwareCenter/10.10/Roadmap/SoftwareCenterAgent
@@ -25,7 +26,7 @@ AVAILABLE_FOR_ME_JSON = """
         "deb_line": "deb https://username:randomp3atoken@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main #Personal access of username to private-test",
         "purchase_price": "19.95",
         "purchase_date": "2010-06-24 20:08:23",
-        "application_name": "Ubiteme",
+        "name": "Ubiteme",
         "description": "One of the best strategy games you\'ll ever play!",
         "package_name": "hellox",
         "signing_key_id": "1024R/0EB12F05",
@@ -56,7 +57,7 @@ class testPurchased(unittest.TestCase):
                            "./data/appdetails/var/lib/dpkg/status")
         # create mocks
         self.available_to_me = MockAvailableForMeList()
-        self.cache = AptCache()
+        self.cache = apt.Cache()
 
     def test_reinstall_purchased_mock(self):
         # test if the mocks are ok
@@ -73,7 +74,7 @@ class testPurchased(unittest.TestCase):
         # go over the items we have
         for item in self.available_to_me:
             try:
-                db.get_xapian_document(item.application_name,
+                db.get_xapian_document(item.name,
                                        item.package_name)
             except IndexError:
                 in_db = False
@@ -82,28 +83,33 @@ class testPurchased(unittest.TestCase):
             # ignore items we already have in the db
             if in_db:
                 continue
-            doc = xapian.Document()
-            doc.set_data(item.application_name)
-            doc.add_term("AP"+item.package_name)
-            doc.add_term("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
-            doc.add_value(XAPIAN_VALUE_PKGNAME, item.package_name)
-            doc.add_value(XAPIAN_VALUE_SUMMARY, item.description)
-            # this contains the deb line with the signing keys
-            doc.add_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE, item.deb_line)
-            doc.add_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID, item.signing_key_id)
-            db_purchased.add_document(doc)
+            try:
+                # we fake a channel here
+                item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+                # and empty category to make the parser happy
+                item.categories = ""
+                parser = SoftwareCenterAgentParser(item)
+                index_app_info_from_parser(parser, db_purchased, self.cache)
+            except Exception, e:
+                logging.exception("error processing: %s " % e)
         # add to the main db
-        db_purchased.flush()
         old_db_len = len(db)
         db.xapiandb.add_database(db_purchased)
-        # ensure we have a new item
+        # ensure we have a new item (the available for reinstall one)
         self.assertEqual(len(db), old_db_len+1)
         # query
         query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
         enquire = xapian.Enquire(db.xapiandb)
         enquire.set_query(query)
-        mset = enquire.get_mset(0, len(db))
-        self.assertEqual(len(mset), 1)
-
+        matches = enquire.get_mset(0, len(db))
+        self.assertEqual(len(matches), 1)
+        for m in matches:
+            doc = db.xapiandb.get_document(m.docid)
+            self.assertEqual(doc.get_value(XAPIAN_VALUE_PKGNAME), "hellox")
+            self.assertEqual(doc.get_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID), "1024R/0EB12F05")
+            self.assertEqual(doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE),
+                                           "deb https://username:randomp3atoken@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main #Personal access of username to private-test")
+            break # only one match
+        
 if __name__ == "__main__":
     unittest.main()
