@@ -1129,7 +1129,7 @@ class AppView(gtk.TreeView):
         # it needs to be the first one, because that is what the tools look
         # at by default
         tp = CellRendererPixbufWithOverlay("software-center-installed")
-        tp.set_property('xpad', 6)
+        tp.set_property('xpad', 12)
         tp.set_property('ypad', 6)
 
         column = gtk.TreeViewColumn("Icon", tp,
