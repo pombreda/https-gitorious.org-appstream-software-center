@@ -129,7 +129,18 @@ def error(parent, primary, secondary, details=None):
     
 
 if __name__ == "__main__":
+    print "Running remove dialog"
+    import apt
+    cache = apt.Cache()
+    confirm_remove(None, 
+                   "confirm remove", 
+                   cache,
+                   "button text", 
+                   "./data/icons/64x64/apps/softwarecenter.png", 
+                   depends=["apt"])
+    print "Showing message dialog"
     messagedialog(None, primary="first, no second")
+    print "showing error"
     error(None, "first", "second")
     error(None, "first", "second", "details ......")
     
