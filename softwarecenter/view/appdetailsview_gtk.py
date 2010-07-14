@@ -108,8 +108,7 @@ class PackageStatusBar(gtk.Alignment):
         if state == PKG_STATE_INSTALLED:
             AppDetailsViewBase.remove(self.view)
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
-            # FIXME: implement this!
-            pass
+            AppDetailsViewBase.reinstall_purchased(self.view)
         elif state == PKG_STATE_NEEDS_PURCHASE:
             AppDetailsViewBase.buy_app(self.view)
         elif state == PKG_STATE_UNINSTALLED:

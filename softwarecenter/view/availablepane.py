@@ -203,7 +203,7 @@ class AvailablePane(SoftwarePane):
             self.update_app_view()
             self._update_action_bar()
 
-    def refresh_apps(self):
+    def refresh_apps(self, query=None):
         """refresh the applist and update the navigation bar
         """
         logging.debug("refresh_apps")
@@ -215,13 +215,14 @@ class AvailablePane(SoftwarePane):
             self.subcategories_view.window.set_cursor(self.busy_cursor)
         if self.apps_vbox.window:
             self.apps_vbox.window.set_cursor(self.busy_cursor)
-        self._refresh_apps_with_apt_cache()
+        self._refresh_apps_with_apt_cache(query)
 
     @wait_for_apt_cache_ready
-    def _refresh_apps_with_apt_cache(self):
+    def _refresh_apps_with_apt_cache(self, query=None):
         self.refresh_seq_nr += 1
         # build query
-        query = self._get_query()
+        if query is None:
+            query = self._get_query()
         logging.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
@@ -257,6 +258,7 @@ class AvailablePane(SoftwarePane):
                              exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
+        #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other
         # events may have happend
         if seq_nr != self.refresh_seq_nr:
@@ -516,6 +518,21 @@ class AvailablePane(SoftwarePane):
             self.emit("app-list-changed", list_length)
         self.searchentry.show()
         return
+
+    def display_list_from_query(self, query, pathbar_label):
+        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
+        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
+        # clear
+        self.apps_subcategory = None
+        self.apps_category = None
+        self._clear_search()
+        self.refresh_apps(query=query)
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        self.navigation_bar.add_with_id(pathbar_label,
+                                        self.on_navigation_list,
+                                        self.NAV_BUTTON_ID_LIST, 
+                                        do_callback=False, 
+                                        animate=True)
 
     def display_list(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)

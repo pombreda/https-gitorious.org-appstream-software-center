@@ -1,7 +1,7 @@
 [Desktop Entry]
-X-AppInstall-Package=zynjacku
+X-AppInstall-Package=zynjacku-fake
 X-AppInstall-Popcon=9
-X-AppInstall-Section=universe
+X-AppInstall-Section=fake-component
 
 Type=Application
 Name=Zynjacku Test

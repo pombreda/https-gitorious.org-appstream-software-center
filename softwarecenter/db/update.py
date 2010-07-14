@@ -82,6 +82,10 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Price'      : 'price',
                 'Package'    : 'package_name',
                 'Categories' : 'categories',
+                'Channel'    : 'channel',
+                'Deb-Line'   : 'deb_line',
+                'Signing-Key-Id' : 'signing_key_id',
+                'Purchased-Date' : 'purchase_date',
               }
 
     # map from requested key to a static data element
@@ -280,6 +284,47 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
             logging.warning("error processing: %s %s" % (desktopf, e))
     return True
 
+def add_from_puchased_but_needs_reinstall_data(puchased_but_may_need_reinstall_list, db, cache):
+    """Add application that have been purchased but may require a reinstall
+    
+    This adds a inmemory database to the main db with the special
+    PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME channel prefix
+
+    :return: a xapian query to get all the apps that need reinstall
+    """
+    # magic
+    PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
+    db_purchased = xapian.inmemory_open()
+    # go over the items we have
+    for item in puchased_but_may_need_reinstall_list:
+        # FIXME: what to do with duplicated entries? we will end
+        #        up with two xapian.Document, one for the for-pay
+        #        and one for the availalbe one from s-c-agent
+        #try:
+        #    db.get_xapian_document(item.name,
+        #                           item.package_name)
+        #except IndexError:
+        #    # item is not in the xapian db
+        #    pass
+        #else:
+        #    # ignore items we already have in the db, ignore
+        #    continue
+        # index the item
+        try:
+            # we fake a channel here
+            item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+            # and empty category to make the parser happy
+            item.categories = ""
+            parser = SoftwareCenterAgentParser(item)
+            index_app_info_from_parser(parser, db_purchased, cache)
+        except Exception, e:
+            logging.exception("error processing: %s " % e)
+    # add new in memory db to the main db
+    db.xapiandb.add_database(db_purchased)
+    # return a query
+    query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
+    return query
+
 def update_from_software_center_agent(db, cache):
     """ update index based on the software-center-agent data """
     def _available_cb(sca, available):
@@ -342,6 +387,18 @@ def index_app_info_from_parser(parser, db, cache):
             archive_channel = parser.get_desktop("X-AppInstall-Channel")
             doc.add_term("AH"+archive_channel)
             doc.add_value(XAPIAN_VALUE_ARCHIVE_CHANNEL, archive_channel)
+        # singing key (third party)
+        if parser.has_option_desktop("X-AppInstall-Signing-Key-Id"):
+            keyid = parser.get_desktop("X-AppInstall-Signing-Key-Id")
+            doc.add_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID, keyid)
+        # purchased date
+        if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
+            date = parser.get_desktop("X-AppInstall-Purchased-Date")
+            doc.add_value(XAPIAN_VALUE_PURCHASED_DATE, str(date))
+        # deb-line (third party)
+        if parser.has_option_desktop("X-AppInstall-Deb-Line"):
+            debline = parser.get_desktop("X-AppInstall-Deb-Line")
+            doc.add_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE, debline)
         # PPA (third party stuff)
         if parser.has_option_desktop("X-AppInstall-PPA"):
             archive_ppa = parser.get_desktop("X-AppInstall-PPA")

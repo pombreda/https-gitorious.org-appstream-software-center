@@ -47,6 +47,21 @@ from login import LoginBackend
 UBUNTU_SSO_SERVICE = "https://login.staging.ubuntu.com/api/1.0"
 UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = "http://localhost:8000/api/1.0"
 
+class EmptyObject(object):
+    pass
+
+def restful_collection_to_real_python(restful_list):
+    """ take a restful and convert it to a python list with real python
+        objects
+    """
+    l = []
+    for entry in restful_list:
+        o = EmptyObject()
+        for attr in entry.lp_attributes:
+            setattr(o, attr, getattr(entry, attr))
+        l.append(o)
+    return l
+
 class RestfulClientWorker(threading.Thread):
     """ a generic worker thread for a lazr.restfulclient """
 
@@ -155,8 +170,11 @@ class SoftwareCenterAgent(gobject.GObject):
         return True
 
     def _thread_available_for_me_done(self, result):
-        print "_availalbe_for_me_done"
-        self._available_for_me =  [x for x in result]
+        # attributes for each element in the result list:
+        # 'application_name', 'archive_id', 'deb_line', 'description', 
+        # 'package_name', 'purchase_date', 'purchase_price', 'series', 
+        # 'signing_key_id'
+        self._available_for_me = restful_collection_to_real_python(result)
 
     def _thread_available_for_me_error(self, error):
         print "_available_for_me_error:", error
@@ -171,7 +189,7 @@ class SoftwareCenterAgent(gobject.GObject):
 
     def _thread_available_done(self, result):
         print "_availalbe", result
-        self._available = [x for x in result]
+        self._available = restful_collection_to_real_python(result)
 
     def _thread_available_error(self, error):
         print "available_error: ", error
@@ -208,6 +226,7 @@ class UbuntuSSOlogin(LoginBackend):
         self.oauth_credentials = None
         self._oauth_credentials = None
         self._login_failure = None
+        self.worker_thread = None
 
     def login(self, username=None, password=None):
         if not username or not password:
@@ -246,7 +265,8 @@ class UbuntuSSOlogin(LoginBackend):
 
     def __del__(self):
         print "del"
-        self.worker_thread.shutdown()
+        if self.worker_thread:
+            self.worker_thread.shutdown()
 
 # test code
 def _login_success(lp, token):
@@ -291,6 +311,7 @@ if __name__ == "__main__":
         sso.connect("login-failed", _login_failed)
         sso.connect("need-username-password", _login_need_user_and_password)
         sso.login()
+        
     else:
         print "unknown option"
         sys.exit(1)

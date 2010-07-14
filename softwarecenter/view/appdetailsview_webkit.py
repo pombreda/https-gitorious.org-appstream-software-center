@@ -408,6 +408,9 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         elif PKG_STATE_NEEDS_PURCHASE:
             action_button_label = _("Buy for %s") % self.appdetails.price
             action_button_value = "buy_app"
+        elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+            action_button_label = _("Reinstall")
+            action_button_value = "reinstall_purchased"
         elif state == PKG_STATE_NEEDS_SOURCE:
             channelfile = self.appdetails.channelfile
             # it has a price and is not available 

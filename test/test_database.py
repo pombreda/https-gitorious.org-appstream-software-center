@@ -74,6 +74,8 @@ class testDatabase(unittest.TestCase):
         for it in db.postlist("AAFestplatten Ueberpruefer"):
             doc = db.get_document(it.docid)
             for term_iter in doc.termlist():
+                # a german term from the app-info file to ensure that
+                # it got indexed in german
                 if term_iter.term == "platzes":
                     found_gettext_translation = True
                     break
@@ -173,8 +175,7 @@ class testDatabase(unittest.TestCase):
         # test PKG_STATE_REMOVING
         # test PKG_STATE_UPGRADING
         # test PKG_STATE_NEEDS_SOURCE
-        # FIXME:  better test here
-        app = Application("Zynjacku Test", "zynjacku")
+        app = Application("Zynjacku Test", "zynjacku-fake")
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_SOURCE)
         # test PKG_STATE_NEEDS_PURCHASE
