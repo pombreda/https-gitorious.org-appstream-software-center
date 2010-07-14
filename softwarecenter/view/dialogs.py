@@ -21,7 +21,7 @@ import gtk
 from gettext import gettext as _
 from pkgview import PkgNamesView
 
-class GladeDialog(object):
+class SimpleGladeDialog(object):
     def __init__(self, datadir):
         # setup ui
         self.builder = gtk.Builder()
@@ -36,15 +36,18 @@ class GladeDialog(object):
 
 def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depends):
     """Confirm removing of the given app with the given depends"""
-    glade_dialog = GladeDialog(datadir)
+    glade_dialog = SimpleGladeDialog(datadir)
     dialog = glade_dialog.dialog_dependency_alert
     dialog.set_resizable(True)
+    dialog.set_transient_for(parent)
+    dialog.set_default_size(360, -1)
 
     # fixes launchpad bug #560021
-    pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 32, 32)
+    pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 48, 48)
     glade_dialog.image_package_icon.set_from_pixbuf(pixbuf)
 
     glade_dialog.label_dependency_primary.set_text("<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
+    glade_dialog.label_dependency_primary.set_use_markup(True)
     glade_dialog.button_dependency_do.set_label(button_text)
 
     # add the dependencies
@@ -62,7 +65,7 @@ def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depe
     return False
     
 def confirm_repair_broken_cache(parent, datadir):
-    glade_dialog = GladeDialog(datadir)
+    glade_dialog = SimpleGladeDialog(datadir)
     dialog = glade_dialog.dialog_broken_cache
     dialog.set_default_size(380, -1)
     dialog.set_transient_for(parent)
@@ -126,21 +129,26 @@ def error(parent, primary, secondary, details=None):
                          details=details,
                          type=gtk.MESSAGE_ERROR)
 
-    
 
 if __name__ == "__main__":
     print "Running remove dialog"
     import apt
     cache = apt.Cache()
+    
     confirm_remove(None, 
-                   "confirm remove", 
+                   "./data", 
+                   "To remove Package, these items must be removed as well",
                    cache,
-                   "button text", 
-                   "./data/icons/64x64/apps/softwarecenter.png", 
+                   "Remove", 
+                   "./data/icons/48x48/apps/softwarecenter.png", 
                    depends=["apt"])
+                   
+    print "Running broken apt-cache dialog"               
+    confirm_repair_broken_cache(None, "./data")
+                   
     print "Showing message dialog"
     messagedialog(None, primary="first, no second")
     print "showing error"
     error(None, "first", "second")
     error(None, "first", "second", "details ......")
-    
+     

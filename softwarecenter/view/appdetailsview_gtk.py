@@ -705,10 +705,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = gtk.ICON_SIZE_DIALOG
+    APP_ICON_SIZE = 48
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
+    # TODO: use a generic gtk.Spinner instead of this icon
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
