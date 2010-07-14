@@ -238,7 +238,7 @@ class AppDetails(object):
                 return PKG_STATE_NEEDS_SOURCE
             if self.price and self._available_for_our_arch():
                 return PKG_STATE_NEEDS_PURCHASE
-            if app_details.purchase_date:
+            if self.purchase_date:
                 return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
         return PKG_STATE_UNKNOWN
     @property
