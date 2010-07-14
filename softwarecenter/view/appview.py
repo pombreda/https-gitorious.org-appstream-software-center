@@ -166,6 +166,11 @@ class AppStore(gtk.GenericTreeModel):
             self._perform_search()
 
     def _perform_search(self):
+        print ">>> CALLED perform_search"
+        import traceback
+        print "%%%%% traceback %%%%%"
+        traceback.print_stack()
+        print "%%%%%%%%%%%%%%%%%%%%%"
         already_added = set()
         for q in self.search_query:
             logging.debug("using query: '%s'" % q)
@@ -277,6 +282,9 @@ class AppStore(gtk.GenericTreeModel):
             the index maps
         """
         #print "old: ", [x.pkgname for x in self.apps]
+#        print "_insert_app, with"
+#        print "              app: %s" % app
+#        print "                i: %s" % i
         self.apps.insert(i, app)
         self.app_index_map[app] = i
         if not app.pkgname in self.pkgname_index_map:
@@ -301,6 +309,7 @@ class AppStore(gtk.GenericTreeModel):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white
         # flash. First, match list of apps.
+        print ">>> CALLED update"
         self.app_index_map.clear()
         self.pkgname_index_map.clear()
         to_update = min(len(self), len(appstore))
