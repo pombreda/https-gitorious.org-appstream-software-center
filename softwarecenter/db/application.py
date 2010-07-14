@@ -182,9 +182,7 @@ class AppDetails(object):
         
     @property
     def purchase_date(self):
-        # TODO: implement me, but only if we actually get this as part of
-        #       appdetails, maybe we will get this info from someplace else?
-        return None
+        return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
 
     @property
     def license(self):
@@ -238,7 +236,8 @@ class AppDetails(object):
                 return PKG_STATE_NEEDS_SOURCE
             if self.price and self._available_for_our_arch():
                 return PKG_STATE_NEEDS_PURCHASE
-            if self.purchase_date:
+            if (self.purchase_date and
+                self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
                 return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
         return PKG_STATE_UNKNOWN
     @property

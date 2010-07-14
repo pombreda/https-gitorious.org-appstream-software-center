@@ -258,7 +258,7 @@ class AvailablePane(SoftwarePane):
                              exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
-        print "new_model", new_model, len(new_model), seq_nr
+        #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other
         # events may have happend
         if seq_nr != self.refresh_seq_nr:

@@ -102,6 +102,10 @@ class AppDetailsViewBase(object):
         if res != gtk.RESPONSE_OK:
             self.show_app(self.app)
 
+    def reinstall_purchased(self):
+        """ reinstall a purchased app """
+        print "reinstall_purchased",  self.app
+
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:

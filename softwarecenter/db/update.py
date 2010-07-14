@@ -85,6 +85,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Channel'    : 'channel',
                 'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
+                'Purchased-Date' : 'purchase_date',
               }
 
     # map from requested key to a static data element
@@ -390,6 +391,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Signing-Key-Id"):
             keyid = parser.get_desktop("X-AppInstall-Signing-Key-Id")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID, keyid)
+        # purchased date
+        if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
+            date = parser.get_desktop("X-AppInstall-Purchased-Date")
+            doc.add_value(XAPIAN_VALUE_PURCHASED_DATE, str(date))
         # deb-line (third party)
         if parser.has_option_desktop("X-AppInstall-Deb-Line"):
             debline = parser.get_desktop("X-AppInstall-Deb-Line")

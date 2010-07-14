@@ -2,10 +2,11 @@
 Buy something:
 - have one big transaction for "buy-something" in the daemon instead
   of the current add-repo,add-password,add-repo-key,refresh,install-pkg
+  (or at least add much more error checking in the steps)
 - move what is availalbe into a seperate DB that is refreshed on 
   startup
-- add what is available to me
-
+- add what is available to me and a STATE for this in the appdetails
+- fetch the metadata
 
 Code:
 - make the order of "cache, db, datadir" identical 
