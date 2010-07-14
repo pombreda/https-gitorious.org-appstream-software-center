@@ -283,6 +283,47 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
             logging.warning("error processing: %s %s" % (desktopf, e))
     return True
 
+def add_from_puchased_but_needs_reinstall_data(puchased_but_may_need_reinstall_list, db, cache):
+    """Add application that have been purchased but may require a reinstall
+    
+    This adds a inmemory database to the main db with the special
+    PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME channel prefix
+
+    :return: a xapian query to get all the apps that need reinstall
+    """
+    # magic
+    PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
+    db_purchased = xapian.inmemory_open()
+    # go over the items we have
+    for item in puchased_but_may_need_reinstall_list:
+        # FIXME: what to do with duplicated entries? we will end
+        #        up with two xapian.Document, one for the for-pay
+        #        and one for the availalbe one from s-c-agent
+        #try:
+        #    db.get_xapian_document(item.name,
+        #                           item.package_name)
+        #except IndexError:
+        #    # item is not in the xapian db
+        #    pass
+        #else:
+        #    # ignore items we already have in the db, ignore
+        #    continue
+        # index the item
+        try:
+            # we fake a channel here
+            item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+            # and empty category to make the parser happy
+            item.categories = ""
+            parser = SoftwareCenterAgentParser(item)
+            index_app_info_from_parser(parser, db_purchased, cache)
+        except Exception, e:
+            logging.exception("error processing: %s " % e)
+    # add new in memory db to the main db
+    db.xapiandb.add_database(db_purchased)
+    # return a query
+    query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
+    return query
+
 def update_from_software_center_agent(db, cache):
     """ update index based on the software-center-agent data """
     def _available_cb(sca, available):

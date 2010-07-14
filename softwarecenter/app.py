@@ -383,8 +383,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             oauth_result["consumer_key"])
 
     def _available_for_me_result(self, scagent, result_list):
-        print "availalbe_for_me_result", result_list
-        
+        #print "availalbe_for_me_result", result_list
+        from db.update import add_from_puchased_but_needs_reinstall_data
+        query = add_from_puchased_but_needs_reinstall_data(result_list, 
+                                                           self.db,
+                                                           self.cache)
+        self.available_pane.display_list_from_query(query,
+                                                    _("Previous Purchases"))
 
     # Menu Items
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):

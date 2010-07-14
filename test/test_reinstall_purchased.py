@@ -15,7 +15,7 @@ import xapian
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.db.update import SoftwareCenterAgentParser, index_app_info_from_parser
+from softwarecenter.db.update import add_from_puchased_but_needs_reinstall_data
 
 # from
 #  https://wiki.canonical.com/Ubuntu/SoftwareCenter/10.10/Roadmap/SoftwareCenterAgent
@@ -69,36 +69,12 @@ class testPurchased(unittest.TestCase):
         db.open(use_axi=False)
         # now create purchased debs xapian index (in memory because
         # we store the repository passwords in here)
-        db_purchased = xapian.inmemory_open()
-        PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
-        # go over the items we have
-        for item in self.available_to_me:
-            try:
-                db.get_xapian_document(item.name,
-                                       item.package_name)
-            except IndexError:
-                in_db = False
-            else:
-                in_db = True
-            # ignore items we already have in the db
-            if in_db:
-                continue
-            try:
-                # we fake a channel here
-                item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-                # and empty category to make the parser happy
-                item.categories = ""
-                parser = SoftwareCenterAgentParser(item)
-                index_app_info_from_parser(parser, db_purchased, self.cache)
-            except Exception, e:
-                logging.exception("error processing: %s " % e)
-        # add to the main db
         old_db_len = len(db)
-        db.xapiandb.add_database(db_purchased)
+        query = add_from_puchased_but_needs_reinstall_data(self.available_to_me,
+                                                           db, self.cache)
         # ensure we have a new item (the available for reinstall one)
         self.assertEqual(len(db), old_db_len+1)
         # query
-        query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
         enquire = xapian.Enquire(db.xapiandb)
         enquire.set_query(query)
         matches = enquire.get_mset(0, len(db))
