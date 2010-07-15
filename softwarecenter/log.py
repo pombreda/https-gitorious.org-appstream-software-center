@@ -55,6 +55,8 @@ class Logger:
         self._logger.debug("adding filter:'" + filter_str+ "'")
         filter_str = filter_str.strip("")
         if filter_str != "":
+            if filter_str[:2] == "sc":
+                filter_str = "softwarecenter" + filter_str[2:]
             self._filter.add(filter_str)
 
     def setLevel(self,level):
