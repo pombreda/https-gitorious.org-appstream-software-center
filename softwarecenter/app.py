@@ -50,6 +50,8 @@ from view.historypane import HistoryPane
 from backend.config import get_config
 from backend import get_install_backend
 
+from plugin import PluginManager
+
 # launchpad stuff
 from view.logindialog import LoginDialog
 from backend.launchpad import GLaunchpad
@@ -283,6 +285,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # restore state
         self.config = get_config()
         self.restore_state()
+
+        # open plugin manager and load plugins
+        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
+        self.plugin_manager.load_plugins()
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default
@@ -540,9 +546,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         logging.debug("on_channels_changed %s" % res)
         if res:
             self.db.open()
-            # reset the navigation history because software items stored
-            # in the history stack might no longer be available
-            self.available_pane.nav_history.reset()
             # refresh the available_pane views to reflect any changes
             self.available_pane.refresh_apps()
             self.available_pane.update_app_view()

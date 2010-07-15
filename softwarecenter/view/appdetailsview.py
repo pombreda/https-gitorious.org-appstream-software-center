@@ -75,7 +75,8 @@ class AppDetailsViewBase(object):
             
             if not dialogs.confirm_remove(None, primary, self.cache,
                                         button_text, iconpath, depends):
-                self._set_action_button_sensitive(True)
+                # for appdetailsview-webkit
+                # self._set_action_button_sensitive(True)
                 self.backend.emit("transaction-stopped")
                 return
         self.backend.remove(self.app.pkgname, self.app.appname, self.appdetails.icon)

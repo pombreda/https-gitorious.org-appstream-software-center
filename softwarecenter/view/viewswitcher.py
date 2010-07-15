@@ -69,8 +69,12 @@ class ViewSwitcher(gtk.TreeView):
         tr = gtk.CellRendererText()
         tr.set_property("ellipsize", pango.ELLIPSIZE_END)
         column.pack_start(tr, expand=True)
-        column.set_attributes(tr, markup=store.COL_NAME)
+        column.set_attributes(tr, markup=store.COL_NAME, yalign=store.COL_YPAD)
         self.append_column(column)
+
+        # Remember the previously selected permanent view
+        self._permanent_views = ViewSwitcherList.PERMANENT_VIEWS
+        self._previous_permanent_view = None
 
         # set sensible atk name
         atk_desc = self.get_accessible()
@@ -90,6 +94,7 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("cursor-changed", self.on_cursor_changed)
 
         self.get_model().connect("channels-refreshed", self._on_channels_refreshed)
+        self.get_model().connect("row-deleted", self._on_row_deleted)
         
     def on_treeview_row_expanded(self, widget, iter, path):
         # do nothing on a node expansion
@@ -109,6 +114,8 @@ class ViewSwitcher(gtk.TreeView):
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
+        if action in self._permanent_views:
+            self._previous_permanent_view = path
         self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
         if channel:
             self.selected_channel_installed_only = channel.installed_only
@@ -180,13 +187,22 @@ class ViewSwitcher(gtk.TreeView):
             if channel_iter_to_select:
                 self.set_cursor(model.get_path(channel_iter_to_select))
 
+    def _on_row_deleted(self, widget, path):
+        if self.get_cursor()[0] is None:
+            # The view that was selected has been deleted, switch back to
+            # the previously selected permanent view.
+            if self._previous_permanent_view is not None:
+                self.set_cursor(self._previous_permanent_view)
+
 class ViewSwitcherList(gtk.TreeStore):
     
     # columns
     (COL_ICON,
      COL_NAME,
      COL_ACTION,
-     COL_CHANNEL) = range(4)
+     COL_CHANNEL,
+     COL_YPAD,
+     ) = range(5)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
@@ -195,6 +211,15 @@ class ViewSwitcherList(gtk.TreeStore):
      ACTION_ITEM_SEPARATOR_1,
      ACTION_ITEM_PENDING,
      ACTION_ITEM_CHANNEL) = range(6)
+
+    # items considered "permanent", that is, if a item disappears
+    # (e.g. progress) then switch back to the previous on in permanent
+    # views (LP:  #431907)
+    PERMANENT_VIEWS = (ACTION_ITEM_AVAILABLE,
+                       ACTION_ITEM_INSTALLED,
+                       ACTION_ITEM_CHANNEL,
+                       ACTION_ITEM_HISTORY,
+                       )
 
     ICON_SIZE = 24
 
@@ -206,7 +231,12 @@ class ViewSwitcherList(gtk.TreeStore):
 
 
     def __init__(self, datadir, db, cache, icons):
-        gtk.TreeStore.__init__(self, AnimatedImage, str, int, gobject.TYPE_PYOBJECT)
+        gtk.TreeStore.__init__(self, 
+                               AnimatedImage, 
+                               str, 
+                               int, 
+                               gobject.TYPE_PYOBJECT,
+                               int) # must match columns above
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
@@ -221,10 +251,10 @@ class ViewSwitcherList(gtk.TreeStore):
         # setup the normal stuff
         # first, the availablepane items
         available_icon = self._get_icon("softwarecenter")
-        self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
+        self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None, 10])
         # the installedpane items
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
+        self.installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None, 0])
         
         # do initial channel list update
         self.channel_manager = ChannelsManager(db, icons)
@@ -232,9 +262,9 @@ class ViewSwitcherList(gtk.TreeStore):
         
         # the historypane item
         icon = self._get_icon("clock")
-        history_iter = self.append(None, [icon, _("History"), self.ACTION_ITEM_HISTORY, None])
+        history_iter = self.append(None, [icon, _("History"), self.ACTION_ITEM_HISTORY, None, 0])
         icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
+        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None, 0])
         
 
     def on_channels_changed(self, backend, res):
@@ -255,7 +285,7 @@ class ViewSwitcherList(gtk.TreeStore):
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
                 self.append(None, [icon, _("In Progress (%i)") % pending, 
-                             self.ACTION_ITEM_PENDING, None])
+                             self.ACTION_ITEM_PENDING, None, 0])
         else:
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
@@ -315,7 +345,7 @@ class ViewSwitcherList(gtk.TreeStore):
                         channel.get_channel_icon(),
                         channel.get_channel_display_name(),
                         self.ACTION_ITEM_CHANNEL,
-                        channel])
+                        channel, 0])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
@@ -350,7 +380,7 @@ class ViewSwitcherList(gtk.TreeStore):
                             channel.get_channel_icon(),
                             channel.get_channel_display_name(),
                             self.ACTION_ITEM_CHANNEL,
-                            channel])
+                            channel, 0])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
