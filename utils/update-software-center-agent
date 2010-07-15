@@ -1,0 +1,83 @@
+#!/usr/bin/python
+# Copyright (C) 2010 Canonical
+#
+# Authors:
+#  Michael Vogt
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+import apt
+import locale
+import gettext
+import logging
+import os
+import os.path
+import sys
+import time
+import xapian
+import xdg.BaseDirectory
+
+from optparse import OptionParser
+
+from softwarecenter.enums import *
+from softwarecenter.db.update import update_from_software_center_agent
+
+if __name__ == "__main__":
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except Exception, e:
+        logging.warn("setlocale failed with '%s'" % e) 
+
+    # parser
+    parser = OptionParser()
+    parser.add_option("--debug", "", action="store_true", default=False,
+                      help="show debug output")
+    (options, args) = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO)
+    if options.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+    # get a cache
+    cache = apt.Cache(memonly=True)
+
+    # setup path
+    pathname = os.path.join(xdg.BaseDirectory.xdg_cache_home,
+                            "software-center", 
+                            "software-center-agent.db.tmp")
+    if not os.path.exists(pathname):
+        os.makedirs(pathname)
+
+    # check that we can write
+    if not os.access(pathname, os.W_OK):
+        logging.warn("Cannot write to '%s'." % pathname)
+        logging.warn("Please check you have the relevant permissions.")
+        sys.exit(1)
+
+    # get a writable DB
+    db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
+
+    # the following requires a http connection, so we do it in a 
+    # seperate database
+    if not update_from_software_center_agent(db, cache):
+        logging.warn("update_from_software_center_agent_failed")
+        sys.exit(1)
+
+    # flush ...
+    db.flush()
+    del db
+    # and move into place
+    shutil.move(pathname, string.rsplit(pathname, ".tmp", 1)[0])
+
