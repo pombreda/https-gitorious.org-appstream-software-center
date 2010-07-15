@@ -236,12 +236,6 @@ def index_name(doc, name, term_generator):
 def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
-    # FIXME: hm, hm, this requires a http connection, should we rather
-    #        do it in a seperate database?!?
-    update_from_software_center_agent(db, cache)
-    # add db global meta-data
-    logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
-    db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
 
 def update_from_json_string(db, cache, json_string, origin):
     """ index from a json string, should include origin url (free form string)
@@ -330,9 +324,13 @@ def update_from_software_center_agent(db, cache):
     def _available_cb(sca, available):
         print "available: ", available
         sca.available = available
+    def _error_cb(sca, error):
+        logging.warn("error: %s" % error)
+        sca.available = []
     from softwarecenter.backend.restfulclient import SoftwareCenterAgent
     sca = SoftwareCenterAgent()
     sca.connect("available", _available_cb)
+    sca.connect("error", _error_cb)
     sca.query_available()
     sca.available = None
     context = glib.main_context_default()
@@ -349,7 +347,8 @@ def update_from_software_center_agent(db, cache):
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:
             logging.warning("error processing: %s " % e)
-    return True
+    # return true if we have data entries
+    return len(sca.available) > 0
         
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
