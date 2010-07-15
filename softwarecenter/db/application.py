@@ -252,6 +252,10 @@ class AppDetails(object):
 
     @property
     def screenshot(self):
+        # if there is a custom screenshot url provided, use that
+        if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
+            return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
+        # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
 
     @property

@@ -55,3 +55,5 @@ XAPIAN_VALUE_ARCHIVE_CHANNEL - channel (third party)
 XAPIAN_VALUE_ARCHIVE_PPA - the PPA name that the application is in
 XAPIAN_VALUE_ARCHIVE_DEBLINE - a deb line for the sources.list to access the given app
 XAPIAN_VALUE_ARCHIVE_SIGNING_KEYID - signing key id for the repository
+XAPIAN_VALUE_PURCHASED_DATE - the data a for-pay app was purchased (only available after the software-center-agent server was queried)
+XAPIAN_VALUE_SCREENSHOT_URL - a (optional) screenshot url that overrides the default

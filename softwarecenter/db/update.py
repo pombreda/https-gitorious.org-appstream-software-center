@@ -403,6 +403,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-PPA"):
             archive_ppa = parser.get_desktop("X-AppInstall-PPA")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_PPA, archive_ppa)
+        # screenshot (for third party)
+        if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
+            url = parser.get_desktop("X-AppInstall-Screenshot-Url")
+            doc.add_value(XAPIAN_VALUE_SCREENSHOT_URL, url)
         # price (pay stuff)
         if parser.has_option_desktop("X-AppInstall-Price"):
             price = parser.get_desktop("X-AppInstall-Price")
