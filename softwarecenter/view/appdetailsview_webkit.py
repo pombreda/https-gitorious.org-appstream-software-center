@@ -303,8 +303,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         title = _("%s - Screenshot") % self.app.name
         d = ShowImageDialog(
             title, url,
-            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
-            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
             self.distro.IMAGE_FULL_MISSING)
         d.run()
         d.destroy()

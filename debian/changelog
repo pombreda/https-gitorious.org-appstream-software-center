@@ -15,6 +15,10 @@ software-center (2.1.5) UNRELEASED; urgency=low
     that fixes LP:#431907, thanks to Olivier Tilloy 
   * remove specal cases for partner now that soyuz 
     LP: #552560 is fixed (LP: #604693)
+  * software-center:
+    - fixes in the logging code (thanks to Geliy Sokolov)
+  * merged lp:~and471/software-center/dialog-work that improves
+    the dialogs (many thanks!)
   
   [ Gary Lasker ]
   * data/icons/scalable/apps/category-show-all.svg,

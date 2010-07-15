@@ -249,7 +249,6 @@ class ChannelsManager(object):
         channels.extend(self.extra_channels)
         
         return channels
-        
 
 
 class SoftwareChannel(object):

@@ -559,7 +559,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.window_main.props.visible == False:
             glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
-        if view.dialogs.confirm_repair_broken_cache(self.window_main):
+        if view.dialogs.confirm_repair_broken_cache(self.window_main, self.datadir):
             self.backend.fix_broken_depends()
         
     def _on_apt_cache_broken(self, aptcache):

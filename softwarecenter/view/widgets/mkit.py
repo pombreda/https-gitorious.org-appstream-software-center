@@ -697,6 +697,15 @@ class FramedSection(gtk.VBox):
             self.image.show()
         return
 
+    def set_icon_from_pixbuf(self, pixbuf):
+        self.image.set_from_pixbuf(pixbuf)
+
+        if not self.image.parent:
+            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
+            self.header.reorder_child(self.image, 0)
+            self.image.show()
+        return
+
     def set_label(self, label='', markup=None):
         if markup:
             self.label.set_markup(markup)

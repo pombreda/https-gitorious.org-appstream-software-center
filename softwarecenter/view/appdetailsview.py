@@ -80,7 +80,7 @@ class AppDetailsViewBase(object):
         if depends:
             iconpath = self.get_icon_filename(self.appdetails.icon, self.APP_ICON_SIZE)
             
-            if not dialogs.confirm_remove(None, primary, self.cache,
+            if not dialogs.confirm_remove(None, self.datadir, primary, self.cache,
                                         button_text, iconpath, depends):
                 # for appdetailsview-webkit
                 # self._set_action_button_sensitive(True)
