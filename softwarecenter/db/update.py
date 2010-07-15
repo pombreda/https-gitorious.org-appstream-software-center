@@ -290,7 +290,6 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
     :return: a xapian query to get all the apps that need reinstall
     """
     # magic
-    PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
     db_purchased = xapian.inmemory_open()
     # go over the items we have
     for item in purchased_but_may_need_reinstall_list:
@@ -324,8 +323,9 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
 
 def update_from_software_center_agent(db, cache):
     """ update index based on the software-center-agent data """
+    print "CALLED update_from_software_center_agent"
     def _available_cb(sca, available):
-        print "available: ", available
+        # print "available: ", available
         sca.available = available
     def _error_cb(sca, error):
         logging.warn("error: %s" % error)
@@ -346,6 +346,7 @@ def update_from_software_center_agent(db, cache):
         while context.pending():
             context.iteration()
         try:
+            entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:

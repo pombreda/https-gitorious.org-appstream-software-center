@@ -190,7 +190,7 @@ class SoftwareCenterAgent(gobject.GObject):
                                          self._thread_available_for_me_error)
 
     def _thread_available_done(self, result):
-        print "_availalbe", result
+        # print "_available", result
         self._available = restful_collection_to_real_python(result)
 
     def _thread_available_error(self, error):
