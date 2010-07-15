@@ -178,6 +178,7 @@ class ChannelsManager(object):
             other_channel_list.append((channel_name, channel_origin))
         
         dist_channel = None
+        partner_channel = None
         ppa_channels = []
         other_channels = []
         unknown_channel = []
@@ -221,7 +222,8 @@ class ChannelsManager(object):
         channels = []
         if dist_channel is not None:
             channels.append(dist_channel)
-        channels.append(partner_channel)
+        if partner_channel is not None:
+            channels.append(partner_channel)
         channels.extend(ppa_channels)
         channels.extend(other_channels)
         channels.extend(unknown_channel)
