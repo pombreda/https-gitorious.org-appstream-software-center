@@ -69,11 +69,10 @@ class PackageStatusBar(gtk.Alignment):
     def __init__(self, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_redraw_on_allocate(False)
-        self.set_size_request(-1, int(3.5*mkit.EM+0.5))
         self.set_padding(mkit.SPACING_SMALL,
                          mkit.SPACING_SMALL,
-                         mkit.SPACING_LARGE,
-                         mkit.SPACING_LARGE)
+                         mkit.SPACING_LARGE+mkit.SPACING_SMALL+2,
+                         mkit.SPACING_LARGE+mkit.SPACING_SMALL)
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
         self.add(self.hbox)
@@ -93,7 +92,7 @@ class PackageStatusBar(gtk.Alignment):
         self.hbox.pack_end(self.progress, False)
         self.show_all()
 
-        self.button.connect('size-allocate', self._on_button_size_allocate)
+        #self.button.connect('size-allocate', self._on_button_size_allocate)
         self.button.connect('clicked', self._on_button_clicked)
         return
 
@@ -119,7 +118,7 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def set_label(self, label):
-        m = '<b><big><span color="%s">%s</span></big></b>' % (COLOR_BLACK, label)
+        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
         self.label.set_markup(m)
         return
 
@@ -180,20 +179,21 @@ class PackageStatusBar(gtk.Alignment):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x+1, a.y-1,
-                  a.x+a.width-2, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
+                  a.x+mkit.SPACING_LARGE-1, a.y-1,
+                  a.x+a.width-mkit.SPACING_LARGE, a.y+a.height,
+                  radius=2)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
+#        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.fill()
 
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
 
         rr.layout(cr,
-                  a.x+1, a.y-1,
-                  a.x+a.width-2, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
+                  a.x+mkit.SPACING_LARGE-1, a.y-1,
+                  a.x+a.width-mkit.SPACING_LARGE, a.y+a.height,
+                  radius=2)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.stroke()
@@ -468,29 +468,45 @@ class ScreenshotDownloader(gobject.GObject):
 
 gobject.type_register(ScreenshotDownloader)
 
-
 class ScreenshotView(gtk.Alignment):
 
+    """ Widget that displays screenshot availability, download prrogress,
+        and eventually the screenshot itself.
+    """
+
     def __init__(self, distro, icons):
+        # center child widgets in the available horizontal space (0.5)
+        # 0.0 == left/top margin, 0.5 == center, 1.0 == right/bottom margin
         gtk.Alignment.__init__(self, 0.5, 0.0)
         self.set_redraw_on_allocate(False)
+
+        # the frame around the screenshot (placeholder)
         self.set_border_width(3)
 
+        # eventbox so we can connect to event signals
         event = gtk.EventBox()
         event.set_visible_window(False)
         self.add(event)
+
+        # the image
         self.image = gtk.Image()
         self.image.set_redraw_on_allocate(False)
         event.add(self.image)
         self.eventbox = event
+
+        # connect the image to our custom draw func for fading in
         self.image.connect('expose-event', self._on_image_expose)
 
         # unavailable layout
         l = gtk.Label(_('No screenshot'))
+        # force the label state to INSENSITIVE so we get the nice subtle etched in look
         l.set_state(gtk.STATE_INSENSITIVE)
+        # center children both horizontally and vertically
+        # 0.0 == left/top margin, 0.5 == center, 1.0 == right/bottom margin
         self.unavailable = gtk.Alignment(0.5, 0.5)
         self.unavailable.add(l)
 
+        # set the widget to be reactive to events
         self.set_flags(gtk.CAN_FOCUS)
         event.set_events(gtk.gdk.BUTTON_PRESS_MASK|
                          gtk.gdk.BUTTON_RELEASE_MASK|
@@ -499,6 +515,7 @@ class ScreenshotView(gtk.Alignment):
                          gtk.gdk.ENTER_NOTIFY_MASK|
                          gtk.gdk.LEAVE_NOTIFY_MASK)
 
+        # connect events to signal handlers
         event.connect('enter-notify-event', self._on_enter)
         event.connect('leave-notify-event', self._on_leave)
         event.connect('button-press-event', self._on_press)
@@ -506,6 +523,7 @@ class ScreenshotView(gtk.Alignment):
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
 
+        # data 
         self.distro = distro
         self.icons = icons
 
@@ -513,15 +531,18 @@ class ScreenshotView(gtk.Alignment):
         self.thumb_url = None
         self.large_url = None
 
+        # state tracking
         self.ready = False
         self.screenshot_available = False
         self.alpha = 0.0
 
+        # convienience class for handling the downloading (or not) of any screenshot
         self.loader = ScreenshotDownloader()
         self.loader.connect('url-reachable', self._on_screenshot_query_complete)
         self.loader.connect('download-complete', self._on_screenshot_download_complete)
         return
 
+    # signal handlers
     def _on_enter(self, widget, event):
         if self.get_is_actionable():
             self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
@@ -556,6 +577,10 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def _on_image_expose(self, widget, event):
+        """ If the alpha value is less than 1, we override the normal draw
+            for the GtkImage so we can draw with transparencey.
+        """
+
         if widget.get_storage_type() != gtk.IMAGE_PIXBUF:
             return
 
@@ -568,11 +593,16 @@ class ScreenshotView(gtk.Alignment):
         cr.rectangle(a)
         cr.clip()
 
+        # draw the pixbuf with the current alpha value
         cr.set_source_pixbuf(pb, a.x, a.y)
         cr.paint_with_alpha(self.alpha)
         return True
 
     def _fade_in(self):
+        """ This callback increments the alpha value from zero to 1,
+            stopping once 1 is reached or exceeded.
+        """
+
         self.alpha += 0.05
         if self.alpha >= 1.0:
             self.alpha = 1.0
@@ -582,6 +612,8 @@ class ScreenshotView(gtk.Alignment):
         return True
 
     def _show_image_dialog(self):
+        """ Displays the large screenshot in a seperate dialog window """
+
         url = self.large_url
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(
@@ -605,6 +637,7 @@ class ScreenshotView(gtk.Alignment):
             self.image.set_size_request(-1, -1)
             pb = gtk.gdk.pixbuf_new_from_file(path)
             self.image.set_from_pixbuf(pb)
+            # start the fade in
             gobject.timeout_add(50, self._fade_in)
             self.ready = True
             return False
@@ -613,13 +646,19 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def get_is_actionable(self):
+        """ Returns true if there is a screenshot available and the download has completed """
         return self.screenshot_available and self.ready
 
     def set_screenshot_available(self, available):
+
+        """ Configures the ScreenshotView depending on whether there is a screenshot available. """
+
         if not available:
             if self.image.parent:
                 self.eventbox.remove(self.image)
                 self.eventbox.add(self.unavailable)
+                # set the size of the unavailable placeholder
+                # 160 pixels is the fixed width of the thumbnails
                 self.unavailable.set_size_request(160, 100)
                 self.unavailable.show_all()
                 acc = self.get_accessible()
@@ -636,6 +675,12 @@ class ScreenshotView(gtk.Alignment):
         return
  
     def configure(self, app_details):
+
+        """ Called to configure the screenshotview for a new application.
+            The existing screenshot is cleared and the process of fetching a
+            new screenshot is instigated.
+        """
+
         acc = self.get_accessible()
         acc.set_name(_('Fetching screenshot ...'))
 
@@ -646,6 +691,11 @@ class ScreenshotView(gtk.Alignment):
         return
 
     def clear(self):
+
+        """ All state trackers are set to their intitial states, and
+            the old screenshot is cleared from the view.
+        """
+
         self.screenshot_available = True
         self.ready = False
         self.alpha = 0.0
@@ -655,15 +705,25 @@ class ScreenshotView(gtk.Alignment):
             self.eventbox.add(self.image)
             self.image.show()
 
+        # set the loading animation (its a .gif so a our GtkImage happily renders the animation
+        # without any fuss, NOTE this gif has a white background, i.e. it has no transparency
         self.image.set_from_file(AppDetailsViewGtk.IMAGE_LOADING_INSTALLED)
         self.image.set_size_request(160, 100)
         return
 
     def download_and_display(self):
+        """ Download then displays the screenshot.
+            This actually does a query on the URL first to check if its 
+            reachable, if so it downloads the thumbnail.
+            If not, it emits "url-reachable" False, then exits.
+        """
+
         self.loader.download_from_url(self.thumbnail_url)
         return
 
     def draw(self, cr, a, expose_area):
+        """ Draws the thumbnail frame """
+
         if mkit.not_overlapping(a, expose_area): return
 
         if self.image.parent:
@@ -774,10 +834,23 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         expose_area = event.area
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
-        cr.clip()
+        cr.clip_preserve()
 
+
+        #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
+        #cr.set_source_rgba(*mkit.floats_from_gdkcolor(self.style.light[gtk.STATE_NORMAL]))
+        #cr.fill()
         self.app_info.draw(cr, self.app_info.allocation, expose_area)
 
+        # if the appicon is not that big draw a rectangle behind it
+        # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view
+        if self.app_info.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.app_info.image.get_pixbuf()
+            if pb.get_width() < 64 or pb.get_height() < 64:
+                self._draw_icon_background(cr)
+        else:
+            # draw rectangle background
+            self._draw_icon_background(cr)
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
                              event.area)
@@ -832,6 +905,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
+        self.app_info.image.set_size_request(84, 84)
         self.app_info.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header_alignment.set_padding(mkit.SPACING_XLARGE,
@@ -846,9 +920,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
 
-        # FramedSection which contains textual paragraphs and bullet points
-        self.desc_section = mkit.FramedSection(_('Description'),
-                                               xpadding=mkit.SPACING_LARGE)
+        # FramedSection which contains the app description
+        self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_LARGE)
+        self.desc_section.header_alignment.set_padding(0,0,0,0)
+
         self.app_info.body.pack_start(self.desc_section, False)
 
         app_desc_hb = gtk.HBox(spacing=mkit.SPACING_LARGE)
@@ -908,7 +983,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 icon = self.app_details.icon
         if not icon:
             icon = MISSING_APP_ICON
-        self.app_info.set_icon(icon, gtk.ICON_SIZE_DIALOG)
+
+        pb = self.icons.load_icon(icon, 84, 0)
+        self.app_info.set_icon_from_pixbuf(pb)
 
         # depending on pkg install state set action labels
         self.action_bar.configure(self.app_details, self.app_details.pkg_state)
@@ -1038,12 +1115,29 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.progress.show()
         return False
 
-	
+    def _draw_icon_background(self, cr):
+        # draw small or no icon background
+        a = self.app_info.image.allocation
+
+        cr.save()
+        cr.set_source_rgb(*mkit.floats_from_string('#aaaaaa'))
+        # line width should be 0.05em, as per spec
+        line_width = max(1, int(mkit.EM*0.05+0.5))
+        # if line_width an odd number we need to align to the pixel grid
+        if line_width % 2:
+            cr.translate(0.5, 0.5)
+        cr.rectangle(a)
+        cr.set_line_width(line_width)
+        cr.stroke()
+        cr.restore()
+        return
+
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
             iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
         return iconinfo.get_filename()
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

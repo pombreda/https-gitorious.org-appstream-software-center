@@ -714,7 +714,7 @@ class CategoryButton(mkit.HButton):
         mkit.HButton.__init__(self, markup, icon_name, icon_size)
 
         self.set_relief(gtk.RELIEF_NONE)
-        self.set_has_action_arrow(True)
+        #self.set_has_action_arrow(True)     # OMG UBUNTU PEEPS didnt like... Must obey.
         self.set_internal_xalignment(0.0)    # basically justify-left
         self.set_internal_spacing(mkit.SPACING_LARGE)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
