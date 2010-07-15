@@ -27,6 +27,8 @@ import logging
 import apt_pkg
 apt_pkg.init_config()
 
+import softwarecenter.log as logging
+
 from debian_bundle import deb822
 
 import os.path

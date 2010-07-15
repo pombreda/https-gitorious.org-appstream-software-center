@@ -20,13 +20,14 @@ import gio
 import glib
 import gobject
 import gtk
-import logging
+
 import re
 import os
 import subprocess
 import sys
 import tempfile
 
+import softwarecenter.log as logging
 
 from gettext import gettext as _
 
@@ -74,6 +75,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+        self._logger = logging.getLogger("softwarecenter.view.appdetails")
 
     # public API
     def _draw(self):
@@ -138,14 +140,14 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
         # format for html
         description = self.appdetails.description
-        logging.debug("Description (text) %r", description)
+        self._logger.debug("Description (text) %r", description)
         # format bullets (*-) as lists
         description = "\n".join(htmlize_package_desc(description))
         description = self.add_ul_tags(description)
         # urls
         regx = re.compile("((ftp|http|https):\/\/[a-zA-Z0-9\/\\\:\?\%\.\&\;=#\-\_\!\+\~]*)")
         description = re.sub(regx, r'<a href="\1">\1</a>', description)
-        logging.debug("Description (HTML) %r", description)
+        self._logger.debug("Description (HTML) %r", description)
         return description
 
     def add_ul_tags(self, description):
@@ -343,7 +345,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             self.execute_script("updateProgress(%s);" % progress)
 
     def _on_navigation_requested(self, view, frame, request):
-        logging.debug("_on_navigation_requested %s" % request.get_uri())
+        self._logger.debug("_on_navigation_requested %s" % request.get_uri())
         # not available in the python bindings yet
         # typedef enum {
         #  WEBKIT_NAVIGATION_RESPONSE_ACCEPT,
@@ -363,16 +365,16 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         """
         # internal helpers for the internal helper
         def thumb_query_info_async_callback(source, result):
-            logging.debug("thumb_query_info_async_callback")
+            self._logger.debug("thumb_query_info_async_callback")
             try:
                 result = source.query_info_finish(result)
                 self.execute_script("showThumbnail();")
             except glib.GError, e:
-                logging.debug("no thumb available")
+                self._logger.debug("no thumb available")
                 glib.timeout_add(200, run_thumb_missing_js)
             del source
         def run_thumb_missing_js():
-            logging.debug("run_thumb_missing_js")
+            self._logger.debug("run_thumb_missing_js")
             # wait until its ready for JS injection
             # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
             if self.get_load_status() != 2:
@@ -382,7 +384,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             return False
         # use gio (its so nice)
         url = self.distro.SCREENSHOT_THUMB_URL % self.app.pkgname
-        logging.debug("_check_thumb_available '%s'" % url)
+        self._logger.debug("_check_thumb_available '%s'" % url)
         f=gio.File(url)
         f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
                            thumb_query_info_async_callback)
@@ -410,7 +412,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
                 else:
                     # FIXME: string freeze, so d
                     #action_button_label = _("Install - %s") % price
-                    logging.error("Can not handle price %s" % price)
+                    self._logger.error("Can not handle price %s" % price)
                 action_button_value = "install"
         # FIXME: use a state from the appdetails class here
         elif self.appdetails._doc:
@@ -435,7 +437,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         that is currently not enabled
         """
         component =  self.appdetails.component
-        logging.debug("component: '%s'" % component)
+        self._logger.debug("component: '%s'" % component)
         # if there is no component accociated, it can not be unavailable
         if not component:
             return False

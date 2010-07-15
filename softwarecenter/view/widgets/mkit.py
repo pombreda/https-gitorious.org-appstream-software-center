@@ -27,7 +27,7 @@ import gobject
 
 from mkit_themes import Color, ColorArray, ThemeRegistry
 
-import logging
+import softwarecenter.log as logging
 
 
 #######################

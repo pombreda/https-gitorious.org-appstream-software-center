@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-import logging
 import gtk
 import gobject
 import apt
@@ -25,6 +24,8 @@ import os
 import xapian
 
 from appview import *
+
+import softwarecenter.log as logging
 
 class InstalledFilter(object):
     def __init__(self, cache):

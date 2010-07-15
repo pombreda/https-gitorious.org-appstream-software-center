@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import dbus
-import logging
 import gtk
 import gobject
 import apt
@@ -28,6 +27,7 @@ import sys
 import aptdaemon.client
 from aptdaemon.enums import *
 
+import softwarecenter.log as logging
 from softwarecenter.enums import *
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 

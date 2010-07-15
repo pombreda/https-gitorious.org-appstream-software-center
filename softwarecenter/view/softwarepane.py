@@ -21,9 +21,10 @@ import bisect
 import glib
 import gobject
 import gtk
-import logging
 import xapian
 import os
+
+import softwarecenter.log as logging
 
 # magic environment to get old pathbar
 if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:

@@ -20,13 +20,13 @@ import gconf
 import glib
 import gio
 import gtk
-import logging
 import tempfile
 import time
 import threading
 import urllib
 import gobject
 
+import softwarecenter.log as logging
 from softwarecenter.enums import *
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 

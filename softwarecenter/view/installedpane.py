@@ -19,10 +19,11 @@
 import apt
 import gettext
 import gtk
-import logging
 import os
 import sys
 import xapian
+
+import softwarecenter.log as logging
 
 from gettext import gettext as _
 

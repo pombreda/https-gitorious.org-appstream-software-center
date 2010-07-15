@@ -22,10 +22,10 @@ import glob
 import gobject
 import gtk
 import locale
-import logging
 import os
 import xapian
 
+import softwarecenter.log as logging
 
 from ConfigParser import ConfigParser
 from gettext import gettext as _

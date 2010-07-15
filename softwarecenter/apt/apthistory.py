@@ -25,7 +25,8 @@ import glob
 import gzip
 import string
 import datetime
-import logging
+
+import softwarecenter.log as logging
 
 from datetime import datetime
 
@@ -73,6 +74,7 @@ class AptHistory(object):
         self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
+        self._logger = logging.getLogger("softwarecenter.apt")
 
     def rescan(self):
         self.transactions = []
@@ -87,7 +89,7 @@ class AptHistory(object):
             else:
                 f = open(history_file)
         except IOError, ioe:
-            logging.debug(ioe)
+            self._logger.debug(ioe)
             return
         for stanza in deb822.Deb822.iter_paragraphs(f):
             # keep the UI alive

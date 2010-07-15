@@ -20,8 +20,9 @@ import glib
 import gobject
 gobject.threads_init()
 import gtk
-import logging
 import sys
+
+import softwarecenter.log as logging
 
 from gettext import gettext as _
 import subprocess

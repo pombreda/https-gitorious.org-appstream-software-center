@@ -18,7 +18,7 @@
 
 import apt
 import apt_pkg
-import logging
+import softwarecenter.log as logging
 import re
 import time
 import xml.sax.saxutils

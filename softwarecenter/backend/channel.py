@@ -20,10 +20,9 @@
 import apt
 import glib
 import gettext
-import logging
 import urlparse
 import xapian
-
+import softwarecenter.log as logging
 from aptsources.sourceslist import SourceEntry, SourcesList
 
 from gettext import gettext as _
@@ -47,6 +46,7 @@ class ChannelsManager(object):
         glib.timeout_add(300, self._check_for_channel_updates_timer)
         # extra channels from e.g. external sources
         self.extra_channels = []
+        self._logger = logging.getLogger("softwarecenter.backend")
 
     # external API
     @property
@@ -127,7 +127,7 @@ class ChannelsManager(object):
         if self._check_for_channel_updates():
             # this will trigger a "channels-changed" signal from
             # the backend object once a-x-i is finished
-            logging.debug("running update_xapian_index")
+            self._logger.debug("running update_xapian_index")
             self.backend.update_xapian_index()
         return False
 
@@ -147,8 +147,8 @@ class ChannelsManager(object):
             if origin:
                 db_origins.add(origin)
         # origins
-        logging.debug("cache_origins: %s" % cache_origins)
-        logging.debug("db_origins: %s" % cache_origins)
+        self._logger.debug("cache_origins: %s" % cache_origins)
+        self._logger.debug("db_origins: %s" % cache_origins)
         if cache_origins != db_origins:
             return True
         return False
@@ -173,8 +173,8 @@ class ChannelsManager(object):
                 if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
                     channel_origin = term_iter.term[3:]
                     break
-            logging.debug("channel_name: %s" % channel_name)
-            logging.debug("channel_origin: %s" % channel_origin)
+            self._logger.debug("channel_name: %s" % channel_name)
+            self._logger.debug("channel_origin: %s" % channel_origin)
             other_channel_list.append((channel_name, channel_origin))
         
         dist_channel = None

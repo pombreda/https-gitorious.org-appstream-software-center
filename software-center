@@ -25,18 +25,17 @@ gobject.threads_init()
 import gtk
 
 import gettext
-import logging
 import os
+
+import softwarecenter.log as logging
 
 from softwarecenter.enums import *
 from softwarecenter.version import *
-from softwarecenter.backend import get_install_backend
+
 
 from optparse import OptionParser
 
-logger_names = ('softwarecenter','softwarecenter.apt','softwarecenter.backend'
-                'softwarecenter.db','softwarecenter.distro','softwarecenter.view',
-                'softwarecenter.performance')
+
 if __name__ == "__main__":
 
     parser = OptionParser("usage: %prog [options] package", 
@@ -56,15 +55,9 @@ if __name__ == "__main__":
                       default=False)
     (options, args) = parser.parse_args()
     
-    logging.basicConfig()
     logger = logging.getLogger()
     if options.debug_filter:
-        log_filter = logging.Filter(options.debug_filter)
-        logger.addFilter(log_filter)
-        for logger_name in logger_names:
-            logging.getLogger(logger_name).addFilter(log_filter)
-        # Add filter for backed as it is initialized seperatelly
-        get_install_backend()._logger.addFilter(log_filter)
+        logger.addFilter(options.debug_filter)
         # implies general debug
         options.debug = True
         

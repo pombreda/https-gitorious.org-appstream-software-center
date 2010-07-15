@@ -19,8 +19,9 @@
 
 import imp
 import inspect
-import logging
 import os
+
+import softwarecenter.log as logging
 
 class Plugin(object):
 

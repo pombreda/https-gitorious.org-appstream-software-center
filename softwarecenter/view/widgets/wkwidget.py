@@ -19,13 +19,14 @@
 
 import gobject
 import gtk
-import logging
 import os
 import tempfile
 import string
 
 gobject.threads_init()
 import webkit
+
+import softwarecenter.log as logging
 
 class WebkitWidget(webkit.WebView):
     """Widget that uses a webkit html form for its drawing

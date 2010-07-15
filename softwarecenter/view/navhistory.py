@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gobject
-import logging
+import softwarecenter.log as logging
 
 from softwarecenter.utils import unescape
 

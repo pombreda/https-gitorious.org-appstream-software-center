@@ -21,14 +21,13 @@ import dbus
 import glib
 import gobject
 import gtk
-import logging
 import pango
 import os
 import time
 import xapian
 
 import aptdaemon.client
-
+import softwarecenter.log as logging
 from gettext import gettext as _
 
 from softwarecenter.backend.channel import ChannelsManager

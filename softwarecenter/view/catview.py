@@ -20,7 +20,6 @@ import gettext
 import gobject
 import glob
 import locale
-import logging
 import os
 import xapian
 
@@ -31,11 +30,15 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
+import softwarecenter.log as logging
+
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
  COL_CAT_QUERY,
  COL_CAT_MARKUP) = range(4)
 
+# not possible not use local logger
+catview_logger = logging.getLogger("softwarecenter.view.catview")
 
 def get_category_by_name(categories, untrans_name):
     # find a specific category
@@ -81,7 +84,10 @@ class CategoriesView(object):
     """ 
     Base class for the CategoriesView that supports parsing menu files
     """
-
+    
+    def __init__(self):
+        self._logger = catview_logger
+    
     def parse_applications_menu(self, datadir):
         """ parse a application menu and return a list of Category objects """
         categories = []

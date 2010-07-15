@@ -19,10 +19,12 @@
 import apt
 import gettext
 import gtk
-import logging
+
 import os
 import sys
 import xapian
+
+import softwarecenter.log as logging
 
 from gettext import gettext as _
 
@@ -72,6 +74,7 @@ class AvailablePane(SoftwarePane):
                  navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
+        self._logger = logging.getLogger("softwarecenter.view.availablepane")
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
@@ -206,7 +209,7 @@ class AvailablePane(SoftwarePane):
     def refresh_apps(self):
         """refresh the applist and update the navigation bar
         """
-        logging.debug("refresh_apps")
+        self._logger.debug("refresh_apps")
         self.scroll_subcategories.hide()
         self.scroll_app_list.hide()
         if self.app_view.window:
@@ -222,7 +225,7 @@ class AvailablePane(SoftwarePane):
         self.refresh_seq_nr += 1
         # build query
         query = self._get_query()
-        logging.debug("availablepane query: %s" % query)
+        self._logger.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
         
@@ -240,7 +243,7 @@ class AvailablePane(SoftwarePane):
             while gtk.events_pending():
                 gtk.main_iteration()
 
-        logging.debug("availablepane query: %s" % query)
+        self._logger.debug("availablepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
         # special case to disable hide nonapps for the "Featured Applications" category
@@ -260,7 +263,7 @@ class AvailablePane(SoftwarePane):
         # between request of the new model and actual delivery other
         # events may have happend
         if seq_nr != self.refresh_seq_nr:
-            logging.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+            self._logger.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
             return False
 
         # set model
@@ -460,7 +463,7 @@ class AvailablePane(SoftwarePane):
 
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
-        logging.debug("on_search_terms_changed: %s" % new_text)
+        self._logger.debug("on_search_terms_changed: %s" % new_text)
 
         # we got the signal after we already switched to a details
         # page, ignore it
@@ -588,7 +591,7 @@ class AvailablePane(SoftwarePane):
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
-        logging.debug("on_subcategory_activated: %s %s" % (
+        self._logger.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
         self.navigation_bar.add_with_id(
@@ -597,14 +600,14 @@ class AvailablePane(SoftwarePane):
     def on_category_activated(self, cat_view, category):
         """ callback when a category is selected """
         #print cat_view, name, query
-        logging.debug("on_category_activated: %s %s" % (
+        self._logger.debug("on_category_activated: %s %s" % (
                 category.name, category))
         self.apps_category = category
         self.update_navigation_button()
 
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
-        logging.debug("on_application_selected: '%s'" % app)
+        self._logger.debug("on_application_selected: '%s'" % app)
 
         if self.apps_subcategory:
             self.current_app_by_subcategory[self.apps_subcategory] = app

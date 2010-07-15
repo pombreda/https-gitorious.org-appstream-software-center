@@ -21,7 +21,6 @@ import gio
 import glib
 import gobject
 import gtk
-import logging
 import os
 import pango
 import string
@@ -29,6 +28,8 @@ import subprocess
 import sys
 import tempfile
 import xapian
+
+import softwarecenter.log as logging
 
 from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
@@ -94,6 +95,7 @@ class PackageStatusBar(gtk.Alignment):
 
         #self.button.connect('size-allocate', self._on_button_size_allocate)
         self.button.connect('clicked', self._on_button_clicked)
+        self._logger = logging.getLogger("softwarecenter.view.appdetails")
         return
 
     def _on_button_size_allocate(self, button, allocation):
@@ -1044,7 +1046,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # public API
     def show_app(self, app):
-        logging.debug("AppDetailsView.show_app '%s'" % app)
+        self._logger.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             return
         

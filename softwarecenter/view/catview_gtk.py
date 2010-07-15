@@ -9,10 +9,11 @@ import gettext
 import glib
 import glob
 import locale
-import logging
 import random
 import os
 import xapian
+
+import softwarecenter.log as logging
 
 from widgets import mkit
 from widgets.backforward import BackForwardButton
@@ -95,7 +96,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         icons - a gtk.IconTheme
         root_category - a Category class with subcategories or None
         """
-
+        
         self.cache = cache
         self.db = db
         self.icons = icons
@@ -338,7 +339,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
     def _on_category_clicked(self, cat_btn, cat):
         """emit the category-selected signal when a category was clicked"""
-        logging.debug("on_category_changed: %s" % cat.name)
+        self._logger.debug("on_category_changed: %s" % cat.name)
         self.emit("category-selected", cat)
         return
 

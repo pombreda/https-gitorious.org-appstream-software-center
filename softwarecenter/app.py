@@ -22,7 +22,6 @@ import dbus
 import dbus.service
 import gettext
 import locale
-import logging
 import glib
 import gtk
 import os
@@ -30,6 +29,7 @@ import subprocess
 import sys
 import xapian
 
+import softwarecenter.log as logging
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
 from softwarecenter import Application
@@ -94,6 +94,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def __init__(self, datadir, xapian_base_path, enable_lp_integration=False):
     #def __init__(self, datadir, xapian_base_path):
     
+        self._logger = logging.getLogger("softwarecenter")
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareCenter.ui", 
@@ -104,7 +105,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             locale.setlocale(locale.LC_ALL, "")
         except:
-            logging.exception("setlocale failed")
+            self._logger.exception("setlocale failed")
 
         # setup dbus and exit if there is another instance already
         # running
@@ -114,7 +115,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             locale.setlocale(locale.LC_ALL, "")
         except Exception, e:
-            logging.exception("setlocale failed")
+            self._logger.exception("setlocale failed")
 
         # distro specific stuff
         self.distro = get_distro()
@@ -146,12 +147,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # script that does population, populate a database in it.
             if os.path.isdir(pathname) and not os.listdir(pathname):
                 from softwarecenter.db.update import rebuild_database
-                logging.info("building local database")
+                self._logger.info("building local database")
                 rebuild_database(pathname)
                 self.db = StoreDatabase(pathname, self.cache)
                 self.db.open()
         except xapian.DatabaseCorruptError, e:
-            logging.exception("xapian open failed")
+            self._logger.exception("xapian open failed")
             view.dialogs.error(None, 
                                _("Sorry, can not open the software database"),
                                _("Please re-install the 'software-center' "
@@ -255,7 +256,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             LaunchpadIntegration.set_sourcepackagename("software-center")
             LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
         except Exception, e:
-            logging.debug("launchpad integration error: '%s'" % e)
+            self._logger.debug("launchpad integration error: '%s'" % e)
             
         # set up accelerator keys for navigation history actions
         accel_group = gtk.AccelGroup()
@@ -325,7 +326,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane.navigation_bar.navigate_up()
         
     def on_view_switcher_changed(self, view_switcher, action, channel):
-        logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
+        self._logger.debug("view_switcher_activated: %s %s" % (view_switcher,action))
         if action == self.NOTEBOOK_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
         elif action == self.NOTEBOOK_PAGE_CHANNEL:
@@ -543,7 +544,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_channels_changed(self, backend, res):
         """ callback when the set of software channels has changed """
-        logging.debug("on_channels_changed %s" % res)
+        self._logger.debug("on_channels_changed %s" % res)
         if res:
             self.db.open()
             # refresh the available_pane views to reflect any changes
@@ -562,7 +563,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """Helper that updates the 'File' and 'Edit' menu to enable/disable
            install/remove and Copy/Copy weblink
         """
-        logging.debug("update_app_status_menu")
+        self._logger.debug("update_app_status_menu")
         # check if we have a pkg for this page
         app = None
         if self.active_pane:
@@ -636,7 +637,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
-        logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
+        self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
         self._database_is_rebuilding = is_rebuilding
         self.window_rebuilding.set_transient_for(self.window_main)
         self.window_rebuilding.set_title("")
@@ -658,7 +659,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             bus = dbus.SystemBus()
         except:
-            logging.exception("could not get system bus")
+            self._logger.exception("could not get system bus")
             return
         # check if its currently rebuilding (most likely not, so we
         # just ignore errors from dbus because the interface
@@ -669,7 +670,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             res = iface.IsRebuilding()
             self._on_database_rebuilding_handler(res)
         except Exception ,e:
-            logging.debug("query for the update-database exception '%s' (probably ok)" % e)
+            self._logger.debug("query for the update-database exception '%s' (probably ok)" % e)
 
         # add signal handler
         bus.add_signal_receiver(self._on_database_rebuilding_handler,
@@ -683,7 +684,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             bus = dbus.SessionBus()
         except:
-            logging.exception("could not initiate dbus")
+            self._logger.exception("could not initiate dbus")
             return
         # if there is another Softwarecenter running bring it to front
         # and exit, otherwise install the dbus controller
@@ -735,7 +736,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.view_switcher.expand_installed_node()
 
     def save_state(self):
-        logging.debug("save_state")
+        self._logger.debug("save_state")
         # this happens on a delete event, we explicitely save_state() there
         if self.window_main.window is None:
             return

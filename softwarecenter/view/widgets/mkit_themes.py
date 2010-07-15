@@ -20,7 +20,7 @@
 import gtk
 import colorsys
 
-import logging
+import softwarecenter.log as logging
 
 
 class ColorArray:

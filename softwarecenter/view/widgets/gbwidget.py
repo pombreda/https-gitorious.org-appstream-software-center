@@ -19,10 +19,11 @@
 
 import gobject
 import gtk
-import logging
 import os
 import sys
 import string
+
+import softwarecenter.log as logging
 
 class GtkbuilderWidget(gtk.HBox):
     """A widget that gets loaded from a Gtkbuilder UI file 
