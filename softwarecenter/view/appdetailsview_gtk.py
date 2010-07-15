@@ -27,6 +27,7 @@ import pango
 import string
 import subprocess
 import sys
+import tempfile
 import xapian
 
 from gettext import gettext as _
@@ -421,11 +422,12 @@ class ScreenshotDownloader(gobject.GObject):
 
     def __init__(self):
         gobject.GObject.__init__(self)
+        self._tmpfile = None
         return
 
     def _actually_download_screenshot(self, file, url):
 
-        def download_complete_cb(file, result, path="/tmp/SoftwareCenterScreenshot.png"):
+        def download_complete_cb(file, result, path=None):
             """Helper called after the file has downloaded"""
 
             # The result from the download is actually a tuple with three elements.
@@ -433,6 +435,9 @@ class ScreenshotDownloader(gobject.GObject):
             content = file.load_contents_finish(result)[0]
 
             # let's now save the content to the tmp dir
+            if path is None:
+                self._tmpfile = tempfile.NamedTemporaryFile(prefix="s-c-screenshot")
+                path = self._tmpfile.name
             outputfile = open(path, "w")
             outputfile.write(content)
 
