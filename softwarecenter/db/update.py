@@ -236,6 +236,9 @@ def index_name(doc, name, term_generator):
 def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
+    # add db global meta-data
+    logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
+    db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
 
 def update_from_json_string(db, cache, json_string, origin):
     """ index from a json string, should include origin url (free form string)
@@ -489,7 +492,6 @@ def index_app_info_from_parser(parser, db, cache):
         db.add_document(doc)
 
 def rebuild_database(pathname):
-    import apt
     cache = apt.Cache(memonly=True)
     # check permission
     if not os.access(pathname, os.W_OK):

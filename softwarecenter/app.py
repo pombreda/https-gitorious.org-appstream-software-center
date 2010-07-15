@@ -287,6 +287,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
+        # run s-c-agent update
+        sc_agent_update = os.path.join(SOFTWARE_CENTER_BASE, "update-software-center-agent")
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+        glib.child_watch_add(pid, self._on_update_software_center_agent_finished)
+
         # open plugin manager and load plugins
         self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
         self.plugin_manager.load_plugins()
@@ -295,9 +301,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         #         by default
         if not enable_lp_integration:
             file_menu = self.builder.get_object("menu1")
-            #file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
+            file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
 
     # callbacks
+    def _on_update_software_center_agent_finished(self, pid, condition):
+        if os.WEXITSTATUS(condition) == 0:
+            self.db.reopen()
+
     def on_app_details_changed(self, widget, app, page):
         self.update_app_status_menu()
         self.update_status_bar()
