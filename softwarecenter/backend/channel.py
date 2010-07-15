@@ -76,6 +76,13 @@ class ChannelsManager(object):
         if added:
             self.backend.emit("channels-changed", True)
 
+    def add_channel(self, name, icon, query):
+        channel = SoftwareChannel(self.icons, name, None, None, 
+                                  channel_icon=icon,
+                                  channel_query=query)
+        self.extra_channels.append(channel)
+        self.backend.emit("channels-changed", True)
+
     # internal
     def _feed_in_private_sources_list_entry(self, source_entry):
         """
@@ -242,7 +249,8 @@ class SoftwareChannel(object):
     
     def __init__(self, icons, channel_name, channel_origin, channel_component,
                  only_packages_without_applications=False,
-                 source_entry=None, installed_only=False):
+                 source_entry=None, installed_only=False,
+                 channel_icon=None, channel_query=None):
         """
         configure the software channel object based on channel name,
         origin, and component (the latter for detecting the partner
@@ -258,8 +266,17 @@ class SoftwareChannel(object):
         self.distro = get_distro()
         # configure the channel
         self._channel_display_name = self._get_display_name_for_channel(channel_name, channel_component)
-        self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
-        self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
+        if channel_icon is None:
+            self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
+        else:
+            if channel_icon is None:
+                self._channel_icon = self._get_icon("unknown-channel")
+            else:
+                self._channel_icon = channel_icon
+        if channel_query is None:
+            self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
+        else:
+            self._channel_query = channel_query
         # a sources.list entry attached to the channel (this is currently
         # only used for not-yet-enabled channels)
         self._source_entry = source_entry

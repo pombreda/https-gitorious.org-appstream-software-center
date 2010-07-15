@@ -3,6 +3,7 @@ Buy something:
 - move what is available into a seperate DB that is refreshed on 
   startup
 - add what is available to me and a STATE for this in the appdetails
+  (test with SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED=1 in the environment)
 - fix up availablepane's display_list_from_query to integrate better with
   the current code and display a proper navigation item (tremolux)
 - add an item in the left navigation pane for Purchased Items, displays
