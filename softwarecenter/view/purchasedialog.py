@@ -108,7 +108,7 @@ DUMMY_HTML = """
  <script type="text/javascript">
   function changeTitle(title) { document.title = title; }
   function success() { changeTitle('{ "successful" : true, \
-                                      "deb_line" : "deb https://user:pass@private-ppa.launchapd.net/mvo/ubuntu lucid main", \
+                                      "deb_line" : "deb https://user:pass@private-ppa.launchpad.net/mvo/ubuntu lucid main", \
                                       "package_name" : "2vcard", \
                                       "application_name" : "The 2vcard app", \
                                       "signing_key_id" : "1024R/0EB12F05"\
