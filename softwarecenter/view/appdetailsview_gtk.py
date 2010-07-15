@@ -581,8 +581,6 @@ class ScreenshotView(gtk.Alignment):
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(
             title, url,
-            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
-            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
             self.distro.IMAGE_FULL_MISSING)
 
         d.run()
