@@ -92,29 +92,9 @@ class PurchaseDialog(gtk.Dialog):
         source_entry = res["deb_line"]
         signing_key = res["signing_key_id"]
         # add repo and key
-        backend = get_install_backend()
-        backend.add_sources_list_entry(source_entry)
-        backend.add_vendor_key_from_keyserver(signing_key)
-        backend.emit("channels-changed", True)
-        # teload to ensure we have the new package data
-        backend.reload()
-        # and then queue the install only when the reload finished
-        # otherwise the daemon will fail because he does not know
-        # the new package name yet
-        self._reload_signal_id = backend.connect(
-            "reload-finished", self._on_reload_finished, backend)
-
-    def _on_reload_finished(self, trans, result, backend):
-        """ 
-        callback that is called once after reload was queued
-        and will trigger the install of the for-pay package itself
-        (after that it will automatically de-register)
-        """
-        backend.install(self.app.pkgname, self.app.appname, "")
-        # disconnect again, this is only a one-time operation
-        backend.handler_disconnect(self._reload_signal_id)
-        self._reload_signal_id = None
-
+        get_install_backend().add_repo_add_key_and_install_app(source_entry,
+                                                               signing_key,
+                                                               self.app)
 
 # just used for testing
 DUMMY_HTML = """
@@ -128,7 +108,7 @@ DUMMY_HTML = """
  <script type="text/javascript">
   function changeTitle(title) { document.title = title; }
   function success() { changeTitle('{ "successful" : true, \
-                                      "deb_line" : "deb https://user:pass@private-ppa.launchapd.net/mvo/ubuntu lucid main", \
+                                      "deb_line" : "deb https://user:pass@private-ppa.launchpad.net/mvo/ubuntu lucid main", \
                                       "package_name" : "2vcard", \
                                       "application_name" : "The 2vcard app", \
                                       "signing_key_id" : "1024R/0EB12F05"\

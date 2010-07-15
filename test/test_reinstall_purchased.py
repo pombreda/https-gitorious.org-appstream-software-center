@@ -15,7 +15,7 @@ import xapian
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.db.update import add_from_puchased_but_needs_reinstall_data
+from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data
 
 # from
 #  https://wiki.canonical.com/Ubuntu/SoftwareCenter/10.10/Roadmap/SoftwareCenterAgent
@@ -70,7 +70,7 @@ class testPurchased(unittest.TestCase):
         # now create purchased debs xapian index (in memory because
         # we store the repository passwords in here)
         old_db_len = len(db)
-        query = add_from_puchased_but_needs_reinstall_data(self.available_to_me,
+        query = add_from_purchased_but_needs_reinstall_data(self.available_to_me,
                                                            db, self.cache)
         # ensure we have a new item (the available for reinstall one)
         self.assertEqual(len(db), old_db_len+1)

@@ -284,7 +284,7 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
             logging.warning("error processing: %s %s" % (desktopf, e))
     return True
 
-def add_from_puchased_but_needs_reinstall_data(puchased_but_may_need_reinstall_list, db, cache):
+def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall_list, db, cache):
     """Add application that have been purchased but may require a reinstall
     
     This adds a inmemory database to the main db with the special
@@ -296,7 +296,7 @@ def add_from_puchased_but_needs_reinstall_data(puchased_but_may_need_reinstall_l
     PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
     db_purchased = xapian.inmemory_open()
     # go over the items we have
-    for item in puchased_but_may_need_reinstall_list:
+    for item in purchased_but_may_need_reinstall_list:
         # FIXME: what to do with duplicated entries? we will end
         #        up with two xapian.Document, one for the for-pay
         #        and one for the availalbe one from s-c-agent
