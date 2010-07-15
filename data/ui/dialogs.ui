@@ -260,6 +260,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
     <property name="border_width">5</property>
     <property name="title" translatable="yes"> </property>
     <property name="modal">True</property>
+    <property name="window_position">center</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
@@ -331,8 +332,8 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                     <property name="x_padding">6</property>
                     <property name="y_padding">6</property>
                   </packing>
-                 </child>
-                 <child>
+                </child>
+                <child>
                   <placeholder/>
                 </child>
               </object>

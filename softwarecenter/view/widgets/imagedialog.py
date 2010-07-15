@@ -76,8 +76,8 @@ class ShowImageDialog(gtk.Dialog):
         self.spinner.show()
         
         # table for spinner (otherwise the spinner is massive!)
-        self.table = gtk.Table(3, 3, True)
-        self.table.attach(self.spinner, 1, 2, 1, 2)
+        self.table = gtk.Table(3, 3, False)
+        self.table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
         self.table.show()
 
         # screenshot
