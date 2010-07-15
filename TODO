@@ -1,23 +1,16 @@
 
 Buy something:
-- move what is available into a seperate DB that is refreshed on 
-  startup
-- add what is available to me and a STATE for this in the appdetails
+- when clicking on "what is available for me" auto-switch to the right
+  channel
   (test with SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED=1 in the environment)
-- fix up availablepane's display_list_from_query to integrate better with
-  the current code and display a proper navigation item (tremolux)
-- add an item in the left navigation pane for Purchased Items, displays
-  what is available to me items (tremolux)
 - add an item in the left navigation pane to display a list of
   items available for purchase (tremolux)
 - centralize the Install/Remove/Buy/etc/ functionality as a gtk.Action
   and wire it to 1) the menu, 2) applist button and 3) appdetails
   button (tremolux)
 - fetch the metadata as part of the update-software-center-agent-db
-- do screenshot by adding a new document part
-  X-AppInstall-Screenshot-Url that is then added to from-sc-agent
-  entries via entry.screenshot_url and constructed via the archive-id
-  and the meta directory
+- do screenshot by constructing screenshot urls from update_sc_agent
+  via entry.screenshot_url by using the archive_id
 
 Code:
 - make the order of "cache, db, datadir" identical 

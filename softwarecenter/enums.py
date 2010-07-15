@@ -16,14 +16,23 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+import xdg.BaseDirectory
+
+# xapian pathes
+XAPIAN_BASE_PATH = "/var/cache/software-center"
+XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
+    xdg.BaseDirectory.xdg_cache_home,
+    "software-center", 
+    "software-center-agent.db")
 
 # system pathes
-XAPIAN_BASE_PATH = "/var/cache/software-center"
 APP_INSTALL_PATH = "/usr/share/app-install"
 APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
-SOFTWARE_CENTER_PLUGIN_DIR = "/usr/share/software-center/plugins"
+SOFTWARE_CENTER_BASE = "/usr/share/software-center"
+SOFTWARE_CENTER_PLUGIN_DIR = os.path.join(SOFTWARE_CENTER_BASE, "/plugins")
 
 # icons
 MISSING_APP_ICON = "applications-other"

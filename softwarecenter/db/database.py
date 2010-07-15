@@ -53,7 +53,7 @@ class StoreDatabase(gobject.GObject):
         self._aptcache = cache
         self._additional_databases = []
 
-    def open(self, pathname=None, use_axi=True):
+    def open(self, pathname=None, use_axi=True, use_agent=True):
         " open the database "
         if pathname:
             self._db_pathname = pathname
@@ -67,6 +67,12 @@ class StoreDatabase(gobject.GObject):
                 self.xapiandb.add_database(axi)
             except:
                 logging.exception("failed to add apt-xapian-index")
+        if use_agent:
+            try:
+                sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
+                self.xapiandb.add_database(sca)
+            except:
+                logging.exception("failed to add sca db")
         # additional dbs
         for db in self._additional_databases:
             self.xapiandb.add_database(db)
@@ -83,6 +89,9 @@ class StoreDatabase(gobject.GObject):
     def add_database(self, database):
         self._additional_databases.append(database)
         self.xapiandb.add_database(database)
+
+    def del_database(self, database):
+        self._additional_databases.remove(database)
 
     def reopen(self):
         " reopen the database "

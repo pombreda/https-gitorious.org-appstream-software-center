@@ -65,10 +65,6 @@ def restful_collection_to_real_python(restful_list):
 class RestfulClientWorker(threading.Thread):
     """ a generic worker thread for a lazr.restfulclient """
 
-    (NO_ERROR,
-     ERROR_SERVICE_ROOT,
-    ) = range(2)
-
     def __init__(self, authorizer, service_root):
         """ init the thread """
         threading.Thread.__init__(self)
@@ -77,7 +73,7 @@ class RestfulClientWorker(threading.Thread):
         self._pending_requests = Queue()
         self._shutdown = False
         self.daemon = True
-        self.error = self.NO_ERROR
+        self.error = None
 
     def run(self):
         """
@@ -87,7 +83,7 @@ class RestfulClientWorker(threading.Thread):
         try:
             self.service = ServiceRoot(self._authorizer, self._service_root_url)
         except AttributeError:
-            self.error = self.ERROR_SERVICE_ROOT
+            self.error = "ERROR_SERVICE_ROOT"
             self._shutdown = True
             return
         # loop
@@ -139,6 +135,10 @@ class SoftwareCenterAgent(gobject.GObject):
                               gobject.TYPE_NONE, 
                               (gobject.TYPE_PYOBJECT,),
                              ),
+        "error" : (gobject.SIGNAL_RUN_LAST,
+                   gobject.TYPE_NONE, 
+                   (str,),
+                  ),
         }
 
     AVAILABLE_FOR_ME = "subscriptions.getForOAuthToken"
@@ -167,6 +167,8 @@ class SoftwareCenterAgent(gobject.GObject):
         if self._available_for_me is not None:
             self.emit("available-for-me", self._available_for_me)
             self._available_for_me = None
+        if self.worker_thread.error:
+            self.emit("error", self.worker_thread.error)
         return True
 
     def _thread_available_for_me_done(self, result):
