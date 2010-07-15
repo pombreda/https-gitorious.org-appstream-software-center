@@ -89,11 +89,11 @@ class PurchaseDialog(gtk.Dialog):
             return
         self.response(gtk.RESPONSE_OK)
         # gather data from response
-        source_entry = res["deb_line"]
-        signing_key = res["signing_key_id"]
+        deb_line = res["deb_line"]
+        signing_key_id = res["signing_key_id"]
         # add repo and key
-        get_install_backend().add_repo_add_key_and_install_app(source_entry,
-                                                               signing_key,
+        get_install_backend().add_repo_add_key_and_install_app(deb_line,
+                                                               signing_key_id,
                                                                self.app)
 
 # just used for testing

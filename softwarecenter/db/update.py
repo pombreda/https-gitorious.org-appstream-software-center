@@ -320,7 +320,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
         except Exception, e:
             logging.exception("error processing: %s " % e)
     # add new in memory db to the main db
-    db.xapiandb.add_database(db_purchased)
+    db.add_database(db_purchased)
     # return a query
     query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
     return query
@@ -403,6 +403,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-PPA"):
             archive_ppa = parser.get_desktop("X-AppInstall-PPA")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_PPA, archive_ppa)
+        # screenshot (for third party)
+        if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
+            url = parser.get_desktop("X-AppInstall-Screenshot-Url")
+            doc.add_value(XAPIAN_VALUE_SCREENSHOT_URL, url)
         # price (pay stuff)
         if parser.has_option_desktop("X-AppInstall-Price"):
             price = parser.get_desktop("X-AppInstall-Price")

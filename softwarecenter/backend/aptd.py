@@ -214,8 +214,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 return
                 
     def add_repo_add_key_and_install_app(self,
-                                         source_entry,
-                                         signing_key,
+                                         deb_line,
+                                         signing_key_id,
                                          app):
         """ 
         a convenience method that combines all of the steps needed
@@ -226,8 +226,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         # TODO:  add error checking as needed
         self.app = app
-        self.add_sources_list_entry(source_entry)
-        self.add_vendor_key_from_keyserver(signing_key)
+        self.add_sources_list_entry(deb_line)
+        self.add_vendor_key_from_keyserver(signing_key_id)
         self.emit("channels-changed", True)
         # reload to ensure we have the new package data
         self.reload()
@@ -235,15 +235,17 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # otherwise the daemon will fail because he does not know
         # the new package name yet
         self._reload_signal_id = self.connect(
-            "reload-finished", self._on_reload_finished, self)
+            "reload-finished", self._on_reload_for_add_repo_and_install_app_finished, self)
             
-    def _on_reload_finished(self, trans, result, backend):
+    def _on_reload_for_add_repo_and_install_app_finished(self, trans, result, backend):
         """ 
         callback that is called once after reload was queued
         and will trigger the install of the for-pay package itself
         (after that it will automatically de-register)
         """
-        self.install(self.app.pkgname, self.app.appname, "")
+        #print trans, result, backend
+        if result:
+            self.install(self.app.pkgname, self.app.appname, "")
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None

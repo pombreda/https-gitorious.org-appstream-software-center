@@ -388,8 +388,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         query = add_from_purchased_but_needs_reinstall_data(result_list, 
                                                            self.db,
                                                            self.cache)
-        self.available_pane.display_list_from_query(query,
-                                                    _("Previous Purchases"))
+        self.view_switcher.get_model().channel_manager.add_channel(
+            _("Previous Purchases"), icon=None, query=query)
+        # FIXME: switch to the new channel
 
     # Menu Items
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):

@@ -251,7 +251,21 @@ class AppDetails(object):
             return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA)
 
     @property
+    def deb_line(self):
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)
+
+    @property
+    def signing_key_id(self):
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID)
+
+    @property
     def screenshot(self):
+        # if there is a custom screenshot url provided, use that
+        if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
+            return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
+        # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
 
     @property

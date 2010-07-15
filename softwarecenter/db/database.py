@@ -51,6 +51,7 @@ class StoreDatabase(gobject.GObject):
         gobject.GObject.__init__(self)
         self._db_pathname = pathname
         self._aptcache = cache
+        self._additional_databases = []
 
     def open(self, pathname=None, use_axi=True):
         " open the database "
@@ -66,6 +67,10 @@ class StoreDatabase(gobject.GObject):
                 self.xapiandb.add_database(axi)
             except:
                 logging.exception("failed to add apt-xapian-index")
+        # additional dbs
+        for db in self._additional_databases:
+            self.xapiandb.add_database(db)
+        # parser etc
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
@@ -74,6 +79,10 @@ class StoreDatabase(gobject.GObject):
         self.xapian_parser.add_prefix("pkg_wildcard", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
+
+    def add_database(self, database):
+        self._additional_databases.append(database)
+        self.xapiandb.add_database(database)
 
     def reopen(self):
         " reopen the database "

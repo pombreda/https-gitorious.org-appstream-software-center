@@ -519,21 +519,6 @@ class AvailablePane(SoftwarePane):
         self.searchentry.show()
         return
 
-    def display_list_from_query(self, query, pathbar_label):
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-        # clear
-        self.apps_subcategory = None
-        self.apps_category = None
-        self._clear_search()
-        self.refresh_apps(query=query)
-        self.notebook.set_current_page(self.PAGE_APPLIST)
-        self.navigation_bar.add_with_id(pathbar_label,
-                                        self.on_navigation_list,
-                                        self.NAV_BUTTON_ID_LIST, 
-                                        do_callback=False, 
-                                        animate=True)
-
     def display_list(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
