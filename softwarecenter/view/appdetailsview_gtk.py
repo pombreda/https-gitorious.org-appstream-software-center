@@ -179,23 +179,24 @@ class PackageStatusBar(gtk.Alignment):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x+1, a.y-1,
-                  a.x+a.width-2, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
+                  a.x, a.y,
+                  a.x+a.width, a.y+a.height,
+                  radius=1)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
+#        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.fill()
 
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
+        #cr.set_line_width(1)
+        #cr.translate(0.5, 0.5)
 
-        rr.layout(cr,
-                  a.x+1, a.y-1,
-                  a.x+a.width-2, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
+        #rr.layout(cr,
+                  #a.x, a.y,
+                  #a.x+a.width, a.y+a.height,
+                  #radius=1)
 
-        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
-        cr.stroke()
+        #cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
+        #cr.stroke()
         cr.restore()
         return
 
@@ -520,6 +521,8 @@ class ScreenshotView(gtk.Alignment):
     def _on_enter(self, widget, event):
         if self.get_is_actionable():
             self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+        else:
+            self.window.set_cursor(None)
         return
 
     def _on_leave(self, widget, event):
@@ -841,9 +844,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
 
-        # FramedSection which contains textual paragraphs and bullet points
-        self.desc_section = mkit.FramedSection(_('Description'),
-                                               xpadding=mkit.SPACING_LARGE)
+        # FramedSection which contains the app description
+        self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_LARGE)
+        self.desc_section.header_alignment.set_padding(0,0,0,0)
+
         self.app_info.body.pack_start(self.desc_section, False)
 
         app_desc_hb = gtk.HBox(spacing=mkit.SPACING_LARGE)
