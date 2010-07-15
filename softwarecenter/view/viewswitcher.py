@@ -362,7 +362,8 @@ class ViewSwitcherList(gtk.TreeStore):
             # check for no installed items for each channel and do not
             # append the channel item in this case
             enquire = xapian.Enquire(self.db.xapiandb)
-            enquire.set_query(channel.get_channel_query())
+            query = channel.get_channel_query()
+            enquire.set_query(query)
             matches = enquire.get_mset(0, len(self.db))
             # only check channels that have a small number of items
             add_channel_item = True

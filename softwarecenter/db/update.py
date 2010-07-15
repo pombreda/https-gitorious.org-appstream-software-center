@@ -320,7 +320,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
         except Exception, e:
             logging.exception("error processing: %s " % e)
     # add new in memory db to the main db
-    db.xapiandb.add_database(db_purchased)
+    db.add_database(db_purchased)
     # return a query
     query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
     return query

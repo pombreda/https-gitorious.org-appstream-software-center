@@ -77,6 +77,7 @@ class ChannelsManager(object):
             self.backend.emit("channels-changed", True)
 
     def add_channel(self, name, icon, query):
+        print name, icon, query
         channel = SoftwareChannel(self.icons, name, None, None, 
                                   channel_icon=icon,
                                   channel_query=query)
