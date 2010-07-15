@@ -57,7 +57,8 @@ if __name__ == "__main__":
     
     logger = logging.getLogger()
     if options.debug_filter:
-        logger.addFilter(options.debug_filter)
+        for log_filter in options.debug_filter.split(","):
+            logger.addFilter(log_filter)
         # implies general debug
         options.debug = True
         

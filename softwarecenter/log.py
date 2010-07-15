@@ -22,29 +22,40 @@ import logging
 DEBUG = logging.DEBUG
 INFO = logging.INFO
 
+class Filter(logging.Filter):
+    def __init__(self, name=''):
+        self.filters = []
+        
+    def filter(self, record):
+        for (fname,flen) in self.filters:
+            if flen == 0 or fname == record.name or (len(record.name)>flen and record.name[flen] == "."):
+                return 1
+        return 0
+    
+    def add(self,log_filter):
+        self.filters.append((log_filter,len(log_filter)))
+
 class Logger:
 
     def __init__(self):
-        logging.basicConfig()
+        logging.basicConfig(level=DEBUG)
         self._loggers = {}
-        self._filter = None
+        self._filter = Filter()
         self._logger = logging.getLogger("softwarecenter.log")
         self._loggers["softwarecenter.log"] = self._logger
+        
     def getLogger(self,log_name):
         if not log_name in self._loggers:
             self._logger.debug("adding " + log_name)
             self._loggers[log_name] = logging.getLogger(log_name)
-            if not self._filter is None:
-                self._logger.debug("and updating filter")
-                self._loggers[log_name].addFilter(self._filter)
+            self._loggers[log_name].addFilter(self._filter)
         return self._loggers[log_name]
         
     def addFilter(self,filter_str):
-        self._filter = logging.Filter(filter_str)
-        self._logger.debug("updating filter:" + filter_str)
-        for log_name in self._loggers:
-            self._logger.debug( "for:" + log_name)
-            self._loggers[log_name].addFilter(self._filter)
+        self._logger.debug("adding filter:'" + filter_str+ "'")
+        filter_str = filter_str.strip("")
+        if filter_str != "":
+            self._filter.add(filter_str)
 
     def setLevel(self,level):
         self.getLogger("").setLevel(level)
@@ -60,6 +71,10 @@ def getLogger(log_name=""):
 
 def debug(message):
     logger.getLogger("softwarecenter.fixme").debug(message)
+    fixme_msg = logger.getLogger("softwarecenter.fixme").findCaller()
+    logger.getLogger("softwarecenter.fixme").debug(fixme_msg)
 
 def warn(message):
     logger.getLogger("softwarecenter.fixme").warn(message)
+    fixme_msg = logger.getLogger("softwarecenter.fixme").findCaller()
+    logger.getLogger("softwarecenter.fixme").warn(fixme_msg)
