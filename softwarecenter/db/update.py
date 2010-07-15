@@ -30,7 +30,9 @@ import urllib
 import xapian
 
 from ConfigParser import RawConfigParser, NoOptionError
+from gettext import gettext as _
 from glob import glob
+
 
 from softwarecenter.enums import *
 from softwarecenter.utils import GnomeProxyURLopener
@@ -312,6 +314,10 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
             item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
             # and empty category to make the parser happy
             item.categories = ""
+            # WARNING: item.name needs to be different than
+            #          the item.name in the DB otherwise the DB
+            #          gets confused about (appname, pkgname) duplication
+            item.name = _("%s (already purchased)") % item.name
             parser = SoftwareCenterAgentParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception, e:
