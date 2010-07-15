@@ -40,7 +40,7 @@ class Logger:
     def __init__(self):
         logging.basicConfig(level=DEBUG)
         self._loggers = {}
-        self._filter = Filter()
+        self._filter = None
         self._logger = logging.getLogger("softwarecenter.log")
         self._loggers["softwarecenter.log"] = self._logger
         
@@ -48,7 +48,8 @@ class Logger:
         if not log_name in self._loggers:
             self._logger.debug("adding " + log_name)
             self._loggers[log_name] = logging.getLogger(log_name)
-            self._loggers[log_name].addFilter(self._filter)
+            if not self._filter is None:
+                self._loggers[log_name].addFilter(self._filter)
         return self._loggers[log_name]
         
     def addFilter(self,filter_str):
@@ -57,6 +58,8 @@ class Logger:
         if filter_str != "":
             if filter_str[:2] == "sc":
                 filter_str = "softwarecenter" + filter_str[2:]
+            if self._filter is None:
+                self._filter = Filter()
             self._filter.add(filter_str)
 
     def setLevel(self,level):
