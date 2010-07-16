@@ -27,6 +27,7 @@ import pango
 import string
 import subprocess
 import sys
+import tempfile
 import xapian
 import cairo
 
@@ -422,11 +423,12 @@ class ScreenshotDownloader(gobject.GObject):
 
     def __init__(self):
         gobject.GObject.__init__(self)
+        self._tmpfile = None
         return
 
     def _actually_download_screenshot(self, file, url):
 
-        def download_complete_cb(file, result, path="/tmp/SoftwareCenterScreenshot.png"):
+        def download_complete_cb(file, result, path=None):
             """Helper called after the file has downloaded"""
 
             # The result from the download is actually a tuple with three elements.
@@ -434,6 +436,9 @@ class ScreenshotDownloader(gobject.GObject):
             content = file.load_contents_finish(result)[0]
 
             # let's now save the content to the tmp dir
+            if path is None:
+                self._tmpfile = tempfile.NamedTemporaryFile(prefix="s-c-screenshot")
+                path = self._tmpfile.name
             outputfile = open(path, "w")
             outputfile.write(content)
 
@@ -463,65 +468,6 @@ class ScreenshotDownloader(gobject.GObject):
         return
 
 gobject.type_register(ScreenshotDownloader)
-
-
-class ScreenshotDownloader(gobject.GObject):
-
-    __gsignals__ = {
-        "url-reachable"     : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE,
-                               (bool,),),
-
-        "download-complete" : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE,
-                               (str,),),
-        }
-
-
-    def __init__(self):
-        gobject.GObject.__init__(self)
-        return
-
-    def _actually_download_screenshot(self, file, url):
-
-        def download_complete_cb(file, result, path="/tmp/SoftwareCenterScreenshot.png"):
-            """Helper called after the file has downloaded"""
-
-            # The result from the download is actually a tuple with three elements.
-            # The first element is the actual content so let's grab that
-            content = file.load_contents_finish(result)[0]
-
-            # let's now save the content to the tmp dir
-            outputfile = open(path, "w")
-            outputfile.write(content)
-
-            self.emit('download-complete', path)
-            return
-
-        file.load_contents_async(download_complete_cb)
-        return
-
-    def download_from_url(self, url):
-
-        def query_complete_cb(file, result):
-            try:
-                result = file.query_info_finish(result)
-                self.emit('url-reachable', True)
-                self._actually_download_screenshot(file, url)
-            except glib.GError, e:
-                self.emit('url-reachable', False)
-
-            del file
-            return
-
-        # use gio (its so nice)
-        file=gio.File(url)
-        file.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                              query_complete_cb)
-        return
-
-gobject.type_register(ScreenshotDownloader)
-
 
 class ScreenshotView(gtk.Alignment):
 
@@ -673,8 +619,6 @@ class ScreenshotView(gtk.Alignment):
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(
             title, url,
-            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
-            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
             self.distro.IMAGE_FULL_MISSING)
 
         d.run()
@@ -825,16 +769,22 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = gtk.ICON_SIZE_DIALOG
+    APP_ICON_SIZE = 48 # gtk.ICON_SIZE_DIALOG ?
 
     # FIXME: use relative path here
     INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
+    # TODO: use a generic gtk.Spinner instead of this icon
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
+    # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
+                    'application-request-action' : (gobject.SIGNAL_RUN_LAST,
+                                        gobject.TYPE_NONE,
+                                        (gobject.TYPE_PYOBJECT, str),
+                                       ),
                     }
 
 

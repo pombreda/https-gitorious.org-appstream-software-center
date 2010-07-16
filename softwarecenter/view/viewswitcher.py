@@ -69,7 +69,7 @@ class ViewSwitcher(gtk.TreeView):
         tr = gtk.CellRendererText()
         tr.set_property("ellipsize", pango.ELLIPSIZE_END)
         column.pack_start(tr, expand=True)
-        column.set_attributes(tr, markup=store.COL_NAME, yalign=store.COL_YPAD)
+        column.set_attributes(tr, markup=store.COL_NAME)
         self.append_column(column)
 
         # Remember the previously selected permanent view
@@ -201,8 +201,7 @@ class ViewSwitcherList(gtk.TreeStore):
      COL_NAME,
      COL_ACTION,
      COL_CHANNEL,
-     COL_YPAD,
-     ) = range(5)
+     ) = range(4)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
@@ -236,7 +235,7 @@ class ViewSwitcherList(gtk.TreeStore):
                                str, 
                                int, 
                                gobject.TYPE_PYOBJECT,
-                               int) # must match columns above
+                               ) # must match columns above
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
@@ -251,10 +250,10 @@ class ViewSwitcherList(gtk.TreeStore):
         # setup the normal stuff
         # first, the availablepane items
         available_icon = self._get_icon("softwarecenter")
-        self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None, 10])
+        self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
         # the installedpane items
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None, 0])
+        self.installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
         
         # do initial channel list update
         self.channel_manager = ChannelsManager(db, icons)
@@ -262,9 +261,9 @@ class ViewSwitcherList(gtk.TreeStore):
         
         # the historypane item
         icon = self._get_icon("clock")
-        history_iter = self.append(None, [icon, _("History"), self.ACTION_ITEM_HISTORY, None, 0])
+        history_iter = self.append(None, [icon, _("History"), self.ACTION_ITEM_HISTORY, None])
         icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None, 0])
+        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
         
 
     def on_channels_changed(self, backend, res):
@@ -285,7 +284,7 @@ class ViewSwitcherList(gtk.TreeStore):
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
                 self.append(None, [icon, _("In Progress (%i)") % pending, 
-                             self.ACTION_ITEM_PENDING, None, 0])
+                             self.ACTION_ITEM_PENDING, None])
         else:
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
@@ -345,7 +344,7 @@ class ViewSwitcherList(gtk.TreeStore):
                         channel.get_channel_icon(),
                         channel.get_channel_display_name(),
                         self.ACTION_ITEM_CHANNEL,
-                        channel, 0])
+                        channel])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
@@ -380,7 +379,7 @@ class ViewSwitcherList(gtk.TreeStore):
                             channel.get_channel_icon(),
                             channel.get_channel_display_name(),
                             self.ACTION_ITEM_CHANNEL,
-                            channel, 0])
+                            channel])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)

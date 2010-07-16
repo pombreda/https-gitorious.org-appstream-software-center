@@ -942,6 +942,9 @@ class Button(gtk.EventBox):
             return False
 
         if event.button != 1: return
+        sel = '#000'
+        text = gobject.markup_escape_text(self.label.get_text())
+        self.set_label('<span color="%s">%s</span>' % (sel, text))
 
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
@@ -950,11 +953,6 @@ class Button(gtk.EventBox):
             return
         #if cat != self._button_press_origin: return
         self._button_press_origin = None
-
-        sel = '#000'
-        text = gobject.markup_escape_text(self.label.get_text())
-        self.set_label('<span color="%s">%s</span>' % (sel, text))
-
         cat.set_state(gtk.STATE_PRELIGHT)
         gobject.timeout_add(50, emit_clicked)
         return
@@ -1077,21 +1075,25 @@ class HButton(Button):
         if self.label.get_text():
             self.box.pack_start(self.label, False)
 
-        self.set_border_width(BORDER_WIDTH_SMALL)
+        #self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
         return
 
     def calc_width(self):
         w = 1
+        spacing = 0
+
         if self.label:
             pc = self.get_pango_context()
             layout = pango.Layout(pc)
             layout.set_markup(self.label.get_label())
             w += layout.get_pixel_extents()[1][2]
+
         if self.image and self.image.get_property('visible'):
             w += self.image.allocation.width
+            spacing = self.box.get_spacing()
 
-        w += 2*self.get_border_width() + 12 + self.box.get_spacing()
+        w += 2*self.get_border_width() + spacing
         return w
 
 
