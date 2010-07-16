@@ -180,7 +180,7 @@ class PackageStatusBar(gtk.Alignment):
         rr.layout(cr,
                   a.x-1, a.y-1,
                   a.x+a.width, a.y+a.height,
-                  radius=2)
+                  radius=mkit.CORNER_RADIUS)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
 #        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
@@ -192,7 +192,7 @@ class PackageStatusBar(gtk.Alignment):
         rr.layout(cr,
                   a.x-1, a.y-1,
                   a.x+a.width, a.y+a.height,
-                  radius=2)
+                  radius=mkit.CORNER_RADIUS)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.stroke()
@@ -888,13 +888,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         expose_area = event.area
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
-        cr.clip_preserve()
+        #cr.clip_preserve()
+        cr.clip()
 
 
         #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
         #cr.set_source_rgba(*mkit.floats_from_gdkcolor(self.style.light[gtk.STATE_NORMAL]))
         #cr.fill()
-        self.app_info.draw(cr, self.app_info.allocation, expose_area)
+ #       self.app_info.draw(cr, self.app_info.allocation, expose_area)
 
         # if the appicon is not that big draw a rectangle behind it
         # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view

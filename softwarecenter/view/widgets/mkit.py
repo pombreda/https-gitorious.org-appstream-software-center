@@ -153,7 +153,7 @@ SPACING_MED         = max(2, int(0.666*EM+0.5))
 SPACING_SMALL       = max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
-CORNER_RADIUS =         max(2, int(0.333*EM+0.5))
+CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
 
 # DEBUGGING
 #print '\n* MKIT METRICS'
@@ -654,8 +654,8 @@ class FramedSection(gtk.VBox):
         self.header_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.header = gtk.HBox()
         self.header_alignment.add(self.header)
-        self.header_alignment.set_padding(SPACING_MED,
-                                          SPACING_MED,
+        self.header_alignment.set_padding(SPACING_SMALL,
+                                          SPACING_SMALL,
                                           xpadding,
                                           xpadding)
 
@@ -1047,7 +1047,6 @@ class Button(gtk.EventBox):
                     self._paint_action_arrow(a)
 
         if self.has_focus() and focus_draw:
-            a = self.label.allocation
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
                                    self.state,
