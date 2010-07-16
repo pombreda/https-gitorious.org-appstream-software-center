@@ -686,11 +686,11 @@ class FramedSection(gtk.VBox):
             self.set_label(label_markup)
         return
 
-    def set_icon(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
+    def set_icon_from_name(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
         self.image.set_from_icon_name(icon_name, icon_size)
 
         if not self.image.parent:
-            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
+            self.header.pack_start(self.image, False)
             self.header.reorder_child(self.image, 0)
             self.image.show()
         return
@@ -699,7 +699,7 @@ class FramedSection(gtk.VBox):
         self.image.set_from_pixbuf(pixbuf)
 
         if not self.image.parent:
-            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
+            self.header.pack_start(self.image, False)
             self.header.reorder_child(self.image, 0)
             self.image.show()
         return
@@ -928,20 +928,35 @@ class Button(gtk.EventBox):
     def _on_button_press(self, cat, event):
         if event.button != 1: return
         self._button_press_origin = cat
+
+        sel = '#A020F0'
+        text = gobject.markup_escape_text(self.label.get_text())
+        self.set_label('<span color="%s">%s</span>' % (sel, text))
+
         cat.set_state(gtk.STATE_ACTIVE)
         return
 
     def _on_button_release(self, cat, event):
+        def emit_clicked():
+            self.emit('clicked')
+            return False
+
         if event.button != 1: return
 
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
             self._button_press_origin = None
+            cat.set_state(gtk.STATE_NORMAL)
             return
-        if cat != self._button_press_origin: return
-        cat.set_state(gtk.STATE_PRELIGHT)
+        #if cat != self._button_press_origin: return
         self._button_press_origin = None
-        self.emit('clicked')
+
+        sel = '#000'
+        text = gobject.markup_escape_text(self.label.get_text())
+        self.set_label('<span color="%s">%s</span>' % (sel, text))
+
+        cat.set_state(gtk.STATE_PRELIGHT)
+        gobject.timeout_add(50, emit_clicked)
         return
 
     def _on_key_press(self, cat, event):
@@ -1035,17 +1050,6 @@ class Button(gtk.EventBox):
 
     def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
         if not_overlapping(a, expose_area): return
-
-        if self._relief == gtk.RELIEF_NORMAL:
-            self._paint_bg(cr, a, alpha)
-            if self._has_action_arrow:
-                self._paint_action_arrow(a)
-        else:
-            #if self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE:
-            if self.state == gtk.STATE_ACTIVE:
-                self._paint_bg(cr, a, alpha)
-                if self._has_action_arrow:
-                    self._paint_action_arrow(a)
 
         if self.has_focus() and focus_draw:
             x, y, w, h = a.x, a.y, a.width, a.height
