@@ -1041,7 +1041,8 @@ class Button(gtk.EventBox):
             if self._has_action_arrow:
                 self._paint_action_arrow(a)
         else:
-            if self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE:
+            #if self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE:
+            if self.state == gtk.STATE_ACTIVE:
                 self._paint_bg(cr, a, alpha)
                 if self._has_action_arrow:
                     self._paint_action_arrow(a)
