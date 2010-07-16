@@ -56,6 +56,10 @@ XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID = 183
 XAPIAN_VALUE_PURCHASED_DATE = 184
 XAPIAN_VALUE_SCREENSHOT_URL = 185
 
+# fake channels
+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
+AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
+
 # pkg action state constants
 (   # current
     PKG_STATE_INSTALLED,
@@ -72,6 +76,11 @@ XAPIAN_VALUE_SCREENSHOT_URL = 185
     PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
     PKG_STATE_UNKNOWN,
  ) = range(11)
+
+# application actions
+APP_ACTION_INSTALL = "install"
+APP_ACTION_REMOVE = "remove"
+APP_ACTION_UPGRADE = "upgrade"
 
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 

@@ -20,15 +20,23 @@
 import logging
 import gtk
 import urllib
+import gobject
 
 from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
-import softwarecenter.view.dialogs as dialogs
+from softwarecenter.enums import *
 
 from purchasedialog import PurchaseDialog
 
 class AppDetailsViewBase(object):
+
+    __gsignals__ = {
+        "application-request-action" : (gobject.SIGNAL_RUN_LAST,
+                                        gobject.TYPE_NONE,
+                                        (gobject.TYPE_PYOBJECT, str),
+                                       ),
+    }
 
     def __init__(self, db, distro, icons, cache, history, datadir):
         self.db = db
@@ -63,33 +71,15 @@ class AppDetailsViewBase(object):
         """ reload the package cache, this goes straight to the backend """
         self.backend.reload()
     def install(self):
-        """ install the current application, this goes straight to the backend """
-        self.backend.install(self.app.pkgname, self.app.appname, self.appdetails.icon)
+        """ install the current application, fire an action request """
+        self.emit("application-request-action", self.app, APP_ACTION_INSTALL)
     def remove(self):
-        """ remove the current application and show dialog if other
-            dependencies need to be removed as well
-        """
-        # generic removal text
-        # FIXME: this text is not accurate, we look at recommends as
-        #        well as part of the rdepends, but those do not need to
-        #        be removed, they just may be limited in functionatlity
-        (primary, button_text) = self.distro.get_removal_warning_text(self.cache, self.appdetails.pkg, self.app.name)
-
-        # ask for confirmation if we have rdepends
-        depends = self.cache.get_installed_rdepends(self.appdetails.pkg)
-        if depends:
-            iconpath = self.get_icon_filename(self.appdetails.icon, self.APP_ICON_SIZE)
-            
-            if not dialogs.confirm_remove(None, primary, self.cache,
-                                        button_text, iconpath, depends):
-                # for appdetailsview-webkit
-                # self._set_action_button_sensitive(True)
-                self.backend.emit("transaction-stopped")
-                return
-        self.backend.remove(self.app.pkgname, self.app.appname, self.appdetails.icon)
+        """ remove the current application, , fire an action request """
+        self.emit("application-request-action", self.app, APP_ACTION_REMOVE)
     def upgrade(self):
-        """ upgrade the current application, this goes straight to the backend """
-        self.backend.upgrade(self.app.pkgname, self.app.appname, self.appdetails.icon)
+        """ upgrade the current application, fire an action request """
+        self.emit("application-request-action", self.app, APP_ACTION_UPGRADE)
+
     def buy_app(self):
         """ initiate the purchase transaction """
         url = self.distro.PURCHASE_APP_URL % (
@@ -113,14 +103,6 @@ class AppDetailsViewBase(object):
                                                                signing_key_id,
                                                                self.app)
 
-        
-
-    def get_icon_filename(self, iconname, iconsize):
-        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
-        if not iconinfo:
-            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
-        return iconinfo.get_filename()
-        
     # internal callbacks
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the

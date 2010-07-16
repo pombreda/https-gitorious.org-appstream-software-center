@@ -15,6 +15,10 @@ software-center (2.1.5) UNRELEASED; urgency=low
     that fixes LP:#431907, thanks to Olivier Tilloy 
   * remove specal cases for partner now that soyuz 
     LP: #552560 is fixed (LP: #604693)
+  * software-center:
+    - fixes in the logging code (thanks to Geliy Sokolov)
+  * merged lp:~and471/software-center/dialog-work that improves
+    the dialogs (many thanks!)
   
   [ Gary Lasker ]
   * data/icons/scalable/apps/category-show-all.svg,
@@ -41,8 +45,19 @@ software-center (2.1.5) UNRELEASED; urgency=low
     softwarecenter/view/availablepane.py,
     softwarecenter/view/navhistory.py:
     - navigation history fixes 
+  * data/ui/dialogs.ui,
+    softwarecenter/app.py,
+    softwarecenter/enums.py,
+    softwarecenter/view/appdetailsview.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/softwarepane.py:
+    - consolidate install/remove action handling to
+      one place, now shows dep package removal dialog
+      for all cases; fix response ids for dialogs 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 12 Jul 2010 23:53:48 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 16 Jul 2010 00:21:30 -0400
 
 software-center (2.1.4) maverick; urgency=low
 

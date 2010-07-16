@@ -1,10 +1,5 @@
 
 Buy something:
-- when clicking on "what is available for me" auto-switch to the right
-  channel
-  (test with SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED=1 in the environment)
-- add an item in the left navigation pane to display a list of
-  items available for purchase (tremolux)
 - centralize the Install/Remove/Buy/etc/ functionality as a gtk.Action
   and wire it to 1) the menu, 2) applist button and 3) appdetails
   button (tremolux)

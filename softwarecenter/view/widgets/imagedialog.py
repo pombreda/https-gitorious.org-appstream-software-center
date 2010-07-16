@@ -41,8 +41,9 @@ class Url403Error(IOError):
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """
 
-    def __init__(self, title, url, loading_img, loading_img_size, missing_img, parent=None):
+    def __init__(self, title, url, missing_img, parent=None):
         gtk.Dialog.__init__(self)
+        self.set_has_separator(False)
         # find parent window for the dialog
         if not parent:
             parent = self.get_parent()
@@ -51,49 +52,34 @@ class ShowImageDialog(gtk.Dialog):
         # missing
         self._missing_img = missing_img
         self.image_filename = self._missing_img
-        # image
-            # loading
-        pixbuf_orig = gtk.gdk.pixbuf_new_from_file(loading_img)
-        self.x = self._get_loading_x_start(loading_img_size)
-        self.y = 0
-        self.pixbuf_count = 0
-        pixbuf_buffer = pixbuf_orig.copy()
         
-        self.pixbuf_list = []
-                
-        for f in range((pixbuf_orig.get_width() / loading_img_size) * (pixbuf_orig.get_height() / loading_img_size)):
-            pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
-            self.pixbuf_list.append(pixbuf_buffer)
-            if self.x == pixbuf_orig.get_width() - loading_img_size:
-                self.x = self.x = self._get_loading_x_start(loading_img_size)
-                self.y += loading_img_size
-                if self.y == pixbuf_orig.get_height():
-                    self.x = self.x = self._get_loading_x_start(loading_img_size)
-                    self.y = 0
-            else:
-                self.x += loading_img_size
+        # loading spinner
+        self.spinner = gtk.Spinner()
+        self.spinner.set_size_request(48, 48)
+        self.spinner.start()
+        self.spinner.show()
         
-        
-        
+        # table for spinner (otherwise the spinner is massive!)
+        self.table = gtk.Table(3, 3, False)
+        self.table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
+        self.table.show()
+
+        # screenshot
         self.img = gtk.Image()
-        self.img.set_from_file(loading_img)
-        self.img.show()
-        gobject.timeout_add(50, self._update_loading, pixbuf_orig, loading_img_size)
 
-        # view port
-        scroll = gtk.ScrolledWindow()
-        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll.add_with_viewport(self.img)
-        scroll.show() 
-
-        # box
-        vbox = gtk.VBox()
-        vbox.pack_start(scroll)
-        vbox.show()
+        # scolled window for screenshot
+        viewport = gtk.Viewport()
+        viewport.add(self.img)
+        viewport.set_shadow_type(gtk.SHADOW_NONE)
+        viewport.show()
+        self.scroll = gtk.ScrolledWindow()
+        self.scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.scroll.add(viewport)
+        
         # dialog
         self.set_transient_for(parent)
         self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
-        self.get_content_area().add(vbox)
+        self.get_content_area().add(self.table)
         self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.set_default_size(850,650)
         self.set_title(title)
@@ -102,23 +88,7 @@ class ShowImageDialog(gtk.Dialog):
         urllib._urlopener = GnomeProxyURLopener()
         # data
         self.url = url
-
-    def _update_loading(self, pixbuf_orig, loading_img_size):
-        if not self._finished:
-            self.img.set_from_pixbuf(self.pixbuf_list[self.pixbuf_count])
-            if self.pixbuf_count == (pixbuf_orig.get_width() / loading_img_size) * (pixbuf_orig.get_height() / loading_img_size) - 1:
-                self.pixbuf_count = 0
-            else:
-                self.pixbuf_count += 1
-            return True
             
-    def _get_loading_x_start(self, loading_img_size):
-        if (gtk.settings_get_default().props.gtk_icon_theme_name in ICON_EXCEPTIONS) or (gtk.settings_get_default().props.gtk_fallback_icon_theme in ICON_EXCEPTIONS):
-            return loading_img_size
-        else:
-            return 0
-            
-
     def _response(self, dialog, reponse_id):
         self._finished = True
         self._abort = True
@@ -146,7 +116,20 @@ class ShowImageDialog(gtk.Dialog):
         except:
             logging.debug("The image format couldn't be determined")
             pixbuf = gtk.gdk.pixbuf_new_from_file(self._missing_img)
+            
+        # Set the screenshot image
         self.img.set_from_pixbuf(pixbuf)
+        
+        # Destroy the spinner and it's table
+        self.table.destroy()
+        self.spinner.destroy()
+        
+        # Add our screenshot image and scrolled window
+        self.get_content_area().add(self.scroll)
+        # and show them
+        self.img.show()
+        self.scroll.show() 
+
         # and run the real thing
         gtk.Dialog.run(self)
 
@@ -176,6 +159,5 @@ class ShowImageDialog(gtk.Dialog):
 if __name__ == "__main__":
     pkgname = "synaptic"
     url = "http://screenshots.ubuntu.com/screenshot/synaptic"
-    loading = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
-    d = ShowImageDialog("Synaptic Screenshot", url, loading, pkgname)
+    d = ShowImageDialog("Synaptic Screenshot", url, "/usr/share/software-center/images/dummy-screenshot-ubuntu.png")
     d.run()
