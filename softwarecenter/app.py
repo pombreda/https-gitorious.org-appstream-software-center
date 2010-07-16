@@ -37,6 +37,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
+import softwarecenter.view.dialogs as dialogs
 
 import view.dialogs
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
@@ -89,6 +90,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
      NOTEBOOK_PAGE_CHANNEL) = range(6)
 
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
+    
+    # the size of the icon for dialogs
+    APP_ICON_SIZE = 48  # gtk.ICON_SIZE_DIALOG ?
 
     # FIXME:  REMOVE THIS once launchpad integration is enabled
     #         by default
@@ -187,6 +191,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_AVAILABLE)
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.available_pane.app_details.connect("application-request-action", 
+                                                self.on_application_request_action)
+        self.available_pane.app_view.connect("application-request-action", 
+                                             self.on_application_request_action)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_AVAILABLE)
@@ -204,6 +212,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_CHANNEL)
         self.channel_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.channel_pane.app_details.connect("application-request-action", 
+                                              self.on_application_request_action)
+        self.channel_pane.app_view.connect("application-request-action", 
+                                           self.on_application_request_action)
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_CHANNEL)
@@ -221,6 +233,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                 self.NOTEBOOK_PAGE_INSTALLED)
         self.installed_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.installed_pane.app_details.connect("application-request-action", 
+                                                self.on_application_request_action)
+        self.installed_pane.app_view.connect("application-request-action", 
+                                             self.on_application_request_action)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     self.NOTEBOOK_PAGE_INSTALLED)
@@ -383,7 +399,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         print "_on_lp_login"
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()
-        self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(private_archives)
+        self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
+            private_archives)
 
     def _on_sso_login(self, sso, oauth_result):
         print "_on_sso_login", sso, oauth_result
@@ -393,7 +410,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             oauth_result["consumer_key"])
 
     def _available_for_me_result(self, scagent, result_list):
-        #print "availalbe_for_me_result", result_list
+        #print "available_for_me_result", result_list
         from db.update import add_from_purchased_but_needs_reinstall_data
         query = add_from_purchased_but_needs_reinstall_data(result_list, 
                                                            self.db,
@@ -401,6 +418,50 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.get_model().channel_manager.add_channel(
             _("Previous Purchases"), icon=None, query=query)
         # FIXME: switch to the new channel
+            
+    def on_application_request_action(self, widget, app, action):
+        """callback when an app action is requested from the appview,
+           if action is "remove", must check if other dependencies have to be
+           removed as well and show a dialog in that case
+        """
+        logging.debug("on_application_action_requested: '%s' %s" % (app, action))
+        appdetails = app.get_details(self.db)
+        if action == "remove":
+            # if we are removing a package, check for dependencies that will
+            # also be removed and show a dialog for confirmation
+            # generic removal text
+            # FIXME: this text is not accurate, we look at recommends as
+            #        well as part of the rdepends, but those do not need to
+            #        be removed, they just may be limited in functionality
+            (primary, button_text) = self.distro.get_removal_warning_text(self.cache,
+                                                                          appdetails.pkg,
+                                                                          app.name)
+
+            # ask for confirmation if we have rdepends
+            depends = self.cache.get_installed_rdepends(appdetails.pkg)
+            if depends:
+                iconpath = self.get_icon_filename(appdetails.icon, self.APP_ICON_SIZE)
+                
+                if not dialogs.confirm_remove(None, self.datadir, primary, self.cache,
+                                            button_text, iconpath, depends):
+                    # for appdetailsview-webkit
+                    # self._set_action_button_sensitive(True)
+
+                    self.backend.emit("transaction-stopped")
+                    return
+            
+        # action_func is one of:  "install", "remove" or "upgrade"
+        action_func = getattr(self.backend, action)
+        if callable(action_func):
+            action_func(app.pkgname, app.appname, appdetails.icon)
+        else:
+            logging.error("Not a valid action in AptdaemonBackend: '%s'" % action)
+            
+    def get_icon_filename(self, iconname, iconsize):
+        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
+        if not iconinfo:
+            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+        return iconinfo.get_filename()
 
     # Menu Items
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
@@ -422,13 +483,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.backend.install(app.pkgname, app.appname, 
-                             app.get_details(self.db).icon)
+        self.on_application_request_action(self, app, APP_ACTION_INSTALL)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.backend.remove(app.pkgname, app.appname, 
-                            app.get_details(self.db).icon)
+        self.on_application_request_action(self, app, APP_ACTION_REMOVE)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()

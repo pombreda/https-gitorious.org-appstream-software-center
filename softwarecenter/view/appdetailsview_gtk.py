@@ -802,9 +802,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
     IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 
+    # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
+                    'application-request-action' : (gobject.SIGNAL_RUN_LAST,
+                                        gobject.TYPE_NONE,
+                                        (gobject.TYPE_PYOBJECT, str),
+                                       ),
                     }
 
 

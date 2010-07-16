@@ -77,6 +77,11 @@ AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
     PKG_STATE_UNKNOWN,
  ) = range(11)
 
+# application actions
+APP_ACTION_INSTALL = "install"
+APP_ACTION_REMOVE = "remove"
+APP_ACTION_UPGRADE = "upgrade"
+
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 
                                                    DISTRO, 
