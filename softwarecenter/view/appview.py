@@ -1373,9 +1373,9 @@ class AppView(gtk.TreeView):
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
             if installed:
-                perform_action = "remove"
+                perform_action = APP_ACTION_REMOVE
             else:
-                perform_action = "install"
+                perform_action = APP_ACTION_INSTALL
             self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
         return False
         

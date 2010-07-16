@@ -53,9 +53,14 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
     # hrm, can not put this into AppDetailsViewBase as it overrides
     # the webkit signals otherwise :/
+    # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT, )),
+                    'application-request-action' : (gobject.SIGNAL_RUN_LAST,
+                                        gobject.TYPE_NONE,
+                                        (gobject.TYPE_PYOBJECT, str),
+                                       ),
                     }
     
 
@@ -295,8 +300,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         title = _("%s - Screenshot") % self.app.name
         d = ShowImageDialog(
             title, url,
-            self.icons.lookup_icon("process-working", 32, ()).get_filename(),
-            self.icons.lookup_icon("process-working", 32, ()).get_base_size(),
             self.distro.IMAGE_FULL_MISSING)
         d.run()
         d.destroy()
