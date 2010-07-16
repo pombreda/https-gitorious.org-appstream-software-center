@@ -104,8 +104,6 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-        self.app_view.connect("application-request-action", 
-                              self.on_application_request_action)
         # details
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
@@ -159,16 +157,6 @@ class SoftwarePane(gtk.VBox):
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(app)
-
-    def on_application_request_action(self, appview, app, action):
-        """callback when an app action is requested from the appview"""
-        logging.debug("on_application_action_requested: '%s' %s" % (app, action))
-        # action_func is "install" or "remove" of self.app_details
-        action_func = getattr(self.backend, action)
-        if callable(action_func):
-            action_func(app.pkgname, app.appname, app.get_details(self.db).icon)
-        else:
-            logging.error("can not find action '%s'" % action)
 
     def update_app_view(self):
         """
