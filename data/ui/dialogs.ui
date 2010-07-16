@@ -128,7 +128,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
       </object>
     </child>
     <action-widgets>
-      <action-widget response="5">button1</action-widget>
+      <action-widget response="-2">button1</action-widget>
       <action-widget response="-3">button2</action-widget>
     </action-widgets>
   </object>
@@ -385,8 +385,8 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
       </object>
     </child>
     <action-widgets>
-      <action-widget response="5">button_dependency_cancel</action-widget>
-      <action-widget response="4">button_dependency_do</action-widget>
+      <action-widget response="-2">button_dependency_cancel</action-widget>
+      <action-widget response="-3">button_dependency_do</action-widget>
     </action-widgets>
   </object>
 </interface>

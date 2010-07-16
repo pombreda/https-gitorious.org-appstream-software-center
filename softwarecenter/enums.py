@@ -52,6 +52,11 @@ PKG_STATE_NEEDS_SOURCE  = 6
 PKG_STATE_UNKNOWN       = 7
 PKG_STATE_REINSTALLABLE = 8
 
+# application actions
+APP_ACTION_INSTALL = "install"
+APP_ACTION_REMOVE = "remove"
+APP_ACTION_UPGRADE = "upgrade"
+
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 
                                                    DISTRO, 
