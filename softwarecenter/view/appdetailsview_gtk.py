@@ -70,8 +70,8 @@ class PackageStatusBar(gtk.Alignment):
         self.set_redraw_on_allocate(False)
         self.set_padding(mkit.SPACING_SMALL,
                          mkit.SPACING_SMALL,
-                         mkit.SPACING_LARGE+mkit.SPACING_SMALL+2,
-                         mkit.SPACING_LARGE+mkit.SPACING_SMALL)
+                         mkit.SPACING_SMALL+2,
+                         mkit.SPACING_SMALL)
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
         self.add(self.hbox)
@@ -178,8 +178,8 @@ class PackageStatusBar(gtk.Alignment):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x+mkit.SPACING_LARGE-1, a.y-1,
-                  a.x+a.width-mkit.SPACING_LARGE, a.y+a.height,
+                  a.x-1, a.y-1,
+                  a.x+a.width, a.y+a.height,
                   radius=2)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
@@ -190,8 +190,8 @@ class PackageStatusBar(gtk.Alignment):
         cr.translate(0.5, 0.5)
 
         rr.layout(cr,
-                  a.x+mkit.SPACING_LARGE-1, a.y-1,
-                  a.x+a.width-mkit.SPACING_LARGE, a.y+a.height,
+                  a.x-1, a.y-1,
+                  a.x+a.width, a.y+a.height,
                   radius=2)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.line_color))

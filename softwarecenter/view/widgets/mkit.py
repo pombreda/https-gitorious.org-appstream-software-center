@@ -655,16 +655,14 @@ class FramedSection(gtk.VBox):
         self.header = gtk.HBox()
         self.header_alignment.add(self.header)
         self.header_alignment.set_padding(SPACING_MED,
-                                          SPACING_LARGE,
+                                          SPACING_MED,
                                           xpadding,
                                           xpadding)
 
         self.body_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.body = gtk.VBox()
         self.body_alignment.add(self.body)
-        self.body_alignment.set_padding(0, 0,
-                                        xpadding,
-                                        xpadding)
+        self.body_alignment.set_padding(SPACING_MED, 0, 0, 0)
 
         self.footer_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.footer = gtk.HBox()
@@ -731,11 +729,13 @@ class FramedSection(gtk.VBox):
         cr.rectangle(a)
         cr.clip()
 
+        a = self.header_alignment.allocation
+
         # fill section white
         rr = ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x+1, a.y+1,
-                  a.x + a.width-2, a.y + a.height-2,
+                  a.x+1, a.y,
+                  a.x + a.width-1, a.y + a.height,
                   radius=CORNER_RADIUS)
 
 
@@ -747,8 +747,8 @@ class FramedSection(gtk.VBox):
             cr.set_line_width(1)
             cr.translate(0.5, 0.5)
             rr.layout(cr,
-                      a.x+1, a.y+1,
-                      a.x + a.width-2, a.y + a.height-2,
+                      a.x, a.y,
+                      a.x + a.width-1, a.y + a.height,
                       radius=CORNER_RADIUS)
 
             cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[gtk.STATE_NORMAL]))
