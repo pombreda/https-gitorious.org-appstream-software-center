@@ -174,18 +174,23 @@ class ViewSwitcher(gtk.TreeView):
         if model:
             expanded = self.row_expanded(model.get_path(model.installed_iter))
         return expanded
+        
+    def select_channel_node(self, channel_name, installed_only):
+        """ select the specified channel node """
+        model = self.get_model()
+        if model:
+            channel_iter_to_select = model.get_channel_iter_for_name(channel_name,
+                                                                     installed_only)
+            if channel_iter_to_select:
+                self.set_cursor(model.get_path(channel_iter_to_select))
 
     def _on_channels_refreshed(self, model):
         """
         when channels are refreshed, the viewswitcher channel is unselected so
         we need to reselect it
         """
-        model = self.get_model()
-        if model:
-            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name,
-                                                                     self.selected_channel_installed_only)
-            if channel_iter_to_select:
-                self.set_cursor(model.get_path(channel_iter_to_select))
+        self.select_channel_node(self.selected_channel_name,
+                                 self.selected_channel_installed_only)
 
     def _on_row_deleted(self, widget, path):
         if self.get_cursor()[0] is None:

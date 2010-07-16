@@ -415,9 +415,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         query = add_from_purchased_but_needs_reinstall_data(result_list, 
                                                            self.db,
                                                            self.cache)
+        channel_display_name = _("Previous Purchases")
         self.view_switcher.get_model().channel_manager.add_channel(
-            _("Previous Purchases"), icon=None, query=query)
-        # FIXME: switch to the new channel
+            channel_display_name, icon=None, query=query)
+        self.view_switcher.select_channel_node(channel_display_name, False)
             
     def on_application_request_action(self, widget, app, action):
         """callback when an app action is requested from the appview,
