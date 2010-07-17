@@ -842,7 +842,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.clip_preserve()
         #cr.clip()
 
-
         #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.55))
         cr.set_source_rgba(*mkit.floats_from_gdkcolor(self.style.base[gtk.STATE_NORMAL]))
         cr.fill()
@@ -858,6 +857,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             # draw rectangle background
             self._draw_icon_inset_frame(cr)
+
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
                              event.area)
@@ -869,8 +869,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-            'appname' : self.app_details.name, 
-            'pkgname' : self.app_details.pkgname }
+                'appname' : self.app_details.name, 
+                'pkgname' : self.app_details.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
         glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)

@@ -459,7 +459,9 @@ class CarouselView(mkit.FramedSection):
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = _('All')
-        self.more_btn = mkit.HButton('<u>%s</u>' % label)
+        self.more_btn = mkit.HButton(label)
+
+        self.more_btn.set_underline(True)        
         self.more_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.pack_end(self.more_btn, False)

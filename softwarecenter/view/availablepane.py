@@ -48,8 +48,9 @@ class AvailablePane(SoftwarePane):
     DEFAULT_SEARCH_APPS_LIMIT = 200
 
     (PAGE_CATEGORY,
+     PAGE_SUBCATEGORY,
      PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(3)
+     PAGE_APP_DETAILS) = range(4)
 
     # define ID values for the various buttons found in the navigation bar
     NAV_BUTTON_ID_CATEGORY = "category"
@@ -109,8 +110,8 @@ class AvailablePane(SoftwarePane):
                                        self.icons,
                                        self.apps_filter)
         self.scroll_categories.add(self.cat_view)
-        #scroll_categories = gtk.ScrolledWindow()
         self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
+
         # sub-categories view
         self.subcategories_view = CategoriesView(self.datadir,
                                                  APP_INSTALL_PATH,
@@ -126,7 +127,10 @@ class AvailablePane(SoftwarePane):
         self.scroll_subcategories = gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.scroll_subcategories.add_with_viewport(self.subcategories_view)
+        self.scroll_subcategories.add(self.subcategories_view)
+        self.notebook.append_page(self.scroll_subcategories,
+                                    gtk.Label(self.NAV_BUTTON_ID_SUBCAT))
+
         # add nav history back/forward buttons
         self.navhistory_back_action.set_sensitive(False)
         self.navhistory_forward_action.set_sensitive(False)
@@ -144,18 +148,20 @@ class AvailablePane(SoftwarePane):
                                              self.back_forward,
                                              self.navhistory_back_action,
                                              self.navhistory_forward_action)
-        # now a vbox for subcategories and applist
-        self.apps_vbox = gtk.VPaned()
-        self.apps_vbox.pack1(self.scroll_subcategories, resize=True)
-        self.apps_vbox.pack2(self.scroll_app_list)
+
         # app list
+        self.notebook.append_page(self.scroll_app_list,
+                                    gtk.Label(self.NAV_BUTTON_ID_LIST))
+
         self.cat_view.connect("category-selected", self.on_category_activated)
         self.cat_view.connect("application-activated", self.on_application_activated)
-        self.notebook.append_page(self.apps_vbox, gtk.Label("installed"))
+
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
+
         # set status text
         self._update_status_text(len(self.db))
+
         # home button
         self.navigation_bar.add_with_id(_("Get Software"),
                                         self.on_navigation_category,
@@ -188,18 +194,17 @@ class AvailablePane(SoftwarePane):
     def _show_hide_subcategories(self, show_category_applist=False):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
+        if self.notebook.get_current_page() == 0: return
         if (not show_category_applist and
             not self.nonapps_visible and
             self.apps_category and
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
-            self.scroll_subcategories.show()
             self.subcategories_view.set_subcategory(self.apps_category,
                                                     num_items=len(self.app_view.get_model()))
-            self.scroll_app_list.hide()
+            self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         else:
-            self.scroll_subcategories.hide()
-            self.scroll_app_list.show()
+            self.notebook.set_current_page(self.PAGE_APPLIST)
             self.update_app_view()
             self._update_action_bar()
 
@@ -207,14 +212,10 @@ class AvailablePane(SoftwarePane):
         """refresh the applist and update the navigation bar
         """
         logging.debug("refresh_apps")
-        self.scroll_subcategories.hide()
-        self.scroll_app_list.hide()
-        if self.app_view.window:
-            self.app_view.window.set_cursor(self.busy_cursor)
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(self.busy_cursor)
-        if self.apps_vbox.window:
-            self.apps_vbox.window.set_cursor(self.busy_cursor)
+        #if self.subcategories_view.window:
+            #self.subcategories_view.window.set_cursor(self.busy_cursor)
+        #if self.apps_vbox.window:
+            #self.apps_vbox.window.set_cursor(self.busy_cursor)
         self._refresh_apps_with_apt_cache()
 
     @wait_for_apt_cache_ready
@@ -271,12 +272,12 @@ class AvailablePane(SoftwarePane):
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        if self.app_view.window:
-            self.app_view.window.set_cursor(None)
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(None)
-        if self.apps_vbox.window:
-            self.apps_vbox.window.set_cursor(None)
+        #if self.app_view.window:
+            #self.app_view.window.set_cursor(None)
+        #if self.subcategories_view.window:
+            #self.subcategories_view.window.set_cursor(None)
+        #if self.apps_vbox.window:
+            #self.apps_vbox.window.set_cursor(None)
         # reset nonapps
         self.nonapps_visible = False
         return False

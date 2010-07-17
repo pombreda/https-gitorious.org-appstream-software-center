@@ -57,31 +57,31 @@ def floats_from_string_with_alpha(spec, a):
     r, g, b = floats_from_string(spec)
     return r, g, b, a
 
-#def get_gtk_color_scheme_dict():
-    ## Color names as provided by gtk.Settings:
-    ## Note: Not all Gtk themes support this method of color retrieval!
+def get_gtk_color_scheme_dict():
+    # Color names as provided by gtk.Settings:
+    # Note: Not all Gtk themes support this method of color retrieval!
 
-    ## 'tooltip_fg_color'
-    ## 'fg_color'
-    ## 'base_color'
-    ## 'selected_bg_color'
-    ## 'selected_fg_color'
-    ## 'text_color'
-    ## 'bg_color'
-    ## 'tooltip_bg_color'
+    # 'tooltip_fg_color'
+    # 'fg_color'
+    # 'base_color'
+    # 'selected_bg_color'
+    # 'selected_fg_color'
+    # 'text_color'
+    # 'bg_color'
+    # 'tooltip_bg_color'
 
-    #scheme_str = gtk.settings_get_default().get_property("gtk-color-scheme")
-    #d = {}
-    #lines = scheme_str.splitlines()
-    #if not lines: return
+    scheme_str = gtk.settings_get_default().get_property("gtk-color-scheme")
+    d = {}
+    lines = scheme_str.splitlines()
+    if not lines: return
 
-    #for ln in lines:
-        #try:
-            #k, v = ln.split(':')
-            #d[k.strip()] = v.strip()
-        #except:
-            #pass
-    #return d
+    for ln in lines:
+        try:
+            k, v = ln.split(':')
+            d[k.strip()] = v.strip()
+        except:
+            pass
+    return d
 
 def get_em_value():
     # calc the width of a wide character, use as 1em
@@ -154,6 +154,14 @@ SPACING_SMALL       = max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
 CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
+
+# use the link color as the clicked color for labels
+_scheme = get_gtk_color_scheme_dict()
+if _scheme.has_key('link_color'):
+    LINK_ACTIVE_COLOR = _scheme['link_color']
+else:
+    LINK_ACTIVE_COLOR = '#FF0000'   # red
+
 
 # DEBUGGING
 #print '\n* MKIT METRICS'
@@ -738,23 +746,22 @@ class FramedSection(gtk.VBox):
                   a.x + a.width-1, a.y + a.height,
                   radius=CORNER_RADIUS)
 
-
-        cr.set_source_rgba(*floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
+        cr.set_source_rgb(*floats_from_gdkcolor(self.style.bg[self.state]))
         cr.fill()
 
-        if draw_border:
-            cr.save()
-            cr.set_line_width(1)
-            cr.translate(0.5, 0.5)
-            rr.layout(cr,
-                      a.x, a.y,
-                      a.x + a.width-1, a.y + a.height,
-                      radius=CORNER_RADIUS)
+        #if draw_border:
+            #cr.save()
+            #cr.set_line_width(1)
+            #cr.translate(0.5, 0.5)
+            #rr.layout(cr,
+                      #a.x, a.y,
+                      #a.x + a.width-1, a.y + a.height,
+                      #radius=CORNER_RADIUS)
 
-            cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[gtk.STATE_NORMAL]))
-            cr.stroke_preserve()
-            cr.stroke()
-            cr.restore()
+            #cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[self.state]))
+            #cr.stroke_preserve()
+            #cr.stroke()
+            #cr.restore()
 
         cr.restore()
         return
@@ -867,6 +874,15 @@ class Button(gtk.EventBox):
         self.label = gtk.Label()
         self.image = gtk.Image()
 
+        self._relief = gtk.RELIEF_NORMAL
+        self._has_action_arrow = False
+        self._active_paint_mode = ACTIVE_PAINT_MODE_NORMAL
+        self._layout = None
+        self._button_press_origin = None    # broken?
+        self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
+        self._fixed_width = None
+        self._use_underline = False
+
         if markup:
             self.set_label(markup)
         if icon_name:
@@ -880,14 +896,6 @@ class Button(gtk.EventBox):
 
         self.shape = SHAPE_RECTANGLE
         self.theme = Style(self)
-
-        self._relief = gtk.RELIEF_NORMAL
-        self._has_action_arrow = False
-        self._active_paint_mode = ACTIVE_PAINT_MODE_NORMAL
-        self._layout = None
-        self._button_press_origin = None    # broken?
-        self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
-        self._fixed_width = None
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -916,7 +924,6 @@ class Button(gtk.EventBox):
             cat.set_state(gtk.STATE_ACTIVE)
         else:
             cat.set_state(gtk.STATE_PRELIGHT)
-
         self.window.set_cursor(self._cursor)
         return
 
@@ -929,9 +936,11 @@ class Button(gtk.EventBox):
         if event.button != 1: return
         self._button_press_origin = cat
 
-        sel = '#A020F0'
         text = gobject.markup_escape_text(self.label.get_text())
-        self.set_label('<span color="%s">%s</span>' % (sel, text))
+        if self._use_underline:
+            self.set_label('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, text))
+        else:
+            self.set_label('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, text))
 
         cat.set_state(gtk.STATE_ACTIVE)
         return
@@ -946,7 +955,11 @@ class Button(gtk.EventBox):
             return
         sel = self.style.text[gtk.STATE_NORMAL].to_string()
         text = gobject.markup_escape_text(self.label.get_text())
-        self.set_label('<span color="%s">%s</span>' % (sel, text))
+
+        if self._use_underline:
+            self.set_label('<span color="%s"><u>%s</u></span>' % (sel, text))
+        else:
+            self.set_label('<span color="%s">%s</span>' % (sel, text))
 
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
@@ -1018,6 +1031,12 @@ class Button(gtk.EventBox):
                                    aw, aw)
         return
 
+    def set_underline(self, use_underline):
+        self._use_underline = use_underline
+        if use_underline:
+            self.label.set_markup('<u>%s</u>' % self.label.get_text())
+        return
+
     def set_shape(self, shape):
         self.shape = shape
         return
@@ -1037,7 +1056,10 @@ class Button(gtk.EventBox):
         return
 
     def set_label(self, label):
-        self.label.set_markup(label)
+        if self._use_underline:
+            self.label.set_markup('<u>%s</u>' % label)
+        else:
+            self.label.set_markup(label)
         return
 
     def set_has_action_arrow(self, has_action_arrow):
@@ -1052,6 +1074,7 @@ class Button(gtk.EventBox):
         if not_overlapping(a, expose_area): return
 
         if self.has_focus() and focus_draw:
+            a = self.label.allocation
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
                                    self.state,
@@ -1095,7 +1118,7 @@ class HButton(Button):
             w += self.image.allocation.width
             spacing = self.box.get_spacing()
 
-        w += 2*self.get_border_width() + spacing
+        w += 2*self.get_border_width() + spacing + 4
         return w
 
 
