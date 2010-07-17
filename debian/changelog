@@ -1,4 +1,4 @@
-software-center (2.1.5) UNRELEASED; urgency=low
+software-center (2.1.5) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
@@ -57,7 +57,7 @@ software-center (2.1.5) UNRELEASED; urgency=low
       one place, now shows dep package removal dialog
       for all cases; fix response ids for dialogs 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 16 Jul 2010 00:21:30 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Jul 2010 09:14:22 +0200
 
 software-center (2.1.4) maverick; urgency=low
 
