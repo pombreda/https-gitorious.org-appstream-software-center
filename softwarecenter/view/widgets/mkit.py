@@ -941,8 +941,10 @@ class Button(gtk.EventBox):
             self.emit('clicked')
             return False
 
-        if event.button != 1: return
-        sel = '#000'
+        if event.button != 1:
+            self.queue_draw()
+            return
+        sel = self.style.text[gtk.STATE_NORMAL].to_string()
         text = gobject.markup_escape_text(self.label.get_text())
         self.set_label('<span color="%s">%s</span>' % (sel, text))
 

@@ -375,7 +375,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         expose_area = event.area
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
-        cr.clip()
+        cr.clip_preserve()
+
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
+        cr.fill()
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)
