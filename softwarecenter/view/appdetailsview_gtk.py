@@ -206,6 +206,7 @@ class AppDescription(gtk.VBox):
 
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+
         self.body = gtk.VBox()
         self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
 
@@ -213,7 +214,6 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.footer, False)
         self.show_all()
 
-        self._newline = False
         self.paragraphs = []
         self.points = []
         return
@@ -231,7 +231,6 @@ class AppDescription(gtk.VBox):
         p = gtk.Label()
         p.set_markup(fragment)
         p.set_line_wrap(True)
-        p.set_selectable(True)
 
         hb = gtk.HBox()
         hb.pack_start(p, False)
@@ -253,7 +252,6 @@ class AppDescription(gtk.VBox):
         point = gtk.Label()
         point.set_markup(fragment)
         point.set_line_wrap(True)
-        point.set_selectable(True)
 
         hb = gtk.HBox(spacing=mkit.EM)
         hb.pack_start(a, False)

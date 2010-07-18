@@ -144,13 +144,13 @@ class SoftwarePane(gtk.VBox):
 
     def _on_expose(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
-        a = self.top_hbox.allocation
-        cr = widget.window.cairo_create()
-        cr.rectangle(a.x, a.y+a.height+self.PADDING-1, a.width, 1)
-        cr.clip_preserve()
-        cr.set_source_rgb(*floats_from_gdkcolor(self.style.mid[self.state]))
-        cr.fill()
-        del cr
+        a = widget.allocation
+        self.style.paint_shadow(widget.window, self.state,
+                                gtk.SHADOW_IN,
+                                (a.x, a.y+a.height+self.PADDING-1, a.width, 1),
+                                widget, "viewport",
+                                a.x, a.y+a.height+self.PADDING-1,
+                                a.width, a.y+a.height+self.PADDING-1)
         return
 
     def on_cache_ready(self, cache):

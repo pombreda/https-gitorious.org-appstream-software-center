@@ -194,7 +194,9 @@ class AvailablePane(SoftwarePane):
     def _show_hide_subcategories(self, show_category_applist=False):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
-        if self.notebook.get_current_page() == 0: return
+
+        if self.notebook.get_current_page() == 0 or \
+            self.notebook.get_current_page() == 3: return
         if (not show_category_applist and
             not self.nonapps_visible and
             self.apps_category and
@@ -272,12 +274,15 @@ class AvailablePane(SoftwarePane):
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))
-        #if self.app_view.window:
-            #self.app_view.window.set_cursor(None)
-        #if self.subcategories_view.window:
-            #self.subcategories_view.window.set_cursor(None)
-        #if self.apps_vbox.window:
-            #self.apps_vbox.window.set_cursor(None)
+        if self.app_view.window:
+            self.app_view.window.set_cursor(None)
+        if self.subcategories_view.window:
+            self.subcategories_view.window.set_cursor(None)
+        if self.cat_view.window:
+            self.cat_view.window.set_cursor(None)
+        if self.app_details.window:
+            self.cat_view.window.set_cursor(None)
+
         # reset nonapps
         self.nonapps_visible = False
         return False
@@ -536,16 +541,16 @@ class AvailablePane(SoftwarePane):
         self.cat_view.stop_carousels()
         return
 
-    def display_list_subcat(self):
+    def display_subcat(self):
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
         self.set_category(self.apps_subcategory)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-        self.notebook.set_current_page(self.PAGE_APPLIST)
-        model = self.app_view.get_model()
-        if model is not None:
-            self.emit("app-list-changed", len(model))
+        self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
+        #model = self.app_view.get_model()
+        #if model is not None:
+            #self.emit("app-list-changed", len(model))
         self.searchentry.show()
         self.cat_view.stop_carousels()
         return
@@ -576,9 +581,9 @@ class AvailablePane(SoftwarePane):
         nav_item = NavigationItem(self, self.display_list)
         self.nav_history.navigate(nav_item)
 
-    def on_navigation_list_subcategory(self, pathbar, part):
-        self.display_list_subcat()
-        nav_item = NavigationItem(self, self.display_list_subcat)
+    def on_navigation_subcategory(self, pathbar, part):
+        self.display_subcat()
+        nav_item = NavigationItem(self, self.display_subcat)
         self.nav_history.navigate(nav_item)
 
     def on_navigation_details(self, pathbar, part):
@@ -593,7 +598,7 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_subcategory = category
         self.navigation_bar.add_with_id(
-            category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
+            category.name, self.on_navigation_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
     def on_category_activated(self, cat_view, category):
         """ callback when a category is selected """

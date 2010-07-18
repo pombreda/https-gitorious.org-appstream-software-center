@@ -935,13 +935,7 @@ class Button(gtk.EventBox):
     def _on_button_press(self, cat, event):
         if event.button != 1: return
         self._button_press_origin = cat
-
-        text = gobject.markup_escape_text(self.label.get_text())
-        if self._use_underline:
-            self.set_label('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, text))
-        else:
-            self.set_label('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, text))
-
+        self._colorise_label_active()
         cat.set_state(gtk.STATE_ACTIVE)
         return
 
@@ -953,14 +947,7 @@ class Button(gtk.EventBox):
         if event.button != 1:
             self.queue_draw()
             return
-        sel = self.style.text[gtk.STATE_NORMAL].to_string()
-        text = gobject.markup_escape_text(self.label.get_text())
-
-        if self._use_underline:
-            self.set_label('<span color="%s"><u>%s</u></span>' % (sel, text))
-        else:
-            self.set_label('<span color="%s">%s</span>' % (sel, text))
-
+        self._colorise_label_normal()
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
             self._button_press_origin = None
@@ -975,14 +962,38 @@ class Button(gtk.EventBox):
     def _on_key_press(self, cat, event):
         # react to spacebar, enter, numpad-enter
         if event.keyval in (32, 65293, 65421):
+            self._colorise_label_active()
             cat.set_state(gtk.STATE_ACTIVE)
         return
 
     def _on_key_release(self, cat, event):
+        def emit_clicked():
+            self.emit('clicked')
+            return False
+
         # react to spacebar, enter, numpad-enter
         if event.keyval in (32, 65293, 65421):
+            self._colorise_label_normal()
             cat.set_state(gtk.STATE_NORMAL)
-            self.emit('clicked')
+            gobject.timeout_add(100, emit_clicked)
+        return
+
+    def _colorise_label_active(self):
+        text = gobject.markup_escape_text(self.label.get_text())
+        if self._use_underline:
+            self.set_label('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, text))
+        else:
+            self.set_label('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, text))
+        return
+
+    def _colorise_label_normal(self):
+        sel = self.style.text[gtk.STATE_NORMAL].to_string()
+        text = gobject.markup_escape_text(self.label.get_text())
+
+        if self._use_underline:
+            self.set_label('<span color="%s"><u>%s</u></span>' % (sel, text))
+        else:
+            self.set_label('<span color="%s">%s</span>' % (sel, text))
         return
 
     def _paint_bg(self, cr, a, alpha):
