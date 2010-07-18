@@ -861,7 +861,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                              event.area)
 
         self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
+
+        if self.homepage_btn.get_property('visible'):
+            self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
+        if self.gwibber_is_available:
+            self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
         del cr
+        return
+
+    def _on_homepage_clicked(self, button):
+        import webbrowser
+        webbrowser.open_new_tab(self.app_details.website)
         return
 
     def _on_share_clicked(self, button):
@@ -942,15 +952,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         app_desc_hb.pack_end(self.screenshot)
 
         # homepage link button
-        self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
-        self.homepage_btn.set_relief(gtk.RELIEF_NONE)
+        self.homepage_btn = mkit.HButton(_('Website'))
+        self.homepage_btn.connect('clicked', self._on_homepage_clicked)
+        self.homepage_btn.set_underline(True)
         self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
-        self.share_btn = gtk.LinkButton(uri=_('Share via micro-blogging service'),
-                                        label=_('Share...'))
-
-        self.share_btn.set_relief(gtk.RELIEF_NONE)
+        self.share_btn = mkit.HButton(_('Share...'))
+        self.share_btn.set_underline(True)
+        self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
 
@@ -993,7 +1003,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # depending on pkg install state set action labels
         self.action_bar.configure(self.app_details, self.app_details.pkg_state)
-
         self.action_bar.button.grab_focus()
 
         # format new app description
@@ -1012,15 +1021,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # show or hide the homepage button and set uri if homepage specified
         if self.app_details.website:
             self.homepage_btn.show()
-            self.homepage_btn.set_property('visited', False)
-            self.homepage_btn.set_uri(self.app_details.website)
+            self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
         if self.gwibber_is_available and not self.app_details.error:
             self.share_btn.show()
-            self.share_btn.set_property('visited', False)
         else:
             self.share_btn.hide()
 

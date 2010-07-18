@@ -1089,10 +1089,10 @@ class Button(gtk.EventBox):
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
                                    self.state,
-                                   (x-2, y-1, w+4, h+2),
+                                   (x-2, y, w+4, h+1),
                                    self,
                                    'expander',
-                                   x-2, y-1, w+4, h+2)
+                                   x-2, y, w+4, h+1)
         return
 
 
