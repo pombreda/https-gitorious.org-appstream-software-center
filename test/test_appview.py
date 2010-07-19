@@ -43,7 +43,8 @@ class testAppStore(unittest.TestCase):
     def test_init(self):
         """ test basic init of the AppStore model """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, sort=True, 
+            self.cache, self.db, self.mock_icons, 
+            sortmode=AppStore.SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         self.assertTrue(len(store) > 0)
 
@@ -52,13 +53,15 @@ class testAppStore(unittest.TestCase):
         search_query = xapian.Query("APsoftware-center")
         store = AppStore(
             self.cache, self.db, self.mock_icons, search_query=search_query,
-            sort=True, filter=self.mock_filter)
+            sortmode=AppStore.SORT_BY_ALPHABET, 
+            filter=self.mock_filter)
         self.assertTrue(len(store) == 1)
 
     def test_internal_append_app(self):
         """ test if the interal _append_app works """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, sort=True, 
+            self.cache, self.db, self.mock_icons,             
+            sortmode=AppStore.SORT_BY_ALPHABET,
             filter=self.mock_filter)
         len_now = len(store)
         # the _append_app() is the function we test
@@ -89,9 +92,9 @@ class testAppStore(unittest.TestCase):
             sorted_by_axi.append(self.db.get_pkgname(doc))
         # now compare to what we get from the store
         sorted_by_appstore = []
-        store = AppStore(self.cache, self.db, self.mock_icons, sort=False, 
-                         limit=20, search_query=query, 
-                         sort_by_cataloged_time=True)
+        store = AppStore(self.cache, self.db, self.mock_icons, 
+                         sortmode=AppStore.SORT_BY_CATALOGED_TIME,
+                         limit=20, search_query=query)
         for item in store:
             sorted_by_appstore.append(item[AppStore.COL_PKGNAME])
         self.assertEqual(sorted_by_axi, sorted_by_appstore)
@@ -99,7 +102,8 @@ class testAppStore(unittest.TestCase):
     def test_internal_insert_app_sorted(self):
         """ test if the interal _insert_app_sorted works """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, sort=True, 
+            self.cache, self.db, self.mock_icons, 
+            sortmode=AppStore.SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         # create a store with some entries
         store.clear()
