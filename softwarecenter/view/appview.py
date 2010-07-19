@@ -85,7 +85,9 @@ class AppStore(gtk.GenericTreeModel):
 
     (SEARCHES_SORTED_BY_POPCON,
      SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
-     SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
+     SEARCHES_SORTED_BY_ALPHABETIC,
+     SORT_BY_CATALOGED_TIME,
+    ) = range(4)
     
     # the default result size for a search
     DEFAULT_SEARCH_LIMIT = 200
@@ -94,7 +96,7 @@ class AppStore(gtk.GenericTreeModel):
                  limit=DEFAULT_SEARCH_LIMIT,
                  sort=False, filter=None, exact=False,
                  icon_size=ICON_SIZE, global_icon_cache=True, 
-                 nonapps_visible=False):
+                 nonapps_visible=False, sort_by_cataloged_time=False):
         """
         Initalize a AppStore.
 
@@ -149,6 +151,8 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self._searches_sort_mode = self._get_searches_sort_mode()
+        if sort_by_cataloged_time:
+            self._searches_sort_mode = self.SORT_BY_CATALOGED_TIME
         self.limit = limit
         self.filter = filter
         # no search query means "all"
@@ -180,10 +184,13 @@ class AppStore(gtk.GenericTreeModel):
                                  xapian.Query("ATapplication"), q)
             enquire.set_query(q)
             # set search order mode
-            if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
+            if self._searches_sort_mode == self.SORT_BY_CATALOGED_TIME:
+                if "catalogedtime" in self.db._axi_values:
+                    enquire.set_sort_by_value(self.db._axi_values["catalogedtime"])
+            elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
                 enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
             elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
-                self.sorted=sort=True
+                self.sorted=True
             if self.limit == 0:
                 matches = enquire.get_mset(0, len(self.db))
             else:

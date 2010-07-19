@@ -74,6 +74,28 @@ class testAppStore(unittest.TestCase):
         self.assertEqual(store.apps[store.pkgname_index_map["foo"][0]], app)
         self.assertEqual(store.apps[store.pkgname_index_map["foo"][0]].pkgname, "foo")
 
+    def test_sort_by_cataloged_time(self):
+        # use axi to sort-by-cataloged-time
+        sorted_by_axi = []
+        db = xapian.Database(os.path.join(XAPIAN_BASE_PATH, "xapian"))
+        query = xapian.Query("")
+        enquire = xapian.Enquire(db)
+        enquire.set_query(query)
+        valueno = self.db._axi_values["catalogedtime"]
+        enquire.set_sort_by_value(int(valueno))
+        matches = enquire.get_mset(0, 20)
+        for m in matches:
+            doc = db.get_document(m.docid)
+            sorted_by_axi.append(self.db.get_pkgname(doc))
+        # now compare to what we get from the store
+        sorted_by_appstore = []
+        store = AppStore(self.cache, self.db, self.mock_icons, sort=False, 
+                         limit=20, search_query=query, 
+                         sort_by_cataloged_time=True)
+        for item in store:
+            sorted_by_appstore.append(item[AppStore.COL_PKGNAME])
+        self.assertEqual(sorted_by_axi, sorted_by_appstore)
+
     def test_internal_insert_app_sorted(self):
         """ test if the interal _insert_app_sorted works """
         store = AppStore(
