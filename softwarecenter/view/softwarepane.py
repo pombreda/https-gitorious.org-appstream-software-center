@@ -25,6 +25,9 @@ import logging
 import xapian
 import os
 
+from widgets.mkit import floats_from_gdkcolor
+
+
 # magic environment to get old pathbar
 if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
     from widgets.navigationbar import NavigationBar
@@ -128,7 +131,7 @@ class SoftwarePane(gtk.VBox):
         self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
-        self.pack_start(gtk.HSeparator(), expand=False)
+        #self.pack_start(gtk.HSeparator(), expand=False)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
@@ -137,6 +140,18 @@ class SoftwarePane(gtk.VBox):
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False, padding=self.PADDING)
+        self.top_hbox.connect('expose-event', self._on_expose)
+
+    def _on_expose(self, widget, event):
+        """ Draw a horizontal line that separates the top hbox from the page content """
+        a = widget.allocation
+        self.style.paint_shadow(widget.window, self.state,
+                                gtk.SHADOW_IN,
+                                (a.x, a.y+a.height+self.PADDING-1, a.width, 1),
+                                widget, "viewport",
+                                a.x, a.y+a.height+self.PADDING-1,
+                                a.width, a.y+a.height+self.PADDING-1)
+        return
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "

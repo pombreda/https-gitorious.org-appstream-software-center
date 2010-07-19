@@ -18,7 +18,11 @@ software-center (2.1.6) UNRELEASED; urgency=low
   * softwarecenter/db/database.py:
     - parse axi values file for cataloged_time support
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Jul 2010 09:14:22 +0200
+  [ Gary Lasker ]
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice
+    UI tweaks and improvements from Matthew McGowan, thanks! 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Jul 2010 16:58:39 +0200
 
 software-center (2.1.5) maverick; urgency=low
 
