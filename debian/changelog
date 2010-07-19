@@ -3,6 +3,10 @@ software-center (2.1.6) UNRELEASED; urgency=low
   [ Kiwinote ]
   * data/software-center.menu.in:
     - update query for fonts category (LP: #531570, #605459)
+  * debian/control:
+    - depend on humanity-icon-theme, rather than gnome-icon-theme
+  * softwarecenter/app.py:
+    - always append the humanity-icon-theme to the iconpath (LP: #436310, #466271, #527503, #556335, #594795)
   * softwarecenter/view/catview.py:
     - allow 'OR' tag inside an 'AND' tag
 
