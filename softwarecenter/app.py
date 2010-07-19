@@ -275,6 +275,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
+        self.view_switcher.width = self.scrolledwindow_viewswitcher.get_property('width-request')
+        self.view_switcher.connect('size-allocate', self.on_viewswitcher_resized)
         self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
@@ -396,6 +398,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_app_list_view(channel)
         self.update_status_bar()
         self.update_app_status_menu()
+
+    def on_viewswitcher_resized(self, widget, allocation):
+        self.view_switcher.width = allocation.width
 
     def _on_lp_login(self, lp, token):
         print "_on_lp_login"
@@ -803,6 +808,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "installed-node-expanded") and
             self.config.getboolean("general", "installed-node-expanded")):
             self.view_switcher.expand_installed_node()
+        if (self.config.has_option("general", "sidebar-width")):
+            width = int(self.config.get("general", "sidebar-width"))
+            self.scrolledwindow_viewswitcher.set_property('width_request', width)
 
     def save_state(self):
         logging.debug("save_state")
@@ -829,6 +837,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.config.set("general", "installed-node-expanded", "True")
         else:
             self.config.set("general", "installed-node-expanded", "False")
+        width = self.view_switcher.width
+        if width != 1:
+            width += 2
+        self.config.set("general", "sidebar-width", str(width))
         self.config.write()
 
     def run(self, args):
