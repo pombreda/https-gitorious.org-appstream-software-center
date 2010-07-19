@@ -205,7 +205,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                             icon_size=CAROUSEL_ICON_SIZE,
                             global_icon_cache=False,
                             nonapps_visible=True)
-        self.newapps_carousel = CarouselView(new_apps, _("What's New"))
+        self.newapps_carousel = CarouselView(new_apps, _("What's New"),
+                                             start_random=False)
         # FIXME: connect "all" button
         #self.newapps_carousel.more_btn.connect('clicked',
         #                                   self._on_category_clicked,
@@ -434,7 +435,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
 class CarouselView(mkit.FramedSection):
 
-    def __init__(self, carousel_apps, title):
+    def __init__(self, carousel_apps, title, start_random=True):
         mkit.FramedSection.__init__(self)
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
@@ -467,7 +468,10 @@ class CarouselView(mkit.FramedSection):
 
         if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
-            self._offset = random.randrange(len(carousel_apps))
+            if start_random:
+                self._offset = random.randrange(len(carousel_apps))
+            else:
+                self._offset = 0
             #self.connect('realize', self._on_realize)
         else:
             self._icon_size = 48
@@ -768,7 +772,8 @@ class CarouselPoster(mkit.VButton):
     def set_application(self, app):
         self.app = app
 
-        markup = '%s' % app[AppStore.COL_APP_NAME]
+        markup = '%s' % (app[AppStore.COL_APP_NAME] or 
+                         app[AppStore.COL_PKGNAME])
         pb = app[AppStore.COL_ICON]
 
         self.set_label(markup)
