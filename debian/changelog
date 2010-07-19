@@ -13,6 +13,10 @@ software-center (2.1.6) UNRELEASED; urgency=low
     - speed up carousel transition (thanks nuthinking) (LP: #604627)
   * softwarecenter/view/catview.py:
     - allow 'OR' tag inside an 'AND' tag
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/database.py:
+    - parse axi values file for cataloged_time support
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Jul 2010 09:14:22 +0200
 
