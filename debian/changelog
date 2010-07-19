@@ -7,6 +7,7 @@ software-center (2.1.6) UNRELEASED; urgency=low
     - depend on humanity-icon-theme, rather than gnome-icon-theme
   * softwarecenter/app.py:
     - always append the humanity-icon-theme to the iconpath (LP: #436310, #466271, #527503, #556335, #594795)
+    - save/restore sidebar width (LP: #567128)
   * softwarecenter/view/availablepane.py:
     - capitalize 'install n items' button label for mpt (LP: #605052)
   * softwarecenter/view/catview_gtk.py:
