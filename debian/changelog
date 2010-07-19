@@ -9,6 +9,8 @@ software-center (2.1.6) UNRELEASED; urgency=low
     - always append the humanity-icon-theme to the iconpath (LP: #436310, #466271, #527503, #556335, #594795)
   * softwarecenter/view/availablepane.py:
     - capitalize 'install n items' button label for mpt (LP: #605052)
+  * softwarecenter/view/catview_gtk.py:
+    - speed up carousel transition (thanks nuthinking) (LP: #604627)
   * softwarecenter/view/catview.py:
     - allow 'OR' tag inside an 'AND' tag
 

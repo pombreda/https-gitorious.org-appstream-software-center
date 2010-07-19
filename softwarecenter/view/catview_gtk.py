@@ -45,7 +45,7 @@ CAROUSEL_PAGING_DOT_SIZE =       mkit.EM
 CAROUSEL_TRANSITION_TIMEOUT =    15000
 
 # spec says the fade duration should be 1 second, these values suffice:
-CAROUSEL_FADE_INTERVAL =         50 # msec
+CAROUSEL_FADE_INTERVAL =         25 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
 
 H1 = '<big><b>%s<b></big>'
