@@ -193,25 +193,24 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.hbox_inner.pack_start(self.featured_carousel, False)
 
         # create new-apps widget
-        new_cat = get_category_by_name(self.categories, 'New Applications')
-        if new_cat:
-            new_apps = AppStore(self.cache,
-                                self.db,
-                                self.icons,
-                                new_cat.query,
-                                self.apps_limit,
-                                True,
-                                self.apps_filter,
-                                icon_size=CAROUSEL_ICON_SIZE,
-                                global_icon_cache=False)
-
-        else:
-            new_apps = None
-
+        #new_cat = get_category_by_name(self.categories, 'New Applications')
+        #if new_cat:
+        new_apps = AppStore(self.cache,
+                            self.db,
+                            self.icons,
+                            xapian.Query(""),
+                            20,
+                            AppStore.SORT_BY_CATALOGED_TIME,
+                            self.apps_filter,
+                            icon_size=CAROUSEL_ICON_SIZE,
+                            global_icon_cache=False,
+                            nonapps_visible=True)
         self.newapps_carousel = CarouselView(new_apps, _("What's New"))
-        self.newapps_carousel.more_btn.connect('clicked',
-                                           self._on_category_clicked,
-                                           new_cat)
+        # FIXME: connect "all" button
+        #self.newapps_carousel.more_btn.connect('clicked',
+        #                                   self._on_category_clicked,
+        #                                   new_cat)
+
         # pack new carousel into hbox
         self.hbox_inner.pack_start(self.newapps_carousel, False)
 

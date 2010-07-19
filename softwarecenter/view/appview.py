@@ -180,10 +180,12 @@ class AppStore(gtk.GenericTreeModel):
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  xapian.Query("ATapplication"), q)
             enquire.set_query(q)
-            # set search order mode
+
+            # set sort order
             if self.sortmode == self.SORT_BY_CATALOGED_TIME:
                 if "catalogedtime" in self.db._axi_values:
-                    enquire.set_sort_by_value(self.db._axi_values["catalogedtime"])
+                    enquire.set_sort_by_value(
+                        self.db._axi_values["catalogedtime"], reverse=True)
                 else:
                     logging.warning("no catelogedtime in axi")
             elif self.sortmode == self.SORT_BY_SEARCH_RANKING:
@@ -193,6 +195,8 @@ class AppStore(gtk.GenericTreeModel):
                     pass
                 else:
                     enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+                    
+            # set limit
             if self.limit == 0:
                 matches = enquire.get_mset(0, len(self.db))
             else:

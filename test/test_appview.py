@@ -80,21 +80,23 @@ class testAppStore(unittest.TestCase):
     def test_sort_by_cataloged_time(self):
         # use axi to sort-by-cataloged-time
         sorted_by_axi = []
-        db = xapian.Database(os.path.join(XAPIAN_BASE_PATH, "xapian"))
+        db = xapian.Database("/var/lib/apt-xapian-index/index")
         query = xapian.Query("")
         enquire = xapian.Enquire(db)
         enquire.set_query(query)
         valueno = self.db._axi_values["catalogedtime"]
-        enquire.set_sort_by_value(int(valueno))
+        enquire.set_sort_by_value(int(valueno), reverse=True)
         matches = enquire.get_mset(0, 20)
         for m in matches:
             doc = db.get_document(m.docid)
+            #print xapian.sortable_unserialise(doc.get_value(valueno))
             sorted_by_axi.append(self.db.get_pkgname(doc))
         # now compare to what we get from the store
         sorted_by_appstore = []
         store = AppStore(self.cache, self.db, self.mock_icons, 
                          sortmode=AppStore.SORT_BY_CATALOGED_TIME,
-                         limit=20, search_query=query)
+                         limit=20, search_query=query,
+                         nonapps_visible=True)
         for item in store:
             sorted_by_appstore.append(item[AppStore.COL_PKGNAME])
         self.assertEqual(sorted_by_axi, sorted_by_appstore)
