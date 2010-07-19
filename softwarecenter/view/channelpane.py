@@ -131,7 +131,7 @@ class ChannelPane(SoftwarePane):
                              self.icons, 
                              query, 
                              limit=0,
-                             sort=True,
+                             sortmode=AppStore.SORT_BY_ALPHABET,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other

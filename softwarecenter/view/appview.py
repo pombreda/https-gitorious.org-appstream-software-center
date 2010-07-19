@@ -339,7 +339,7 @@ class AppStore(gtk.GenericTreeModel):
         self.db = appstore.db
         self.icons = appstore.icons
         self.search_query = appstore.search_query
-        self.sorted = appstore.sorted
+        self.sortmode = appstore.sortmode
         self.filter = appstore.filter
         self.exact = appstore.exact
         self.nonapps_visible = appstore.nonapps_visible
