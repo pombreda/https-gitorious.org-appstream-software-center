@@ -80,7 +80,7 @@ class AvailablePane(SoftwarePane):
         self.apps_category = None
         self.apps_subcategory = None
         self.apps_search_term = ""
-        self.apps_sorted = AppStore.SORT_BY_ALPHABET
+        self.apps_sorted = SORT_BY_ALPHABET
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
@@ -451,7 +451,7 @@ class AvailablePane(SoftwarePane):
     def _clear_search(self):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
-        self.apps_sorted = AppStore.SORT_BY_ALPHABET
+        self.apps_sorted = SORT_BY_ALPHABET
         self.apps_search_term = ""
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
@@ -493,7 +493,7 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
         else:
             self.apps_search_term = new_text
-            self.apps_sorted = AppStore.SORT_BY_SEARCH_RANKING
+            self.apps_sorted = SORT_BY_SEARCH_RANKING
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
             # enter custom list mode if search has non-trailing
             # comma per custom list spec.

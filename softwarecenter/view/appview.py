@@ -83,13 +83,6 @@ class AppStore(gtk.GenericTreeModel):
     ICON_SIZE = 24
     MAX_STARS = 5
 
-    # sorting
-    (SORT_UNSORTED,
-     SORT_BY_ALPHABET,
-     SORT_BY_SEARCH_RANKING,
-     SORT_BY_CATALOGED_TIME,
-    ) = range(4)
-    
     # the default result size for a search
     DEFAULT_SEARCH_LIMIT = 200
 
@@ -155,7 +148,7 @@ class AppStore(gtk.GenericTreeModel):
         # no search query means "all"
         if not search_query:
             search_query = xapian.Query("ATapplication")
-            self.sortmode = self.SORT_BY_ALPHABET
+            self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
 
         # we support single and list search_queries,
@@ -182,13 +175,13 @@ class AppStore(gtk.GenericTreeModel):
             enquire.set_query(q)
 
             # set sort order
-            if self.sortmode == self.SORT_BY_CATALOGED_TIME:
+            if self.sortmode == SORT_BY_CATALOGED_TIME:
                 if "catalogedtime" in self.db._axi_values:
                     enquire.set_sort_by_value(
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
                     logging.warning("no catelogedtime in axi")
-            elif self.sortmode == self.SORT_BY_SEARCH_RANKING:
+            elif self.sortmode == SORT_BY_SEARCH_RANKING:
                 # the default is to sort by popcon
                 k = "SOFTWARE_CENTER_SEARCHES_SORT_MODE"
                 if k in os.environ and os.environ[k] != "popcon":
@@ -219,7 +212,7 @@ class AppStore(gtk.GenericTreeModel):
                 popcon = self.db.get_popcon(doc)
                 app = Application(appname, pkgname, popcon)
                 if not app in already_added:
-                    if self.sortmode == self.SORT_BY_ALPHABET:
+                    if self.sortmode == SORT_BY_ALPHABET:
                         self._insert_app_sorted(app)
                     else:
                         self._append_app(app)
