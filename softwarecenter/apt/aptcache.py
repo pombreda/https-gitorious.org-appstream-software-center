@@ -48,6 +48,8 @@ class AptCache(gobject.GObject):
     DEPENDENCY_TYPES = ("PreDepends", "Depends")
     RECOMMENDS_TYPES = ("Recommends",)
     SUGGESTS_TYPES = ("Suggests",)
+    ENHANCES_TYPES = ("Enhances",)
+    PROVIDES_TYPES = ("Provides",)
 
     # stamp file to monitor (provided by update-notifier via
     # APT::Update::Post-Invoke-Success)
@@ -104,16 +106,16 @@ class AptCache(gobject.GObject):
         return self._cache.__iter__()
     def __contains__(self, k):
         return self._cache.__contains__(k)
-    def _get_installed_rdepends_by_type(self, pkg, type):
-        installed_rdeps = set()
+    def _get_rdepends_by_type(self, pkg, type, onlyInstalled):
+        rdeps = set()
         for rdep in pkg._pkg.rev_depends_list:
             dep_type = rdep.dep_type_untranslated
             if dep_type in type:
                 rdep_name = rdep.parent_pkg.name
-                if (rdep_name in self._cache and
-                    self._cache[rdep_name].is_installed):
-                    installed_rdeps.add(rdep.parent_pkg.name)
-        return installed_rdeps
+                if rdep_name in self._cache and (not onlyInstalled or
+                (onlyInstalled and self._cache[rdep_name].is_installed)):
+                    rdeps.add(rdep.parent_pkg.name)
+        return rdeps
     def _installed_dependencies(self, pkg_name, all_deps=None):
         """ recursively return all installed dependencies of a given pkg """
         #print "_installed_dependencies", pkg_name, all_deps
@@ -168,11 +170,15 @@ class AptCache(gobject.GObject):
                     origins.add(item.origin)
         return origins
     def get_installed_rdepends(self, pkg):
-        return self._get_installed_rdepends_by_type(pkg, self.DEPENDENCY_TYPES)
+        return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, True)
     def get_installed_rrecommends(self, pkg):
-        return self._get_installed_rdepends_by_type(pkg, self.RECOMMENDS_TYPES)
+        return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, True)
     def get_installed_rsuggests(self, pkg):
-        return self._get_installed_rdepends_by_type(pkg, self.SUGGESTS_TYPES)
+        return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, True)
+    def get_installed_renhances(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, True)
+    def get_installed_rprovides(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, True)
     def component_available(self, distro_codename, component):
         """ check if the given component is enabled """
         # FIXME: test for more properties here?
@@ -183,6 +189,46 @@ class AptCache(gobject.GObject):
                 it.archive == distro_codename):
                 return True
         return False
+        
+    def _get_depends_by_type(self, pkg, types):
+        version = pkg.installed
+        if version == None:
+            version = max(pkg.versions)
+        return version.get_dependencies(*types)
+    def _get_depends_by_type_str(self, pkg, *types):
+        def not_in_list(list, item):
+            for i in list:
+                if i == item:
+                    return False
+            return True
+        deps = self._get_depends_by_type(pkg, *types)
+        deps_str = []
+        for dep in deps:
+            for dep_ in dep.or_dependencies:
+                if not_in_list(deps_str, dep_.name):
+                    deps_str.append(dep_.name)
+        return deps_str
+    def get_depends(self, pkg):
+        return self._get_depends_by_type_str(pkg, self.DEPENDENCY_TYPES)
+    def get_recommends(self, pkg):
+        return self._get_depends_by_type_str(pkg, self.RECOMMENDS_TYPES)
+    def get_suggests(self, pkg):
+        return self._get_depends_by_type_str(pkg, self.SUGGESTS_TYPES)
+    def get_enhances(self, pkg):
+        return self._get_depends_by_type_str(pkg, self.ENHANCES_TYPES)
+    def get_provides(self, pkg):
+        return self._get_depends_by_type_str(pkg, self.PROVIDES_TYPES)
+        
+    def get_rdepends(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, False)
+    def get_rrecommends(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, False)
+    def get_rsuggests(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, False)
+    def get_renhances(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
+    def get_rprovides(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
 
 if __name__ == "__main__":
     c = AptCache()
@@ -200,3 +246,18 @@ if __name__ == "__main__":
     print c.get_installed_rdepends(pkg)
     print c.get_installed_rrecommends(pkg)
     print c.get_installed_rsuggests(pkg)
+    
+    print "deps of gimp"
+    pkg = c["gimp"]
+    print c.get_depends(pkg)
+    print c.get_recommends(pkg)
+    print c.get_suggests(pkg)
+    print c.get_enhances(pkg)
+    print c.get_provides(pkg)
+    
+    print "rdeps of gimp"
+    print c.get_rdepends(pkg)
+    print c.get_rrecommends(pkg)
+    print c.get_rsuggests(pkg)
+    print c.get_renhances(pkg)
+    print c.get_rprovides(pkg)
