@@ -80,7 +80,6 @@ class AvailablePane(SoftwarePane):
         self.apps_category = None
         self.apps_subcategory = None
         self.apps_search_term = ""
-        self.apps_sorted = SORT_BY_ALPHABET
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
@@ -256,7 +255,7 @@ class AvailablePane(SoftwarePane):
                              self.icons,
                              query,
                              limit=self.apps_limit,
-                             sortmode=self.apps_sorted,
+                             sortmode=self._get_sort_mode(),
                              exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
@@ -448,10 +447,16 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
 
+    def _get_sort_mode(self):
+        if self.apps_search_term:
+            return SORT_BY_SEARCH_RANKING
+        elif self.apps_category:
+            return self.apps_category.sortmode
+        return SORT_BY_ALPHABET
+
     def _clear_search(self):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
-        self.apps_sorted = SORT_BY_ALPHABET
         self.apps_search_term = ""
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
@@ -493,7 +498,6 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
         else:
             self.apps_search_term = new_text
-            self.apps_sorted = SORT_BY_SEARCH_RANKING
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
             # enter custom list mode if search has non-trailing
             # comma per custom list spec.
