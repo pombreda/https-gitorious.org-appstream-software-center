@@ -190,6 +190,13 @@ class AppDetails(object):
 
     @property
     def name(self):
+        if self._doc:
+            name = self._db.get_appname(self._doc)
+            if name:
+                return name
+            else:
+                # by spec..
+                return self._db.get_summary(self._doc)
         return self._app.name
 
     @property
@@ -228,7 +235,12 @@ class AppDetails(object):
     @property
     def summary(self):
         if self._doc:
-            return self._db.get_summary(self._doc)
+            name = self._db.get_appname(self._doc)
+            if name:
+                return self._db.get_summary(self._doc)
+            else:
+                # by spec..
+                return self._db.get_pkgname(self._doc)
 
     @property
     def thumbnail(self):
