@@ -91,9 +91,7 @@ def get_em_value():
     l = pango.Layout(pc)
     # 'M' is wide
     l.set_markup('M')
-    w = l.get_pixel_extents()[1][2]
-    # print w
-    return w
+    return l.get_pixel_extents()[1][2]
 
 def get_nearest_stock_size(desired_size):
     stock_sizes = (16, 24, 32, 48, 64)

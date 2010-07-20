@@ -460,8 +460,7 @@ class CarouselView(mkit.FramedSection):
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = _('All')
         self.more_btn = mkit.HButton(label)
-
-        self.more_btn.set_underline(True)        
+        self.more_btn.set_underline(True)
         self.more_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.pack_end(self.more_btn, False)
@@ -469,7 +468,6 @@ class CarouselView(mkit.FramedSection):
         if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
             self._offset = random.randrange(len(carousel_apps))
-            #self.connect('realize', self._on_realize)
         else:
             self._icon_size = 48
             self._offset = 0
@@ -483,6 +481,12 @@ class CarouselView(mkit.FramedSection):
         self.show_all()
 
         self.page_sel.connect('page-selected', self._on_page_selected)
+        self.connect('style-set', self._on_style_set)
+        return
+
+    def _on_style_set(self, widget, old_style):
+        self.more_btn.label.realize()
+        self.more_btn.label.modify_text(gtk.STATE_NORMAL, self.style.dark[gtk.STATE_NORMAL])
         return
 
     def _on_page_selected(self, page_sel, page):
@@ -554,7 +558,7 @@ class CarouselView(mkit.FramedSection):
         self.page_sel.set_n_pages(int(pages))
         self.n_posters = n
 
-        self._update_pagesel()
+        self._update_pagesel(width)
         return
 
     def _fade_in(self):
@@ -576,11 +580,11 @@ class CarouselView(mkit.FramedSection):
         self.queue_draw()
         return True
 
-    def _update_pagesel(self):
+    def _update_pagesel(self, width):
         # set the PageSelector page
         if self._offset >= len(self.carousel_apps):
             self._offset = 0
-
+        print 'BW:', width
         page = self._offset / self.n_posters
         self.page_sel.set_selected_page(int(page))
         return
@@ -892,10 +896,11 @@ class PageSelector(gtk.Alignment):
         row = gtk.HBox(spacing=mkit.SPACING_MED)
         self.vbox.pack_start(row, False)
 
+        print 
         max_w = self.allocation.width - 50
         w = 0
         for i in range(int(n_pages)):
-            w += CAROUSEL_PAGING_DOT_SIZE + mkit.SPACING_MED
+            w += CAROUSEL_PAGING_DOT_SIZE + 2*mkit.SPACING_MED
             if w >= max_w:
                 row = gtk.HBox(spacing=mkit.SPACING_MED)
                 self.vbox.pack_start(row, False)
