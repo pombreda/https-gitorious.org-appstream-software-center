@@ -348,7 +348,18 @@ class AvailablePane(SoftwarePane):
         """
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
-            length = len(self.db)
+            if self.apps_filter.get_supported_only():
+                query1 = xapian.Query("XOL"+"Ubuntu")
+                query2a = xapian.Query("XOC"+"main")
+                query2b = xapian.Query("XOC"+"restricted")
+                query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
+                query = xapian.Query(xapian.Query.OP_AND, query1, query2)
+                enquire = xapian.Enquire(self.db.xapiandb)
+                enquire.set_query(query)
+                matches = enquire.get_mset(0, len(self.db))
+                length = len(matches)
+            else:
+                length = len(self.db)
 
         if self.custom_list_mode:
             appstore = self.app_view.get_model()
