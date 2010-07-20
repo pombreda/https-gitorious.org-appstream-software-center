@@ -128,6 +128,33 @@ class testDatabase(unittest.TestCase):
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)
 
+    def test_parse_axi_values_file(self):
+        s = """
+# This file contains the mapping between names of numeric values indexed in the
+# APT Xapian index and their index
+#
+# Xapian allows to index numeric values as well as keywords and to use them for
+# all sorts of useful querying tricks.  However, every numeric value needs to
+# have a unique index, and this configuration file is needed to record which
+# indices are allocated and to provide a mnemonic name for them.
+#
+# The format is exactly like /etc/services with name, number and optional
+# aliases, with the difference that the second column does not use the
+# "/protocol" part, which would be meaningless here.
+
+version	0	# package version
+catalogedtime	1	# Cataloged timestamp
+installedsize	2	# installed size
+packagesize	3	# package size
+app-popcon	4	# app-install .desktop popcon rank
+"""
+        open("axi-test-values","w").write(s)
+        db = StoreDatabase("/var/cache/software-center/xapian", 
+                           self.cache)
+        db._parse_axi_values_file("axi-test-values")
+        self.assertNotEqual(db._axi_values, {})
+        print db._axi_values
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)

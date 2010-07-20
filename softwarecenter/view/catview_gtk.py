@@ -45,7 +45,7 @@ CAROUSEL_PAGING_DOT_SIZE =       mkit.EM
 CAROUSEL_TRANSITION_TIMEOUT =    15000
 
 # spec says the fade duration should be 1 second, these values suffice:
-CAROUSEL_FADE_INTERVAL =         50 # msec
+CAROUSEL_FADE_INTERVAL =         25 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
 
 H1 = '<big><b>%s<b></big>'
@@ -375,7 +375,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         expose_area = event.area
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
-        cr.clip()
+        cr.clip_preserve()
+
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
+        cr.fill()
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)
@@ -456,7 +459,9 @@ class CarouselView(mkit.FramedSection):
 
         # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = _('All')
-        self.more_btn = mkit.HButton('<u>%s</u>' % label)
+        self.more_btn = mkit.HButton(label)
+
+        self.more_btn.set_underline(True)        
         self.more_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.pack_end(self.more_btn, False)
