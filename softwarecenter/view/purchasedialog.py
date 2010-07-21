@@ -26,6 +26,8 @@ from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 
+import dialogs
+
 class PurchaseDialog(gtk.Dialog):
 
     LOADING_HTML = """
@@ -89,6 +91,10 @@ class PurchaseDialog(gtk.Dialog):
             logging.exception("error processing json")
             return
         if res["successful"] == False:
+            if "failure_reason" in res:
+                dialogs.error(self,
+                              _("Failure in the purchase process"),
+                              res["failure_reason"])
             self.response(gtk.RESPONSE_CANCEL)
             return
         self.response(gtk.RESPONSE_OK)
