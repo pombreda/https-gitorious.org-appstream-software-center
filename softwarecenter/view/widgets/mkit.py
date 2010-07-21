@@ -140,6 +140,7 @@ ACTIVE_PAINT_MODE_DEEP =    1
 EM = get_em_value()
 
 # recommended border metrics (integers)
+BORDER_WIDTH_XLARGE = max(5, int(1.333*EM+0.5))  
 BORDER_WIDTH_LARGE =    max(3, EM)
 BORDER_WIDTH_MED =      max(2, int(0.666*EM+0.5))
 BORDER_WIDTH_SMALL =    max(1, int(0.333*EM+0.5))

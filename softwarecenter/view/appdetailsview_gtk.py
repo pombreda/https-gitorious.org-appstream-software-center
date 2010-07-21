@@ -856,10 +856,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             pb = self.app_info.image.get_pixbuf()
             if pb.get_width() < 64 or pb.get_height() < 64:
                 # draw icon fram
-                self._draw_icon_inset_frame(cr)
+                self._draw_icon_outset_frame(cr)
         else:
             # draw rectangle background
-            self._draw_icon_inset_frame(cr)
+            self._draw_icon_outset_frame(cr)
 
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
@@ -918,7 +918,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # root vbox
         self.vbox = gtk.VBox()
         self.add(self.vbox)
-        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
+        self.vbox.set_border_width(mkit.BORDER_WIDTH_XLARGE)
 
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox.set_redraw_on_allocate(False)
@@ -928,8 +928,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.image.set_size_request(84, 84)
         self.app_info.set_spacing(mkit.SPACING_LARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
-        self.app_info.header_alignment.set_padding(mkit.SPACING_LARGE,
-                                                   mkit.SPACING_MED,
+        self.app_info.header_alignment.set_padding(mkit.SPACING_SMALL,
+                                                   mkit.SPACING_SMALL,
                                                    0, 0)
 
         self.app_info.body.set_spacing(mkit.SPACING_LARGE)
@@ -1171,6 +1171,28 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         rr.layout(cr, a.x+2, a.y+2, a.x+a.width-2, a.y+a.height-2, radius=2)
         cr.set_source_rgba(r, g, b, 0.1)
+        cr.stroke()
+
+        cr.restore()
+        return
+
+    def _draw_icon_outset_frame(self, cr):
+        # draw small or no icon background
+        a = self.app_info.image.allocation
+
+        rr = mkit.ShapeRoundedRectangle()
+
+        cr.save()
+
+        # line width should be 0.05em but for the sake of simplicity
+        # make it 1 pixel
+        cr.set_line_width(1)
+        cr.translate(0.5, 0.5)
+
+        r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        cr.set_source_rgba(r, g, b)
+        cr.stroke_preserve()
         cr.stroke()
 
         cr.restore()
