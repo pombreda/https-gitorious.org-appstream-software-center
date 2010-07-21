@@ -19,7 +19,9 @@
 import gobject
 import locale
 import logging
+import os
 import re
+import string
 import xapian
 
 from softwarecenter import Application
@@ -51,6 +53,21 @@ class StoreDatabase(gobject.GObject):
         gobject.GObject.__init__(self)
         self._db_pathname = pathname
         self._aptcache = cache
+        # the xapian values as read from /var/lib/apt-xapian-index/values
+        self._axi_values = {}
+
+    def _parse_axi_values_file(self, filename="/var/lib/apt-xapian-index/values"):
+        """ parse the apt-xapian-index "values" file and provide the 
+            information in the self._axi_values dict
+        """
+        if not os.path.exists(filename):
+            return
+        for raw_line in open(filename):
+            line = string.split(raw_line, "#", 1)[0]
+            if line.strip() == "":
+                continue
+            (key, value) = line.split()
+            self._axi_values[key] = value
 
     def open(self, pathname=None, use_axi=True):
         " open the database "
@@ -64,6 +81,7 @@ class StoreDatabase(gobject.GObject):
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
                 self.xapiandb.add_database(axi)
+                self._parse_axi_values_file()
             except:
                 logging.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()

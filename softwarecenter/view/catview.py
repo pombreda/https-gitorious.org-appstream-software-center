@@ -151,6 +151,9 @@ class CategoriesView(object):
         for and_elem in element.getchildren():
             if and_elem.tag == "Not":
                 query = self._parse_and_or_not_tag(and_elem, query, xapian.Query.OP_AND_NOT)
+            elif and_elem.tag == "Or":
+                or_elem = self._parse_and_or_not_tag(and_elem, xapian.Query(), xapian.Query.OP_OR)
+                query = xapian.Query(xapian.Query.OP_AND, or_elem, query)
             elif and_elem.tag == "Category":
                 logging.debug("adding: %s" % and_elem.text)
                 q = xapian.Query("AC"+and_elem.text.lower())

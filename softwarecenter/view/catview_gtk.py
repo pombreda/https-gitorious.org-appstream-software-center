@@ -45,7 +45,7 @@ CAROUSEL_PAGING_DOT_SIZE =       mkit.EM
 CAROUSEL_TRANSITION_TIMEOUT =    15000
 
 # spec says the fade duration should be 1 second, these values suffice:
-CAROUSEL_FADE_INTERVAL =         50 # msec
+CAROUSEL_FADE_INTERVAL =         25 # msec
 CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
 
 H1 = '<big><b>%s<b></big>'
@@ -558,7 +558,7 @@ class CarouselView(mkit.FramedSection):
         self.page_sel.set_n_pages(int(pages))
         self.n_posters = n
 
-        self._update_pagesel(width)
+        self._update_pagesel()
         return
 
     def _fade_in(self):
@@ -580,11 +580,11 @@ class CarouselView(mkit.FramedSection):
         self.queue_draw()
         return True
 
-    def _update_pagesel(self, width):
+    def _update_pagesel(self):
         # set the PageSelector page
         if self._offset >= len(self.carousel_apps):
             self._offset = 0
-        print 'BW:', width
+#        print 'BW:', width, self.page_sel.allocation.width
         page = self._offset / self.n_posters
         self.page_sel.set_selected_page(int(page))
         return
@@ -663,6 +663,7 @@ class CarouselView(mkit.FramedSection):
     def set_width(self, width):
         self._width = width
         self.body.set_size_request(width, -1)
+        self.page_sel.set_width(width)
         self._build_view(width)
         return
 
@@ -861,6 +862,7 @@ class PageSelector(gtk.Alignment):
         self.selected = None
 
         self.dots = []
+        self._width = 0
         self._signals = []
         return
 
@@ -873,14 +875,18 @@ class PageSelector(gtk.Alignment):
         self.selected = dot
         return
 
+    def _destroy_all_children(self, widget):
+        children = widget.get_children()
+        if not children: return
+
+        for child in children:
+            self._destroy_all_children(child)
+            child.destroy()
+        return
+
     def clear_paging_dots(self):
         # remove all dots and clear dot signal handlers
-        for row in self.vbox.get_children():
-            for dot in row.get_children():
-                row.remove(dot)
-                dot.destroy()
-            self.vbox.remove(row)
-            row.destroy()
+        self._destroy_all_children(self.vbox)
 
         for sig in self._signals:
             gobject.source_remove(sig)
@@ -889,25 +895,36 @@ class PageSelector(gtk.Alignment):
         self._signals = []
         return
 
+    def set_width(self, width):
+        self._width = width
+        return
+
     def set_n_pages(self, n_pages):
         self.n_pages = n_pages
         self.clear_paging_dots()
 
-        row = gtk.HBox(spacing=mkit.SPACING_MED)
-        self.vbox.pack_start(row, False)
+        rowbox = gtk.HBox(spacing=mkit.SPACING_MED)
+        row = gtk.Alignment(0.5, 0.5)
+        row.add(rowbox)
 
-        print 
-        max_w = self.allocation.width - 50
+        self.vbox.pack_start(row)
+
+        max_w = self._width
+        print max_w, self.vbox.allocation.width
         w = 0
         for i in range(int(n_pages)):
-            w += CAROUSEL_PAGING_DOT_SIZE + 2*mkit.SPACING_MED
-            if w >= max_w:
-                row = gtk.HBox(spacing=mkit.SPACING_MED)
-                self.vbox.pack_start(row, False)
-                w = 0
+            w += CAROUSEL_PAGING_DOT_SIZE + mkit.SPACING_MED
+
+            if w > max_w:
+                rowbox = gtk.HBox(spacing=mkit.SPACING_MED)
+                row = gtk.Alignment(0.5, 0.5)
+                row.add(rowbox)
+
+                self.vbox.pack_start(row, expand=True)
+                w = CAROUSEL_PAGING_DOT_SIZE + mkit.SPACING_MED
 
             dot = PagingDot(i)
-            row.pack_start(dot, False)
+            rowbox.pack_start(dot, False)
             self.dots.append(dot)
             self._signals.append(dot.connect('clicked', self._on_dot_clicked))
 
