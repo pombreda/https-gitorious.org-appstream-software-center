@@ -36,8 +36,8 @@ from catview import *
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
 CAROUSEL_ICON_SIZE =             4*mkit.EM
-CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
-CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
+#CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
+CAROUSEL_POSTER_MIN_WIDTH =      11*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       mkit.EM
 
@@ -45,8 +45,8 @@ CAROUSEL_PAGING_DOT_SIZE =       mkit.EM
 CAROUSEL_TRANSITION_TIMEOUT =    15000
 
 # spec says the fade duration should be 1 second, these values suffice:
-CAROUSEL_FADE_INTERVAL =         25 # msec
-CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
+CAROUSEL_FADE_INTERVAL =         50 # msec
+CAROUSEL_FADE_STEP =             0.1 # value between 0.0 and 1.0
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -461,6 +461,7 @@ class CarouselView(mkit.FramedSection):
         label = _('All')
         self.more_btn = mkit.HButton(label)
         self.more_btn.set_underline(True)
+        self.more_btn.set_subdued(True)
         self.more_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.pack_end(self.more_btn, False)
@@ -747,7 +748,7 @@ class CarouselPoster(mkit.VButton):
 
         mkit.VButton.__init__(self, markup, icon_name, icon_size)
 
-        self.theme['curvature'] = CAROUSEL_POSTER_CORNER_RADIUS
+        #self.theme['curvature'] = CAROUSEL_POSTER_CORNER_RADIUS
         self.set_relief(gtk.RELIEF_NONE)
         self.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.set_internal_spacing(mkit.SPACING_SMALL)

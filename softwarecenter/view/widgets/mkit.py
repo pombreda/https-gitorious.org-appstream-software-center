@@ -161,6 +161,7 @@ else:
     LINK_ACTIVE_COLOR = '#FF0000'   # red
 
 
+
 # DEBUGGING
 #print '\n* MKIT METRICS'
 #print '1EM:', EM
@@ -216,6 +217,26 @@ def update_em_metrics():
 
     #print 'CORNER_R:', CORNER_RADIUS
     return
+
+
+
+# cache theme as much as possible to help speed things up
+CACHED_THEME = None
+CACHED_THEME_NAME = None
+
+def get_mkit_theme():
+    global CACHED_THEME, CACHED_THEME_NAME
+
+    name = gtk.settings_get_default().get_property("gtk-theme-name")
+
+    if name != CACHED_THEME_NAME or not CACHED_THEME:
+        CACHED_THEME = Style()
+        CACHED_THEME_NAME = name
+        return CACHED_THEME
+
+    return CACHED_THEME
+
+
 
 
 #####################
@@ -448,11 +469,13 @@ class ShapeCircle(Shape):
 
 class Style:
 
-    def __init__(self, widget):
-        self.shape_map = self._load_shape_map(widget)
+    def __init__(self, widget=None):
+        self.shape_map = self._load_shape_map()
         gtk_settings = gtk.settings_get_default()
+
         self.theme = self._load_theme(gtk_settings)
         self.theme.build_palette(gtk_settings)
+
         self.properties = self.theme.get_properties(gtk_settings)
         self.gradients = self.theme.get_grad_palette()
         self.dark_line = self.theme.get_dark_line_palette()
@@ -460,6 +483,7 @@ class Style:
         self.text = self.theme.get_text_palette()
         self.text_states = self.theme.get_text_states()
         self.base_color = None
+        print 'Style.__init__'
         return
 
     def __getitem__(self, item):
@@ -475,8 +499,8 @@ class Style:
         logging.warn('Key does not exist in the style profile: %s' % item)
         return None
 
-    def _load_shape_map(self, widget):
-        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+    def _load_shape_map(self):
+        if gtk.widget_get_default_direction() != gtk.TEXT_DIR_RTL:
             shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_LTR),
                      SHAPE_START_ARROW: ShapeStartArrow(gtk.TEXT_DIR_LTR),
                      SHAPE_MID_ARROW:   ShapeMidArrow(gtk.TEXT_DIR_LTR),
@@ -880,6 +904,7 @@ class Button(gtk.EventBox):
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
         self._fixed_width = None
         self._use_underline = False
+        self._subdued = False
 
         if markup:
             self.set_label(markup)
@@ -893,7 +918,7 @@ class Button(gtk.EventBox):
         atk_obj.set_name(self.label.get_text())
 
         self.shape = SHAPE_RECTANGLE
-        self.theme = Style(self)
+        self.theme = get_mkit_theme()
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -915,6 +940,9 @@ class Button(gtk.EventBox):
     def _on_realize(self, widget):
         self.set_size_request(self.calc_width(), 
                               self.get_size_request()[1])
+        
+        if self._subdued:
+            self._colorise_label_normal()
         return
 
     def _on_enter(self, cat, event):
@@ -985,13 +1013,17 @@ class Button(gtk.EventBox):
         return
 
     def _colorise_label_normal(self):
-        sel = self.style.text[gtk.STATE_NORMAL].to_string()
+        if not self._subdued:
+            col = self.style.text[gtk.STATE_NORMAL].to_string()
+        else:
+            col = self.style.dark[gtk.STATE_NORMAL].to_string()
+
         text = gobject.markup_escape_text(self.label.get_text())
 
         if self._use_underline:
-            self.set_label('<span color="%s"><u>%s</u></span>' % (sel, text))
+            self.set_label('<span color="%s"><u>%s</u></span>' % (col, text))
         else:
-            self.set_label('<span color="%s">%s</span>' % (sel, text))
+            self.set_label('<span color="%s">%s</span>' % (col, text))
         return
 
     def _paint_bg(self, cr, a, alpha):
@@ -1044,6 +1076,14 @@ class Button(gtk.EventBox):
         self._use_underline = use_underline
         if use_underline:
             self.label.set_markup('<u>%s</u>' % self.label.get_text())
+        else:
+            self.label.set_markup(self.label.get_text())
+        return
+
+    def set_subdued(self, is_subdued):
+        self._subdued = is_subdued
+        if self.window:
+            self._colorise_label_normal()
         return
 
     def set_shape(self, shape):

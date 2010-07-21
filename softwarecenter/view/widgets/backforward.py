@@ -42,7 +42,7 @@ class BackForwardButton(gtk.HBox):
 
     def __init__(self, part_size=None, arrow_size=None, native_draw=True):
         gtk.HBox.__init__(self)
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         self.separator = SeparatorPart()
 
         self.use_hand = False
@@ -118,7 +118,7 @@ class BackForwardButton(gtk.HBox):
             return
 
         old_xthickness = self.theme['xthickness']
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         if old_xthickness > self.theme['xthickness']:
             a = self.allocation
             self.queue_draw_area(a.x, a.y,

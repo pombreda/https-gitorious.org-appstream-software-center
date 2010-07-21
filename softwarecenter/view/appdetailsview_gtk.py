@@ -631,8 +631,13 @@ class ScreenshotView(gtk.Alignment):
     def _on_screenshot_download_complete(self, loader, screenshot_path):
 
         def setter_cb(path):
+            try:
+                pb = gtk.gdk.pixbuf_new_from_file(path)
+            except:
+                logging.warn('Screenshot downloaded but the file could not be opened.')
+                return False
+
             self.image.set_size_request(-1, -1)
-            pb = gtk.gdk.pixbuf_new_from_file(path)
             self.image.set_from_pixbuf(pb)
             # start the fade in
             gobject.timeout_add(50, self._fade_in)
