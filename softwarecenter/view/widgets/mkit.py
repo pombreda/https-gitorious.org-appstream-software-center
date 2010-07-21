@@ -469,7 +469,7 @@ class ShapeCircle(Shape):
 
 class Style:
 
-    def __init__(self, widget=None):
+    def __init__(self):
         self.shape_map = self._load_shape_map()
         gtk_settings = gtk.settings_get_default()
 
@@ -483,7 +483,6 @@ class Style:
         self.text = self.theme.get_text_palette()
         self.text_states = self.theme.get_text_states()
         self.base_color = None
-        print 'Style.__init__'
         return
 
     def __getitem__(self, item):
@@ -801,7 +800,7 @@ class LayoutView(FramedSection):
 
         self.n_columns = 0
         self.widget_list = []
-        self.theme = Style(self)
+        self.theme = get_mkit_theme()
         return
 
     def append(self, widget):

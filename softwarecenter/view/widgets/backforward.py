@@ -144,7 +144,7 @@ class SeparatorPart(gtk.DrawingArea):
     def __init__(self):
         gtk.DrawingArea.__init__(self)
         self.alpha = 1.0
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         self.set_size_request(self.theme['xthickness'], -1)
 
         atk_obj = self.get_accessible()
@@ -170,7 +170,7 @@ class SeparatorPart(gtk.DrawingArea):
         return
 
     def _on_style_set(self, widget, old_style):
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         self.set_size_request(self.theme['xthickness'], -1)
         return
 
