@@ -336,6 +336,7 @@ class AppDetails(object):
         details.append("             pkgname: %s" % self.pkgname)
         details.append("        architecture: %s" % self.architecture)
         details.append("         channelname: %s" % self.channelname)
+        details.append("                 ppa: %s" % self.ppaname)
         details.append("         channelfile: %s" % self.channelfile)
         details.append("           component: %s" % self.component)
         details.append("         description: %s" % self.description)

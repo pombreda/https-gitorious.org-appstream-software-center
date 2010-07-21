@@ -97,12 +97,16 @@ class testDatabase(unittest.TestCase):
                                      xapian.DB_CREATE_OR_OVERWRITE)
         cache = apt.Cache()
         # do not fail if no software-center agent is running
-        try:
-            res = update_from_software_center_agent(db, cache)
-            self.assertTrue(res)
+        res = update_from_software_center_agent(db, cache)
+        # only test if the server is running
+        if res:
+            #self.assertTrue(res)
             self.assertEqual(db.get_doccount(), 1)
-        except AttributeError:
-            pass
+            for p in db.postlist(""):
+                doc = db.get_document(p.docid)
+                self.assertTrue(doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA),
+                                "pay-owner/pay-ppa-name")
+
         
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
@@ -116,7 +120,7 @@ class testDatabase(unittest.TestCase):
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False)
-        self.assertEqual(len(db), 5)
+        self.assertEqual(len(db), 6)
         # test details
         app = Application("Ubuntu Software Center Test", "software-center")
         details = app.get_details(db)

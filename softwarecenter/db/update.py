@@ -88,6 +88,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
                 'Purchased-Date' : 'purchase_date',
+                'PPA'        : 'archive_id',
               }
 
     # map from requested key to a static data element
@@ -329,7 +330,6 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
 
 def update_from_software_center_agent(db, cache):
     """ update index based on the software-center-agent data """
-    print "CALLED update_from_software_center_agent"
     def _available_cb(sca, available):
         # print "available: ", available
         sca.available = available
