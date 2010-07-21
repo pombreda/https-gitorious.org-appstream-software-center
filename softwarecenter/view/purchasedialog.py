@@ -60,7 +60,11 @@ class PurchaseDialog(gtk.Dialog):
             self.webkit.load_html_string(html, "file:///")
         else:
             self.webkit.load_html_string(DUMMY_HTML, "file:///")
-        self.vbox.pack_start(self.webkit)
+        scroll = gtk.ScrolledWindow()
+        scroll.add(self.webkit)
+        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scroll.show()
+        self.vbox.pack_start(scroll)
         self.distro = get_distro()
 
     def run(self):
