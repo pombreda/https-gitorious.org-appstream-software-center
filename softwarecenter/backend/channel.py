@@ -241,8 +241,7 @@ class ChannelsManager(object):
             channels.append(dist_channel)
         if partner_channel is not None:
             channels.append(partner_channel)
-        if for_purchase_channel is not None:
-            channels.append(for_purchase_channel)
+        channels.append(for_purchase_channel)
         channels.extend(ppa_channels)
         channels.extend(other_channels)
         channels.extend(unknown_channel)
@@ -280,10 +279,7 @@ class SoftwareChannel(object):
         if channel_icon is None:
             self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
         else:
-            if channel_icon is None:
-                self._channel_icon = self._get_icon("unknown-channel")
-            else:
-                self._channel_icon = channel_icon
+            self._channel_icon = channel_icon
         if channel_query is None:
             self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
         else:
