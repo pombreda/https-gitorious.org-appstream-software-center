@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import atexit
+import atk
 import locale
 import dbus
 import dbus.service
@@ -171,6 +172,18 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.icons.append_search_path(os.path.join(datadir,"emblems"))
         # HACK: make it more friendly for local installs (for mpt)
         self.icons.append_search_path(datadir+"/icons/32x32/status")
+        with ExecutionTime('Add humanity icon theme to iconpath from SoftwareCenterApp'):
+        # add the humanity icon theme to the iconpath, as not all icon themes contain all the icons we need
+        # this *shouldn't* lead to any performance regressions
+            path = '/usr/share/icons/Humanity'
+            if os.path.exists(path):
+                for subpath in os.listdir(path):
+                    subpath = os.path.join(path, subpath)
+                    if os.path.isdir(subpath):
+                        for subsubpath in os.listdir(subpath):
+                            subsubpath = os.path.join(subpath, subsubpath)
+                            if os.path.isdir(subsubpath):
+                                self.icons.append_search_path(subsubpath)
         gtk.window_set_default_icon_name("softwarecenter")
 
         # misc state
@@ -308,6 +321,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
         glib.child_watch_add(pid, self._on_update_software_center_agent_finished)
+
+        # atk and stuff
+        atk.Object.set_name(self.label_status.get_accessible(), "status_text")
 
         # open plugin manager and load plugins
         self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)

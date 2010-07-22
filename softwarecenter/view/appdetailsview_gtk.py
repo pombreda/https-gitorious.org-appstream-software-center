@@ -29,6 +29,7 @@ import subprocess
 import sys
 import tempfile
 import xapian
+import cairo
 
 from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
@@ -71,8 +72,8 @@ class PackageStatusBar(gtk.Alignment):
         self.set_redraw_on_allocate(False)
         self.set_padding(mkit.SPACING_SMALL,
                          mkit.SPACING_SMALL,
-                         mkit.SPACING_LARGE+mkit.SPACING_SMALL+2,
-                         mkit.SPACING_LARGE+mkit.SPACING_SMALL)
+                         mkit.SPACING_SMALL+2,
+                         mkit.SPACING_SMALL)
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
         self.add(self.hbox)
@@ -205,9 +206,9 @@ class PackageStatusBar(gtk.Alignment):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x+mkit.SPACING_LARGE-1, a.y-1,
-                  a.x+a.width-mkit.SPACING_LARGE, a.y+a.height,
-                  radius=2)
+                  a.x-1, a.y-1,
+                  a.x+a.width, a.y+a.height,
+                  radius=mkit.CORNER_RADIUS)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
 #        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
@@ -217,9 +218,9 @@ class PackageStatusBar(gtk.Alignment):
         cr.translate(0.5, 0.5)
 
         rr.layout(cr,
-                  a.x+mkit.SPACING_LARGE-1, a.y-1,
-                  a.x+a.width-mkit.SPACING_LARGE, a.y+a.height,
-                  radius=2)
+                  a.x-1, a.y-1,
+                  a.x+a.width, a.y+a.height,
+                  radius=mkit.CORNER_RADIUS)
 
         cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.stroke()
@@ -231,6 +232,7 @@ class AppDescription(gtk.VBox):
 
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+
         self.body = gtk.VBox()
         self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
 
@@ -238,7 +240,6 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.footer, False)
         self.show_all()
 
-        self._newline = False
         self.paragraphs = []
         self.points = []
         return
@@ -256,7 +257,6 @@ class AppDescription(gtk.VBox):
         p = gtk.Label()
         p.set_markup(fragment)
         p.set_line_wrap(True)
-        p.set_selectable(True)
 
         hb = gtk.HBox()
         hb.pack_start(p, False)
@@ -278,7 +278,6 @@ class AppDescription(gtk.VBox):
         point = gtk.Label()
         point.set_markup(fragment)
         point.set_line_wrap(True)
-        point.set_selectable(True)
 
         hb = gtk.HBox(spacing=mkit.EM)
         hb.pack_start(a, False)
@@ -865,35 +864,47 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
         cr.clip_preserve()
+        #cr.clip()
 
-
-        #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
-        #cr.set_source_rgba(*mkit.floats_from_gdkcolor(self.style.light[gtk.STATE_NORMAL]))
-        #cr.fill()
-        self.app_info.draw(cr, self.app_info.allocation, expose_area)
+        #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.55))
+        cr.set_source_rgba(*mkit.floats_from_gdkcolor(self.style.base[gtk.STATE_NORMAL]))
+        cr.fill()
+ #       self.app_info.draw(cr, self.app_info.allocation, expose_area)
 
         # if the appicon is not that big draw a rectangle behind it
         # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view
         if self.app_info.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.app_info.image.get_pixbuf()
             if pb.get_width() < 64 or pb.get_height() < 64:
-                self._draw_icon_background(cr)
+                # draw icon fram
+                self._draw_icon_inset_frame(cr)
         else:
             # draw rectangle background
-            self._draw_icon_background(cr)
+            self._draw_icon_inset_frame(cr)
+
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
                              event.area)
 
         self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
+
+        if self.homepage_btn.get_property('visible'):
+            self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
+        if self.gwibber_is_available:
+            self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
         del cr
+        return
+
+    def _on_homepage_clicked(self, button):
+        import webbrowser
+        webbrowser.open_new_tab(self.app_details.website)
         return
 
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-            'appname' : self.app_details.name, 
-            'pkgname' : self.app_details.pkgname }
+                'appname' : self.app_details.name, 
+                'pkgname' : self.app_details.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
         glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
@@ -936,14 +947,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
         self.app_info.image.set_size_request(84, 84)
-        self.app_info.set_spacing(mkit.SPACING_XLARGE)
+        self.app_info.set_spacing(mkit.SPACING_LARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
-        self.app_info.header_alignment.set_padding(mkit.SPACING_XLARGE,
-                                                   mkit.SPACING_LARGE,
-                                                   mkit.SPACING_XLARGE,
-                                                   mkit.SPACING_XLARGE)
+        self.app_info.header_alignment.set_padding(mkit.SPACING_LARGE,
+                                                   mkit.SPACING_MED,
+                                                   0, 0)
 
-        self.app_info.body.set_spacing(mkit.SPACING_XLARGE)
+        self.app_info.body.set_spacing(mkit.SPACING_LARGE)
         self.vbox.pack_start(self.app_info, False)
 
         # controls which are displayed if the app is installed
@@ -968,15 +978,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         app_desc_hb.pack_end(self.screenshot)
 
         # homepage link button
-        self.homepage_btn = gtk.LinkButton(uri='none', label=_('Website'))
-        self.homepage_btn.set_relief(gtk.RELIEF_NONE)
+        self.homepage_btn = mkit.HButton(_('Website'))
+        self.homepage_btn.connect('clicked', self._on_homepage_clicked)
+        self.homepage_btn.set_underline(True)
         self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
-        self.share_btn = gtk.LinkButton(uri=_('Share via micro-blogging service'),
-                                        label=_('Share...'))
-
-        self.share_btn.set_relief(gtk.RELIEF_NONE)
+        self.share_btn = mkit.HButton(_('Share...'))
+        self.share_btn.set_underline(True)
+        self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
 
@@ -1019,7 +1029,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # depending on pkg install state set action labels
         self.action_bar.configure(self.app_details, self.app_details.pkg_state)
-
         self.action_bar.button.grab_focus()
 
         # format new app description
@@ -1038,15 +1047,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # show or hide the homepage button and set uri if homepage specified
         if self.app_details.website:
             self.homepage_btn.show()
-            self.homepage_btn.set_property('visited', False)
-            self.homepage_btn.set_uri(self.app_details.website)
+            self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
         if self.gwibber_is_available and not self.app_details.error:
             self.share_btn.show()
-            self.share_btn.set_property('visited', False)
         else:
             self.share_btn.hide()
 
@@ -1153,20 +1160,48 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.progress.show()
         return False
 
-    def _draw_icon_background(self, cr):
+    def _draw_icon_inset_frame(self, cr):
         # draw small or no icon background
         a = self.app_info.image.allocation
 
+        rr = mkit.ShapeRoundedRectangle()
+
         cr.save()
-        cr.set_source_rgb(*mkit.floats_from_string('#aaaaaa'))
+        r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+
+        lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
+        lin.add_color_stop_rgba(0.0, r, g, b, 0.3)
+        lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
+        cr.set_source(lin)
+        cr.fill()
+
         # line width should be 0.05em, as per spec
         line_width = max(1, int(mkit.EM*0.05+0.5))
         # if line_width an odd number we need to align to the pixel grid
         if line_width % 2:
             cr.translate(0.5, 0.5)
-        cr.rectangle(a)
         cr.set_line_width(line_width)
+
+        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[self.state], 0.55))
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height+1, radius=3)
         cr.stroke()
+
+        cr.set_source_rgb(r, g, b)
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        cr.stroke_preserve()
+        cr.stroke_preserve()
+
+        cr.clip()
+
+        rr.layout(cr, a.x+1, a.y+1, a.x+a.width-1, a.y+a.height-1, radius=2.5)
+        cr.set_source_rgba(r, g, b, 0.35)
+        cr.stroke()
+
+        rr.layout(cr, a.x+2, a.y+2, a.x+a.width-2, a.y+a.height-2, radius=2)
+        cr.set_source_rgba(r, g, b, 0.1)
+        cr.stroke()
+
         cr.restore()
         return
 
