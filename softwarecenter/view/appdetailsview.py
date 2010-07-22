@@ -26,6 +26,7 @@ from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
+from softwarecenter.utils import get_current_arch
 
 from purchasedialog import PurchaseDialog
 
@@ -82,9 +83,10 @@ class AppDetailsViewBase(object):
 
     def buy_app(self):
         """ initiate the purchase transaction """
-        url = self.distro.PURCHASE_APP_URL % (
-            urllib.urlencode(self.appdetails.ppaname),
-            self.distro.get_distro_codename())
+        url = self.distro.PURCHASE_APP_URL % (urllib.urlencode({
+                    'archive_id' : self.appdetails.ppaname, 
+                    'arch' : get_current_arch() ,
+                    }))
         dialog = PurchaseDialog(url=url, app=self.app)
         res = dialog.run()
         dialog.destroy()
