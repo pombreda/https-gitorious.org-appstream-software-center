@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import atexit
+import atk
 import locale
 import dbus
 import dbus.service
@@ -314,6 +315,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
+        # atk and stuff
+        atk.Object.set_name(self.label_status.get_accessible(), "status_text")
+        
         # open plugin manager and load plugins
         self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
         self.plugin_manager.load_plugins()
