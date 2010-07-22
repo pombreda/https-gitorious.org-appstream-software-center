@@ -33,7 +33,8 @@ import cairo
 
 from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.application import AppDetails
+from softwarecenter.db.application import AppDetails, Application
+from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 
 from appdetailsview import AppDetailsViewBase
@@ -761,6 +762,137 @@ class ScreenshotView(gtk.Alignment):
             cr.fill()
         return
 
+class AddonCheckButton(gtk.HBox):
+    """ A widget that represents an add-on: 
+    |CheckButton|Icon|Description| """
+    
+    __gsignals__ = {'toggled': (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                ()), 
+                   }
+    
+    def __init__(self, db, icons, pkgname):
+        gtk.HBox.__init__(self)
+        self.app_details = AppDetails(db, application=Application("None", pkgname))
+        
+        self.checkbutton = gtk.CheckButton()
+        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+            self.checkbutton.set_active(True)
+        else:
+            self.checkbutton.set_active(False)
+        self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
+        self.pack_start(self.checkbutton, False)
+            
+        self.image = gtk.Image()
+        icon = icons.load_icon(MISSING_APP_ICON, 24, 0) # TODO: load application icons if available
+        self.image.set_from_pixbuf(icon)
+        self.pack_start(self.image, False)
+            
+        self.description = gtk.Label(self.app_details.summary)
+        self.pack_start(self.description, False)
+    def _on_checkbutton_toggled(self, checkbutton):
+        self.emit("toggled")
+    def get_active(self):
+        return self.checkbutton.get_active()
+    def set_active(self, is_active):
+        self.checkbutton.set_active(is_active)
+    
+
+class AddonView(gtk.VBox):
+    """ A widget that handles the application add-ons """
+    
+    def __init__(self, db, icons):
+        gtk.VBox.__init__(self)
+        self.db = db
+        self.icons = icons
+        self.recommended_addons = None
+        self.suggested_addons = None
+        self.label = gtk.Label(_("Choose add-ons"))
+        self.pack_start(self.label, False)
+        self.cache = AptCache()
+        self.cache.open()
+    
+    def _update_interface(self, recommended, suggested, app_details):
+        if len(recommended) == 0 and len(suggested) == 0:
+            return
+            
+        for widget in self:
+            if widget != self.label:
+                self.remove(widget)
+        
+        for addon in recommended:
+            checkbutton = AddonCheckButton(self.db, self.icons, addon)
+            #checkbutton.connect() TODO: connect checkbutton to something
+            self.pack_start(checkbutton, False)
+        for addon in suggested:
+            checkbutton = AddonCheckButton(self.db, self.icons, addon)
+            #checkbutton.connect() TODO: connect checkbutton to something
+            self.pack_start(checkbutton, False)
+        self.show_all()
+        self.label.show()
+    
+    def remove_unnecessary(self, pkg):
+        for addon in self.recommended_addons:
+            try: 
+                pkg_ = self.cache[addon]
+            except KeyError:
+                self.recommended_addons.remove(addon)
+            else:
+                can_remove = False
+                for addon_ in self.recommended_addons:
+                    try:
+                        if addon in self.cache.get_rprovides(self.cache[addon_]):
+                            can_remove = True
+                            break
+                    except KeyError:
+                        self.recommended_addons.remove(addon_)
+                        break
+                if can_remove or not pkg_.candidate or self.recommended_addons.count(addon) > 1 or addon == pkg.name:
+                    self.recommended_addons.remove(addon)
+        for addon in self.suggested_addons:
+            try: 
+                pkg_ = self.cache[addon]
+            except KeyError:
+                self.suggested_addons.remove(addon)
+            else:
+                can_remove = False
+                for addon_ in self.suggested_addons:
+                    try:
+                        if addon in self.cache.get_rprovides(self.cache[addon_]):
+                            can_remove = True
+                            break
+                    except KeyError:
+                        self.suggested_addons.remove(addon_)
+                if can_remove or not pkg_.candidate or self.suggested_addons.count(addon) > 1 or addon == pkg.name:
+                    self.suggested_addons.remove(addon)
+    
+    def set_addons(self, app_details):
+        self.hide_all()
+        pkg = app_details.pkg
+        pkg_deps = self.cache.get_depends(pkg)
+        
+        # Set recommended and suggested add-ons according to
+        # https://wiki.ubuntu.com/SoftwareCenter#add-ons
+        # TODO: remove add-ons that install other add-ons
+        self.recommended_addons = self.cache.get_recommends(pkg)
+        self.suggested_addons = self.cache.get_suggests(pkg)
+        self.suggested_addons += self.cache.get_renhances(pkg)
+        for dep in pkg_deps:
+            try:
+                if len(self.cache.get_rdepends(self.cache[dep])) == 1:
+                    # pkg is the only known package that depends on dep
+                    self.recommended_addons += self.cache.get_recommends(self.cache[dep])
+                    self.suggested_addons += self.cache.get_suggests(self.cache[dep])
+                    self.suggested_addons += self.cache.get_renhances(self.cache[dep])
+            except KeyError:
+                pass # dep is a virtual package
+        
+        # remove duplicates and the target pkg name
+        self.remove_unnecessary(pkg)
+        
+        self._update_interface(self.recommended_addons, self.suggested_addons, app_details)
+    
+
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
@@ -930,6 +1062,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.body.set_spacing(mkit.SPACING_LARGE)
         self.vbox.pack_start(self.app_info, False)
 
+        # add-on handling
+        self.addon_view = AddonView(self.db, self.icons)
+        self.app_info.body.pack_start(self.addon_view, False)
+        
         # controls which are displayed if the app is installed
         self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
@@ -1000,7 +1136,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         pb = self.icons.load_icon(icon, 84, 0)
         self.app_info.set_icon_from_pixbuf(pb)
-
+        
         # depending on pkg install state set action labels
         self.action_bar.configure(self.app_details, self.app_details.pkg_state)
         self.action_bar.button.grab_focus()
@@ -1051,6 +1187,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.info_table.set_support_status(self.app_details.maintenance_status)
         else:
             self.info_table.set_support_status(_("Unknown"))
+        
+        # Update add-on interface
+        self.addon_view.set_addons(self.app_details)
         return
 
     # public API
