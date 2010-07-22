@@ -29,6 +29,13 @@ SOFTWARE_CENTER_PLUGIN_DIR = "/usr/share/software-center/plugins"
 MISSING_APP_ICON = "applications-other"
 MISSING_PKG_ICON = "dialog-question"
 
+# sorting
+(SORT_UNSORTED,
+ SORT_BY_ALPHABET,
+ SORT_BY_SEARCH_RANKING,
+ SORT_BY_CATALOGED_TIME,
+) = range(4)
+
 # values used in the database
 XAPIAN_VALUE_APPNAME = 170
 XAPIAN_VALUE_PKGNAME = 171
