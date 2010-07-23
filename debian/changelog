@@ -5,7 +5,15 @@ software-center (2.1.5) UNRELEASED; urgency=low
     - fix in channel adding code
   * merged lp:~mvo/software-center/lazr to support gobject
     based wrapper around lazr.restfulclient apps
-
+  * merged lp:~mmcg069/software-center/pathbar-tweaks,
+    many thanks
+  * merged  lp:~mvo/software-center/appdetails-in-db that
+    improve the AppDetails abstraction 
+  * merged lp:~mvo/software-center/plugin-support (important
+    for the oneconf integration)
+  * merged lp:~osomon/software-center/close_in_progress
+    that fixes LP:#431907, thanks to Olivier Tilloy 
+  
   [ Gary Lasker ]
   * data/icons/scalable/apps/category-show-all.svg,
     data/icons_unbranded/scalable/apps/category-show-all.svg,
@@ -13,8 +21,26 @@ software-center (2.1.5) UNRELEASED; urgency=low
     - add custom icon for single-pane dept view "All" button;
       icon created by Dani Planas Armangue, many thanks!
       (LP: #599644)
+  * softwarecenter/view/pkgview.py:
+    - replace svg icon with png version because the svg version
+      has been removed from gnome-icon-theme (LP: #601987)
+  * po/POTFILES.in:
+    - update to latest set of modules
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk, adds
+    Matthew McGowan's new gtk-based appdetailsview, many thanks!
+    Thanks also to kiwinote and mvo for refactoring for new
+    AppDetails class and other changes.  Also fixes LP: #578650.
+  * softwarecenter/apt/aptcache.py:
+    - tweak timeout value when opening the apt cache
+      (LP: #602610) 
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk, fixes
+    description parsing error for e.g. The Gimp.  Many thanks! 
+  * softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/navhistory.py:
+    - navigation history fixes 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 01 Jul 2010 18:52:16 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 12 Jul 2010 23:53:48 -0400
 
 software-center (2.1.4) maverick; urgency=low
 

@@ -39,7 +39,7 @@ CAROUSEL_ICON_SIZE =             4*mkit.EM
 CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
 CAROUSEL_POSTER_MIN_WIDTH =      12*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
-CAROUSEL_PAGING_DOT_SIZE =       max(6, int(0.7*mkit.EM+0.5))
+CAROUSEL_PAGING_DOT_SIZE =       mkit.EM
 
 # as per spec transition timeout should be 15000 (15 seconds)
 CAROUSEL_TRANSITION_TIMEOUT =    15000
@@ -58,7 +58,7 @@ P =  '%s'
 P_SMALL = '<small>%s</small>'
 
 
-class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
+class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -100,21 +100,16 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         self.db = db
         self.icons = icons
 
-        gtk.ScrolledWindow.__init__(self)
+        gtk.Viewport.__init__(self)
         CategoriesView.__init__(self)
-        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
-
-        viewport = gtk.Viewport()
-        viewport.set_shadow_type(gtk.SHADOW_NONE)
-        viewport.add(self.vbox)
-        self.add(viewport)
         self.vbox.set_redraw_on_allocate(False)
+        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
+        self.add(self.vbox)
 
         # atk stuff
         atk_desc = self.get_accessible()
@@ -237,7 +232,6 @@ class CategoriesViewGtk(gtk.ScrolledWindow, CategoriesView):
         sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            
             if cat.untranslated_name not in ('Featured Applications',
                                              'New Applications'):
                 #enquirer.set_query(cat.query)
@@ -493,7 +487,6 @@ class CarouselView(mkit.FramedSection):
         self._alpha = 1.0
         self.queue_draw()
         self.start()
-        print 'PageSel:', self._offset, self.n_posters, page, len(self.carousel_apps)
         return
 
     #def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
@@ -548,6 +541,7 @@ class CarouselView(mkit.FramedSection):
 
         # set how many PagingDot's the PageSelector should display
         pages = float(len(self.carousel_apps)) / n
+        #print "pages: ", pages
         if pages - int(pages) > 0.0:
             pages += 1
 
@@ -579,9 +573,10 @@ class CarouselView(mkit.FramedSection):
 
     def _update_pagesel(self):
         # set the PageSelector page
-        # XXX: This needs improving!
-        page = float(self._offset) / self.n_posters
-        #print self._offset, page
+        if self._offset >= len(self.carousel_apps):
+            self._offset = 0
+
+        page = self._offset / self.n_posters
         self.page_sel.set_selected_page(int(page))
         return
 
@@ -702,6 +697,7 @@ class CarouselView(mkit.FramedSection):
             if not poster.app:
                 app = self.carousel_apps[self._offset]
                 poster.set_application(app)
+
                 self._offset += 1
                 if self._offset == len(self.carousel_apps):
                     self._offset = 0
@@ -924,7 +920,7 @@ class PageSelector(gtk.Alignment):
         return
 
     def draw(self, cr, a, expose_area, alpha):
-#        if mkit.not_overlapping(a, expose_area): return
+        if mkit.not_overlapping(a, expose_area): return
 
         for dot in self.dots:
             dot.draw(cr, dot.allocation, expose_area, alpha)

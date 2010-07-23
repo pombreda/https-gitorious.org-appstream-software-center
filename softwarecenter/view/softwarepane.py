@@ -28,11 +28,15 @@ import os
 
 from widgets.pathbar_gtk_atk import NavigationBar
 
+from softwarecenter.backend import get_install_backend
+
 from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
-from appdetailsview import AppDetailsView
+
+#from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
+from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
 
 from softwarecenter.db.database import Application
 
@@ -77,6 +81,7 @@ class SoftwarePane(gtk.VBox):
         self.db.connect("reopen", self.on_db_reopen)
         self.icons = icons
         self.datadir = datadir
+        self.backend = get_install_backend()
         # refreshes can happen out-of-bound so we need to be sure
         # that we only set the new model (when its available) if
         # the refresh_seq_nr of the ready model matches that of the
@@ -92,23 +97,23 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
+        
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         self.app_view.connect("application-request-action", 
                               self.on_application_request_action)
         # details
+        self.scroll_details = gtk.ScrolledWindow()
+        self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
+                                        gtk.POLICY_AUTOMATIC)
         self.app_details = AppDetailsView(self.db, 
                                           self.distro,
                                           self.icons, 
                                           self.cache, 
                                           self.history,
                                           self.datadir)
-        self.scroll_details = gtk.ScrolledWindow()
-        self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
-                                       gtk.POLICY_AUTOMATIC)
         self.scroll_details.add(self.app_details)
-
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -155,15 +160,10 @@ class SoftwarePane(gtk.VBox):
     def on_application_request_action(self, appview, app, action):
         """callback when an app action is requested from the appview"""
         logging.debug("on_application_action_requested: '%s' %s" % (app, action))
-        # FIXME: move the action-code below out of the appdetails and
-        #        into some controller class
-        # init the app_details here with the given app because we
-        # reuse it 
-        self.app_details.init_app(app)
         # action_func is "install" or "remove" of self.app_details
-        action_func = getattr(self.app_details, action)
+        action_func = getattr(self.backend, action)
         if callable(action_func):
-            action_func()
+            action_func(app.pkgname, app.appname, app.get_details(self.db).icon)
         else:
             logging.error("can not find action '%s'" % action)
 

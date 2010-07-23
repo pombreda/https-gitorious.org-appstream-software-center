@@ -72,18 +72,6 @@ class Debian(Distro):
                 break
         return (primary, button_text)
 
-    def get_installation_status(self, cache, history, pkg, appname):
-        s = ""
-        if pkg.installed:
-            # generic message
-            installed_date = history.get_installed_date(pkg.name)
-            if installed_date:
-                # FIXME: use local datetime format
-                s = _("Installed since") + " " + installed_date.isoformat(" ")
-            else:
-                s = _("Installed")
-        return s
-
     def get_distro_codename(self):
         if not hasattr(self ,"codename"):
             self.codename = subprocess.Popen(
@@ -92,15 +80,12 @@ class Debian(Distro):
         return self.codename
 
     def get_license_text(self, component):
-        li =  _("Unknown")
         if component in ("main",):
-            li = _("Open Source")
+            return _("Open Source")
         elif component == "contrib":
-            li = _("Open Source with proprietary parts")
+            return _("Open Source with proprietary parts")
         elif component == "restricted":
-            li = _("Proprietary")
-        s = _("License: %s") % li
-        return s
+            return _("Proprietary")
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
         return ""
