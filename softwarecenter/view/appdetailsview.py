@@ -43,6 +43,8 @@ class AppDetailsViewBase(object):
         self.datadir = datadir
         self.app = None
         self.appdetails = None
+        self.addons_install = []
+        self.addons_remove = []
         # aptdaemon
         self.backend = get_install_backend()
     def _draw(self):
@@ -55,7 +57,10 @@ class AppDetailsViewBase(object):
     def _recommended_addons(self, app_details):
         pkg = app_details.pkg
         deps = self.cache.get_depends(pkg)
-        recommended = self.cache.get_recommends(pkg)
+        if app_details.pkg_state == PKG_STATE_UNINSTALLED:
+            recommended = self.cache.get_recommends(pkg)
+        else:
+            recommended = [] # Recommended pkgs are installed automatically
         for dep in deps:
             try:
                 if len(self.cache.get_rdepends(self.cache[dep])) == 1:
@@ -81,6 +86,7 @@ class AppDetailsViewBase(object):
                 if can_remove or not pkg_.candidate or recommended.count(addon) > 1 or addon == pkg.name:
                     recommended.remove(addon)
         return recommended
+    
     def _suggested_addons(self, app_details):
         pkg = app_details.pkg
         deps = self.cache.get_depends(pkg)
@@ -112,6 +118,20 @@ class AppDetailsViewBase(object):
                 if can_remove or not pkg_.candidate or suggested.count(addon) > 1 or addon == pkg.name:
                     suggested.remove(addon)
         return suggested
+        
+    def _set_addon_install(self, addon):
+        pkg = self.cache[addon]
+        if addon not in self.addons_install and pkg.pkg_state == PKG_STATE_UNINSTALLED:
+            self.addons_install.append(addon)
+            if addon in self.addons_remove:
+                self.addons_remove.remove(addon)
+    
+    def _set_addon_remove(self, addon, set_for_remove):
+        pkg = self.cache[addon]
+        if addon not in self.addons_remove and pkg.pkg_state == PKG_STATE_INSTALLED:
+            self.addons_remove.append(addon)
+            if addon in self.addons_install:
+                self.addons_install.remove(addon)
         
     # public API
     def show_app(self, app):

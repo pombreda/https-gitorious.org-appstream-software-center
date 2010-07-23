@@ -408,7 +408,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
             private_archives)
             
-    def on_application_request_action(self, widget, app, action):
+    def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
         """callback when an app action is requested from the appview,
            if action is "remove", must check if other dependencies have to be
            removed as well and show a dialog in that case
@@ -439,10 +439,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     self.backend.emit("transaction-stopped")
                     return
             
-        # action_func is one of:  "install", "remove" or "upgrade"
+        # action_func is one of:  "install", "remove", "upgrade", or "apply_changes"
         action_func = getattr(self.backend, action)
         if callable(action_func):
-            action_func(app.pkgname, app.appname, appdetails.icon)
+            action_func(app.pkgname, app.appname, appdetails.icon, addons_install, addons_remove)
         else:
             logging.error("Not a valid action in AptdaemonBackend: '%s'" % action)
             

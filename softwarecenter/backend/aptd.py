@@ -101,8 +101,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error)
 
+    # FIXME: update add-ons here
     @inline_callbacks
-    def upgrade(self, pkgname, appname, iconname):
+    def upgrade(self, pkgname, appname, iconname, addons_install, addons_remove):
         """ upgrade a single package """
         self.emit("transaction-started")
         try:
@@ -112,8 +113,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error)
 
+    # FIXME: remove addons_install and addons_remove from arg list
     @inline_callbacks
-    def remove(self, pkgname, appname, iconname):
+    def remove(self, pkgname, appname, iconname, addons_install, addons_remove):
         """ remove a single package """
         self.emit("transaction-started")
         try:
@@ -123,12 +125,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error)
 
+    # FIXME: remove addons_remove from arg list
     @inline_callbacks
-    def install(self, pkgname, appname, iconname):
-        """ install a single package """
+    def install(self, pkgname, appname, iconname, addons_install, addons_remove):
+        """ install a single package (with its add-ons)"""
         self.emit("transaction-started")
         try:
-            trans = yield self.aptd_client.install_packages([pkgname],
+            pkgs = [pkgname] + addons_install
+            trans = yield self.aptd_client.install_packages(pkgs,
                                                             defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
@@ -139,6 +143,16 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """ queue a list of packages for install  """
         for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
             yield self.install(pkgname, appname, iconname)
+            
+    @inline_callbacks
+    def apply_changes(self, pkgname, appname, iconname, addons_install, addons_remove):
+        """ install and remove add-ons """
+        self.emit("transaction-started")
+        try:
+            trans = yield self.aptd_client.commit_packages(addons_install, [], addons_remove, [], [])
+            yield self._run_transaction(trans, pkgname, appname, iconname)
+        except Exception, error:
+            self._on_trans_error(error)
 
     @inline_callbacks
     def reload(self):

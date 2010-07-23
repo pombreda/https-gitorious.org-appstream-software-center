@@ -56,6 +56,7 @@ PKG_STATE_REINSTALLABLE = 8
 APP_ACTION_INSTALL = "install"
 APP_ACTION_REMOVE = "remove"
 APP_ACTION_UPGRADE = "upgrade"
+APP_ACTION_APPLY = "apply_changes"
 
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 
