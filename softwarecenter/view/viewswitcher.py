@@ -200,7 +200,8 @@ class ViewSwitcherList(gtk.TreeStore):
     (COL_ICON,
      COL_NAME,
      COL_ACTION,
-     COL_CHANNEL) = range(4)
+     COL_CHANNEL,
+     ) = range(4)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
@@ -229,7 +230,12 @@ class ViewSwitcherList(gtk.TreeStore):
 
 
     def __init__(self, datadir, db, cache, icons):
-        gtk.TreeStore.__init__(self, AnimatedImage, str, int, gobject.TYPE_PYOBJECT)
+        gtk.TreeStore.__init__(self, 
+                               AnimatedImage, 
+                               str, 
+                               int, 
+                               gobject.TYPE_PYOBJECT,
+                               ) # must match columns above
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
