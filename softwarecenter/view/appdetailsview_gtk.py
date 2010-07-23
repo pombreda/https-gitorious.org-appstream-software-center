@@ -776,10 +776,6 @@ class AddonCheckButton(gtk.HBox):
         self.app_details = AppDetails(db, application=Application("None", pkgname))
         
         self.checkbutton = gtk.CheckButton()
-        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
-            self.checkbutton.set_active(True)
-        else:
-            self.checkbutton.set_active(False)
         self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
         self.pack_start(self.checkbutton, False)
             
@@ -800,6 +796,7 @@ class AddonCheckButton(gtk.HBox):
 
 class AddonView(gtk.VBox):
     """ A widget that handles the application add-ons """
+    # TODO: sort add-ons in alphabetical order
     
     def __init__(self, db, icons):
         gtk.VBox.__init__(self)
@@ -822,10 +819,18 @@ class AddonView(gtk.VBox):
         
         for addon in recommended:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
+            if app_details.pkg_state == PKG_STATE_INSTALLED:
+                checkbutton.set_active(self.cache[addon].installed != None)
+            else:
+                checkbutton.set_active(True)
             #checkbutton.connect() TODO: connect checkbutton to something
             self.pack_start(checkbutton, False)
         for addon in suggested:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
+            if app_details.pkg_state == PKG_STATE_INSTALLED:
+                checkbutton.set_active(self.cache[addon].installed != None)
+            else:
+                checkbutton.set_active(False)
             #checkbutton.connect() TODO: connect checkbutton to something
             self.pack_start(checkbutton, False)
         self.show_all()
