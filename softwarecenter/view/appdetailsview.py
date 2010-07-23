@@ -50,6 +50,69 @@ class AppDetailsViewBase(object):
             you need to overwrite
         """
         pass
+    
+    # add-on handling
+    def _recommended_addons(self, app_details):
+        pkg = app_details.pkg
+        deps = self.cache.get_depends(pkg)
+        recommended = self.cache.get_recommends(pkg)
+        for dep in deps:
+            try:
+                if len(self.cache.get_rdepends(self.cache[dep])) == 1:
+                    # pkg is the only known package that depends on dep
+                    recommended += self.cache.get_recommends(self.cache[dep])
+            except KeyError:
+                pass # FIXME: should we handle that differently?
+        for addon in recommended:
+            try: 
+                pkg_ = self.cache[addon]
+            except KeyError:
+                recommended.remove(addon)
+            else:
+                can_remove = False
+                for addon_ in recommended:
+                    try:
+                        if addon in self.cache.get_provides(self.cache[addon_]):
+                            can_remove = True
+                            break
+                    except KeyError:
+                        recommended.remove(addon_)
+                        break
+                if can_remove or not pkg_.candidate or recommended.count(addon) > 1 or addon == pkg.name:
+                    recommended.remove(addon)
+        return recommended
+    def _suggested_addons(self, app_details):
+        pkg = app_details.pkg
+        deps = self.cache.get_depends(pkg)
+        suggested = self.cache.get_suggests(pkg)
+        suggested += self.cache.get_renhances(pkg)
+        for dep in deps:
+            try:
+                if len(self.cache.get_rdepends(self.cache[dep])) == 1:
+                    # pkg is the only known package that depends on dep
+                    suggested += self.cache.get_suggests(self.cache[dep])
+                    suggested += self.cache.get_renhances(self.cache[dep])
+            except KeyError:
+                pass # FIXME: should we handle that differently?
+        for addon in suggested:
+            try: 
+                pkg_ = self.cache[addon]
+            except KeyError:
+                suggested.remove(addon)
+            else:
+                can_remove = False
+                for addon_ in suggested:
+                    try:
+                        if addon in self.cache.get_provides(self.cache[addon_]):
+                            can_remove = True
+                            break
+                    except KeyError:
+                        suggested.remove(addon_)
+                        break
+                if can_remove or not pkg_.candidate or suggested.count(addon) > 1 or addon == pkg.name:
+                    suggested.remove(addon)
+        return suggested
+        
     # public API
     def show_app(self, app):
         """ show the given application """

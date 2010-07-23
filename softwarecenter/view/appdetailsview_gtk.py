@@ -809,7 +809,8 @@ class AddonView(gtk.VBox):
         self.cache = AptCache()
         self.cache.open()
     
-    def _update_interface(self, recommended, suggested, app_details):
+    def set_addons(self, app_details, recommended, suggested):
+        self.hide_all()
         if len(recommended) == 0 and len(suggested) == 0:
             return
             
@@ -835,68 +836,6 @@ class AddonView(gtk.VBox):
             self.pack_start(checkbutton, False)
         self.show_all()
         self.label.show()
-    
-    def remove_unnecessary(self, pkg):
-        for addon in self.recommended_addons:
-            try: 
-                pkg_ = self.cache[addon]
-            except KeyError:
-                self.recommended_addons.remove(addon)
-            else:
-                can_remove = False
-                for addon_ in self.recommended_addons:
-                    try:
-                        if addon in self.cache.get_rprovides(self.cache[addon_]):
-                            can_remove = True
-                            break
-                    except KeyError:
-                        self.recommended_addons.remove(addon_)
-                        break
-                if can_remove or not pkg_.candidate or self.recommended_addons.count(addon) > 1 or addon == pkg.name:
-                    self.recommended_addons.remove(addon)
-        for addon in self.suggested_addons:
-            try: 
-                pkg_ = self.cache[addon]
-            except KeyError:
-                self.suggested_addons.remove(addon)
-            else:
-                can_remove = False
-                for addon_ in self.suggested_addons:
-                    try:
-                        if addon in self.cache.get_rprovides(self.cache[addon_]):
-                            can_remove = True
-                            break
-                    except KeyError:
-                        self.suggested_addons.remove(addon_)
-                if can_remove or not pkg_.candidate or self.suggested_addons.count(addon) > 1 or addon == pkg.name:
-                    self.suggested_addons.remove(addon)
-    
-    def set_addons(self, app_details):
-        self.hide_all()
-        pkg = app_details.pkg
-        pkg_deps = self.cache.get_depends(pkg)
-        
-        # Set recommended and suggested add-ons according to
-        # https://wiki.ubuntu.com/SoftwareCenter#add-ons
-        # TODO: remove add-ons that install other add-ons
-        self.recommended_addons = self.cache.get_recommends(pkg)
-        self.suggested_addons = self.cache.get_suggests(pkg)
-        self.suggested_addons += self.cache.get_renhances(pkg)
-        for dep in pkg_deps:
-            try:
-                if len(self.cache.get_rdepends(self.cache[dep])) == 1:
-                    # pkg is the only known package that depends on dep
-                    self.recommended_addons += self.cache.get_recommends(self.cache[dep])
-                    self.suggested_addons += self.cache.get_suggests(self.cache[dep])
-                    self.suggested_addons += self.cache.get_renhances(self.cache[dep])
-            except KeyError:
-                pass # dep is a virtual package
-        
-        # remove duplicates and the target pkg name
-        self.remove_unnecessary(pkg)
-        
-        self._update_interface(self.recommended_addons, self.suggested_addons, app_details)
-    
 
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
@@ -1194,7 +1133,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.info_table.set_support_status(_("Unknown"))
         
         # Update add-on interface
-        self.addon_view.set_addons(self.app_details)
+        recommended = self._recommended_addons(self.app_details)
+        suggested = self._suggested_addons(self.app_details)
+        self.addon_view.set_addons(self.app_details, recommended, suggested)
         return
 
     # public API
