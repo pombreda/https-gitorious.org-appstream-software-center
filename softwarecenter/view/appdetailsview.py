@@ -123,15 +123,15 @@ class AppDetailsViewBase(object):
         pkg = self.cache[addon]
         if addon not in self.addons_install and pkg.pkg_state == PKG_STATE_UNINSTALLED:
             self.addons_install.append(addon)
-            if addon in self.addons_remove:
-                self.addons_remove.remove(addon)
+        if addon in self.addons_remove:
+            self.addons_remove.remove(addon)
     
-    def _set_addon_remove(self, addon, set_for_remove):
+    def _set_addon_remove(self, addon):
         pkg = self.cache[addon]
         if addon not in self.addons_remove and pkg.pkg_state == PKG_STATE_INSTALLED:
             self.addons_remove.append(addon)
-            if addon in self.addons_install:
-                self.addons_install.remove(addon)
+        if addon in self.addons_install:
+            self.addons_install.remove(addon)
         
     # public API
     def show_app(self, app):

@@ -32,6 +32,7 @@ import xapian
 import cairo
 
 from gettext import gettext as _
+import apt_pkg
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.apt.aptcache import AptCache
@@ -799,13 +800,14 @@ class AddonView(gtk.VBox):
     # TODO: sort add-ons in alphabetical order
     
     def __init__(self, db, icons):
-        gtk.VBox.__init__(self)
+        gtk.VBox.__init__(self, False)
         self.db = db
         self.icons = icons
         self.recommended_addons = None
         self.suggested_addons = None
-        self.label = gtk.Label(_("Choose add-ons"))
-        self.pack_start(self.label, False)
+        self.label = gtk.Label(_("Choose add-ons:"))
+        self.label.set_alignment(0, 0.5)
+        self.pack_start(self.label, False, False)
         self.cache = AptCache()
         self.cache.open()
     
@@ -837,6 +839,65 @@ class AddonView(gtk.VBox):
         self.show_all()
         self.label.show()
 
+class TotalSizeBar(gtk.HBox):
+    def __init__(self, cache):
+        gtk.HBox.__init__(self)
+        self.cache = cache
+        
+        self.label_size = gtk.Label()
+        self.label_size.set_line_wrap(True)
+        self.pack_start(self.label_size, False, False)
+        
+        self.hbuttonbox = gtk.HButtonBox()
+        self.button_apply = gtk.Button(_("Apply changes"))
+        self.button_cancel = gtk.Button(_("Cancel"))
+        self.hbuttonbox.pack_start(self.button_apply, False)
+        self.hbuttonbox.pack_start(self.button_cancel, False)
+        self.pack_start(self.hbuttonbox, False)
+        
+    def configure(self, app_details, addons_install, addons_remove):
+        pkgs_to_install = []
+        pkgs_to_remove = []
+        total_download_size = 0 # in kB
+        total_install_size = 0 # in kB
+        label_string = _("Total size: ")
+        
+        for addon in addons_install:
+            version = max(self.cache[addon].version)
+            pkgs_to_install.append(version)
+        for addon in addons_remove:
+            pkgs_to_remove += self.cache[addon].installed
+            
+        for pkg in pkgs_to_install:
+            total_download_size += pkg.size
+            total_install_size += pkg.installed_size
+        for pkg in pkgs_to_remove:
+            total_install_size -= pkg.installed_size
+        
+        if total_download_size > 0:
+            download_size = apt_pkg.size_to_str(total_download_size)
+            label_string += _("%sB to download, " % (download_size))
+        if total_install_size > 0:
+            install_size = apt_pkg.size_to_str(total_install_size)
+            label_string += _("%sB when installed" % (install_size))
+        elif total_install_size < 0:
+            remove_size = apt_pkg.size_to_str(-total_install_size)
+            label_string += _("%sB to be freed" % (remove_size))
+        
+        if total_download_size > 0 or total_install_size != 0:
+            self.label_size.set_label(label_string)
+            self.label_size.show()
+            if app_details.pkg_state == PKG_STATE_INSTALLED:
+                self.hbuttonbox.show()
+            else:
+                self.hbuttonbox.hide()
+        else:
+            if app_details.pkg_state == PKG_STATE_INSTALLED:
+                self.label_size.set_label(_("No changes to be done"))
+            else:
+                self.label_size.hide()
+            self.hbuttonbox.hide()
+        
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
@@ -1010,6 +1071,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addon_view = AddonView(self.db, self.icons)
         self.app_info.body.pack_start(self.addon_view, False)
         
+        self.totalsize_bar = TotalSizeBar(self.cache)
+        self.app_info.body.pack_start(self.totalsize_bar, False)
+        
         # controls which are displayed if the app is installed
         self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
@@ -1136,6 +1200,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         recommended = self._recommended_addons(self.app_details)
         suggested = self._suggested_addons(self.app_details)
         self.addon_view.set_addons(self.app_details, recommended, suggested)
+        
+        # Update total size bar
+        self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         return
 
     # public API
