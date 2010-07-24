@@ -823,7 +823,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         magic_number = 6*mkit.EM    # !?
         l = self.app_info.label.get_layout()
         if l.get_pixel_extents()[1][2] > w-48-7*mkit.EM:
-            self.app_info.label.set_size_request(w-48-7*mkit.EM, -1)
+            self.app_info.label.set_size_request(w-84-4*mkit.EM, -1)
         else:
             self.app_info.label.set_size_request(-1, -1)
 
