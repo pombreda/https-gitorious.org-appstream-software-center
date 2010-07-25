@@ -37,7 +37,7 @@ else:
 from softwarecenter.backend import get_install_backend
 
 from widgets.searchentry import SearchEntry
-from widgets.actionbar import ActionBar
+from widgets.actionbar import ActionBar2
 
 from appview import AppView, AppStore, AppViewFilter
 
@@ -138,7 +138,7 @@ class SoftwarePane(gtk.VBox):
         self.notebook.set_show_border(False)
         self.pack_start(self.notebook)
         # a bar at the bottom (hidden by default) for contextual actions
-        self.action_bar = ActionBar()
+        self.action_bar = ActionBar2()
         self.pack_start(self.action_bar, expand=False, padding=self.PADDING)
         self.top_hbox.connect('expose-event', self._on_expose)
 

@@ -17,6 +17,63 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gtk
+from mkit import HLinkButton, EM
+
+
+class ActionBar2(gtk.Alignment):
+
+    def __init__(self):
+        gtk.Alignment.__init__(self, xscale=1.0)
+        self.set_padding(0, 0, EM, EM)
+
+        self.hbox = gtk.HBox()
+        self.add(self.hbox)
+
+        self._link = HLinkButton('None')
+        self._link.set_underline(True)
+        self._link.set_xmargin(0)
+
+        self._accompanying_text = gtk.Label('...')
+        self._callback = None
+
+        self.hbox.pack_start(self._link, False)
+        self.hbox.pack_start(self._accompanying_text, False)
+
+        self._link.connect('clicked', self._on_link_clicked)
+        self.show_all()
+
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def _on_expose(self, widget, event):
+        """ Draw a horizontal line that separates the widget from the page content """
+        a = widget.allocation
+        self.style.paint_shadow(widget.window, self.state,
+                                gtk.SHADOW_IN,
+                                (a.x, a.y-6, a.width, 1),
+                                widget, "viewport",
+                                a.x, a.y-6,
+                                a.width, a.y-6)
+        return
+
+    def _on_link_clicked(self, link):
+        if self._callback:
+            self._callback()
+        return
+
+    def set_accompanying_text(self, text, insert_space=True):
+        if insert_space:
+            text = ' %s' % text
+        self._accompanying_text.set_markup(text)
+        return
+
+    def set_callback(self, cb):
+        self._callback = cb
+        return
+
+    def set_link_label(self, label):
+        self._link.set_label(label)
+        return
 
 
 class ActionBar(gtk.HBox):
@@ -64,7 +121,8 @@ class ActionBar(gtk.HBox):
         overwrite = self.get_button(id)
         if overwrite:
             self._btns.remove(overwrite)
-        btn = gtk.Button(label)
+        btn = HLinkButton(label)
+        btn.set_underline(True)
         btn.connect("clicked", self._callback(result, result_args))
         btn.id = id
         btn.show()
@@ -97,6 +155,7 @@ class ActionBar(gtk.HBox):
         """
 
         sections = text.split("_")
+        print sections
 
         # Unfortunately, gtk has no native method for embedding a link
         # in a gtk.Label with non-link elements. To represent the label,

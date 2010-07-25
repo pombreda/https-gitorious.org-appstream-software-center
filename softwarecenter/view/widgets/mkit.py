@@ -905,6 +905,7 @@ class LinkButton(gtk.EventBox):
         self._use_underline = False
         self._subdued = False
         self._base_pixbuf = None
+        self._xmargin = 3
 
         if markup:
             self.set_label(markup)
@@ -1061,6 +1062,10 @@ class LinkButton(gtk.EventBox):
             self._colorise_label_normal()
         return
 
+    def set_xmargin(self, xmargin):
+        self._xmargin = xmargin
+        return
+
     def set_internal_xalignment(self, xalign):
         self.alignment.set(xalign,
                            self.alignment.get_property('yalign'),
@@ -1076,6 +1081,8 @@ class LinkButton(gtk.EventBox):
             self.label.set_markup('<u>%s</u>' % label)
         else:
             self.label.set_markup(label)
+        w = self.calc_width()
+        self.set_size_request(w, self.get_size_request()[1])
         return
 
     def set_image_from_icon_name(self, icon_name, icon_size, icons=None):
@@ -1098,13 +1105,14 @@ class LinkButton(gtk.EventBox):
 
         if self.has_focus() and focus_draw:
             a = self.label.allocation
+            m = self._xmargin
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
                                    self.state,
-                                   (x-2, y, w+4, h+1),
+                                   (x-1, y, w+2, h+1),
                                    self,
                                    'expander',
-                                   x-2, y, w+4, h+1)
+                                   x-m, y, w+2*m, h+1)
         return
 
 
@@ -1123,7 +1131,6 @@ class HLinkButton(LinkButton):
         if self.label.get_text():
             self.box.pack_start(self.label, False)
 
-        #self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
         return
 
@@ -1141,7 +1148,7 @@ class HLinkButton(LinkButton):
             w += self.image.allocation.width
             spacing = self.box.get_spacing()
 
-        w += 2*self.get_border_width() + spacing + 4
+        w += 2*self.get_border_width() + spacing + 2*self._xmargin
         return w
 
 
@@ -1149,6 +1156,8 @@ class VLinkButton(LinkButton):
 
     def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
         LinkButton.__init__(self, markup, icon_name, icon_size)
+
+        self._xmargin = 6
 
         self.box = gtk.VBox()
         self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
@@ -1176,5 +1185,5 @@ class VLinkButton(LinkButton):
             iw = self.image.allocation.width        # image width
 
         w += max(lw, iw)
-        w += 2*self.get_border_width() + 12
+        w += 2*self.get_border_width() + 2*self._xmargin
         return w

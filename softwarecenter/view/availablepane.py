@@ -208,7 +208,6 @@ class AvailablePane(SoftwarePane):
         else:
             self.notebook.set_current_page(self.PAGE_APPLIST)
             self.update_app_view()
-            self._update_action_bar()
 
     def refresh_apps(self):
         """refresh the applist and update the navigation bar
@@ -370,34 +369,35 @@ class AvailablePane(SoftwarePane):
         self._update_action_bar_label()
 
     def _update_action_bar_buttons(self):
-        '''
-        update buttons in the action bar
-        '''
-        appstore = self.app_view.get_model()
-        if (appstore and
-            self.custom_list_mode and 
-            self.apps_search_term):
-            appstore = self.app_view.get_model()
-            installable = appstore.installable_apps
-            button_text = gettext.ngettext("Install %s Item",
-                                           "Install %s Items",
-                                           len(installable)) % len(installable)
-            button = self.action_bar.get_button(self._INSTALL_BTN_ID)
-            if button and installable:
-                # Install all already offered. Update offer.
-                if button.get_label() != button_text:
-                    button.set_label(button_text)
-            elif installable:
-                # Install all not yet offered. Offer.
-                self.action_bar.add_button(self._INSTALL_BTN_ID, button_text,
-                                           self._install_current_appstore)
-            else:
-                # Install offered, but nothing to install. Clear offer.
-                self.action_bar.remove_button(self._INSTALL_BTN_ID)
-        else:
-            # Ensure button is removed.
-            self.action_bar.remove_button(self._INSTALL_BTN_ID)
-            
+        #'''
+        #update buttons in the action bar
+        #'''
+        #appstore = self.app_view.get_model()
+        #if (appstore and
+            #self.custom_list_mode and 
+            #self.apps_search_term):
+            #appstore = self.app_view.get_model()
+            #installable = appstore.installable_apps
+            #button_text = gettext.ngettext("Install %s Item",
+                                           #"Install %s Items",
+                                           #len(installable)) % len(installable)
+            #button = self.action_bar.get_button(self._INSTALL_BTN_ID)
+            #if button and installable:
+                ## Install all already offered. Update offer.
+                #if button.get_label() != button_text:
+                    #button.set_label(button_text)
+            #elif installable:
+                ## Install all not yet offered. Offer.
+                #self.action_bar.add_button(self._INSTALL_BTN_ID, button_text,
+                                           #self._install_current_appstore)
+            #else:
+                ## Install offered, but nothing to install. Clear offer.
+                #self.action_bar.remove_button(self._INSTALL_BTN_ID)
+        #else:
+            ## Ensure button is removed.
+            #self.action_bar.remove_button(self._INSTALL_BTN_ID)
+        return
+
     def _update_action_bar_label(self):
         appstore = self.app_view.get_model()
         if (appstore and 
@@ -405,20 +405,30 @@ class AvailablePane(SoftwarePane):
             not appstore.nonapps_visible and
             appstore.nonapp_pkgs and
             not self.is_category_view_showing()):
+
             # We want to display the label if there are hidden packages
             # in the appstore.
-            label = gettext.ngettext("_%i other_ technical item",
-                                     "_%i other_ technical items",
-                                     appstore.nonapp_pkgs
-                                     ) % appstore.nonapp_pkgs
-            self.action_bar.set_label(label, self._show_nonapp_pkgs)
+            link_label = _('%s other' % appstore.nonapp_pkgs)
+            self.action_bar.set_link_label(link_label)
+
+            if appstore.nonapp_pkgs == 1:
+                accompanying_text = _("technical item")
+            else:
+                accompanying_text = _("technical items")
+
+            self.action_bar.set_accompanying_text(accompanying_text)
+
+            self.action_bar.set_callback(self._show_nonapp_pkgs)
+            self.action_bar.show()
         else:
-            self.action_bar.unset_label()
-            
+            self.action_bar.hide()
+        return
+
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = True
         self.refresh_apps()
-        self._update_action_bar()
+        self.action_bar.hide()
+        return
 
     def _install_current_appstore(self):
         '''
@@ -511,7 +521,7 @@ class AvailablePane(SoftwarePane):
     def display_category(self):
         self._clear_search()
         self._show_category_overview()
-        self.action_bar.clear()
+        self.action_bar.hide()
         return
 
     def display_search(self):
@@ -539,6 +549,8 @@ class AvailablePane(SoftwarePane):
         # the new model is ready
         self.searchentry.show()
         self.cat_view.stop_carousels()
+        
+        self._update_action_bar()
         return
 
     def display_subcat(self):
@@ -551,6 +563,7 @@ class AvailablePane(SoftwarePane):
         #model = self.app_view.get_model()
         #if model is not None:
             #self.emit("app-list-changed", len(model))
+        self.action_bar.hide()
         self.searchentry.show()
         self.cat_view.stop_carousels()
         return
@@ -558,7 +571,7 @@ class AvailablePane(SoftwarePane):
     def display_details(self):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
-        self.action_bar.clear()
+        self.action_bar.hide()
         self.cat_view.stop_carousels()
         return
 
@@ -629,8 +642,8 @@ class AvailablePane(SoftwarePane):
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
         # sub-category page that has no visible applications
-        return (self.notebook.get_current_page() == self.PAGE_CATEGORY or
-                not self.scroll_app_list.props.visible)
+        return (self.notebook.get_current_page() == self.PAGE_CATEGORY or \
+                self.notebook.get_current_page() == self.PAGE_SUBCATEGORY)
 
     def set_category(self, category):
         #print "set_category", category
