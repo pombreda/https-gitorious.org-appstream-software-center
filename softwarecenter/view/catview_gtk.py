@@ -174,7 +174,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         # so based on the value of 4*em we try to choose a sane stock
         # icon size
         best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
-
+        print best_stock_size
         featured_apps = AppStore(self.cache,
                                  self.db, 
                                  self.icons,
@@ -746,14 +746,13 @@ class SubcategoryButton(mkit.VButton):
 class CarouselPoster(mkit.VButton):
 
     def __init__(self, markup='None', icon_name='None', icon_size=48, icons=None):
-
         mkit.VButton.__init__(self, markup, icon_name, icon_size, icons)
 
         self.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.set_internal_spacing(mkit.SPACING_SMALL)
 
         self.label.set_justify(gtk.JUSTIFY_CENTER)
-        self.image.set_size_request(-1, icon_size)
+        self.image.set_size_request(icon_size, icon_size)
         self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None
@@ -777,12 +776,15 @@ class CarouselPoster(mkit.VButton):
         pb = app[AppStore.COL_ICON]
 
         self.set_label(markup)
-        self.image.set_from_pixbuf(pb)
+        self.set_image_from_pixbuf(pb)
+
+        if not self.image.window:
+            self.box.pack_start(self.image, False)
+            self.image.show()
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0):
         if mkit.not_overlapping(a, expose_area): return
-        mkit.VButton.draw(self, cr, a, expose_area, focus_draw=False)
 
         cr.save()
         cr.rectangle(a)
@@ -791,12 +793,10 @@ class CarouselPoster(mkit.VButton):
         ia = self.image.allocation
         if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.image.get_pixbuf()
-
             # paint pixbuf
-            cr.set_source_pixbuf(pb,
-                                 a.x + (a.width - pb.get_width())/2,
-                                 ia.y + (ia.height - pb.get_height())/2)
-
+            x = a.x + (a.width - pb.get_width())/2
+            y = ia.y + (ia.height - pb.get_height())/2
+            cr.set_source_pixbuf(pb, x, y)
             cr.paint_with_alpha(alpha)
 
         la = self.label.allocation  # label allocation

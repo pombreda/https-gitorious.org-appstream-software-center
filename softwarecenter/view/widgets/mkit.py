@@ -947,6 +947,8 @@ class Button(gtk.EventBox):
 
     def _on_enter(self, cat, event):
         if cat == self._button_press_origin:
+            self._colorise_image_active()
+            self._colorise_label_active()
             cat.set_state(gtk.STATE_ACTIVE)
         else:
             cat.set_state(gtk.STATE_PRELIGHT)
@@ -1082,6 +1084,11 @@ class Button(gtk.EventBox):
             pb = icons.load_icon(icon_name, icon_size, 0)
         except:
             return
+        self.image.set_from_pixbuf(pb)
+        self._base_pixbuf = pb
+        return
+
+    def set_image_from_pixbuf(self, pb):
         self.image.set_from_pixbuf(pb)
         self._base_pixbuf = pb
         return
