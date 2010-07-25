@@ -185,7 +185,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                  icon_size=best_stock_size,
                                  global_icon_cache=False)
 
-        self.featured_carousel = CarouselView(featured_apps, _('Featured'))
+        self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
         self.featured_carousel.more_btn.connect('clicked',
                                   self._on_category_clicked,
                                   featured_cat)
@@ -208,7 +208,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         else:
             new_apps = None
 
-        self.newapps_carousel = CarouselView(new_apps, _("What's New"))
+        self.newapps_carousel = CarouselView(new_apps, _("What's New"), self.icons)
         self.newapps_carousel.more_btn.connect('clicked',
                                            self._on_category_clicked,
                                            new_cat)
@@ -242,7 +242,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                 # sanitize text so its pango friendly...
                 name = gobject.markup_escape_text(cat.name.strip())
 
-                cat_btn = CategoryButton(name, icon_name=cat.iconname)
+                cat_btn = CategoryButton(name, cat.iconname, self.icons)
                 cat_btn.connect('clicked', self._on_category_clicked, cat)
                 # append the department to the departments widget
                 self.departments.append(cat_btn)
@@ -277,7 +277,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
             # sanitize text so its pango friendly...
             name = gobject.markup_escape_text(cat.name.strip())
 
-            cat_btn = SubcategoryButton(name, icon_name=cat.iconname)
+            cat_btn = SubcategoryButton(name, cat.iconname, self.icons)
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
@@ -285,7 +285,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         # append an additional button to show all of the items in the category
         name = gobject.markup_escape_text(_("All %s") % num_items)
-        show_all_btn = SubcategoryButton(name, icon_name="category-show-all")
+        show_all_btn = SubcategoryButton(name, "category-show-all", self.icons)
         all_cat = Category("All", _("All"), "category-show-all", root_category.query)
         show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
         self.departments.append(show_all_btn)
@@ -435,8 +435,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
 class CarouselView(mkit.FramedSection):
 
-    def __init__(self, carousel_apps, title):
+    def __init__(self, carousel_apps, title, icons):
         mkit.FramedSection.__init__(self)
+
+        self.icons = icons
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.hbox.set_homogeneous(True)
@@ -457,12 +459,10 @@ class CarouselView(mkit.FramedSection):
 
         self.set_label(H2 % title)
 
-        # \xbb == U+00BB == RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
         label = _('All')
         self.more_btn = mkit.HButton(label)
         self.more_btn.set_underline(True)
         self.more_btn.set_subdued(True)
-        self.more_btn.set_relief(gtk.RELIEF_NONE)
 
         self.header.pack_end(self.more_btn, False)
 
@@ -544,7 +544,8 @@ class CarouselView(mkit.FramedSection):
         else:
             n_add = n - self.n_posters
             for i in range(n_add):
-                poster = CarouselPoster(icon_pixel_size=self._icon_size)
+                poster = CarouselPoster(icon_size=self._icon_size,
+                                        icons=self.icons)
                 self.posters.append(poster)
                 self.hbox.pack_start(poster)
                 poster.show()
@@ -721,11 +722,11 @@ class CarouselView(mkit.FramedSection):
 
 class CategoryButton(mkit.HButton):
 
-    def __init__(self, markup, icon_name, icon_size=gtk.ICON_SIZE_LARGE_TOOLBAR):
-        mkit.HButton.__init__(self, markup, icon_name, icon_size)
+    ICON_SIZE = 24
 
-        self.set_relief(gtk.RELIEF_NONE)
-        #self.set_has_action_arrow(True)     # OMG UBUNTU PEEPS didnt like... Must obey.
+    def __init__(self, markup, icon_name, icons):
+        mkit.HButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
+
         self.set_internal_xalignment(0.0)    # basically justify-left
         self.set_internal_spacing(mkit.SPACING_LARGE)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
@@ -734,28 +735,25 @@ class CategoryButton(mkit.HButton):
         
 class SubcategoryButton(mkit.VButton):
 
-    def __init__(self, markup, icon_name, icon_size=gtk.ICON_SIZE_DIALOG):
-        mkit.VButton.__init__(self, markup, icon_name, icon_size)
-        self.set_relief(gtk.RELIEF_NONE)
+    ICON_SIZE = 48
+
+    def __init__(self, markup, icon_name, icons):
+        mkit.VButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
         return
 
 
 class CarouselPoster(mkit.VButton):
 
-    def __init__(self, markup='none', icon_name='none', \
-                 icon_size=gtk.ICON_SIZE_DIALOG, icon_pixel_size=48):
+    def __init__(self, markup='None', icon_name='None', icon_size=48, icons=None):
 
-        mkit.VButton.__init__(self, markup, icon_name, icon_size)
+        mkit.VButton.__init__(self, markup, icon_name, icon_size, icons)
 
-        #self.theme['curvature'] = CAROUSEL_POSTER_CORNER_RADIUS
-        self.set_relief(gtk.RELIEF_NONE)
         self.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.set_internal_spacing(mkit.SPACING_SMALL)
-        self.set_active_paint_mode(mkit.ACTIVE_PAINT_MODE_DEEP)
 
         self.label.set_justify(gtk.JUSTIFY_CENTER)
-        self.image.set_size_request(-1, icon_pixel_size)
+        self.image.set_size_request(-1, icon_size)
         self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None

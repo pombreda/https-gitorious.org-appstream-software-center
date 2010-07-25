@@ -828,10 +828,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.app_info.label.set_size_request(-1, -1)
 
         for p in self.app_desc.paragraphs:
-            p.set_size_request(w-7*mkit.EM-166, -1)
+            p.set_size_request(w-5*mkit.EM-166, -1)
             
         for pt in self.app_desc.points:
-            pt.set_size_request(w-9*mkit.EM-166, -1)
+            pt.set_size_request(w-7*mkit.EM-166, -1)
 
         self.info_table.set_width(w-magic_number)
 

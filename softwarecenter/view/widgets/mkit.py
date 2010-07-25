@@ -882,13 +882,15 @@ class LayoutView(FramedSection):
 
 class Button(gtk.EventBox):
 
+    """ A minimal LinkButton type widget """
+
     __gsignals__ = {
         "clicked" : (gobject.SIGNAL_RUN_LAST,
                      gobject.TYPE_NONE, 
                      (),)
         }
 
-    def __init__(self, markup, icon_name, icon_size):
+    def __init__(self, markup, icon_name, icon_size, icons=None):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
@@ -896,20 +898,18 @@ class Button(gtk.EventBox):
         self.label = gtk.Label()
         self.image = gtk.Image()
 
-        self._relief = gtk.RELIEF_NORMAL
-        self._has_action_arrow = False
-        self._active_paint_mode = ACTIVE_PAINT_MODE_NORMAL
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
         self._fixed_width = None
         self._use_underline = False
         self._subdued = False
+        self._base_pixbuf = None
 
         if markup:
             self.set_label(markup)
         if icon_name:
-            self.image.set_from_icon_name(icon_name, icon_size)
+            self.set_image_from_icon_name(icon_name, icon_size, icons)
 
         # atk stuff
         atk_obj = self.get_accessible()
@@ -954,6 +954,8 @@ class Button(gtk.EventBox):
         return
 
     def _on_leave(self, cat, event):
+        self._colorise_image_normal()
+        self._colorise_label_normal()
         cat.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
         return
@@ -962,6 +964,7 @@ class Button(gtk.EventBox):
         if event.button != 1: return
         self._button_press_origin = cat
         self._colorise_label_active()
+        self._colorise_image_active()
         cat.set_state(gtk.STATE_ACTIVE)
         return
 
@@ -973,13 +976,16 @@ class Button(gtk.EventBox):
         if event.button != 1:
             self.queue_draw()
             return
+
         self._colorise_label_normal()
+        self._colorise_image_normal()
+
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
             self._button_press_origin = None
             cat.set_state(gtk.STATE_NORMAL)
             return
-        #if cat != self._button_press_origin: return
+
         self._button_press_origin = None
         cat.set_state(gtk.STATE_PRELIGHT)
         gobject.timeout_add(50, emit_clicked)
@@ -1026,50 +1032,17 @@ class Button(gtk.EventBox):
             self.set_label('<span color="%s">%s</span>' % (col, text))
         return
 
-    def _paint_bg(self, cr, a, alpha):
-        if self._active_paint_mode == ACTIVE_PAINT_MODE_NORMAL or \
-            self.state != gtk.STATE_ACTIVE:
+    def _colorise_image_active(self):
+        if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
 
-            self.theme.paint_bg(cr, self,
-                                a.x, a.y,
-                                a.width-1,
-                                a.height,
-                                alpha=alpha)
-
-        else:
-            self.theme.paint_bg_active_deep(cr, self,
-                                            a.x, a.y,
-                                            a.width-1,
-                                            a.height,
-                                            alpha=alpha)
+        pb = self.image.get_pixbuf().copy()
+        pb.saturate_and_pixelate(pb, 3.0, False)
+        self.image.set_from_pixbuf(pb)
         return
 
-    def _paint_action_arrow(self, a, aw=10):
-        # draw arrow
-        if self.get_direction() != gtk.TEXT_DIR_RTL:
-            self.style.paint_arrow(self.window,
-                                   self.state,
-                                   gtk.SHADOW_NONE,
-                                   a,       #area
-                                   self,
-                                   None,
-                                   gtk.ARROW_RIGHT,
-                                   True,    # fill
-                                   a.x + a.width - aw - self.get_border_width(),
-                                   a.y + (a.height-aw)/2,
-                                   aw, aw)
-        else:
-            self.style.paint_arrow(self.window,
-                                   self.state,
-                                   gtk.SHADOW_NONE,
-                                   a,       #area
-                                   self,
-                                   None,
-                                   gtk.ARROW_LEFT,
-                                   True,    # fill
-                                   a.x + self.get_border_width(),
-                                   a.y + (a.height-aw)/2,
-                                   aw, aw)
+    def _colorise_image_normal(self):
+        if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
+        self.image.set_from_pixbuf(self._base_pixbuf)
         return
 
     def set_underline(self, use_underline):
@@ -1084,14 +1057,6 @@ class Button(gtk.EventBox):
         self._subdued = is_subdued
         if self.window:
             self._colorise_label_normal()
-        return
-
-    def set_shape(self, shape):
-        self.shape = shape
-        return
-
-    def set_relief(self, relief):
-        self._relief = relief
         return
 
     def set_internal_xalignment(self, xalign):
@@ -1111,12 +1076,14 @@ class Button(gtk.EventBox):
             self.label.set_markup(label)
         return
 
-    def set_has_action_arrow(self, has_action_arrow):
-        self._has_action_arrow = has_action_arrow
-        return
-
-    def set_active_paint_mode(self, paint_mode):
-        self._active_paint_mode = paint_mode
+    def set_image_from_icon_name(self, icon_name, icon_size, icons=None):
+        icons = icons or gtk.icon_theme_get_default()
+        try:
+            pb = icons.load_icon(icon_name, icon_size, 0)
+        except:
+            return
+        self.image.set_from_pixbuf(pb)
+        self._base_pixbuf = pb
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
@@ -1136,7 +1103,7 @@ class Button(gtk.EventBox):
 
 class HButton(Button):
 
-    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
+    def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
         Button.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.HBox()
@@ -1173,7 +1140,7 @@ class HButton(Button):
 
 class VButton(Button):
 
-    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
+    def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
         Button.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.VBox()
@@ -1192,6 +1159,7 @@ class VButton(Button):
 
     def calc_width(self):
         w = 1
+        iw = 0
         if self.label:
             pc = self.get_pango_context()
             layout = pango.Layout(pc)
