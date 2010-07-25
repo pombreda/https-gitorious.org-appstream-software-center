@@ -957,13 +957,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         app_desc_hb.pack_end(self.screenshot)
 
         # homepage link button
-        self.homepage_btn = mkit.HButton(_('Website'))
+        self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
         self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
-        self.share_btn = mkit.HButton(_('Share...'))
+        self.share_btn = mkit.HLinkButton(_('Share...'))
         self.share_btn.set_underline(True)
         self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)

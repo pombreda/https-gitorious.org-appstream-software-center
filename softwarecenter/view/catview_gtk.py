@@ -460,7 +460,7 @@ class CarouselView(mkit.FramedSection):
         self.set_label(H2 % title)
 
         label = _('All')
-        self.more_btn = mkit.HButton(label)
+        self.more_btn = mkit.HLinkButton(label)
         self.more_btn.set_underline(True)
         self.more_btn.set_subdued(True)
 
@@ -720,12 +720,12 @@ class CarouselView(mkit.FramedSection):
         return
 
 
-class CategoryButton(mkit.HButton):
+class CategoryButton(mkit.HLinkButton):
 
     ICON_SIZE = 24
 
     def __init__(self, markup, icon_name, icons):
-        mkit.HButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
+        mkit.HLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
 
         self.set_internal_xalignment(0.0)    # basically justify-left
         self.set_internal_spacing(mkit.SPACING_LARGE)
@@ -733,20 +733,20 @@ class CategoryButton(mkit.HButton):
         return
         
         
-class SubcategoryButton(mkit.VButton):
+class SubcategoryButton(mkit.VLinkButton):
 
     ICON_SIZE = 48
 
     def __init__(self, markup, icon_name, icons):
-        mkit.VButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
+        mkit.VLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
         return
 
 
-class CarouselPoster(mkit.VButton):
+class CarouselPoster(mkit.VLinkButton):
 
     def __init__(self, markup='None', icon_name='None', icon_size=48, icons=None):
-        mkit.VButton.__init__(self, markup, icon_name, icon_size, icons)
+        mkit.VLinkButton.__init__(self, markup, icon_name, icon_size, icons)
 
         self.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.set_internal_spacing(mkit.SPACING_SMALL)
@@ -953,10 +953,10 @@ class PageSelector(gtk.Alignment):
         return
 
 
-class PagingDot(mkit.Button):
+class PagingDot(mkit.LinkButton):
 
     def __init__(self, page_number):
-        mkit.Button.__init__(self, None, None, None)
+        mkit.LinkButton.__init__(self, None, None, None)
         self.set_size_request(-1, CAROUSEL_PAGING_DOT_SIZE)
         self.is_selected = False
         self.page_number = page_number

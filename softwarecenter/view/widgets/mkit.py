@@ -880,7 +880,7 @@ class LayoutView(FramedSection):
         return
 
 
-class Button(gtk.EventBox):
+class LinkButton(gtk.EventBox):
 
     """ A minimal LinkButton type widget """
 
@@ -1108,10 +1108,10 @@ class Button(gtk.EventBox):
         return
 
 
-class HButton(Button):
+class HLinkButton(LinkButton):
 
     def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
-        Button.__init__(self, markup, icon_name, icon_size)
+        LinkButton.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.HBox()
         self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
@@ -1145,10 +1145,10 @@ class HButton(Button):
         return w
 
 
-class VButton(Button):
+class VLinkButton(LinkButton):
 
     def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
-        Button.__init__(self, markup, icon_name, icon_size)
+        LinkButton.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.VBox()
         self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
