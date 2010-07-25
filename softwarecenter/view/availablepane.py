@@ -408,6 +408,7 @@ class AvailablePane(SoftwarePane):
 
             # We want to display the label if there are hidden packages
             # in the appstore.
+            #print appstore.nonapp_pkgs
             link_label = _('%s other' % appstore.nonapp_pkgs)
             self.action_bar.set_link_label(link_label)
 

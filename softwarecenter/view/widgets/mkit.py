@@ -824,6 +824,8 @@ class LayoutView(FramedSection):
 
         if n_columns > len(widgets):
             n_columns = len(widgets)
+        if n_columns <= 0:
+            n_columns = 1
 
         if n_columns == self.n_columns: return
         self.clear_columns()
