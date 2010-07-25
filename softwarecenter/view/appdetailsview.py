@@ -29,7 +29,7 @@ class AppDetailsViewBase(object):
     __gsignals__ = {
         "application-request-action" : (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, str),
+                                        (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
                                        ),
     }
 
@@ -121,14 +121,14 @@ class AppDetailsViewBase(object):
         
     def _set_addon_install(self, addon):
         pkg = self.cache[addon]
-        if addon not in self.addons_install and pkg.pkg_state == PKG_STATE_UNINSTALLED:
+        if addon not in self.addons_install and pkg.installed == None:
             self.addons_install.append(addon)
         if addon in self.addons_remove:
             self.addons_remove.remove(addon)
     
     def _set_addon_remove(self, addon):
         pkg = self.cache[addon]
-        if addon not in self.addons_remove and pkg.pkg_state == PKG_STATE_INSTALLED:
+        if addon not in self.addons_remove and pkg.installed != None:
             self.addons_remove.append(addon)
         if addon in self.addons_install:
             self.addons_install.remove(addon)
@@ -148,13 +148,16 @@ class AppDetailsViewBase(object):
         self.backend.reload()
     def install(self):
         """ install the current application, fire an action request """
-        self.emit("application-request-action", self.app, APP_ACTION_INSTALL)
+        self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_INSTALL)
     def remove(self):
         """ remove the current application, , fire an action request """
-        self.emit("application-request-action", self.app, APP_ACTION_REMOVE)
+        self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_REMOVE)
     def upgrade(self):
         """ upgrade the current application, fire an action request """
-        self.emit("application-request-action", self.app, APP_ACTION_UPGRADE)
+        self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_UPGRADE)
+    def apply_changes(self):
+        """ apply changes concerning add-ons """
+        self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_APPLY)
     # internal callbacks
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the

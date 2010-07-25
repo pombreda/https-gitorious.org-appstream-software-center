@@ -101,7 +101,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error)
 
-    # FIXME: update add-ons here
+    # FIXME: upgrade add-ons here
     @inline_callbacks
     def upgrade(self, pkgname, appname, iconname, addons_install, addons_remove):
         """ upgrade a single package """
@@ -259,7 +259,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # cancel handling in aptdaemon (LP: #440941)
             # FIXME: this is not a proper fix, just a workaround
             if trans.error_code == enums.ERROR_DAEMON_DIED:
-                logging.warn("daemon dies, ignoring: %s" % excep)
+                #logging.warn("daemon dies, ignoring: %s" % excep)
+                pass
             else:
                 msg = "%s: %s\n%s\n\n%s" % (
                     _("Error"),

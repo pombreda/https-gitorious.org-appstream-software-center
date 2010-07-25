@@ -793,11 +793,18 @@ class AddonCheckButton(gtk.HBox):
         return self.checkbutton.get_active()
     def set_active(self, is_active):
         self.checkbutton.set_active(is_active)
+    def get_addon(self):
+        return self.app_details.pkgname
     
 
 class AddonView(gtk.VBox):
     """ A widget that handles the application add-ons """
     # TODO: sort add-ons in alphabetical order
+    
+    __gsignals__ = {'toggled':(gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                (str, gobject.TYPE_PYOBJECT)),
+                   }
     
     def __init__(self, db, icons):
         gtk.VBox.__init__(self, False)
@@ -826,7 +833,7 @@ class AddonView(gtk.VBox):
                 checkbutton.set_active(self.cache[addon].installed != None)
             else:
                 checkbutton.set_active(True)
-            #checkbutton.connect() TODO: connect checkbutton to something
+            checkbutton.connect("toggled", _on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         for addon in suggested:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
@@ -834,15 +841,25 @@ class AddonView(gtk.VBox):
                 checkbutton.set_active(self.cache[addon].installed != None)
             else:
                 checkbutton.set_active(False)
-            #checkbutton.connect() TODO: connect checkbutton to something
+            checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         self.show_all()
         self.label.show()
+    
+    def _on_checkbutton_toggled(self, checkbutton):
+        addon = checkbutton.get_addon()
+        self.emit("toggled", addon, checkbutton.get_active())
 
 class TotalSizeBar(gtk.HBox):
-    def __init__(self, cache):
+    __gsignals__ = {'changes-canceled': (gobject.SIGNAL_RUN_FIRST,
+                                         gobject.TYPE_NONE,
+                                         ()),
+                   }
+    
+    def __init__(self, cache, view):
         gtk.HBox.__init__(self)
         self.cache = cache
+        self.view = view
         
         self.label_size = gtk.Label()
         self.label_size.set_line_wrap(True)
@@ -850,7 +867,9 @@ class TotalSizeBar(gtk.HBox):
         
         self.hbuttonbox = gtk.HButtonBox()
         self.button_apply = gtk.Button(_("Apply changes"))
+        self.button_apply.connect("clicked", self._on_button_apply_clicked)
         self.button_cancel = gtk.Button(_("Cancel"))
+        self.button_cancel.connect("clicked", self._on_button_cancel_clicked)
         self.hbuttonbox.pack_start(self.button_apply, False)
         self.hbuttonbox.pack_start(self.button_cancel, False)
         self.pack_start(self.hbuttonbox, False)
@@ -863,10 +882,11 @@ class TotalSizeBar(gtk.HBox):
         label_string = _("Total size: ")
         
         for addon in addons_install:
-            version = max(self.cache[addon].version)
+            version = max(self.cache[addon].versions)
             pkgs_to_install.append(version)
         for addon in addons_remove:
-            pkgs_to_remove += self.cache[addon].installed
+            version = self.cache[addon].installed
+            pkgs_to_remove.append(version)
             
         for pkg in pkgs_to_install:
             total_download_size += pkg.size
@@ -897,6 +917,14 @@ class TotalSizeBar(gtk.HBox):
             else:
                 self.label_size.hide()
             self.hbuttonbox.hide()
+            
+    def _on_button_apply_clicked(self, button):
+        self.button_apply.set_sensitive(False)
+        self.button_cancel.set_sensitive(False)
+        AppDetailsViewBase.apply_changes(self.view)
+        
+    def _on_button_cancel_clicked(self, button):
+        self.emit("changes-canceled")
         
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
@@ -918,7 +946,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                 (gobject.TYPE_PYOBJECT,)),
                     'application-request-action' : (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, str),
+                                        (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
                                        ),
                     }
 
@@ -1069,9 +1097,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # add-on handling
         self.addon_view = AddonView(self.db, self.icons)
+        self.addon_view.connect("toggled", self._on_addon_view_toggled)
         self.app_info.body.pack_start(self.addon_view, False)
         
-        self.totalsize_bar = TotalSizeBar(self.cache)
+        self.totalsize_bar = TotalSizeBar(self.cache, self)
+        self.totalsize_bar.connect("changes-canceled", self._on_totalsize_changescanceled)
         self.app_info.body.pack_start(self.totalsize_bar, False)
         
         # controls which are displayed if the app is installed
@@ -1232,6 +1262,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_interface_on_trans_ended(self):
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
+        self.totalsize_bar.button_apply.set_sensitive(True)
+        self.totalsize_bar.button_cancel.set_sensitive(True)
+        self.totalsize_bar.hbuttonbox.show()
 
         state = self.action_bar.pkg_state
         if state == PKG_STATE_REMOVING:
@@ -1244,6 +1277,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
+        self.totalsize_bar.hbuttonbox.hide()
         state = self.action_bar.pkg_state
         if state == PKG_STATE_UNINSTALLED:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
@@ -1323,6 +1357,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.restore()
         return
 
+    def _on_addon_view_toggled(self, view, addon, isActive):
+        if isActive:
+            self._set_addon_install(addon)
+        else:
+            self._set_addon_remove(addon)
+        self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+        
+    def _on_totalsize_changescanceled(self, widget):
+        self.addons_install = []
+        self.addons_remove = []
+        self.addon_view.set_addons(self.app_details, 
+                                    self._recommended_addons(self.app_details),
+                                    self._suggested_addons(self.app_details))
+        self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+    
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
