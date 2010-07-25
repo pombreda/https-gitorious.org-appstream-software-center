@@ -960,11 +960,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
+        self.homepage_btn.set_xmargin(1)
         self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
         self.share_btn = mkit.HLinkButton(_('Share...'))
         self.share_btn.set_underline(True)
+        self.share_btn.set_xmargin(1)
         self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
@@ -1045,7 +1047,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # set the strings in the package info table
         if self.app_details.version:
-            self.info_table.set_version(self.app_details.version + "(" + self.app_details.pkgname + ")")
+            self.info_table.set_version('%s (%s)' % (self.app_details.version, self.app_details.pkgname))
         else:
             self.info_table.set_version(_("Unknown"))
         if self.app_details.license:
