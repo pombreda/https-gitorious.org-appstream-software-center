@@ -254,7 +254,7 @@ class AvailablePane(SoftwarePane):
                              self.db,
                              self.icons,
                              query,
-                             limit=self.apps_limit,
+                             limit=self._get_item_limit(),
                              sortmode=self._get_sort_mode(),
                              exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
@@ -446,6 +446,13 @@ class AvailablePane(SoftwarePane):
         self.cat_view.start_carousels()
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
+
+    def _get_item_limit(self):
+        if self.apps_search_term:
+            return self.DEFAULT_SEARCH_APPS_LIMIT
+        elif self.apps_category.item_limit > 0:
+            return self.apps_category.item_limit
+        return 0
 
     def _get_sort_mode(self):
         if self.apps_search_term:

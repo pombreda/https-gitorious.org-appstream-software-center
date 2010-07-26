@@ -180,10 +180,11 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                  self.icons,
                                  featured_cat.query,
                                  self.apps_limit,
-                                 True,
-                                 self.apps_filter,
+                                 exact=True,
+                                 filter=self.apps_filter,
                                  icon_size=best_stock_size,
-                                 global_icon_cache=False)
+                                 global_icon_cache=False,
+                                 nonapps_visible=False)
 
         self.featured_carousel = CarouselView(featured_apps, _('Featured'))
         self.featured_carousel.more_btn.connect('clicked',
@@ -199,7 +200,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                 self.db,
                                 self.icons,
                                 new_cat.query,
-                                20,
+                                new_cat.item_limit,
                                 new_cat.sortmode,
                                 self.apps_filter,
                                 icon_size=CAROUSEL_ICON_SIZE,

@@ -3,9 +3,9 @@
     <_Name>New Applications</_Name>
     <SCIcon>gtk-about</SCIcon>
     <SCSortMode>3</SCSortMode>
+    <SCItemLimit>20</SCItemLimit>
     <Include>
-      <!-- empty AND means "all" -->
-      <And></And>
+      <And><SCType>Application</SCType></And>
     </Include>
   </Menu>
 </Menu>
