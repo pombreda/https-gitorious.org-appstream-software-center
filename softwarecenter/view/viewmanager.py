@@ -29,9 +29,16 @@ class ViewManager(object):
             view_widget, gtk.Label(view_id)) # label is for debugging only
         self.all_views[view_id] = page_id
         self.view_to_pane[view_id] = view_widget
+
     def set_active_view(self, view_id):
         page_id = self.all_views[view_id]
         self.notebook_view.set_current_page(page_id)
+
+    def get_active_view(self):
+        page_id = self.notebook_view.get_current_page()
+        for (k, v) in self.all_views.iteritems():
+            if page_id == v:
+                return k
 
     def get_notebook_page_from_view_id(self, view_page):
         return self.all_views[view_page]

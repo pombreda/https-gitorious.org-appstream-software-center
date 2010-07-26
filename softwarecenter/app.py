@@ -333,7 +333,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
-        if self.notebook_view.get_current_page() == page:
+        if self.view_manager.get_active_view() == page:
             self.update_app_list_view()
             self.update_app_status_menu()
             self.update_status_bar()
@@ -676,7 +676,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def update_status_bar(self):
         "Helper that updates the status bar"
-        page = self.notebook_view.get_current_page()
         if self.active_pane:
             s = self.active_pane.get_status_text()
         else:
