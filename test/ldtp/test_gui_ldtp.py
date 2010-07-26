@@ -49,7 +49,7 @@ class SoftwareCenterLdtp(unittest.TestCase):
         # get search entry
         search = application.getchild("txtSearch")
         search.enterstring("ab")
-        time.sleep(1)
+        time.sleep(2)
         # check label
         label = application.getchild("status_text")
         label_str = label.gettextvalue()

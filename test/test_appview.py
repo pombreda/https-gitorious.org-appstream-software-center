@@ -44,7 +44,7 @@ class testAppStore(unittest.TestCase):
         """ test basic init of the AppStore model """
         store = AppStore(
             self.cache, self.db, self.mock_icons, 
-            sortmode=AppStore.SORT_BY_ALPHABET, 
+            sortmode=SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         self.assertTrue(len(store) > 0)
 
@@ -53,7 +53,7 @@ class testAppStore(unittest.TestCase):
         search_query = xapian.Query("APsoftware-center")
         store = AppStore(
             self.cache, self.db, self.mock_icons, search_query=search_query,
-            sortmode=AppStore.SORT_BY_ALPHABET, 
+            sortmode=SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         self.assertTrue(len(store) == 1)
 
@@ -61,7 +61,7 @@ class testAppStore(unittest.TestCase):
         """ test if the internal _append_app works """
         store = AppStore(
             self.cache, self.db, self.mock_icons,             
-            sortmode=AppStore.SORT_BY_ALPHABET,
+            sortmode=SORT_BY_ALPHABET,
             filter=self.mock_filter)
         len_now = len(store)
         # the _append_app() is the function we test
@@ -94,7 +94,7 @@ class testAppStore(unittest.TestCase):
         # now compare to what we get from the store
         sorted_by_appstore = []
         store = AppStore(self.cache, self.db, self.mock_icons, 
-                         sortmode=AppStore.SORT_BY_CATALOGED_TIME,
+                         sortmode=SORT_BY_CATALOGED_TIME,
                          limit=20, search_query=query,
                          nonapps_visible=True)
         for item in store:
@@ -105,7 +105,7 @@ class testAppStore(unittest.TestCase):
         """ test if the internal _insert_app_sorted works """
         store = AppStore(
             self.cache, self.db, self.mock_icons, 
-            sortmode=AppStore.SORT_BY_ALPHABET, 
+            sortmode=SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         # create a store with some entries
         store.clear()
