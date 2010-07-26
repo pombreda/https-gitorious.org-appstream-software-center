@@ -897,6 +897,9 @@ class LinkButton(gtk.EventBox):
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
 
+        self.alignment = gtk.Alignment(xalign=0.5, yalign=0.55)
+        self.add(self.alignment)
+
         self.label = gtk.Label()
         self.image = gtk.Image()
 
@@ -935,6 +938,8 @@ class LinkButton(gtk.EventBox):
         self.connect('realize', self._on_realize)
         self.connect('enter-notify-event', self._on_enter)
         self.connect('leave-notify-event', self._on_leave)
+        self.connect('focus-in-event', self._on_focus_in)
+        self.connect('focus-out-event', self._on_focus_out)
         self.connect("button-press-event", self._on_button_press)
         self.connect("button-release-event", self._on_button_release)
         self.connect("key-press-event", self._on_key_press)
@@ -964,6 +969,16 @@ class LinkButton(gtk.EventBox):
         self._colorise_label_normal()
         cat.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
+        return
+
+    def _on_focus_in(self, *args):
+        a = self.allocation
+        self.queue_draw_area(a.x-3, a.y-3, a.width+6, a.height+6)
+        return
+
+    def _on_focus_out(self, *args):
+        a = self.allocation
+        self.queue_draw_area(a.x-3, a.y-3, a.width+6, a.height+6)
         return
 
     def _on_button_press(self, cat, event):
@@ -1104,16 +1119,24 @@ class LinkButton(gtk.EventBox):
     def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
         if not_overlapping(a, expose_area): return
 
+        # for testing
+        #cr.save()
+        #cr.rectangle(a)
+        #cr.clip_preserve()
+        #cr.set_source_rgb(1, 0, 0)
+        #cr.stroke()
+        #cr.restore()
+
         if self.has_focus() and focus_draw:
             a = self.label.allocation
             m = self._xmargin
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
                                    self.state,
-                                   (x-1, y, w+2, h+1),
+                                   (x-3, y-1, w+6, h+2),
                                    self,
                                    'expander',
-                                   x-m, y, w+2*m, h+1)
+                                   x-3, y-1, w+6, h+2)
         return
 
 
@@ -1123,14 +1146,14 @@ class HLinkButton(LinkButton):
         LinkButton.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.HBox()
-        self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
         self.alignment.add(self.box)
-        self.add(self.alignment)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
-            self.box.pack_start(self.label, False)
+            a = gtk.Alignment(1.0, 0.5)
+            a.add(self.label)
+            self.box.pack_start(a, False)
 
         self.show_all()
         return
@@ -1161,9 +1184,7 @@ class VLinkButton(LinkButton):
         self._xmargin = 6
 
         self.box = gtk.VBox()
-        self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
         self.alignment.add(self.box)
-        self.add(self.alignment)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
