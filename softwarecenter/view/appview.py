@@ -315,17 +315,10 @@ class AppStore(gtk.GenericTreeModel):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white
         # flash. First, match list of 
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
         to_update = min(len(self), len(appstore))
         for i in range(to_update):
             self.apps[i] = appstore.apps[i]
             self.row_changed(i, self.get_iter(i))
-            self.app_index_map[self.apps[i]] = i
-            pkgname = self.apps[i].pkgname
-            if pkgname not in self.pkgname_index_map:
-                self.pkgname_index_map[pkgname] = []
-            self.pkgname_index_map[pkgname].append(i)
 
         to_remove = max(0, len(self) - len(appstore))
         for i in range(to_remove):
@@ -338,6 +331,8 @@ class AppStore(gtk.GenericTreeModel):
             path = len(self)
             self.apps.append(app)
             self.row_inserted(path, self.get_iter(path))
+            
+        self._rebuild_index_maps()
 
         # Next, match data about the store.
         self.cache = appstore.cache
