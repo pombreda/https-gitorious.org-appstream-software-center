@@ -48,6 +48,7 @@ from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
 from view.historypane import HistoryPane
+from view.viewmanager import ViewManager
 
 from backend.config import get_config
 from backend import get_install_backend
@@ -181,9 +182,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # misc state
         self._block_menuitem_view = False
         self._available_items_for_page = {}
-
+ 
+        # register view manager and create view panes/widgets
+        self.view_manager = ViewManager(self.notebook_view)
+        
         # available pane
-        self.all_views = {}
         self.available_pane = AvailablePane(self.cache,
                                             self.history,
                                             self.db,
@@ -204,9 +207,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     VIEW_PAGE_AVAILABLE)
-        page_id = self.notebook_view.append_page(self.available_pane,
-                                                 gtk.Label(VIEW_PAGE_AVAILABLE))
-        self.all_views[VIEW_PAGE_AVAILABLE] = page_id
+        self.view_manager.register(self.available_pane, VIEW_PAGE_AVAILABLE)
 
         # channel pane
         self.channel_pane = ChannelPane(self.cache,
@@ -227,9 +228,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     VIEW_PAGE_CHANNEL)
-        page_id = self.notebook_view.append_page(self.channel_pane,
-                                                 gtk.Label(VIEW_PAGE_CHANNEL))
-        self.all_views[VIEW_PAGE_CHANNEL] = page_id
+        self.view_manager.register(self.channel_pane, VIEW_PAGE_CHANNEL)
         
         # installed pane
         self.installed_pane = InstalledPane(self.cache,
@@ -250,9 +249,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     VIEW_PAGE_INSTALLED)
-        page_id = self.notebook_view.append_page(self.installed_pane,
-                                                 gtk.Label(VIEW_PAGE_INSTALLED))
-        self.all_views[VIEW_PAGE_INSTALLED] = page_id
+        self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
 
         # history pane
         self.history_pane = HistoryPane(self.cache,
@@ -264,19 +261,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,
                                   VIEW_PAGE_HISTORY)
-        page_id = self.notebook_view.append_page(self.history_pane,
-                                                 gtk.Label(VIEW_PAGE_HISTORY))
-        self.all_views[VIEW_PAGE_HISTORY] = page_id
+        self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
 
         # pending view
         self.pending_view = PendingView(self.icons)
-        page_id = self.notebook_view.append_page(self.pending_view,
-                                                 gtk.Label(VIEW_PAGE_PENDING))
-        self.all_views[VIEW_PAGE_PENDING] = page_id
-        print self.all_views
+        self.view_manager.register(self.pending_view, VIEW_PAGE_PENDING)
 
         # view switcher
-        self.view_switcher = ViewSwitcher(self.all_views, datadir, self.db, self.cache, self.icons)
+        self.view_switcher = ViewSwitcher(self.view_manager, datadir, self.db, self.cache, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
@@ -361,24 +353,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.searchentry.is_focus()):
             self.active_pane.navigation_bar.navigate_up()
         
-    def on_view_switcher_changed(self, view_switcher, action, channel):
-        logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
-
-        if action == VIEW_PAGE_AVAILABLE:
-            self.active_pane = self.available_pane
-        elif action == VIEW_PAGE_CHANNEL:
-            self.active_pane = self.channel_pane
-        elif action == VIEW_PAGE_INSTALLED:
-            self.active_pane = self.installed_pane
-        elif action == VIEW_PAGE_HISTORY:
-            self.active_pane = self.history_pane
-        elif action == VIEW_PAGE_PENDING:
-            self.active_pane = None
-        elif action == VIEW_PAGE_SEPARATOR_1:
-            # do nothing
-            return
-        else:
-            assert False, "Not reached"
+    def on_view_switcher_changed(self, view_switcher, view_id, channel):
+        logging.debug("view_switcher_activated: %s %s" % (view_switcher, view_page))
+        # set active pane
+        self.active_pane = self.view_manager.get_view_widget(view_id)
 
         # set menu sensitve
         self.menuitem_view_supported_only.set_sensitive(self.active_pane != None)
@@ -394,7 +372,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
-        if action == VIEW_PAGE_AVAILABLE:
+        if view_id == VIEW_PAGE_AVAILABLE:
             back_action = self.available_pane.nav_history.navhistory_back_action
             forward_action = self.available_pane.nav_history.navhistory_forward_action
             self.menuitem_go_back.set_sensitive(back_action.get_sensitive())
@@ -403,7 +381,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
         # switch to new page
-        self.notebook_view.set_current_page(self.all_views[action])
+        self.view_manager.set_active_view(view_id)
         self.update_app_list_view(channel)
         self.update_status_bar()
         self.update_app_status_menu()

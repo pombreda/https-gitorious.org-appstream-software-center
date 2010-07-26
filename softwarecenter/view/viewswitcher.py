@@ -49,13 +49,13 @@ class ViewSwitcher(gtk.TreeView):
     }
 
 
-    def __init__(self, all_views, datadir, db, cache, icons, store=None):
+    def __init__(self, view_manager, datadir, db, cache, icons, store=None):
         super(ViewSwitcher, self).__init__()
-        self.all_views = all_views
+        self.view_manager = view_manager
         self.datadir = datadir
         self.icons = icons
         if not store:
-            store = ViewSwitcherList(all_views, datadir, db, cache, icons)
+            store = ViewSwitcherList(view_manager, datadir, db, cache, icons)
             # FIXME: this is just set here for app.py, make the
             #        transactions-changed signal part of the view api
             #        instead of the model
@@ -141,8 +141,8 @@ class ViewSwitcher(gtk.TreeView):
         return path[0]
 
     def set_view(self, view_page):
-        action = self.all_views[view_page]
-        self.set_cursor((action,))
+        notebook_page_id = self.view_manager.get_notebook_page_from_view_id(view_page)
+        self.set_cursor((notebook_page_id,))
         self.emit("view-changed", view_page, None)
 
     def on_motion_notify_event(self, widget, event):
@@ -218,14 +218,14 @@ class ViewSwitcherList(gtk.TreeStore):
                                           ())}
 
 
-    def __init__(self, all_views, datadir, db, cache, icons):
+    def __init__(self, view_manager, datadir, db, cache, icons):
         gtk.TreeStore.__init__(self, 
                                AnimatedImage, 
                                str, 
                                gobject.TYPE_PYOBJECT, 
                                gobject.TYPE_PYOBJECT,
                                ) # must match columns above
-        self.all_views = all_views
+        self.view_manager = view_manager
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
