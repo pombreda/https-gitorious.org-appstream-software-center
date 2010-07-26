@@ -17,6 +17,12 @@ software-center (2.1.6) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/db/database.py:
     - parse axi values file for cataloged_time support
+  * merged lp:~mvo/software-center/new-apps-test1 that adds support
+    for a proper a "Whats new" category based on the xapian 
+    cataloged_time information
+  * debian/control:
+    - recommend aptdaemon (>= 0.38ubuntu1) to get catalogued_time
+      support
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice

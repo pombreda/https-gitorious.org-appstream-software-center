@@ -28,6 +28,7 @@ import os
 from widgets.mkit import floats_from_gdkcolor
 from widgets.pathbar_gtk_atk import NavigationBar
 from softwarecenter.backend import get_install_backend
+from softwarecenter.view.basepane import BasePane
 
 from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
@@ -61,7 +62,7 @@ def wait_for_apt_cache_ready(f):
     return wrapper
 
 
-class SoftwarePane(gtk.VBox):
+class SoftwarePane(gtk.VBox, BasePane):
     """ Common base class for InstalledPane and AvailablePane """
 
     __gsignals__ = {

@@ -44,17 +44,18 @@ class ViewSwitcher(gtk.TreeView):
     __gsignals__ = {
         "view-changed" : (gobject.SIGNAL_RUN_LAST,
                           gobject.TYPE_NONE, 
-                          (int, gobject.TYPE_PYOBJECT),
+                          (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
                          ),
     }
 
 
-    def __init__(self, datadir, db, cache, icons, store=None):
+    def __init__(self, view_manager, datadir, db, cache, icons, store=None):
         super(ViewSwitcher, self).__init__()
+        self.view_manager = view_manager
         self.datadir = datadir
         self.icons = icons
         if not store:
-            store = ViewSwitcherList(datadir, db, cache, icons)
+            store = ViewSwitcherList(view_manager, datadir, db, cache, icons)
             # FIXME: this is just set here for app.py, make the
             #        transactions-changed signal part of the view api
             #        instead of the model
@@ -73,7 +74,7 @@ class ViewSwitcher(gtk.TreeView):
         self.append_column(column)
 
         # Remember the previously selected permanent view
-        self._permanent_views = ViewSwitcherList.PERMANENT_VIEWS
+        self._permanent_views = PERMANENT_VIEWS
         self._previous_permanent_view = None
 
         # set sensible atk name
@@ -105,7 +106,7 @@ class ViewSwitcher(gtk.TreeView):
         self.set_cursor(path)
     
     def on_treeview_selected(self, path):
-        if path[0] == ViewSwitcherList.ACTION_ITEM_SEPARATOR_1:
+        if path[0] == VIEW_PAGE_SEPARATOR_1:
             return False
         return True
         
@@ -119,26 +120,31 @@ class ViewSwitcher(gtk.TreeView):
         self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
         if channel:
             self.selected_channel_installed_only = channel.installed_only
-        self.emit("view-changed", action, channel)
+
+        view_page = action
+        self.emit("view-changed", view_page, channel)
         
     def get_view(self):
         """return the current activated view number or None if no
            view is activated (this can happen when a pending view 
            disappeared). Views are:
            
-           ViewSwitcherList.ACTION_ITEM_AVAILABLE
-           ViewSwitcherList.ACTION_ITEM_CHANNEL
-           ViewSwitcherList.ACTION_ITEM_INSTALLED
-           ViewSwitcherList.ACTION_ITEM_HISTORY
-           ViewSwitcherList.ACTION_ITEM_PENDING
+           VIEW_PAGE_AVAILABLE
+           VIEW_PAGE_CHANNEL
+           VIEW_PAGE_INSTALLED
+           VIEW_PAGE_HISTORY
+           VIEW_PAGE_PENDING
         """
         (path, column) = self.get_cursor()
         if not path:
             return None
         return path[0]
-    def set_view(self, action):
-        self.set_cursor((action,))
-        self.emit("view-changed", action, None)
+
+    def set_view(self, view_page):
+        notebook_page_id = self.view_manager.get_notebook_page_from_view_id(view_page)
+        self.set_cursor((notebook_page_id,))
+        self.emit("view-changed", view_page, None)
+
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
         path = self.get_path_at_pos(int(event.x), int(event.y))
@@ -208,23 +214,6 @@ class ViewSwitcherList(gtk.TreeStore):
      COL_CHANNEL,
      ) = range(4)
 
-    # items in the treeview
-    (ACTION_ITEM_AVAILABLE,
-     ACTION_ITEM_INSTALLED,
-     ACTION_ITEM_HISTORY,
-     ACTION_ITEM_SEPARATOR_1,
-     ACTION_ITEM_PENDING,
-     ACTION_ITEM_CHANNEL) = range(6)
-
-    # items considered "permanent", that is, if a item disappears
-    # (e.g. progress) then switch back to the previous on in permanent
-    # views (LP:  #431907)
-    PERMANENT_VIEWS = (ACTION_ITEM_AVAILABLE,
-                       ACTION_ITEM_INSTALLED,
-                       ACTION_ITEM_CHANNEL,
-                       ACTION_ITEM_HISTORY,
-                       )
-
     ICON_SIZE = 24
 
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
@@ -234,13 +223,14 @@ class ViewSwitcherList(gtk.TreeStore):
                                           ())}
 
 
-    def __init__(self, datadir, db, cache, icons):
+    def __init__(self, view_manager, datadir, db, cache, icons):
         gtk.TreeStore.__init__(self, 
                                AnimatedImage, 
                                str, 
-                               int, 
+                               gobject.TYPE_PYOBJECT, 
                                gobject.TYPE_PYOBJECT,
                                ) # must match columns above
+        self.view_manager = view_manager
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
@@ -253,23 +243,27 @@ class ViewSwitcherList(gtk.TreeStore):
         # pending transactions
         self._pending = 0
         # setup the normal stuff
+
         # first, the availablepane items
         available_icon = self._get_icon("softwarecenter")
-        self.available_iter = self.append(None, [available_icon, _("Get Software"), self.ACTION_ITEM_AVAILABLE, None])
+        self.available_iter = self.append(None, [available_icon, _("Get Software"), VIEW_PAGE_AVAILABLE, None])
+
         # the installedpane items
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.installed_iter = self.append(None, [icon, _("Installed Software"), self.ACTION_ITEM_INSTALLED, None])
+        self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None])
         
-        # do initial channel list update
+        # the channelpane 
         self.channel_manager = ChannelsManager(db, icons)
+        # do initial channel list update
         self._update_channel_list()
         
         # the historypane item
         icon = self._get_icon("clock")
-        history_iter = self.append(None, [icon, _("History"), self.ACTION_ITEM_HISTORY, None])
+        history_iter = self.append(None, [icon, _("History"), VIEW_PAGE_HISTORY, None])
         icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", self.ACTION_ITEM_SEPARATOR_1, None])
+        self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None])
         
+        # the progress pane is build on demand
 
     def on_channels_changed(self, backend, res):
         logging.debug("on_channels_changed %s" % res)
@@ -282,17 +276,17 @@ class ViewSwitcherList(gtk.TreeStore):
         pending = len(total_transactions)
         if pending > 0:
             for row in self:
-                if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
+                if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
                     row[self.COL_NAME] = _("In Progress (%i)") % pending
                     break
             else:
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
                 self.append(None, [icon, _("In Progress (%i)") % pending, 
-                             self.ACTION_ITEM_PENDING, None])
+                             VIEW_PAGE_PENDING, None])
         else:
             for (i, row) in enumerate(self):
-                if row[self.COL_ACTION] == self.ACTION_ITEM_PENDING:
+                if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
                     del self[(i,)]
                     
     def on_transaction_finished(self, backend, success):
@@ -348,7 +342,7 @@ class ViewSwitcherList(gtk.TreeStore):
             self.append(self.available_iter, [
                         channel.get_channel_icon(),
                         channel.get_channel_display_name(),
-                        self.ACTION_ITEM_CHANNEL,
+                        VIEW_PAGE_CHANNEL,
                         channel])
         # delete the old ones
         for child in iters_to_kill:
@@ -384,7 +378,7 @@ class ViewSwitcherList(gtk.TreeStore):
                 self.append(self.installed_iter, [
                             channel.get_channel_icon(),
                             channel.get_channel_display_name(),
-                            self.ACTION_ITEM_CHANNEL,
+                            VIEW_PAGE_CHANNEL,
                             channel])
         # delete the old ones
         for child in iters_to_kill:
