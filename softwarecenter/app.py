@@ -354,7 +354,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane.navigation_bar.navigate_up()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
-        logging.debug("view_switcher_activated: %s %s" % (view_switcher, view_page))
+        logging.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
         # set active pane
         self.active_pane = self.view_manager.get_view_widget(view_id)
 
@@ -561,12 +561,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if not self._block_menuitem_view and self.active_pane.apps_filter.get_supported_only():
+        if (not self._block_menuitem_view and
+            self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
 
     def on_menuitem_view_supported_only_activate(self, widget):
-        if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
+        if (not self._block_menuitem_view and
+            not self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
             
