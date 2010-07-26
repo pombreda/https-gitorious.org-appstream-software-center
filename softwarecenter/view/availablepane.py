@@ -617,12 +617,8 @@ class AvailablePane(SoftwarePane):
 
         if self.apps_subcategory:
             self.current_app_by_subcategory[self.apps_subcategory] = app
-            print "self.apps_subcategory: %s" % self.apps_subcategory
-            print "app: %s" % app
         else:
             self.current_app_by_category[self.apps_category] = app
-            print "self.apps_category: %s" % self.apps_category
-            print "app: %s" % app
 
     def on_nav_back_clicked(self, widget, event):
         self.navhistory_back_action.activate()

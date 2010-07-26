@@ -176,14 +176,9 @@ class SoftwarePane(gtk.VBox):
         model = self.app_view.get_model()
         current_app = self.get_current_app()
         
-        print "model: %s" % model
-        print "current_app: %s" % current_app
-        print "current_app in model.app_index_map: %s" % (current_app in model.app_index_map)
-
         index = 0
         if model and current_app in model.app_index_map:
             index =  model.app_index_map.get(current_app)
-            print "found app: %s at index %s" % (current_app.pkgname, index)
             logging.debug("found app: %s at index %s" % (current_app.pkgname, index))
         self.app_view.set_cursor(index)
 

@@ -166,11 +166,6 @@ class AppStore(gtk.GenericTreeModel):
             self._perform_search()
 
     def _perform_search(self):
-        print ">>> CALLED perform_search"
-        import traceback
-        print "%%%%% traceback %%%%%"
-        traceback.print_stack()
-        print "%%%%%%%%%%%%%%%%%%%%%"
         already_added = set()
         for q in self.search_query:
             logging.debug("using query: '%s'" % q)
@@ -228,7 +223,7 @@ class AppStore(gtk.GenericTreeModel):
                         pkgname = term[2:]
                         break
                 app = Application("", pkgname)
-                self.app_index_map[app] = app_index
+
                 self.apps.append(app)
                 
         # if we only have nonapps to be displayed, don't hide them
@@ -237,11 +232,29 @@ class AppStore(gtk.GenericTreeModel):
             len(self.apps) == 0):
             self.nonapps_visible = True
             self._perform_search()
+            
+        # in the case where the app list is sorted, we must rebuild
+        # the app_index_map and app_package_maps after the app list
+        # has been fully populated (since only now will be know the
+        # actual final indices)
+        if self.sorted:
+            self._rebuild_index_maps()
         
         # This is data for store contents that will be generated
         # when called for externally. (see _refresh_contents_data)
         self._existing_apps = None
         self._installable_apps = None
+        
+    def _rebuild_index_maps(self):
+        self.app_index_map.clear()
+        self.pkgname_index_map.clear()
+        app = None
+        for i in range(len(self.apps)):
+            app = self.apps[i]
+            self.app_index_map[app] = i
+            if not app.pkgname in self.pkgname_index_map:
+                self.pkgname_index_map[app.pkgname] = []
+            self.pkgname_index_map[app.pkgname].append(i)
 
     def _clear_app_icon_cache(self, theme):
         self.icon_cache.clear()
@@ -282,14 +295,7 @@ class AppStore(gtk.GenericTreeModel):
             the index maps
         """
         #print "old: ", [x.pkgname for x in self.apps]
-#        print "_insert_app, with"
-#        print "              app: %s" % app
-#        print "                i: %s" % i
         self.apps.insert(i, app)
-        self.app_index_map[app] = i
-        if not app.pkgname in self.pkgname_index_map:
-            self.pkgname_index_map[app.pkgname] = []
-        self.pkgname_index_map[app.pkgname].append(i)
         self.row_inserted(i, self.get_iter(i))
         #print "new: ", [x.pkgname for x in self.apps]
 
@@ -308,8 +314,7 @@ class AppStore(gtk.GenericTreeModel):
     def update(self, appstore):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white
-        # flash. First, match list of apps.
-        print ">>> CALLED update"
+        # flash. First, match list of 
         self.app_index_map.clear()
         self.pkgname_index_map.clear()
         to_update = min(len(self), len(appstore))
@@ -1503,7 +1508,6 @@ def get_query_from_search_entry(search_term):
 
 def on_entry_changed(widget, data):
     new_text = widget.get_text()
-    print "on_entry_changed: ", new_text
     #if len(new_text) < 3:
     #    return
     (cache, db, view) = data
