@@ -13,7 +13,7 @@ class ExamplePlugin(softwarecenter.plugin.Plugin):
     def init_plugin(self):
         print "init_plugin"
         self.plugin_view = gtk.VBox()
-        self.plugin_view.pack_start(gtk.Label("lala"))
+        self.plugin_view.pack_start(gtk.Label("Hello from the example plugin"))
         self.app.view_manager.register(self.plugin_view, 
                                        self.VIEW_PAGE_EXAMPLE_PLUGIN)
 
