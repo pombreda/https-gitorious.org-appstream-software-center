@@ -49,6 +49,7 @@ class SoftwareCenterLdtp(unittest.TestCase):
         # get search entry
         search = application.getchild("txtSearch")
         search.enterstring("ab")
+        time.sleep(1)
         # check label
         label = application.getchild("status_text")
         label_str = label.gettextvalue()
@@ -56,7 +57,14 @@ class SoftwareCenterLdtp(unittest.TestCase):
         self.assertEqual(label_str, "200 matching items")
 
 if __name__ == "__main__":
-    # re-exec in xvfb if needed
+    # kill locale stuff
+    for k in ["LANGUAGE", "LANG"]:
+        if k in os.environ:
+            del os.environ[k]
+
+    # FIXME: this does not work as at-spi-registryd is not started
+    #        and starting it manually does not work for whatever reason
+    # re-exec in xvfb if needed 
     #if os.environ.get("DISPLAY") != ":99":
     #    # the xvfb window can be viewed with "xwud < Xvfb_screen0"
     #    cmd = ["xvfb-run", "-e", "xvfb.log", "-s", "-fbdir .", 
@@ -65,4 +73,5 @@ if __name__ == "__main__":
     #    subprocess.call(cmd)
     #else:
     #    unittest.main()
+
     unittest.main()
