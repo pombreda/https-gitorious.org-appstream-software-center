@@ -57,10 +57,9 @@ class AppDetailsViewBase(object):
     def _recommended_addons(self, app_details):
         pkg = app_details.pkg
         deps = self.cache.get_depends(pkg)
-        if app_details.pkg_state == PKG_STATE_UNINSTALLED:
+        recommended = []
+        if app_details.pkg_state != PKG_STATE_UNINSTALLED:
             recommended = self.cache.get_recommends(pkg)
-        else:
-            recommended = [] # Recommended pkgs are installed automatically
         for dep in deps:
             try:
                 if len(self.cache.get_rdepends(self.cache[dep])) == 1:
@@ -77,13 +76,16 @@ class AppDetailsViewBase(object):
                 can_remove = False
                 for addon_ in recommended:
                     try:
-                        if addon in self.cache.get_provides(self.cache[addon_]):
+                        if addon in self.cache.get_provides(self.cache[addon_]) \
+                        or addon in self.cache.get_depends(self.cache[addon_]) \
+                        or addon in self.cache.get_recommends(self.cache[addon_]):
                             can_remove = True
                             break
                     except KeyError:
                         recommended.remove(addon_)
                         break
-                if can_remove or not pkg_.candidate or recommended.count(addon) > 1 or addon == pkg.name:
+                if can_remove or not pkg_.candidate or recommended.count(addon) > 1 \
+                or addon == pkg.name:
                     recommended.remove(addon)
         return recommended
     
@@ -109,13 +111,14 @@ class AppDetailsViewBase(object):
                 can_remove = False
                 for addon_ in suggested:
                     try:
-                        if addon in self.cache.get_provides(self.cache[addon_]):
+                        if addon in self.cache.get_provides(self.cache[addon_]) \
+                        or addon in self.cache.get_depends(self.cache[addon_]) \
+                        or addon in self.cache.get_recommends(self.cache[addon_]):
                             can_remove = True
-                            break
                     except KeyError:
                         suggested.remove(addon_)
-                        break
-                if can_remove or not pkg_.candidate or suggested.count(addon) > 1 or addon == pkg.name:
+                if can_remove or not pkg_.candidate or suggested.count(addon) > 1 \
+                or addon == pkg.name:
                     suggested.remove(addon)
         return suggested
         

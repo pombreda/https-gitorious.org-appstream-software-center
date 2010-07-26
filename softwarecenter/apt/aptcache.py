@@ -32,6 +32,7 @@ import subprocess
 import time
 
 from gettext import gettext as _
+from softwarecenter.enums import *
 
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
@@ -229,6 +230,47 @@ class AptCache(gobject.GObject):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
     def get_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
+        
+    def _get_changes(self, pkg):
+        if pkg.installed == None:
+            pkg.mark_install()
+        else:
+            pkg.mark_delete()
+        changes_tmp = self._cache.get_changes()
+        changes = {}
+        for change in changes_tmp:
+            if change.marked_install or change.marked_reinstall:
+                changes[change.name] = PKG_STATE_INSTALLING
+            elif change.marked_delete:
+                changes[change.name] = PKG_STATE_REMOVING
+            elif change.marked_upgrade:
+                changes[change.name] = PKG_STATE_UPGRADING
+            else:
+                changes[change.name] = PKG_STATE_UNKNOWN
+        self._cache.clear()
+        return changes
+    def get_all_deps_installing(self, pkg):
+        """ Return all dependencies of pkg that will be marked for install """
+        changes = self._get_changes(pkg)
+        installing_deps = []
+        for change in changes.keys():
+            if change != pkg.name and changes[change] == PKG_STATE_INSTALLING:
+                installing_deps.append(change)
+        return installing_deps
+    def get_all_deps_removing(self, pkg):
+        changes = self._get_changes(pkg)
+        removing_deps = []
+        for change in changes.keys():
+            if change != pkg.name and changes[change] == PKG_STATE_REMOVING:
+                removing_deps.append(change)
+        return removing_deps
+    def get_all_deps_upgrading(self, pkg):
+        changes = self._get_changes(pkg)
+        upgrading_deps = []
+        for change in changes.keys():
+            if change != pkg.name and changes[change] == PKG_STATE_UPGRADING:
+                upgrading_deps.append(change)
+        return upgrading_deps
 
 if __name__ == "__main__":
     c = AptCache()
