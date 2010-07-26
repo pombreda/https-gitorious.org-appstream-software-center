@@ -2,8 +2,16 @@
 import gtk
 
 import softwarecenter.plugin
+from softwarecenter.view.basepane import BasePane
 
 from gettext import gettext as _
+
+class ExamplePluginPane(gtk.VBox, BasePane):
+    
+    def __init__(self):
+        gtk.VBox.__init__(self)
+        self.pack_start(gtk.Label("Hello from the example plugin"))
+    
 
 class ExamplePlugin(softwarecenter.plugin.Plugin):
     """ mock plugin """
@@ -12,8 +20,7 @@ class ExamplePlugin(softwarecenter.plugin.Plugin):
 
     def init_plugin(self):
         print "init_plugin"
-        self.plugin_view = gtk.VBox()
-        self.plugin_view.pack_start(gtk.Label("Hello from the example plugin"))
+        self.plugin_view = ExamplePluginPane()
         self.app.view_manager.register(self.plugin_view, 
                                        self.VIEW_PAGE_EXAMPLE_PLUGIN)
 
