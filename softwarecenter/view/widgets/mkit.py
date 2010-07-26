@@ -157,7 +157,7 @@ CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
 
 # use the link color as the clicked color for labels
 _scheme = get_gtk_color_scheme_dict()
-if _scheme.has_key('link_color'):
+if _scheme and _scheme.has_key('link_color'):
     LINK_ACTIVE_COLOR = _scheme['link_color']
 else:
     LINK_ACTIVE_COLOR = '#FF0000'   # red

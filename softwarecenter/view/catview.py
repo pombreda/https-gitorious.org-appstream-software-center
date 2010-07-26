@@ -31,6 +31,8 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
+from softwarecenter.enums import SORT_BY_ALPHABET
+
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
  COL_CAT_QUERY,
@@ -65,7 +67,9 @@ def categories_sorted_by_name(categories):
 class Category(object):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query,
-                 only_unallocated=True, dont_display=False, subcategories=None):
+                 only_unallocated=True, dont_display=False, 
+                 subcategories=None, sortmode=SORT_BY_ALPHABET,
+                 item_limit=0):
         self.name = name
         self.untranslated_name = untranslated_name
         self.iconname = iconname
@@ -73,6 +77,8 @@ class Category(object):
         self.only_unallocated = only_unallocated
         self.subcategories = subcategories
         self.dont_display = dont_display
+        self.sortmode = sortmode
+        self.item_limit = item_limit
 
     def __str__(self):
         return "* Category: %s" % self.name
@@ -222,6 +228,8 @@ class CategoriesView(object):
         only_unallocated = False
         dont_display = False
         subcategories = []
+        sortmode = SORT_BY_ALPHABET
+        item_limit = 0
         for element in item.getchildren():
             # ignore inline translations, we use gettext for this
             if (element.tag == "Name" and 
@@ -244,6 +252,10 @@ class CategoriesView(object):
                 only_unallocated = True
             elif element.tag == "SCDontDisplay":
                 dont_display = True
+            elif element.tag == "SCSortMode":
+                sortmode = int(element.text)
+            elif element.tag == "SCItemLimit":
+                item_limit = int(element.text)
             elif element.tag == "Menu":
                 subcat = self._parse_menu_tag(element)
                 if subcat:
@@ -252,7 +264,7 @@ class CategoriesView(object):
                 print "UNHANDLED tag in _parse_menu_tag: ", element.tag
                 
         if untranslated_name and query:
-            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, subcategories)
+            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, subcategories, sortmode, item_limit)
         else:
             print "UNHANDLED entry: ", name, untranslated_name, icon, query
         return None

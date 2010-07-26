@@ -1,7 +1,8 @@
 # Copyright (C) 2010 Canonical
 #
 # Authors:
-#  Michael Vogt, Gary Lasker
+#  Michael Vogt
+#  Gary Lasker
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -131,7 +132,7 @@ class ChannelPane(SoftwarePane):
                              self.icons, 
                              query, 
                              limit=0,
-                             sort=True,
+                             sortmode=self.channel.get_channel_sort_mode(),
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other

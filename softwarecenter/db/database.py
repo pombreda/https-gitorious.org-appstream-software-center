@@ -67,7 +67,7 @@ class StoreDatabase(gobject.GObject):
             if line.strip() == "":
                 continue
             (key, value) = line.split()
-            self._axi_values[key] = value
+            self._axi_values[key] = int(value)
 
     def open(self, pathname=None, use_axi=True):
         " open the database "

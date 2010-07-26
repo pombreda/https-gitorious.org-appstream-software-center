@@ -32,6 +32,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.animatedimage import AnimatedImage
 from softwarecenter.utils import *
+from softwarecenter.enums import *
 
 class ChannelsManager(object):
 
@@ -179,6 +180,7 @@ class ChannelsManager(object):
         
         dist_channel = None
         partner_channel = None
+        new_apps_channel = None
         ppa_channels = []
         other_channels = []
         unknown_channel = []
@@ -217,6 +219,15 @@ class ChannelsManager(object):
                                                       channel_origin,
                                                       None,
                                                       installed_only=installed_only))
+                                
+        # what's new is not interesting when looking at installed apps      
+        if not installed_only:
+            new_apps_query = xapian.Query("")              
+            new_apps_channel = SoftwareChannel(self.icons, 
+                                                   _("What's New"), None, None, 
+                                                   channel_icon=None,   # FIXME:  need an icon
+                                                   channel_query=new_apps_query,
+                                                   channel_sort_mode=SORT_BY_CATALOGED_TIME)
         
         # set them in order
         channels = []
@@ -224,6 +235,8 @@ class ChannelsManager(object):
             channels.append(dist_channel)
         if partner_channel is not None:
             channels.append(partner_channel)
+        if new_apps_channel is not None:
+            channels.append(new_apps_channel)
         channels.extend(ppa_channels)
         channels.extend(other_channels)
         channels.extend(unknown_channel)
@@ -242,7 +255,9 @@ class SoftwareChannel(object):
     
     def __init__(self, icons, channel_name, channel_origin, channel_component,
                  only_packages_without_applications=False,
-                 source_entry=None, installed_only=False):
+                 source_entry=None, installed_only=False,
+                 channel_icon=None, channel_query=None,
+                 channel_sort_mode=SORT_BY_ALPHABET):
         """
         configure the software channel object based on channel name,
         origin, and component (the latter for detecting the partner
@@ -254,12 +269,19 @@ class SoftwareChannel(object):
         self.only_packages_without_applications = only_packages_without_applications
         self.installed_only = installed_only
         self.icons = icons
+        self._channel_sort_mode = channel_sort_mode
         # distro specific stuff
         self.distro = get_distro()
         # configure the channel
         self._channel_display_name = self._get_display_name_for_channel(channel_name, channel_component)
-        self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
-        self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
+        if channel_icon is None:
+            self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
+        else:
+            self._channel_icon = channel_icon
+        if channel_query is None:
+            self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
+        else:
+            self._channel_query = channel_query
         # a sources.list entry attached to the channel (this is currently
         # only used for not-yet-enabled channels)
         self._source_entry = source_entry
@@ -302,6 +324,12 @@ class SoftwareChannel(object):
         return the xapian query to be used with this software channel
         """
         return self._channel_query
+        
+    def get_channel_sort_mode(self):
+        """
+        return the sort mode for this software channel
+        """
+        return self._channel_sort_mode
         
     # TODO:  implement __cmp__ so that sort for channels is encapsulated
     #        here as well
@@ -364,6 +392,7 @@ class SoftwareChannel(object):
         details.append("  get_channel_component(): %s" % self.get_channel_component())
         details.append("  get_channel_display_name(): %s" % self.get_channel_display_name())
         details.append("  get_channel_icon(): %s" % self.get_channel_icon())
+        details.append("  get_channel_query(): %s" % self.get_channel_query())
         details.append("  get_channel_query(): %s" % self.get_channel_query())
         details.append("  only_packages_without_applications: %s" % self.only_packages_without_applications)
         details.append("  installed_only: %s" % self.installed_only)
