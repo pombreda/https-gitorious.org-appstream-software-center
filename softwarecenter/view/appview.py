@@ -314,7 +314,7 @@ class AppStore(gtk.GenericTreeModel):
     def update(self, appstore):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white
-        # flash. First, match list of 
+        # flash. First, match list of apps.
         to_update = min(len(self), len(appstore))
         for i in range(to_update):
             self.apps[i] = appstore.apps[i]
