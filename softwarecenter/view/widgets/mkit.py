@@ -972,11 +972,15 @@ class LinkButton(gtk.EventBox):
         return
 
     def _on_focus_in(self, *args):
+        if self._subdued:
+            self._colorise_label_normal()
         a = self.allocation
         self.queue_draw_area(a.x-3, a.y-3, a.width+6, a.height+6)
         return
 
     def _on_focus_out(self, *args):
+        if self._subdued:
+            self._colorise_label_normal()
         a = self.allocation
         self.queue_draw_area(a.x-3, a.y-3, a.width+6, a.height+6)
         return
@@ -1039,7 +1043,7 @@ class LinkButton(gtk.EventBox):
         return
 
     def _colorise_label_normal(self):
-        if not self._subdued:
+        if not self._subdued or self.has_focus():
             col = self.style.text[gtk.STATE_NORMAL].to_string()
         else:
             col = self.style.dark[gtk.STATE_NORMAL].to_string()

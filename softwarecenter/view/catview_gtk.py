@@ -721,7 +721,7 @@ class CarouselView(mkit.FramedSection):
 
 class CategoryButton(mkit.HLinkButton):
 
-    ICON_SIZE = 24
+    ICON_SIZE = 36
 
     def __init__(self, markup, icon_name, icons):
         markup = '<span size="%s">%s</span>' % (mkit.EM*pango.SCALE, markup)
