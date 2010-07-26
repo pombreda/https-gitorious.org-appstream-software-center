@@ -58,7 +58,7 @@ class testAppStore(unittest.TestCase):
         self.assertTrue(len(store) == 1)
 
     def test_internal_append_app(self):
-        """ test if the interal _append_app works """
+        """ test if the internal _append_app works """
         store = AppStore(
             self.cache, self.db, self.mock_icons,             
             sortmode=AppStore.SORT_BY_ALPHABET,
@@ -102,7 +102,7 @@ class testAppStore(unittest.TestCase):
         self.assertEqual(sorted_by_axi, sorted_by_appstore)
 
     def test_internal_insert_app_sorted(self):
-        """ test if the interal _insert_app_sorted works """
+        """ test if the internal _insert_app_sorted works """
         store = AppStore(
             self.cache, self.db, self.mock_icons, 
             sortmode=AppStore.SORT_BY_ALPHABET, 
@@ -113,22 +113,45 @@ class testAppStore(unittest.TestCase):
             app = Application(s, s)
             store._append_app(app)
         # now test _insert_app_sorted
-        test_data = [ (-2, "hh"),
-                      ( 1, "cc"),    
-                      ( 3, "ee"),
-                      ( 0, "aa"),
-                      (-1, "zz"),
-                      (-2, "jj"),
-                      (-2, "kk"),
-                      ( 5, "ff"),
+        test_data = ["hh",
+                     "cc",    
+                     "ee",
+                     "aa",
+                     "zz",
+                     "jj",
+                     "kk",
+                     "ff"
                     ]
-        for (pos, s) in test_data:
+        for s in test_data:
             app = Application(s, s)
             store._insert_app_sorted(app)
-            self.assertEqual(store.apps[pos], app)
+            
+        expected_app_list = ["aa",
+                             "bb",
+                             "cc",
+                             "dd",
+                             "ee",
+                             "ff",
+                             "gg",
+                             "hh",
+                             "ii",
+                             "jj",
+                             "kk",
+                             "zz"]
+        actual_app_list = []
+        for app in store.apps:
+            actual_app_list.append(app.name)
+            
+        # verify that the sorted inserts worked
+        # FIXME: the order will actually depend on the *type* of sort
+        self.assertEqual(actual_app_list, expected_app_list)
+        
+        # rebuild the index maps and check them
+        store._rebuild_index_maps()
+        for app in store.apps:
+            self.assertEqual(store.apps[store.app_index_map[app]], app)
+            self.assertEqual(store.apps[store.pkgname_index_map[app.pkgname][0]].pkgname, app.pkgname)
 
-        
-        
 
 if __name__ == "__main__":
     import logging
