@@ -34,8 +34,10 @@ software-center (2.1.6) UNRELEASED; urgency=low
   * test/test_appview.py:
       add tests for correct sorting for app insert case and for
       index map updating 
+  * merge lp:~didrocks/software-center/add-remove-multiple to add a
+    remove_multiple method to aptd.py, thanks to Didier Roche! 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Jul 2010 01:23:06 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Jul 2010 01:45:09 -0400
 
 software-center (2.1.5) maverick; urgency=low
 
