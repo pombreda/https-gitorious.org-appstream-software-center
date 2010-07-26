@@ -818,7 +818,7 @@ class LayoutView(FramedSection):
             widest_w = max(widest_w, btn.calc_width())
 
         # determine number of columns to display
-        width -= 100    # fudge number
+#        width -= 100    # fudge number
         n_columns = width / widest_w
         n_columns = (width - n_columns*self.column_hbox.get_spacing()) / widest_w
 
@@ -904,6 +904,7 @@ class LinkButton(gtk.EventBox):
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
         self._fixed_width = None
+        self._markup = None
         self._use_underline = False
         self._subdued = False
         self._base_pixbuf = None
@@ -1016,11 +1017,10 @@ class LinkButton(gtk.EventBox):
         return
 
     def _colorise_label_active(self):
-        text = gobject.markup_escape_text(self.label.get_text())
         if self._use_underline:
-            self.set_label('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, text))
+            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, self._markup))
         else:
-            self.set_label('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, text))
+            self.label.set_markup('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, self._markup))
         return
 
     def _colorise_label_normal(self):
@@ -1029,12 +1029,10 @@ class LinkButton(gtk.EventBox):
         else:
             col = self.style.dark[gtk.STATE_NORMAL].to_string()
 
-        text = gobject.markup_escape_text(self.label.get_text())
-
         if self._use_underline:
-            self.set_label('<span color="%s"><u>%s</u></span>' % (col, text))
+            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (col, self._markup))
         else:
-            self.set_label('<span color="%s">%s</span>' % (col, text))
+            self.label.set_markup('<span color="%s">%s</span>' % (col, self._markup))
         return
 
     def _colorise_image_active(self):
@@ -1083,6 +1081,7 @@ class LinkButton(gtk.EventBox):
             self.label.set_markup('<u>%s</u>' % label)
         else:
             self.label.set_markup(label)
+        self._markup = label
         w = self.calc_width()
         self.set_size_request(w, self.get_size_request()[1])
         return

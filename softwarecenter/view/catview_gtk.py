@@ -321,7 +321,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
     def _get_best_fit_width(self):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - 8*(mkit.BORDER_WIDTH_LARGE)
+        return self.parent.allocation.width - 4*(mkit.BORDER_WIDTH_LARGE)
 
     def _on_style_set(self, widget, old_style):
         mkit.update_em_metrics()
@@ -725,6 +725,8 @@ class CategoryButton(mkit.HLinkButton):
     ICON_SIZE = 24
 
     def __init__(self, markup, icon_name, icons):
+        #markup = gobject.markup_escape_text(markup)
+        markup = '<span size="%s">%s</span>' % (mkit.EM*pango.SCALE, markup)
         mkit.HLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
 
         self.set_internal_xalignment(0.0)    # basically justify-left
