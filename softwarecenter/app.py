@@ -82,13 +82,6 @@ class SoftwarecenterDbusController(dbus.service.Object):
 
 class SoftwareCenterApp(SimpleGtkbuilderApp):
     
-    (NOTEBOOK_PAGE_AVAILABLE,
-     NOTEBOOK_PAGE_INSTALLED,
-     NOTEBOOK_PAGE_HISTORY,
-     NOTEBOOK_PAGE_SEPARATOR_1,
-     NOTEBOOK_PAGE_PENDING,
-     NOTEBOOK_PAGE_CHANNEL) = range(6)
-
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
     
     # the size of the icon for dialogs
@@ -200,7 +193,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.navhistory_forward_action)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_AVAILABLE)
+                                                VIEW_PAGE_AVAILABLE)
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
         self.available_pane.app_details.connect("application-request-action", 
@@ -209,7 +202,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_application_request_action)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_AVAILABLE)
+                                    VIEW_PAGE_AVAILABLE)
         self.alignment_available.add(self.available_pane)
 
         # channel pane
@@ -221,7 +214,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         datadir)
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_CHANNEL)
+                                                VIEW_PAGE_CHANNEL)
         self.channel_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
         self.channel_pane.app_details.connect("application-request-action", 
@@ -230,7 +223,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                            self.on_application_request_action)
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_CHANNEL)
+                                    VIEW_PAGE_CHANNEL)
         self.alignment_channel.add(self.channel_pane)
         
         # installed pane
@@ -242,7 +235,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             datadir)
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_INSTALLED)
+                                                VIEW_PAGE_INSTALLED)
         self.installed_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
         self.installed_pane.app_details.connect("application-request-action", 
@@ -251,7 +244,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_application_request_action)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_INSTALLED)
+                                    VIEW_PAGE_INSTALLED)
         self.alignment_installed.add(self.installed_pane)
 
         # history pane
@@ -263,7 +256,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         datadir)
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,
-                                  self.NOTEBOOK_PAGE_HISTORY)
+                                  VIEW_PAGE_HISTORY)
         self.alignment_history.add(self.history_pane)
 
         # pending view
@@ -276,7 +269,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
-        self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
+        self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
         try:
@@ -358,17 +351,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_view_switcher_changed(self, view_switcher, action, channel):
         logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
-        if action == self.NOTEBOOK_PAGE_AVAILABLE:
+        if action == VIEW_PAGE_AVAILABLE:
             self.active_pane = self.available_pane
-        elif action == self.NOTEBOOK_PAGE_CHANNEL:
+        elif action == VIEW_PAGE_CHANNEL:
             self.active_pane = self.channel_pane
-        elif action == self.NOTEBOOK_PAGE_INSTALLED:
+        elif action == VIEW_PAGE_INSTALLED:
             self.active_pane = self.installed_pane
-        elif action == self.NOTEBOOK_PAGE_HISTORY:
+        elif action == VIEW_PAGE_HISTORY:
             self.active_pane = self.history_pane
-        elif action == self.NOTEBOOK_PAGE_PENDING:
+        elif action == VIEW_PAGE_PENDING:
             self.active_pane = None
-        elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:
+        elif action == VIEW_PAGE_SEPARATOR_1:
             # do nothing
             return
         else:
@@ -387,7 +380,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
-        if action == self.NOTEBOOK_PAGE_AVAILABLE:
+        if action == VIEW_PAGE_AVAILABLE:
             back_action = self.available_pane.nav_history.navhistory_back_action
             forward_action = self.available_pane.nav_history.navhistory_forward_action
             self.menuitem_go_back.set_sensitive(back_action.get_sensitive())

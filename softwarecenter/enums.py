@@ -25,6 +25,23 @@ APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
 SOFTWARE_CENTER_PLUGIN_DIR = "/usr/share/software-center/plugins"
 
+# the various "views" that the app has
+(VIEW_PAGE_AVAILABLE,
+ VIEW_PAGE_INSTALLED,
+ VIEW_PAGE_HISTORY,
+ VIEW_PAGE_SEPARATOR_1,
+ VIEW_PAGE_PENDING,
+ VIEW_PAGE_CHANNEL) = range(6)
+
+# items considered "permanent", that is, if a item disappears
+# (e.g. progress) then switch back to the previous on in permanent
+# views (LP:  #431907)
+PERMANENT_VIEWS = (VIEW_PAGE_AVAILABLE,
+                   VIEW_PAGE_INSTALLED,
+                   VIEW_PAGE_CHANNEL,
+                   VIEW_PAGE_HISTORY,
+                  )
+
 # icons
 MISSING_APP_ICON = "applications-other"
 MISSING_PKG_ICON = "dialog-question"
