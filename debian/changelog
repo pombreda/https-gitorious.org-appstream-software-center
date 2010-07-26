@@ -1,4 +1,106 @@
-software-center (2.1.4) UNRELEASED; urgency=low
+software-center (2.1.6) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * data/software-center.menu.in:
+    - update query for fonts category (LP: #531570, #605459)
+  * debian/control:
+    - depend on humanity-icon-theme, rather than gnome-icon-theme
+  * softwarecenter/app.py:
+    - always append the humanity-icon-theme to the iconpath (LP: #436310, #466271, #527503, #556335, #594795)
+  * softwarecenter/view/availablepane.py:
+    - capitalize 'install n items' button label for mpt (LP: #605052)
+  * softwarecenter/view/catview_gtk.py:
+    - speed up carousel transition (thanks nuthinking) (LP: #604627)
+  * softwarecenter/view/catview.py:
+    - allow 'OR' tag inside an 'AND' tag
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/database.py:
+    - parse axi values file for cataloged_time support
+
+  [ Gary Lasker ]
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice
+    UI tweaks and improvements from Matthew McGowan, thanks! 
+  * softwarecenter/view/widgets/navigationbar.py,
+    softwarecenter/view/softwarepane.py:
+    - remove the old navigation bar as we won't be going back to it
+  * softwarecenter/view/availablepane.py:
+    - don't call set_category if viewing details or searching to
+      reduce unnecessary applist refreshes
+  * softwarecenter/view/appview.py;
+    - fix app row reselect in the applist view for sorted lists and also
+      for channels when the model is regenerated rather than replaced
+      (LP: #609945)
+  * test/test_appview.py:
+      add tests for correct sorting for app insert case and for
+      index map updating 
+  * merge lp:~didrocks/software-center/add-remove-multiple to add a
+    remove_multiple method to aptd.py, thanks to Didier Roche! 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Jul 2010 01:45:09 -0400
+
+software-center (2.1.5) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - fix in channel adding code
+  * merged lp:~mvo/software-center/lazr to support gobject
+    based wrapper around lazr.restfulclient apps
+  * merged lp:~mmcg069/software-center/pathbar-tweaks,
+    many thanks
+  * merged  lp:~mvo/software-center/appdetails-in-db that
+    improve the AppDetails abstraction 
+  * merged lp:~mvo/software-center/plugin-support (important
+    for the oneconf integration)
+  * merged lp:~osomon/software-center/close_in_progress
+    that fixes LP:#431907, thanks to Olivier Tilloy 
+  * remove specal cases for partner now that soyuz 
+    LP: #552560 is fixed (LP: #604693)
+  * software-center:
+    - fixes in the logging code (thanks to Geliy Sokolov)
+  * merged lp:~and471/software-center/dialog-work that improves
+    the dialogs (many thanks!)
+  
+  [ Gary Lasker ]
+  * data/icons/scalable/apps/category-show-all.svg,
+    data/icons_unbranded/scalable/apps/category-show-all.svg,
+    softwarecenter/view/catview_gtk.py:
+    - add custom icon for single-pane dept view "All" button;
+      icon created by Dani Planas Armangue, many thanks!
+      (LP: #599644)
+  * softwarecenter/view/pkgview.py:
+    - replace svg icon with png version because the svg version
+      has been removed from gnome-icon-theme (LP: #601987)
+  * po/POTFILES.in:
+    - update to latest set of modules
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk, adds
+    Matthew McGowan's new gtk-based appdetailsview, many thanks!
+    Thanks also to kiwinote and mvo for refactoring for new
+    AppDetails class and other changes.  Also fixes LP: #578650.
+  * softwarecenter/apt/aptcache.py:
+    - tweak timeout value when opening the apt cache
+      (LP: #602610) 
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk, fixes
+    description parsing error for e.g. The Gimp.  Many thanks! 
+  * softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/navhistory.py:
+    - navigation history fixes 
+  * data/ui/dialogs.ui,
+    softwarecenter/app.py,
+    softwarecenter/enums.py,
+    softwarecenter/view/appdetailsview.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/softwarepane.py:
+    - consolidate install/remove action handling to
+      one place, now shows dep package removal dialog
+      for all cases; fix response ids for dialogs 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Jul 2010 09:14:22 +0200
+
+software-center (2.1.4) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/availablepane.py:
@@ -9,6 +111,23 @@ software-center (2.1.4) UNRELEASED; urgency=low
     softwarecenter/view/channelpane.py,
     softwarecenter/view/viewswitcher.py:
     - implement channel views for installed items
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview.py,
+    softwarecenter/view/catview_gtk.py:
+    - implement single-pane department screen
+  * softwarecenter/view/catview_gtk.py:
+    - use stock go-next icon for the show all button,
+      small fix in CarouselPoster's draw method
+  * merge lp:~mmcg069/software-center/catview-conform-w-spec:
+    many nice improvements to the category view and a fix
+    for the dept screen resize bug (LP: #598502), many thanks
+    to Matthew McGowan!
+  * merge lp:~mmcg069/software-center/catview-conform-w-spec:
+    fixes subcategory screen bug (LP: #598498), thanks Matthew
+    McGowan!
+  * softwarecenter/view/catview_gtk.py:
+    - use large icons in single-pane department screen per
+      the spec
 
   [ Michael Vogt ]
   * mergedp:~arky/ubuntu/maverick/software-center/fixes-595500:
@@ -19,8 +138,21 @@ software-center (2.1.4) UNRELEASED; urgency=low
     to make the categories look like the spec
   * add information about "upgraded" packages to the history pane 
     (thanks to seb128 for the suggestion)
+  * merged lp:~mvo/software-center/new-apps-test1 and
+    lp:~mmcg069/software-center/catview-conform-w-spec, thanks
+    to Matthew McGowan
+  * merged lp:~mvo/software-center/update-from-var-lib-apt-lists
+    to support meta-data in deb822 format in /var/lib/apt/lists
+  * softwarecenter/view/catview_gtk.py:
+    - append "all" to get pathbar when "all" button is clicked in
+      a subcategory
+  * support detecting a broken apt cache and repairing it
+    (LP: #430200)
+  * debian/control:
+    - drop transitional gnome-app-install package, its no longer
+      required for clean upgrades
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Jun 2010 14:14:23 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Jun 2010 11:42:16 +0200
 
 software-center (2.1.3) maverick; urgency=low
 

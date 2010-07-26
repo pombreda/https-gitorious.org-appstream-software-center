@@ -59,6 +59,9 @@ class AptCache(gobject.GObject):
                     'cache-invalid':(gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
                                      ()),
+                    'cache-broken':(gobject.SIGNAL_RUN_FIRST,
+                                     gobject.TYPE_NONE,
+                                     ()),
                     }
 
     def __init__(self):
@@ -67,7 +70,7 @@ class AptCache(gobject.GObject):
         self._ready = False
         self._timeout_id = None
         # async open cache
-        glib.timeout_add(100, self.open)
+        glib.timeout_add(10, self.open)
         # setup monitor watch for install/remove changes
         self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
         self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(
@@ -93,6 +96,8 @@ class AptCache(gobject.GObject):
             self._cache.open(GtkMainIterationProgress())
         self._ready = True
         self.emit("cache-ready")
+        if self._cache.broken_count > 0:
+            self.emit("cache-broken")
     def __getitem__(self, key):
         return self._cache[key]
     def __iter__(self):

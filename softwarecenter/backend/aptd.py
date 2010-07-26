@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import aptsources.sourceslist
 import dbus
 import gobject
 import os
@@ -92,6 +93,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         axi.update_async(True, True)
 
     @inline_callbacks
+    def fix_broken_depends(self):
+        self.emit("transaction-started")
+        try:
+            trans = yield self.aptd_client.fix_broken_depends(defer=True)
+            yield self._run_transaction(trans, None, None, None)
+        except Exception, error:
+            self._on_trans_error(error)
+
+    @inline_callbacks
     def upgrade(self, pkgname, appname, iconname):
         """ upgrade a single package """
         self.emit("transaction-started")
@@ -112,6 +122,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
             self._on_trans_error(error)
+
+    @inline_callbacks
+    def remove_multiple(self, pkgnames, appnames, iconnames):
+        """ queue a list of packages for removal  """
+        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
+            yield self.remove(pkgname, appname, iconname)
 
     @inline_callbacks
     def install(self, pkgname, appname, iconname):
@@ -154,8 +170,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     @inline_callbacks
     def enable_channel(self, channelfile):
-        import aptsources.sourceslist
-
         # read channel file and add all relevant lines
         for line in open(channelfile):
             line = line.strip()
@@ -165,16 +179,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if entry.invalid:
                 continue
             sourcepart = os.path.basename(channelfile)
-            yield self.add_sources_list_entry(self, entry, sourcepart)
+            yield self.add_sources_list_entry(entry, sourcepart)
         yield self.reload()
 
     @inline_callbacks
     def add_sources_list_entry(self, source_entry, sourcepart=None):
-        from aptsources.sourceslist import SourceEntry
-
         if isinstance(source_entry, basestring):
             entry = SourceEntry(source_entry)
-        elif isinstance(source_entry, type(SourceEntry)):
+        elif isinstance(source_entry, aptsources.sourceslist.SourceEntry):
             entry = source_entry
         else:
             raise ValueError, "Unsupported entry type %s" % type(source_entry)

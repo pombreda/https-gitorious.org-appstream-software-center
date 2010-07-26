@@ -72,6 +72,10 @@ class ViewSwitcher(gtk.TreeView):
         column.set_attributes(tr, markup=store.COL_NAME)
         self.append_column(column)
 
+        # Remember the previously selected permanent view
+        self._permanent_views = ViewSwitcherList.PERMANENT_VIEWS
+        self._previous_permanent_view = None
+
         # set sensible atk name
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Software sources"))
@@ -90,6 +94,7 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("cursor-changed", self.on_cursor_changed)
 
         self.get_model().connect("channels-refreshed", self._on_channels_refreshed)
+        self.get_model().connect("row-deleted", self._on_row_deleted)
         
     def on_treeview_row_expanded(self, widget, iter, path):
         # do nothing on a node expansion
@@ -109,6 +114,8 @@ class ViewSwitcher(gtk.TreeView):
         model = self.get_model()
         action = model[path][ViewSwitcherList.COL_ACTION]
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
+        if action in self._permanent_views:
+            self._previous_permanent_view = path
         self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
         if channel:
             self.selected_channel_installed_only = channel.installed_only
@@ -180,13 +187,21 @@ class ViewSwitcher(gtk.TreeView):
             if channel_iter_to_select:
                 self.set_cursor(model.get_path(channel_iter_to_select))
 
+    def _on_row_deleted(self, widget, path):
+        if self.get_cursor()[0] is None:
+            # The view that was selected has been deleted, switch back to
+            # the previously selected permanent view.
+            if self._previous_permanent_view is not None:
+                self.set_cursor(self._previous_permanent_view)
+
 class ViewSwitcherList(gtk.TreeStore):
     
     # columns
     (COL_ICON,
      COL_NAME,
      COL_ACTION,
-     COL_CHANNEL) = range(4)
+     COL_CHANNEL,
+     ) = range(4)
 
     # items in the treeview
     (ACTION_ITEM_AVAILABLE,
@@ -195,6 +210,15 @@ class ViewSwitcherList(gtk.TreeStore):
      ACTION_ITEM_SEPARATOR_1,
      ACTION_ITEM_PENDING,
      ACTION_ITEM_CHANNEL) = range(6)
+
+    # items considered "permanent", that is, if a item disappears
+    # (e.g. progress) then switch back to the previous on in permanent
+    # views (LP:  #431907)
+    PERMANENT_VIEWS = (ACTION_ITEM_AVAILABLE,
+                       ACTION_ITEM_INSTALLED,
+                       ACTION_ITEM_CHANNEL,
+                       ACTION_ITEM_HISTORY,
+                       )
 
     ICON_SIZE = 24
 
@@ -206,7 +230,12 @@ class ViewSwitcherList(gtk.TreeStore):
 
 
     def __init__(self, datadir, db, cache, icons):
-        gtk.TreeStore.__init__(self, AnimatedImage, str, int, gobject.TYPE_PYOBJECT)
+        gtk.TreeStore.__init__(self, 
+                               AnimatedImage, 
+                               str, 
+                               int, 
+                               gobject.TYPE_PYOBJECT,
+                               ) # must match columns above
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()

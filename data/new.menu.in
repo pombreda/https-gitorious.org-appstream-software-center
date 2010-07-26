@@ -2,10 +2,10 @@
   <Menu>
     <_Name>New Applications</_Name>
     <SCIcon>gtk-about</SCIcon>
+    <SCSortMode>3</SCSortMode>
     <Include>
-      <Or>
-	<SCOrigin>LP-PPA-app-review-board</SCOrigin>
-      </Or>
+      <!-- empty AND means "all" -->
+      <And></And>
     </Include>
   </Menu>
 </Menu>

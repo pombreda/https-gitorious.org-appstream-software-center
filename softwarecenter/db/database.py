@@ -19,7 +19,9 @@
 import gobject
 import locale
 import logging
+import os
 import re
+import string
 import xapian
 
 from softwarecenter import Application
@@ -51,8 +53,23 @@ class StoreDatabase(gobject.GObject):
         gobject.GObject.__init__(self)
         self._db_pathname = pathname
         self._aptcache = cache
+        # the xapian values as read from /var/lib/apt-xapian-index/values
+        self._axi_values = {}
 
-    def open(self, pathname=None):
+    def _parse_axi_values_file(self, filename="/var/lib/apt-xapian-index/values"):
+        """ parse the apt-xapian-index "values" file and provide the 
+            information in the self._axi_values dict
+        """
+        if not os.path.exists(filename):
+            return
+        for raw_line in open(filename):
+            line = string.split(raw_line, "#", 1)[0]
+            if line.strip() == "":
+                continue
+            (key, value) = line.split()
+            self._axi_values[key] = int(value)
+
+    def open(self, pathname=None, use_axi=True):
         " open the database "
         if pathname:
             self._db_pathname = pathname
@@ -60,11 +77,13 @@ class StoreDatabase(gobject.GObject):
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
-        try:
-            axi = xapian.Database("/var/lib/apt-xapian-index/index")
-            self.xapiandb.add_database(axi)
-        except:
-            logging.exception("failed to add apt-xapian-index")
+        if use_axi:
+            try:
+                axi = xapian.Database("/var/lib/apt-xapian-index/index")
+                self.xapiandb.add_database(axi)
+                self._parse_axi_values_file()
+            except:
+                logging.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
@@ -188,6 +207,15 @@ class StoreDatabase(gobject.GObject):
             pkgname = doc.get_data()
         return pkgname
 
+    def get_appname(self, doc):
+        """ Return a appname from a xapian document """
+        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        # if there is no value it means we use the apt-xapian-index 
+        # and that has no appname
+        if not pkgname:
+            return None
+        return doc.get_data()
+
     def get_iconname(self, doc):
         """ Return the iconname from the xapian document """
         iconname = doc.get_value(XAPIAN_VALUE_ICON)
@@ -233,6 +261,11 @@ class StoreDatabase(gobject.GObject):
         """return the doc count of the database"""
         return self.xapiandb.get_doccount()
 
+    def __iter__(self):
+        """ support iterating over the documents """
+        for it in self.xapiandb.postlist(""):
+            doc = self.xapiandb.get_document(it.docid)
+            yield doc
 
 if __name__ == "__main__":
     import apt

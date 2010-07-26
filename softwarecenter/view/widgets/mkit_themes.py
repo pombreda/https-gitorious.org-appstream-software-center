@@ -22,6 +22,7 @@ import colorsys
 
 import logging
 
+THEME_MESSAGE_DISPLAYED = False
 
 class ColorArray:
 
@@ -297,7 +298,7 @@ class DustSand(Theme):
 
     def get_properties(self, gtksettings):
         props = {
-            'curvature': 2.5,
+            'curvature': 3,
             'min-part-width': 48,
             'xpad': 8,
             'ypad': 4,
@@ -374,24 +375,20 @@ class Dust(DustSand):
 
     def get_grad_palette(self):
 
-        selected_color = self.bg[gtk.STATE_NORMAL].mix(self.bg[gtk.STATE_SELECTED],
-                                                       0.5)
-
-        prelight_color = self.bg[gtk.STATE_NORMAL].mix(self.bg[gtk.STATE_SELECTED],
-                                                       0.175)
+        selected_color = color_from_string('#D9C7BD')
 
         # provide two colours per state for background vertical linear gradients
-        palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL].shade(1.4),
-                                         self.bg[gtk.STATE_NORMAL].shade(1.1)),
+        palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL].shade(1.145),
+                                         self.bg[gtk.STATE_NORMAL].shade(0.985)),
 
                   gtk.STATE_ACTIVE:      (self.bg[gtk.STATE_ACTIVE].shade(1.2),
                                           self.bg[gtk.STATE_ACTIVE]),
 
-                  gtk.STATE_SELECTED:    (selected_color.shade(1.5),
-                                          selected_color.shade(1.2)),
+                  gtk.STATE_SELECTED:    (selected_color.shade(1.2),
+                                          selected_color.shade(0.975)),
 
-                  gtk.STATE_PRELIGHT:    (prelight_color.shade(1.74),
-                                          prelight_color.shade(1.42)),
+                  gtk.STATE_PRELIGHT:    (self.bg[gtk.STATE_PRELIGHT].shade(1.35),
+                                          self.bg[gtk.STATE_PRELIGHT].shade(1.05)),
 
                   gtk.STATE_INSENSITIVE: (self.bg[gtk.STATE_INSENSITIVE],
                                           self.bg[gtk.STATE_INSENSITIVE])
@@ -405,7 +402,9 @@ class Dust(DustSand):
 
     def get_light_line_palette(self):
         palette = DustSand.get_light_line_palette(self)
-        palette[gtk.STATE_SELECTED] = self.bg[gtk.STATE_NORMAL].shade(1.15)
+        palette[gtk.STATE_NORMAL] = self.bg[gtk.STATE_NORMAL].shade(1.1)
+        selected_color = color_from_string('#D9C7BD')
+        palette[gtk.STATE_SELECTED] = selected_color.shade(1.2)
         return palette
 
 
@@ -613,11 +612,18 @@ class ThemeRegistry:
                 "Radiance": Radiance}
 
     def retrieve(self, theme_name):
+        # To keep the messages to a minimum
+        global THEME_MESSAGE_DISPLAYED
+        
         if self.REGISTRY.has_key(theme_name):
-            logging.debug("Styling hints found for %s..." % theme_name)
+            if not THEME_MESSAGE_DISPLAYED:
+                logging.debug("Styling hints found for %s..." % theme_name)
+                THEME_MESSAGE_DISPLAYED = True
             return self.REGISTRY[theme_name]()
 
-        logging.warn("No styling hints for %s were found... using Human hints." % theme_name)
+        if not THEME_MESSAGE_DISPLAYED:
+            logging.warn("No styling hints for %s were found... using Human hints." % theme_name)
+            THEME_MESSAGE_DISPLAYED = True
         from mkit_themes import Clearlooks
         return Clearlooks()
 

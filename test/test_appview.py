@@ -43,7 +43,8 @@ class testAppStore(unittest.TestCase):
     def test_init(self):
         """ test basic init of the AppStore model """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, sort=True, 
+            self.cache, self.db, self.mock_icons, 
+            sortmode=AppStore.SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         self.assertTrue(len(store) > 0)
 
@@ -52,13 +53,15 @@ class testAppStore(unittest.TestCase):
         search_query = xapian.Query("APsoftware-center")
         store = AppStore(
             self.cache, self.db, self.mock_icons, search_query=search_query,
-            sort=True, filter=self.mock_filter)
+            sortmode=AppStore.SORT_BY_ALPHABET, 
+            filter=self.mock_filter)
         self.assertTrue(len(store) == 1)
 
     def test_internal_append_app(self):
-        """ test if the interal _append_app works """
+        """ test if the internal _append_app works """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, sort=True, 
+            self.cache, self.db, self.mock_icons,             
+            sortmode=AppStore.SORT_BY_ALPHABET,
             filter=self.mock_filter)
         len_now = len(store)
         # the _append_app() is the function we test
@@ -74,10 +77,35 @@ class testAppStore(unittest.TestCase):
         self.assertEqual(store.apps[store.pkgname_index_map["foo"][0]], app)
         self.assertEqual(store.apps[store.pkgname_index_map["foo"][0]].pkgname, "foo")
 
+    def test_sort_by_cataloged_time(self):
+        # use axi to sort-by-cataloged-time
+        sorted_by_axi = []
+        db = xapian.Database("/var/lib/apt-xapian-index/index")
+        query = xapian.Query("")
+        enquire = xapian.Enquire(db)
+        enquire.set_query(query)
+        valueno = self.db._axi_values["catalogedtime"]
+        enquire.set_sort_by_value(int(valueno), reverse=True)
+        matches = enquire.get_mset(0, 20)
+        for m in matches:
+            doc = db.get_document(m.docid)
+            #print xapian.sortable_unserialise(doc.get_value(valueno))
+            sorted_by_axi.append(self.db.get_pkgname(doc))
+        # now compare to what we get from the store
+        sorted_by_appstore = []
+        store = AppStore(self.cache, self.db, self.mock_icons, 
+                         sortmode=AppStore.SORT_BY_CATALOGED_TIME,
+                         limit=20, search_query=query,
+                         nonapps_visible=True)
+        for item in store:
+            sorted_by_appstore.append(item[AppStore.COL_PKGNAME])
+        self.assertEqual(sorted_by_axi, sorted_by_appstore)
+
     def test_internal_insert_app_sorted(self):
-        """ test if the interal _insert_app_sorted works """
+        """ test if the internal _insert_app_sorted works """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, sort=True, 
+            self.cache, self.db, self.mock_icons, 
+            sortmode=AppStore.SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         # create a store with some entries
         store.clear()
@@ -85,22 +113,45 @@ class testAppStore(unittest.TestCase):
             app = Application(s, s)
             store._append_app(app)
         # now test _insert_app_sorted
-        test_data = [ (-2, "hh"),
-                      ( 1, "cc"),    
-                      ( 3, "ee"),
-                      ( 0, "aa"),
-                      (-1, "zz"),
-                      (-2, "jj"),
-                      (-2, "kk"),
-                      ( 5, "ff"),
+        test_data = ["hh",
+                     "cc",    
+                     "ee",
+                     "aa",
+                     "zz",
+                     "jj",
+                     "kk",
+                     "ff"
                     ]
-        for (pos, s) in test_data:
+        for s in test_data:
             app = Application(s, s)
             store._insert_app_sorted(app)
-            self.assertEqual(store.apps[pos], app)
+            
+        expected_app_list = ["aa",
+                             "bb",
+                             "cc",
+                             "dd",
+                             "ee",
+                             "ff",
+                             "gg",
+                             "hh",
+                             "ii",
+                             "jj",
+                             "kk",
+                             "zz"]
+        actual_app_list = []
+        for app in store.apps:
+            actual_app_list.append(app.name)
+            
+        # verify that the sorted inserts worked
+        # FIXME: the order will actually depend on the *type* of sort
+        self.assertEqual(actual_app_list, expected_app_list)
+        
+        # rebuild the index maps and check them
+        store._rebuild_index_maps()
+        for app in store.apps:
+            self.assertEqual(store.apps[store.app_index_map[app]], app)
+            self.assertEqual(store.apps[store.pkgname_index_map[app.pkgname][0]].pkgname, app.pkgname)
 
-        
-        
 
 if __name__ == "__main__":
     import logging

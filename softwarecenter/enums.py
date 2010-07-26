@@ -23,10 +23,18 @@ APP_INSTALL_PATH = "/usr/share/app-install"
 APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
+SOFTWARE_CENTER_PLUGIN_DIR = "/usr/share/software-center/plugins"
 
 # icons
 MISSING_APP_ICON = "applications-other"
 MISSING_PKG_ICON = "dialog-question"
+
+# sorting
+(SORT_UNSORTED,
+ SORT_BY_ALPHABET,
+ SORT_BY_SEARCH_RANKING,
+ SORT_BY_CATALOGED_TIME,
+) = range(4)
 
 # values used in the database
 XAPIAN_VALUE_APPNAME = 170
@@ -40,6 +48,21 @@ XAPIAN_VALUE_SUMMARY = 177
 XAPIAN_VALUE_ARCHIVE_CHANNEL = 178
 XAPIAN_VALUE_DESKTOP_FILE = 179
 
+# pkg action state constants
+PKG_STATE_INSTALLED     = 0
+PKG_STATE_UNINSTALLED   = 1
+PKG_STATE_UPGRADABLE    = 2
+PKG_STATE_INSTALLING    = 3
+PKG_STATE_REMOVING      = 4
+PKG_STATE_UPGRADING     = 5
+PKG_STATE_NEEDS_SOURCE  = 6
+PKG_STATE_UNKNOWN       = 7
+PKG_STATE_REINSTALLABLE = 8
+
+# application actions
+APP_ACTION_INSTALL = "install"
+APP_ACTION_REMOVE = "remove"
+APP_ACTION_UPGRADE = "upgrade"
 
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 

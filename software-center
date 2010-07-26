@@ -52,16 +52,16 @@ if __name__ == "__main__":
                       default=False)
     (options, args) = parser.parse_args()
 
+    logger = logging.getLogger()
     if options.debug_filter:
-        logger = logging.getLogger()
         logger.addFilter(logging.Filter(options.debug_filter))
         # implies general debug
         options.debug = True
         
     if options.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        logger.setLevel(level=logging.DEBUG)
     else:
-        logging.basicConfig(level=logging.INFO)
+        logger.setLevel(level=logging.INFO)
     
     # override text direction for testing purposes
     if options.force_rtl:
