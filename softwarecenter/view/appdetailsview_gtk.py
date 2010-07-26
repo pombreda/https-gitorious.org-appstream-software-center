@@ -824,7 +824,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
-        magic_number = 6*mkit.EM    # !?
         l = self.app_info.label.get_layout()
         if l.get_pixel_extents()[1][2] > w-84-4*mkit.EM:
             self.app_info.label.set_size_request(w-84-4*mkit.EM, -1)
@@ -837,7 +836,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         for pt in self.app_desc.points:
             pt.set_size_request(w-7*mkit.EM-166, -1)
 
-        self.info_table.set_width(w-magic_number)
+        self.info_table.set_width(w-6*mkit.EM)
 
         self._full_redraw()   #  ewww
         return
@@ -976,13 +975,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
-        self.homepage_btn.set_xmargin(1)
+        self.homepage_btn.set_xmargin(0)
         self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
         self.share_btn = mkit.HLinkButton(_('Share...'))
         self.share_btn.set_underline(True)
-        self.share_btn.set_xmargin(1)
+        self.share_btn.set_xmargin(0)
         self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
