@@ -205,14 +205,14 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                 icon_size=CAROUSEL_ICON_SIZE,
                                 global_icon_cache=False,
                                 nonapps_visible=True)
-        self.newapps_carousel = CarouselView(new_apps, _("What's New"),
-                                             start_random=False)
-        self.newapps_carousel.more_btn.connect('clicked',
-                                               self._on_category_clicked,
-                                               new_cat)
-
-        # pack new carousel into hbox
-        self.hbox_inner.pack_start(self.newapps_carousel, False)
+            self.newapps_carousel = CarouselView(new_apps, 
+                                                 _("What's New"),
+                                                 start_random=False)
+            self.newapps_carousel.more_btn.connect('clicked',
+                                                   self._on_category_clicked,
+                                                   new_cat)
+            # pack new carousel into hbox
+            self.hbox_inner.pack_start(self.newapps_carousel, False)
 
         # append carousel's to lobby page
         self.vbox.pack_start(self.hbox_inner, False)

@@ -243,7 +243,7 @@ class AppStore(gtk.GenericTreeModel):
         # the app_index_map and app_package_maps after the app list
         # has been fully populated (since only now will be know the
         # actual final indices)
-        if self.sorted:
+        if self.sortmode == SORT_BY_ALPHABET:
             self._rebuild_index_maps()
         
         # This is data for store contents that will be generated
