@@ -23,18 +23,19 @@ software-center (2.1.6) UNRELEASED; urgency=low
     UI tweaks and improvements from Matthew McGowan, thanks! 
   * softwarecenter/view/widgets/navigationbar.py,
     softwarecenter/view/softwarepane.py:
-    - remove the old navigation bar; we won't be going back to it
+    - remove the old navigation bar as we won't be going back to it
   * softwarecenter/view/availablepane.py:
     - don't call set_category if viewing details or searching to
-      eliminate unneeded calls to refresh_apps
+      reduce unnecessary applist refreshes
   * softwarecenter/view/appview.py;
-    - fix app reselect in the applist view for sorted lists and
+    - fix app row reselect in the applist view for sorted lists and also
       for channels when the model is regenerated rather than replaced
+      (LP: #609945)
   * test/test_appview.py:
       add tests for correct sorting for app insert case and for
       index map updating 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 25 Jul 2010 23:24:47 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Jul 2010 01:23:06 -0400
 
 software-center (2.1.5) maverick; urgency=low
 
