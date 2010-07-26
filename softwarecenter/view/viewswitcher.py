@@ -44,17 +44,18 @@ class ViewSwitcher(gtk.TreeView):
     __gsignals__ = {
         "view-changed" : (gobject.SIGNAL_RUN_LAST,
                           gobject.TYPE_NONE, 
-                          (int, gobject.TYPE_PYOBJECT),
+                          (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
                          ),
     }
 
 
-    def __init__(self, datadir, db, cache, icons, store=None):
+    def __init__(self, all_views, datadir, db, cache, icons, store=None):
         super(ViewSwitcher, self).__init__()
+        self.all_views = all_views
         self.datadir = datadir
         self.icons = icons
         if not store:
-            store = ViewSwitcherList(datadir, db, cache, icons)
+            store = ViewSwitcherList(all_views, datadir, db, cache, icons)
             # FIXME: this is just set here for app.py, make the
             #        transactions-changed signal part of the view api
             #        instead of the model
@@ -119,7 +120,9 @@ class ViewSwitcher(gtk.TreeView):
         self.selected_channel_name = model[path][ViewSwitcherList.COL_NAME]
         if channel:
             self.selected_channel_installed_only = channel.installed_only
-        self.emit("view-changed", action, channel)
+
+        view_page = action
+        self.emit("view-changed", view_page, channel)
         
     def get_view(self):
         """return the current activated view number or None if no
@@ -136,9 +139,12 @@ class ViewSwitcher(gtk.TreeView):
         if not path:
             return None
         return path[0]
-    def set_view(self, action):
+
+    def set_view(self, view_page):
+        action = self.all_views[view_page]
         self.set_cursor((action,))
-        self.emit("view-changed", action, None)
+        self.emit("view-changed", view_page, None)
+
     def on_motion_notify_event(self, widget, event):
         #print "on_motion_notify_event: ", event
         path = self.get_path_at_pos(int(event.x), int(event.y))
@@ -212,13 +218,14 @@ class ViewSwitcherList(gtk.TreeStore):
                                           ())}
 
 
-    def __init__(self, datadir, db, cache, icons):
+    def __init__(self, all_views, datadir, db, cache, icons):
         gtk.TreeStore.__init__(self, 
                                AnimatedImage, 
                                str, 
-                               int, 
+                               gobject.TYPE_PYOBJECT, 
                                gobject.TYPE_PYOBJECT,
                                ) # must match columns above
+        self.all_views = all_views
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
@@ -231,15 +238,18 @@ class ViewSwitcherList(gtk.TreeStore):
         # pending transactions
         self._pending = 0
         # setup the normal stuff
+
         # first, the availablepane items
         available_icon = self._get_icon("softwarecenter")
         self.available_iter = self.append(None, [available_icon, _("Get Software"), VIEW_PAGE_AVAILABLE, None])
+
         # the installedpane items
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
         self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None])
         
-        # do initial channel list update
+        # the channelpane 
         self.channel_manager = ChannelsManager(db, icons)
+        # do initial channel list update
         self._update_channel_list()
         
         # the historypane item
@@ -248,6 +258,7 @@ class ViewSwitcherList(gtk.TreeStore):
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None])
         
+        # the progress pane is build on demand
 
     def on_channels_changed(self, backend, res):
         logging.debug("on_channels_changed %s" % res)

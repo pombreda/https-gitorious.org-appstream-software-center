@@ -26,12 +26,12 @@ ICON_PATH = APP_INSTALL_PATH+"/icons/"
 SOFTWARE_CENTER_PLUGIN_DIR = "/usr/share/software-center/plugins"
 
 # the various "views" that the app has
-(VIEW_PAGE_AVAILABLE,
- VIEW_PAGE_INSTALLED,
- VIEW_PAGE_HISTORY,
- VIEW_PAGE_SEPARATOR_1,
- VIEW_PAGE_PENDING,
- VIEW_PAGE_CHANNEL) = range(6)
+VIEW_PAGE_AVAILABLE = "view-page-available"
+VIEW_PAGE_INSTALLED = "view-page-installed"
+VIEW_PAGE_HISTORY =  "view-page-history"
+VIEW_PAGE_SEPARATOR_1 = "view-page-separator-1"
+VIEW_PAGE_PENDING =  "view-page-pending"
+VIEW_PAGE_CHANNEL = "view-page-channel"
 
 # items considered "permanent", that is, if a item disappears
 # (e.g. progress) then switch back to the previous on in permanent
