@@ -524,12 +524,15 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_list(self):
+        viewing_details = self.navigation_bar.has_id(self.NAV_BUTTON_ID_DETAILS)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-
+        
         if self.apps_subcategory:
             self.apps_subcategory = None
-        self.set_category(self.apps_category)
+        if (not self.apps_search_term and
+            not viewing_details):
+            self.set_category(self.apps_category)
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
