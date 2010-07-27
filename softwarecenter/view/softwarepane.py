@@ -32,6 +32,8 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
 
 from widgets.searchentry import SearchEntry
+
+#from widgets.actionbar2 import ActionBar
 from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter

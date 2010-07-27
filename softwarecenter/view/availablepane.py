@@ -208,7 +208,6 @@ class AvailablePane(SoftwarePane):
         else:
             self.notebook.set_current_page(self.PAGE_APPLIST)
             self.update_app_view()
-            self._update_action_bar()
 
     def refresh_apps(self):
         """refresh the applist and update the navigation bar
@@ -556,6 +555,8 @@ class AvailablePane(SoftwarePane):
         # the new model is ready
         self.searchentry.show()
         self.cat_view.stop_carousels()
+        
+        self._update_action_bar()
         return
 
     def display_subcat(self):
@@ -568,6 +569,7 @@ class AvailablePane(SoftwarePane):
         #model = self.app_view.get_model()
         #if model is not None:
             #self.emit("app-list-changed", len(model))
+        self.action_bar.clear()
         self.searchentry.show()
         self.cat_view.stop_carousels()
         return
@@ -646,8 +648,8 @@ class AvailablePane(SoftwarePane):
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
         # sub-category page that has no visible applications
-        return (self.notebook.get_current_page() == self.PAGE_CATEGORY or
-                not self.scroll_app_list.props.visible)
+        return (self.notebook.get_current_page() == self.PAGE_CATEGORY or \
+                self.notebook.get_current_page() == self.PAGE_SUBCATEGORY)
 
     def set_category(self, category):
         #print "set_category", category

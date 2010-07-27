@@ -25,6 +25,10 @@ software-center (2.1.6) UNRELEASED; urgency=low
       support
   * merged lp:~hellium/software-center/logging, thanks to 
     Geliy Sokolov
+  * merged lp:~mmcg069/software-center/bigger-icons, the icon size
+    is actually the same, name is a bit misleading. It contains a new
+    actionbar, but that is not yet enabled as its not feature complete
+    yet
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice
