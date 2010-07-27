@@ -75,7 +75,7 @@ class AptHistory(object):
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
         self._logger = logging.getLogger("softwarecenter.apt")
-        self._logger.info("init history")
+        self._logger.debug("init history")
 
     def rescan(self):
         self.transactions = []

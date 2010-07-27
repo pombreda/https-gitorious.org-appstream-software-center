@@ -28,11 +28,15 @@ class NullFilterThatWarnsAboutRootLoggerUsage(logging.Filter):
     def filter(self, record):
         if not record.name.startswith("softwarecenter"):
             fixme_msg = logging.getLogger("softwarecenter.fixme").findCaller()
-            logging.getLogger("softwarecenter.fixme").warn("logs to the root logger: '%s'" % fixme_msg)
+            s = "logs to the root logger: '%s'" % str(fixme_msg)
+            logging.getLogger("softwarecenter.fixme").warn(s)
         return 1
 	
 class OrFilter(logging.Filter):
-    def __init__(self, name=''):
+    """ A filter that can have multiple filter strings and shows
+        the message if any of the filter strings matches
+    """
+    def __init__(self):
         self.filters = []
     def filter(self, record):
         for (fname,flen) in self.filters:
@@ -42,6 +46,7 @@ class OrFilter(logging.Filter):
                 return 1
         return 0
     def add(self, log_filter):
+        """ add a log_filter string to the list of OR expressions """
         self.filters.append((log_filter, len(log_filter)))
 
 def add_filters_from_string(long_filter_str):
