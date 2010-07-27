@@ -32,6 +32,8 @@ software-center (2.1.6) UNRELEASED; urgency=low
     yet
   * merged lp:~didrocks/software-center/fix-running-standalone-pane,
     many thanks
+  * Support "appname;pkgname" on the commandline when a single 
+    argument is passed. Without ";" its considered a pkgname
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice
