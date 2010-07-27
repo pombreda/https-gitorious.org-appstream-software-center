@@ -108,6 +108,7 @@ class AppStore(gtk.GenericTreeModel):
                     with "??? not found")
         """
         gtk.GenericTreeModel.__init__(self)
+        self._logger = logging.getLogger("softwarecenter.view.appstore")
         self.search_query = search_query
         self.cache = cache
         self.db = db
@@ -162,7 +163,7 @@ class AppStore(gtk.GenericTreeModel):
     def _perform_search(self):
         already_added = set()
         for q in self.search_query:
-            logging.debug("using query: '%s'" % q)
+            self._logger.debug("using query: '%s'" % q)
             enquire = xapian.Enquire(self.db.xapiandb)
             if not self.nonapps_visible:
                 enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
@@ -194,7 +195,7 @@ class AppStore(gtk.GenericTreeModel):
                 matches = enquire.get_mset(0, len(self.db))
             else:
                 matches = enquire.get_mset(0, self.limit)
-            logging.debug("found ~%i matches" % matches.get_matches_estimated())
+            self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
             app_index = 0
             for m in matches:
                 doc = m[xapian.MSET_DOCUMENT]
@@ -429,20 +430,20 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_column_type(self, index):
         return self.column_type[index]
     def on_get_iter(self, path):
-        #logging.debug("on_get_iter: %s" % path)
+        #self._logger.debug("on_get_iter: %s" % path)
         if len(self.apps) == 0:
             return None
         index = path[0]
         return index
     def on_get_path(self, rowref):
-        logging.debug("on_get_path: %s" % rowref)
+        self._logger.debug("on_get_path: %s" % rowref)
         return rowref
     def on_get_value(self, rowref, column):
-        #logging.debug("on_get_value: %s %s" % (rowref, column))
+        #self._logger.debug("on_get_value: %s %s" % (rowref, column))
         try:
             app = self.apps[rowref]
         except IndexError:
-            logging.exception("on_get_value: rowref=%s apps=%s" % (rowref, self.apps))
+            self._logger.exception("on_get_value: rowref=%s apps=%s" % (rowref, self.apps))
             return
         try:
             doc = self.db.get_xapian_document(app.appname, app.pkgname)
@@ -514,7 +515,7 @@ class AppStore(gtk.GenericTreeModel):
                     self.icon_cache[icon_name] = icon
                     return icon
             except glib.GError, e:
-                logging.debug("get_icon returned '%s'" % e)
+                self._logger.debug("get_icon returned '%s'" % e)
                 self.icon_cache[icon_name] = self._appicon_missing_icon
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:
@@ -540,7 +541,7 @@ class AppStore(gtk.GenericTreeModel):
         elif column == self.COL_EXISTS:
             return True
     def on_iter_next(self, rowref):
-        #logging.debug("on_iter_next: %s" % rowref)
+        #self._logger.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
         if new_rowref >= len(self.apps):
             return None
@@ -553,12 +554,12 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_has_child(self, rowref):
         return False
     def on_iter_n_children(self, rowref):
-        logging.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
+        self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
         if rowref:
             return 0
         return len(self.apps)
     def on_iter_nth_child(self, parent, n):
-        logging.debug("on_iter_nth_child: %s %i" % (parent, n))
+        self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
         if n >= len(self.apps):
@@ -1112,6 +1113,7 @@ class AppView(gtk.TreeView):
 
     def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
+        self._logger = logging.getLogger("softwarecenter.view.appview")
         self.buttons = {}
         self.pressed = False
         self.focal_btn = None
@@ -1123,7 +1125,7 @@ class AppView(gtk.TreeView):
             self.set_property("ubuntu-almost-fixed-height-mode", True)
             self.set_fixed_height_mode(True)
         except:
-            logging.warn("ubuntu-almost-fixed-height-mode extension not available")
+            self._logger.warn("ubuntu-almost-fixed-height-mode extension not available")
 
         self.set_headers_visible(False)
 
@@ -1223,7 +1225,7 @@ class AppView(gtk.TreeView):
         try:
             return int(font_size)
         except:
-            logging.warn("could not parse font size for font description: %s" % font_name)
+            self._logger.warn("could not parse font size for font description: %s" % font_name)
         #default size of default gtk font_name ("Sans 10")
         return 10
 
@@ -1465,7 +1467,7 @@ class AppViewFilter(object):
         return self.only_packages_without_applications
     def filter(self, doc, pkgname):
         """return True if the package should be displayed"""
-        #logging.debug("filter: supported_only: %s installed_only: %s '%s'" % (
+        #self._logger.debug("filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
         if self.only_packages_without_applications:
             if not doc.get_value(XAPIAN_VALUE_PKGNAME):

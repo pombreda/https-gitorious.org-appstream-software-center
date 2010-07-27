@@ -95,6 +95,7 @@ class PackageStatusBar(gtk.Alignment):
 
         #self.button.connect('size-allocate', self._on_button_size_allocate)
         self.button.connect('clicked', self._on_button_clicked)
+        self._logger = logging.getLogger("softwarecenter.view.appdetails")
         return
 
     def _on_button_size_allocate(self, button, allocation):
@@ -1055,7 +1056,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # public API
     def show_app(self, app):
-        logging.debug("AppDetailsView.show_app '%s'" % app)
+        self._logger.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             return
         

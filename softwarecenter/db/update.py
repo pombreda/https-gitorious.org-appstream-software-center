@@ -47,6 +47,7 @@ import gettext
 # some globals (FIXME: that really need to go into a new Update class)
 popcon_max = 0
 seen = set()
+logger = logging.getLogger(__name__)
 
 class AppInfoParserBase(object):
     """ base class for reading AppInfo meta-data """
@@ -166,7 +167,7 @@ def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
     # add db global meta-data
-    logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
+    logger.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
 
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
@@ -175,7 +176,7 @@ def update_from_var_lib_apt_lists(db, cache, listsdir=None):
         listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
     context = glib.main_context_default()
     for appinfo in glob("%s/*AppInfo" % listsdir):
-        logging.debug("processing %s" % appinfo)
+        logger.debug("processing %s" % appinfo)
         # process events
         while context.pending():
             context.iteration()
@@ -189,7 +190,7 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
     """ index the desktop files in $datadir/desktop/*.desktop """
     context = glib.main_context_default()
     for desktopf in glob(datadir+"/desktop/*.desktop"):
-        logging.debug("processing %s" % desktopf)
+        logger.debug("processing %s" % desktopf)
         # process events
         while context.pending():
             context.iteration()
@@ -199,7 +200,7 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:
             # Print a warning, no error (Debian Bug #568941)
-            logging.warning("error processing: %s %s" % (desktopf, e))
+            logger.warning("error processing: %s %s" % (desktopf, e))
     return True
         
 def index_app_info_from_parser(parser, db, cache):
@@ -209,7 +210,7 @@ def index_app_info_from_parser(parser, db, cache):
         # app name is the data
         name = parser.get_desktop("Name")
         if name in seen:
-            logging.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
+            logger.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
         seen.add(name)
         doc.set_data(name)
         index_name(doc, name, term_generator)
@@ -217,7 +218,7 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Ignore"):
             ignore = parser.get_desktop("X-AppInstall-Ignore")
             if ignore.strip().lower() == "true":
-                logging.debug("X-AppInstall-Ignore found for '%s'" % parser.desktopf)
+                logger.debug("X-AppInstall-Ignore found for '%s'" % parser.desktopf)
                 return
         # package name
         pkgname = parser.get_desktop("X-AppInstall-Package")
@@ -321,8 +322,8 @@ def rebuild_database(pathname):
     cache = apt.Cache(memonly=True)
     # check permission
     if not os.access(pathname, os.W_OK):
-        logging.warn("Cannot write to '%s'." % pathname)
-        logging.warn("Please check you have the relevant permissions.")
+        logger.warn("Cannot write to '%s'." % pathname)
+        logger.warn("Please check you have the relevant permissions.")
         return False
     # write it
     db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)

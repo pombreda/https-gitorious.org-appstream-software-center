@@ -23,10 +23,9 @@ import os
 import gobject
 gobject.threads_init()
 import glib
-import logging
 import time
 import threading
-
+import logging
 from softwarecenter.distro import get_distro
 from softwarecenter.utils import get_current_arch
 
@@ -57,12 +56,13 @@ class RestfulClientWorker(threading.Thread):
         self._authorizer = authorizer
         self._pending_requests = Queue()
         self._shutdown = False
+        self._logger = logging.getLogger("softwarecenter.backend")
 
     def run(self):
         """
         Main thread run interface, logs into launchpad
         """
-        logging.debug("lp worker thread run")
+        self._logger.debug("lp worker thread run")
         self.service = ServiceRoot(self._authorizer, self._service_root_url)
         # loop
         self._wait_for_commands()
@@ -83,7 +83,7 @@ class RestfulClientWorker(threading.Thread):
         """internal helper that waits for commands"""
         while True:
             while not self._pending_requests.empty():
-                logging.debug("found pending request")
+                self._logger.debug("found pending request")
                 (func_str, args, kwargs, result_callback, error_callback) = self._pending_requests.get()
                 # run func async
                 try:
