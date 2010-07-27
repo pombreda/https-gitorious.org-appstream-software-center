@@ -1,4 +1,4 @@
-software-center (2.1.6) UNRELEASED; urgency=low
+software-center (2.1.6) maverick; urgency=low
 
   [ Kiwinote ]
   * data/software-center.menu.in:
@@ -55,7 +55,7 @@ software-center (2.1.6) UNRELEASED; urgency=low
   * merge lp:~didrocks/software-center/add-remove-multiple to add a
     remove_multiple method to aptd.py, thanks to Didier Roche! 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Jul 2010 01:45:09 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 27 Jul 2010 19:45:53 +0200
 
 software-center (2.1.5) maverick; urgency=low
 
