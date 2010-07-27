@@ -38,6 +38,8 @@ from softwarecenter.enums import *
 
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
+LOG = logging.getLogger(__name__)
+
 class ViewSwitcher(gtk.TreeView):
 
     __gsignals__ = {
@@ -187,13 +189,15 @@ class ViewSwitcher(gtk.TreeView):
         """
         model = self.get_model()
         if model:
-            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name,
-                                                                     self.selected_channel_installed_only)
+            channel_iter_to_select = model.get_channel_iter_for_name(
+                self.selected_channel_name,
+                self.selected_channel_installed_only)
             if channel_iter_to_select:
                 self.set_cursor(model.get_path(channel_iter_to_select))
 
     def _on_row_deleted(self, widget, path):
-        if self.get_cursor()[0] is None:
+        (path, column) = self.get_cursor()
+        if path is None:
             # The view that was selected has been deleted, switch back to
             # the previously selected permanent view.
             if self._previous_permanent_view is not None:
@@ -260,13 +264,13 @@ class ViewSwitcherList(gtk.TreeStore):
         # the progress pane is build on demand
 
     def on_channels_changed(self, backend, res):
-        logging.debug("on_channels_changed %s" % res)
+        LOG.debug("on_channels_changed %s" % res)
         if res:
             self.db.open()
             self._update_channel_list()
 
     def on_transactions_changed(self, backend, total_transactions):
-        logging.debug("on_transactions_changed '%s'" % total_transactions)
+        LOG.debug("on_transactions_changed '%s'" % total_transactions)
         pending = len(total_transactions)
         if pending > 0:
             for row in self:
@@ -289,19 +293,33 @@ class ViewSwitcherList(gtk.TreeStore):
             self.emit("channels-refreshed")
 
     def get_channel_iter_for_name(self, channel_name, installed_only):
-        channel_iter_for_name = None
+        """ get the liststore iterator for the given name, consider
+            installed-only too because channel names may be duplicated
+        """ 
+        LOG.debug("get_channel_iter_for_name %s %s" % (channel_name,
+                                                       installed_only))
+        def _get_iter_for_channel_name(it):
+            """ internal helper """
+            while it:
+                if self.get_value(it, self.COL_NAME) == channel_name:
+                    return it
+                it = self.iter_next(it)
+            return None
+
+        # check root iter first
+        channel_iter_for_name = _get_iter_for_channel_name(self.get_iter_root())
+        if channel_iter_for_name:
+            LOG.debug("found '%s' on root level" % channel_name)
+            return channel_iter_for_name
+
+        # check children
         if installed_only:
             parent_iter = self.installed_iter
         else:
             parent_iter = self.available_iter
+        LOG.debug("looking at path '%s'" % self.get_path(parent_iter))
         child = self.iter_children(parent_iter)
-        while child:
-            if self.get_value(child, self.COL_NAME) == channel_name:
-                channel_iter_for_name = child
-                break
-            child = self.iter_next(child)
-        if not channel_iter_for_name:
-            return parent_iter
+        channel_iter_for_name = _get_iter_for_channel_name(child)
         return channel_iter_for_name
                     
     def _get_icon(self, icon_name):

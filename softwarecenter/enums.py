@@ -36,11 +36,11 @@ VIEW_PAGE_CHANNEL = "view-page-channel"
 # items considered "permanent", that is, if a item disappears
 # (e.g. progress) then switch back to the previous on in permanent
 # views (LP:  #431907)
-PERMANENT_VIEWS = (VIEW_PAGE_AVAILABLE,
+PERMANENT_VIEWS = [VIEW_PAGE_AVAILABLE,
                    VIEW_PAGE_INSTALLED,
                    VIEW_PAGE_CHANNEL,
                    VIEW_PAGE_HISTORY,
-                  )
+                  ]
 
 # icons
 MISSING_APP_ICON = "applications-other"

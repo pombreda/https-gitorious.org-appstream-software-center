@@ -766,14 +766,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """
         if len(packages) == 1:
             # show a single package
-            pkg_name = packages[0]
-            # FIXME: this currently only works with pkg names for apps
-            #        it needs to perform a search because a App name
-            #        is (in general) not unique
-            app = Application("", pkg_name)
-            self.available_pane.app_details.show_app(app)
-            self.available_pane.notebook.set_current_page(
-                self.available_pane.PAGE_APP_DETAILS)
+            full_pkgname = packages[0]
+            # if there is a "/" in the string consider it as tuple
+            (pkgname, seperator, appname) = full_pkgname.partition("/")
+            app = Application(appname, pkgname)
+            self.available_pane.on_application_activated(None, app)
         if len(packages) > 1:
             # turn multiple packages into a search with ","
             # turn off de-duplication
