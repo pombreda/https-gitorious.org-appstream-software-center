@@ -25,13 +25,10 @@ import logging
 import xapian
 import os
 
-# magic environment to get old pathbar
-if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
-    from widgets.navigationbar import NavigationBar
-else:
-    from widgets.pathbar_gtk_atk import NavigationBar
-
+from widgets.mkit import floats_from_gdkcolor
+from widgets.pathbar_gtk_atk import NavigationBar
 from softwarecenter.backend import get_install_backend
+from softwarecenter.view.basepane import BasePane
 
 from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
@@ -65,7 +62,7 @@ def wait_for_apt_cache_ready(f):
     return wrapper
 
 
-class SoftwarePane(gtk.VBox):
+class SoftwarePane(gtk.VBox, BasePane):
     """ Common base class for InstalledPane and AvailablePane """
 
     __gsignals__ = {
@@ -130,7 +127,7 @@ class SoftwarePane(gtk.VBox):
         self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
-        self.pack_start(gtk.HSeparator(), expand=False)
+        #self.pack_start(gtk.HSeparator(), expand=False)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
@@ -139,6 +136,18 @@ class SoftwarePane(gtk.VBox):
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False, padding=self.PADDING)
+        self.top_hbox.connect('expose-event', self._on_expose)
+
+    def _on_expose(self, widget, event):
+        """ Draw a horizontal line that separates the top hbox from the page content """
+        a = widget.allocation
+        self.style.paint_shadow(widget.window, self.state,
+                                gtk.SHADOW_IN,
+                                (a.x, a.y+a.height+self.PADDING-1, a.width, 1),
+                                widget, "viewport",
+                                a.x, a.y+a.height+self.PADDING-1,
+                                a.width, a.y+a.height+self.PADDING-1)
+        return
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
@@ -169,7 +178,7 @@ class SoftwarePane(gtk.VBox):
         """
         model = self.app_view.get_model()
         current_app = self.get_current_app()
-
+        
         index = 0
         if model and current_app in model.app_index_map:
             index =  model.app_index_map.get(current_app)

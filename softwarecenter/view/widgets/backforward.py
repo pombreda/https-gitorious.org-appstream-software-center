@@ -26,7 +26,7 @@ import mkit
 from gettext import gettext as _
 
 
-DEFAULT_PART_SIZE = (31, 27)
+DEFAULT_PART_SIZE = (29, -1)
 DEFAULT_ARROW_SIZE = (12, 12)
 
 

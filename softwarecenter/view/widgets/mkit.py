@@ -57,31 +57,31 @@ def floats_from_string_with_alpha(spec, a):
     r, g, b = floats_from_string(spec)
     return r, g, b, a
 
-#def get_gtk_color_scheme_dict():
-    ## Color names as provided by gtk.Settings:
-    ## Note: Not all Gtk themes support this method of color retrieval!
+def get_gtk_color_scheme_dict():
+    # Color names as provided by gtk.Settings:
+    # Note: Not all Gtk themes support this method of color retrieval!
 
-    ## 'tooltip_fg_color'
-    ## 'fg_color'
-    ## 'base_color'
-    ## 'selected_bg_color'
-    ## 'selected_fg_color'
-    ## 'text_color'
-    ## 'bg_color'
-    ## 'tooltip_bg_color'
+    # 'tooltip_fg_color'
+    # 'fg_color'
+    # 'base_color'
+    # 'selected_bg_color'
+    # 'selected_fg_color'
+    # 'text_color'
+    # 'bg_color'
+    # 'tooltip_bg_color'
 
-    #scheme_str = gtk.settings_get_default().get_property("gtk-color-scheme")
-    #d = {}
-    #lines = scheme_str.splitlines()
-    #if not lines: return
+    scheme_str = gtk.settings_get_default().get_property("gtk-color-scheme")
+    d = {}
+    lines = scheme_str.splitlines()
+    if not lines: return
 
-    #for ln in lines:
-        #try:
-            #k, v = ln.split(':')
-            #d[k.strip()] = v.strip()
-        #except:
-            #pass
-    #return d
+    for ln in lines:
+        try:
+            k, v = ln.split(':')
+            d[k.strip()] = v.strip()
+        except:
+            pass
+    return d
 
 def get_em_value():
     # calc the width of a wide character, use as 1em
@@ -153,7 +153,15 @@ SPACING_MED         = max(2, int(0.666*EM+0.5))
 SPACING_SMALL       = max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
-CORNER_RADIUS =         max(2, int(0.333*EM+0.5))
+CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
+
+# use the link color as the clicked color for labels
+_scheme = get_gtk_color_scheme_dict()
+if _scheme and _scheme.has_key('link_color'):
+    LINK_ACTIVE_COLOR = _scheme['link_color']
+else:
+    LINK_ACTIVE_COLOR = '#FF0000'   # red
+
 
 # DEBUGGING
 #print '\n* MKIT METRICS'
@@ -654,17 +662,15 @@ class FramedSection(gtk.VBox):
         self.header_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.header = gtk.HBox()
         self.header_alignment.add(self.header)
-        self.header_alignment.set_padding(SPACING_MED,
-                                          SPACING_LARGE,
+        self.header_alignment.set_padding(SPACING_SMALL,
+                                          SPACING_SMALL,
                                           xpadding,
                                           xpadding)
 
         self.body_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.body = gtk.VBox()
         self.body_alignment.add(self.body)
-        self.body_alignment.set_padding(0, 0,
-                                        xpadding,
-                                        xpadding)
+        self.body_alignment.set_padding(SPACING_MED, 0, 0, 0)
 
         self.footer_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.footer = gtk.HBox()
@@ -688,11 +694,11 @@ class FramedSection(gtk.VBox):
             self.set_label(label_markup)
         return
 
-    def set_icon(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
+    def set_icon_from_name(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
         self.image.set_from_icon_name(icon_name, icon_size)
 
         if not self.image.parent:
-            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
+            self.header.pack_start(self.image, False)
             self.header.reorder_child(self.image, 0)
             self.image.show()
         return
@@ -701,7 +707,7 @@ class FramedSection(gtk.VBox):
         self.image.set_from_pixbuf(pixbuf)
 
         if not self.image.parent:
-            self.header.pack_start(self.image, False, padding=BORDER_WIDTH_SMALL)
+            self.header.pack_start(self.image, False)
             self.header.reorder_child(self.image, 0)
             self.image.show()
         return
@@ -731,30 +737,31 @@ class FramedSection(gtk.VBox):
         cr.rectangle(a)
         cr.clip()
 
+        a = self.header_alignment.allocation
+
         # fill section white
         rr = ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x+1, a.y+1,
-                  a.x + a.width-2, a.y + a.height-2,
+                  a.x+1, a.y,
+                  a.x + a.width-1, a.y + a.height,
                   radius=CORNER_RADIUS)
 
-
-        cr.set_source_rgba(*floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.65))
+        cr.set_source_rgb(*floats_from_gdkcolor(self.style.bg[self.state]))
         cr.fill()
 
-        if draw_border:
-            cr.save()
-            cr.set_line_width(1)
-            cr.translate(0.5, 0.5)
-            rr.layout(cr,
-                      a.x+1, a.y+1,
-                      a.x + a.width-2, a.y + a.height-2,
-                      radius=CORNER_RADIUS)
+        #if draw_border:
+            #cr.save()
+            #cr.set_line_width(1)
+            #cr.translate(0.5, 0.5)
+            #rr.layout(cr,
+                      #a.x, a.y,
+                      #a.x + a.width-1, a.y + a.height,
+                      #radius=CORNER_RADIUS)
 
-            cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[gtk.STATE_NORMAL]))
-            cr.stroke_preserve()
-            cr.stroke()
-            cr.restore()
+            #cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[self.state]))
+            #cr.stroke_preserve()
+            #cr.stroke()
+            #cr.restore()
 
         cr.restore()
         return
@@ -867,6 +874,15 @@ class Button(gtk.EventBox):
         self.label = gtk.Label()
         self.image = gtk.Image()
 
+        self._relief = gtk.RELIEF_NORMAL
+        self._has_action_arrow = False
+        self._active_paint_mode = ACTIVE_PAINT_MODE_NORMAL
+        self._layout = None
+        self._button_press_origin = None    # broken?
+        self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
+        self._fixed_width = None
+        self._use_underline = False
+
         if markup:
             self.set_label(markup)
         if icon_name:
@@ -880,14 +896,6 @@ class Button(gtk.EventBox):
 
         self.shape = SHAPE_RECTANGLE
         self.theme = Style(self)
-
-        self._relief = gtk.RELIEF_NORMAL
-        self._has_action_arrow = False
-        self._active_paint_mode = ACTIVE_PAINT_MODE_NORMAL
-        self._layout = None
-        self._button_press_origin = None    # broken?
-        self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
-        self._fixed_width = None
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -916,7 +924,6 @@ class Button(gtk.EventBox):
             cat.set_state(gtk.STATE_ACTIVE)
         else:
             cat.set_state(gtk.STATE_PRELIGHT)
-
         self.window.set_cursor(self._cursor)
         return
 
@@ -928,33 +935,65 @@ class Button(gtk.EventBox):
     def _on_button_press(self, cat, event):
         if event.button != 1: return
         self._button_press_origin = cat
+        self._colorise_label_active()
         cat.set_state(gtk.STATE_ACTIVE)
         return
 
     def _on_button_release(self, cat, event):
-        if event.button != 1: return
+        def emit_clicked():
+            self.emit('clicked')
+            return False
 
+        if event.button != 1:
+            self.queue_draw()
+            return
+        self._colorise_label_normal()
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
             self._button_press_origin = None
+            cat.set_state(gtk.STATE_NORMAL)
             return
-        if cat != self._button_press_origin: return
-        cat.set_state(gtk.STATE_PRELIGHT)
+        #if cat != self._button_press_origin: return
         self._button_press_origin = None
-        self.emit('clicked')
+        cat.set_state(gtk.STATE_PRELIGHT)
+        gobject.timeout_add(50, emit_clicked)
         return
 
     def _on_key_press(self, cat, event):
         # react to spacebar, enter, numpad-enter
         if event.keyval in (32, 65293, 65421):
+            self._colorise_label_active()
             cat.set_state(gtk.STATE_ACTIVE)
         return
 
     def _on_key_release(self, cat, event):
+        def emit_clicked():
+            self.emit('clicked')
+            return False
+
         # react to spacebar, enter, numpad-enter
         if event.keyval in (32, 65293, 65421):
+            self._colorise_label_normal()
             cat.set_state(gtk.STATE_NORMAL)
-            self.emit('clicked')
+            gobject.timeout_add(100, emit_clicked)
+        return
+
+    def _colorise_label_active(self):
+        text = gobject.markup_escape_text(self.label.get_text())
+        if self._use_underline:
+            self.set_label('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, text))
+        else:
+            self.set_label('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, text))
+        return
+
+    def _colorise_label_normal(self):
+        sel = self.style.text[gtk.STATE_NORMAL].to_string()
+        text = gobject.markup_escape_text(self.label.get_text())
+
+        if self._use_underline:
+            self.set_label('<span color="%s"><u>%s</u></span>' % (sel, text))
+        else:
+            self.set_label('<span color="%s">%s</span>' % (sel, text))
         return
 
     def _paint_bg(self, cr, a, alpha):
@@ -1003,6 +1042,12 @@ class Button(gtk.EventBox):
                                    aw, aw)
         return
 
+    def set_underline(self, use_underline):
+        self._use_underline = use_underline
+        if use_underline:
+            self.label.set_markup('<u>%s</u>' % self.label.get_text())
+        return
+
     def set_shape(self, shape):
         self.shape = shape
         return
@@ -1022,7 +1067,10 @@ class Button(gtk.EventBox):
         return
 
     def set_label(self, label):
-        self.label.set_markup(label)
+        if self._use_underline:
+            self.label.set_markup('<u>%s</u>' % label)
+        else:
+            self.label.set_markup(label)
         return
 
     def set_has_action_arrow(self, has_action_arrow):
@@ -1036,25 +1084,15 @@ class Button(gtk.EventBox):
     def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
         if not_overlapping(a, expose_area): return
 
-        if self._relief == gtk.RELIEF_NORMAL:
-            self._paint_bg(cr, a, alpha)
-            if self._has_action_arrow:
-                self._paint_action_arrow(a)
-        else:
-            if self.state == gtk.STATE_PRELIGHT or self.state == gtk.STATE_ACTIVE:
-                self._paint_bg(cr, a, alpha)
-                if self._has_action_arrow:
-                    self._paint_action_arrow(a)
-
         if self.has_focus() and focus_draw:
             a = self.label.allocation
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
                                    self.state,
-                                   (x-2, y-1, w+4, h+2),
+                                   (x-2, y, w+4, h+1),
                                    self,
                                    'expander',
-                                   x-2, y-1, w+4, h+2)
+                                   x-2, y, w+4, h+1)
         return
 
 
@@ -1073,21 +1111,25 @@ class HButton(Button):
         if self.label.get_text():
             self.box.pack_start(self.label, False)
 
-        self.set_border_width(BORDER_WIDTH_SMALL)
+        #self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
         return
 
     def calc_width(self):
         w = 1
+        spacing = 0
+
         if self.label:
             pc = self.get_pango_context()
             layout = pango.Layout(pc)
             layout.set_markup(self.label.get_label())
             w += layout.get_pixel_extents()[1][2]
+
         if self.image and self.image.get_property('visible'):
             w += self.image.allocation.width
+            spacing = self.box.get_spacing()
 
-        w += 2*self.get_border_width() + 12 + self.box.get_spacing()
+        w += 2*self.get_border_width() + spacing + 4
         return w
 
 

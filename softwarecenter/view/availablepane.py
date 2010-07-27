@@ -48,8 +48,9 @@ class AvailablePane(SoftwarePane):
     DEFAULT_SEARCH_APPS_LIMIT = 200
 
     (PAGE_CATEGORY,
+     PAGE_SUBCATEGORY,
      PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(3)
+     PAGE_APP_DETAILS) = range(4)
 
     # define ID values for the various buttons found in the navigation bar
     NAV_BUTTON_ID_CATEGORY = "category"
@@ -79,7 +80,6 @@ class AvailablePane(SoftwarePane):
         self.apps_category = None
         self.apps_subcategory = None
         self.apps_search_term = ""
-        self.apps_sorted = True
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
@@ -109,8 +109,8 @@ class AvailablePane(SoftwarePane):
                                        self.icons,
                                        self.apps_filter)
         self.scroll_categories.add(self.cat_view)
-        #scroll_categories = gtk.ScrolledWindow()
         self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
+
         # sub-categories view
         self.subcategories_view = CategoriesView(self.datadir,
                                                  APP_INSTALL_PATH,
@@ -126,7 +126,10 @@ class AvailablePane(SoftwarePane):
         self.scroll_subcategories = gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.scroll_subcategories.add_with_viewport(self.subcategories_view)
+        self.scroll_subcategories.add(self.subcategories_view)
+        self.notebook.append_page(self.scroll_subcategories,
+                                    gtk.Label(self.NAV_BUTTON_ID_SUBCAT))
+
         # add nav history back/forward buttons
         self.navhistory_back_action.set_sensitive(False)
         self.navhistory_forward_action.set_sensitive(False)
@@ -144,18 +147,20 @@ class AvailablePane(SoftwarePane):
                                              self.back_forward,
                                              self.navhistory_back_action,
                                              self.navhistory_forward_action)
-        # now a vbox for subcategories and applist
-        self.apps_vbox = gtk.VPaned()
-        self.apps_vbox.pack1(self.scroll_subcategories, resize=True)
-        self.apps_vbox.pack2(self.scroll_app_list)
+
         # app list
+        self.notebook.append_page(self.scroll_app_list,
+                                    gtk.Label(self.NAV_BUTTON_ID_LIST))
+
         self.cat_view.connect("category-selected", self.on_category_activated)
         self.cat_view.connect("application-activated", self.on_application_activated)
-        self.notebook.append_page(self.apps_vbox, gtk.Label("installed"))
+
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
+
         # set status text
         self._update_status_text(len(self.db))
+
         # home button
         self.navigation_bar.add_with_id(_("Get Software"),
                                         self.on_navigation_category,
@@ -188,18 +193,19 @@ class AvailablePane(SoftwarePane):
     def _show_hide_subcategories(self, show_category_applist=False):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
+
+        if self.notebook.get_current_page() == 0 or \
+            self.notebook.get_current_page() == 3: return
         if (not show_category_applist and
             not self.nonapps_visible and
             self.apps_category and
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
-            self.scroll_subcategories.show()
             self.subcategories_view.set_subcategory(self.apps_category,
                                                     num_items=len(self.app_view.get_model()))
-            self.scroll_app_list.hide()
+            self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         else:
-            self.scroll_subcategories.hide()
-            self.scroll_app_list.show()
+            self.notebook.set_current_page(self.PAGE_APPLIST)
             self.update_app_view()
             self._update_action_bar()
 
@@ -207,14 +213,6 @@ class AvailablePane(SoftwarePane):
         """refresh the applist and update the navigation bar
         """
         logging.debug("refresh_apps")
-        self.scroll_subcategories.hide()
-        self.scroll_app_list.hide()
-        if self.app_view.window:
-            self.app_view.window.set_cursor(self.busy_cursor)
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(self.busy_cursor)
-        if self.apps_vbox.window:
-            self.apps_vbox.window.set_cursor(self.busy_cursor)
         self._refresh_apps_with_apt_cache(query)
 
     @wait_for_apt_cache_ready
@@ -253,8 +251,8 @@ class AvailablePane(SoftwarePane):
                              self.db,
                              self.icons,
                              query,
-                             limit=self.apps_limit,
-                             sort=self.apps_sorted,
+                             limit=self._get_item_limit(),
+                             sortmode=self._get_sort_mode(),
                              exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
@@ -277,8 +275,11 @@ class AvailablePane(SoftwarePane):
             self.app_view.window.set_cursor(None)
         if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(None)
-        if self.apps_vbox.window:
-            self.apps_vbox.window.set_cursor(None)
+        if self.cat_view.window:
+            self.cat_view.window.set_cursor(None)
+        if self.app_details.window:
+            self.cat_view.window.set_cursor(None)
+
         # reset nonapps
         self.nonapps_visible = False
         return False
@@ -375,8 +376,8 @@ class AvailablePane(SoftwarePane):
             self.apps_search_term):
             appstore = self.app_view.get_model()
             installable = appstore.installable_apps
-            button_text = gettext.ngettext("Install %s item",
-                                           "Install %s items",
+            button_text = gettext.ngettext("Install %s Item",
+                                           "Install %s Items",
                                            len(installable)) % len(installable)
             button = self.action_bar.get_button(self._INSTALL_BTN_ID)
             if button and installable:
@@ -444,10 +445,23 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
 
+    def _get_item_limit(self):
+        if self.apps_search_term:
+            return self.DEFAULT_SEARCH_APPS_LIMIT
+        elif self.apps_category.item_limit > 0:
+            return self.apps_category.item_limit
+        return 0
+
+    def _get_sort_mode(self):
+        if self.apps_search_term:
+            return SORT_BY_SEARCH_RANKING
+        elif self.apps_category:
+            return self.apps_category.sortmode
+        return SORT_BY_ALPHABET
+
     def _clear_search(self):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
-        self.apps_sorted = True
         self.apps_search_term = ""
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
@@ -489,7 +503,6 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
         else:
             self.apps_search_term = new_text
-            self.apps_sorted = False
             self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
             # enter custom list mode if search has non-trailing
             # comma per custom list spec.
@@ -520,12 +533,15 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_list(self):
+        viewing_details = self.navigation_bar.has_id(self.NAV_BUTTON_ID_DETAILS)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-
+        
         if self.apps_subcategory:
             self.apps_subcategory = None
-        self.set_category(self.apps_category)
+        if (not self.apps_search_term and
+            not viewing_details):
+            self.set_category(self.apps_category)
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
@@ -537,16 +553,16 @@ class AvailablePane(SoftwarePane):
         self.cat_view.stop_carousels()
         return
 
-    def display_list_subcat(self):
+    def display_subcat(self):
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
         self.set_category(self.apps_subcategory)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-        self.notebook.set_current_page(self.PAGE_APPLIST)
-        model = self.app_view.get_model()
-        if model is not None:
-            self.emit("app-list-changed", len(model))
+        self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
+        #model = self.app_view.get_model()
+        #if model is not None:
+            #self.emit("app-list-changed", len(model))
         self.searchentry.show()
         self.cat_view.stop_carousels()
         return
@@ -577,9 +593,9 @@ class AvailablePane(SoftwarePane):
         nav_item = NavigationItem(self, self.display_list)
         self.nav_history.navigate(nav_item)
 
-    def on_navigation_list_subcategory(self, pathbar, part):
-        self.display_list_subcat()
-        nav_item = NavigationItem(self, self.display_list_subcat)
+    def on_navigation_subcategory(self, pathbar, part):
+        self.display_subcat()
+        nav_item = NavigationItem(self, self.display_subcat)
         self.nav_history.navigate(nav_item)
 
     def on_navigation_details(self, pathbar, part):
@@ -594,7 +610,7 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_subcategory = category
         self.navigation_bar.add_with_id(
-            category.name, self.on_navigation_list_subcategory, self.NAV_BUTTON_ID_SUBCAT)
+            category.name, self.on_navigation_subcategory, self.NAV_BUTTON_ID_SUBCAT)
 
     def on_category_activated(self, cat_view, category):
         """ callback when a category is selected """

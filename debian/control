@@ -21,7 +21,7 @@ Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
          app-install-data (>= 0.4.0),
-         gnome-icon-theme,
+         humanity-icon-theme,
          gnome-menus,
          python-xapian,
          python-apt (>= 0.7.93.1),
@@ -36,8 +36,9 @@ Depends: ${python:Depends},
          python-gconf,
          aptdaemon (>= 0.31),
 	 python-lazr.restfulclient
-Recommends: lsb-release, python-launchpad-integration, apt-xapian-index,
-            update-notifier, software-properties-gtk
+Recommends: lsb-release, python-launchpad-integration, 
+            apt-xapian-index (>= 0.38ubuntu1), update-notifier,
+            software-properties-gtk
 Conflicts: software-store, gnome-app-install (<< 1)
 Replaces: software-store, gnome-app-install
 Provides: software-store, gnome-app-install

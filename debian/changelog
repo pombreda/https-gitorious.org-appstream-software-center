@@ -1,4 +1,51 @@
-software-center (2.1.5) UNRELEASED; urgency=low
+software-center (2.1.6) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * data/software-center.menu.in:
+    - update query for fonts category (LP: #531570, #605459)
+  * debian/control:
+    - depend on humanity-icon-theme, rather than gnome-icon-theme
+  * softwarecenter/app.py:
+    - always append the humanity-icon-theme to the iconpath (LP: #436310, #466271, #527503, #556335, #594795)
+  * softwarecenter/view/availablepane.py:
+    - capitalize 'install n items' button label for mpt (LP: #605052)
+  * softwarecenter/view/catview_gtk.py:
+    - speed up carousel transition (thanks nuthinking) (LP: #604627)
+  * softwarecenter/view/catview.py:
+    - allow 'OR' tag inside an 'AND' tag
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/database.py:
+    - parse axi values file for cataloged_time support
+  * merged lp:~mvo/software-center/new-apps-test1 that adds support
+    for a proper a "Whats new" category based on the xapian 
+    cataloged_time information
+  * debian/control:
+    - recommend aptdaemon (>= 0.38ubuntu1) to get catalogued_time
+      support
+
+  [ Gary Lasker ]
+  * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice
+    UI tweaks and improvements from Matthew McGowan, thanks! 
+  * softwarecenter/view/widgets/navigationbar.py,
+    softwarecenter/view/softwarepane.py:
+    - remove the old navigation bar as we won't be going back to it
+  * softwarecenter/view/availablepane.py:
+    - don't call set_category if viewing details or searching to
+      reduce unnecessary applist refreshes
+  * softwarecenter/view/appview.py;
+    - fix app row reselect in the applist view for sorted lists and also
+      for channels when the model is regenerated rather than replaced
+      (LP: #609945)
+  * test/test_appview.py:
+      add tests for correct sorting for app insert case and for
+      index map updating 
+  * merge lp:~didrocks/software-center/add-remove-multiple to add a
+    remove_multiple method to aptd.py, thanks to Didier Roche! 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Jul 2010 01:45:09 -0400
+
+software-center (2.1.5) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
@@ -57,7 +104,7 @@ software-center (2.1.5) UNRELEASED; urgency=low
       one place, now shows dep package removal dialog
       for all cases; fix response ids for dialogs 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 16 Jul 2010 00:21:30 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Jul 2010 09:14:22 +0200
 
 software-center (2.1.4) maverick; urgency=low
 

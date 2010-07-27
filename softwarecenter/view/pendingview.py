@@ -30,6 +30,7 @@ from aptdaemon.enums import *
 
 from softwarecenter.enums import *
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.view.basepane import BasePane
 
 from gettext import gettext as _
 
@@ -166,7 +167,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         return "%s\n<small>%s</small>" % (name, status)
 
 
-class PendingView(gtk.TreeView):
+class PendingView(gtk.TreeView, BasePane):
     
     CANCEL_XPAD = 6
     CANCEL_YPAD = 6

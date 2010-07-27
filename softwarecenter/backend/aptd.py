@@ -131,6 +131,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error)
 
     @inline_callbacks
+    def remove_multiple(self, pkgnames, appnames, iconnames):
+        """ queue a list of packages for removal  """
+        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
+            yield self.remove(pkgname, appname, iconname)
+
+    @inline_callbacks
     def install(self, pkgname, appname, iconname):
         """ install a single package """
         self.emit("transaction-started")
