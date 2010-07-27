@@ -38,6 +38,8 @@ from softwarecenter.enums import *
 
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
+LOG = logging.getLogger(__name__)
+
 class ViewSwitcher(gtk.TreeView):
 
     __gsignals__ = {
@@ -262,13 +264,13 @@ class ViewSwitcherList(gtk.TreeStore):
         # the progress pane is build on demand
 
     def on_channels_changed(self, backend, res):
-        logging.debug("on_channels_changed %s" % res)
+        LOG.debug("on_channels_changed %s" % res)
         if res:
             self.db.open()
             self._update_channel_list()
 
     def on_transactions_changed(self, backend, total_transactions):
-        logging.debug("on_transactions_changed '%s'" % total_transactions)
+        LOG.debug("on_transactions_changed '%s'" % total_transactions)
         pending = len(total_transactions)
         if pending > 0:
             for row in self:
@@ -294,19 +296,20 @@ class ViewSwitcherList(gtk.TreeStore):
         """ get the liststore iterator for the given name, consider
             installed-only too because channel names may be duplicated
         """ 
-        def _get_iter_for_channel_name(root_iter):
+        LOG.debug("get_channel_iter_for_name %s %s" % (channel_name,
+                                                       installed_only))
+        def _get_iter_for_channel_name(it):
             """ internal helper """
-            child = self.iter_children(root_iter)
-            while child:
-                if self.get_value(child, self.COL_NAME) == channel_name:
-                    return child
-                child = self.iter_next(root_iter)
+            while it:
+                if self.get_value(it, self.COL_NAME) == channel_name:
+                    return it
+                it = self.iter_next(it)
             return None
 
         # check root iter first
-        parent_iter = self.get_iter_root()
-        channel_iter_for_name = _get_iter_for_channel_name(parent_iter)
+        channel_iter_for_name = _get_iter_for_channel_name(self.get_iter_root())
         if channel_iter_for_name:
+            LOG.debug("found '%s' on root level" % channel_name)
             return channel_iter_for_name
 
         # check children
@@ -314,7 +317,9 @@ class ViewSwitcherList(gtk.TreeStore):
             parent_iter = self.installed_iter
         else:
             parent_iter = self.available_iter
-        channel_iter_for_name = _get_iter_for_channel_name(parent_iter)
+        LOG.debug("looking at path '%s'" % self.get_path(parent_iter))
+        child = self.iter_children(parent_iter)
+        channel_iter_for_name = _get_iter_for_channel_name(child)
         return channel_iter_for_name
                     
     def _get_icon(self, icon_name):
