@@ -30,6 +30,8 @@ software-center (2.1.6) UNRELEASED; urgency=low
     is actually the same, name is a bit misleading. It contains a new
     actionbar, but that is not yet enabled as its not feature complete
     yet
+  * merged lp:~didrocks/software-center/fix-running-standalone-pane,
+    many thanks
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice
