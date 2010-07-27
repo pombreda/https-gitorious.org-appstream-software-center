@@ -721,10 +721,10 @@ class CarouselView(mkit.FramedSection):
 
 class CategoryButton(mkit.HLinkButton):
 
-    ICON_SIZE = 36
+    ICON_SIZE = 24
 
     def __init__(self, markup, icon_name, icons):
-        markup = '<span size="%s">%s</span>' % (mkit.EM*pango.SCALE, markup)
+        #markup = '<span size="%s">%s</span>' % (mkit.EM*pango.SCALE, markup)
         mkit.HLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
 
         self.set_internal_xalignment(0.0)    # basically justify-left

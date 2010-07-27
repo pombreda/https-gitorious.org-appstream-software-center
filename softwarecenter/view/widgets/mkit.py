@@ -1058,7 +1058,7 @@ class LinkButton(gtk.EventBox):
         if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
 
         pb = self.image.get_pixbuf().copy()
-        pb.saturate_and_pixelate(pb, 3.0, False)
+        pb.saturate_and_pixelate(pb, 3, False)
         self.image.set_from_pixbuf(pb)
         return
 
