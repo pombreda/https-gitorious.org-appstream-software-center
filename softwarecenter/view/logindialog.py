@@ -23,6 +23,7 @@ import gtk
 import logging
 import sys
 
+
 from gettext import gettext as _
 import subprocess
 

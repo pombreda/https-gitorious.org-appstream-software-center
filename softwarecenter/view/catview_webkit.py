@@ -26,7 +26,6 @@ import logging
 import os
 import xapian
 
-
 from ConfigParser import ConfigParser
 from gettext import gettext as _
 from widgets.wkwidget import WebkitWidget

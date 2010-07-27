@@ -22,11 +22,12 @@ import glib
 import gobject
 import gtk
 import logging
-import xapian
 import os
+import xapian
 
 from widgets.mkit import floats_from_gdkcolor
 from widgets.pathbar_gtk_atk import NavigationBar
+
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
 

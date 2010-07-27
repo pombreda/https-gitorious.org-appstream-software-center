@@ -23,6 +23,8 @@ software-center (2.1.6) UNRELEASED; urgency=low
   * debian/control:
     - recommend aptdaemon (>= 0.38ubuntu1) to get catalogued_time
       support
+  * merged lp:~hellium/software-center/logging, thanks to 
+    Geliy Sokolov
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice

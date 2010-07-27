@@ -28,7 +28,6 @@ import time
 import xapian
 
 import aptdaemon.client
-
 from gettext import gettext as _
 
 from softwarecenter.backend.channel import ChannelsManager

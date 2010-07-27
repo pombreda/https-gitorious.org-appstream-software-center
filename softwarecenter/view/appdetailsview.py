@@ -45,6 +45,8 @@ class AppDetailsViewBase(object):
         self.appdetails = None
         # aptdaemon
         self.backend = get_install_backend()
+        self._logger = logging.getLogger(__name__)
+        
     def _draw(self):
         """ draw the current app into the window, maybe the function
             you need to overwrite
@@ -76,5 +78,5 @@ class AppDetailsViewBase(object):
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the
         # current application
-        logging.debug("on_cache_ready")
+        self._logger.debug("on_cache_ready")
         self.show_app(self.app)
