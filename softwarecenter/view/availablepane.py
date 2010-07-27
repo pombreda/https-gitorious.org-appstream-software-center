@@ -452,7 +452,7 @@ class AvailablePane(SoftwarePane):
     def _get_item_limit(self):
         if self.apps_search_term:
             return self.DEFAULT_SEARCH_APPS_LIMIT
-        elif self.apps_category.item_limit > 0:
+        elif self.apps_category and self.apps_category.item_limit > 0:
             return self.apps_category.item_limit
         return 0
 
