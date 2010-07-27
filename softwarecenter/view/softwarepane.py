@@ -76,6 +76,7 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
+        BasePane.__init__(self)
         # other classes we need
         self.cache = cache
         self.history = history

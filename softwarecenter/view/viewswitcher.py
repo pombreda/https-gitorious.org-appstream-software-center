@@ -187,13 +187,15 @@ class ViewSwitcher(gtk.TreeView):
         """
         model = self.get_model()
         if model:
-            channel_iter_to_select = model.get_channel_iter_for_name(self.selected_channel_name,
-                                                                     self.selected_channel_installed_only)
+            channel_iter_to_select = model.get_channel_iter_for_name(
+                self.selected_channel_name,
+                self.selected_channel_installed_only)
             if channel_iter_to_select:
                 self.set_cursor(model.get_path(channel_iter_to_select))
 
     def _on_row_deleted(self, widget, path):
-        if self.get_cursor()[0] is None:
+        (path, column) = self.get_cursor()
+        if path is None:
             # The view that was selected has been deleted, switch back to
             # the previously selected permanent view.
             if self._previous_permanent_view is not None:
@@ -289,19 +291,30 @@ class ViewSwitcherList(gtk.TreeStore):
             self.emit("channels-refreshed")
 
     def get_channel_iter_for_name(self, channel_name, installed_only):
-        channel_iter_for_name = None
+        """ get the liststore iterator for the given name, consider
+            installed-only too because channel names may be duplicated
+        """ 
+        def _get_iter_for_channel_name(root_iter):
+            """ internal helper """
+            child = self.iter_children(root_iter)
+            while child:
+                if self.get_value(child, self.COL_NAME) == channel_name:
+                    return child
+                child = self.iter_next(root_iter)
+            return None
+
+        # check root iter first
+        parent_iter = self.get_iter_root()
+        channel_iter_for_name = _get_iter_for_channel_name(parent_iter)
+        if channel_iter_for_name:
+            return channel_iter_for_name
+
+        # check children
         if installed_only:
             parent_iter = self.installed_iter
         else:
             parent_iter = self.available_iter
-        child = self.iter_children(parent_iter)
-        while child:
-            if self.get_value(child, self.COL_NAME) == channel_name:
-                channel_iter_for_name = child
-                break
-            child = self.iter_next(child)
-        if not channel_iter_for_name:
-            return parent_iter
+        channel_iter_for_name = _get_iter_for_channel_name(parent_iter)
         return channel_iter_for_name
                     
     def _get_icon(self, icon_name):

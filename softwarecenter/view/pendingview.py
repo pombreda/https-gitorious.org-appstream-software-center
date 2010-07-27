@@ -174,6 +174,7 @@ class PendingView(gtk.TreeView, BasePane):
 
     def __init__(self, icons):
         gtk.TreeView.__init__(self)
+        BasePane.__init__(self)
         # customization
         self.set_headers_visible(False)
         self.connect("button-press-event", self._on_button_pressed)
