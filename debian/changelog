@@ -23,6 +23,7 @@ software-center (2.1.6) UNRELEASED; urgency=low
   * debian/control:
     - recommend aptdaemon (>= 0.38ubuntu1) to get catalogued_time
       support
+    - recommend sessioninstaller for PK compatible session API
   * merged lp:~hellium/software-center/logging, thanks to 
     Geliy Sokolov
   * merged lp:~mmcg069/software-center/bigger-icons, the icon size
