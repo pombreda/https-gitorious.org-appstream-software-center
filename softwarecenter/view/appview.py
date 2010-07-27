@@ -83,16 +83,12 @@ class AppStore(gtk.GenericTreeModel):
     ICON_SIZE = 24
     MAX_STARS = 5
 
-    (SEARCHES_SORTED_BY_POPCON,
-     SEARCHES_SORTED_BY_XAPIAN_RELEVANCE,
-     SEARCHES_SORTED_BY_ALPHABETIC) = range(3)
-    
     # the default result size for a search
     DEFAULT_SEARCH_LIMIT = 200
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
-                 sort=False, filter=None, exact=False,
+                 sortmode=SORT_UNSORTED, filter=None, exact=False,
                  icon_size=ICON_SIZE, global_icon_cache=True, 
                  nonapps_visible=False):
         """
@@ -104,8 +100,7 @@ class AppStore(gtk.GenericTreeModel):
         - `icons`: a gtk.IconTheme that contains the icons
         - `search_query`: a single search as a xapian.Query or a list
         - `limit`: how many items the search should return (0 == unlimited)
-        - `sort`: sort alphabetically after a search
-                   (default is to use relevance sort)
+        - `sortmode`: sort the result
         - `filter`: filter functions that can be used to filter the
                     data further. A python function that gets a pkgname
         - `exact`: If true, indexes of queries without matches will be
@@ -131,7 +126,7 @@ class AppStore(gtk.GenericTreeModel):
         self.app_index_map = {}
         # this is used to find the in-progress rows
         self.pkgname_index_map = {}
-        self.sorted = sort
+        self.sortmode = sortmode
         self.filter = filter
         self.exact = exact
         self.active = True
@@ -148,13 +143,12 @@ class AppStore(gtk.GenericTreeModel):
         # rowref of the active app and last active app
         self.active_app = None
         self._prev_active_app = 0
-        self._searches_sort_mode = self._get_searches_sort_mode()
         self.limit = limit
         self.filter = filter
         # no search query means "all"
         if not search_query:
             search_query = xapian.Query("ATapplication")
-            self.sorted = True
+            self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
 
         # we support single and list search_queries,
@@ -179,11 +173,23 @@ class AppStore(gtk.GenericTreeModel):
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  xapian.Query("ATapplication"), q)
             enquire.set_query(q)
-            # set search order mode
-            if self._searches_sort_mode == self.SEARCHES_SORTED_BY_POPCON:
-                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
-            elif self._searches_sort_mode == self.SEARCHES_SORTED_BY_ALPHABETIC:
-                self.sorted=sort=True
+
+            # set sort order
+            if self.sortmode == SORT_BY_CATALOGED_TIME:
+                if "catalogedtime" in self.db._axi_values:
+                    enquire.set_sort_by_value(
+                        self.db._axi_values["catalogedtime"], reverse=True)
+                else:
+                    logging.warning("no catelogedtime in axi")
+            elif self.sortmode == SORT_BY_SEARCH_RANKING:
+                # the default is to sort by popcon
+                k = "SOFTWARE_CENTER_SEARCHES_SORT_MODE"
+                if k in os.environ and os.environ[k] != "popcon":
+                    pass
+                else:
+                    enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+                    
+            # set limit
             if self.limit == 0:
                 matches = enquire.get_mset(0, len(self.db))
             else:
@@ -206,7 +212,7 @@ class AppStore(gtk.GenericTreeModel):
                 popcon = self.db.get_popcon(doc)
                 app = Application(appname, pkgname, popcon)
                 if not app in already_added:
-                    if self.sorted:
+                    if self.sortmode == SORT_BY_ALPHABET:
                         self._insert_app_sorted(app)
                     else:
                         self._append_app(app)
@@ -223,7 +229,7 @@ class AppStore(gtk.GenericTreeModel):
                         pkgname = term[2:]
                         break
                 app = Application("", pkgname)
-                self.app_index_map[app] = app_index
+
                 self.apps.append(app)
                 
         # if we only have nonapps to be displayed, don't hide them
@@ -232,11 +238,29 @@ class AppStore(gtk.GenericTreeModel):
             len(self.apps) == 0):
             self.nonapps_visible = True
             self._perform_search()
+            
+        # in the case where the app list is sorted, we must rebuild
+        # the app_index_map and app_package_maps after the app list
+        # has been fully populated (since only now will be know the
+        # actual final indices)
+        if self.sortmode == SORT_BY_ALPHABET:
+            self._rebuild_index_maps()
         
         # This is data for store contents that will be generated
         # when called for externally. (see _refresh_contents_data)
         self._existing_apps = None
         self._installable_apps = None
+        
+    def _rebuild_index_maps(self):
+        self.app_index_map.clear()
+        self.pkgname_index_map.clear()
+        app = None
+        for i in range(len(self.apps)):
+            app = self.apps[i]
+            self.app_index_map[app] = i
+            if not app.pkgname in self.pkgname_index_map:
+                self.pkgname_index_map[app.pkgname] = []
+            self.pkgname_index_map[app.pkgname].append(i)
 
     def _clear_app_icon_cache(self, theme):
         self.icon_cache.clear()
@@ -278,10 +302,6 @@ class AppStore(gtk.GenericTreeModel):
         """
         #print "old: ", [x.pkgname for x in self.apps]
         self.apps.insert(i, app)
-        self.app_index_map[app] = i
-        if not app.pkgname in self.pkgname_index_map:
-            self.pkgname_index_map[app.pkgname] = []
-        self.pkgname_index_map[app.pkgname].append(i)
         self.row_inserted(i, self.get_iter(i))
         #print "new: ", [x.pkgname for x in self.apps]
 
@@ -301,17 +321,10 @@ class AppStore(gtk.GenericTreeModel):
         """ update this appstore to match data from another """
         # Updating instead of replacing prevents a distracting white
         # flash. First, match list of apps.
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
         to_update = min(len(self), len(appstore))
         for i in range(to_update):
             self.apps[i] = appstore.apps[i]
             self.row_changed(i, self.get_iter(i))
-            self.app_index_map[self.apps[i]] = i
-            pkgname = self.apps[i].pkgname
-            if pkgname not in self.pkgname_index_map:
-                self.pkgname_index_map[pkgname] = []
-            self.pkgname_index_map[pkgname].append(i)
 
         to_remove = max(0, len(self) - len(appstore))
         for i in range(to_remove):
@@ -324,13 +337,15 @@ class AppStore(gtk.GenericTreeModel):
             path = len(self)
             self.apps.append(app)
             self.row_inserted(path, self.get_iter(path))
+            
+        self._rebuild_index_maps()
 
         # Next, match data about the store.
         self.cache = appstore.cache
         self.db = appstore.db
         self.icons = appstore.icons
         self.search_query = appstore.search_query
-        self.sorted = appstore.sorted
+        self.sortmode = appstore.sortmode
         self.filter = appstore.filter
         self.exact = appstore.exact
         self.nonapps_visible = appstore.nonapps_visible
@@ -370,17 +385,6 @@ class AppStore(gtk.GenericTreeModel):
         pkgname = self.db.get_pkgname(doc)
         return not filter.filter(doc, pkgname)
     # internal helper
-    def _get_searches_sort_mode(self):
-        mode = self.SEARCHES_SORTED_BY_POPCON
-        if "SOFTWARE_CENTER_SEARCHES_SORT_MODE" in os.environ:
-            k = os.environ["SOFTWARE_CENTER_SEARCHES_SORT_MODE"].strip().lower()
-            if k == "popcon":
-                mode = self.SEARCHES_SORTED_BY_POPCON
-            elif k == "alphabetic":
-                mode = self.SEARCHES_SORTED_BY_ALPHABETIC
-            elif k == "xapian":
-                mode = self.SEARCHES_SORTED_BY_XAPIAN_RELEVANCE
-        return mode
     def _set_active_app(self, path):
         """ helper that emits row_changed signals for the new
             and previous selected app
@@ -1494,7 +1498,6 @@ def get_query_from_search_entry(search_term):
 
 def on_entry_changed(widget, data):
     new_text = widget.get_text()
-    print "on_entry_changed: ", new_text
     #if len(new_text) < 3:
     #    return
     (cache, db, view) = data

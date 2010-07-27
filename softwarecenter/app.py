@@ -48,6 +48,7 @@ from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
 from view.historypane import HistoryPane
+from view.viewmanager import ViewManager
 
 from backend.config import get_config
 from backend import get_install_backend
@@ -82,13 +83,6 @@ class SoftwarecenterDbusController(dbus.service.Object):
 
 class SoftwareCenterApp(SimpleGtkbuilderApp):
     
-    (NOTEBOOK_PAGE_AVAILABLE,
-     NOTEBOOK_PAGE_INSTALLED,
-     NOTEBOOK_PAGE_HISTORY,
-     NOTEBOOK_PAGE_SEPARATOR_1,
-     NOTEBOOK_PAGE_PENDING,
-     NOTEBOOK_PAGE_CHANNEL) = range(6)
-
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
     
     # the size of the icon for dialogs
@@ -188,7 +182,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # misc state
         self._block_menuitem_view = False
         self._available_items_for_page = {}
-
+ 
+        # register view manager and create view panes/widgets
+        self.view_manager = ViewManager(self.notebook_view)
+        
         # available pane
         self.available_pane = AvailablePane(self.cache,
                                             self.history,
@@ -200,7 +197,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.navhistory_forward_action)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_AVAILABLE)
+                                                VIEW_PAGE_AVAILABLE)
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
         self.available_pane.app_details.connect("application-request-action", 
@@ -209,8 +206,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_application_request_action)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_AVAILABLE)
-        self.alignment_available.add(self.available_pane)
+                                    VIEW_PAGE_AVAILABLE)
+        self.view_manager.register(self.available_pane, VIEW_PAGE_AVAILABLE)
 
         # channel pane
         self.channel_pane = ChannelPane(self.cache,
@@ -221,7 +218,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         datadir)
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_CHANNEL)
+                                                VIEW_PAGE_CHANNEL)
         self.channel_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
         self.channel_pane.app_details.connect("application-request-action", 
@@ -230,8 +227,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                            self.on_application_request_action)
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_CHANNEL)
-        self.alignment_channel.add(self.channel_pane)
+                                    VIEW_PAGE_CHANNEL)
+        self.view_manager.register(self.channel_pane, VIEW_PAGE_CHANNEL)
         
         # installed pane
         self.installed_pane = InstalledPane(self.cache,
@@ -242,7 +239,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             datadir)
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_INSTALLED)
+                                                VIEW_PAGE_INSTALLED)
         self.installed_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
         self.installed_pane.app_details.connect("application-request-action", 
@@ -251,8 +248,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_application_request_action)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_INSTALLED)
-        self.alignment_installed.add(self.installed_pane)
+                                    VIEW_PAGE_INSTALLED)
+        self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
 
         # history pane
         self.history_pane = HistoryPane(self.cache,
@@ -263,20 +260,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         datadir)
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,
-                                  self.NOTEBOOK_PAGE_HISTORY)
-        self.alignment_history.add(self.history_pane)
+                                  VIEW_PAGE_HISTORY)
+        self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
 
         # pending view
         self.pending_view = PendingView(self.icons)
-        self.scrolledwindow_transactions.add(self.pending_view)
+        self.view_manager.register(self.pending_view, VIEW_PAGE_PENDING)
 
         # view switcher
-        self.view_switcher = ViewSwitcher(datadir, self.db, self.cache, self.icons)
+        self.view_switcher = ViewSwitcher(self.view_manager, datadir, self.db, self.cache, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
-        self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
+        self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
         try:
@@ -336,7 +333,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
-        if self.notebook_view.get_current_page() == page:
+        if self.view_manager.get_active_view() == page:
             self.update_app_list_view()
             self.update_app_status_menu()
             self.update_status_bar()
@@ -356,23 +353,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.searchentry.is_focus()):
             self.active_pane.navigation_bar.navigate_up()
         
-    def on_view_switcher_changed(self, view_switcher, action, channel):
-        logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
-        if action == self.NOTEBOOK_PAGE_AVAILABLE:
-            self.active_pane = self.available_pane
-        elif action == self.NOTEBOOK_PAGE_CHANNEL:
-            self.active_pane = self.channel_pane
-        elif action == self.NOTEBOOK_PAGE_INSTALLED:
-            self.active_pane = self.installed_pane
-        elif action == self.NOTEBOOK_PAGE_HISTORY:
-            self.active_pane = self.history_pane
-        elif action == self.NOTEBOOK_PAGE_PENDING:
-            self.active_pane = None
-        elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:
-            # do nothing
-            return
-        else:
-            assert False, "Not reached"
+    def on_view_switcher_changed(self, view_switcher, view_id, channel):
+        logging.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
+        # set active pane
+        self.active_pane = self.view_manager.get_view_widget(view_id)
+
         # set menu sensitve
         self.menuitem_view_supported_only.set_sensitive(self.active_pane != None)
         self.menuitem_view_all.set_sensitive(self.active_pane != None)
@@ -387,7 +372,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
-        if action == self.NOTEBOOK_PAGE_AVAILABLE:
+        if view_id == VIEW_PAGE_AVAILABLE:
             back_action = self.available_pane.nav_history.navhistory_back_action
             forward_action = self.available_pane.nav_history.navhistory_forward_action
             self.menuitem_go_back.set_sensitive(back_action.get_sensitive())
@@ -396,7 +381,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
         # switch to new page
-        self.notebook_view.set_current_page(action)
+        self.view_manager.set_active_view(view_id)
         self.update_app_list_view(channel)
         self.update_status_bar()
         self.update_app_status_menu()
@@ -576,12 +561,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if not self._block_menuitem_view and self.active_pane.apps_filter.get_supported_only():
+        if (not self._block_menuitem_view and
+            self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
 
     def on_menuitem_view_supported_only_activate(self, widget):
-        if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
+        if (not self._block_menuitem_view and
+            not self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
             
@@ -689,7 +676,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def update_status_bar(self):
         "Helper that updates the status bar"
-        page = self.notebook_view.get_current_page()
         if self.active_pane:
             s = self.active_pane.get_status_text()
         else:

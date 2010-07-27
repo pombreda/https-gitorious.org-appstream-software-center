@@ -38,9 +38,9 @@ from softwarecenter.enums import *
 from softwarecenter.view.widgets.searchentry import SearchEntry
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.view.basepane import BasePane
 
-
-class HistoryPane(gtk.VBox):
+class HistoryPane(gtk.VBox, BasePane):
 
     __gsignals__ = {
         "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
@@ -185,22 +185,11 @@ class HistoryPane(gtk.VBox):
         self.last = new_last
         self.update_view()
 
-    def is_category_view_showing(self):
-        # There is no category view in the installed pane.
-        return False
-
-    def update_app_view(self):
-        # TODO
-        pass
-
     def get_status_text(self):
         return _('%d changes') % self.visible_changes
 
     def on_search_terms_changed(self, entry, terms):
         self.update_view()
-
-    def get_current_app(self):
-        return None
 
     def change_filter(self, action, current):
         self.filter = action.get_current_value()
