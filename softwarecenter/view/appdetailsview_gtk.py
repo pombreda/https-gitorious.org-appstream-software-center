@@ -852,11 +852,6 @@ class AddonView(gtk.VBox):
         self.show_all()
         self.label.show()
     
-    def reset(self):
-        for widget in self:
-            if widget != self.label:
-                widget.set_active(self.cache[widget.get_addon()].installed != None)
-    
     def _on_checkbutton_toggled(self, checkbutton):
         addon = checkbutton.get_addon()
         self.emit("toggled", addon, checkbutton.get_active())
@@ -1324,21 +1319,29 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.show()
         self.totalsize_bar.button_apply.set_sensitive(True)
         self.totalsize_bar.button_cancel.set_sensitive(True)
-        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+        state = self.action_bar.pkg_state
+        pkg_state = None
+        if state == PKG_STATE_INSTALLING or state == PKG_STATE_UPGRADING \
+        or self.totalsize_bar.applying:
             self.totalsize_bar.show_all()
+            pkg_state = PKG_STATE_INSTALLED
         else:
             self.totalsize_bar.hide_all()
+            pkg_state = PKG_STATE_UNINSTALLED
 
-        if self.totalsize_bar.get_applying():
-            self.action_bar.configure(self.app_details, self.app_details.pkg_state)
+        if self.totalsize_bar.applying:
+            self.action_bar.configure(self.app_details, pkg_state)
             self.addons_install = []
             self.addons_remove = []
             self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
-            self.totalsize_bar.set_applying(False)
-            self.addon_view.reset()
+            self.totalsize_bar.applying = False
+            
+            for widget in self.addon_view:
+                if widget != self.addon_view.label:
+                    addon = widget.get_addon()
+                    widget.set_active(self.cache[addon].installed != None)
             return False
         
-        state = self.action_bar.pkg_state
         if state == PKG_STATE_REMOVING:
             self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
             self.addons_install = []
@@ -1380,15 +1383,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        if progress == 100:
-            self.action_bar.progress.set_fraction(1)
-            return
-        
         if self.app_details and self.app_details.pkgname and self.app_details.pkgname == pkgname:
             if not self.action_bar.progress.get_property('visible'):
                 gobject.idle_add(self._show_prog_idle_cb)
             if pkgname in backend.pending_transactions:
                 self.action_bar.progress.set_fraction(progress/100.0)
+            if progress == 100:
+                self.action_bar.progress.set_fraction(1)
         return
 
     def _show_prog_idle_cb(self):
