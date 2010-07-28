@@ -310,6 +310,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         about_description = self.distro.get_app_description()
         self.aboutdialog.set_comments(about_description)
 
+        # about dialog
+        self.aboutdialog.connect("response",
+                                 lambda dialog, rid: dialog.hide())
+
         # restore state
         self.config = get_config()
         self.restore_state()
@@ -553,8 +557,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_menuitem_about_activate(self, widget):
         self.aboutdialog.set_version(VERSION)
         self.aboutdialog.set_transient_for(self.window_main)
-        self.aboutdialog.run()
-        self.aboutdialog.hide()
+        self.aboutdialog.show()
 
     def on_menuitem_help_activate(self, menuitem):
         # run yelp
