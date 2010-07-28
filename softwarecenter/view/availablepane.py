@@ -218,10 +218,10 @@ class AvailablePane(SoftwarePane):
         logging.debug("refresh_apps")
         self._logger.debug("refresh_apps")
 
-        #if self.subcategories_view.window:
-            #self.subcategories_view.window.set_cursor(self.busy_cursor)
-        #if self.apps_vbox.window:
-            #self.apps_vbox.window.set_cursor(self.busy_cursor)
+        if self.subcategories_view.window:
+            self.subcategories_view.window.set_cursor(self.busy_cursor)
+        if self.scroll_app_list.window:
+            self.scroll_app_list.window.set_cursor(self.busy_cursor)
         self._refresh_apps_with_apt_cache()
 
     @wait_for_apt_cache_ready
@@ -286,6 +286,8 @@ class AvailablePane(SoftwarePane):
             self.cat_view.window.set_cursor(None)
         if self.app_details.window:
             self.cat_view.window.set_cursor(None)
+        if self.scroll_app_list.window:
+            self.scroll_app_list.window.set_cursor(None)
 
         # reset nonapps
         self.nonapps_visible = False
