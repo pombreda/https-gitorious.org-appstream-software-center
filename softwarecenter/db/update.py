@@ -63,12 +63,53 @@ class AppInfoParserBase(object):
             for item in categories_str.split(";"):
                 if item:
                     categories.append(item)
-        except NoOptionError:
+        except (NoOptionError, KeyError):
             pass
         return categories
     @property
     def desktopf(self):
         """ return the file that the AppInfo comes from """
+
+class AptCachePkgParser(AppInfoParserBase):
+    """ parser that fakes a Application from a pkg-record
+        Useful for special repositories like "Whats New"
+    """
+
+    MAPPING = { 'Name'       : 'AppName',
+              }
+
+    # map from requested key to a static data element
+    STATIC_DATA = { 'Type' : 'Application',
+                  }
+
+    def __init__(self, pkg):
+        self.pkg = pkg
+        self.origin = "apt-cache"
+    def _apply_mapping(self, key):
+        if key.startswith("X-AppInstall-"):
+            key = key[len("X-AppInstall-"):]
+        if key in self.MAPPING:
+            return self.MAPPING[key]
+        return key
+    def get_desktop(self, key):
+        key = self._apply_mapping(key)
+        # check static data
+        if key in self.STATIC_DATA:
+            return self.STATIC_DATA[key]
+        # we always excpect a AppName, if there is none, fake one
+        if key == "AppName" and not "AppName" in self.pkg.candidate.record:
+            return self.pkg.name
+        return self.pkg.candidate.record[key]
+    def has_option_desktop(self, key):
+        # strip away bogus prefixes
+        if key.startswith("X-AppInstall-"):
+            key = key[len("X-AppInstall-"):]
+        if key in self.STATIC_DATA:
+            return True
+        return self._apply_mapping(key) in self.pkg.candidate.record
+    @property
+    def desktopf(self):
+        return self.origin
 
 class DesktopTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, tagfile):
@@ -166,9 +207,26 @@ def index_name(doc, name, term_generator):
 def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
+    update_from_apt_cache_for_whats_new_repo(db, cache)
     # add db global meta-data
     logger.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
+
+def update_from_apt_cache_for_whats_new_repo(db, cache):
+
+    SPECIAL_ORIGINS_THAT_ARE_CONSIDERED_APPS = (
+        "Application Review Board PPA",
+        )
+
+    for pkg in cache:
+        if not pkg.candidate:
+            continue
+        for origin in pkg.candidate.origins:
+            # FIXME: make this configuration
+            if (origin.label in SPECIAL_ORIGINS_THAT_ARE_CONSIDERED_APPS and
+                origin.trusted):
+                parser = AptCachePkgParser(pkg)
+                index_app_info_from_parser(parser, db, cache)
 
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """

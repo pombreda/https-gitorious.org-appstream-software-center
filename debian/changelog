@@ -7,7 +7,10 @@ software-center (2.1.7) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/widgets/actionbar.py:
-    - ix crash in action buttons
+    - fix crash in action buttons
+  * softwarecenter/db/update.py:
+    - support additional metadata from Packages file for the
+      "Whats new" repository (and possible others)
   
  [ Bilal Akhtar ]
  * softwarecenter/app.py:
