@@ -11,6 +11,10 @@ software-center (2.1.7) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - support additional metadata from Packages file for the
       "Whats new" repository (and possible others)
+    - add axi catalogedtime information to the app-install-data
+      DB
+  * softwarecenter/db/database.py:
+    - export parse_axi_values_file()
   
  [ Bilal Akhtar ]
  * softwarecenter/app.py:
