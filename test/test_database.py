@@ -128,6 +128,21 @@ class testDatabase(unittest.TestCase):
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)
 
+    def test_whats_new(self):
+        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        db.open()
+        query = xapian.Query("")
+        enquire = xapian.Enquire(db.xapiandb)
+        enquire.set_query(query)
+        value_time = db._axi_values["catalogedtime"]
+        enquire.set_sort_by_value(value_time, reverse=True)
+        matches = enquire.get_mset(0, 20)
+        last_time = 0
+        for m in matches:
+            doc = m[xapian.MSET_DOCUMENT]
+            doc.get_value(value_time) >= last_time
+            last_time = doc.get_value(value_time)
+
     def test_parse_axi_values_file(self):
         s = """
 # This file contains the mapping between names of numeric values indexed in the

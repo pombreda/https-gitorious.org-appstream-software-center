@@ -20,6 +20,7 @@ import gtk
 import logging
 
 from gettext import gettext as _
+from mkit import HLinkButton, EM
 
 LOG = logging.getLogger(__name__)
 

@@ -29,6 +29,21 @@ from softwarecenter.utils import *
 from softwarecenter.enums import *
 from gettext import gettext as _
 
+def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
+    """ parse the apt-xapian-index "values" file and provide the 
+    information in the self._axi_values dict
+    """
+    axi_values = {}
+    if not os.path.exists(filename):
+        return
+    for raw_line in open(filename):
+        line = string.split(raw_line, "#", 1)[0]
+        if line.strip() == "":
+            continue
+        (key, value) = line.split()
+        axi_values[key] = int(value)
+    return axi_values
+
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
@@ -56,19 +71,6 @@ class StoreDatabase(gobject.GObject):
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
 
-    def _parse_axi_values_file(self, filename="/var/lib/apt-xapian-index/values"):
-        """ parse the apt-xapian-index "values" file and provide the 
-            information in the self._axi_values dict
-        """
-        if not os.path.exists(filename):
-            return
-        for raw_line in open(filename):
-            line = string.split(raw_line, "#", 1)[0]
-            if line.strip() == "":
-                continue
-            (key, value) = line.split()
-            self._axi_values[key] = int(value)
-
     def open(self, pathname=None, use_axi=True):
         " open the database "
         if pathname:
@@ -81,7 +83,7 @@ class StoreDatabase(gobject.GObject):
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
                 self.xapiandb.add_database(axi)
-                self._parse_axi_values_file()
+                self._axi_values = parse_axi_values_file()
             except:
                 self._logger.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()
