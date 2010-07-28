@@ -5,6 +5,10 @@ software-center (2.1.7) UNRELEASED; urgency=low
     - restore missing busy cursor when loading applist 
       views (LP: #610688)
 
+  [ Michael Vogt ]
+  * softwarecenter/view/widgets/actionbar.py:
+    - ix crash in action buttons
+  
  [ Bilal Akhtar ]
  * softwarecenter/app.py:
    - Prevent About dialog from being set as modal. (LP: #550955)
