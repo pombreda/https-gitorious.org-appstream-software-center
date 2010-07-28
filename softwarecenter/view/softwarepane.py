@@ -22,15 +22,18 @@ import glib
 import gobject
 import gtk
 import logging
-import xapian
 import os
+import xapian
 
 from widgets.mkit import floats_from_gdkcolor
 from widgets.pathbar_gtk_atk import NavigationBar
+
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
 
 from widgets.searchentry import SearchEntry
+
+#from widgets.actionbar2 import ActionBar
 from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
@@ -73,6 +76,7 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
+        BasePane.__init__(self)
         # other classes we need
         self.cache = cache
         self.history = history

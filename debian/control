@@ -38,7 +38,7 @@ Depends: ${python:Depends},
 	 python-lazr.restfulclient
 Recommends: lsb-release, python-launchpad-integration, 
             apt-xapian-index (>= 0.38ubuntu1), update-notifier,
-            software-properties-gtk
+            software-properties-gtk, sessioninstaller
 Conflicts: software-store, gnome-app-install (<< 1)
 Replaces: software-store, gnome-app-install
 Provides: software-store, gnome-app-install

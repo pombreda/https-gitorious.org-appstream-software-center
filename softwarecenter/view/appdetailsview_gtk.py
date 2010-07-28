@@ -97,6 +97,7 @@ class PackageStatusBar(gtk.Alignment):
 
         #self.button.connect('size-allocate', self._on_button_size_allocate)
         self.button.connect('clicked', self._on_button_clicked)
+        self._logger = logging.getLogger("softwarecenter.view.appdetails")
         return
 
     def _on_button_size_allocate(self, button, allocation):
@@ -635,8 +636,13 @@ class ScreenshotView(gtk.Alignment):
     def _on_screenshot_download_complete(self, loader, screenshot_path):
 
         def setter_cb(path):
+            try:
+                pb = gtk.gdk.pixbuf_new_from_file(path)
+            except:
+                logging.warn('Screenshot downloaded but the file could not be opened.')
+                return False
+
             self.image.set_size_request(-1, -1)
-            pb = gtk.gdk.pixbuf_new_from_file(path)
             self.image.set_from_pixbuf(pb)
             # start the fade in
             gobject.timeout_add(50, self._fade_in)
@@ -1006,30 +1012,33 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app = None
         self.app_details = None
 
-        self.gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+        # switches
+        self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+        self._show_overlay = False
+        self._overlay = gtk.gdk.pixbuf_new_from_file(self.INSTALLED_ICON)
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()
         self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
+        #self.app_info.image.connect_after('expose-event', self._on_icon_expose)
         return
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
-        magic_number = 6*mkit.EM    # !?
         l = self.app_info.label.get_layout()
-        if l.get_pixel_extents()[1][2] > w-48-7*mkit.EM:
-            self.app_info.label.set_size_request(w-48-7*mkit.EM, -1)
+        if l.get_pixel_extents()[1][2] > w-84-4*mkit.EM:
+            self.app_info.label.set_size_request(w-84-4*mkit.EM, -1)
         else:
             self.app_info.label.set_size_request(-1, -1)
 
         for p in self.app_desc.paragraphs:
-            p.set_size_request(w-7*mkit.EM-166, -1)
+            p.set_size_request(w-5*mkit.EM-166, -1)
             
         for pt in self.app_desc.points:
-            pt.set_size_request(w-9*mkit.EM-166, -1)
+            pt.set_size_request(w-7*mkit.EM-166, -1)
 
-        self.info_table.set_width(w-magic_number)
+        self.info_table.set_width(w-6*mkit.EM)
 
         self._full_redraw()   #  ewww
         return
@@ -1051,11 +1060,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.app_info.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.app_info.image.get_pixbuf()
             if pb.get_width() < 64 or pb.get_height() < 64:
-                # draw icon fram
-                self._draw_icon_inset_frame(cr)
+                # draw icon frame
+                self._draw_icon_frame(cr)
         else:
-            # draw rectangle background
-            self._draw_icon_inset_frame(cr)
+            # draw icon frame as well...
+            self._draw_icon_frame(cr)
 
         self.action_bar.draw(cr,
                              self.action_bar.allocation,
@@ -1065,8 +1074,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         if self.homepage_btn.get_property('visible'):
             self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
-        if self.gwibber_is_available:
+        if self._gwibber_is_available:
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
+        del cr
+        return
+
+    def _on_icon_expose(self, widget, event):
+        if not self._show_overlay: return
+        a = widget.allocation
+        cr = widget.window.cairo_create()
+        pb = self._overlay
+        cr.set_source_pixbuf(pb,
+                             a.x+a.width-pb.get_width(),
+                             a.y+a.height-pb.get_height())
+        cr.paint()
         del cr
         return
 
@@ -1114,7 +1135,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # root vbox
         self.vbox = gtk.VBox()
         self.add(self.vbox)
-        self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
+        self.vbox.set_border_width(mkit.BORDER_WIDTH_XLARGE)
 
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox.set_redraw_on_allocate(False)
@@ -1124,8 +1145,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.image.set_size_request(84, 84)
         self.app_info.set_spacing(mkit.SPACING_LARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
-        self.app_info.header_alignment.set_padding(mkit.SPACING_LARGE,
-                                                   mkit.SPACING_MED,
+        self.app_info.header_alignment.set_padding(mkit.SPACING_SMALL,
+                                                   mkit.SPACING_SMALL,
                                                    0, 0)
 
         self.app_info.body.set_spacing(mkit.SPACING_LARGE)
@@ -1162,14 +1183,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         app_desc_hb.pack_end(self.screenshot)
 
         # homepage link button
-        self.homepage_btn = mkit.HButton(_('Website'))
+        self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
+        self.homepage_btn.set_xmargin(0)
         self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
-        self.share_btn = mkit.HButton(_('Share...'))
+        self.share_btn = mkit.HLinkButton(_('Share...'))
         self.share_btn.set_underline(True)
+        self.share_btn.set_xmargin(0)
         self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
@@ -1182,83 +1205,83 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_page(self, app_details):
-        # FIXME: check if we actually need that argument up there..
-        self.app_details = app_details
-
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = gobject.markup_escape_text(self.app_details.name)
+        appname = gobject.markup_escape_text(app_details.name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
         # FIXME: Once again (yes, I am working from the end to the beginning of the file..) this is tmp until we find a better place for the errors
         if self.app_details.error:
-            summary = self.app_details.error
+            summary = app_details.error
         else:
-            summary = self.app_details.summary
+            summary = app_details.summary
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
         icon = None
-        if self.app_details.icon:
-            if self.icons.has_icon(self.app_details.icon):
-                icon = self.app_details.icon
+        if app_details.icon:
+            if self.icons.has_icon(app_details.icon):
+                icon = app_details.icon
         if not icon:
             icon = MISSING_APP_ICON
+
+        # should we show the green tick?
+        self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
 
         pb = self.icons.load_icon(icon, 84, 0)
         self.app_info.set_icon_from_pixbuf(pb)
         
         # depending on pkg install state set action labels
-        self.action_bar.configure(self.app_details, self.app_details.pkg_state)
+        self.action_bar.configure(app_details, app_details.pkg_state)
         self.action_bar.button.grab_focus()
 
         # format new app description
         # FIXME: This is a bit messy, but the warnings need to be displayed somewhere until we find a better place for them
         # IDEA:  Put warning into the PackageStatusBar.  Makes sense(?).
-        if self.app_details.warning:
-            if self.app_details.description:
-                description = "Warning: " + self.app_details.warning + "\n\n" + self.app_details.description
+        if app_details.warning:
+            if app_details.description:
+                description = "Warning: " + app_details.warning + "\n\n" + app_details.description
             else:
-                description = "Warning: " + self.app_details.warning
+                description = "Warning: " + app_details.warning
         else:
-            description = self.app_details.description
+            description = app_details.description
         if description:
             self.app_desc.set_description(description, appname)
 
         # show or hide the homepage button and set uri if homepage specified
-        if self.app_details.website:
+        if app_details.website:
             self.homepage_btn.show()
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self.gwibber_is_available and not self.app_details.error:
+        if self._gwibber_is_available and not app_details.error:
             self.share_btn.show()
         else:
             self.share_btn.hide()
 
         # get screenshot urls and configure the ScreenshotView...
-        if self.app_details.thumbnail and self.app_details.screenshot:
-            self.screenshot.configure(self.app_details)
+        if app_details.thumbnail and app_details.screenshot:
+            self.screenshot.configure(app_details)
 
             # then begin screenshot download and display sequence
             self.screenshot.download_and_display()
 
         # set the strings in the package info table
-        if self.app_details.version:
-            self.info_table.set_version(self.app_details.version + "(" + self.app_details.pkgname + ")")
+        if app_details.version:
+            self.info_table.set_version('%s (%s)' % (app_details.version, app_details.pkgname))
         else:
             self.info_table.set_version(_("Unknown"))
-        if self.app_details.license:
-            self.info_table.set_license(self.app_details.license)
+        if app_details.license:
+            self.info_table.set_license(app_details.license)
         else:
             self.info_table.set_license(_("Unknown"))
-        if self.app_details.maintenance_status:
-            self.info_table.set_support_status(self.app_details.maintenance_status)
+        if app_details.maintenance_status:
+            self.info_table.set_support_status(app_details.maintenance_status)
         else:
             self.info_table.set_support_status(_("Unknown"))
         
@@ -1271,7 +1294,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # public API
     def show_app(self, app):
-        logging.debug("AppDetailsView.show_app '%s'" % app)
+        self._logger.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             return
         
@@ -1375,46 +1398,69 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.progress.show()
         return False
 
-    def _draw_icon_inset_frame(self, cr):
+    #def _draw_icon_inset_frame(self, cr):
+        ## draw small or no icon background
+        #a = self.app_info.image.allocation
+
+        #rr = mkit.ShapeRoundedRectangle()
+
+        #cr.save()
+        #r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+
+        #lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
+        #lin.add_color_stop_rgba(0.0, r, g, b, 0.3)
+        #lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
+        #cr.set_source(lin)
+        #cr.fill()
+
+        ## line width should be 0.05em, as per spec
+        #line_width = max(1, int(mkit.EM*0.05+0.5))
+        ## if line_width an odd number we need to align to the pixel grid
+        #if line_width % 2:
+            #cr.translate(0.5, 0.5)
+        #cr.set_line_width(line_width)
+
+        #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[self.state], 0.55))
+        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height+1, radius=3)
+        #cr.stroke()
+
+        #cr.set_source_rgb(r, g, b)
+        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        #cr.stroke_preserve()
+        #cr.stroke_preserve()
+
+        #cr.clip()
+
+        #rr.layout(cr, a.x+1, a.y+1, a.x+a.width-1, a.y+a.height-1, radius=2.5)
+        #cr.set_source_rgba(r, g, b, 0.35)
+        #cr.stroke()
+
+        #rr.layout(cr, a.x+2, a.y+2, a.x+a.width-2, a.y+a.height-2, radius=2)
+        #cr.set_source_rgba(r, g, b, 0.1)
+        #cr.stroke()
+
+        #cr.restore()
+        #return
+
+    def _draw_icon_frame(self, cr):
         # draw small or no icon background
         a = self.app_info.image.allocation
 
         rr = mkit.ShapeRoundedRectangle()
 
         cr.save()
+
+        # line width should be 0.05em but for the sake of simplicity
+        # make it 1 pixel
+        cr.set_line_width(1)
+        cr.translate(0.5, 0.5)
+
         r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
         rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-
-        lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-        lin.add_color_stop_rgba(0.0, r, g, b, 0.3)
-        lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
-        cr.set_source(lin)
-        cr.fill()
-
-        # line width should be 0.05em, as per spec
-        line_width = max(1, int(mkit.EM*0.05+0.5))
-        # if line_width an odd number we need to align to the pixel grid
-        if line_width % 2:
-            cr.translate(0.5, 0.5)
-        cr.set_line_width(line_width)
-
-        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[self.state], 0.55))
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height+1, radius=3)
-        cr.stroke()
-
         cr.set_source_rgb(r, g, b)
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
         cr.stroke_preserve()
-        cr.stroke_preserve()
-
-        cr.clip()
-
-        rr.layout(cr, a.x+1, a.y+1, a.x+a.width-1, a.y+a.height-1, radius=2.5)
-        cr.set_source_rgba(r, g, b, 0.35)
-        cr.stroke()
-
-        rr.layout(cr, a.x+2, a.y+2, a.x+a.width-2, a.y+a.height-2, radius=2)
-        cr.set_source_rgba(r, g, b, 0.1)
+        cr.set_source_rgba(r, g, b, 0.33)   # for strong corners
         cr.stroke()
 
         cr.restore()

@@ -7,6 +7,7 @@ import ooldtp
 import ldtputils
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -43,6 +44,8 @@ class SoftwareCenterLdtp(unittest.TestCase):
 
     def tearDown(self):
         self.p.kill()
+	# remove the local db
+	shutil.rmtree("../data/xapian")
 
     def test_search(self):
         application = ooldtp.context(self.WINDOW)

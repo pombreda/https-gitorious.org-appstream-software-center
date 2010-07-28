@@ -38,6 +38,8 @@ from softwarecenter.enums import SORT_BY_ALPHABET
  COL_CAT_QUERY,
  COL_CAT_MARKUP) = range(4)
 
+# not possible not use local logger
+LOG = logging.getLogger(__name__)
 
 def get_category_by_name(categories, untrans_name):
     # find a specific category
@@ -87,7 +89,10 @@ class CategoriesView(object):
     """ 
     Base class for the CategoriesView that supports parsing menu files
     """
-
+    
+    def __init__(self):
+        self._logger = LOG
+    
     def parse_applications_menu(self, datadir):
         """ parse a application menu and return a list of Category objects """
         categories = []
@@ -114,7 +119,7 @@ class CategoriesView(object):
 
         # debug print
         for cat in categories:
-            logging.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
+            LOG.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
         return categories
     
     def _cat_sort_cmp(self, a, b):
@@ -133,12 +138,12 @@ class CategoriesView(object):
     def _parse_directory_tag(self, element):
         cp = ConfigParser()
         fname = "/usr/share/desktop-directories/%s" % element.text
-        logging.debug("reading '%s'" % fname)
+        LOG.debug("reading '%s'" % fname)
         cp.read(fname)
         try:
             untranslated_name = name = cp.get("Desktop Entry","Name")
         except Exception, e:
-            logging.warn("'%s' has no name" % fname)
+            LOG.warn("'%s' has no name" % fname)
             return None
         try:
             gettext_domain = cp.get("Desktop Entry", "X-Ubuntu-Gettext-Domain")
@@ -161,11 +166,11 @@ class CategoriesView(object):
                 or_elem = self._parse_and_or_not_tag(and_elem, xapian.Query(), xapian.Query.OP_OR)
                 query = xapian.Query(xapian.Query.OP_AND, or_elem, query)
             elif and_elem.tag == "Category":
-                logging.debug("adding: %s" % and_elem.text)
+                LOG.debug("adding: %s" % and_elem.text)
                 q = xapian.Query("AC"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCSection":
-                logging.debug("adding section: %s" % and_elem.text)
+                LOG.debug("adding section: %s" % and_elem.text)
                 # we have the section once in apt-xapian-index and once
                 # in our own DB this is why we need two prefixes
                 # FIXME: ponder if it makes sense to simply write
@@ -175,27 +180,27 @@ class CategoriesView(object):
                                  xapian.Query("AE"+and_elem.text.lower()))
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCType":
-                logging.debug("adding type: %s" % and_elem.text)
+                LOG.debug("adding type: %s" % and_elem.text)
                 q = xapian.Query("AT"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCChannel":
-                logging.debug("adding channel: %s" % and_elem.text)
+                LOG.debug("adding channel: %s" % and_elem.text)
                 q = xapian.Query("AH"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCOrigin":
-                logging.debug("adding origin: %s" % and_elem.text)
+                LOG.debug("adding origin: %s" % and_elem.text)
                 # FIXME: origin is currently case-sensitive?!?
                 q = xapian.Query("XOO"+and_elem.text)
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCPkgname":
-                logging.debug("adding tag: %s" % and_elem.text)
+                LOG.debug("adding tag: %s" % and_elem.text)
                 # query both axi and s-c
                 q1 = xapian.Query("AP"+and_elem.text.lower())
                 q = xapian.Query(xapian.Query.OP_OR, q1,
                                  xapian.Query("XP"+and_elem.text.lower()))
                 query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCPkgnameWildcard":
-                logging.debug("adding tag: %s" % and_elem.text)
+                LOG.debug("adding tag: %s" % and_elem.text)
                 # query both axi and s-c
                 s = "pkg_wildcard:%s" % and_elem.text.lower()
                 q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
@@ -216,7 +221,7 @@ class CategoriesView(object):
             elif include.tag == "Category":
                 return xapian.Query("AC"+include.text.lower())
             else:
-                logging.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
+                LOG.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
         # empty query matches all
         return xapian.Query("")
 

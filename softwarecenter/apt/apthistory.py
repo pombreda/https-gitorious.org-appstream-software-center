@@ -23,13 +23,16 @@ import gio
 import glib
 import glob
 import gzip
+import logging
 import string
 import datetime
-import logging
+
 
 from datetime import datetime
 
 from debian_bundle import deb822
+
+LOG = logging.getLogger(__name__)
 
 class Transaction(object):
     """ Represents an apt transaction 
@@ -73,6 +76,7 @@ class AptHistory(object):
         self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
+        LOG.debug("init history")
 
     def rescan(self):
         self.transactions = []
@@ -87,7 +91,7 @@ class AptHistory(object):
             else:
                 f = open(history_file)
         except IOError, ioe:
-            logging.debug(ioe)
+            LOG.debug(ioe)
             return
         for stanza in deb822.Deb822.iter_paragraphs(f):
             # keep the UI alive

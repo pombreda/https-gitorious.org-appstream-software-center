@@ -22,6 +22,9 @@ class BasePane(object):
         ViewManager 
     """
 
+    def __init__(self):
+        self.apps_filter = None
+
     def is_category_view_showing(self):
         return False
 
