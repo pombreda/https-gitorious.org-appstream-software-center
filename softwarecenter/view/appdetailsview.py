@@ -56,12 +56,27 @@ class AppDetailsViewBase(object):
         pass
     
     # add-on handling
+    def _remove_important(self, list):
+        for addon in list:
+            try:
+                pkg = self.cache[addon]
+                if pkg.essential or pkg._pkg.important:
+                    list.remove(addon)
+                
+                rdeps = self.cache.get_installed_rdepends(pkg)
+                if len(rdeps) > 0 and list.count(addon) > 0:
+                    list.remove(addon)
+            except KeyError:
+                list.remove(addon)
+    
     def _recommended_addons(self, app_details):
         pkg = app_details.pkg
         deps = self.cache.get_depends(pkg)
         recommended = []
         if app_details.pkg_state != PKG_STATE_UNINSTALLED:
             recommended = self.cache.get_recommends(pkg)
+        else:
+            return recommended # recommended pkgs are auto-installed
         for dep in deps:
             try:
                 if len(self.cache.get_rdepends(self.cache[dep])) == 1:
@@ -69,6 +84,7 @@ class AppDetailsViewBase(object):
                     recommended += self.cache.get_recommends(self.cache[dep])
             except KeyError:
                 pass # FIXME: should we handle that differently?
+        self._remove_important(recommended)
         for addon in recommended:
             try: 
                 pkg_ = self.cache[addon]
@@ -89,6 +105,7 @@ class AppDetailsViewBase(object):
                 if can_remove or not pkg_.candidate or recommended.count(addon) > 1 \
                 or addon == pkg.name:
                     recommended.remove(addon)
+        self._remove_important(recommended)
         return recommended
     
     def _suggested_addons(self, app_details):
@@ -104,6 +121,7 @@ class AppDetailsViewBase(object):
                     suggested += self.cache.get_renhances(self.cache[dep])
             except KeyError:
                 pass # FIXME: should we handle that differently?
+        self._remove_important(suggested)
         for addon in suggested:
             try: 
                 pkg_ = self.cache[addon]
@@ -122,6 +140,7 @@ class AppDetailsViewBase(object):
                 if can_remove or not pkg_.candidate or suggested.count(addon) > 1 \
                 or addon == pkg.name:
                     suggested.remove(addon)
+        self._remove_important(suggested)
         return suggested
         
     def _set_addon_install(self, addon):
