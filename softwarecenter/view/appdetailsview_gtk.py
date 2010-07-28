@@ -846,6 +846,11 @@ class AddonView(gtk.VBox):
         self.show_all()
         self.label.show()
     
+    def reset(self):
+        for widget in self:
+            if widget != self.label:
+                widget.set_active(self.cache[widget.get_addon()].installed != None)
+    
     def _on_checkbutton_toggled(self, checkbutton):
         addon = checkbutton.get_addon()
         self.emit("toggled", addon, checkbutton.get_active())
@@ -880,6 +885,11 @@ class TotalSizeBar(gtk.HBox):
             filename = os.path.basename(pkg_version.filename)
             # FIXME: use relative path here
             return os.path.exists("/var/cache/apt/archives/" + filename)
+        
+        if not addons_install and not addons_remove:
+            self.label_size.set_label(_("No changes to be done"))
+            self.hbuttonbox.hide()
+            return
         
         pkgs_to_install = []
         pkgs_to_remove = []
@@ -934,17 +944,9 @@ class TotalSizeBar(gtk.HBox):
         
         if total_download_size > 0 or total_install_size != 0:
             self.label_size.set_label(label_string)
-            self.label_size.show()
-            if app_details.pkg_state == PKG_STATE_INSTALLED:
-                self.hbuttonbox.show()
-            else:
-                self.hbuttonbox.hide()
         else:
-            if app_details.pkg_state == PKG_STATE_INSTALLED:
-                self.label_size.set_label(_("No changes to be done"))
-            else:
-                self.label_size.hide()
-            self.hbuttonbox.hide()
+            self.label_size.set_label(_("Changes have been made"))
+        self.hbuttonbox.show()
             
     def get_applying(self):
         return self.applying
@@ -953,6 +955,8 @@ class TotalSizeBar(gtk.HBox):
     
     def _on_button_apply_clicked(self, button):
         self.applying = True
+        self.button_apply.set_sensitive(False)
+        self.button_cancel.set_sensitive(False)
         AppDetailsViewBase.apply_changes(self.view)
         
     def _on_button_cancel_clicked(self, button):
@@ -1297,7 +1301,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.show()
         self.totalsize_bar.button_apply.set_sensitive(True)
         self.totalsize_bar.button_cancel.set_sensitive(True)
-        self.totalsize_bar.hbuttonbox.show()
+        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+            self.totalsize_bar.show_all()
+        else:
+            self.totalsize_bar.hide_all()
 
         if self.totalsize_bar.get_applying():
             self.action_bar.configure(self.app_details, self.app_details.pkg_state)
@@ -1305,21 +1312,25 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.addons_remove = []
             self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
             self.totalsize_bar.set_applying(False)
+            self.addon_view.reset()
             return False
         
         state = self.action_bar.pkg_state
         if state == PKG_STATE_REMOVING:
             self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
+            self.addons_install = []
+            self.addons_remove = []
         elif state == PKG_STATE_INSTALLING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.addons_install = []
+            self.addons_remove = []
+            self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         elif state == PKG_STATE_UPGRADING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         return False
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
-        self.totalsize_bar.button_apply.set_sensitive(False)
-        self.totalsize_bar.button_cancel.set_sensitive(False)
         self.totalsize_bar.hbuttonbox.hide()
         
         if self.totalsize_bar.get_applying():
@@ -1414,7 +1425,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self._set_addon_install(addon)
         else:
             self._set_addon_remove(addon)
-        self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+            self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         
     def _on_totalsize_changescanceled(self, widget):
         self.addons_install = []

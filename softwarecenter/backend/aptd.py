@@ -113,7 +113,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error)
 
-    # FIXME: remove addons_install and addons_remove from arg list
     @inline_callbacks
     def remove(self, pkgname, appname, iconname, addons_install, addons_remove):
         """ remove a single package """
@@ -132,13 +131,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.remove(pkgname, appname, iconname)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname):
+    def install(self, pkgname, appname, iconname, addons_install, addons_remove):
         """ install a single package """
         self.emit("transaction-started")
         try:
             pkgs = [pkgname] + addons_install
-            trans = yield self.aptd_client.install_packages(pkgs,
-                                                            defer=True)
+            trans = yield self.aptd_client.commit_packages([pkgname] + addons_install, [], addons_remove, [], [])
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
             self._on_trans_error(error)
