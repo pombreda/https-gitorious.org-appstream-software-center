@@ -8,6 +8,10 @@ software-center (2.1.7) UNRELEASED; urgency=low
       list view from a details view (LP: #611108)
   * debian/control:
     - add depends python-debian (>= 0.1.15)
+  * softwarecenter/backend/channel.py:
+    - add an "App Expo" item in the left navigation pane for
+      display of the contents of the (for now) app review
+      board PPA
 
   [ Michael Vogt ]
   * softwarecenter/view/widgets/actionbar.py:
@@ -29,7 +33,7 @@ software-center (2.1.7) UNRELEASED; urgency=low
     softwarecenter/view/historypane.py:
     - fix DeprecationWarning at startup (LP: #602310)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Jul 2010 21:10:35 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Jul 2010 00:03:32 -0400
 
 software-center (2.1.6) maverick; urgency=low
 
