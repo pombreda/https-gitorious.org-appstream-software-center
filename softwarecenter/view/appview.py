@@ -738,12 +738,12 @@ class CellRendererButton2:
             xo = x + xpad
 
 
-        if self.has_focus:
+        if self.has_focus and self._widget.has_focus():
             widget.style.paint_focus(window,
                                      self.state,
                                      (x+2, y+2, w-4, h-4),
                                      widget,
-                                     "button",
+                                     "expander",
                                      x+2, y+2,
                                      w-4, h-4)
 
@@ -1420,7 +1420,6 @@ class AppView(gtk.TreeView):
 
         self.queue_draw()
         return r
-
 
     def _init_activated(self, btn, model, path):
         appname = model[path][AppStore.COL_APP_NAME]
