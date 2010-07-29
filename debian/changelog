@@ -4,6 +4,9 @@ software-center (2.1.7) UNRELEASED; urgency=low
   * softwarecenter/view/availablepane.py:
     - restore missing busy cursor when loading applist 
       views (LP: #610688)
+  * softwarecenter/view/availablepane.py:
+    - fix visual glitch when navigating back to a subcategory
+      list view from a details view (LP: #611108)
 
   [ Michael Vogt ]
   * softwarecenter/view/widgets/actionbar.py:
@@ -16,11 +19,11 @@ software-center (2.1.7) UNRELEASED; urgency=low
   * softwarecenter/db/database.py:
     - export parse_axi_values_file()
   
- [ Bilal Akhtar ]
- * softwarecenter/app.py:
-   - Prevent About dialog from being set as modal. (LP: #550955)
+  [ Bilal Akhtar ]
+  * softwarecenter/app.py:
+    - Prevent About dialog from being set as modal. (LP: #550955)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Jul 2010 22:01:54 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Jul 2010 20:55:49 -0400
 
 software-center (2.1.6) maverick; urgency=low
 
