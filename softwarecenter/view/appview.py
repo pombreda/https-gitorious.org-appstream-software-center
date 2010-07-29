@@ -705,7 +705,6 @@ class CellRendererButton2:
             self._layout_reset(layout)
 
         layout.set_markup(self.markup_variants[self.current_variant])
-
         xpad, ypad = self.xpad, self.ypad
         x, y, w, h = self.get_allocation_tuple()
 
@@ -720,7 +719,6 @@ class CellRendererButton2:
 
         cr.set_operator(cairo.OPERATOR_OVER)
         del cr
-
         widget.style.paint_box(window,
                                self.state,
                                shadow,
@@ -877,7 +875,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
 
         if self.isactive and self.props.action_in_progress > 0:
-            action_btn = self.get_button_by_name('action')
+            action_btn = self.get_button_by_name('action0')
             if not action_btn:
                 print 'No action button? This doesn\'t make sense!'
                 return
@@ -906,7 +904,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         percent = self.props.action_in_progress * 0.01
 
         # per the spec, the progressbar should be the width of the action button
-        action_btn = self.get_button_by_name('action')
+        action_btn = self.get_button_by_name('action0')
         if not action_btn:
             print 'No action button? This doesn\'t make sense!'
             return
@@ -1124,7 +1122,7 @@ class AppView(gtk.TreeView):
         info = CellRendererButton2(name='info', markup=self._info_str)
         variants = (self._action_strs['install'],
                     self._action_strs['remove'])
-        action = CellRendererButton2(name='action', markup_variants=variants)
+        action = CellRendererButton2(name='action0', markup_variants=variants)
 
         tr.button_pack_start(info)
         tr.button_pack_end(action)
@@ -1152,7 +1150,7 @@ class AppView(gtk.TreeView):
         # custom cursor
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
         # our own "activate" handler
-        self.connect("row-activated", self._on_row_activated)
+        self.connect("row-activated", self._on_row_activated, tr)
 
         # button and motion are "special"
         self.connect("style-set", self._on_style_set, tr)
@@ -1162,9 +1160,8 @@ class AppView(gtk.TreeView):
         self.connect("motion-notify-event", self._on_motion, tr, column)
 
         self.backend = get_install_backend()
-        self.backend.connect("transaction-started", self._on_transaction_started, tr)
-        self.backend.connect("transaction-finished", self._on_transaction_finished, tr)
-        self.backend.connect("transaction-stopped", self._on_transaction_stopped, tr)
+        self._transactions_connected = False
+        self.connect('realize', self._on_realize, tr)
 
     def set_model(self, new_model):
         # unset
@@ -1194,13 +1191,18 @@ class AppView(gtk.TreeView):
         """
         (path, column) = self.get_cursor()
         model = self.get_model()
-        action_in_progress = False
-        if path:
-            action_in_progress = (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
-        return action_in_progress
+        return (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
 
     def get_button(self, key):
         return self.buttons[key]
+
+    def _on_realize(self, widget, tr):
+        if self._transactions_connected: return
+        self.backend.connect("transaction-started", self._on_transaction_started, tr)
+        self.backend.connect("transaction-finished", self._on_transaction_finished, tr)
+        self.backend.connect("transaction-stopped", self._on_transaction_stopped, tr)
+        self._transactions_connected = True
+        return
 
     def _on_style_set(self, widget, old_style, tr):
         em = get_em_value()
@@ -1230,6 +1232,7 @@ class AppView(gtk.TreeView):
 
         self.window.set_cursor(None)
         for btn in tr.get_buttons():
+            #rr = btn.get_param('region_rect')
             if btn.state != gtk.STATE_INSENSITIVE:
                 if btn.point_in(x, y):
                     if self.focal_btn is btn:
@@ -1241,9 +1244,6 @@ class AppView(gtk.TreeView):
                 else:
                     if btn.state != gtk.STATE_NORMAL:
                         btn.set_state(gtk.STATE_NORMAL)
-
-        store = tree.get_model()
-        store.row_changed(path[0], store.get_iter(path[0]))
         return
 
     def _on_cursor_changed(self, view, tr):
@@ -1270,13 +1270,15 @@ class AppView(gtk.TreeView):
         # update active app, use row-ref as argument
         model._set_active_app(row)
         installed = model[row][AppStore.COL_INSTALLED]
-        action_btn = tr.get_button_by_name('action')
-        if not action_btn: return False
+        action_btn = tr.get_button_by_name('action0')
+        #if not action_btn: return False
 
         if self.is_action_in_progress_for_selected_app():
             action_btn.set_sensitive(False)
+        elif self.pressed and self.focal_btn == action_btn:
+            action_btn.set_state(gtk.STATE_ACTIVE)
         else:
-            action_btn.set_sensitive(True)
+            action_btn.set_state(gtk.STATE_NORMAL)
 
         if installed:
             action_btn.set_markup_variant_n(1)
@@ -1291,7 +1293,12 @@ class AppView(gtk.TreeView):
         self.emit("application-selected", Application(name, pkgname, popcon))
         return False
 
-    def _on_row_activated(self, view, path, column):
+    def _on_row_activated(self, view, path, column, tr):
+        pointer = gtk.gdk.device_get_core_pointer()
+        x, y = pointer.get_state(view.window)[0]
+        for btn in tr.get_buttons():
+            if btn.point_in(int(x), int(y)): return
+
         model = view.get_model()
         exists = model[path][AppStore.COL_EXISTS]
         if exists:
@@ -1317,7 +1324,7 @@ class AppView(gtk.TreeView):
 
         x, y = int(event.x), int(event.y)
         for btn in tr.get_buttons():
-            print btn.name
+            #rr = btn.get_param('region_rect')
             if btn.point_in(x, y) and (btn.state != gtk.STATE_INSENSITIVE):
                 self.focal_btn = btn
                 btn.set_state(gtk.STATE_ACTIVE)
@@ -1341,6 +1348,7 @@ class AppView(gtk.TreeView):
 
         x, y = int(event.x), int(event.y)
         for btn in tr.get_buttons():
+            #rr = btn.get_param('region_rect')
             if btn.point_in(x, y) and (btn.state != gtk.STATE_INSENSITIVE):
                 btn.set_state(gtk.STATE_NORMAL)
                 #btn.set_shadow(gtk.SHADOW_OUT)
@@ -1370,7 +1378,7 @@ class AppView(gtk.TreeView):
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
         if btn_id == 'info':
             self.emit("application-activated", Application(appname, pkgname, popcon))
-        elif btn_id == 'action':
+        elif btn_id == 'action0':
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
             if installed:
@@ -1379,30 +1387,36 @@ class AppView(gtk.TreeView):
                 perform_action = APP_ACTION_INSTALL
             self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
         return False
-        
+
+    def _set_cursor(self, btn, cursor):
+        pointer = gtk.gdk.device_get_core_pointer()
+        x, y = pointer.get_state(self.window)[0]
+        if btn.point_in(int(x), int(y)):
+            self.window.set_cursor(cursor)
+
     def _on_transaction_started(self, backend, tr):
         """ callback when an application install/remove transaction has started """
-        action_btn = tr.get_button_by_name('action')
+        action_btn = tr.get_button_by_name('action0')
         if action_btn:
             action_btn.set_sensitive(False)
+            self._set_cursor(action_btn, None)
 
     def _on_transaction_finished(self, backend, success, tr):
         """ callback when an application install/remove transaction has finished """
-        action_btn = tr.get_button_by_name('action')
+        action_btn = tr.get_button_by_name('action0')
         if action_btn:
             action_btn.set_sensitive(True)
-        # update button label here
-        if self.get_cursor()[0]:
-            self._update_selected_row(self, tr)
+            self._set_cursor(action_btn, self._cursor_hand)
 
     def _on_transaction_stopped(self, backend, tr):
         """ callback when an application install/remove transaction has stopped """
-        action_btn = tr.get_button_by_name('action')
+        action_btn = tr.get_button_by_name('action0')
         if action_btn:
             # this should be a function that decides action button state label...
             if action_btn.current_variant == 2:
                 action_btn.set_markup_variant_n(1)
             action_btn.set_sensitive(True)
+            self._set_cursor(action_btn, self._cursor_hand)
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)
@@ -1410,30 +1424,6 @@ class AppView(gtk.TreeView):
         if not res:
             return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
-
-    def _configure_cell_and_button_geometry(self, tr):
-        # tell the cellrenderer the text direction for renderering purposes
-        tr.set_direction(self.get_direction())
-
-        pc = self.get_pango_context()
-        layout = pango.Layout(pc)
-
-        font_size = self._get_default_font_size()
-        tr.set_base_height(max(int(3.5*font_size), 32))    # 32, the pixbufoverlay height
-
-        action_btn = CellRendererButton(layout, markup=_("Install"), alt_markup=_("Remove"))
-        info_btn = CellRendererButton(layout, _("More Info"))
-
-        max_h = max(action_btn.get_param('height'), info_btn.get_param('height'))
-        tr.set_button_height(max_h+tr.get_property('ypad')*2)
-
-        yO = tr.base_height+tr.get_property('ypad')
-        action_btn.set_param('y_offset_const', yO)
-        info_btn.set_param('y_offset_const', yO)
-
-        self.buttons['action'] = action_btn
-        self.buttons['info'] = info_btn
-        return
 
 
 # XXX should we use a xapian.MatchDecider instead?
