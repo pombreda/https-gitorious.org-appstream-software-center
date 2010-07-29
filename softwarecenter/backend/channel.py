@@ -184,6 +184,7 @@ class ChannelsManager(object):
         ppa_channels = []
         other_channels = []
         unknown_channel = []
+        local_channel = None
         
         for (channel_name, channel_origin) in other_channel_list:
             if not channel_name:
@@ -206,6 +207,13 @@ class ChannelsManager(object):
                                                   "partner", 
                                                   only_packages_without_applications=True,
                                                   installed_only=installed_only)
+            elif channel_name == "notdownloadable":
+                if installed_only:
+                    local_channel = SoftwareChannel(self.icons, 
+                                                    channel_name,
+                                                    None,
+                                                    None,
+                                                    installed_only=installed_only)
             elif channel_origin and channel_origin.startswith("LP-PPA"):
                 if channel_origin == "LP-PPA-app-review-board":
                     new_apps_channel = SoftwareChannel(self.icons, 
@@ -239,6 +247,8 @@ class ChannelsManager(object):
         channels.extend(other_channels)
         channels.extend(unknown_channel)
         channels.extend(self.extra_channels)
+        if local_channel is not None:
+            channels.append(local_channel)
         
         return channels
         
@@ -336,11 +346,13 @@ class SoftwareChannel(object):
         if channel_component == "partner":
             channel_display_name = _("Canonical Partners")
         elif not channel_name:
-            channel_display_name = _("Other")
+            channel_display_name = _("Unknown")
         elif channel_name == self.distro.get_distro_channel_name():
             channel_display_name = self.distro.get_distro_channel_description()
         elif channel_name == "Application Review Board PPA":
             channel_display_name = _("App Expo")
+        elif channel_name == "notdownloadable":
+            channel_display_name = _("Other")
         else:
             channel_display_name = channel_name
         return channel_display_name
@@ -356,6 +368,8 @@ class SoftwareChannel(object):
             channel_icon = self._get_icon("unknown-channel")
         elif channel_origin and channel_origin.startswith("LP-PPA"):
             channel_icon = self._get_icon("ppa")
+        elif channel_name == "notdownloadable":
+            channel_icon = self._get_icon("unknown-channel")
         # TODO: add check for generic repository source (e.g., Google, Inc.)
         #       self._get_icon("generic-repository")
         else:
