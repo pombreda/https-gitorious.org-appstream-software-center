@@ -150,7 +150,8 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
     """ Internal helper that updates the login_state of
         the modul global lp_worker_thread object
     """
-    def __init__ (self):
+    def __init__ (self, *args, **kwargs):
+        super(AuthorizeRequestTokenFromThread, self).__init__(*args, **kwargs)
         self._logger = logging.getLogger("softwarecenter.backend")
 
     # we need this to give the engine a place to store the state
