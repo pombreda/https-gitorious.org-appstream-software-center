@@ -1197,6 +1197,8 @@ class AppView(gtk.TreeView):
         return self.buttons[key]
 
     def _on_realize(self, widget, tr):
+        # connect to backend events once self is realized so handlers 
+        # have access to the TreeView's initialised gtk.gdk.Window
         if self._transactions_connected: return
         self.backend.connect("transaction-started", self._on_transaction_started, tr)
         self.backend.connect("transaction-finished", self._on_transaction_finished, tr)
