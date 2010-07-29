@@ -189,6 +189,9 @@ class UbuntuSSOlogin(LoginBackend):
         self._oauth_credentials = None
         self._login_failure = None
 
+    def shutdown(self):
+        self.worker_thread.shutdown()
+
     def login(self, username=None, password=None):
         if not username or not password:
             self.emit("need-username-password")
