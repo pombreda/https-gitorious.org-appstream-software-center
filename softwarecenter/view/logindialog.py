@@ -115,8 +115,12 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
     # glaunchpad
-    #loginbackend = GLaunchpad()
-    loginbackend = UbuntuSSOlogin()
+    if sys.argv[1] == "launchpad":
+        loginbackend = GLaunchpad()
+    elif sys.argv[1] == "sso":
+        loginbackend = UbuntuSSOlogin()
+    else:
+        print "need either 'sso' or 'launchpad' as arguments"
     d = LoginDialog(loginbackend, datadir="./data")
     res = d.login()
 

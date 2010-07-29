@@ -197,9 +197,9 @@ class AvailablePane(SoftwarePane):
     def _show_hide_subcategories(self, show_category_applist=False):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
-
-        if self.notebook.get_current_page() == 0 or \
-            self.notebook.get_current_page() == 3: return
+        if (self.notebook.get_current_page() == self.PAGE_CATEGORY or
+            self.notebook.get_current_page() == self.PAGE_APP_DETAILS):
+            return
         if (not show_category_applist and
             not self.nonapps_visible and
             self.apps_category and
@@ -218,6 +218,7 @@ class AvailablePane(SoftwarePane):
         logging.debug("refresh_apps")
         self._logger.debug("refresh_apps")
 
+        self.notebook.hide()
         if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(self.busy_cursor)
         if self.scroll_app_list.window:
@@ -284,6 +285,7 @@ class AvailablePane(SoftwarePane):
 
         # check if we show subcategory
         self._show_hide_subcategories()
+        self.notebook.show()
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))
@@ -551,15 +553,12 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_list(self):
-        viewing_details = self.navigation_bar.has_id(self.NAV_BUTTON_ID_DETAILS)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         
         if self.apps_subcategory:
             self.apps_subcategory = None
-        if (not self.apps_search_term and
-            not viewing_details):
-            self.set_category(self.apps_category)
+        self.set_category(self.apps_category)
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
@@ -580,9 +579,8 @@ class AvailablePane(SoftwarePane):
         self.set_category(self.apps_subcategory)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
-        #model = self.app_view.get_model()
-        #if model is not None:
-            #self.emit("app-list-changed", len(model))
+        # do not emit app-list-changed here, this is done async when
+        # the new model is ready
         self.action_bar.clear()
         self.searchentry.show()
         self.cat_view.stop_carousels()
