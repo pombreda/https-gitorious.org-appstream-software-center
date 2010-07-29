@@ -218,6 +218,7 @@ class AvailablePane(SoftwarePane):
         logging.debug("refresh_apps")
         self._logger.debug("refresh_apps")
 
+        self.notebook.hide()
         if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(self.busy_cursor)
         if self.scroll_app_list.window:
@@ -275,6 +276,7 @@ class AvailablePane(SoftwarePane):
         self.app_view.get_model().active = True
         # check if we show subcategory
         self._show_hide_subcategories()
+        self.notebook.show()
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))
@@ -542,20 +544,13 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_list(self):
-        viewing_details = self.navigation_bar.has_id(self.NAV_BUTTON_ID_DETAILS)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-        # if we are navigating from a details back back to the applist, no need
-        # to explicitely refresh anything, just show the applist page
-        if viewing_details:
-            self.notebook.set_current_page(self.PAGE_APPLIST)
-            return
         
         if self.apps_subcategory:
             self.apps_subcategory = None
-        if not self.apps_search_term:
-            self.set_category(self.apps_category)
-        else:
+        self.set_category(self.apps_category)
+        if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
 
@@ -569,17 +564,11 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_subcat(self):
-        viewing_details = self.navigation_bar.has_id(self.NAV_BUTTON_ID_DETAILS)
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-        # if we are navigating from a details back back to the applist, no need
-        # to explicitely refresh anything, just show the applist page
-        if viewing_details:
-            self.notebook.set_current_page(self.PAGE_APPLIST)
-            return
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
         self.set_category(self.apps_subcategory)
+        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
