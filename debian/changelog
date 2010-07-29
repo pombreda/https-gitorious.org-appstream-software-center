@@ -12,9 +12,6 @@ software-center (2.1.7) UNRELEASED; urgency=low
     - add an "App Expo" item in the left navigation pane for
       display of the contents of the (for now) app review
       board PPA
-    - add a new "Other" item in the left navigation pane
-      for display of software items for which a corresponding
-      repository is not available (LP: #524379, LP: #596409)
 
   [ Michael Vogt ]
   * softwarecenter/view/widgets/actionbar.py:
