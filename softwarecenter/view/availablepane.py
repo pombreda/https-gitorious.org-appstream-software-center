@@ -232,7 +232,9 @@ class AvailablePane(SoftwarePane):
         self._logger.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
-        
+        path = self.app_view.get_cursor()[0]
+        old_cursor_path = path or (0,)
+
         # if a search is not in progress, clear the current model to
         # display an empty list while the full list is generated; this
         # prevents a visual glitch when a list is replaced
@@ -273,6 +275,13 @@ class AvailablePane(SoftwarePane):
         # set model
         self.app_view.set_model(new_model)
         self.app_view.get_model().active = True
+
+        # reset the cursor and selection
+        sel = self.app_view.get_selection()
+        sel.select_path(old_cursor_path)
+        self.app_view.set_cursor(old_cursor_path)
+        self.app_view.grab_focus()
+
         # check if we show subcategory
         self._show_hide_subcategories()
         # we can not use "new_model" here, because set_model may actually
