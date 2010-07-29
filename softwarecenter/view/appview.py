@@ -1230,20 +1230,24 @@ class AppView(gtk.TreeView):
         path = tree.get_path_at_pos(x, y)
         if not path: return
 
-        self.window.set_cursor(None)
+        use_hand = False
         for btn in tr.get_buttons():
-            #rr = btn.get_param('region_rect')
             if btn.state != gtk.STATE_INSENSITIVE:
                 if btn.point_in(x, y):
                     if self.focal_btn is btn:
-                        self.window.set_cursor(self._cursor_hand)
+                        use_hand = True
                         btn.set_state(gtk.STATE_ACTIVE)
                     elif not self.pressed:
-                        self.window.set_cursor(self._cursor_hand)
+                        use_hand = True
                         btn.set_state(gtk.STATE_PRELIGHT)
                 else:
                     if btn.state != gtk.STATE_NORMAL:
                         btn.set_state(gtk.STATE_NORMAL)
+
+        if use_hand:
+            self.window.set_cursor(self._cursor_hand)
+        else:
+            self.window.set_cursor(None)
         return
 
     def _on_cursor_changed(self, view, tr):
@@ -1282,10 +1286,10 @@ class AppView(gtk.TreeView):
 
         if installed:
             action_btn.set_markup_variant_n(1)
-            action_btn.configure_geometry(self)
+            #action_btn.configure_geometry(self)
         else:
             action_btn.set_markup_variant_n(0)
-            action_btn.configure_geometry(self)
+            #action_btn.configure_geometry(self)
 
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
