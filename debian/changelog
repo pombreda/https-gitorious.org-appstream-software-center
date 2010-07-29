@@ -12,6 +12,9 @@ software-center (2.1.7) UNRELEASED; urgency=low
     - add an "App Expo" item in the left navigation pane for
       display of the contents of the (for now) app review
       board PPA
+  * test/test_database.py:
+    - update test for parse_axi_values_file change, fix
+      test_update_from_var_lib_apt_lists
 
   [ Michael Vogt ]
   * softwarecenter/view/widgets/actionbar.py:
@@ -33,7 +36,7 @@ software-center (2.1.7) UNRELEASED; urgency=low
     softwarecenter/view/historypane.py:
     - fix DeprecationWarning at startup (LP: #602310)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Jul 2010 19:14:01 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Jul 2010 16:58:24 -0400
 
 software-center (2.1.6) maverick; urgency=low
 
