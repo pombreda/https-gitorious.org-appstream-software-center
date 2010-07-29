@@ -657,7 +657,6 @@ class CellRendererButton2:
         if state == self.state: return
         self.state = state
         if self._widget:
-            print state
             self._widget.queue_draw_area(*self.get_allocation_tuple())
         return
 
@@ -1318,6 +1317,7 @@ class AppView(gtk.TreeView):
 
         x, y = int(event.x), int(event.y)
         for btn in tr.get_buttons():
+            print btn.name
             if btn.point_in(x, y) and (btn.state != gtk.STATE_INSENSITIVE):
                 self.focal_btn = btn
                 btn.set_state(gtk.STATE_ACTIVE)
