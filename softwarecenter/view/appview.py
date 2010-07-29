@@ -762,8 +762,8 @@ class CellRendererButton2:
 class CellRendererAppView2(gtk.CellRendererText):
 
     # offset of the install overlay icon
-    OFFSET_X = 19
-    OFFSET_Y = 19
+    OFFSET_X = 20
+    OFFSET_Y = 20
 
     # size of the install overlay icon
     OVERLAY_SIZE = 16
