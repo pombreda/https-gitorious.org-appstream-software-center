@@ -1386,7 +1386,7 @@ class AppView(gtk.TreeView):
             btn.has_focus = False
             btn = tr.get_button_by_name('info')
             btn.has_focus = True
-        elif kv == 32:
+        elif kv == 32:  # spacebar
             for btn in tr.get_buttons():
                 if btn.has_focus:
                     btn.set_state(gtk.STATE_ACTIVE)
@@ -1402,7 +1402,7 @@ class AppView(gtk.TreeView):
     def _on_key_release_event(self, widget, event, tr):
         kv = event.keyval
         r = False
-        if kv == 32:
+        if kv == 32:    # spacebar
             for btn in tr.get_buttons():
                 if btn.has_focus:
                     btn.set_state(gtk.STATE_NORMAL)
