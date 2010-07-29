@@ -603,10 +603,10 @@ class CellRendererButton2:
         self.ypad = ypad
         self.allocation = gdk.Rectangle(0,0,1,1)
         self.state = gtk.STATE_NORMAL
+        self.has_focus = False
 
         self._widget = None
         self._geometry = None
-#        self._the_insensitive_path_list = [] # why do they have to be so mean... ?
         return
 
     def _layout_reset(self, layout):
@@ -745,6 +745,16 @@ class CellRendererButton2:
                                   "button",
                                   xo, y+ypad,
                                   layout)
+
+        if not self.has_focus: return
+
+        widget.style.paint_focus(window,
+                                 self.state,
+                                 (x+2, y+2, w-4, h-4),
+                                 widget,
+                                 "button",
+                                 x+2, y+2,
+                                 w-4, h-4)
         return
 
 
@@ -1154,10 +1164,15 @@ class AppView(gtk.TreeView):
 
         # button and motion are "special"
         self.connect("style-set", self._on_style_set, tr)
-        self.connect("button-press-event", self._on_button_press_event, tr, column)
-        self.connect("button-release-event", self._on_button_release_event, tr, column)
+
+        self.connect("button-press-event", self._on_button_press_event, tr)
+        self.connect("button-release-event", self._on_button_release_event, tr)
+
+        self.connect("key-press-event", self._on_key_press_event, tr)
+        self.connect("key-release-event", self._on_key_release_event, tr)
+
         self.connect("cursor-changed", self._on_cursor_changed, tr)
-        self.connect("motion-notify-event", self._on_motion, tr, column)
+        self.connect("motion-notify-event", self._on_motion, tr)
 
         self.backend = get_install_backend()
         self._transactions_connected = False
@@ -1223,7 +1238,7 @@ class AppView(gtk.TreeView):
             btn.configure_geometry(self)
         return
 
-    def _on_motion(self, tree, event, tr, col):
+    def _on_motion(self, tree, event, tr):
         x, y = int(event.x), int(event.y)
         if not self._xy_is_over_focal_row(x, y):
             self.window.set_cursor(None)
@@ -1253,15 +1268,10 @@ class AppView(gtk.TreeView):
         return
 
     def _on_cursor_changed(self, view, tr):
-        # trigger callback, if we do it here get_selection() returns
-        # the previous selected row for some reason
-        #   without the timeout a row gets multiple times selected
-        #   and "wobbles" when switching between categories
         model = view.get_model()
         sel = view.get_selection()
-        #print model.get_path(sel.get_selected()[1])
-        sel.select_path(view.get_cursor()[0])
-        #gobject.timeout_add(1, self._update_selected_row, view, tr)
+        path = view.get_cursor()[0] or (0,)
+        sel.select_path(path)
         self._update_selected_row(view, tr)
 
     def _update_selected_row(self, view, tr):
@@ -1313,14 +1323,14 @@ class AppView(gtk.TreeView):
             popcon = model[path][AppStore.COL_POPCON]
             self.emit("application-activated", Application(name, pkgname, popcon))
 
-    def _on_button_press_event(self, view, event, tr, col):
+    def _on_button_press_event(self, view, event, tr):
         if event.button != 1:
             return
         self.pressed = True
         res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
-        (path, column, wx, wy) = res
+        path = res[0]
         if path is None:
             return
         # only act when the selection is already there
@@ -1330,21 +1340,20 @@ class AppView(gtk.TreeView):
 
         x, y = int(event.x), int(event.y)
         for btn in tr.get_buttons():
-            #rr = btn.get_param('region_rect')
             if btn.point_in(x, y) and (btn.state != gtk.STATE_INSENSITIVE):
                 self.focal_btn = btn
                 btn.set_state(gtk.STATE_ACTIVE)
                 return
         self.focal_btn = None
 
-    def _on_button_release_event(self, view, event, tr, col):
+    def _on_button_release_event(self, view, event, tr):
         if event.button != 1:
             return
         self.pressed = False
         res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
-        (path, column, wx, wy) = res
+        path = res[0]
         if path is None:
             return
         # only act when the selection is already there
@@ -1354,32 +1363,77 @@ class AppView(gtk.TreeView):
 
         x, y = int(event.x), int(event.y)
         for btn in tr.get_buttons():
-            #rr = btn.get_param('region_rect')
             if btn.point_in(x, y) and (btn.state != gtk.STATE_INSENSITIVE):
                 btn.set_state(gtk.STATE_NORMAL)
-                #btn.set_shadow(gtk.SHADOW_OUT)
                 self.window.set_cursor(self._cursor_hand)
                 if self.focal_btn is not btn:
                     break
-                model = view.get_model()
-                appname = model[path][AppStore.COL_APP_NAME]
-                pkgname = model[path][AppStore.COL_PKGNAME]
-                installed = model[path][AppStore.COL_INSTALLED]
-                popcon = model[path][AppStore.COL_POPCON]
-
-                s = gtk.settings_get_default()
-                gobject.timeout_add(s.get_property("gtk-timeout-initial"),
-                                    self._app_activated_cb,
-                                    btn,
-                                    btn.name,
-                                    appname,
-                                    pkgname,
-                                    popcon,
-                                    installed,
-                                    view.get_model(),
-                                    path)
+                self._init_activated(btn, view.get_model(), path)
                 break
         self.focal_btn = None
+
+    def _on_key_press_event(self, widget, event, tr):
+        kv = event.keyval
+        #print kv
+        r = False
+        if kv == 65363: # right-key
+            btn = tr.get_button_by_name('action0')
+            btn.has_focus = True
+            btn = tr.get_button_by_name('info')
+            btn.has_focus = False
+        elif kv == 65361: # left-key
+            btn = tr.get_button_by_name('action0')
+            btn.has_focus = False
+            btn = tr.get_button_by_name('info')
+            btn.has_focus = True
+        elif kv == 32:
+            for btn in tr.get_buttons():
+                if btn.has_focus:
+                    btn.set_state(gtk.STATE_ACTIVE)
+                    path = self.get_cursor()[0]
+                    if path:
+                        #self._init_activated(btn, self.get_model(), path)
+                        r = True
+                    break
+
+        self.queue_draw()
+        return r
+
+    def _on_key_release_event(self, widget, event, tr):
+        kv = event.keyval
+        r = False
+        if kv == 32:
+            for btn in tr.get_buttons():
+                if btn.has_focus:
+                    btn.set_state(gtk.STATE_NORMAL)
+                    path = self.get_cursor()[0]
+                    if path:
+                        self._init_activated(btn, self.get_model(), path)
+                        r = True
+                    break
+
+        self.queue_draw()
+        return r
+
+
+    def _init_activated(self, btn, model, path):
+        appname = model[path][AppStore.COL_APP_NAME]
+        pkgname = model[path][AppStore.COL_PKGNAME]
+        installed = model[path][AppStore.COL_INSTALLED]
+        popcon = model[path][AppStore.COL_POPCON]
+
+        s = gtk.settings_get_default()
+        gobject.timeout_add(s.get_property("gtk-timeout-initial"),
+                            self._app_activated_cb,
+                            btn,
+                            btn.name,
+                            appname,
+                            pkgname,
+                            popcon,
+                            installed,
+                            model,
+                            path)
+        return
 
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
         if btn_id == 'info':
