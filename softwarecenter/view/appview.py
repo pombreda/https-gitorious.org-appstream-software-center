@@ -1390,7 +1390,10 @@ class AppView(gtk.TreeView):
             for btn in tr.get_buttons():
                 if btn.has_focus:
                     btn.set_state(gtk.STATE_ACTIVE)
-                    path = self.get_cursor()[0]
+                    sel = self.get_selection()
+                    model, it = sel.get_selected()
+                    path = model.get_path(it)
+                    #print model[path][AppStore.COL_APP_NAME]
                     if path:
                         #self._init_activated(btn, self.get_model(), path)
                         r = True
@@ -1406,7 +1409,10 @@ class AppView(gtk.TreeView):
             for btn in tr.get_buttons():
                 if btn.has_focus:
                     btn.set_state(gtk.STATE_NORMAL)
-                    path = self.get_cursor()[0]
+                    sel = self.get_selection()
+                    model, it = sel.get_selected()
+                    path = model.get_path(it)
+                    #print model[path][AppStore.COL_APP_NAME]
                     if path:
                         self._init_activated(btn, self.get_model(), path)
                         r = True
