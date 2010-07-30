@@ -1097,6 +1097,7 @@ class AppView(gtk.TreeView):
         #self.buttons = {}
         self.pressed = False
         self.focal_btn = None
+        self._action_block_list = []
 
         # if this hacked mode is available everything will be fast
         # and we can set fixed_height mode and still have growing rows
@@ -1422,6 +1423,7 @@ class AppView(gtk.TreeView):
         return r
 
     def _init_activated(self, btn, model, path):
+
         appname = model[path][AppStore.COL_APP_NAME]
         pkgname = model[path][AppStore.COL_PKGNAME]
         installed = model[path][AppStore.COL_INSTALLED]
@@ -1446,6 +1448,11 @@ class AppView(gtk.TreeView):
         elif btn_id == 'action0':
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
+            # be sure we dont request an action for a pkg with pre-existing actions
+            if pkgname in self._action_block_list:
+                print 'Action already in progress for package: %s' % pkgname
+                return
+            self._action_block_list.append(pkgname)
             if installed:
                 perform_action = APP_ACTION_REMOVE
             else:
@@ -1466,15 +1473,25 @@ class AppView(gtk.TreeView):
             action_btn.set_sensitive(False)
             self._set_cursor(action_btn, None)
 
-    def _on_transaction_finished(self, backend, success, tr):
+    def _on_transaction_finished(self, backend, pkgname, success, tr):
         """ callback when an application install/remove transaction has finished """
+        # remove pkg from the block list
+        if pkgname in self._action_block_list:
+            i = self._action_block_list.index(pkgname)
+            del self._action_block_list[i]
+
         action_btn = tr.get_button_by_name('action0')
         if action_btn:
             action_btn.set_sensitive(True)
             self._set_cursor(action_btn, self._cursor_hand)
 
-    def _on_transaction_stopped(self, backend, tr):
+    def _on_transaction_stopped(self, backend, pkgname, tr):
         """ callback when an application install/remove transaction has stopped """
+        # remove pkg from the block list
+        if pkgname in self._action_block_list:
+            i = self._action_block_list.index(pkgname)
+            del self._action_block_list[i]
+
         action_btn = tr.get_button_by_name('action0')
         if action_btn:
             # this should be a function that decides action button state label...
