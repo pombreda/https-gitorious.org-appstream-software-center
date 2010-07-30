@@ -12,6 +12,7 @@ import xapian
 
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists
 from softwarecenter.enums import *
 
@@ -72,7 +73,9 @@ class testDatabase(unittest.TestCase):
         for it in db.postlist("AAFestplatten Ueberpruefer"):
             doc = db.get_document(it.docid)
             for term_iter in doc.termlist():
-                if term_iter.term == "fehler":
+                # a german term from the app-info file to ensure that
+                # it got indexed in german
+                if term_iter.term == "platzes":
                     found_gettext_translation = True
                     break
         self.assertTrue(found_gettext_translation)
@@ -166,9 +169,9 @@ app-popcon	4	# app-install .desktop popcon rank
         open("axi-test-values","w").write(s)
         db = StoreDatabase("/var/cache/software-center/xapian", 
                            self.cache)
-        db._parse_axi_values_file("axi-test-values")
-        self.assertNotEqual(db._axi_values, {})
-        print db._axi_values
+        axi_values = parse_axi_values_file("axi-test-values")
+        self.assertNotEqual(axi_values, {})
+        print axi_values
 
 if __name__ == "__main__":
     import logging
