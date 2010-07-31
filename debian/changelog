@@ -3,10 +3,13 @@ software-center (2.1.8) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/app.py:
     - save/restore sidebar width (LP: #567128)
+    - don't crash if active_pane doesn't have a searchentry (LP: #611718)
   * softwarecenter/db/application.py:
     - when app has no appname, display the summary as primary text (per spec) (LP: #537436)
   * softwarecenter/view/availablepane.py:
     - correctly update the status bar after filtering by support status (LP: #528062)
+  * softwarecenter/view/pendingview.py:
+    - pending_view doesn't contain a searchentry
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 30 Jul 2010 21:35:56 +0200
 

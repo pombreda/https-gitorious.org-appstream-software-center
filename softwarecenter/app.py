@@ -479,7 +479,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                            self.menuitem_search]
         for item in edit_menu_items:
             item.set_sensitive(False)
-        if (self.active_pane and
+        if (self.active_pane and self.active_pane.searchentry and
             self.active_pane.searchentry.flags() & gtk.VISIBLE):
             # undo, redo, cut, copy, paste, delete, select_all sensitive 
             # if searchentry is focused (and other more specific conditions)

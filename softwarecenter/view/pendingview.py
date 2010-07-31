@@ -209,6 +209,8 @@ class PendingView(gtk.TreeView, BasePane):
         tt = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Cancel", tt)
         self.append_column(column)
+        # we don't have a searchentry in the pending view
+        self.searchentry = None
         # add it
         store = PendingStore(icons)
         self.set_model(store)
