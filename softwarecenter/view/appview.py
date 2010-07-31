@@ -851,7 +851,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         if direction != gtk.TEXT_DIR_RTL:
             x = xpad+xo
         else:
-            x = cell_area.width-xpad-xo-32
+            x = cell_area.width-xpad+xo-32
 
         # draw appicon pixbuf
         window.draw_pixbuf(None,
@@ -1476,9 +1476,7 @@ class AppView(gtk.TreeView):
     def _on_transaction_finished(self, backend, pkgname, success, tr):
         """ callback when an application install/remove transaction has finished """
         # remove pkg from the block list
-        if pkgname in self._action_block_list:
-            i = self._action_block_list.index(pkgname)
-            del self._action_block_list[i]
+        self._check_remove_pkg_from_blocklist(pkgname)
 
         action_btn = tr.get_button_by_name('action0')
         if action_btn:
@@ -1488,9 +1486,7 @@ class AppView(gtk.TreeView):
     def _on_transaction_stopped(self, backend, pkgname, tr):
         """ callback when an application install/remove transaction has stopped """
         # remove pkg from the block list
-        if pkgname in self._action_block_list:
-            i = self._action_block_list.index(pkgname)
-            del self._action_block_list[i]
+        self._check_remove_pkg_from_blocklist(pkgname)
 
         action_btn = tr.get_button_by_name('action0')
         if action_btn:
@@ -1499,6 +1495,11 @@ class AppView(gtk.TreeView):
                 action_btn.set_markup_variant_n(1)
             action_btn.set_sensitive(True)
             self._set_cursor(action_btn, self._cursor_hand)
+
+    def _check_remove_pkg_from_blocklist(self, pkgname):
+        if pkgname in self._action_block_list:
+            i = self._action_block_list.index(pkgname)
+            del self._action_block_list[i]
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)
