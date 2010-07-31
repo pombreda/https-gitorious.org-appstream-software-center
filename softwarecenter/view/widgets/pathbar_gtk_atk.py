@@ -55,7 +55,7 @@ class PathBar(gtk.HBox):
         self._no_draw = False
         self._scroller = None
 
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
 
         # Accessibility info
         atk_desc = self.get_accessible()
@@ -402,7 +402,7 @@ class PathBar(gtk.HBox):
 
     def _on_style_set(self, widget, old_style):
         self.set_size_request(*self.DEFAULT_SIZE_REQUEST)
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         self.set_size_request(-1, -1)
         for part in self.get_children():
             part.recalc_dimensions()

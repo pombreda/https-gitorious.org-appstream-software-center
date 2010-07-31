@@ -22,21 +22,18 @@ import glib
 import gobject
 import gtk
 import logging
-import xapian
 import os
+import xapian
 
 from widgets.mkit import floats_from_gdkcolor
-
-
-# magic environment to get old pathbar
-if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
-    from widgets.navigationbar import NavigationBar
-else:
-    from widgets.pathbar_gtk_atk import NavigationBar
+from widgets.pathbar_gtk_atk import NavigationBar
 
 from softwarecenter.backend import get_install_backend
+from softwarecenter.view.basepane import BasePane
 
 from widgets.searchentry import SearchEntry
+
+#from widgets.actionbar2 import ActionBar
 from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
@@ -66,7 +63,7 @@ def wait_for_apt_cache_ready(f):
     return wrapper
 
 
-class SoftwarePane(gtk.VBox):
+class SoftwarePane(gtk.VBox, BasePane):
     """ Common base class for InstalledPane and AvailablePane """
 
     __gsignals__ = {
@@ -79,6 +76,7 @@ class SoftwarePane(gtk.VBox):
 
     def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
+        BasePane.__init__(self)
         # other classes we need
         self.cache = cache
         self.history = history
@@ -182,7 +180,7 @@ class SoftwarePane(gtk.VBox):
         """
         model = self.app_view.get_model()
         current_app = self.get_current_app()
-
+        
         index = 0
         if model and current_app in model.app_index_map:
             index =  model.app_index_map.get(current_app)

@@ -1,7 +1,7 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2010 Canonical
 #
 # Authors:
-#  Andrew Higginson
+#  Michael Vogt
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -16,10 +16,25 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
 
-from xdg import BaseDirectory as xdg
+class BasePane(object):
+    """ Base for all the View widgets that can be registered in a 
+        ViewManager 
+    """
 
-SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "softwarecenter")
-SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "softwarecenter")
-SOFTWARE_CENTER_CONFIG_FILE = os.path.join(SOFTWARE_CENTER_CONFIG_DIR, "softwarecenter.cfg") 
+    def __init__(self):
+        self.apps_filter = None
+
+    def is_category_view_showing(self):
+        return False
+
+    def update_app_view(self):
+        pass
+
+    def get_status_text(self):
+        return ""
+
+    def get_current_app(self):
+        return None
+
+

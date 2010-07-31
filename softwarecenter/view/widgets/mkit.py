@@ -91,9 +91,7 @@ def get_em_value():
     l = pango.Layout(pc)
     # 'M' is wide
     l.set_markup('M')
-    w = l.get_pixel_extents()[1][2]
-    # print w
-    return w
+    return l.get_pixel_extents()[1][2]
 
 def get_nearest_stock_size(desired_size):
     stock_sizes = (16, 24, 32, 48, 64)
@@ -142,6 +140,7 @@ ACTIVE_PAINT_MODE_DEEP =    1
 EM = get_em_value()
 
 # recommended border metrics (integers)
+BORDER_WIDTH_XLARGE = max(5, int(1.333*EM+0.5))  
 BORDER_WIDTH_LARGE =    max(3, EM)
 BORDER_WIDTH_MED =      max(2, int(0.666*EM+0.5))
 BORDER_WIDTH_SMALL =    max(1, int(0.333*EM+0.5))
@@ -157,10 +156,11 @@ CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
 
 # use the link color as the clicked color for labels
 _scheme = get_gtk_color_scheme_dict()
-if _scheme.has_key('link_color'):
+if _scheme and _scheme.has_key('link_color'):
     LINK_ACTIVE_COLOR = _scheme['link_color']
 else:
     LINK_ACTIVE_COLOR = '#FF0000'   # red
+
 
 
 # DEBUGGING
@@ -218,6 +218,26 @@ def update_em_metrics():
 
     #print 'CORNER_R:', CORNER_RADIUS
     return
+
+
+
+# cache theme as much as possible to help speed things up
+CACHED_THEME = None
+CACHED_THEME_NAME = None
+
+def get_mkit_theme():
+    global CACHED_THEME, CACHED_THEME_NAME
+
+    name = gtk.settings_get_default().get_property("gtk-theme-name")
+
+    if name != CACHED_THEME_NAME or not CACHED_THEME:
+        CACHED_THEME = Style()
+        CACHED_THEME_NAME = name
+        return CACHED_THEME
+
+    return CACHED_THEME
+
+
 
 
 #####################
@@ -450,11 +470,13 @@ class ShapeCircle(Shape):
 
 class Style:
 
-    def __init__(self, widget):
-        self.shape_map = self._load_shape_map(widget)
+    def __init__(self):
+        self.shape_map = self._load_shape_map()
         gtk_settings = gtk.settings_get_default()
+
         self.theme = self._load_theme(gtk_settings)
         self.theme.build_palette(gtk_settings)
+
         self.properties = self.theme.get_properties(gtk_settings)
         self.gradients = self.theme.get_grad_palette()
         self.dark_line = self.theme.get_dark_line_palette()
@@ -477,8 +499,8 @@ class Style:
         logging.warn('Key does not exist in the style profile: %s' % item)
         return None
 
-    def _load_shape_map(self, widget):
-        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+    def _load_shape_map(self):
+        if gtk.widget_get_default_direction() != gtk.TEXT_DIR_RTL:
             shmap = {SHAPE_RECTANGLE:   ShapeRoundedRectangle(gtk.TEXT_DIR_LTR),
                      SHAPE_START_ARROW: ShapeStartArrow(gtk.TEXT_DIR_LTR),
                      SHAPE_MID_ARROW:   ShapeMidArrow(gtk.TEXT_DIR_LTR),
@@ -779,7 +801,7 @@ class LayoutView(FramedSection):
 
         self.n_columns = 0
         self.widget_list = []
-        self.theme = Style(self)
+        self.theme = get_mkit_theme()
         return
 
     def append(self, widget):
@@ -796,12 +818,14 @@ class LayoutView(FramedSection):
             widest_w = max(widest_w, btn.calc_width())
 
         # determine number of columns to display
-        width -= 100    # fudge number
+#        width -= 100    # fudge number
         n_columns = width / widest_w
         n_columns = (width - n_columns*self.column_hbox.get_spacing()) / widest_w
 
         if n_columns > len(widgets):
             n_columns = len(widgets)
+        if n_columns <= 0:
+            n_columns = 1
 
         if n_columns == self.n_columns: return
         self.clear_columns()
@@ -858,7 +882,9 @@ class LayoutView(FramedSection):
         return
 
 
-class Button(gtk.EventBox):
+class LinkButton(gtk.EventBox):
+
+    """ A minimal LinkButton type widget """
 
     __gsignals__ = {
         "clicked" : (gobject.SIGNAL_RUN_LAST,
@@ -866,27 +892,31 @@ class Button(gtk.EventBox):
                      (),)
         }
 
-    def __init__(self, markup, icon_name, icon_size):
+    def __init__(self, markup, icon_name, icon_size, icons=None):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
 
+        self.alignment = gtk.Alignment(xalign=0.5, yalign=0.55)
+        self.add(self.alignment)
+
         self.label = gtk.Label()
         self.image = gtk.Image()
 
-        self._relief = gtk.RELIEF_NORMAL
-        self._has_action_arrow = False
-        self._active_paint_mode = ACTIVE_PAINT_MODE_NORMAL
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
         self._fixed_width = None
+        self._markup = None
         self._use_underline = False
+        self._subdued = False
+        self._base_pixbuf = None
+        self._xmargin = 3
 
         if markup:
             self.set_label(markup)
         if icon_name:
-            self.image.set_from_icon_name(icon_name, icon_size)
+            self.set_image_from_icon_name(icon_name, icon_size, icons)
 
         # atk stuff
         atk_obj = self.get_accessible()
@@ -895,7 +925,7 @@ class Button(gtk.EventBox):
         atk_obj.set_name(self.label.get_text())
 
         self.shape = SHAPE_RECTANGLE
-        self.theme = Style(self)
+        self.theme = get_mkit_theme()
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
@@ -908,6 +938,8 @@ class Button(gtk.EventBox):
         self.connect('realize', self._on_realize)
         self.connect('enter-notify-event', self._on_enter)
         self.connect('leave-notify-event', self._on_leave)
+        self.connect('focus-in-event', self._on_focus_in)
+        self.connect('focus-out-event', self._on_focus_out)
         self.connect("button-press-event", self._on_button_press)
         self.connect("button-release-event", self._on_button_release)
         self.connect("key-press-event", self._on_key_press)
@@ -917,10 +949,15 @@ class Button(gtk.EventBox):
     def _on_realize(self, widget):
         self.set_size_request(self.calc_width(), 
                               self.get_size_request()[1])
+        
+        if self._subdued:
+            self._colorise_label_normal()
         return
 
     def _on_enter(self, cat, event):
         if cat == self._button_press_origin:
+            self._colorise_image_active()
+            self._colorise_label_active()
             cat.set_state(gtk.STATE_ACTIVE)
         else:
             cat.set_state(gtk.STATE_PRELIGHT)
@@ -928,14 +965,31 @@ class Button(gtk.EventBox):
         return
 
     def _on_leave(self, cat, event):
+        self._colorise_image_normal()
+        self._colorise_label_normal()
         cat.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
+        return
+
+    def _on_focus_in(self, *args):
+        if self._subdued:
+            self._colorise_label_normal()
+        a = self.allocation
+        self.queue_draw_area(a.x-3, a.y-3, a.width+6, a.height+6)
+        return
+
+    def _on_focus_out(self, *args):
+        if self._subdued:
+            self._colorise_label_normal()
+        a = self.allocation
+        self.queue_draw_area(a.x-3, a.y-3, a.width+6, a.height+6)
         return
 
     def _on_button_press(self, cat, event):
         if event.button != 1: return
         self._button_press_origin = cat
         self._colorise_label_active()
+        self._colorise_image_active()
         cat.set_state(gtk.STATE_ACTIVE)
         return
 
@@ -947,13 +1001,16 @@ class Button(gtk.EventBox):
         if event.button != 1:
             self.queue_draw()
             return
+
         self._colorise_label_normal()
+        self._colorise_image_normal()
+
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
             self._button_press_origin = None
             cat.set_state(gtk.STATE_NORMAL)
             return
-        #if cat != self._button_press_origin: return
+
         self._button_press_origin = None
         cat.set_state(gtk.STATE_PRELIGHT)
         gobject.timeout_add(50, emit_clicked)
@@ -979,81 +1036,53 @@ class Button(gtk.EventBox):
         return
 
     def _colorise_label_active(self):
-        text = gobject.markup_escape_text(self.label.get_text())
         if self._use_underline:
-            self.set_label('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, text))
+            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, self._markup))
         else:
-            self.set_label('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, text))
+            self.label.set_markup('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, self._markup))
         return
 
     def _colorise_label_normal(self):
-        sel = self.style.text[gtk.STATE_NORMAL].to_string()
-        text = gobject.markup_escape_text(self.label.get_text())
+        if not self._subdued or self.has_focus():
+            col = self.style.text[gtk.STATE_NORMAL].to_string()
+        else:
+            col = self.style.dark[gtk.STATE_NORMAL].to_string()
 
         if self._use_underline:
-            self.set_label('<span color="%s"><u>%s</u></span>' % (sel, text))
+            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (col, self._markup))
         else:
-            self.set_label('<span color="%s">%s</span>' % (sel, text))
+            self.label.set_markup('<span color="%s">%s</span>' % (col, self._markup))
         return
 
-    def _paint_bg(self, cr, a, alpha):
-        if self._active_paint_mode == ACTIVE_PAINT_MODE_NORMAL or \
-            self.state != gtk.STATE_ACTIVE:
+    def _colorise_image_active(self):
+        if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
 
-            self.theme.paint_bg(cr, self,
-                                a.x, a.y,
-                                a.width-1,
-                                a.height,
-                                alpha=alpha)
-
-        else:
-            self.theme.paint_bg_active_deep(cr, self,
-                                            a.x, a.y,
-                                            a.width-1,
-                                            a.height,
-                                            alpha=alpha)
+        pb = self.image.get_pixbuf().copy()
+        pb.saturate_and_pixelate(pb, 3, False)
+        self.image.set_from_pixbuf(pb)
         return
 
-    def _paint_action_arrow(self, a, aw=10):
-        # draw arrow
-        if self.get_direction() != gtk.TEXT_DIR_RTL:
-            self.style.paint_arrow(self.window,
-                                   self.state,
-                                   gtk.SHADOW_NONE,
-                                   a,       #area
-                                   self,
-                                   None,
-                                   gtk.ARROW_RIGHT,
-                                   True,    # fill
-                                   a.x + a.width - aw - self.get_border_width(),
-                                   a.y + (a.height-aw)/2,
-                                   aw, aw)
-        else:
-            self.style.paint_arrow(self.window,
-                                   self.state,
-                                   gtk.SHADOW_NONE,
-                                   a,       #area
-                                   self,
-                                   None,
-                                   gtk.ARROW_LEFT,
-                                   True,    # fill
-                                   a.x + self.get_border_width(),
-                                   a.y + (a.height-aw)/2,
-                                   aw, aw)
+    def _colorise_image_normal(self):
+        if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
+        self.image.set_from_pixbuf(self._base_pixbuf)
         return
 
     def set_underline(self, use_underline):
         self._use_underline = use_underline
         if use_underline:
             self.label.set_markup('<u>%s</u>' % self.label.get_text())
+        else:
+            self.label.set_markup(self.label.get_text())
         return
 
-    def set_shape(self, shape):
-        self.shape = shape
+    def set_subdued(self, is_subdued):
+        self._subdued = is_subdued
+        if self.window:
+            self._colorise_label_normal()
         return
 
-    def set_relief(self, relief):
-        self._relief = relief
+    def set_xmargin(self, xmargin):
+        self._xmargin = xmargin
         return
 
     def set_internal_xalignment(self, xalign):
@@ -1071,47 +1100,65 @@ class Button(gtk.EventBox):
             self.label.set_markup('<u>%s</u>' % label)
         else:
             self.label.set_markup(label)
+        self._markup = label
+        w = self.calc_width()
+        self.set_size_request(w, self.get_size_request()[1])
         return
 
-    def set_has_action_arrow(self, has_action_arrow):
-        self._has_action_arrow = has_action_arrow
+    def set_image_from_icon_name(self, icon_name, icon_size, icons=None):
+        icons = icons or gtk.icon_theme_get_default()
+        try:
+            pb = icons.load_icon(icon_name, icon_size, 0)
+        except:
+            return
+        self.image.set_from_pixbuf(pb)
+        self._base_pixbuf = pb
         return
 
-    def set_active_paint_mode(self, paint_mode):
-        self._active_paint_mode = paint_mode
+    def set_image_from_pixbuf(self, pb):
+        self.image.set_from_pixbuf(pb)
+        self._base_pixbuf = pb
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
         if not_overlapping(a, expose_area): return
 
+        # for testing
+        #cr.save()
+        #cr.rectangle(a)
+        #cr.clip_preserve()
+        #cr.set_source_rgb(1, 0, 0)
+        #cr.stroke()
+        #cr.restore()
+
         if self.has_focus() and focus_draw:
             a = self.label.allocation
+            m = self._xmargin
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
                                    self.state,
-                                   (x-2, y, w+4, h+1),
+                                   (x-3, y-1, w+6, h+2),
                                    self,
                                    'expander',
-                                   x-2, y, w+4, h+1)
+                                   x-3, y-1, w+6, h+2)
         return
 
 
-class HButton(Button):
+class HLinkButton(LinkButton):
 
-    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
-        Button.__init__(self, markup, icon_name, icon_size)
+    def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
+        LinkButton.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.HBox()
-        self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
         self.alignment.add(self.box)
-        self.add(self.alignment)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
-            self.box.pack_start(self.label, False)
+            a = gtk.Alignment(1.0, 0.5)
+            a.add(self.label)
+            self.box.pack_start(a, False)
 
-        #self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
         return
 
@@ -1129,19 +1176,19 @@ class HButton(Button):
             w += self.image.allocation.width
             spacing = self.box.get_spacing()
 
-        w += 2*self.get_border_width() + spacing + 4
+        w += 2*self.get_border_width() + spacing + 2*self._xmargin
         return w
 
 
-class VButton(Button):
+class VLinkButton(LinkButton):
 
-    def __init__(self, markup=None, icon_name=None, icon_size=gtk.ICON_SIZE_BUTTON):
-        Button.__init__(self, markup, icon_name, icon_size)
+    def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
+        LinkButton.__init__(self, markup, icon_name, icon_size)
+
+        self._xmargin = 6
 
         self.box = gtk.VBox()
-        self.alignment = gtk.Alignment(0.5, 0.6) # left align margin
         self.alignment.add(self.box)
-        self.add(self.alignment)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
@@ -1154,6 +1201,7 @@ class VButton(Button):
 
     def calc_width(self):
         w = 1
+        iw = 0
         if self.label:
             pc = self.get_pango_context()
             layout = pango.Layout(pc)
@@ -1163,5 +1211,5 @@ class VButton(Button):
             iw = self.image.allocation.width        # image width
 
         w += max(lw, iw)
-        w += 2*self.get_border_width() + 12
+        w += 2*self.get_border_width() + 2*self._xmargin
         return w

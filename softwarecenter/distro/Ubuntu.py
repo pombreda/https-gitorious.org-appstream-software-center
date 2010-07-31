@@ -147,7 +147,7 @@ class Ubuntu(Distro):
                     elif support_time.endswith("m"):
                         support_month = int(support_time.strip("m"))
                     else:
-                        logging.warning("unsupported 'Supported' string '%s'" % support_time)
+                        logging.getLogger("softwarecenter.distro").warning("unsupported 'Supported' string '%s'" % support_time)
 
             # mvo: we do not define the end date very precisely
             #      currently this is why it will just display a end

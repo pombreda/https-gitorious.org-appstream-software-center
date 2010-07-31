@@ -19,8 +19,10 @@
 
 import imp
 import inspect
-import logging
 import os
+
+import logging
+LOG = logging.getLogger(__name__)
 
 class Plugin(object):
 
@@ -61,7 +63,7 @@ class PluginManager(object):
                 continue
             basenames = [x for x in os.listdir(dirname) 
                             if x.endswith(".py")]
-            logging.debug("Plugin modules in %s: %s" % 
+            LOG.debug("Plugin modules in %s: %s" % 
                             (dirname, " ".join(basenames)))
             names += [os.path.join(dirname, x) for x in basenames]
         
@@ -73,20 +75,20 @@ class PluginManager(object):
         for dummy, member in inspect.getmembers(module):
             if inspect.isclass(member) and issubclass(member, Plugin):
                 plugins.append(member)
-        logging.debug("Plugins in %s: %s" %
+        LOG.debug("Plugins in %s: %s" %
                       (module, " ".join(str(x) for x in plugins)))
         return [plugin() for plugin in plugins]
 
     def _load_module(self, filename):
         """Load a module from a filename."""
-        logging.debug("Loading module %s" % filename)
+        LOG.debug("Loading module %s" % filename)
         module_name, dummy = os.path.splitext(os.path.basename(filename))
         f = file(filename, "r")
         try:
             module = imp.load_module(module_name, f, filename,
                                      (".py", "r", imp.PY_SOURCE))
         except Exception, e: # pragma: no cover
-            logging.warning("Failed to load plugin '%s' (%s)" % 
+            LOG.warning("Failed to load plugin '%s' (%s)" % 
                             (module_name, e))
             return None
         f.close()
@@ -111,5 +113,5 @@ class PluginManager(object):
                     self._plugins.append(plugin)
         # get the matching plugins
         plugins = [p for p in self._plugins]
-        logging.debug("plugins are '%s'" % plugins)
+        LOG.debug("plugins are '%s'" % plugins)
         return plugins
