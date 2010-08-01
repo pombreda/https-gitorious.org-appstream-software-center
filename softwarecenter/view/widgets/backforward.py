@@ -45,9 +45,6 @@ class BackForwardButton(gtk.HBox):
         self.theme = mkit.get_mkit_theme()
         self.separator = SeparatorPart()
 
-        self.use_hand = False
-        self._use_flat_palatte = False
-
         part_size = part_size or DEFAULT_PART_SIZE
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
@@ -57,8 +54,8 @@ class BackForwardButton(gtk.HBox):
             self.set_button_atk_info_ltr()
         else:
             # rtl
-            self.left = ButtonPartRight('left-clicked', part_size)
-            self.right = ButtonPartLeft('right-clicked', part_size)
+            self.left = ButtonPartRight('left-clicked', part_size, gtk.ARROW_LEFT)
+            self.right = ButtonPartLeft('right-clicked', part_size, gtk.ARROW_RIGHT)
             self.set_button_atk_info_rtl()
 
         atk_obj = self.get_accessible()
@@ -72,10 +69,6 @@ class BackForwardButton(gtk.HBox):
 
         self.separator.connect_after("style-set", self._on_style_set)
         self.connect_after('size-allocate', self._on_size_allocate)
-
-        if not native_draw:
-            self.set_redraw_on_allocate(False)
-            self.connect('expose-event', lambda w, e: True)
         return
 
     def set_button_atk_info_ltr(self):
@@ -274,19 +267,11 @@ class ButtonPart(gtk.EventBox):
         cr.rectangle(a)
         cr.clip()
 
-
-        if not self.parent._use_flat_palatte:            
-            self.parent.theme.paint_bg(cr,
-                                       self,
-                                       a.x+xo, a.y,
-                                       a.width+wo, a.height,
-                                       alpha=alpha)
-        else:
-            self.parent.theme.paint_bg_flat(cr,
-                                            self,
-                                            a.x+xo, a.y,
-                                            a.width+wo, a.height,
-                                            alpha=alpha)
+        self.parent.theme.paint_bg(cr,
+                                   self,
+                                   a.x+xo, a.y,
+                                   a.width+wo, a.height,
+                                   alpha=alpha)
 
         if self.has_focus():
             self.style.paint_focus(self.window,
@@ -302,9 +287,9 @@ class ButtonPart(gtk.EventBox):
 
 class ButtonPartLeft(ButtonPart):
 
-    def __init__(self, sig_name, part_size):
+    def __init__(self, sig_name, part_size, arrow_type=gtk.ARROW_LEFT):
         ButtonPart.__init__(self,
-                            gtk.ARROW_LEFT,
+                            arrow_type,
                             sig_name,
                             part_size)
         self.connect("expose-event", self._on_expose)
@@ -329,9 +314,9 @@ class ButtonPartLeft(ButtonPart):
 
 class ButtonPartRight(ButtonPart):
 
-    def __init__(self, sig_name, part_size):
+    def __init__(self, sig_name, part_size, arrow_type=gtk.ARROW_RIGHT):
         ButtonPart.__init__(self,
-                            gtk.ARROW_RIGHT,
+                            arrow_type,
                             sig_name,
                             part_size)
         self.connect("expose-event", self._on_expose)
