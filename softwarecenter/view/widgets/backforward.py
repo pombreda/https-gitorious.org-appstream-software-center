@@ -40,7 +40,7 @@ class BackForwardButton(gtk.HBox):
                                     gobject.TYPE_NONE,
                                     (gtk.gdk.Event,))}
 
-    def __init__(self, part_size=None, arrow_size=None, native_draw=True):
+    def __init__(self, part_size=None):
         gtk.HBox.__init__(self)
         self.theme = mkit.get_mkit_theme()
         self.separator = SeparatorPart()
