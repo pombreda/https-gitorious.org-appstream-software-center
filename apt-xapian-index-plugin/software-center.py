@@ -58,10 +58,10 @@ class SoftwareCenterMetadataPlugin:
             shortDesc = "SoftwareCenter meta information",
             fullDoc = """
             Software-center metadata 
-            It uses the prefix AP and sets the following values:
-              XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD (180)
-              XAPIAN_VALUE_SCREENSHOT_URL (181)
-              XAPAIN_VALUE_CATEGORY (182)
+            It uses the prefixes AP and AC, and sets the following xapian values:
+              XAPIAN_VALUE_ICON
+              XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD
+              XAPIAN_VALUE_SCREENSHOT_URL
             """
         )
 
@@ -73,21 +73,14 @@ class SoftwareCenterMetadataPlugin:
         document  is the document to update
         pkg       is the python-apt Package object for this package
         """
-        # we want to index the follwing custom fields: 
+        # we want to index the following custom fields: 
         #   XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
-        #   ? is XB-Icon a URL ?
-        # METADATA_KEYS = ("AppName", "Icon", "Screenshot-Url", "Category")
         ver = pkg.candidate
         if ver is None: 
             return
         key = "AppName"
         if key in ver.record:
             name = ver.record[key]
-            if name == "Almanah Diary":
-                print "detected key for Almanah Diary: ", key
-                print "full package record:"
-                print "==="
-                print ver.record 
             self.indexer.set_document(document)
             index_name(document, name, self.indexer)
             # we pretend to be a application
@@ -95,18 +88,15 @@ class SoftwareCenterMetadataPlugin:
         key = "Icon"
         if key in ver.record:
             icon = ver.record[key]
-            print "detected icon: ", icon
             document.add_value(XAPIAN_VALUE_ICON, icon)
             document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, True)
         key = "Screenshot-Url"
         if key in ver.record:
             screenshot_url = ver.record[key]
-            print "detected screenshot url: ", screenshot_url
             document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)
         key = "Category"
         if key in ver.record:
             categories_str = ver.record[key]
-            print "detected categories_str: ", categories_str
             for cat in categories_str.split(";"):
                 if cat:
                     print "add cat: ", cat
