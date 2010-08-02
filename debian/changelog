@@ -1,5 +1,9 @@
 software-center (2.1.8) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
+  * merged  lp:~mmcg069/software-center/backforward-tweaks,
+    many thanks
+
   [ Kiwinote ]
   * <all>:
     - support deb files
@@ -39,7 +43,7 @@ software-center (2.1.8) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - put cursor in correct position
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 30 Jul 2010 21:35:56 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Aug 2010 09:34:14 +0200
 
 software-center (2.1.7) maverick; urgency=low
 
