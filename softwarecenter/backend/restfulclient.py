@@ -27,6 +27,7 @@ import logging
 import time
 import threading
 
+from softwarecenter.enums import BUY_SOMETHING_HOST
 from softwarecenter.distro import get_distro
 from softwarecenter.utils import get_current_arch
 
@@ -45,7 +46,7 @@ from Queue import Queue
 from login import LoginBackend
 
 UBUNTU_SSO_SERVICE = "https://login.staging.ubuntu.com/api/1.0"
-UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = "http://localhost:8000/api/1.0"
+UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = BUY_SOMETHING_HOST+"/api/1.0"
 
 class EmptyObject(object):
     pass
