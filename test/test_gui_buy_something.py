@@ -4,6 +4,7 @@ import apt
 import glib
 import gtk
 import logging
+import os
 import sys
 import time
 import unittest
@@ -13,6 +14,9 @@ sys.path.insert(0, "..")
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.enums import XAPIAN_BASE_PATH
 from softwarecenter.view.appview import AppStore
+from softwarecenter.db.application import Application
+
+from softwarecenter.backend import get_install_backend
 
 class SCBuySomething(unittest.TestCase):
     
@@ -60,7 +64,27 @@ class SCBuySomething(unittest.TestCase):
         # from the previous line hits
         self.app.available_pane.app_details.action_bar.button.clicked()
         self._p()
-        # done
+        # done with the simulated purchase process, now pretend we install
+        # something
+        deb_line = "deb https://mvo:pass@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main"
+        signing_key_id = "0EB12F05"
+        app = Application("Hello X Adventure", "hellox")
+        # install only when runnig as root, as we require polkit promtps
+        # otherwise
+        # FIXME: provide InstallBackendSimulate()
+        if os.getuid() == 0:
+            backend = get_install_backend()
+            backend.connect("transaction-finished", 
+                            self._on_transaction_finished)
+            backend.add_repo_add_key_and_install_app(deb_line,
+                                                     signing_key_id,
+                                                     app)
+            self._p()
+            # FIXME: wait until we have the app installed
+            #gtk.main()
+        
+    def _on_transaction_finished(self, transaction, status):
+        print "_on_transaction_finished", transaction, status
 
 
 if __name__ == "__main__":
