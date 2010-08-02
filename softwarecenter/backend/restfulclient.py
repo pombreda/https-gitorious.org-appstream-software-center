@@ -75,12 +75,13 @@ class RestfulClientWorker(threading.Thread):
         self._shutdown = False
         self.daemon = True
         self.error = None
+        self._logger = logging.getLogger("softwarecenter.backend")
 
     def run(self):
         """
         Main thread run interface, logs into launchpad
         """
-        logging.debug("lp worker thread run")
+        self._logger.debug("lp worker thread run")
         try:
             self.service = ServiceRoot(self._authorizer, self._service_root_url)
         except AttributeError:
@@ -106,7 +107,7 @@ class RestfulClientWorker(threading.Thread):
         """internal helper that waits for commands"""
         while True:
             while not self._pending_requests.empty():
-                logging.debug("found pending request")
+                self._logger.debug("found pending request")
                 (func_str, args, kwargs, result_callback, error_callback) = self._pending_requests.get()
                 # run func async
                 try:
@@ -231,6 +232,9 @@ class UbuntuSSOlogin(LoginBackend):
         self._oauth_credentials = None
         self._login_failure = None
         self.worker_thread = None
+
+    def shutdown(self):
+        self.worker_thread.shutdown()
 
     def login(self, username=None, password=None):
         if not username or not password:

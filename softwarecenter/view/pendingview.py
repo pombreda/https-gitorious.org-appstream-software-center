@@ -16,12 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import dbus
-import logging
-import gtk
-import gobject
 import apt
 import apt_pkg
+import dbus
+import gtk
+import gobject
+import logging
 import os
 import sys
 
@@ -174,6 +174,7 @@ class PendingView(gtk.TreeView, BasePane):
 
     def __init__(self, icons):
         gtk.TreeView.__init__(self)
+        BasePane.__init__(self)
         # customization
         self.set_headers_visible(False)
         self.connect("button-press-event", self._on_button_pressed)

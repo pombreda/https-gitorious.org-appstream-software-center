@@ -1,4 +1,55 @@
-software-center (2.1.6) UNRELEASED; urgency=low
+software-center (2.1.8) UNRELEASED; urgency=low
+
+  * merged  lp:~mmcg069/software-center/backforward-tweaks,
+    many thanks
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Aug 2010 09:34:14 +0200
+
+software-center (2.1.7) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/availablepane.py:
+    - restore missing busy cursor when loading applist 
+      views (LP: #610688)
+    - fix visual glitch when navigating back to a subcategory
+      list view from a details view (LP: #611108)
+  * debian/control:
+    - add depends python-debian (>= 0.1.15)
+  * softwarecenter/backend/channel.py:
+    - add an "App Expo" item in the left navigation pane for
+      display of the contents of the (for now) app review
+      board PPA
+  * test/test_database.py:
+    - update test for parse_axi_values_file change, fix
+      test_update_from_var_lib_apt_lists
+  * softwarecenter/backend/channel.py:
+    - add a new "Other" item in the left navigation pane
+      for display of software items for which a corresponding
+      repository is not available (LP: #524379, LP: #596409)
+
+  [ Michael Vogt ]
+  * softwarecenter/view/widgets/actionbar.py:
+    - fix crash in action buttons
+  * softwarecenter/db/update.py:
+    - support additional metadata from Packages file for the
+      "Whats new" repository (and possible others)
+    - add axi catalogedtime information to the app-install-data
+      DB
+  * softwarecenter/db/database.py:
+    - export parse_axi_values_file()
+  
+  [ Bilal Akhtar ]
+  * softwarecenter/app.py:
+    - Prevent About dialog from being set as modal. (LP: #550955)
+
+  [ Michael Bienia ]
+  * softwarecenter/apt/apthistory.py,
+    softwarecenter/view/historypane.py:
+    - fix DeprecationWarning at startup (LP: #602310)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 30 Jul 2010 21:35:56 +0200
+
+software-center (2.1.6) maverick; urgency=low
 
   [ Kiwinote ]
   * data/software-center.menu.in:
@@ -23,6 +74,18 @@ software-center (2.1.6) UNRELEASED; urgency=low
   * debian/control:
     - recommend aptdaemon (>= 0.38ubuntu1) to get catalogued_time
       support
+    - recommend sessioninstaller for PK compatible session API
+  * merged lp:~hellium/software-center/logging, thanks to 
+    Geliy Sokolov
+  * merged lp:~mmcg069/software-center/bigger-icons, the icon size
+    is actually the same, name is a bit misleading. It contains a new
+    actionbar, but that is not yet enabled as its not feature complete
+    yet
+  * merged lp:~didrocks/software-center/fix-running-standalone-pane,
+    many thanks
+  * Support "pkgname/long appname with spaces" on the commandline when
+    a single argument is passed. Without "/" its just considered a
+    pkgname
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/appdetailsview-gtk-mpt, many nice
@@ -43,7 +106,7 @@ software-center (2.1.6) UNRELEASED; urgency=low
   * merge lp:~didrocks/software-center/add-remove-multiple to add a
     remove_multiple method to aptd.py, thanks to Didier Roche! 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Jul 2010 01:45:09 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 27 Jul 2010 19:45:53 +0200
 
 software-center (2.1.5) maverick; urgency=low
 

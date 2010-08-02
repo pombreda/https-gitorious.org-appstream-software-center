@@ -12,6 +12,7 @@ import xapian
 
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
@@ -192,6 +193,21 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(appdetails.pkg_state, PKG_STATE_UNKNOWN)
 
 
+    def test_whats_new(self):
+        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        db.open()
+        query = xapian.Query("")
+        enquire = xapian.Enquire(db.xapiandb)
+        enquire.set_query(query)
+        value_time = db._axi_values["catalogedtime"]
+        enquire.set_sort_by_value(value_time, reverse=True)
+        matches = enquire.get_mset(0, 20)
+        last_time = 0
+        for m in matches:
+            doc = m[xapian.MSET_DOCUMENT]
+            doc.get_value(value_time) >= last_time
+            last_time = doc.get_value(value_time)
+
     def test_parse_axi_values_file(self):
         s = """
 # This file contains the mapping between names of numeric values indexed in the
@@ -215,9 +231,9 @@ app-popcon	4	# app-install .desktop popcon rank
         open("axi-test-values","w").write(s)
         db = StoreDatabase("/var/cache/software-center/xapian", 
                            self.cache)
-        db._parse_axi_values_file("axi-test-values")
-        self.assertNotEqual(db._axi_values, {})
-        print db._axi_values
+        axi_values = parse_axi_values_file("axi-test-values")
+        self.assertNotEqual(axi_values, {})
+        print axi_values
 
 if __name__ == "__main__":
     import logging

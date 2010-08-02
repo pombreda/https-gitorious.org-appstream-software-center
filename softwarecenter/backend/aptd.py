@@ -19,11 +19,10 @@
 import aptsources.sourceslist
 import dbus
 import gobject
-import os
 import logging
+import os
 import subprocess
 import sys
-
 from softwarecenter.utils import *
 
 from aptdaemon import client
@@ -36,7 +35,7 @@ from aptsources.sourceslist import SourceEntry
 try:
     from aptdaemon.defer import inline_callbacks
 except ImportError:
-    logging.exception("aptdaemon import failed")
+    logging.getLogger("softwarecenter.backend").exception("aptdaemon import failed")
     print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
     sys.exit(1)
 
@@ -82,13 +81,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
         self._progress_signal = None
+        self._logger = logging.getLogger("softwarecenter.backend")
     
     def _axi_finished(self, res):
         self.emit("channels-changed", res)
 
     # public methods
     def update_xapian_index(self):
-        logging.debug("update_xapian_index")
+        self._logger.debug("update_xapian_index")
         system_bus = dbus.SystemBus()
         axi = dbus.Interface(
             system_bus.get_object("org.debian.AptXapianIndex","/"),
@@ -164,12 +164,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     @inline_callbacks
     def enable_component(self, component):
-        logging.debug("enable_component: %s" % component)
+        self._logger.debug("enable_component: %s" % component)
         try:
             yield self.aptd_client.enable_distro_component(component, defer=True)
         except dbus.DBusException, err:
             if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                logging.error("enable_component: '%s'" % err)
+                self._logger.error("enable_component: '%s'" % err)
                 return
             raise
         # now update the cache
@@ -216,7 +216,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.aptd_client.add_repository(*args)
         except dbus.DBusException, err:
             if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                logging.error("add_repository: '%s'" % err)
+                self._logger.error("add_repository: '%s'" % err)
                 return
                 
     def add_repo_add_key_and_install_app(self,
@@ -304,14 +304,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # cancel handling in aptdaemon (LP: #440941)
             # FIXME: this is not a proper fix, just a workaround
             if trans.error_code == enums.ERROR_DAEMON_DIED:
-                logging.warn("daemon dies, ignoring: %s" % excep)
+                self._logger.warn("daemon dies, ignoring: %s" % excep)
             else:
                 msg = "%s: %s\n%s\n\n%s" % (
                     _("Error"),
                     enums.get_error_string_from_enum(trans.error_code),
                     enums.get_error_description_from_enum(trans.error_code),
                     trans.error_details)
-                logging.error("error in _on_trans_finished '%s'" % msg)
+                self._logger.error("error in _on_trans_finished '%s'" % msg)
                 # show dialog to the user and exit (no need to reopen
                 # the cache)
                 dialogs.error(
@@ -382,7 +382,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error)
 
     def _on_trans_error(self, error):
-        logging.warn("_on_trans_error: %s", error)
+        self._logger.warn("_on_trans_error: %s", error)
         # re-enable the action button again if anything went wrong
         self.emit("transaction-stopped")
         if isinstance(error, dbus.DBusException):

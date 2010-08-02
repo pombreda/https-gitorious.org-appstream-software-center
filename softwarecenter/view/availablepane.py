@@ -73,6 +73,7 @@ class AvailablePane(SoftwarePane):
                  navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
+        self._logger = logging.getLogger(__name__)
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
@@ -131,8 +132,10 @@ class AvailablePane(SoftwarePane):
                                     gtk.Label(self.NAV_BUTTON_ID_SUBCAT))
 
         # add nav history back/forward buttons
-        self.navhistory_back_action.set_sensitive(False)
-        self.navhistory_forward_action.set_sensitive(False)
+        if self.navhistory_back_action:
+            self.navhistory_back_action.set_sensitive(False)
+        if self.navhistory_forward_action:
+            self.navhistory_forward_action.set_sensitive(False)
         # note:  this is hacky, would be much nicer to make the custom self/right
         # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
         # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
@@ -143,10 +146,11 @@ class AvailablePane(SoftwarePane):
         self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
         # nav buttons first in the panel
         self.top_hbox.reorder_child(self.back_forward, 0)
-        self.nav_history = NavigationHistory(self,
-                                             self.back_forward,
-                                             self.navhistory_back_action,
-                                             self.navhistory_forward_action)
+        if self.navhistory_back_action and self.navhistory_forward_action:
+            self.nav_history = NavigationHistory(self,
+                                                 self.back_forward,
+                                                 self.navhistory_back_action,
+                                                 self.navhistory_forward_action)
 
         # app list
         self.notebook.append_page(self.scroll_app_list,
@@ -193,9 +197,9 @@ class AvailablePane(SoftwarePane):
     def _show_hide_subcategories(self, show_category_applist=False):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
-
-        if self.notebook.get_current_page() == 0 or \
-            self.notebook.get_current_page() == 3: return
+        if (self.notebook.get_current_page() == self.PAGE_CATEGORY or
+            self.notebook.get_current_page() == self.PAGE_APP_DETAILS):
+            return
         if (not show_category_applist and
             not self.nonapps_visible and
             self.apps_category and
@@ -207,21 +211,26 @@ class AvailablePane(SoftwarePane):
         else:
             self.notebook.set_current_page(self.PAGE_APPLIST)
             self.update_app_view()
-            self._update_action_bar()
 
     def refresh_apps(self, query=None):
         """refresh the applist and update the navigation bar
         """
         logging.debug("refresh_apps")
-        self._refresh_apps_with_apt_cache(query)
+        self._logger.debug("refresh_apps")
+
+        self.notebook.hide()
+        if self.subcategories_view.window:
+            self.subcategories_view.window.set_cursor(self.busy_cursor)
+        if self.scroll_app_list.window:
+            self.scroll_app_list.window.set_cursor(self.busy_cursor)
+        self._refresh_apps_with_apt_cache()
 
     @wait_for_apt_cache_ready
     def _refresh_apps_with_apt_cache(self, query=None):
         self.refresh_seq_nr += 1
         # build query
-        if query is None:
-            query = self._get_query()
-        logging.debug("availablepane query: %s" % query)
+        query = self._get_query()
+        self._logger.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
         
@@ -239,7 +248,7 @@ class AvailablePane(SoftwarePane):
             while gtk.events_pending():
                 gtk.main_iteration()
 
-        logging.debug("availablepane query: %s" % query)
+        self._logger.debug("availablepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
         # special case to disable hide nonapps for the "Featured Applications" category
@@ -260,7 +269,7 @@ class AvailablePane(SoftwarePane):
         # between request of the new model and actual delivery other
         # events may have happend
         if seq_nr != self.refresh_seq_nr:
-            logging.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+            self._logger.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
             return False
 
         # set model
@@ -268,6 +277,7 @@ class AvailablePane(SoftwarePane):
         self.app_view.get_model().active = True
         # check if we show subcategory
         self._show_hide_subcategories()
+        self.notebook.show()
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))
@@ -279,6 +289,8 @@ class AvailablePane(SoftwarePane):
             self.cat_view.window.set_cursor(None)
         if self.app_details.window:
             self.cat_view.window.set_cursor(None)
+        if self.scroll_app_list.window:
+            self.scroll_app_list.window.set_cursor(None)
 
         # reset nonapps
         self.nonapps_visible = False
@@ -448,7 +460,7 @@ class AvailablePane(SoftwarePane):
     def _get_item_limit(self):
         if self.apps_search_term:
             return self.DEFAULT_SEARCH_APPS_LIMIT
-        elif self.apps_category.item_limit > 0:
+        elif self.apps_category and self.apps_category.item_limit > 0:
             return self.apps_category.item_limit
         return 0
 
@@ -476,7 +488,7 @@ class AvailablePane(SoftwarePane):
 
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
-        logging.debug("on_search_terms_changed: %s" % new_text)
+        self._logger.debug("on_search_terms_changed: %s" % new_text)
 
         # we got the signal after we already switched to a details
         # page, ignore it
@@ -533,15 +545,12 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_list(self):
-        viewing_details = self.navigation_bar.has_id(self.NAV_BUTTON_ID_DETAILS)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         
         if self.apps_subcategory:
             self.apps_subcategory = None
-        if (not self.apps_search_term and
-            not viewing_details):
-            self.set_category(self.apps_category)
+        self.set_category(self.apps_category)
         if self.apps_search_term:
             self._clear_search()
             self.refresh_apps()
@@ -551,6 +560,8 @@ class AvailablePane(SoftwarePane):
         # the new model is ready
         self.searchentry.show()
         self.cat_view.stop_carousels()
+        
+        self._update_action_bar()
         return
 
     def display_subcat(self):
@@ -560,9 +571,9 @@ class AvailablePane(SoftwarePane):
         self.set_category(self.apps_subcategory)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
-        #model = self.app_view.get_model()
-        #if model is not None:
-            #self.emit("app-list-changed", len(model))
+        # do not emit app-list-changed here, this is done async when
+        # the new model is ready
+        self.action_bar.clear()
         self.searchentry.show()
         self.cat_view.stop_carousels()
         return
@@ -606,7 +617,7 @@ class AvailablePane(SoftwarePane):
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
-        logging.debug("on_subcategory_activated: %s %s" % (
+        self._logger.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
         self.navigation_bar.add_with_id(
@@ -615,14 +626,14 @@ class AvailablePane(SoftwarePane):
     def on_category_activated(self, cat_view, category):
         """ callback when a category is selected """
         #print cat_view, name, query
-        logging.debug("on_category_activated: %s %s" % (
+        self._logger.debug("on_category_activated: %s %s" % (
                 category.name, category))
         self.apps_category = category
         self.update_navigation_button()
 
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
-        logging.debug("on_application_selected: '%s'" % app)
+        self._logger.debug("on_application_selected: '%s'" % app)
 
         if self.apps_subcategory:
             self.current_app_by_subcategory[self.apps_subcategory] = app
@@ -641,8 +652,8 @@ class AvailablePane(SoftwarePane):
     def is_category_view_showing(self):
         # check if we are in the category page or if we display a
         # sub-category page that has no visible applications
-        return (self.notebook.get_current_page() == self.PAGE_CATEGORY or
-                not self.scroll_app_list.props.visible)
+        return (self.notebook.get_current_page() == self.PAGE_CATEGORY or \
+                self.notebook.get_current_page() == self.PAGE_SUBCATEGORY)
 
     def set_category(self, category):
         #print "set_category", category
@@ -658,9 +669,11 @@ class AvailablePane(SoftwarePane):
         pass
 
 if __name__ == "__main__":
+
+    from softwarecenter.apt.apthistory import get_apt_history
+    from softwarecenter.db.database import StoreDatabase
+
     #logging.basicConfig(level=logging.DEBUG)
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
 
     if len(sys.argv) > 1:
         datadir = sys.argv[1]
@@ -669,14 +682,47 @@ if __name__ == "__main__":
     else:
         datadir = "/usr/share/software-center"
 
-    db = xapian.Database(pathname)
+    # additional icons come from app-install-data
     icons = gtk.icon_theme_get_default()
-    icons.append_search_path("/usr/share/app-install/icons/")
-
+    icons.append_search_path(ICON_PATH)
+    icons.append_search_path(os.path.join(datadir,"icons"))
+    icons.append_search_path(os.path.join(datadir,"emblems"))
+    # HACK: make it more friendly for local installs (for mpt)
+    icons.append_search_path(datadir+"/icons/32x32/status")
+    gtk.window_set_default_icon_name("softwarecenter")
+    import apt
     cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
-    w = AvailablePane(cache, db, icons, datadir)
+    #apt history
+    history = get_apt_history()
+    # xapian
+    xapian_base_path = XAPIAN_BASE_PATH
+    pathname = os.path.join(xapian_base_path, "xapian")
+    try:
+        db = StoreDatabase(pathname, cache)
+        db.open()
+    except xapian.DatabaseOpeningError:
+        # Couldn't use that folder as a database
+        # This may be because we are in a bzr checkout and that
+        #   folder is empty. If the folder is empty, and we can find the
+        # script that does population, populate a database in it.
+        if os.path.isdir(pathname) and not os.listdir(pathname):
+            from softwarecenter.db.update import rebuild_database
+            logging.info("building local database")
+            rebuild_database(pathname)
+            db = StoreDatabase(pathname, cache)
+            db.open()
+    except xapian.DatabaseCorruptError, e:
+        logging.exception("xapian open failed")
+        view.dialogs.error(None, 
+                           _("Sorry, can not open the software database"),
+                           _("Please re-install the 'software-center' "
+                             "package."))
+        # FIXME: force rebuild by providing a dbus service for this
+        sys.exit(1)
+
+    w = AvailablePane(cache, history, db, 'Ubuntu', icons, datadir, None, None)
     w.show()
 
     win = gtk.Window()

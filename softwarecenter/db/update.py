@@ -36,6 +36,12 @@ from glob import glob
 
 from softwarecenter.enums import *
 from softwarecenter.utils import GnomeProxyURLopener
+from softwarecenter.db.database import parse_axi_values_file
+
+from locale import getdefaultlocale
+import gettext
+import cPickle
+
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -47,12 +53,20 @@ WEIGHT_APT_PKGNAME = 8
 WEIGHT_APT_SUMMARY = 5
 WEIGHT_APT_DESCRIPTION = 1
 
-from locale import getdefaultlocale
-import gettext
-
 # some globals (FIXME: that really need to go into a new Update class)
 popcon_max = 0
 seen = set()
+LOG = logging.getLogger(__name__)
+
+# init axi
+axi_values = parse_axi_values_file()
+
+# get cataloged_times
+cataloged_times = {}
+CF = "/var/lib/apt-xapian-index/cataloged_times.p"
+if os.path.exists(CF):
+    cataloged_times = cPickle.load(open(CF))
+del CF
 
 class AppInfoParserBase(object):
     """ base class for reading AppInfo meta-data """
@@ -68,7 +82,7 @@ class AppInfoParserBase(object):
             for item in categories_str.split(";"):
                 if item:
                     categories.append(item)
-        except NoOptionError:
+        except (NoOptionError, KeyError):
             pass
         return categories
     @property
@@ -115,6 +129,50 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
     @property
     def desktopf(self):
         return self.origin
+
+# FIXME: this needs to go into a seperate DB (axi?) as we can
+#        not trigger update-app-install after each apt-get update
+class AptCachePkgParser(AppInfoParserBase):
+    """ parser that fakes a Application from a pkg-record
+        Useful for special repositories like "Whats New"
+    """
+
+    MAPPING = { 'Name'       : 'AppName',
+              }
+
+    # map from requested key to a static data element
+    STATIC_DATA = { 'Type' : 'Application',
+                  }
+
+    def __init__(self, pkg):
+        self.pkg = pkg
+        self.origin = "apt-cache"
+    def _apply_mapping(self, key):
+        if key.startswith("X-AppInstall-"):
+            key = key[len("X-AppInstall-"):]
+        if key in self.MAPPING:
+            return self.MAPPING[key]
+        return key
+    def get_desktop(self, key):
+        key = self._apply_mapping(key)
+        # check static data
+        if key in self.STATIC_DATA:
+            return self.STATIC_DATA[key]
+        # we always excpect a AppName, if there is none, fake one
+        if key == "AppName" and not "AppName" in self.pkg.candidate.record:
+            return self.pkg.name
+        return self.pkg.candidate.record[key]
+    def has_option_desktop(self, key):
+        # strip away bogus prefixes
+        if key.startswith("X-AppInstall-"):
+            key = key[len("X-AppInstall-"):]
+        if key in self.STATIC_DATA:
+            return True
+        return self._apply_mapping(key) in self.pkg.candidate.record
+    @property
+    def desktopf(self):
+        return self.origin
+
 
 class JsonTagSectionParser(AppInfoParserBase):
 
@@ -239,8 +297,11 @@ def index_name(doc, name, term_generator):
 def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
+    # FIXME: mvo: disabled for now, the problem is that 
+    #             update-software-center is not run often enough 
+    #update_from_apt_cache_for_whats_new_repo(db, cache)
     # add db global meta-data
-    logging.debug("adding popcon_max_desktop '%s'" % popcon_max)
+    LOG.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
 
 def update_from_json_string(db, cache, json_string, origin):
@@ -251,13 +312,29 @@ def update_from_json_string(db, cache, json_string, origin):
         index_app_info_from_parser(parser, db, cache)
     return True
 
+def update_from_apt_cache_for_whats_new_repo(db, cache):
+
+    SPECIAL_ORIGINS_THAT_ARE_CONSIDERED_APPS = (
+        "Application Review Board PPA",
+        )
+
+    for pkg in cache:
+        if not pkg.candidate:
+            continue
+        for origin in pkg.candidate.origins:
+            # FIXME: make this configuration
+            if (origin.label in SPECIAL_ORIGINS_THAT_ARE_CONSIDERED_APPS and
+                origin.trusted):
+                parser = AptCachePkgParser(pkg)
+                index_app_info_from_parser(parser, db, cache)
+
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """
     if not listsdir:
         listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
     context = glib.main_context_default()
     for appinfo in glob("%s/*AppInfo" % listsdir):
-        logging.debug("processing %s" % appinfo)
+        LOG.debug("processing %s" % appinfo)
         # process events
         while context.pending():
             context.iteration()
@@ -271,7 +348,7 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
     """ index the desktop files in $datadir/desktop/*.desktop """
     context = glib.main_context_default()
     for desktopf in glob(datadir+"/desktop/*.desktop"):
-        logging.debug("processing %s" % desktopf)
+        LOG.debug("processing %s" % desktopf)
         # process events
         while context.pending():
             context.iteration()
@@ -281,7 +358,7 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:
             # Print a warning, no error (Debian Bug #568941)
-            logging.warning("error processing: %s %s" % (desktopf, e))
+            LOG.warning("error processing: %s %s" % (desktopf, e))
     return True
 
 def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall_list, db, cache):
@@ -367,7 +444,7 @@ def index_app_info_from_parser(parser, db, cache):
         # app name is the data
         name = parser.get_desktop("Name")
         if name in seen:
-            logging.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
+            LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
         seen.add(name)
         doc.set_data(name)
         index_name(doc, name, term_generator)
@@ -375,13 +452,17 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Ignore"):
             ignore = parser.get_desktop("X-AppInstall-Ignore")
             if ignore.strip().lower() == "true":
-                logging.debug("X-AppInstall-Ignore found for '%s'" % parser.desktopf)
+                LOG.debug("X-AppInstall-Ignore found for '%s'" % parser.desktopf)
                 return
         # package name
         pkgname = parser.get_desktop("X-AppInstall-Package")
         doc.add_term("AP"+pkgname)
         doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
         doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, parser.desktopf)
+        # cataloged_times
+        if pkgname in cataloged_times:
+            doc.add_value(axi_values["catalogedtime"], 
+                          xapian.sortable_serialise(cataloged_times[pkgname]))
         # pocket (main, restricted, ...)
         if parser.has_option_desktop("X-AppInstall-Section"):
             archive_section = parser.get_desktop("X-AppInstall-Section")
@@ -502,8 +583,8 @@ def rebuild_database(pathname):
     cache = apt.Cache(memonly=True)
     # check permission
     if not os.access(pathname, os.W_OK):
-        logging.warn("Cannot write to '%s'." % pathname)
-        logging.warn("Please check you have the relevant permissions.")
+        LOG.warn("Cannot write to '%s'." % pathname)
+        LOG.warn("Please check you have the relevant permissions.")
         return False
     # write it
     db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)

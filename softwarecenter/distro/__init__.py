@@ -16,8 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import logging
+
 import subprocess
+import logging
 
 from gettext import gettext as _
 
@@ -80,7 +81,7 @@ class Distro(object):
 def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
                                  stdout=subprocess.PIPE).communicate()[0].strip()
-    logging.debug("get_distro: '%s'" % distro_id)
+    logging.getLogger("softwarecenter.distro").debug("get_distro: '%s'" % distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)
     # get the right class and instanciate it

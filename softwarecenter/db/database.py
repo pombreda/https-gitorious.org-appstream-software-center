@@ -23,12 +23,26 @@ import os
 import re
 import string
 import xapian
-
 from softwarecenter import Application
 
 from softwarecenter.utils import *
 from softwarecenter.enums import *
 from gettext import gettext as _
+
+def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
+    """ parse the apt-xapian-index "values" file and provide the 
+    information in the self._axi_values dict
+    """
+    axi_values = {}
+    if not os.path.exists(filename):
+        return
+    for raw_line in open(filename):
+        line = string.split(raw_line, "#", 1)[0]
+        if line.strip() == "":
+            continue
+        (key, value) = line.split()
+        axi_values[key] = int(value)
+    return axi_values
 
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
@@ -57,19 +71,7 @@ class StoreDatabase(gobject.GObject):
 
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
-
-    def _parse_axi_values_file(self, filename="/var/lib/apt-xapian-index/values"):
-        """ parse the apt-xapian-index "values" file and provide the 
-            information in the self._axi_values dict
-        """
-        if not os.path.exists(filename):
-            return
-        for raw_line in open(filename):
-            line = string.split(raw_line, "#", 1)[0]
-            if line.strip() == "":
-                continue
-            (key, value) = line.split()
-            self._axi_values[key] = int(value)
+        self._logger = logging.getLogger("softwarecenter.db")
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
         " open the database "
@@ -83,9 +85,9 @@ class StoreDatabase(gobject.GObject):
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
                 self.xapiandb.add_database(axi)
-                self._parse_axi_values_file()
+                self._axi_values = parse_axi_values_file()
             except:
-                logging.exception("failed to add apt-xapian-index")
+                self._logging.exception("failed to add apt-xapian-index")
         if use_agent:
             try:
                 sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
@@ -172,10 +174,10 @@ class StoreDatabase(gobject.GObject):
         for item in self.SEARCH_GREYLIST_STR.split(";"):
             (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
             if n: 
-                logging.debug("greylist changed search term: '%s'" % search_term)
+                self._logger.debug("greylist changed search term: '%s'" % search_term)
         # restore query if it was just greylist words
         if search_term == '':
-            logging.debug("grey-list replaced all terms, restoring")
+            self._logger.debug("grey-list replaced all terms, restoring")
             search_term = orig_search_term
         
         # check if we need to do comma expansion instead of a regular
@@ -254,7 +256,7 @@ class StoreDatabase(gobject.GObject):
         
         If no document is found, raise a IndexError
         """
-        #logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
+        #self._logger.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA"+appname):
             doc = self.xapiandb.get_document(m.docid)

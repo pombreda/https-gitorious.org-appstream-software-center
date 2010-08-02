@@ -27,6 +27,7 @@ Depends: ${python:Depends},
          python-apt (>= 0.7.93.1),
          python-aptdaemon (>= 0.31),
          python-aptdaemon-gtk,
+         python-debian (>= 0.1.15),
          python-dbus,
          policykit-1,
          policykit-1-gnome | policykit-1-kde,
@@ -38,7 +39,7 @@ Depends: ${python:Depends},
 	 python-lazr.restfulclient
 Recommends: lsb-release, python-launchpad-integration, 
             apt-xapian-index (>= 0.38ubuntu1), update-notifier,
-            software-properties-gtk
+            software-properties-gtk, sessioninstaller
 Conflicts: software-store, gnome-app-install (<< 1)
 Replaces: software-store, gnome-app-install
 Provides: software-store, gnome-app-install
