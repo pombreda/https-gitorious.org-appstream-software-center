@@ -737,8 +737,8 @@ class CellRendererButton2:
         else:
             xo = x + xpad
 
-
-        if self.has_focus and self._widget.has_focus():
+        if self.has_focus and self.state != gtk.STATE_INSENSITIVE and \
+            self._widget.has_focus():
             widget.style.paint_focus(window,
                                      self.state,
                                      (x+2, y+2, w-4, h-4),
@@ -1379,9 +1379,10 @@ class AppView(gtk.TreeView):
         r = False
         if kv == 65363: # right-key
             btn = tr.get_button_by_name('action0')
-            btn.has_focus = True
-            btn = tr.get_button_by_name('info')
-            btn.has_focus = False
+            if btn.state != gtk.STATE_INSENSITIVE:
+                btn.has_focus = True
+                btn = tr.get_button_by_name('info')
+                btn.has_focus = False
         elif kv == 65361: # left-key
             btn = tr.get_button_by_name('action0')
             btn.has_focus = False
@@ -1416,6 +1417,7 @@ class AppView(gtk.TreeView):
                     #print model[path][AppStore.COL_APP_NAME]
                     if path:
                         self._init_activated(btn, self.get_model(), path)
+                        btn.has_focus = False
                         r = True
                     break
 
