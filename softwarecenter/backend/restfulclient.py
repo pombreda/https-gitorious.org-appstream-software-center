@@ -191,7 +191,8 @@ class SoftwareCenterAgent(gobject.GObject):
                                          self._thread_available_for_me_error)
 
     def _thread_available_done(self, result):
-        # print "_available", result
+        logging.debug("_thread_available_done %s %s" % (result,
+                      restful_collection_to_real_python(result)))
         self._available = restful_collection_to_real_python(result)
 
     def _thread_available_error(self, error):
@@ -305,8 +306,8 @@ if __name__ == "__main__":
         scagent.connect("available-for-me", _available_for_me_result)
         scagent.connect("available", _available)
         # argument is oauth token
-        scagent.query_available_for_me("dummy_oauth", "dummy openid")
         scagent.query_available()
+        scagent.query_available_for_me("dummy_oauth", "dummy openid")
 
     elif sys.argv[1] == "sso":
         sso = UbuntuSSOlogin()

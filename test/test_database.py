@@ -16,7 +16,7 @@ from softwarecenter.db.update import update_from_app_install_data, update_from_v
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 
-class testDatabase(unittest.TestCase):
+class TestDatabase(unittest.TestCase):
     """ tests the store database """
 
     def setUp(self):
@@ -99,13 +99,12 @@ class testDatabase(unittest.TestCase):
         # do not fail if no software-center agent is running
         res = update_from_software_center_agent(db, cache)
         # only test if the server is running
-        if res:
-            #self.assertTrue(res)
-            self.assertEqual(db.get_doccount(), 1)
-            for p in db.postlist(""):
-                doc = db.get_document(p.docid)
-                self.assertTrue(doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA),
-                                "pay-owner/pay-ppa-name")
+        self.assertTrue(res)
+        self.assertEqual(db.get_doccount(), 1)
+        for p in db.postlist(""):
+            doc = db.get_document(p.docid)
+            self.assertTrue(doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA),
+                            "pay-owner/pay-ppa-name")
 
         
     def test_application(self):

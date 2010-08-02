@@ -21,7 +21,7 @@ import xdg.BaseDirectory
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
-BUY_SOMETHING_HOST = "http://ec2-75-101-198-214.compute-1.amazonaws.com/"
+BUY_SOMETHING_HOST = "http://ec2-75-101-198-214.compute-1.amazonaws.com"
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"
