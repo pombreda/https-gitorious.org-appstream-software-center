@@ -1,3 +1,10 @@
+software-center (2.1.8) UNRELEASED; urgency=low
+
+  * merged  lp:~mmcg069/software-center/backforward-tweaks,
+    many thanks
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Aug 2010 09:34:14 +0200
+
 software-center (2.1.7) maverick; urgency=low
 
   [ Gary Lasker ]
