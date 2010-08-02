@@ -30,7 +30,7 @@ import datetime
 
 from datetime import datetime
 
-from debian_bundle import deb822
+from debian import deb822
 
 LOG = logging.getLogger(__name__)
 

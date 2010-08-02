@@ -184,6 +184,7 @@ class ChannelsManager(object):
         ppa_channels = []
         other_channels = []
         unknown_channel = []
+        local_channel = None
         
         for (channel_name, channel_origin) in other_channel_list:
             if not channel_name:
@@ -206,12 +207,26 @@ class ChannelsManager(object):
                                                   "partner", 
                                                   only_packages_without_applications=True,
                                                   installed_only=installed_only)
-            elif channel_origin and channel_origin.startswith("LP-PPA"):
-                ppa_channels.append(SoftwareChannel(self.icons, 
+            elif channel_name == "notdownloadable":
+                if installed_only:
+                    local_channel = SoftwareChannel(self.icons, 
                                                     channel_name,
-                                                    channel_origin,
                                                     None,
-                                                    installed_only=installed_only))
+                                                    None,
+                                                    installed_only=installed_only)
+            elif channel_origin and channel_origin.startswith("LP-PPA"):
+                if channel_origin == "LP-PPA-app-review-board":
+                    new_apps_channel = SoftwareChannel(self.icons, 
+                                                       channel_name,
+                                                       channel_origin,
+                                                       None,
+                                                       installed_only=installed_only)
+                else:
+                    ppa_channels.append(SoftwareChannel(self.icons, 
+                                                        channel_name,
+                                                        channel_origin,
+                                                        None,
+                                                        installed_only=installed_only))
             # TODO: detect generic repository source (e.g., Google, Inc.)
             else:
                 other_channels.append(SoftwareChannel(self.icons, 
@@ -219,15 +234,6 @@ class ChannelsManager(object):
                                                       channel_origin,
                                                       None,
                                                       installed_only=installed_only))
-                                
-        # what's new is not interesting when looking at installed apps      
-        if not installed_only:
-            new_apps_query = xapian.Query("")              
-            new_apps_channel = SoftwareChannel(self.icons, 
-                                                   _("What's New"), None, None, 
-                                                   channel_icon=None,   # FIXME:  need an icon
-                                                   channel_query=new_apps_query,
-                                                   channel_sort_mode=SORT_BY_CATALOGED_TIME)
         
         # set them in order
         channels = []
@@ -241,6 +247,8 @@ class ChannelsManager(object):
         channels.extend(other_channels)
         channels.extend(unknown_channel)
         channels.extend(self.extra_channels)
+        if local_channel is not None:
+            channels.append(local_channel)
         
         return channels
         
@@ -338,9 +346,13 @@ class SoftwareChannel(object):
         if channel_component == "partner":
             channel_display_name = _("Canonical Partners")
         elif not channel_name:
-            channel_display_name = _("Other")
+            channel_display_name = _("Unknown")
         elif channel_name == self.distro.get_distro_channel_name():
             channel_display_name = self.distro.get_distro_channel_description()
+        elif channel_name == "Application Review Board PPA":
+            channel_display_name = _("App Expo")
+        elif channel_name == "notdownloadable":
+            channel_display_name = _("Other")
         else:
             channel_display_name = channel_name
         return channel_display_name
@@ -352,8 +364,12 @@ class SoftwareChannel(object):
             channel_icon = self._get_icon("unknown-channel")
         elif channel_name == self.distro.get_distro_channel_name():
             channel_icon = self._get_icon("distributor-logo")
+        elif channel_name == "Application Review Board PPA":
+            channel_icon = self._get_icon("unknown-channel")
         elif channel_origin and channel_origin.startswith("LP-PPA"):
             channel_icon = self._get_icon("ppa")
+        elif channel_name == "notdownloadable":
+            channel_icon = self._get_icon("unknown-channel")
         # TODO: add check for generic repository source (e.g., Google, Inc.)
         #       self._get_icon("generic-repository")
         else:
@@ -366,6 +382,11 @@ class SoftwareChannel(object):
             q1 = xapian.Query("XOCpartner")
             q2 = xapian.Query("AH%s-partner" % self.distro.get_codename())
             channel_query = xapian.Query(xapian.Query.OP_OR, q1, q2)
+        # show only apps when displaying the new apps archive
+        elif channel_name == "Application Review Board PPA":
+            channel_query = xapian.Query(xapian.Query.OP_AND, 
+                                         xapian.Query("XOL" + channel_name),
+                                         xapian.Query("ATapplication"))
         # uncomment the following to limit the distro channel contents to only applications
 #        elif channel_name == self.distro.get_distro_channel_name():
 #            channel_query = xapian.Query(xapian.Query.OP_AND, 

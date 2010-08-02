@@ -27,7 +27,7 @@ import logging
 import apt_pkg
 apt_pkg.init_config()
 
-from debian_bundle import deb822
+from debian import deb822
 
 import os.path
 import datetime
