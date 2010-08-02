@@ -40,26 +40,23 @@ class BackForwardButton(gtk.HBox):
                                     gobject.TYPE_NONE,
                                     (gtk.gdk.Event,))}
 
-    def __init__(self, part_size=None, arrow_size=None, native_draw=True):
+    def __init__(self, part_size=None):
         gtk.HBox.__init__(self)
         self.theme = mkit.get_mkit_theme()
         self.separator = SeparatorPart()
-
         self.use_hand = False
-        self._use_flat_palatte = False
 
         part_size = part_size or DEFAULT_PART_SIZE
-        arrow_size = arrow_size or DEFAULT_ARROW_SIZE
 
         if self.get_direction() != gtk.TEXT_DIR_RTL:
             # ltr
-            self.left = ButtonPartLeft('left-clicked', part_size, arrow_size)
-            self.right = ButtonPartRight('right-clicked', part_size, arrow_size)
+            self.left = ButtonPartLeft('left-clicked', part_size)
+            self.right = ButtonPartRight('right-clicked', part_size)
             self.set_button_atk_info_ltr()
         else:
             # rtl
-            self.left = ButtonPartRight('left-clicked', part_size, arrow_size)
-            self.right = ButtonPartLeft('right-clicked', part_size, arrow_size)
+            self.left = ButtonPartRight('left-clicked', part_size, gtk.ARROW_LEFT)
+            self.right = ButtonPartLeft('right-clicked', part_size, gtk.ARROW_RIGHT)
             self.set_button_atk_info_rtl()
 
         atk_obj = self.get_accessible()
@@ -73,10 +70,6 @@ class BackForwardButton(gtk.HBox):
 
         self.separator.connect_after("style-set", self._on_style_set)
         self.connect_after('size-allocate', self._on_size_allocate)
-
-        if not native_draw:
-            self.set_redraw_on_allocate(False)
-            self.connect('expose-event', lambda w, e: True)
         return
 
     def set_button_atk_info_ltr(self):
@@ -177,7 +170,7 @@ class SeparatorPart(gtk.DrawingArea):
 
 class ButtonPart(gtk.EventBox):
 
-    def __init__(self, arrow_type, signal_name, part_size, arrow_size):
+    def __init__(self, arrow_type, signal_name, part_size):
         gtk.EventBox.__init__(self)
         self.set_redraw_on_allocate(False)
         self.set_visible_window(False)
@@ -185,9 +178,7 @@ class ButtonPart(gtk.EventBox):
         self.set_size_request(*part_size)
         self.shape = mkit.SHAPE_RECTANGLE
         self.button_down = False
-        self.shadow_type = gtk.SHADOW_OUT
-        self.arrow_type = arrow_type
-        self.arrow_size = arrow_size
+        self.add(gtk.Arrow(arrow_type, gtk.SHADOW_OUT))
 
         self.set_flags(gtk.CAN_FOCUS)
         self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
@@ -277,19 +268,11 @@ class ButtonPart(gtk.EventBox):
         cr.rectangle(a)
         cr.clip()
 
-
-        if not self.parent._use_flat_palatte:            
-            self.parent.theme.paint_bg(cr,
-                                       self,
-                                       a.x+xo, a.y,
-                                       a.width+wo, a.height,
-                                       alpha=alpha)
-        else:
-            self.parent.theme.paint_bg_flat(cr,
-                                            self,
-                                            a.x+xo, a.y,
-                                            a.width+wo, a.height,
-                                            alpha=alpha)
+        self.parent.theme.paint_bg(cr,
+                                   self,
+                                   a.x+xo, a.y,
+                                   a.width+wo, a.height,
+                                   alpha=alpha)
 
         if self.has_focus():
             self.style.paint_focus(self.window,
@@ -299,34 +282,17 @@ class ButtonPart(gtk.EventBox):
                                    'button',
                                    a.x+4, a.y+4,
                                    a.width-8, a.height-8)
-
-        # arrow
-        aw = ah = 12
-        ay = a.y + (a.height - ah)/2
-        ax = a.x + (a.width - aw)/2
-
-        self.style.paint_arrow(self.window,
-                               self.state,
-                               self.shadow_type,
-                               (ax, ay, aw, ah),
-                               self,
-                               None,
-                               self.arrow_type,
-                               True,
-                               ax, ay,
-                               aw, ah)
         cr.restore()
         return
 
 
 class ButtonPartLeft(ButtonPart):
 
-    def __init__(self, sig_name, part_size, arrow_size):
+    def __init__(self, sig_name, part_size, arrow_type=gtk.ARROW_LEFT):
         ButtonPart.__init__(self,
-                            gtk.ARROW_LEFT,
+                            arrow_type,
                             sig_name,
-                            part_size,
-                            arrow_size)
+                            part_size)
         self.connect("expose-event", self._on_expose)
         return
 
@@ -349,12 +315,11 @@ class ButtonPartLeft(ButtonPart):
 
 class ButtonPartRight(ButtonPart):
 
-    def __init__(self, sig_name, part_size, arrow_size):
+    def __init__(self, sig_name, part_size, arrow_type=gtk.ARROW_RIGHT):
         ButtonPart.__init__(self,
-                            gtk.ARROW_RIGHT,
+                            arrow_type,
                             sig_name,
-                            part_size,
-                            arrow_size)
+                            part_size)
         self.connect("expose-event", self._on_expose)
         return
 
@@ -372,3 +337,12 @@ class ButtonPartRight(ButtonPart):
                      wo=r,
                      alpha=alpha)
         return
+
+if __name__ == "__main__":
+    win = gtk.Window()
+    win.set_default_size(300,100)
+    backforward = BackForwardButton()
+    win.add(backforward)
+    win.show_all()
+
+    gtk.main()

@@ -1,4 +1,11 @@
-software-center (2.1.7) UNRELEASED; urgency=low
+software-center (2.1.8) UNRELEASED; urgency=low
+
+  * merged  lp:~mmcg069/software-center/backforward-tweaks,
+    many thanks
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Aug 2010 09:34:14 +0200
+
+software-center (2.1.7) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/availablepane.py:
@@ -40,7 +47,7 @@ software-center (2.1.7) UNRELEASED; urgency=low
     softwarecenter/view/historypane.py:
     - fix DeprecationWarning at startup (LP: #602310)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Jul 2010 19:44:32 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 30 Jul 2010 21:35:56 +0200
 
 software-center (2.1.6) maverick; urgency=low
 

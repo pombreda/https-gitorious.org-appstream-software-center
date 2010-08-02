@@ -222,7 +222,9 @@ def index_name(doc, name, term_generator):
 def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
-    update_from_apt_cache_for_whats_new_repo(db, cache)
+    # FIXME: mvo: disabled for now, the problem is that 
+    #             update-software-center is not run often enough 
+    #update_from_apt_cache_for_whats_new_repo(db, cache)
     # add db global meta-data
     LOG.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
