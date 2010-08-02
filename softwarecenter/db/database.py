@@ -19,14 +19,30 @@
 import gobject
 import locale
 import logging
+import os
 import re
+import string
 import xapian
-
 from softwarecenter import Application
 
 from softwarecenter.utils import *
 from softwarecenter.enums import *
 from gettext import gettext as _
+
+def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
+    """ parse the apt-xapian-index "values" file and provide the 
+    information in the self._axi_values dict
+    """
+    axi_values = {}
+    if not os.path.exists(filename):
+        return
+    for raw_line in open(filename):
+        line = string.split(raw_line, "#", 1)[0]
+        if line.strip() == "":
+            continue
+        (key, value) = line.split()
+        axi_values[key] = int(value)
+    return axi_values
 
 class StoreDatabase(gobject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
@@ -51,6 +67,9 @@ class StoreDatabase(gobject.GObject):
         gobject.GObject.__init__(self)
         self._db_pathname = pathname
         self._aptcache = cache
+        # the xapian values as read from /var/lib/apt-xapian-index/values
+        self._axi_values = {}
+        self._logger = logging.getLogger("softwarecenter.db")
 
     def open(self, pathname=None, use_axi=True):
         " open the database "
@@ -64,8 +83,9 @@ class StoreDatabase(gobject.GObject):
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
                 self.xapiandb.add_database(axi)
+                self._axi_values = parse_axi_values_file()
             except:
-                logging.exception("failed to add apt-xapian-index")
+                self._logger.exception("failed to add apt-xapian-index")
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
@@ -135,10 +155,10 @@ class StoreDatabase(gobject.GObject):
         for item in self.SEARCH_GREYLIST_STR.split(";"):
             (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
             if n: 
-                logging.debug("greylist changed search term: '%s'" % search_term)
+                self._logger.debug("greylist changed search term: '%s'" % search_term)
         # restore query if it was just greylist words
         if search_term == '':
-            logging.debug("grey-list replaced all terms, restoring")
+            self._logger.debug("grey-list replaced all terms, restoring")
             search_term = orig_search_term
         
         # check if we need to do comma expansion instead of a regular
@@ -166,17 +186,16 @@ class StoreDatabase(gobject.GObject):
         """ get human readable summary of the given document """
         summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
         channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-        # if we do not have the summary in the xapian db, get it
-        # from the apt cache
-        if not summary and self._aptcache.ready: 
+        # try to use the description from the apt cache, as this is more up to date
+        if self._aptcache.ready: 
             pkgname = self.get_pkgname(doc)
             if (pkgname in self._aptcache and 
                 self._aptcache[pkgname].candidate):
                 return  self._aptcache[pkgname].candidate.summary
-            elif channel:
+            elif channel and not summary:
                 # FIXME: print something if available for our arch
                 pass
-            else:
+            elif not summary:
                 return _("Sorry, '%s' is not available for this type of computer (%s).") % (pkgname, get_current_arch())
         return summary
 
@@ -230,7 +249,7 @@ class StoreDatabase(gobject.GObject):
         
         If no document is found, raise a IndexError
         """
-        #logging.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
+        #self._logger.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA"+appname):
             doc = self.xapiandb.get_document(m.docid)

@@ -329,10 +329,19 @@
     <_Name>Fonts</_Name>
     <SCIcon>applications-fonts</SCIcon>
     <Include>
-      <Or>
-        <SCPkgnameWildcard>ttf*</SCPkgnameWildcard>
-        <SCPkgnameWildcard>otf*</SCPkgnameWildcard>
-      </Or>
+      <And>
+        <Or>
+          <SCPkgnameWildcard>ttf*</SCPkgnameWildcard>
+          <SCPkgnameWildcard>otf*</SCPkgnameWildcard>
+          <SCSection>fonts</SCSection>
+          <SCSection>restricted/fonts</SCSection>
+          <SCSection>universe/fonts</SCSection>
+          <SCSection>multiverse/fonts</SCSection>
+        </Or>
+        <Not>
+          <SCPkgname>ttfm</SCPkgname>
+        </Not>
+      </And>
     </Include>
   </Menu>
 

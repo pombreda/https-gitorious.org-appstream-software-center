@@ -22,18 +22,18 @@ import glib
 import gobject
 import gtk
 import logging
-import xapian
 import os
+import xapian
 
-# magic environment to get old pathbar
-if "SOFTWARE_CENTER_OLD_PATHBAR" in os.environ:
-    from widgets.navigationbar import NavigationBar
-else:
-    from widgets.pathbar_gtk_atk import NavigationBar
+from widgets.mkit import floats_from_gdkcolor
+from widgets.pathbar_gtk_atk import NavigationBar
 
 from softwarecenter.backend import get_install_backend
+from softwarecenter.view.basepane import BasePane
 
 from widgets.searchentry import SearchEntry
+
+#from widgets.actionbar2 import ActionBar
 from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
@@ -63,7 +63,7 @@ def wait_for_apt_cache_ready(f):
     return wrapper
 
 
-class SoftwarePane(gtk.VBox):
+class SoftwarePane(gtk.VBox, BasePane):
     """ Common base class for InstalledPane and AvailablePane """
 
     __gsignals__ = {
@@ -76,6 +76,7 @@ class SoftwarePane(gtk.VBox):
 
     def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
+        BasePane.__init__(self)
         # other classes we need
         self.cache = cache
         self.history = history
@@ -104,8 +105,6 @@ class SoftwarePane(gtk.VBox):
         self.scroll_app_list.add(self.app_view)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-        self.app_view.connect("application-request-action", 
-                              self.on_application_request_action)
         # details
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
@@ -130,7 +129,7 @@ class SoftwarePane(gtk.VBox):
         self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
         self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
         self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
-        self.pack_start(gtk.HSeparator(), expand=False)
+        #self.pack_start(gtk.HSeparator(), expand=False)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
@@ -139,6 +138,18 @@ class SoftwarePane(gtk.VBox):
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False, padding=self.PADDING)
+        self.top_hbox.connect('expose-event', self._on_expose)
+
+    def _on_expose(self, widget, event):
+        """ Draw a horizontal line that separates the top hbox from the page content """
+        a = widget.allocation
+        self.style.paint_shadow(widget.window, self.state,
+                                gtk.SHADOW_IN,
+                                (a.x, a.y+a.height+self.PADDING-1, a.width, 1),
+                                widget, "viewport",
+                                a.x, a.y+a.height+self.PADDING-1,
+                                a.width, a.y+a.height+self.PADDING-1)
+        return
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
@@ -159,19 +170,6 @@ class SoftwarePane(gtk.VBox):
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(app)
-
-    def on_application_request_action(self, appview, app, action):
-        """callback when an app action is requested from the appview"""
-        logging.debug("on_application_action_requested: '%s' %s" % (app, action))
-        # action_func is "install" or "remove" of self.app_details
-        action_func = getattr(self.backend, action)
-        if callable(action_func):
-            if action == 'install':
-                action_func(app.pkgname, app.appname, app.request, app.get_details(self.db).icon)
-            elif action == 'remove':
-                action_func(app.pkgname, app.appname, app.get_details(self.db).icon)
-        else:
-            logging.error("can not find action '%s'" % action)
 
     def update_app_view(self):
         """

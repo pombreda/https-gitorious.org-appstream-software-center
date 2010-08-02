@@ -23,10 +23,9 @@ import os
 import gobject
 gobject.threads_init()
 import glib
-import logging
 import time
 import threading
-
+import logging
 from softwarecenter.distro import get_distro
 from softwarecenter.utils import get_current_arch
 
@@ -57,12 +56,13 @@ class RestfulClientWorker(threading.Thread):
         self._authorizer = authorizer
         self._pending_requests = Queue()
         self._shutdown = False
+        self._logger = logging.getLogger("softwarecenter.backend")
 
     def run(self):
         """
         Main thread run interface, logs into launchpad
         """
-        logging.debug("lp worker thread run")
+        self._logger.debug("lp worker thread run")
         self.service = ServiceRoot(self._authorizer, self._service_root_url)
         # loop
         self._wait_for_commands()
@@ -83,7 +83,7 @@ class RestfulClientWorker(threading.Thread):
         """internal helper that waits for commands"""
         while True:
             while not self._pending_requests.empty():
-                logging.debug("found pending request")
+                self._logger.debug("found pending request")
                 (func_str, args, kwargs, result_callback, error_callback) = self._pending_requests.get()
                 # run func async
                 try:
@@ -186,7 +186,11 @@ class UbuntuSSOlogin(LoginBackend):
         LoginBackend.__init__(self)
         self.service = UBUNTU_SSO_SERVICE
         self.oauth_credentials = None
+        self._oauth_credentials = None
         self._login_failure = None
+
+    def shutdown(self):
+        self.worker_thread.shutdown()
 
     def login(self, username=None, password=None):
         if not username or not password:
@@ -203,8 +207,10 @@ class UbuntuSSOlogin(LoginBackend):
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
-        if self.oauth_credentials:
-            self.emit("login-successful", result)
+        if self._oauth_credentials:
+            self.emit("login-successful", self._oauth_credentials)
+            self.oauth_credentials = self._oauth_credentials
+            self._oauth_credentials = None
         if self._login_failure:
             self.emit("login-failed")
             self._login_failure = None
@@ -213,7 +219,7 @@ class UbuntuSSOlogin(LoginBackend):
     def _thread_authentication_done(self, result):
         # runs in the thread context, can not touch gui or glib
         print "_authentication_done", result
-        self.oauth_credentials = result
+        self._oauth_credentials = result
 
     def _thread_authentication_error(self, e):
         # runs in the thread context, can not touch gui or glib

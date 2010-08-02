@@ -68,6 +68,8 @@ class OriginPlugin:
         ver = pkg.candidate
         if ver is None: 
             return
+        if not ver.downloadable:
+            document.add_term("XOL"+"notdownloadable")
         for origin in ver.origins:
             document.add_term("XOA"+origin.archive)
             document.add_term("XOC"+origin.component)

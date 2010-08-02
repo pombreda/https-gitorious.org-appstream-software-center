@@ -42,8 +42,8 @@ class Application(object):
     """
     def __init__(self, appname, pkgname, request, popcon=0):
         if request.count("/") > 0 and not appname:
-            self.appname = request.split('/')[-1].split('_')[0].split('.')[0].capitalize()
-            self.pkgname = request.split('/')[-1].split('_')[0].split('.')[0].lower()
+            self.appname = request.split('/')[-1].split('_')[0].split('.deb')[0].capitalize()
+            self.pkgname = request.split('/')[-1].split('_')[0].split('.deb')[0].lower()
         else:
             self.pkgname = pkgname
             if appname:
@@ -114,8 +114,9 @@ class AppDetails(object):
         # load application
         self._app = application
         if doc:
-            self._app = Application(self._db.get_appname(self._doc), self._db.get_pkgname(self._doc), "")
-        self._app.request = self._app.request.replace("$distro", self._distro.get_distro_codename())
+            self._app = Application(self._db.get_appname(doc), self._db.get_pkgname(doc), "")
+        if self._app.request:
+            self._app.request = self._app.request.replace("$distro", self._distro.get_distro_codename())
 
         # load pkg cache
         self._pkg = None
@@ -155,23 +156,21 @@ class AppDetails(object):
             if (mimetype[0] != None and mimetype[0] != "application/x-debian-package"):
                 self._error =  _("Not Found") + '@@' + _("The file \"%s\" is not a software package.") % self._app.request
             else:
-                self._error = _("Not Found") + '@@' + _("The file \"%s\" can not be opened. Please check that the file exists and that you have permission to access it.") % self._app.request
-        if self._deb:
-            # check arch
-            if  self.architecture != "all" and self.architecture != get_current_arch():
-                self._error = _("The file \"%s\" can not be installed on this type of computer.") %  self._app.request.split('/')[-1]
+                self._error = _("Not Found") + '@@' + _("The file \"%s\" does not exist.") % self._app.request
 
+        if self._deb:
             # check conflicts and check if installing it would break anything on the current system
             if not self._deb.check_conflicts() or not self._deb.check_breaks_existing_packages():
-                self._error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._app.request.split('/')[-1]
-
+                self._error = _("\"%s\" conflicts with other software.") % self.name
             # try to satisfy the dependencies
             if not self._deb._satisfy_depends(self._deb.depends):
-                self._error = _("The file \"%s\" requires other software packages to be installed that are not available, so can not be installed.") % self._app.request.split('/')[-1]
-
+                self._error = _("\"%s\" requires other software to be installed that is not available.") % self.name
             # check for conflicts again (this time with the packages that are marked for install)
             if not self._deb.check_conflicts():
-                self._error = _("The file \"%s\" conflicts with packages installed on your computer, so can not be installed.") % self._app.request.split('/')[-1]
+                self._error = _("\"%s\" conflicts with other software.") % self.name
+            # check arch
+            if  self.architecture != "all" and self.architecture != get_current_arch():
+                self._error = _("\"%s\" is not available for this type of computer.") %  self.name
 
     @property
     def architecture(self):
@@ -234,8 +233,7 @@ class AppDetails(object):
     def description(self):
         if self._deb:
             description = self._deb._sections["Description"]
-            # yeah, below is messy. I'll clean it up or study the parser code
-            return ('\n').join(description.split('\n')[1:]).replace(" .\n", "@@@@@").replace("\n", "").replace("@@@@@", "\n\n")
+            return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
         if self._pkg:
             return self._pkg.candidate.description
 
@@ -277,6 +275,13 @@ class AppDetails(object):
         if self.error:
             if self._error.count('@@') > 0:
                 return self._error.split('@@')[0]
+        if self._doc:
+            name = self._db.get_appname(self._doc)
+            if name:
+                return name
+            else:
+                # by spec..
+                return self._db.get_summary(self._doc)
         return self._app.name
 
     @property
@@ -290,29 +295,28 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
+        if self._error:
+            return PKG_STATE_UNKNOWN
         if self._deb:
-            if self._error:
-                return PKG_STATE_UNKNOWN
-            else:
-                deb_state = self._deb.compare_to_version_in_cache()
-                (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
-                if deb_state == DEB_NOT_IN_CACHE:
+            deb_state = self._deb.compare_to_version_in_cache()
+            (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
+            if deb_state == DEB_NOT_IN_CACHE:
+                return PKG_STATE_UNINSTALLED
+            elif deb_state == DEB_OLDER_THAN_CACHE:
+                if self._cache[self.pkgname].installed:
+                    return PKG_STATE_INSTALLED
+                else:
                     return PKG_STATE_UNINSTALLED
-                elif deb_state == DEB_OLDER_THAN_CACHE:
-                    if self._cache[self.pkgname].installed:
-                        return PKG_STATE_INSTALLED
-                    else:
-                        return PKG_STATE_UNINSTALLED
-                elif deb_state == DEB_EQUAL_TO_CACHE:
-                    return PKG_STATE_REINSTALLABLE
-                elif deb_state == DEB_NEWER_THAN_CACHE:
-                    if self._cache[self.pkgname].installed:
-                        return PKG_STATE_UPGRADABLE
-                    else:
-                        return PKG_STATE_UNINSTALLED
+            elif deb_state == DEB_EQUAL_TO_CACHE:
+                return PKG_STATE_REINSTALLABLE
+            elif deb_state == DEB_NEWER_THAN_CACHE:
+                if self._cache[self.pkgname].installed:
+                    return PKG_STATE_UPGRADABLE
+                else:
+                    return PKG_STATE_UNINSTALLED
         if self._pkg:
             # Don't handle upgrades yet
-            #if self._pkg.installed and self.pkg._isUpgradable:
+            #if self._pkg.installed and self._pkg._isUpgradable:
             #    return PKG_STATE_UPGRADABLE
             if self._pkg.installed:
                 return PKG_STATE_INSTALLED
@@ -340,11 +344,18 @@ class AppDetails(object):
 
     @property
     def summary(self):
+        if self._doc:
+            name = self._db.get_appname(self._doc)
+            if name:
+                if self._pkg:
+                    return self._pkg.candidate.summary
+                return self._db.get_summary(self._doc)
+            else:
+                # by spec..
+                return self._db.get_pkgname(self._doc)
         if self._deb:
             description = self._deb._sections["Description"]
             return description.split('\n')[0]
-        if self._doc:
-            return self._db.get_summary(self._doc)
         if self._pkg:
             return self._pkg.candidate.summary
 
@@ -361,6 +372,8 @@ class AppDetails(object):
 
     @property
     def warning(self):
+        # warnings for deb-files
+        # FIXME: use more concise warnings
         if self._deb:
             deb_state = self._deb.compare_to_version_in_cache()
             (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
@@ -375,13 +388,13 @@ class AppDetails(object):
                 return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
         # apturl minver matches
         if not self.pkg_state == PKG_STATE_INSTALLED:
-            minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
-            if minver_matches:
-                minver = minver_matches[0][7:]
-                if apt_pkg.version_compare(minver, self.version) > 0:
-                    return _("Version %s or later not available.") % minver
-                    # below is mpt's warning text..
-                    #return _("Version %s or later is not available from your current software sources.") % minver
+            if self._app.request:
+                minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
+                if minver_matches:
+                    minver = minver_matches[0][7:]
+                    if apt_pkg.version_compare(minver, self.version) > 0:
+                        return _("Version %s or later not available.") % minver
+        # can we enable a source
         if not self._pkg and not self._deb:
             source_to_enable = None
             if self.channelname and self._unavailable_channel():
@@ -395,12 +408,6 @@ class AppDetails(object):
                     for source in sources[1:]:
                        warning += _(", or from the \"%s\"") % source
                 warning += _(" source.")
-                # below is mpt's warning text..
-                #warning = _("This software may be available from the \"%s\" source") % sources[0]
-                #if len(sources) > 1:
-                #    for source in sources[1:]:
-                #       warning += _(", or from the \"%s\" source") % source
-                #warning += _(", which you are not currently using.")
                 return warning
 
     @property

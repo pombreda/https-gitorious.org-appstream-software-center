@@ -2,6 +2,7 @@
 import ldtp
 import ooldtp
 import ldtputils
+import logging
 import os
 
 # import the TestSuite class
@@ -16,8 +17,14 @@ class SoftwareCenterApp(Application):
     def do_search(self, search_term):
         application = ooldtp.context(self.name)
         # get search entry
-        component = application.getchild("Search")
-        # XXX add search with search_term
+        search = application.getchild("txtSearch")
+        search.enterstring("ab")
+        # check label
+        label = application.getchild("status_text")
+        label_str = label.gettextvalue()
+        # make sure ab always hits the query limit (200 currently)
+        if label_str != "200 matching items":
+            return False
         return True
 
 
@@ -34,6 +41,7 @@ class SoftwareCenterTest(SingleApplicationTestSuite):
 
     def test_search(self, search_term):
         if self.application.do_search(search_term) == False:
+            print "do_search test failed"
             raise AssertionError, "Search failed"
 
 if __name__ == "__main__":

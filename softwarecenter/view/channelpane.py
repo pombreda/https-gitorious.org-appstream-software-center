@@ -1,7 +1,8 @@
 # Copyright (C) 2010 Canonical
 #
 # Authors:
-#  Michael Vogt, Gary Lasker
+#  Michael Vogt
+#  Gary Lasker
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -103,12 +104,13 @@ class ChannelPane(SoftwarePane):
         # garbage collected
         old_model = self.app_view.get_model()
         
-        # if the list is expected to contain many items, clear the current model to display
-        # an empty list while the full list is generated; this prevents a visual glitch when
+        # if the list is expected to contain many items, 
+        #  clear the current model to display
+        # an empty list while the full list is generated; 
+        #  this prevents a visual glitch when
         # the list is replaced
-        if ((self.channel.get_channel_name() == self.distro.get_distro_channel_name() and
-             self.channel.get_channel_component() != "partner") and
-             not self.search_terms):
+        if ((self.channel.get_channel_name() == self.distro.get_distro_channel_name() and not 
+             self.search_terms)):
             self.app_view.clear_model()
         
         if old_model is not None:
@@ -130,7 +132,7 @@ class ChannelPane(SoftwarePane):
                              self.icons, 
                              query, 
                              limit=0,
-                             sort=True,
+                             sortmode=self.channel.get_channel_sort_mode(),
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other

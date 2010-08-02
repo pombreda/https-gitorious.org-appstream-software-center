@@ -22,6 +22,7 @@ import colorsys
 
 import logging
 
+THEME_MESSAGE_DISPLAYED = False
 
 class ColorArray:
 
@@ -611,11 +612,18 @@ class ThemeRegistry:
                 "Radiance": Radiance}
 
     def retrieve(self, theme_name):
+        # To keep the messages to a minimum
+        global THEME_MESSAGE_DISPLAYED
+        
         if self.REGISTRY.has_key(theme_name):
-            logging.debug("Styling hints found for %s..." % theme_name)
+            if not THEME_MESSAGE_DISPLAYED:
+                logging.debug("Styling hints found for %s..." % theme_name)
+                THEME_MESSAGE_DISPLAYED = True
             return self.REGISTRY[theme_name]()
 
-        logging.warn("No styling hints for %s were found... using Human hints." % theme_name)
+        if not THEME_MESSAGE_DISPLAYED:
+            logging.warn("No styling hints for %s were found... using Human hints." % theme_name)
+            THEME_MESSAGE_DISPLAYED = True
         from mkit_themes import Clearlooks
         return Clearlooks()
 

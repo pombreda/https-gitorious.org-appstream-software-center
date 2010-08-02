@@ -23,10 +23,10 @@ import os
 import gobject
 gobject.threads_init()
 import glib
-import logging
 import time
 import threading
 
+import logging
 from softwarecenter.distro import get_distro
 
 from launchpadlib.launchpad import Launchpad
@@ -76,12 +76,13 @@ class LaunchpadlibWorker(threading.Thread):
         self._launchpad = None
         self._pending_requests = Queue()
         self._shutdown = False
+        self._logger = logging.getLogger("softwarecenter.backend")
 
     def run(self):
         """
         Main thread run interface, logs into launchpad
         """
-        logging.debug("lp worker thread run")
+        self._logger.debug("lp worker thread run")
         # login
         self._lp_login()
         # loop
@@ -99,7 +100,7 @@ class LaunchpadlibWorker(threading.Thread):
         """internal helper that waits for commands"""
         while True:
             while not self._pending_requests.empty():
-                logging.debug("found pending request")
+                self._logger.debug("found pending request")
                 (func, args, result_callback) = self._pending_requests.get()
                 # run func async
                 res = func(*args)
@@ -114,7 +115,7 @@ class LaunchpadlibWorker(threading.Thread):
 
     def _lp_login(self, access_level=['READ_PRIVATE']):
         """ internal LP login code """
-        logging.debug("lp_login")
+        self._logger.debug("lp_login")
         # use cachedir
         cachedir = SOFTWARE_CENTER_CACHE_DIR
         if not os.path.exists(cachedir):
@@ -129,7 +130,7 @@ class LaunchpadlibWorker(threading.Thread):
         except Exception, e:
             if type(e) == UserCancelException:
                 return
-            logging.exception("Launchpad.login_with()")
+            self._logger.exception("Launchpad.login_with()")
             # remove token on failure, it may be e.g. expired
             # FIXME: store the token in a different place and to avoid
             #        having to use _get_paths()
@@ -143,12 +144,15 @@ class LaunchpadlibWorker(threading.Thread):
             self._lp_login(access_level)
             return
         self.login_state = LOGIN_STATE_SUCCESS
-        logging.debug("/done %s" % self._launchpad)
+        self._logger.debug("/done %s" % self._launchpad)
 
 class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
     """ Internal helper that updates the login_state of
         the modul global lp_worker_thread object
     """
+    def __init__ (self, *args, **kwargs):
+        super(AuthorizeRequestTokenFromThread, self).__init__(*args, **kwargs)
+        self._logger = logging.getLogger("softwarecenter.backend")
 
     # we need this to give the engine a place to store the state
     # for the UI
@@ -159,7 +163,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         return o
 
     def input_username(self, cached_username, suggested_message):
-        logging.debug( "input_username: %s" %self.lp_worker.login_state)
+        self._logger.debug( "input_username: %s" %self.lp_worker.login_state)
         # otherwise go into ASK state
         if not self.lp_worker.login_state in (LOGIN_STATE_ASK_USER_AND_PASS,
                                               LOGIN_STATE_AUTH_FAILURE,
@@ -177,21 +181,21 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         return self.lp_worker.login_username
 
     def input_password(self, suggested_message):
-        logging.debug( "Input password size %s" % len(self.lp_worker.login_password))
+        self._logger.debug( "Input password size %s" % len(self.lp_worker.login_password))
         return self.lp_worker.login_password
 
     def input_access_level(self, available_levels, suggested_message,
                            only_one_option=None):
         """Collect the desired level of access from the end-user."""
-        logging.debug("input_access_level")
+        self._logger.debug("input_access_level")
         return "WRITE_PUBLIC"
 
     def startup(self, suggested_messages):
-        logging.debug("startup")
+        self._logger.debug("startup")
 
     def authentication_failure(self, suggested_message):
         """The user entered invalid credentials."""
-        logging.debug("auth failure")
+        self._logger.debug("auth failure")
         # ignore auth failures if the user canceled
         if self.lp_worker.login_state == LOGIN_STATE_USER_CANCEL:
             return
@@ -199,7 +203,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
 
     def success(self, suggested_message):
         """The token was successfully authorized."""
-        logging.debug("success")
+        self._logger.debug("success")
         self.lp_worker.login_state = LOGIN_STATE_SUCCESS_PENDING
 
 

@@ -16,12 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import dbus
-import logging
-import gtk
-import gobject
 import apt
 import apt_pkg
+import dbus
+import gtk
+import gobject
+import logging
 import os
 import sys
 
@@ -30,6 +30,7 @@ from aptdaemon.enums import *
 
 from softwarecenter.enums import *
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.view.basepane import BasePane
 
 from gettext import gettext as _
 
@@ -166,13 +167,14 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         return "%s\n<small>%s</small>" % (name, status)
 
 
-class PendingView(gtk.TreeView):
+class PendingView(gtk.TreeView, BasePane):
     
     CANCEL_XPAD = 6
     CANCEL_YPAD = 6
 
     def __init__(self, icons):
         gtk.TreeView.__init__(self)
+        BasePane.__init__(self)
         # customization
         self.set_headers_visible(False)
         self.connect("button-press-event", self._on_button_pressed)
@@ -207,6 +209,8 @@ class PendingView(gtk.TreeView):
         tt = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Cancel", tt)
         self.append_column(column)
+        # we don't have a searchentry in the pending view
+        self.searchentry = None
         # add it
         store = PendingStore(icons)
         self.set_model(store)

@@ -2,10 +2,13 @@
   <Menu>
     <_Name>New Applications</_Name>
     <SCIcon>gtk-about</SCIcon>
+    <SCSortMode>3</SCSortMode>
+    <SCItemLimit>20</SCItemLimit>
     <Include>
-      <Or>
-	<SCOrigin>LP-PPA-app-review-board</SCOrigin>
-      </Or>
+      <And>
+        <SCType>Application</SCType>
+<!--        <SCOrigin>LP-PPA-app-review-board</SCOrigin> -->
+      </And>
     </Include>
   </Menu>
 </Menu>

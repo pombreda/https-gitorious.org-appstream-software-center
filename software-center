@@ -31,7 +31,10 @@ import os
 from softwarecenter.enums import *
 from softwarecenter.version import *
 
+import softwarecenter.log 
+
 from optparse import OptionParser
+
 
 if __name__ == "__main__":
 
@@ -51,27 +54,23 @@ if __name__ == "__main__":
                       help="enable launchpad integration (for development use)", 
                       default=False)
     (options, args) = parser.parse_args()
-
+    
     if options.debug_filter:
-        logger = logging.getLogger()
-        logger.addFilter(logging.Filter(options.debug_filter))
+        softwarecenter.log.add_filters_from_string(options.debug_filter)
         # implies general debug
         options.debug = True
         
     if options.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        softwarecenter.log.root.setLevel(level=logging.DEBUG)
     else:
-        logging.basicConfig(level=logging.INFO)
+        softwarecenter.log.root.setLevel(level=logging.INFO)
     
     # override text direction for testing purposes
     if options.force_rtl:
         gtk.widget_set_default_direction(gtk.TEXT_DIR_RTL)
 
-    #logging.basicConfig(level=logging.DEBUG)
-    logging.basicConfig(level=logging.INFO)
-
     if os.path.exists("./data/ui/SoftwareCenter.ui"):
-        logging.info("Using data (UI, xapian) from current dir")
+        logging.getLogger("softwarecenter").info("Using data (UI, xapian) from current dir")
         datadir = "./data"
         xapian_base_path = datadir
     else:

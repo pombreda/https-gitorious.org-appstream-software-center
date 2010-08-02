@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import atexit
+import atk
 import locale
 import dbus
 import dbus.service
@@ -37,6 +38,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
+import softwarecenter.view.dialogs as dialogs
 
 import view.dialogs
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
@@ -46,9 +48,12 @@ from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane
 from view.historypane import HistoryPane
+from view.viewmanager import ViewManager
 
 from backend.config import get_config
 from backend import get_install_backend
+
+from plugin import PluginManager
 
 # launchpad stuff
 from view.logindialog import LoginDialog
@@ -80,20 +85,17 @@ class SoftwarecenterDbusController(dbus.service.Object):
 
 class SoftwareCenterApp(SimpleGtkbuilderApp):
     
-    (NOTEBOOK_PAGE_AVAILABLE,
-     NOTEBOOK_PAGE_INSTALLED,
-     NOTEBOOK_PAGE_HISTORY,
-     NOTEBOOK_PAGE_SEPARATOR_1,
-     NOTEBOOK_PAGE_PENDING,
-     NOTEBOOK_PAGE_CHANNEL) = range(6)
-
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
+    
+    # the size of the icon for dialogs
+    APP_ICON_SIZE = 48  # gtk.ICON_SIZE_DIALOG ?
 
     # FIXME:  REMOVE THIS once launchpad integration is enabled
     #         by default
     def __init__(self, datadir, xapian_base_path, args, enable_lp_integration=False):
     #def __init__(self, datadir, xapian_base_path):
-
+    
+        self._logger = logging.getLogger(__name__)
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareCenter.ui", 
@@ -104,7 +106,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             locale.setlocale(locale.LC_ALL, "")
         except:
-            logging.exception("setlocale failed")
+            self._logger.exception("setlocale failed")
 
         # setup dbus and exit if there is another instance already
         # running
@@ -114,7 +116,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             locale.setlocale(locale.LC_ALL, "")
         except Exception, e:
-            logging.exception("setlocale failed")
+            self._logger.exception("setlocale failed")
 
         # distro specific stuff
         self.distro = get_distro()
@@ -146,12 +148,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # script that does population, populate a database in it.
             if os.path.isdir(pathname) and not os.listdir(pathname):
                 from softwarecenter.db.update import rebuild_database
-                logging.info("building local database")
+                self._logger.info("building local database")
                 rebuild_database(pathname)
                 self.db = StoreDatabase(pathname, self.cache)
                 self.db.open()
         except xapian.DatabaseCorruptError, e:
-            logging.exception("xapian open failed")
+            self._logger.exception("xapian open failed")
             view.dialogs.error(None, 
                                _("Sorry, can not open the software database"),
                                _("Please re-install the 'software-center' "
@@ -166,12 +168,27 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.icons.append_search_path(os.path.join(datadir,"emblems"))
         # HACK: make it more friendly for local installs (for mpt)
         self.icons.append_search_path(datadir+"/icons/32x32/status")
+        with ExecutionTime('Add humanity icon theme to iconpath from SoftwareCenterApp'):
+        # add the humanity icon theme to the iconpath, as not all icon themes contain all the icons we need
+        # this *shouldn't* lead to any performance regressions
+            path = '/usr/share/icons/Humanity'
+            if os.path.exists(path):
+                for subpath in os.listdir(path):
+                    subpath = os.path.join(path, subpath)
+                    if os.path.isdir(subpath):
+                        for subsubpath in os.listdir(subpath):
+                            subsubpath = os.path.join(subpath, subsubpath)
+                            if os.path.isdir(subsubpath):
+                                self.icons.append_search_path(subsubpath)
         gtk.window_set_default_icon_name("softwarecenter")
 
         # misc state
         self._block_menuitem_view = False
         self._available_items_for_page = {}
-
+ 
+        # register view manager and create view panes/widgets
+        self.view_manager = ViewManager(self.notebook_view)
+        
         # available pane
         self.available_pane = AvailablePane(self.cache,
                                             self.history,
@@ -183,13 +200,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.navhistory_forward_action)
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_AVAILABLE)
+                                                VIEW_PAGE_AVAILABLE)
         self.available_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.available_pane.app_details.connect("application-request-action", 
+                                                self.on_application_request_action)
+        self.available_pane.app_view.connect("application-request-action", 
+                                             self.on_application_request_action)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_AVAILABLE)
-        self.alignment_available.add(self.available_pane)
+                                    VIEW_PAGE_AVAILABLE)
+        self.view_manager.register(self.available_pane, VIEW_PAGE_AVAILABLE)
 
         # channel pane
         self.channel_pane = ChannelPane(self.cache,
@@ -200,13 +221,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         datadir)
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_CHANNEL)
+                                                VIEW_PAGE_CHANNEL)
         self.channel_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.channel_pane.app_details.connect("application-request-action", 
+                                              self.on_application_request_action)
+        self.channel_pane.app_view.connect("application-request-action", 
+                                           self.on_application_request_action)
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_CHANNEL)
-        self.alignment_channel.add(self.channel_pane)
+                                    VIEW_PAGE_CHANNEL)
+        self.view_manager.register(self.channel_pane, VIEW_PAGE_CHANNEL)
         
         # installed pane
         self.installed_pane = InstalledPane(self.cache,
@@ -217,13 +242,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             datadir)
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
-                                                self.NOTEBOOK_PAGE_INSTALLED)
+                                                VIEW_PAGE_INSTALLED)
         self.installed_pane.app_view.connect("application-selected",
                                              self.on_app_selected)
+        self.installed_pane.app_details.connect("application-request-action", 
+                                                self.on_application_request_action)
+        self.installed_pane.app_view.connect("application-request-action", 
+                                             self.on_application_request_action)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    self.NOTEBOOK_PAGE_INSTALLED)
-        self.alignment_installed.add(self.installed_pane)
+                                    VIEW_PAGE_INSTALLED)
+        self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
 
         # history pane
         self.history_pane = HistoryPane(self.cache,
@@ -234,20 +263,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         datadir)
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,
-                                  self.NOTEBOOK_PAGE_HISTORY)
-        self.alignment_history.add(self.history_pane)
+                                  VIEW_PAGE_HISTORY)
+        self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
 
         # pending view
         self.pending_view = PendingView(self.icons)
-        self.scrolledwindow_transactions.add(self.pending_view)
+        self.view_manager.register(self.pending_view, VIEW_PAGE_PENDING)
 
         # view switcher
-        self.view_switcher = ViewSwitcher(datadir, self.db, self.cache, self.icons)
+        self.view_switcher = ViewSwitcher(self.view_manager, datadir, self.db, self.cache, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
-        self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_AVAILABLE)
+        self.view_switcher.width = self.scrolledwindow_viewswitcher.get_property('width-request')
+        self.view_switcher.connect('size-allocate', self.on_viewswitcher_resized)
+        self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
         try:
@@ -255,7 +286,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             LaunchpadIntegration.set_sourcepackagename("software-center")
             LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
         except Exception, e:
-            logging.debug("launchpad integration error: '%s'" % e)
+            self._logger.debug("launchpad integration error: '%s'" % e)
             
         # set up accelerator keys for navigation history actions
         accel_group = gtk.AccelGroup()
@@ -282,9 +313,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         about_description = self.distro.get_app_description()
         self.aboutdialog.set_comments(about_description)
 
+        # about dialog
+        self.aboutdialog.connect("response",
+                                 lambda dialog, rid: dialog.hide())
+
         # restore state
         self.config = get_config()
         self.restore_state()
+
+        # atk and stuff
+        atk.Object.set_name(self.label_status.get_accessible(), "status_text")
+        
+        # open plugin manager and load plugins
+        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
+        self.plugin_manager.load_plugins()
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default
@@ -300,7 +342,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
-        if self.notebook_view.get_current_page() == page:
+        if self.view_manager.get_active_view() == page:
             self.update_app_list_view()
             self.update_app_status_menu()
             self.update_status_bar()
@@ -320,23 +362,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.searchentry.is_focus()):
             self.active_pane.navigation_bar.navigate_up()
         
-    def on_view_switcher_changed(self, view_switcher, action, channel):
-        logging.debug("view_switcher_activated: %s %s" % (view_switcher,action))
-        if action == self.NOTEBOOK_PAGE_AVAILABLE:
-            self.active_pane = self.available_pane
-        elif action == self.NOTEBOOK_PAGE_CHANNEL:
-            self.active_pane = self.channel_pane
-        elif action == self.NOTEBOOK_PAGE_INSTALLED:
-            self.active_pane = self.installed_pane
-        elif action == self.NOTEBOOK_PAGE_HISTORY:
-            self.active_pane = self.history_pane
-        elif action == self.NOTEBOOK_PAGE_PENDING:
-            self.active_pane = None
-        elif action == self.NOTEBOOK_PAGE_SEPARATOR_1:
-            # do nothing
-            return
-        else:
-            assert False, "Not reached"
+    def on_view_switcher_changed(self, view_switcher, view_id, channel):
+        self._logger.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
+        # set active pane
+        self.active_pane = self.view_manager.get_view_widget(view_id)
+
         # set menu sensitve
         self.menuitem_view_supported_only.set_sensitive(self.active_pane != None)
         self.menuitem_view_all.set_sensitive(self.active_pane != None)
@@ -351,7 +381,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
-        if action == self.NOTEBOOK_PAGE_AVAILABLE:
+        if view_id == VIEW_PAGE_AVAILABLE:
             back_action = self.available_pane.nav_history.navhistory_back_action
             forward_action = self.available_pane.nav_history.navhistory_forward_action
             self.menuitem_go_back.set_sensitive(back_action.get_sensitive())
@@ -359,13 +389,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
-        if action == self.NOTEBOOK_PAGE_INSTALLED and not self.installed_pane.loaded and not self.installed_pane.current_appview_selection:
+        if view_id == VIEW_PAGE_INSTALLED and not self.installed_pane.loaded and not self.installed_pane.current_appview_selection:
             self.installed_pane.refresh_apps()
         # switch to new page
-        self.notebook_view.set_current_page(action)
+        self.view_manager.set_active_view(view_id)
         self.update_app_list_view(channel)
         self.update_status_bar()
         self.update_app_status_menu()
+
+    def on_viewswitcher_resized(self, widget, allocation):
+        self.view_switcher.width = allocation.width
 
     def _on_lp_login(self, lp, token):
         print "_on_lp_login"
@@ -373,6 +406,55 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         private_archives = self.glaunchpad.get_subscribed_archives()
         self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
             private_archives)
+            
+    def on_application_request_action(self, widget, app, action):
+        """callback when an app action is requested from the appview,
+           if action is "remove", must check if other dependencies have to be
+           removed as well and show a dialog in that case
+        """
+        logging.debug("on_application_action_requested: '%s' %s" % (app, action))
+        appdetails = app.get_details(self.db)
+        if action == "remove":
+            # if we are removing a package, check for dependencies that will
+            # also be removed and show a dialog for confirmation
+            # generic removal text
+            # FIXME: this text is not accurate, we look at recommends as
+            #        well as part of the rdepends, but those do not need to
+            #        be removed, they just may be limited in functionality
+            (primary, button_text) = self.distro.get_removal_warning_text(self.cache,
+                                                                          appdetails.pkg,
+                                                                          app.name)
+
+            # ask for confirmation if we have rdepends
+            depends = self.cache.get_installed_rdepends(appdetails.pkg)
+            if depends:
+                iconpath = self.get_icon_filename(appdetails.icon, self.APP_ICON_SIZE)
+                
+                if not dialogs.confirm_remove(None, self.datadir, primary, self.cache,
+                                            button_text, iconpath, depends):
+                    # for appdetailsview-webkit
+                    # self._set_action_button_sensitive(True)
+
+                    self.backend.emit("transaction-stopped")
+                    return
+            
+        # action_func is one of:  "install", "remove" or "upgrade"
+        action_func = getattr(self.backend, action)
+        if action == 'install':
+            if app.request:
+                if app.request.count('/') < 1:
+                    app.request = None
+            action_func(app.pkgname, app.appname, app.request, appdetails.icon)
+        elif callable(action_func):
+            action_func(app.pkgname, app.appname, appdetails.icon)
+        else:
+            logging.error("Not a valid action in AptdaemonBackend: '%s'" % action)
+            
+    def get_icon_filename(self, iconname, iconsize):
+        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
+        if not iconinfo:
+            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+        return iconinfo.get_filename()
 
     # Menu Items
     def on_menuitem_login_activate(self, menuitem):
@@ -383,16 +465,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        if app.request:
-            if app.request.count('/') < 1:
-                app.request = None
-        self.backend.install(app.pkgname, app.appname, app.request,
-                             app.get_details(self.db).icon)
+        self.on_application_request_action(self, app, APP_ACTION_INSTALL)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.backend.remove(app.pkgname, app.appname, 
-                            app.get_details(self.db).icon)
+        self.on_application_request_action(self, app, APP_ACTION_REMOVE)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -411,7 +488,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                            self.menuitem_search]
         for item in edit_menu_items:
             item.set_sensitive(False)
-        if (self.active_pane and
+        if (self.active_pane and self.active_pane.searchentry and
             self.active_pane.searchentry.flags() & gtk.VISIBLE):
             # undo, redo, cut, copy, paste, delete, select_all sensitive 
             # if searchentry is focused (and other more specific conditions)
@@ -493,8 +570,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_menuitem_about_activate(self, widget):
         self.aboutdialog.set_version(VERSION)
         self.aboutdialog.set_transient_for(self.window_main)
-        self.aboutdialog.run()
-        self.aboutdialog.hide()
+        self.aboutdialog.show()
 
     def on_menuitem_help_activate(self, menuitem):
         # run yelp
@@ -503,12 +579,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if not self._block_menuitem_view and self.active_pane.apps_filter.get_supported_only():
+        if (not self._block_menuitem_view and
+            self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
 
     def on_menuitem_view_supported_only_activate(self, widget):
-        if not self._block_menuitem_view and not self.active_pane.apps_filter.get_supported_only():
+        if (not self._block_menuitem_view and
+            not self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
             
@@ -529,7 +607,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.window_main.props.visible == False:
             glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
-        if view.dialogs.confirm_repair_broken_cache(self.window_main):
+        if view.dialogs.confirm_repair_broken_cache(self.window_main, self.datadir):
             self.backend.fix_broken_depends()
         
     def _on_apt_cache_broken(self, aptcache):
@@ -550,12 +628,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_channels_changed(self, backend, res):
         """ callback when the set of software channels has changed """
-        logging.debug("on_channels_changed %s" % res)
+        self._logger.debug("on_channels_changed %s" % res)
         if res:
             self.db.open()
-            # reset the navigation history because software items stored
-            # in the history stack might no longer be available
-            self.available_pane.nav_history.reset()
             # refresh the available_pane views to reflect any changes
             self.available_pane.refresh_apps()
             self.available_pane.update_app_view()
@@ -572,7 +647,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """Helper that updates the 'File' and 'Edit' menu to enable/disable
            install/remove and Copy/Copy weblink
         """
-        logging.debug("update_app_status_menu")
+        self._logger.debug("update_app_status_menu")
         # check if we have a pkg for this page
         app = None
         if self.active_pane:
@@ -625,7 +700,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def update_status_bar(self):
         "Helper that updates the status bar"
-        page = self.notebook_view.get_current_page()
         if self.active_pane:
             s = self.active_pane.get_status_text()
         else:
@@ -646,7 +720,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
-        logging.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
+        self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
         self._database_is_rebuilding = is_rebuilding
         self.window_rebuilding.set_transient_for(self.window_main)
         self.window_rebuilding.set_title("")
@@ -668,7 +742,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             bus = dbus.SystemBus()
         except:
-            logging.exception("could not get system bus")
+            self._logger.exception("could not get system bus")
             return
         # check if its currently rebuilding (most likely not, so we
         # just ignore errors from dbus because the interface
@@ -679,7 +753,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             res = iface.IsRebuilding()
             self._on_database_rebuilding_handler(res)
         except Exception ,e:
-            logging.debug("query for the update-database exception '%s' (probably ok)" % e)
+            self._logger.debug("query for the update-database exception '%s' (probably ok)" % e)
 
         # add signal handler
         bus.add_signal_receiver(self._on_database_rebuilding_handler,
@@ -693,7 +767,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             bus = dbus.SessionBus()
         except:
-            logging.exception("could not initiate dbus")
+            self._logger.exception("could not initiate dbus")
             return
         # if there is another Softwarecenter running bring it to front
         # and exit, otherwise install the dbus controller
@@ -722,6 +796,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 packages[0] = packages[0][4:]
 
         if len(packages) == 1:
+            # FIXME: deal with pkgname/appname requests
+#            # show a single package
+ #           full_pkgname = packages[0]
+  #          # if there is a "/" in the string consider it as tuple
+   #         (pkgname, seperator, appname) = full_pkgname.partition("/")
+    #        app = Application(appname, pkgname)
+     #       self.available_pane.on_application_activated(None, app)
             request = packages[0]
             if request.count("/") > 0:
                 # deb file
@@ -734,7 +815,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 app = Application("", request, "")
             if (app.pkgname in self.available_pane.cache and self.available_pane.cache[app.pkgname].installed):
                 self.installed_pane.loaded = True
-                self.view_switcher.set_view(ViewSwitcherList.ACTION_ITEM_INSTALLED)
+                self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
                 self.installed_pane.loaded = False
                 self.installed_pane.show_app(app)
             else:
@@ -761,9 +842,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "installed-node-expanded") and
             self.config.getboolean("general", "installed-node-expanded")):
             self.view_switcher.expand_installed_node()
+        if (self.config.has_option("general", "sidebar-width")):
+            width = int(self.config.get("general", "sidebar-width"))
+            self.scrolledwindow_viewswitcher.set_property('width_request', width)
 
     def save_state(self):
-        logging.debug("save_state")
+        self._logger.debug("save_state")
         # this happens on a delete event, we explicitely save_state() there
         if self.window_main.window is None:
             return
@@ -787,6 +871,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.config.set("general", "installed-node-expanded", "True")
         else:
             self.config.set("general", "installed-node-expanded", "False")
+        width = self.view_switcher.width
+        if width != 1:
+            width += 2
+        self.config.set("general", "sidebar-width", str(width))
         self.config.write()
 
     def run(self, args):

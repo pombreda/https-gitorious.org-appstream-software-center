@@ -13,7 +13,7 @@ class testUbuntuSSO(unittest.TestCase):
     def setUp(self):
         pass
     
-    def _cb_login_successful(self, lp):
+    def _cb_login_successful(self, lp, token):
         self._login_successful = True
 
     def test_launchpad_login(self):
@@ -22,7 +22,7 @@ class testUbuntuSSO(unittest.TestCase):
         # monkey patch
         lp.login = lambda u,p: True
         lp.login("user", "password")
-        lp.emit("login-successful")
+        lp.emit("login-successful", None)
         main_loop = glib.main_context_default()
         while main_loop.pending():
             main_loop.iteration()

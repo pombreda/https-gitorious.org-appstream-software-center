@@ -15,18 +15,20 @@ Build-Depends: debhelper (>= 7.0.50),
 Standards-Version: 3.8.4
 XS-Python-Version: current
 Vcs-Bzr: https://code.launchpad.net/~software-center-developers/software-center/trunk
+Homepage: https://launchpad.net/software-center
 
 Package: software-center
 Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
          app-install-data (>= 0.4.0),
-         gnome-icon-theme,
+         humanity-icon-theme,
          gnome-menus,
          python-xapian,
          python-apt (>= 0.7.93.1),
          python-aptdaemon (>= 0.31),
          python-aptdaemon-gtk,
+         python-debian (>= 0.1.15),
          python-dbus,
          policykit-1,
          policykit-1-gnome | policykit-1-kde,
@@ -36,8 +38,9 @@ Depends: ${python:Depends},
          python-gconf,
          aptdaemon (>= 0.31),
 	 python-lazr.restfulclient
-Recommends: lsb-release, python-launchpad-integration, apt-xapian-index,
-            update-notifier, software-properties-gtk
+Recommends: lsb-release, python-launchpad-integration, 
+            apt-xapian-index (>= 0.38ubuntu1), update-notifier,
+            software-properties-gtk, sessioninstaller
 Conflicts: software-store, gnome-app-install (<< 1)
 Replaces: software-store, gnome-app-install, gdebi, apturl, apturl-common
 Provides: software-store, gnome-app-install

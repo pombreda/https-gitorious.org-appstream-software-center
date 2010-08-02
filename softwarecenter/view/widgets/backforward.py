@@ -26,7 +26,7 @@ import mkit
 from gettext import gettext as _
 
 
-DEFAULT_PART_SIZE = (31, 27)
+DEFAULT_PART_SIZE = (29, -1)
 DEFAULT_ARROW_SIZE = (12, 12)
 
 
@@ -42,7 +42,7 @@ class BackForwardButton(gtk.HBox):
 
     def __init__(self, part_size=None, arrow_size=None, native_draw=True):
         gtk.HBox.__init__(self)
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         self.separator = SeparatorPart()
 
         self.use_hand = False
@@ -118,7 +118,7 @@ class BackForwardButton(gtk.HBox):
             return
 
         old_xthickness = self.theme['xthickness']
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         if old_xthickness > self.theme['xthickness']:
             a = self.allocation
             self.queue_draw_area(a.x, a.y,
@@ -144,7 +144,7 @@ class SeparatorPart(gtk.DrawingArea):
     def __init__(self):
         gtk.DrawingArea.__init__(self)
         self.alpha = 1.0
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         self.set_size_request(self.theme['xthickness'], -1)
 
         atk_obj = self.get_accessible()
@@ -170,7 +170,7 @@ class SeparatorPart(gtk.DrawingArea):
         return
 
     def _on_style_set(self, widget, old_style):
-        self.theme = mkit.Style(self)
+        self.theme = mkit.get_mkit_theme()
         self.set_size_request(self.theme['xthickness'], -1)
         return
 
