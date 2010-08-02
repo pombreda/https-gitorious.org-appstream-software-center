@@ -70,16 +70,40 @@ class SoftwareCenterMetadataPlugin:
         document  is the document to update
         pkg       is the python-apt Package object for this package
         """
+        # we want to index the follwing custom fields: 
+        #   XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
+        #   ? is XB-Icon a URL ?
+        # METADATA_KEYS = ("AppName", "Icon", "Screenshot-Url", "Category")
         ver = pkg.candidate
         if ver is None: 
             return
-        key = "Softwarecenter-Appname"
+        key = "AppName"
         if key in ver.record:
             name = ver.record[key]
+            if name == "Almanah Diary":
+                print "detected key for Almanah Diary: ", key
+                print "full package record:"
+                print "==="
+                print ver.record 
             self.indexer.set_document(document)
             index_name(document, name, self.indexer)
             # we pretend to be a application
             document.add_term("AT"+"application")
+        key = "Icon"
+        if key in ver.record:
+            icon_url = ver.record[key]
+            print "detected icon: ", icon
+            document.add_value(XAPIAN_VALUE_ICON_URL, icon_url)
+        key = "Screenshot-Url"
+        if key in ver.record:
+            screenshot_url = ver.record[key]
+            print "detected screenshot url: ", screenshot_url
+            document.add_value(XAPIAN_VALUE_ICON, screenshot_url)
+        key = "Category"
+        if key in ver.record:
+            category = ver.record[key]
+            print "detected category: ", category
+            document.add_value(XAPIAN_CATEGORY, category)
 
     def indexDeb822(self, document, pkg):
         """
