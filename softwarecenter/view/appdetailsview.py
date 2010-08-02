@@ -89,9 +89,10 @@ class AppDetailsViewBase(object):
                     'archive_id' : self.appdetails.ppaname, 
                     'arch' : get_current_arch() ,
                     }))
-        dialog = PurchaseDialog(url=url, app=self.app)
-        res = dialog.run()
-        dialog.destroy()
+        self.purchase_dialog = PurchaseDialog(url=url, app=self.app)
+        res = self.purchase_dialog.run()
+        self.purchase_dialog.destroy()
+        del self.purchase_dialog
         # re-init view if user canceled, otherwise the transactions 
         # will finish it after some time
         if res != gtk.RESPONSE_OK:

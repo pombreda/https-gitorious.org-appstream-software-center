@@ -45,7 +45,7 @@ class PurchaseDialog(gtk.Dialog):
         gtk.Dialog.__init__(self)
         self.set_title("")
         self.app = app
-        self.set_size_request(700, 600)
+        self.set_size_request(700, 700)
         self.webkit = webkit.WebView()
         settings = self.webkit.get_settings()
         settings.set_property("enable-plugins", False)
