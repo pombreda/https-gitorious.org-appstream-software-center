@@ -90,8 +90,8 @@ class StoreDatabase(gobject.GObject):
             try:
                 sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
                 self.xapiandb.add_database(sca)
-            except:
-                logging.exception("failed to add sca db")
+            except Exception as e:
+                logging.warn("failed to add sca db %s" % e)
         # additional dbs
         for db in self._additional_databases:
             self.xapiandb.add_database(db)
