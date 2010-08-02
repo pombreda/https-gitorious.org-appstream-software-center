@@ -57,8 +57,11 @@ class SoftwareCenterMetadataPlugin:
             name = "SoftwareCenterMetadata",
             shortDesc = "SoftwareCenter meta information",
             fullDoc = """
-            Software-center meta-data 
-            It uses the prefix AP and sets XAPIAN_VALUE_ICON (172)
+            Software-center metadata 
+            It uses the prefix AP and sets the following values:
+              XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD (180)
+              XAPIAN_VALUE_SCREENSHOT_URL (181)
+              XAPAIN_VALUE_CATEGORY (182)
             """
         )
 
@@ -91,19 +94,23 @@ class SoftwareCenterMetadataPlugin:
             document.add_term("AT"+"application")
         key = "Icon"
         if key in ver.record:
-            icon_url = ver.record[key]
+            icon = ver.record[key]
             print "detected icon: ", icon
-            document.add_value(XAPIAN_VALUE_ICON_URL, icon_url)
+            document.add_value(XAPIAN_VALUE_ICON, icon)
+            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, True)
         key = "Screenshot-Url"
         if key in ver.record:
             screenshot_url = ver.record[key]
             print "detected screenshot url: ", screenshot_url
-            document.add_value(XAPIAN_VALUE_ICON, screenshot_url)
+            document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)
         key = "Category"
         if key in ver.record:
-            category = ver.record[key]
-            print "detected category: ", category
-            document.add_value(XAPIAN_CATEGORY, category)
+            categories_str = ver.record[key]
+            print "detected categories_str: ", categories_str
+            for cat in categories_str.split(";"):
+                if cat:
+                    print "add cat: ", cat
+                    document.add_term("AC"+cat.lower())
 
     def indexDeb822(self, document, pkg):
         """
