@@ -27,7 +27,10 @@ import logging
 import apt_pkg
 apt_pkg.init_config()
 
-from debian import deb822
+try:
+    from debian import deb822
+except ImportError:
+    from debian_bundle import deb822
 
 import os.path
 import datetime
