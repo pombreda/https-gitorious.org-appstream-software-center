@@ -95,7 +95,7 @@ class SoftwareCenterMetadataPlugin:
         if CUSTOM_KEY_ICON in ver.record:
             icon = ver.record[CUSTOM_KEY_ICON]
             document.add_value(XAPIAN_VALUE_ICON, icon)
-            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, True)
+            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, "1")
         if CUSTOM_KEY_SCREENSHOT_URL in ver.record:
             screenshot_url = ver.record[CUSTOM_KEY_SCREENSHOT_URL]
             document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)
