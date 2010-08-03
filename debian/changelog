@@ -24,7 +24,14 @@ software-center (2.1.8) UNRELEASED; urgency=low
   * softwarecenter/view/basepane.py:
     - basepane doesn't contain a searchentry
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Aug 2010 09:34:14 +0200
+  [ Gary Lasker ]
+  * apt-xapian-index-plugin/software-center.py,
+    softwarecenter/enums.py,
+    softwarecenter/db/update.py:
+    - implement a-x-i plugin to index custom metadata
+      for the new-apps archive 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 03 Aug 2010 14:32:12 -0400
 
 software-center (2.1.7) maverick; urgency=low
 
