@@ -15,11 +15,12 @@ sys.path.insert(0, "..")
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.enums import XAPIAN_BASE_PATH
 from softwarecenter.view.appview import AppStore
+from softwarecenter.view.availablepane import AvailablePane
 from softwarecenter.db.application import Application
 
 from softwarecenter.backend import get_install_backend
 
-class SCBuySomething(unittest.TestCase):
+class SCTestGUI(unittest.TestCase):
     
     def setUp(self):
         if os.getuid() == 0:
@@ -34,6 +35,27 @@ class SCBuySomething(unittest.TestCase):
         while gtk.events_pending():
             gtk.main_iteration()
 
+    def test_categories(self):
+        from softwarecenter.view.catview import get_category_by_name
+        # find games, ensure its there and select it
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_CATEGORY)
+        cat = get_category_by_name(self.app.available_pane.cat_view.categories,
+                                   "Games")
+        self.assertNotEqual(cat, None)
+        self.app.available_pane.cat_view.emit("category-selected", cat)
+        self._p()
+        # we have a subcategory, ensure we really see it
+        cat = get_category_by_name(self.app.available_pane.subcategories_view.categories,
+                                   "Simulation")
+        self.assertNotEqual(cat, None)
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_SUBCATEGORY)
+        # click on the subcategory
+        self.app.available_pane.subcategories_view.emit("category-selected", cat)
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_APPLIST)
 
     def assertFirstPkgInModel(self, model, needle):
         pkgname_from_row = model[0][AppStore.COL_PKGNAME]
@@ -82,6 +104,7 @@ class SCBuySomething(unittest.TestCase):
                 while gtk.events_pending():
                     gtk.main_iteration()
                 time.sleep(0.1)
+        self.app.available_pane.searchentry.delete_text(0, -1)
         
     def _test_for_progress(self):
         self.assertTrue(self.app.available_pane.app_details.action_bar.progress.get_property("visible"))
