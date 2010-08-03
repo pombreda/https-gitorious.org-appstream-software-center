@@ -3,6 +3,8 @@ software-center (2.1.8) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * merged  lp:~mmcg069/software-center/backforward-tweaks,
     many thanks
+  * merged  lp:~mmcg069/software-center/appview-tweaks,
+    many thanks
 
   [ Gary Lasker ]
   * apt-xapian-index-plugin/software-center.py,

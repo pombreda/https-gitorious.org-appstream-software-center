@@ -66,7 +66,6 @@ XAPIAN_VALUE_ARCHIVE_CHANNEL = 178
 XAPIAN_VALUE_DESKTOP_FILE = 179
 XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 180
 XAPIAN_VALUE_SCREENSHOT_URL = 181
-XAPAIN_VALUE_CATEGORY = 182
 
 # custom keys for the new-apps repository, correspond
 # control file custom fields:

@@ -58,7 +58,13 @@ class SoftwareCenterMetadataPlugin:
             shortDesc = "SoftwareCenter meta information",
             fullDoc = """
             Software-center metadata 
-            It uses the prefixes AP and AC, and sets the following xapian values:
+            It uses the prefixes:
+              AA for the Application name
+              AP for the Package name
+              AC for the categories
+              AT to "applications" for applications
+            It sets the following xapian values from the software-center 
+            enums:
               XAPIAN_VALUE_ICON
               XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD
               XAPIAN_VALUE_SCREENSHOT_URL
@@ -73,25 +79,23 @@ class SoftwareCenterMetadataPlugin:
         document  is the document to update
         pkg       is the python-apt Package object for this package
         """
+        ver = pkg.candidate
+        # if there is no version or the AppName custom key is not
+        # found we can skip the pkg
+        if ver is None or not CUSTOM_KEY_APPNAME in ver.record:
+            return
         # we want to index the following custom fields: 
         #   XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
-        ver = pkg.candidate
-        if ver is None: 
-            return
         if CUSTOM_KEY_APPNAME in ver.record:
             name = ver.record[CUSTOM_KEY_APPNAME]
             self.indexer.set_document(document)
             index_name(document, name, self.indexer)
             # we pretend to be an application
             document.add_term("AT"+"application")
-        else:
-            # if the AppName custom key is not found, no need to
-            # check for the others
-            return
         if CUSTOM_KEY_ICON in ver.record:
             icon = ver.record[CUSTOM_KEY_ICON]
             document.add_value(XAPIAN_VALUE_ICON, icon)
-            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, "True")
+            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, True)
         if CUSTOM_KEY_SCREENSHOT_URL in ver.record:
             screenshot_url = ver.record[CUSTOM_KEY_SCREENSHOT_URL]
             document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)
