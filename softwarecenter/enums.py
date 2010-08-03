@@ -68,6 +68,14 @@ XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 180
 XAPIAN_VALUE_SCREENSHOT_URL = 181
 XAPAIN_VALUE_CATEGORY = 182
 
+# custom keys for the new-apps repository, correspond
+# control file custom fields:
+#  XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
+CUSTOM_KEY_APPNAME = "AppName"
+CUSTOM_KEY_ICON = "Icon"
+CUSTOM_KEY_SCREENSHOT_URL = "Screenshot-Url"
+CUSTOM_KEY_CATEGORY = "Category"
+
 # pkg action state constants
 PKG_STATE_INSTALLED     = 0
 PKG_STATE_UNINSTALLED   = 1

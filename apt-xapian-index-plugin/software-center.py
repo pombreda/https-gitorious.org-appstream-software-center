@@ -78,28 +78,27 @@ class SoftwareCenterMetadataPlugin:
         ver = pkg.candidate
         if ver is None: 
             return
-        key = "AppName"
-        if key in ver.record:
-            name = ver.record[key]
+        if CUSTOM_KEY_APPNAME in ver.record:
+            name = ver.record[CUSTOM_KEY_APPNAME]
             self.indexer.set_document(document)
             index_name(document, name, self.indexer)
-            # we pretend to be a application
+            # we pretend to be an application
             document.add_term("AT"+"application")
-        key = "Icon"
-        if key in ver.record:
-            icon = ver.record[key]
+        else:
+            # if the AppName custom key is not found, no need to
+            # check for the others
+            return
+        if CUSTOM_KEY_ICON in ver.record:
+            icon = ver.record[CUSTOM_KEY_ICON]
             document.add_value(XAPIAN_VALUE_ICON, icon)
-            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, True)
-        key = "Screenshot-Url"
-        if key in ver.record:
-            screenshot_url = ver.record[key]
+            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, "True")
+        if CUSTOM_KEY_SCREENSHOT_URL in ver.record:
+            screenshot_url = ver.record[CUSTOM_KEY_SCREENSHOT_URL]
             document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)
-        key = "Category"
-        if key in ver.record:
-            categories_str = ver.record[key]
+        if CUSTOM_KEY_CATEGORY in ver.record:
+            categories_str = ver.record[CUSTOM_KEY_CATEGORY]
             for cat in categories_str.split(";"):
                 if cat:
-                    print "add cat: ", cat
                     document.add_term("AC"+cat.lower())
 
     def indexDeb822(self, document, pkg):
