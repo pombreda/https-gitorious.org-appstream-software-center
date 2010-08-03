@@ -1,11 +1,19 @@
 software-center (2.1.8) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged  lp:~mmcg069/software-center/backforward-tweaks,
     many thanks
   * merged  lp:~mmcg069/software-center/appview-tweaks,
     many thanks
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Aug 2010 09:34:14 +0200
+  [ Gary Lasker ]
+  * apt-xapian-index-plugin/software-center.py,
+    softwarecenter/enums.py,
+    softwarecenter/db/update.py:
+    - implement a-x-i plugin to index custom metadata
+      for the new-apps archive
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 02 Aug 2010 20:37:22 -0400
 
 software-center (2.1.7) maverick; urgency=low
 
