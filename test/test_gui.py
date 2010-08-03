@@ -51,11 +51,38 @@ class SCTestGUI(unittest.TestCase):
         self.assertNotEqual(cat, None)
         self.assertEqual(self.app.available_pane.notebook.get_current_page(),
                          AvailablePane.PAGE_SUBCATEGORY)
-        # click on the subcategory
+        # click on the subcategory and ensure we get a list
         self.app.available_pane.subcategories_view.emit("category-selected", cat)
         self._p()
         self.assertEqual(self.app.available_pane.notebook.get_current_page(),
                          AvailablePane.PAGE_APPLIST)
+        # now the details
+        treeview = self.app.available_pane.app_view
+        model = treeview.get_model()
+        treeview.row_activated(model.get_path(model.get_iter_root()),
+                               treeview.get_column(0))
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_APP_DETAILS)
+        # NOW test the back-foward
+        self.app.available_pane.back_forward.emit("left-clicked", None)
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_APPLIST)
+        self.app.available_pane.back_forward.emit("right-clicked", None)
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_APP_DETAILS)
+        # and more back/forward
+        for i in range(10):
+            self.app.available_pane.back_forward.emit("left-clicked", None)
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_CATEGORY)
+        self.app.available_pane.back_forward.emit("right-clicked", None)
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_SUBCATEGORY)
 
     def assertFirstPkgInModel(self, model, needle):
         pkgname_from_row = model[0][AppStore.COL_PKGNAME]
