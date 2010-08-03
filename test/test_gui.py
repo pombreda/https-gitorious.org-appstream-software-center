@@ -17,22 +17,30 @@ from softwarecenter.enums import XAPIAN_BASE_PATH
 from softwarecenter.view.appview import AppStore
 from softwarecenter.view.availablepane import AvailablePane
 from softwarecenter.db.application import Application
-
+from softwarecenter.view.catview import get_category_by_name
 from softwarecenter.backend import get_install_backend
 
-class SCTestGUI(unittest.TestCase):
-    
-    def setUp(self):
-        if os.getuid() == 0:
-            subprocess.call(["dpkg", "-r", "hello"])
-        apt.apt_pkg.config.set("Dir::log::history", "/tmp")
-        #apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
-        self.app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH)
-        self.app.window_main.show_all()
-        self._p()
+# needed for the install test
+if os.getuid() == 0:
+    subprocess.call(["dpkg", "-r", "hello"])
 
+# we make app global as its relatively expensive to create
+# and in setUp it would be created and destroyed for each
+# test
+apt.apt_pkg.config.set("Dir::log::history", "/tmp")
+#apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
+app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH)
+app.window_main.show_all()
+
+class SCTestGUI(unittest.TestCase):
+
+    def setUp(self):
+        self.app = app
+        self._p()
+    
     def test_categories_and_back_forward(self):
-        from softwarecenter.view.catview import get_category_by_name
+        self._reset_ui()
+
         # find games, ensure its there and select it
         self.assertEqual(self.app.available_pane.notebook.get_current_page(),
                          AvailablePane.PAGE_CATEGORY)
@@ -82,6 +90,8 @@ class SCTestGUI(unittest.TestCase):
                          AvailablePane.PAGE_SUBCATEGORY)
 
     def test_select_featured_and_back_forward(self):
+        self._reset_ui()
+
         app = Application("Cheese","cheese")
         self.app.available_pane.cat_view.emit("application-activated", app)
         self._p()
@@ -98,6 +108,8 @@ class SCTestGUI(unittest.TestCase):
 
 
     def test_install_the_hello_package(self):
+        self._reset_ui()
+
         # assert we find the right package
         model = self._run_search("hello")
         treeview = self.app.available_pane.app_view
@@ -133,8 +145,16 @@ class SCTestGUI(unittest.TestCase):
 
     # helper stuff
     def _p(self):
+        """ process gtk events """
         while gtk.events_pending():
             gtk.main_iteration()
+        # for debugging the steps
+        #print "press [ENTER]"
+        #sys.stdin.readline()
+            
+    def _reset_ui(self):
+        self.app.available_pane.navigation_bar.remove_all(animate=False)
+        self._p()
 
     def assertFirstPkgInModel(self, model, needle):
         pkgname_from_row = model[0][AppStore.COL_PKGNAME]
