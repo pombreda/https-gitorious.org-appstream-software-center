@@ -81,6 +81,22 @@ class SCTestGUI(unittest.TestCase):
         self.assertEqual(self.app.available_pane.notebook.get_current_page(),
                          AvailablePane.PAGE_SUBCATEGORY)
 
+    def test_select_featured_and_back_forward(self):
+        app = Application("Cheese","cheese")
+        self.app.available_pane.cat_view.emit("application-activated", app)
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_APP_DETAILS)
+        self.app.available_pane.back_forward.emit("left-clicked", None)
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_CATEGORY)
+        self.app.available_pane.back_forward.emit("right-clicked", None)
+        self._p()
+        self.assertEqual(self.app.available_pane.notebook.get_current_page(),
+                         AvailablePane.PAGE_APP_DETAILS)
+
+
     def test_install_the_hello_package(self):
         # assert we find the right package
         model = self._run_search("hello")
