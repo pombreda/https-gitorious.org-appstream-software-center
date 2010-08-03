@@ -1,9 +1,28 @@
 software-center (2.1.8) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged  lp:~mmcg069/software-center/backforward-tweaks,
     many thanks
   * merged  lp:~mmcg069/software-center/appview-tweaks,
     many thanks
+  * merged lp:~kiwinote/software-center/getting-the-small-things-right
+    and tweaked it a little bit
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - save/restore sidebar width (LP: #567128)
+    - don't crash if active_pane doesn't have a searchentry (LP: #611718)
+  * softwarecenter/db/application.py:
+    - add new "display_name" and "display_summary" - when app has no appname, 
+      display the summary as primary text (per spec)
+      LP: #537436
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use "display_name" and "display_summary" (LP: #537436)
+  * softwarecenter/view/availablepane.py:
+    - correctly update the status bar after filtering by support status 
+      LP: #528062
+  * softwarecenter/view/basepane.py:
+    - basepane doesn't contain a searchentry
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Aug 2010 09:34:14 +0200
 

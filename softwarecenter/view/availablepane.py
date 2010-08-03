@@ -28,6 +28,7 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.distro import get_distro
 
 from appview import AppView, AppStore, AppViewFilter
 
@@ -357,7 +358,15 @@ class AvailablePane(SoftwarePane):
         """
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
-            length = len(self.db)
+            if self.apps_filter.get_supported_only():
+                distro = get_distro()
+                query = distro.get_supported_query()
+                enquire = xapian.Enquire(self.db.xapiandb)
+                enquire.set_query(query)
+                matches = enquire.get_mset(0, len(self.db))
+                length = len(matches)
+            else:
+                length = len(self.db)
 
         if self.custom_list_mode:
             appstore = self.app_view.get_model()
