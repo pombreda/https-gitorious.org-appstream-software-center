@@ -233,7 +233,7 @@ class AvailablePane(SoftwarePane):
         self._logger.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
-        
+
         # if a search is not in progress, clear the current model to
         # display an empty list while the full list is generated; this
         # prevents a visual glitch when a list is replaced
@@ -274,6 +274,7 @@ class AvailablePane(SoftwarePane):
         # set model
         self.app_view.set_model(new_model)
         self.app_view.get_model().active = True
+
         # check if we show subcategory
         self._show_hide_subcategories()
         self.notebook.show()

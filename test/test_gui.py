@@ -175,8 +175,8 @@ class SCTestGUI(unittest.TestCase):
         self.assertTrue(self.app.available_pane.app_details.action_bar.progress.get_property("visible"))
         return False
 
-    def _on_transaction_finished(self, transaction, status):
-        print "_on_transaction_finished", transaction, status
+    def _on_transaction_finished(self, *args, **kwargs):
+        print "_on_transaction_finished", args
         self._install_done = True
 
 if __name__ == "__main__":
