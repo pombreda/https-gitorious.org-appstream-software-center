@@ -62,7 +62,7 @@ class SoftwareCenterMetadataPlugin:
               AA for the Application name
               AP for the Package name
               AC for the categories
-              AT to "applications" for applications
+              AT to "application" for applications
             It sets the following xapian values from the software-center 
             enums:
               XAPIAN_VALUE_ICON

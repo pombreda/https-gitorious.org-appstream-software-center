@@ -511,19 +511,31 @@ class AppStore(gtk.GenericTreeModel):
             return s
         elif column == self.COL_ICON:
             try:
-                icon_name = self.db.get_iconname(doc)
-                if icon_name:
-                    icon_name = os.path.splitext(icon_name)[0]
+                icon_file_name = self.db.get_iconname(doc)
+                if icon_file_name:
+                    icon_name = os.path.splitext(icon_file_name)[0]
                     if icon_name in self.icon_cache:
                         return self.icon_cache[icon_name]
                     # icons.load_icon takes between 0.001 to 0.01s on my
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
-                    icon = self.icons.load_icon(icon_name, self.icon_size, 0)
-                    self.icon_cache[icon_name] = icon
-                    return icon
+                    
+                    # check if this is a downloadable icon
+                    if self.db.get_icon_needs_download(doc):
+                        print "applist view, need to download icon: ", icon_file_name
+                        # first check our local downloaded icon cache
+                        
+                        # if not in the cache, download it and add
+                        # it to the cache
+                    
+                    else:
+                        # load the icon from the theme
+                        icon = self.icons.load_icon(icon_name, self.icon_size, 0)
+                        self.icon_cache[icon_name] = icon
+                        return icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)
+                # 
                 self.icon_cache[icon_name] = self._appicon_missing_icon
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:

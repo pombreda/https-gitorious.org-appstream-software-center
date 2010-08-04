@@ -1011,17 +1011,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
-        icon = None
-        if app_details.icon:
-            if self.icons.has_icon(app_details.icon):
-                icon = app_details.icon
-        if not icon:
-            icon = MISSING_APP_ICON
-
+        
+        pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
         self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
-
-        pb = self.icons.load_icon(icon, 84, 0)
         self.app_info.set_icon_from_pixbuf(pb)
 
         # depending on pkg install state set action labels
@@ -1216,12 +1209,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         cr.restore()
         return
-
-    def get_icon_filename(self, iconname, iconsize):
-        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
-        if not iconinfo:
-            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
-        return iconinfo.get_filename()
+        
+    def _get_icon_as_pixbuf(self, app_details):
+        icon = None
+        if app_details.icon:
+            if self.icons.has_icon(app_details.icon):
+                icon = app_details.icon
+                return self.icons.load_icon(icon, 84, 0)
+            elif app_details.icon_needs_download:
+                print "appdetailsview, need to download icon: ", app_details.icon_file_name
+                
+                
+                return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
+            else:
+                return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
 
 
 if __name__ == "__main__":

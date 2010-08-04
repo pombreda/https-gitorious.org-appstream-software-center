@@ -173,6 +173,16 @@ class AppDetails(object):
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
         if not self.summary:
             return MISSING_PKG_ICON
+            
+    @property
+    def icon_file_name(self):
+        if self._doc:
+            return self._db.get_iconname(self._doc)
+            
+    @property
+    def icon_needs_download(self):
+        if self._doc:
+            return self._db.get_icon_needs_download(self._doc)
 
     @property
     def installation_date(self):
@@ -257,6 +267,11 @@ class AppDetails(object):
     @property
     def screenshot(self):
         return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
+        
+    @property
+    def screenshot_url(self):
+        if self._doc:
+            return self._db.get_screenshot_url(self._doc)
 
     @property
     def summary(self):
