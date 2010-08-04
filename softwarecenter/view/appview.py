@@ -525,14 +525,16 @@ class AppStore(gtk.GenericTreeModel):
                     if self.db.get_icon_needs_download(doc):
                         print "icon is downloadable: ", icon_file_name
                         # first check our local downloaded icon cache directory
-                        # FIXME:  move this code into a common location (utils?  new class?) for use by appdetailsview also
-                        # FIXME:  limit to a single download attempt for a given icon filename
-                        icon_file = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
-                        if os.path.exists(icon_file):
-                            print "found the icon in the local cache"
-                            pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file,
-                                                                        self.icon_size,
-                                                                        self.icon_size)
+                        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
+                        # downloadable icons are keyed in the cache using the full file path as a key
+                        if icon_file_path in self.icon_cache:
+                            print "found the downloadable icon in the icon_cache"
+                            return self.icon_cache[icon_file_path]
+                        if os.path.exists(icon_file_path):
+                            print "found the icon in the local icon cache directory"
+                            pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
+                                                                      self.icon_size,
+                                                                      self.icon_size)
                             self.icon_cache[icon_name] = pb
                             return pb
                         else:
@@ -542,13 +544,20 @@ class AppStore(gtk.GenericTreeModel):
                             # url = self.distro.PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
                             url = "http://ppa.launchpad.net/%s/meta/ppa/%s" % ("app-review-board", icon_file_name)
                             
+                            def on_image_download_complete(downloader, image_file_path):
+                                print "called on_image_download_complete with image_file_path: ", image_file_path
+                                pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
+                                                                          self.icon_size,
+                                                                          self.icon_size)
+                                # replace the icon in the icon_cache now that we've got the real one
+                                self.icon_cache[icon_file_path] = pb
+        
                             image_downloader = ImageDownloader()
-                            image_downloader.connect('image-url-reachable', self._on_image_url_reachable)
-                            image_downloader.connect('image-download-complete', self._on_image_download_complete)
-                            image_downloader.download_image(url, icon_file)
+                            image_downloader.connect('image-download-complete', on_image_download_complete)
+                            image_downloader.download_image(url, icon_file_path)
                             
                             # it's downloading asynchronously, so for now we show the appicon missing icon
-                            self.icon_cache[icon_name] = self._appicon_missing_icon
+                            self.icon_cache[icon_file_path] = self._appicon_missing_icon
                             return self._appicon_missing_icon
                     else:
                         # load the icon from the theme
@@ -616,12 +625,6 @@ class AppStore(gtk.GenericTreeModel):
         return n
     def on_iter_parent(self, child):
         return None
-        
-    def _on_image_url_reachable(self, downloader, reachable):
-        print "called _on_image_url_reachable with reachable: ", reachable
-    
-    def _on_image_download_complete(self, downloader, image_file_path):
-        print "called _on_image_download_complete with image_file_path: ", image_file_path
 
 
 class CellRendererButton2:
