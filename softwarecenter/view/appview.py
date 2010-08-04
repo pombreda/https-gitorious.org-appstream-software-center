@@ -845,12 +845,12 @@ class CellRendererAppView2(gtk.CellRendererText):
 
     def _render_icon(self, window, widget, cell_area, state, xpad, ypad, direction):
         # calc offsets so icon is nicely centered
-        xo = (32 - self.pixbuf.get_width())/2
+        xo = (self.pixbuf_width - self.pixbuf.get_width())/2
 
         if direction != gtk.TEXT_DIR_RTL:
             x = xpad+xo
         else:
-            x = cell_area.width-xpad+xo-32
+            x = cell_area.width+xo-self.pixbuf_width
 
         # draw appicon pixbuf
         window.draw_pixbuf(None,
@@ -865,7 +865,7 @@ class CellRendererAppView2(gtk.CellRendererText):
             if direction != gtk.TEXT_DIR_RTL:
                 x = self.OFFSET_X
             else:
-                x = cell_area.width - self.OFFSET_X - self.OVERLAY_SIZE
+                x = cell_area.width - self.OVERLAY_SIZE
 
             y = cell_area.y + self.OFFSET_Y
             window.draw_pixbuf(None,
@@ -881,17 +881,18 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # work out max allowable layout width
         lw = self._layout_get_pixel_width(layout)
-        max_layout_width = cell_area.width - self.pixbuf_width - 4*xpad
+        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
 
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
             if not action_btn:
                 print 'No action button? This doesn\'t make sense!'
                 return
-            max_layout_width -= (xpad + action_btn.get_size()[0]) 
+            max_layout_width -= (xpad + action_btn.allocation.width) 
 
         if lw >= max_layout_width:
             layout.set_width((max_layout_width)*pango.SCALE)
+            layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             lw = max_layout_width
 
         if direction != gtk.TEXT_DIR_RTL:
@@ -1118,7 +1119,7 @@ class AppView(gtk.TreeView):
 
         tr = CellRendererAppView2(show_ratings, "software-center-installed")
         tr.set_pixbuf_width(32)
-        tr.set_button_spacing(3)
+        tr.set_button_spacing(int(get_em_value()*0.3+0.5))
 
         # translatable labels for cell buttons
         # string for info button, currently does not need any variants
