@@ -1211,9 +1211,6 @@ class AppView(gtk.TreeView):
             return (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
         return False
 
-    def get_button(self, key):
-        return self.buttons[key]
-
     def _on_realize(self, widget, tr):
         # connect to backend events once self is realized so handlers 
         # have access to the TreeView's initialised gtk.gdk.Window
