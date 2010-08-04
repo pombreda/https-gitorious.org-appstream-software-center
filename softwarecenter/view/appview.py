@@ -524,12 +524,13 @@ class AppStore(gtk.GenericTreeModel):
                     # check if this is a downloadable icon
                     if self.db.get_icon_needs_download(doc):
                         print "icon is downloadable: ", icon_file_name
-                        # first check our local downloaded icon cache directory
                         icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
-                        # downloadable icons are keyed in the cache using the full file path as a key
+                        # first check if it's in the icon_cache
+                        # downloadable icons are keyed in the icon_cache using the full file path as a key
                         if icon_file_path in self.icon_cache:
                             print "found the downloadable icon in the icon_cache"
                             return self.icon_cache[icon_file_path]
+                        # next, check the local downloaded icon cache directory
                         if os.path.exists(icon_file_path):
                             print "found the icon in the local icon cache directory"
                             pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
@@ -538,12 +539,12 @@ class AppStore(gtk.GenericTreeModel):
                             self.icon_cache[icon_name] = pb
                             return pb
                         else:
-                            # if not in the local icon cache directory, need to download it
+                            # guess we need to download it then
                             print "did not find the icon, must download it"
+                            # FIXME:  this changes when we go to extras.ubuntu.com
+                            # FIXME:  does this belong in the Distro class?  if so, need to add to Debian.py
                             # FIXME:  don't hardcode the PPA name
-                            # url = self.distro.PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
-                            url = "http://ppa.launchpad.net/%s/meta/ppa/%s" % ("app-review-board", icon_file_name)
-                            
+                            url = get_distro().PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
                             def on_image_download_complete(downloader, image_file_path):
                                 print "called on_image_download_complete with image_file_path: ", image_file_path
                                 pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
