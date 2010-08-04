@@ -23,3 +23,4 @@ from xdg import BaseDirectory as xdg
 SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "softwarecenter")
 SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "softwarecenter")
 SOFTWARE_CENTER_CONFIG_FILE = os.path.join(SOFTWARE_CENTER_CONFIG_DIR, "softwarecenter.cfg") 
+SOFTWARE_CENTER_ICON_CACHE_DIR = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "icons")

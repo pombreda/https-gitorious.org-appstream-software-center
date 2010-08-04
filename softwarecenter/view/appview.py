@@ -25,6 +25,7 @@ import gettext
 import glib
 import gobject
 import gtk
+import gio
 import locale
 import logging
 import math
@@ -42,6 +43,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
+from softwarecenter.backend.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
 from widgets.mkit import get_em_value
 from gtk import gdk
@@ -522,12 +524,49 @@ class AppStore(gtk.GenericTreeModel):
                     
                     # check if this is a downloadable icon
                     if self.db.get_icon_needs_download(doc):
-                        print "applist view, need to download icon: ", icon_file_name
-                        # first check our local downloaded icon cache
-                        
-                        # if not in the cache, download it and add
-                        # it to the cache
-                    
+                        print "icon is downloadable: ", icon_file_name
+                        # first check our local downloaded icon cache directory
+                        # FIXME:  move this code into a common location (utils?  new class?) for use by appdetailsview also
+                        # FIXME:  limit to a single download attempt for a given icon filename
+                        icon_file = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
+                        if os.path.exists(icon_file):
+                            print "found the icon in the local cache"
+                            pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file,
+                                                                        self.icon_size,
+                                                                        self.icon_size)
+                            self.icon_cache[icon_name] = pb
+                            return pb
+                        else:
+                            # if not in the local icon cache directory, need to download it
+                            print "did not find the icon, must download it"
+                            # FIXME:  don't hardcode the PPA name
+                            # url = self.distro.PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
+                            url = "http://ppa.launchpad.net/%s/meta/ppa/%s" % ("app-review-board", icon_file_name)
+                            
+                            def icon_download_complete_cb(f, result, path=None):
+                                print "the icon download has completed"
+                                # The result from the download is actually a tuple with three elements.
+                                # The first element is the actual content so let's grab that
+                                content = f.load_contents_finish(result)[0]
+                                outputfile = open(icon_file, "w")
+                                outputfile.write(content)
+                                
+                            def icon_query_info_async_cb(f, result):
+                                print "icon_query_info_async_cb"
+                                try:
+                                    result = f.query_info_finish(result)
+                                    # url is reachable, now download the icon file
+                                    f.load_contents_async(icon_download_complete_cb)
+                                except glib.GError, e:
+                                    print "url is not reachable, setting missing icon for icon_name: ", icon_name
+                                del f
+                                return self._appicon_missing_icon
+                                
+                            f = gio.File(url)
+                            print "fetching file at url: ", url
+                            # first check if the url is reachable
+                            f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
+                                               icon_query_info_async_cb)
                     else:
                         # load the icon from the theme
                         icon = self.icons.load_icon(icon_name, self.icon_size, 0)
@@ -535,7 +574,6 @@ class AppStore(gtk.GenericTreeModel):
                         return icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)
-                # 
                 self.icon_cache[icon_name] = self._appicon_missing_icon
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:

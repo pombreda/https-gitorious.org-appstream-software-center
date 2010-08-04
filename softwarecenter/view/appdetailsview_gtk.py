@@ -33,6 +33,7 @@ import cairo
 
 from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
+from softwarecenter.backend.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.db.application import AppDetails
 from softwarecenter.enums import *
 
@@ -1217,12 +1218,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 icon = app_details.icon
                 return self.icons.load_icon(icon, 84, 0)
             elif app_details.icon_needs_download:
-                print "appdetailsview, need to download icon: ", app_details.icon_file_name
-                
-                
-                return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
-            else:
-                return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
+                print "appdetailsview, downloadable icon: ", app_details.icon_file_name
+                icon_file = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
+                                         app_details.icon_file_name)
+                if os.path.exists(icon_file):
+                    print "found the icon in the local cache"
+                    pb = gtk.gdk.pixbuf_new_from_file(icon_file)
+                    return pb
+        return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
 
 
 if __name__ == "__main__":

@@ -34,6 +34,9 @@ class Ubuntu(Distro):
     # screenshot handling
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
+    
+    # downloadable icon handling
+    PPA_DOWNLOADABLE_ICON_URL = "http://ppa.launchpad.net/%s/meta/ppa/%s"
 
     def get_app_name(self):
         return _("Ubuntu Software Center")
