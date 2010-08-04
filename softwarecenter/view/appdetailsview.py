@@ -62,21 +62,41 @@ class AppDetailsViewBase(object):
                 pkg = self.cache[addon]
                 if pkg.essential or pkg._pkg.important:
                     list.remove(addon)
+                    continue
                 
                 rdeps = self.cache.get_installed_rdepends(pkg)
-                if len(rdeps) > 0 and list.count(addon) > 0:
+                if len(rdeps) > 0 or self.is_language_pkg(addon):
                     list.remove(addon)
+                    continue
             except KeyError:
                 list.remove(addon)
+    
+    def is_language_pkg(self, addon):
+		language_file = "/usr/share/language-selector/data/pkg_depends" # FIXME: Relative path?
+		file = open(language_file)
+		for line in file:
+			if line.startswith('#'):
+				continue
+			try:
+				line = line.rstrip()
+				if line.find('#') >= 0:
+					continue
+				(cat, code, dep_pkg, lng_pkg) = line.split(':')
+			except ValueError:
+				continue
+			if lng_pkg in addon:
+				file.close()
+				return True
+		file.close()
+		return False
     
     def _recommended_addons(self, app_details):
         pkg = app_details.pkg
         deps = self.cache.get_depends(pkg)
         recommended = []
-        if app_details.pkg_state != PKG_STATE_UNINSTALLED:
-            recommended = self.cache.get_recommends(pkg)
-        else:
-            return recommended # recommended pkgs are auto-installed
+        rrecommends = self.cache.get_rrecommends(pkg)
+        if len(rrecommends) == 1:
+			recommended += rrecommends
         for dep in deps:
             try:
                 if len(self.cache.get_rdepends(self.cache[dep])) == 1:
@@ -86,7 +106,7 @@ class AppDetailsViewBase(object):
                 pass # FIXME: should we handle that differently?
         self._remove_important(recommended)
         for addon in recommended:
-            try: 
+            try:
                 pkg_ = self.cache[addon]
             except KeyError:
                 recommended.remove(addon)
@@ -103,16 +123,20 @@ class AppDetailsViewBase(object):
                         recommended.remove(addon_)
                         break
                 if can_remove or not pkg_.candidate or recommended.count(addon) > 1 \
-                or addon == pkg.name:
+                or addon == pkg.name or self.is_language_pkg(addon):
                     recommended.remove(addon)
-        self._remove_important(recommended)
+        self._remove_important(recommended) # FIXME: see below
         return recommended
     
     def _suggested_addons(self, app_details):
         pkg = app_details.pkg
         deps = self.cache.get_depends(pkg)
-        suggested = self.cache.get_suggests(pkg)
+        suggested = []
+        rsuggests = self.cache.get_rsuggests(pkg)
+        if len(rsuggests) == 1:
+			suggested += rsuggests
         suggested += self.cache.get_renhances(pkg)
+        self._remove_important(suggested)
         for dep in deps:
             try:
                 if len(self.cache.get_rdepends(self.cache[dep])) == 1:
@@ -121,7 +145,6 @@ class AppDetailsViewBase(object):
                     suggested += self.cache.get_renhances(self.cache[dep])
             except KeyError:
                 pass # FIXME: should we handle that differently?
-        self._remove_important(suggested)
         for addon in suggested:
             try: 
                 pkg_ = self.cache[addon]
@@ -138,9 +161,10 @@ class AppDetailsViewBase(object):
                     except KeyError:
                         suggested.remove(addon_)
                 if can_remove or not pkg_.candidate or suggested.count(addon) > 1 \
-                or addon == pkg.name:
+                or addon == pkg.name or self.is_language_pkg(addon):
                     suggested.remove(addon)
-        self._remove_important(suggested)
+		# FIXME: figure out why I have to call this function two times to get rid of important packages
+		self._remove_important(suggested)
         return suggested
         
     def _set_addon_install(self, addon):

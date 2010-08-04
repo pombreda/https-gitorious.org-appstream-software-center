@@ -781,20 +781,31 @@ class AddonCheckButton(gtk.HBox):
                    }
     
     def __init__(self, db, icons, pkgname):
-        gtk.HBox.__init__(self)
-        self.app_details = AppDetails(db, application=Application("None", pkgname))
-        
-        self.checkbutton = gtk.CheckButton()
-        self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
-        self.pack_start(self.checkbutton, False)
-            
-        self.image = gtk.Image()
-        icon = icons.load_icon(MISSING_APP_ICON, 24, 0) # TODO: load application icons if available
-        self.image.set_from_pixbuf(icon)
-        self.pack_start(self.image, False)
-            
-        self.description = gtk.Label(self.app_details.summary)
-        self.pack_start(self.description, False)
+		gtk.HBox.__init__(self, spacing=6)
+		self.app_details = AppDetails(db, application=Application("None", pkgname))
+
+		self.checkbutton = gtk.CheckButton()
+		self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
+		self.pack_start(self.checkbutton, False)
+			
+		self.image = gtk.Image()
+		icon = None
+		try:
+			doc = db.get_xapian_document('', pkgname)
+		except IndexError: 
+			pass
+		potential_icon = db.get_iconname(doc)
+		if potential_icon:
+			if icons.has_icons(potential_icon):
+				icon = potential_icon
+		if icon == None:
+			icon = MISSING_APP_ICON
+		icon_file = icons.lookup_icon(icon, 24, ()).get_filename()
+		self.image.set_from_file(icon_file)
+		self.pack_start(self.image, False)
+			
+		self.description = gtk.Label(self.app_details.summary.capitalize())
+		self.pack_start(self.description, False)
     def _on_checkbutton_toggled(self, checkbutton):
         self.emit("toggled")
     def get_active(self):
@@ -815,17 +826,18 @@ class AddonView(gtk.VBox):
                    }
     
     def __init__(self, db, icons):
-        gtk.VBox.__init__(self, False)
+        gtk.VBox.__init__(self, False, 12)
         self.db = db
         self.icons = icons
         self.recommended_addons = None
         self.suggested_addons = None
-        self.app_details = None
-        self.label = gtk.Label(_("Choose add-ons:"))
-        self.label.set_alignment(0, 0.5)
-        self.pack_start(self.label, False, False)
         self.cache = AptCache()
         self.cache.open()
+        
+        self.label = gtk.Label(_("<b>Choose add-ons</b>"))
+        self.label.set_use_markup(True)
+        self.label.set_alignment(0, 0.5)
+        self.pack_start(self.label, False, False)
     
     def set_addons(self, app_details, recommended, suggested):
         self.hide_all()
@@ -850,7 +862,6 @@ class AddonView(gtk.VBox):
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         self.show_all()
-        self.label.show()
     
     def _on_checkbutton_toggled(self, checkbutton):
         addon = checkbutton.get_addon()
@@ -873,13 +884,14 @@ class TotalSizeBar(gtk.HBox):
         self.pack_start(self.label_size, False, False)
         
         self.hbuttonbox = gtk.HButtonBox()
+        self.hbuttonbox.set_layout(gtk.BUTTONBOX_END)
         self.button_apply = gtk.Button(_("Apply changes"))
         self.button_apply.connect("clicked", self._on_button_apply_clicked)
         self.button_cancel = gtk.Button(_("Cancel"))
         self.button_cancel.connect("clicked", self._on_button_cancel_clicked)
         self.hbuttonbox.pack_start(self.button_apply, False)
         self.hbuttonbox.pack_start(self.button_cancel, False)
-        self.pack_start(self.hbuttonbox, False)
+        self.pack_start(self.hbuttonbox)
         
     def configure(self, app_details, addons_install, addons_remove):
         def pkg_downloaded(pkg_version):
@@ -888,8 +900,7 @@ class TotalSizeBar(gtk.HBox):
             return os.path.exists("/var/cache/apt/archives/" + filename)
         
         if not addons_install and not addons_remove:
-            self.label_size.set_label(_("No changes to be done"))
-            self.hbuttonbox.hide()
+            self.hide()
             return
         
         pkgs_to_install = []
@@ -947,7 +958,7 @@ class TotalSizeBar(gtk.HBox):
             self.label_size.set_label(label_string)
         else:
             self.label_size.set_label(_("Changes have been made"))
-        self.hbuttonbox.show()
+        self.show()
             
     def get_applying(self):
         return self.applying
@@ -1147,19 +1158,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.body.set_spacing(mkit.SPACING_LARGE)
         self.vbox.pack_start(self.app_info, False)
 
-        # add-on handling
-        self.addon_view = AddonView(self.db, self.icons)
-        self.addon_view.connect("toggled", self._on_addon_view_toggled)
-        self.app_info.body.pack_start(self.addon_view, False)
-        
-        self.totalsize_bar = TotalSizeBar(self.cache, self)
-        self.totalsize_bar.connect("changes-canceled", self._on_totalsize_changescanceled)
-        self.app_info.body.pack_start(self.totalsize_bar, False)
-        
-        # controls which are displayed if the app is installed
-        self.action_bar = PackageStatusBar(self)
-        self.app_info.body.pack_start(self.action_bar, False)
-
         # FramedSection which contains the app description
         self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_LARGE)
         self.desc_section.header_alignment.set_padding(0,0,0,0)
@@ -1177,6 +1175,19 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.screenshot = ScreenshotView(self.distro, self.icons)
         app_desc_hb.pack_end(self.screenshot)
 
+        # add-on handling
+        self.addon_view = AddonView(self.db, self.icons)
+        self.addon_view.connect("toggled", self._on_addon_view_toggled)
+        self.desc_section.body.pack_start(self.addon_view, False)
+        
+        self.totalsize_bar = TotalSizeBar(self.cache, self)
+        self.totalsize_bar.connect("changes-canceled", self._on_totalsize_changescanceled)
+        self.desc_section.body.pack_start(self.totalsize_bar, False)
+        
+        # controls which are displayed if the app is installed
+        self.action_bar = PackageStatusBar(self)
+        self.desc_section.body.pack_start(self.action_bar, False)
+        
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
