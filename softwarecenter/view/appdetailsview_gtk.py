@@ -145,7 +145,17 @@ class PackageStatusBar(gtk.Alignment):
         #         so that all UI controls (menu item, applist view button and appdetails
         #         view button) are managed centrally:  button text, button sensitivity,
         #         and the associated callback.
-        if state == PKG_STATE_INSTALLED:
+        print "confiugre", state
+        if state == PKG_STATE_INSTALLING:
+            self.set_label(_('Installing...'))
+            #self.set_button_label(_('Install'))
+        elif state == PKG_STATE_REMOVING:
+            self.set_label(_('Removing...'))
+            #self.set_button_label(_('Remove'))
+        elif state == PKG_STATE_UPGRADING:
+            self.set_label(_('Upgrading...'))
+            #self.set_button_label(_('Upgrade Available'))
+        elif state == PKG_STATE_INSTALLED:
             if app_details.purchase_date:
                 purchase_date = str(app_details.purchase_date).split()[0]
                 self.set_label(_('Purchased on %s' % purchase_date))
@@ -171,15 +181,6 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
-        elif state == PKG_STATE_INSTALLING:
-            self.set_label(_('Installing...'))
-            #self.set_button_label(_('Install'))
-        elif state == PKG_STATE_REMOVING:
-            self.set_label(_('Removing...'))
-            #self.set_button_label(_('Remove'))
-        elif state == PKG_STATE_UPGRADING:
-            self.set_label(_('Upgrading...'))
-            #self.set_button_label(_('Upgrade Available'))
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -1135,6 +1136,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # internal callback
     def _update_interface_on_trans_ended(self):
+        print "_update_interface_on_trans_ended"
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
 

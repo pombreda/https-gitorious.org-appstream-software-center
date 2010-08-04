@@ -5,6 +5,7 @@ import glib
 import gtk
 import logging
 import os
+import subprocess
 import sys
 import time
 import unittest
@@ -20,16 +21,23 @@ from softwarecenter.backend import get_install_backend
 
 class SCBuySomething(unittest.TestCase):
     
-    def _p(self):
-        while gtk.events_pending():
-            gtk.main_iteration()
-
     def setUp(self):
+        if os.getuid() == 0:
+            p = "/etc/apt/sources.list.d/private-ppa.launchpad.net_mvo_private-test_ubuntu.list"
+            if os.path.exists(p):
+                os.remove(p)
+            subprocess.call(["dpkg", "-r", "hellox"])
         apt.apt_pkg.config.set("Dir::log::history", "/tmp")
         apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
         self.app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH)
         self.app.window_main.show_all()
         self._p()
+	self._finished = False
+
+    def _p(self):
+        while gtk.events_pending():
+            gtk.main_iteration()
+
 
     def assertFirstPkgInModel(self, model, needle):
         pkgname_from_row = model[0][AppStore.COL_PKGNAME]
@@ -81,11 +89,15 @@ class SCBuySomething(unittest.TestCase):
                                                      app)
             self._p()
             # FIXME: wait until we have the app installed
-            #gtk.main()
+            while not self._finished:
+		while gtk.events_pending():
+			gtk.main_iteration()
+		time.sleep(0.1)
         
-    def _on_transaction_finished(self, transaction, status):
-        print "_on_transaction_finished", transaction, status
-
+    def _on_transaction_finished(self, backend, status):
+        print "_on_transaction_finished", backend, status
+	self._finished = True
+        self.assertTrue(status)
 
 if __name__ == "__main__":
     unittest.main()
