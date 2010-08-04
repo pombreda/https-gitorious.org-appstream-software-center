@@ -632,7 +632,6 @@ class ScreenshotView(gtk.Alignment):
 
     def _on_screenshot_download_complete(self, loader, screenshot_path):
 
-        print "screenshot_path: ", screenshot_path
         def setter_cb(path):
             try:
                 pb = gtk.gdk.pixbuf_new_from_file(path)
@@ -1219,23 +1218,22 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 icon = app_details.icon
                 return self.icons.load_icon(icon, 84, 0)
             elif app_details.icon_needs_download:
-                print "appdetailsview, downloadable icon: ", app_details.icon_file_name
+                self._logger.debug("icon is downloadable: %s" % app_details.icon_file_name)
                 icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
                                               app_details.icon_file_name)
                 if os.path.exists(icon_file_path):
-                    print "found the icon in the local cache"
                     pb = gtk.gdk.pixbuf_new_from_file(icon_file_path)
                     return pb
                 # guess we need to download it then
-                print "in appdetailsview: did not find the icon, must download it"
-                # FIXME:  does this belong in the Distro class?  if so, need to include in Debian.py
+                self._logger.debug("did not find the icon locally, must download it")
+                # FIXME:  does the url string belong in the Distro class?  if so,
+                #         need to include an equivalent in Debian.py
                 # FIXME:  don't hardcode the PPA name
                 url = self.distro.PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", app_details.icon_file_name)
                 def on_image_download_complete(downloader, image_file_path):
-                    print "called on_image_download_complete with image_file_path: ", image_file_path
+                    # when the download is complete, replace the icon in the view with the downloaded one
                     pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
                     self.app_info.set_icon_from_pixbuf(pb)
-                    # and refresh the icon
                     
                 image_downloader = ImageDownloader()
                 image_downloader.connect('image-download-complete', on_image_download_complete)
