@@ -193,8 +193,6 @@ class ImageDownloader(gobject.GObject):
         self.emit('image-download-complete', self.dest_file_path)
 
 
-# gobject.type_register(ScreenshotDownloader)
-
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print s
