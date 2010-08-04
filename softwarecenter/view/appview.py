@@ -541,8 +541,7 @@ class AppStore(gtk.GenericTreeModel):
                         else:
                             # guess we need to download it then
                             print "did not find the icon, must download it"
-                            # FIXME:  this changes when we go to extras.ubuntu.com
-                            # FIXME:  does this belong in the Distro class?  if so, need to add to Debian.py
+                            # FIXME:  does this belong in the Distro class?  if so, need to include in Debian.py
                             # FIXME:  don't hardcode the PPA name
                             url = get_distro().PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
                             def on_image_download_complete(downloader, image_file_path):

@@ -175,7 +175,7 @@ class ImageDownloader(gobject.GObject):
                            self._check_url_reachable_cb)
                            
     def _check_url_reachable_cb(self, f, result):
-        print "icon_query_info_async_cb"
+        print "_check_url_reachable_cb"
         try:
             result = f.query_info_finish(result)
             self.emit('image-url-reachable', True)
@@ -193,6 +193,8 @@ class ImageDownloader(gobject.GObject):
         content = f.load_contents_finish(result)[0]
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
+        outputfile.flush()
+        outputfile.close()
         self.emit('image-download-complete', self.dest_file_path)
 
 
