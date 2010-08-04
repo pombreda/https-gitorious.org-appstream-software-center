@@ -846,7 +846,6 @@ class CellRendererAppView2(gtk.CellRendererText):
     def _render_icon(self, window, widget, cell_area, state, xpad, ypad, direction):
         # calc offsets so icon is nicely centered
         xo = (32 - self.pixbuf.get_width())/2
-        yo = (32 - self.pixbuf.get_height())/2
 
         if direction != gtk.TEXT_DIR_RTL:
             x = xpad+xo
@@ -857,7 +856,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         window.draw_pixbuf(None,
                            self.pixbuf,             # icon
                            0, 0,                    # src pixbuf
-                           x, cell_area.y+ypad+yo,  # dest in window
+                           x, cell_area.y+ypad,     # dest in window
                            -1, -1,                  # size
                            0, 0, 0)                 # dither
 
@@ -882,7 +881,7 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # work out max allowable layout width
         lw = self._layout_get_pixel_width(layout)
-        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
+        max_layout_width = cell_area.width - self.pixbuf_width - 4*xpad
 
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
@@ -896,10 +895,11 @@ class CellRendererAppView2(gtk.CellRendererText):
             lw = max_layout_width
 
         if direction != gtk.TEXT_DIR_RTL:
-            x, y = 2*xpad+self.pixbuf_width, cell_area.y+ypad
+            x = 2*xpad+self.pixbuf_width
         else:
             x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
-            y = cell_area.y+ypad
+
+        y = cell_area.y+ypad
 
         w, h = lw, self.normal_height
         widget.style.paint_layout(window, state,
@@ -936,7 +936,7 @@ class CellRendererAppView2(gtk.CellRendererText):
                                x, y, w, h)
 
         if direction != gtk.TEXT_DIR_RTL:
-            clip = gdk.Rectangle(x, y, int((w)*percent), h)
+            clip = gdk.Rectangle(x, y, int(w*percent), h)
         else:
             clip = gdk.Rectangle(x+(w-int(w*percent)), y, int(w*percent), h)
 
@@ -1207,7 +1207,9 @@ class AppView(gtk.TreeView):
         """
         (path, column) = self.get_cursor()
         model = self.get_model()
-        return (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
+        if path:
+            return (model[path][AppStore.COL_ACTION_IN_PROGRESS] != -1)
+        return False
 
     def get_button(self, key):
         return self.buttons[key]
@@ -1225,18 +1227,21 @@ class AppView(gtk.TreeView):
     def _on_style_set(self, widget, old_style, tr):
         em = get_em_value()
 
-        tr.set_property('xpad', int(em*0.5+0.5))
-        tr.set_property('ypad', int(em*0.5+0.5))
-
-        normal_height = int(2.75*em+0.5 + 2*tr.get_property('ypad'))
-        tr.set_normal_height(normal_height)
-        tr.set_selected_height(int(normal_height + 3*em))
+        pad = int(em*0.3)
+        tr.set_property('xpad', pad)
+        tr.set_property('ypad', pad)
 
         for btn in tr.get_buttons():
             # reset cached button geometry (x, y, w, h)
             btn.scrub_geometry()
             # recalc button geometry and cache
             btn.configure_geometry(self)
+
+        btn_h = btn.allocation.height
+
+        normal_height = int(2.5*em + pad)
+        tr.set_normal_height(max(32 + 2*pad, normal_height))
+        tr.set_selected_height(int(normal_height + btn_h + 3*pad))
         return
 
     def _on_motion(self, tree, event, tr):
