@@ -25,7 +25,6 @@ import gettext
 import glib
 import gobject
 import gtk
-import gio
 import locale
 import logging
 import math
@@ -543,30 +542,14 @@ class AppStore(gtk.GenericTreeModel):
                             # url = self.distro.PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
                             url = "http://ppa.launchpad.net/%s/meta/ppa/%s" % ("app-review-board", icon_file_name)
                             
-                            def icon_download_complete_cb(f, result, path=None):
-                                print "the icon download has completed"
-                                # The result from the download is actually a tuple with three elements.
-                                # The first element is the actual content so let's grab that
-                                content = f.load_contents_finish(result)[0]
-                                outputfile = open(icon_file, "w")
-                                outputfile.write(content)
-                                
-                            def icon_query_info_async_cb(f, result):
-                                print "icon_query_info_async_cb"
-                                try:
-                                    result = f.query_info_finish(result)
-                                    # url is reachable, now download the icon file
-                                    f.load_contents_async(icon_download_complete_cb)
-                                except glib.GError, e:
-                                    print "url is not reachable, setting missing icon for icon_name: ", icon_name
-                                del f
-                                return self._appicon_missing_icon
-                                
-                            f = gio.File(url)
-                            print "fetching file at url: ", url
-                            # first check if the url is reachable
-                            f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                                               icon_query_info_async_cb)
+                            image_downloader = ImageDownloader()
+                            image_downloader.connect('image-url-reachable', self._on_image_url_reachable)
+                            image_downloader.connect('image-download-complete', self._on_image_download_complete)
+                            image_downloader.download_image(url, icon_file)
+                            
+                            # it's downloading asynchronously, so for now we show the appicon missing icon
+                            self.icon_cache[icon_name] = self._appicon_missing_icon
+                            return self._appicon_missing_icon
                     else:
                         # load the icon from the theme
                         icon = self.icons.load_icon(icon_name, self.icon_size, 0)
@@ -633,6 +616,12 @@ class AppStore(gtk.GenericTreeModel):
         return n
     def on_iter_parent(self, child):
         return None
+        
+    def _on_image_url_reachable(self, downloader, reachable):
+        print "called _on_image_url_reachable with reachable: ", reachable
+    
+    def _on_image_download_complete(self, downloader, image_file_path):
+        print "called _on_image_download_complete with image_file_path: ", image_file_path
 
 
 class CellRendererButton2:

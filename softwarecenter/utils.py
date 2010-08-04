@@ -22,6 +22,9 @@ import logging
 import re
 import time
 import xml.sax.saxutils
+import gobject
+import gio
+import glib
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
@@ -148,6 +151,52 @@ def sources_filename_from_ppa_entry(entry):
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
+    
+class ImageDownloader(gobject.GObject):
+
+    __gsignals__ = {
+        "image-url-reachable"     : (gobject.SIGNAL_RUN_LAST,
+                                     gobject.TYPE_NONE,
+                                     (bool,),),
+
+        "image-download-complete" : (gobject.SIGNAL_RUN_LAST,
+                                     gobject.TYPE_NONE,
+                                     (str,),),
+        }
+
+    def download_image(self, url, dest_file_path):
+        print "fetching file at url: ", url
+        print "and dest_file_path: ", dest_file_path
+        self.url = url
+        self.dest_file_path = dest_file_path
+        f = gio.File(url)
+        # first check if the url is reachable
+        f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
+                           self._check_url_reachable_cb)
+                           
+    def _check_url_reachable_cb(self, f, result):
+        print "icon_query_info_async_cb"
+        try:
+            result = f.query_info_finish(result)
+            self.emit('image-url-reachable', True)
+            # url is reachable, now download the icon file
+            f.load_contents_async(self._icon_download_complete_cb)
+        except glib.GError, e:
+            print "url is not reachable"
+            self.emit('image-url-reachable', False)
+        del f
+
+    def _icon_download_complete_cb(self, f, result, path=None):
+        print "the icon download has completed"
+        # The result from the download is actually a tuple with three elements.
+        # The first element is the actual content so let's grab that
+        content = f.load_contents_finish(result)[0]
+        outputfile = open(self.dest_file_path, "w")
+        outputfile.write(content)
+        self.emit('image-download-complete', self.dest_file_path)
+
+
+# gobject.type_register(ScreenshotDownloader)
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

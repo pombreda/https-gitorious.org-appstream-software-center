@@ -441,7 +441,6 @@ class ScreenshotDownloader(gobject.GObject):
                 path = self._tmpfile.name
             outputfile = open(path, "w")
             outputfile.write(content)
-
             self.emit('download-complete', path)
             return
 
@@ -632,6 +631,7 @@ class ScreenshotView(gtk.Alignment):
 
     def _on_screenshot_download_complete(self, loader, screenshot_path):
 
+        print "screenshot_path: ", screenshot_path
         def setter_cb(path):
             try:
                 pb = gtk.gdk.pixbuf_new_from_file(path)
