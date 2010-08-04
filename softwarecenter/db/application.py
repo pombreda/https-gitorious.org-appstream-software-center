@@ -191,12 +191,45 @@ class AppDetails(object):
     @property
     def maintenance_status(self):
         return self._distro.get_maintenance_status(
-            self._cache, self.name, self.pkgname, self.component, 
+            self._cache, self.display_name, self.pkgname, self.component, 
             self.channelname)
 
     @property
     def name(self):
         return self._app.name
+    
+    @property
+    def display_name(self):
+        """ Return the name as it should be displayed in the UI
+
+            Note that this may not corespond to the Appname as the
+            spec says the name should be the summary for packages
+            and the summary the pkgname
+        """
+        if self._doc:
+            name = self._db.get_appname(self._doc)
+            if name:
+                return name
+            else:
+                # by spec..
+                return self._db.get_summary(self._doc)
+        return self.name
+
+    @property
+    def display_summary(self):
+        """ Return the summary as it should be displayed in the UI
+
+            Note that this may not corespond to the summary value as the
+            spec says the name should be the summary for packages
+            and the summary the pkgname
+        """
+        if self._doc:
+            name = self._db.get_appname(self._doc)
+            if name:
+                return self._db.get_summary(self._doc)
+            else:
+                # by spec..
+                return self._db.get_pkgname(self._doc)
 
     @property
     def pkg(self):

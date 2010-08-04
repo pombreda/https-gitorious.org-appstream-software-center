@@ -57,8 +57,17 @@ class SoftwareCenterMetadataPlugin:
             name = "SoftwareCenterMetadata",
             shortDesc = "SoftwareCenter meta information",
             fullDoc = """
-            Software-center meta-data 
-            It uses the prefix AP and sets XAPIAN_VALUE_ICON (172)
+            Software-center metadata 
+            It uses the prefixes:
+              AA for the Application name
+              AP for the Package name
+              AC for the categories
+              AT to "applications" for applications
+            It sets the following xapian values from the software-center 
+            enums:
+              XAPIAN_VALUE_ICON
+              XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD
+              XAPIAN_VALUE_SCREENSHOT_URL
             """
         )
 
@@ -71,15 +80,30 @@ class SoftwareCenterMetadataPlugin:
         pkg       is the python-apt Package object for this package
         """
         ver = pkg.candidate
-        if ver is None: 
+        # if there is no version or the AppName custom key is not
+        # found we can skip the pkg
+        if ver is None or not CUSTOM_KEY_APPNAME in ver.record:
             return
-        key = "Softwarecenter-Appname"
-        if key in ver.record:
-            name = ver.record[key]
+        # we want to index the following custom fields: 
+        #   XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
+        if CUSTOM_KEY_APPNAME in ver.record:
+            name = ver.record[CUSTOM_KEY_APPNAME]
             self.indexer.set_document(document)
             index_name(document, name, self.indexer)
-            # we pretend to be a application
+            # we pretend to be an application
             document.add_term("AT"+"application")
+        if CUSTOM_KEY_ICON in ver.record:
+            icon = ver.record[CUSTOM_KEY_ICON]
+            document.add_value(XAPIAN_VALUE_ICON, icon)
+            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, "1")
+        if CUSTOM_KEY_SCREENSHOT_URL in ver.record:
+            screenshot_url = ver.record[CUSTOM_KEY_SCREENSHOT_URL]
+            document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)
+        if CUSTOM_KEY_CATEGORY in ver.record:
+            categories_str = ver.record[CUSTOM_KEY_CATEGORY]
+            for cat in categories_str.split(";"):
+                if cat:
+                    document.add_term("AC"+cat.lower())
 
     def indexDeb822(self, document, pkg):
         """

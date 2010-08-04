@@ -88,14 +88,16 @@ class SCBuySomething(unittest.TestCase):
                                                      signing_key_id,
                                                      app)
             self._p()
-            # FIXME: wait until we have the app installed
+            # wait until the pkg is installed
             while not self._finished:
 		while gtk.events_pending():
 			gtk.main_iteration()
 		time.sleep(0.1)
         
-    def _on_transaction_finished(self, backend, status):
-        print "_on_transaction_finished", backend, status
+    def _on_transaction_finished(self, backend, pkgname, status):
+        print "_on_transaction_finished", backend, pkgname, status
+        if not pkgname:
+            return
 	self._finished = True
         self.assertTrue(status)
 

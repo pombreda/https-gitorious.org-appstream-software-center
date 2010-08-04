@@ -31,7 +31,6 @@ import subprocess
 import sys
 import xapian
 
-
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
 from softwarecenter import Application
@@ -276,6 +275,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
                                    self.on_view_switcher_changed)
+        self.view_switcher.width = self.scrolledwindow_viewswitcher.get_property('width-request')
+        self.view_switcher.connect('size-allocate', self.on_viewswitcher_resized)
         self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
@@ -402,6 +403,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_status_bar()
         self.update_app_status_menu()
 
+    def on_viewswitcher_resized(self, widget, allocation):
+        self.view_switcher.width = allocation.width
+
     def _on_lp_login(self, lp, token):
         print "_on_lp_login"
         self._lp_login_successful = True
@@ -514,7 +518,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                            self.menuitem_search]
         for item in edit_menu_items:
             item.set_sensitive(False)
-        if (self.active_pane and
+        if (self.active_pane and self.active_pane.searchentry and
             self.active_pane.searchentry.flags() & gtk.VISIBLE):
             # undo, redo, cut, copy, paste, delete, select_all sensitive 
             # if searchentry is focused (and other more specific conditions)
@@ -637,12 +641,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(False)
             
-    def _on_transaction_finished(self, backend, success):
-        """ callback when an application install/remove transaction has finished """
+    def _on_transaction_finished(self, backend, pkgname, success):
+        """ callback when an application install/remove transaction 
+            (or a cache reload) has finished 
+        """
         self.cache.open()
         self.update_app_status_menu()
 
-    def _on_transaction_stopped(self, backend):
+    def _on_transaction_stopped(self, backend, pkgname):
         """ callback when an application install/remove transaction has stopped """
         self.update_app_status_menu()
 
@@ -839,6 +845,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "installed-node-expanded") and
             self.config.getboolean("general", "installed-node-expanded")):
             self.view_switcher.expand_installed_node()
+        if (self.config.has_option("general", "sidebar-width")):
+            width = int(self.config.get("general", "sidebar-width"))
+            self.scrolledwindow_viewswitcher.set_property('width_request', width)
 
     def save_state(self):
         self._logger.debug("save_state")
@@ -865,6 +874,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.config.set("general", "installed-node-expanded", "True")
         else:
             self.config.set("general", "installed-node-expanded", "False")
+        width = self.view_switcher.width
+        if width != 1:
+            width += 2
+        self.config.set("general", "sidebar-width", str(width))
         self.config.write()
 
     def run(self, args):

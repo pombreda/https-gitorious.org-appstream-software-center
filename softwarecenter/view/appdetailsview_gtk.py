@@ -715,7 +715,7 @@ class ScreenshotView(gtk.Alignment):
         acc.set_name(_('Fetching screenshot ...'))
 
         self.clear()
-        self.appname = app_details.name
+        self.appname = app_details.display_name
         self.thumbnail_url = app_details.thumbnail
         self.large_url = app_details.screenshot
         return
@@ -925,7 +925,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-                'appname' : self.app_details.name, 
+                'appname' : self.app_details.display_name, 
                 'pkgname' : self.app_details.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
@@ -1026,14 +1026,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = gobject.markup_escape_text(app_details.name)
+        appname = gobject.markup_escape_text(app_details.display_name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
         # FIXME: Once again (yes, I am working from the end to the beginning of the file..) this is tmp until we find a better place for the errors
         if self.app_details.error:
             summary = app_details.error
         else:
-            summary = app_details.summary
+            summary = app_details.display_summary
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
@@ -1160,12 +1160,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.action_bar.configure(self.app_details, PKG_STATE_UPGRADING)
         return
 
-    def _on_transaction_stopped(self, backend):
+    def _on_transaction_stopped(self, backend, pkgname):
         self.action_bar.progress.hide()
         self._update_interface_on_trans_ended()
         return
 
-    def _on_transaction_finished(self, backend, success):
+    def _on_transaction_finished(self, backend, pkgname, success):
         self.action_bar.progress.hide()
         self._update_interface_on_trans_ended()
         return

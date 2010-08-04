@@ -23,7 +23,9 @@ class BasePane(object):
     """
 
     def __init__(self):
+        # stuff that is queried by app.py
         self.apps_filter = None
+        self.searchentry = None
 
     def is_category_view_showing(self):
         return False

@@ -55,10 +55,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                             ()),
                     'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
-                                            (bool,)),
+                                            (str, bool,)),
                     'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
-                                            ()),                    
+                                            (str,)),                    
                     'transactions-changed':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             (gobject.TYPE_PYOBJECT, )),
@@ -117,7 +117,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                                             defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
-            self._on_trans_error(error)
+            self._on_trans_error(error, pkgname)
 
     @inline_callbacks
     def remove(self, pkgname, appname, iconname):
@@ -128,7 +128,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                                            defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
-            self._on_trans_error(error)
+            self._on_trans_error(error, pkgname)
 
     @inline_callbacks
     def remove_multiple(self, pkgnames, appnames, iconnames):
@@ -145,7 +145,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                                             defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
-            self._on_trans_error(error)
+            self._on_trans_error(error, pkgname)
 
     @inline_callbacks
     def install_multiple(self, pkgnames, appnames, iconnames):
@@ -320,6 +320,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     enums.get_error_description_from_enum(trans.error_code),
                     trans.error_details)
         # send finished signal
+        pkgname = None
         try:
             pkgname = trans.meta_data["sc_pkgname"]
             del self.pending_transactions[pkgname]
@@ -332,7 +333,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self.emit("reload-finished", enum != enums.EXIT_FAILED)
         # send appropriate signals
         self.emit("transactions-changed", self.pending_transactions)
-        self.emit("transaction-finished", enum != enums.EXIT_FAILED)
+        self.emit("transaction-finished", str(pkgname), enum != enums.EXIT_FAILED)
 
     def _config_file_conflict(self, transaction, old, new):
         dia = AptConfigFileConflictDialog(old, new)
@@ -379,12 +380,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 trans.set_http_proxy(http_proxy, defer=True)
             yield trans.run(defer=True)
         except Exception, error:
-            self._on_trans_error(error)
+            self._on_trans_error(pkgname, error)
 
-    def _on_trans_error(self, error):
+    def _on_trans_error(self, error, pkgname=None):
         self._logger.warn("_on_trans_error: %s", error)
         # re-enable the action button again if anything went wrong
-        self.emit("transaction-stopped")
+        self.emit("transaction-stopped", pkgname)
         if isinstance(error, dbus.DBusException):
             name = error.get_dbus_name()
             if name in ["org.freedesktop.PolicyKit.Error.NotAuthorized",

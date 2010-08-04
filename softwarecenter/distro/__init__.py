@@ -78,6 +78,10 @@ class Distro(object):
         """
         raise UnimplementError
 
+    def get_supported_query(self):
+        """ return a xapian query that gives all supported documents """
+        return xapian.Query()
+
 def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
                                  stdout=subprocess.PIPE).communicate()[0].strip()

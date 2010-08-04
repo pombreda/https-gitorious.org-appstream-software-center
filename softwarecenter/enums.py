@@ -83,10 +83,20 @@ XAPIAN_VALUE_ARCHIVE_DEB_LINE = 182
 XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID = 183
 XAPIAN_VALUE_PURCHASED_DATE = 184
 XAPIAN_VALUE_SCREENSHOT_URL = 185
+XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 186
+
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
 AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
+
+# custom keys for the new-apps repository, correspond
+# control file custom fields:
+#  XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
+CUSTOM_KEY_APPNAME = "AppName"
+CUSTOM_KEY_ICON = "Icon"
+CUSTOM_KEY_SCREENSHOT_URL = "Screenshot-Url"
+CUSTOM_KEY_CATEGORY = "Category"
 
 # pkg action state constants
 (   # current
