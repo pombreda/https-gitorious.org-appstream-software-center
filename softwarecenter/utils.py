@@ -165,8 +165,6 @@ class ImageDownloader(gobject.GObject):
         }
 
     def download_image(self, url, dest_file_path):
-        print "fetching file at url: ", url
-        print "and dest_file_path: ", dest_file_path
         self.url = url
         self.dest_file_path = dest_file_path
         f = gio.File(url)
@@ -175,19 +173,16 @@ class ImageDownloader(gobject.GObject):
                            self._check_url_reachable_cb)
                            
     def _check_url_reachable_cb(self, f, result):
-        print "_check_url_reachable_cb"
         try:
             result = f.query_info_finish(result)
             self.emit('image-url-reachable', True)
             # url is reachable, now download the icon file
             f.load_contents_async(self._icon_download_complete_cb)
         except glib.GError, e:
-            print "url is not reachable"
             self.emit('image-url-reachable', False)
         del f
 
     def _icon_download_complete_cb(self, f, result, path=None):
-        print "the icon download has completed"
         # The result from the download is actually a tuple with three elements.
         # The first element is the actual content so let's grab that
         content = f.load_contents_finish(result)[0]

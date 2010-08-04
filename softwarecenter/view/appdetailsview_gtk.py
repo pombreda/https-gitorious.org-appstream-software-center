@@ -407,67 +407,7 @@ class PackageInfoTable(gtk.VBox):
     def set_support_status(self, support_status):
         self.support_label.set_text(support_status)
         return
-
-
-class ScreenshotDownloader(gobject.GObject):
-
-    __gsignals__ = {
-        "url-reachable"     : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE,
-                               (bool,),),
-
-        "download-complete" : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE,
-                               (str,),),
-        }
-
-
-    def __init__(self):
-        gobject.GObject.__init__(self)
-        self._tmpfile = None
-        return
-
-    def _actually_download_screenshot(self, file, url):
-
-        def download_complete_cb(file, result, path=None):
-            """Helper called after the file has downloaded"""
-
-            # The result from the download is actually a tuple with three elements.
-            # The first element is the actual content so let's grab that
-            content = file.load_contents_finish(result)[0]
-
-            # let's now save the content to the tmp dir
-            if path is None:
-                self._tmpfile = tempfile.NamedTemporaryFile(prefix="s-c-screenshot")
-                path = self._tmpfile.name
-            outputfile = open(path, "w")
-            outputfile.write(content)
-            self.emit('download-complete', path)
-            return
-
-        file.load_contents_async(download_complete_cb)
-        return
-
-    def download_from_url(self, url):
-
-        def query_complete_cb(file, result):
-            try:
-                result = file.query_info_finish(result)
-                self.emit('url-reachable', True)
-                self._actually_download_screenshot(file, url)
-            except glib.GError, e:
-                self.emit('url-reachable', False)
-
-            del file
-            return
-
-        # use gio (its so nice)
-        file=gio.File(url)
-        file.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                              query_complete_cb)
-        return
-
-gobject.type_register(ScreenshotDownloader)
+        
 
 class ScreenshotView(gtk.Alignment):
 
@@ -538,9 +478,9 @@ class ScreenshotView(gtk.Alignment):
         self.alpha = 0.0
 
         # convienience class for handling the downloading (or not) of any screenshot
-        self.loader = ScreenshotDownloader()
-        self.loader.connect('url-reachable', self._on_screenshot_query_complete)
-        self.loader.connect('download-complete', self._on_screenshot_download_complete)
+        self.loader = ImageDownloader()
+        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
         return
 
     # signal handlers
@@ -719,10 +659,11 @@ class ScreenshotView(gtk.Alignment):
         """ Download then displays the screenshot.
             This actually does a query on the URL first to check if its 
             reachable, if so it downloads the thumbnail.
-            If not, it emits "url-reachable" False, then exits.
+            If not, it emits "image-url-reachable" False, then exits.
         """
 
-        self.loader.download_from_url(self.thumbnail_url)
+        self.loader.download_image(self.thumbnail_url,
+                                   tempfile.NamedTemporaryFile(prefix="s-c-screenshot").name)
         return
 
     def draw(self, cr, a, expose_area):
