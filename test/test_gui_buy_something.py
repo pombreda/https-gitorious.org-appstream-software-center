@@ -26,7 +26,7 @@ class SCBuySomething(unittest.TestCase):
             p = "/etc/apt/sources.list.d/private-ppa.launchpad.net_mvo_private-test_ubuntu.list"
             if os.path.exists(p):
                 os.remove(p)
-            subprocess.call(["dpkg", "-r", "hellox"])
+            subprocess.call(["dpkg", "-r", "hellox", "hello"])
         apt.apt_pkg.config.set("Dir::log::history", "/tmp")
         apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
         self.app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH)
@@ -98,7 +98,8 @@ class SCBuySomething(unittest.TestCase):
         print "_on_transaction_finished", backend, pkgname, status
         if not pkgname:
             return
-	self._finished = True
+        print "done", pkgname
+        self._finished = True
         self.assertTrue(status)
 
 if __name__ == "__main__":
