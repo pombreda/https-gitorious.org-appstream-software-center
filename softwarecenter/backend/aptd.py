@@ -266,8 +266,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     enums.get_error_string_from_enum(trans.error_code),
                     enums.get_error_description_from_enum(trans.error_code),
                     trans.error_details)
-        # send finished signal
-        pkgname = None
+        # send finished signal, use "" here instead of None, because
+        # dbus mangles a None to a str("None")
+        pkgname = ""
         try:
             pkgname = trans.meta_data["sc_pkgname"]
             del self.pending_transactions[pkgname]
