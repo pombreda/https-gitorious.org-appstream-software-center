@@ -154,11 +154,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.install(pkgname, appname, iconname)
 
     @inline_callbacks
-    def reload(self):
+    def reload(self, metadata=None):
         """ reload package list """
         try:
             trans = yield self.aptd_client.update_cache(defer=True)
-            yield self._run_transaction(trans, None, None, None)
+            yield self._run_transaction(trans, None, None, None, metadata)
         except Exception, error:
             self._on_trans_error(error)
 
@@ -190,13 +190,20 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         yield self.reload()
 
     @inline_callbacks
-    def add_vendor_key_from_keyserver(self, keyid, keyserver="keyserver.ubuntu.com"):
+    def add_vendor_key_from_keyserver(self, keyid, 
+                                      keyserver="keyserver.ubuntu.com",
+                                      metadata=None):
         # strip the keysize
         if "/" in keyid:
             keyid = keyid.split("/")[1]
         if not keyid.startswith("0x"):
             keyid = "0x%s" % keyid
-        yield self.aptd_client.add_vendor_key_from_keyserver(keyid, keyserver)
+        try:
+            trans = yield self.aptd_client.add_vendor_key_from_keyserver(
+                keyid, keyserver)
+            yield self._run_transaction(trans, None, None, None, metadata)
+        except Exception, error:
+            self._on_trans_error(error)
 
     @inline_callbacks
     def add_sources_list_entry(self, source_entry, sourcepart=None):
@@ -230,13 +237,19 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         and finally installing the specified application once the
         package list reload has completed.
         """
+        # metadata so that we know those the add-key and reload transactions
+        # are part of a group
+        trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
+                          'sc_add_repo_and_install_pkgname' : apppkgname., 
+                         }
         # TODO:  add error checking as needed
         self.app = app
         self.add_sources_list_entry(deb_line)
-        self.add_vendor_key_from_keyserver(signing_key_id)
+        self.add_vendor_key_from_keyserver(signing_key_id, 
+                                           metadata=trans_metadata)
         self.emit("channels-changed", True)
         # reload to ensure we have the new package data
-        self.reload()
+        self.reload(metadata=trans_metadata)
         # and then queue the install only when the reload finished
         # otherwise the daemon will fail because he does not know
         # the new package name yet
@@ -299,6 +312,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
+        self._logger.warn("_on_transaction_finished: %s %s %s" % (
+                trans, enum, trans.meta_data))
         if enum == enums.EXIT_FAILED:
             # daemon died are messages that result from broken
             # cancel handling in aptdaemon (LP: #440941)
@@ -357,7 +372,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             transaction.cancel()
 
     @inline_callbacks
-    def _run_transaction(self, trans, pkgname, appname, iconname):
+    def _run_transaction(self, trans, pkgname, appname, iconname, metadata=None):
         # connect signals
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
@@ -375,6 +390,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 yield trans.set_debconf_frontend("gnome", defer=True)
                 # set this once the new aptdaemon 0.2.x API can be used
                 trans.set_remove_obsoleted_depends(True, defer=True)
+            # generic metadata
+            if metadata:
+                yield trans.set_meta_data(**metadata)
             # set proxy and run
             http_proxy = get_http_proxy_string_from_gconf()
             if http_proxy:
