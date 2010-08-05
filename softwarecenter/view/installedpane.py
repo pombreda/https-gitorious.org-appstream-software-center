@@ -137,6 +137,7 @@ class InstalledPane(SoftwarePane):
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
+        print app
         self.current_appview_selection = app
 
     def display_search(self):
