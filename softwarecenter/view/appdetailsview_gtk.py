@@ -137,12 +137,22 @@ class PackageStatusBar(gtk.Alignment):
     def configure(self, app_details, state):
         LOG.debug("configure %s state=%s pkgstate=%s" % (
                 app_details.pkgname, state, app_details.pkg_state))
-        self.pkg_state = app_details.pkg_state
+        self.pkg_state = state
         self.app_details = app_details
         self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
+
+        if state in (PKG_STATE_INSTALLING,
+                     PKG_STATE_INSTALLING_PURCHASED,
+                     PKG_STATE_REMOVING,
+                     PKG_STATE_UPGRADING,
+                     PKG_STATE_UNKNOWN):
+            self.button.hide()
+        else:
+            state = app_details.pkg_state
+            self.button.show()
 
         # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
@@ -153,7 +163,6 @@ class PackageStatusBar(gtk.Alignment):
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_('Installing purchased...'))
-            self.button.hide()
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
@@ -179,10 +188,16 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Purchased on %s' % purchase_date))
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
+            if app_details.price:
+                self.set_label(app_details.price)
+            else:
+                self.set_label("")
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_REINSTALLABLE:
             if app_details.price:
                 self.set_label(app_details.price)
+            else:
+                self.set_label("")
             self.set_button_label(_('Reinstall'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
@@ -1177,7 +1192,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_transaction_stopped(self, backend, pkgname):
         self.action_bar.progress.hide()
-        self._update_interface_on_trans_ended()
+        self._update_interface_on_trans_ended(pkgname)
         return
 
     def _on_transaction_finished(self, backend, result):

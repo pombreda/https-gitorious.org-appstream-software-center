@@ -443,8 +443,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                         "org.freedesktop.DBus.Error.NoReply"]:
                 pass
         else:
-            raise error
-
+            logging.exception("_on_trans_error")
+            #raise error
 
 if __name__ == "__main__":
     #c = client.AptClient()
