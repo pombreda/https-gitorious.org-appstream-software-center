@@ -792,10 +792,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             otherwise turn it into a comma seperated search
         """
         if packages:
-            if packages[0][:6] == "apt://":
-                packages[0] = packages[0][6:]
-            if packages[0][:4] == "apt:":
-                packages[0] = packages[0][4:]
+            if packages[0].startswith("apt://"):
+                packages[0] = packages[0].partition("://")[2]
+            if packages[0].startswith("apt:"):
+                packages[0] = packages[0].partition(":")[2]
 
         if len(packages) == 1:
             # FIXME: deal with pkgname/appname requests
@@ -806,16 +806,19 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     #        app = Application(appname, pkgname)
      #       self.available_pane.on_application_activated(None, app)
             request = packages[0]
-            if request.count("/") > 0:
+            if "/" in request:
                 # deb file
                 app = Application("", "", request)
-            elif request.count("?") > 0:
+            elif "?" in request:
                 # apt url
-                app = Application("", request.split('?')[0], ('?').join(request.split('?')[1:]))
+                app = Application("", 
+                                  request.split('?')[0], 
+                                  ('?').join(request.split('?')[1:]))
             else:
                 # package from archive
                 app = Application("", request, "")
-            if (app.pkgname in self.available_pane.cache and self.available_pane.cache[app.pkgname].installed):
+            if (app.pkgname in self.available_pane.cache and 
+                self.available_pane.cache[app.pkgname].installed):
                 self.installed_pane.loaded = True
                 self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
                 self.installed_pane.loaded = False
