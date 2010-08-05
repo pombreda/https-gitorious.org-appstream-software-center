@@ -193,16 +193,16 @@ class PackageStatusBar(gtk.Alignment):
             self.fill_color = COLOR_RED_FILL
             self.line_color = COLOR_RED_OUTLINE
         elif state == PKG_STATE_NEEDS_SOURCE:
-            channelfile = self.appdetails.channelfile
+            channelfile = self.app_details.channelfile
             # it has a price and is not available 
             if channelfile:
                 # FIXME: deal with the EULA stuff
                 self.set_button_label(_("Use This Source"))
             # check if it comes from a non-enabled component
-            elif self.appdetails._unavailable_component():
+            elif self.app_details._unavailable_component():
                 # FIXME: use a proper message here, but we are in string freeze
                 self.set_button_label(_("Use This Source"))
-            elif self.appdetails._available_for_our_arch():
+            elif self.app_details._available_for_our_arch():
                 self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
