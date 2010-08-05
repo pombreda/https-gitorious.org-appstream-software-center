@@ -127,7 +127,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error)
 
     @inline_callbacks
-    def upgrade(self, pkgname, appname, iconname, metadata):
+    def upgrade(self, pkgname, appname, iconname, metadata=None):
         """ upgrade a single package """
         self.emit("transaction-started")
         try:
@@ -138,7 +138,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove(self, pkgname, appname, iconname, metadata):
+    def remove(self, pkgname, appname, iconname, metadata=None):
         """ remove a single package """
         self.emit("transaction-started")
         try:
@@ -149,10 +149,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove_multiple(self, pkgnames, appnames, iconnames):
+    def remove_multiple(self, pkgnames, appnames, iconnames, metadatas=None):
         """ queue a list of packages for removal  """
-        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
-            yield self.remove(pkgname, appname, iconname)
+        if metadatas == None:
+            metadatas = []
+            for item in pkgnames:
+                metadatas.append(None)
+        for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
+            yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
     def install(self, pkgname, appname, iconname, metadata=None):
@@ -166,10 +170,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def install_multiple(self, pkgnames, appnames, iconnames, metadata=None):
+    def install_multiple(self, pkgnames, appnames, iconnames, metadatas=None):
         """ queue a list of packages for install  """
-        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
-            yield self.install(pkgname, appname, iconname, metdata)
+        if metadatas == None:
+            metadatas = []
+            for item in pkgnames:
+                metadatas.append(None)
+        for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
+            yield self.install(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
     def reload(self, metadata=None):
