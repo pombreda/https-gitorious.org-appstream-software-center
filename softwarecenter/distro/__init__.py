@@ -80,6 +80,7 @@ class Distro(object):
 
     def get_supported_query(self):
         """ return a xapian query that gives all supported documents """
+        import xapian
         return xapian.Query()
 
 def _get_distro():

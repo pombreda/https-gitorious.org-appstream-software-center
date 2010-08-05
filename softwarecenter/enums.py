@@ -21,7 +21,7 @@ import xdg.BaseDirectory
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
-BUY_SOMETHING_HOST = "http://sc.staging.ubuntu.com"
+BUY_SOMETHING_HOST = "https://sc.staging.ubuntu.com"
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"
@@ -98,7 +98,7 @@ CUSTOM_KEY_ICON = "Icon"
 CUSTOM_KEY_SCREENSHOT_URL = "Screenshot-Url"
 CUSTOM_KEY_CATEGORY = "Category"
 
-# pkg action state constants
+# pkg action state constants 
 (   # current
     PKG_STATE_INSTALLED,
     PKG_STATE_UNINSTALLED,
@@ -114,6 +114,7 @@ CUSTOM_KEY_CATEGORY = "Category"
     PKG_STATE_NEEDS_SOURCE,
     PKG_STATE_NEEDS_PURCHASE,
     PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+    # this *needs* to be last (for test_appdetails.py)
     PKG_STATE_UNKNOWN,
  ) = range(13)
 

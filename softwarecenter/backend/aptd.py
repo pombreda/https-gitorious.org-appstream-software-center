@@ -56,6 +56,12 @@ class TransactionFinishedResult(object):
         self.pkgname = trans.meta_data.get("sc_pkgname")
         self.meta_data = trans.meta_data
 
+class TransactionProgress(object):
+    """ represents the progress of the transaction """
+    def __init__(self, trans):
+        self.pkgname = trans.meta_data.get("sc_pkgname")
+        self.meta_data = trans.meta_data
+        self.progress = trans.progress
 
 class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     """ software center specific code that interacts with aptdaemon """
@@ -121,7 +127,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error)
 
     @inline_callbacks
-    def upgrade(self, pkgname, appname, iconname, metadata):
+    def upgrade(self, pkgname, appname, iconname, metadata=None):
         """ upgrade a single package """
         self.emit("transaction-started")
         try:
@@ -132,7 +138,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove(self, pkgname, appname, iconname, metadata):
+    def remove(self, pkgname, appname, iconname, metadata=None):
         """ remove a single package """
         self.emit("transaction-started")
         try:
@@ -143,10 +149,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove_multiple(self, pkgnames, appnames, iconnames):
+    def remove_multiple(self, pkgnames, appnames, iconnames, metadatas=None):
         """ queue a list of packages for removal  """
-        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
-            yield self.remove(pkgname, appname, iconname)
+        if metadatas == None:
+            metadatas = []
+            for item in pkgnames:
+                metadatas.append(None)
+        for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
+            yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
     def install(self, pkgname, appname, iconname, metadata=None):
@@ -160,10 +170,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def install_multiple(self, pkgnames, appnames, iconnames, metadata=None):
+    def install_multiple(self, pkgnames, appnames, iconnames, metadatas=None):
         """ queue a list of packages for install  """
-        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
-            yield self.install(pkgname, appname, iconname, metdata)
+        if metadatas == None:
+            metadatas = []
+            for item in pkgnames:
+                metadatas.append(None)
+        for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
+            yield self.install(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
     def reload(self, metadata=None):
@@ -305,16 +319,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if not tid:
                 continue
             trans = client.get_transaction(tid, error_handler=lambda x: True)
-            # FIXME: add a bit more data here
+            trans_progress = TransactionProgress(trans)
             try:
-                pkgname = trans.meta_data["sc_pkgname"]
-                self.pending_transactions[pkgname] = trans.progress
+                self.pending_transactions[trans_progress.pkgname] = trans_progress
             except KeyError:
                 # if its not a transaction from us (sc_pkgname) still
                 # add it with the tid as key to get accurate results
                 # (the key of pending_transactions is never directly
                 #  exposed in the UI)
-                self.pending_transactions[trans.tid] = trans.progress
+                self.pending_transactions[trans.tid] = trans_progress
         self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
@@ -324,7 +337,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         try:
             pkgname = trans.meta_data["sc_pkgname"]
-            self.pending_transactions[pkgname] = progress
+            self.pending_transactions[pkgname].progress = progress
             self.emit("transaction-progress-changed", pkgname, progress)
         except KeyError:
             pass
@@ -430,8 +443,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                         "org.freedesktop.DBus.Error.NoReply"]:
                 pass
         else:
-            raise error
-
+            logging.exception("_on_trans_error")
+            #raise error
 
 if __name__ == "__main__":
     #c = client.AptClient()

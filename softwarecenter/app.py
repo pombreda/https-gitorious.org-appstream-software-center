@@ -342,6 +342,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             file_menu = self.builder.get_object("menu1")
             file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
 
+        if not options.enable_buy and not options.enable_lp:
+            file_menu.remove(self.builder.get_object("separator_login"))
+
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):
         if os.WEXITSTATUS(condition) == 0:
@@ -612,7 +615,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if (not self._block_menuitem_view and
+        if (not self._block_menuitem_view and self.active_pane.apps_filter and
             self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
