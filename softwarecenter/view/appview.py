@@ -42,6 +42,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
 from widgets.mkit import get_em_value
 from gtk import gdk
@@ -427,6 +428,26 @@ class AppStore(gtk.GenericTreeModel):
         self._existing_apps = None
         self._installable_apps = None
 
+
+    def _download_icon_and_show_when_ready(self, icon_file_name):
+        self._logger.debug("icon is downloadable: %s" % icon_file_name)
+        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
+        self._logger.debug("did not find the icon locally, must download it")
+        # FIXME:  does the url string belong in the Distro class?  if so,
+        #         need to include an equivalent in Debian.py
+        # FIXME:  don't hardcode the PPA name
+        url = get_distro().PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
+        def on_image_download_complete(downloader, image_file_path):
+            pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
+                                                      self.icon_size,
+                                                      self.icon_size)
+            # replace the icon in the icon_cache now that we've got the real one
+            icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
+            self.icon_cache[icon_file] = pb
+        image_downloader = ImageDownloader()
+        image_downloader.connect('image-download-complete', on_image_download_complete)
+        image_downloader.download_image(url, icon_file_path)
+
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -511,17 +532,24 @@ class AppStore(gtk.GenericTreeModel):
             return s
         elif column == self.COL_ICON:
             try:
-                icon_name = self.db.get_iconname(doc)
-                if icon_name:
-                    icon_name = os.path.splitext(icon_name)[0]
+                icon_file_name = self.db.get_iconname(doc)
+                if icon_file_name:
+                    icon_name = os.path.splitext(icon_file_name)[0]
                     if icon_name in self.icon_cache:
                         return self.icon_cache[icon_name]
                     # icons.load_icon takes between 0.001 to 0.01s on my
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
-                    icon = self.icons.load_icon(icon_name, self.icon_size, 0)
-                    self.icon_cache[icon_name] = icon
-                    return icon
+                    
+                    # check if this is a downloadable icon
+                    if not self.db.get_icon_needs_download(doc):
+                        # load the icon from the theme
+                        icon = self.icons.load_icon(icon_name, self.icon_size, 0)
+                        self.icon_cache[icon_name] = icon
+                        return icon
+                    else:
+                        self._download_and_show_when_ready(icon_file_name)
+                        return self._appicon_missing_icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)
                 self.icon_cache[icon_name] = self._appicon_missing_icon

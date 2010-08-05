@@ -52,6 +52,7 @@ from view.viewmanager import ViewManager
 
 from backend.config import get_config
 from backend import get_install_backend
+from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from plugin import PluginManager
 
@@ -323,6 +324,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # open plugin manager and load plugins
         self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
         self.plugin_manager.load_plugins()
+        
+        # make the local cache directory if it doesn't already exist
+        icon_cache_dir = SOFTWARE_CENTER_ICON_CACHE_DIR
+        if not os.path.exists(icon_cache_dir):
+            os.makedirs(icon_cache_dir)
+        self.icons.append_search_path(icon_cache_dir)
 
         # run s-c-agent update
         if options.enable_buy:

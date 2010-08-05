@@ -32,6 +32,17 @@ software-center (2.1.8) UNRELEASED; urgency=low
     softwarecenter/db/update.py:
     - implement a-x-i plugin to index custom metadata
       for the new-apps archive 
+  * softwarecenter/utils.py:
+    - add generic image downloader class
+  * softwarecenter/app.py,
+    softwarecenter/backend/paths.py,
+    softwarecenter/db/application.py,
+    softwarecenter/db/database.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appview.py:
+    - implement download and local caching of downloadable
+      icons, display them in applist and appdetails views
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 03 Aug 2010 14:32:12 -0400
 

@@ -451,6 +451,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
             url = parser.get_desktop("X-AppInstall-Screenshot-Url")
             doc.add_value(XAPIAN_VALUE_SCREENSHOT_URL, url)
+        # thumbnail (for third party)
+        if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
+            url = parser.get_desktop("X-AppInstall-Thumbnail-Url")
+            doc.add_value(XAPIAN_VALUE_THUMBNAIL_URL, url)
         # price (pay stuff)
         if parser.has_option_desktop("X-AppInstall-Price"):
             price = parser.get_desktop("X-AppInstall-Price")
