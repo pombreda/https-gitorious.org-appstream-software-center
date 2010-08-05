@@ -30,12 +30,14 @@ import tempfile
 from gettext import gettext as _
 
 from softwarecenter.db.application import Application
-from softwarecenter.enums import USER_AGENT, MISSING_APP_ICON
+from softwarecenter.enums import *
 from softwarecenter.view.appdetailsview import AppDetailsViewBase
 from softwarecenter.utils import get_current_arch, htmlize_package_desc
 from widgets.wkwidget import WebkitWidget
 
 from widgets.imagedialog import ShowImageDialog
+
+from softwarecenter.view.purchasedialog import PurchaseDialog
 
 
 class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
@@ -92,6 +94,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     
     def show_app(self, app):
         AppDetailsViewBase.show_app(self, app)
+        #print self.appdetails
 
     # private stuff
     def _show(self, widget):
@@ -103,12 +106,6 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.load_string("", "text/plain", "ascii", "file:/")
         while gtk.events_pending(): 
             gtk.main_iteration()
-
-    def get_icon_filename(self, iconname, iconsize):
-        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
-        if not iconinfo:
-            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
-        return iconinfo.get_filename()
 
     # substitute functions called during page display
     def wksub_appname(self):
@@ -124,7 +121,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     def wksub_description(self):
         # FIXME: portme to AppDetails class
         if not self.appdetails.pkg:
-            available_for_arch = self._available_for_our_arch()
+            available_for_arch = self.appdetails._available_for_our_arch()
             if self.appdetails.channelfile and available_for_arch:
                 return _("This software is available from the '%s' source, "
                          "which you are not currently using.") % self.appdetails.channelname
@@ -134,6 +131,11 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
                 return _("To show information about this item, "
                          "the software catalog needs updating.")
             
+            # if we have no pkg and its a for pay app, display that
+            if (available_for_arch and
+                self.appdetails.price):
+                return _("This software is available for pay.")
+
             # if we don't have a package and it has no arch/component its
             # not available for us
             return _("Sorry, '%s' is not available for "
@@ -201,10 +203,11 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.action_button_value = self._get_action_button_label_and_value()[1]
         return self.action_button_value
     def wksub_action_button_visible(self):
-        if not self._available_for_our_arch():
+        if not self.appdetails._available_for_our_arch():
             return "hidden"
         if (not self.appdetails.channelfile and 
-            not self._unavailable_component() and
+            not self.appdetails.price and
+            not self.appdetails._unavailable_component() and
             not self.appdetails.pkg):
             return "hidden"
         return "visible"
@@ -280,6 +283,11 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
 
     # callbacks
+    def on_button_buy_app_clicked(self):
+        logging.debug("on_button_buy_app_clicked")
+        self.buy_app()
+        self._set_action_button_sensitive(True)
+
     def on_button_reload_clicked(self):
         self.reload()
         self._set_action_button_sensitive(False)
@@ -415,54 +423,32 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
                     #action_button_label = _("Install - %s") % price
                     self._logger.error("Can not handle price %s" % price)
                 action_button_value = "install"
-        # FIXME: use a state from the appdetails class here
-        elif self.appdetails._doc:
+        elif state == PKG_STATE_INSTALLED:
+            action_button_label = _("Remove")
+            action_button_value = "remove"
+        elif PKG_STATE_NEEDS_PURCHASE:
+            action_button_label = _("Buy for %s") % self.appdetails.price
+            action_button_value = "buy_app"
+        elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+            action_button_label = _("Reinstall")
+            action_button_value = "reinstall_purchased"
+        elif state == PKG_STATE_NEEDS_SOURCE:
             channelfile = self.appdetails.channelfile
+            # it has a price and is not available 
             if channelfile:
                 # FIXME: deal with the EULA stuff
                 action_button_label = _("Use This Source")
                 action_button_value = "enable_channel"
             # check if it comes from a non-enabled component
-            elif self._unavailable_component():
+            elif self.appdetails._unavailable_component():
                 # FIXME: use a proper message here, but we are in string freeze
                 action_button_label = _("Use This Source")
                 action_button_value = "enable_component"
-            elif self._available_for_our_arch():
+            elif self.appdetails._available_for_our_arch():
                 action_button_label = _("Update Now")
                 action_button_value = "reload"
         return (action_button_label, action_button_value)
 
-    def _unavailable_component(self):
-        """ 
-        check if the given doc refers to a component (like universe)
-        that is currently not enabled
-        """
-        component =  self.appdetails.component
-        self._logger.debug("component: '%s'" % component)
-        # if there is no component accociated, it can not be unavailable
-        if not component:
-            return False
-        distro_codename = self.distro.get_codename()
-        available = self.cache.component_available(distro_codename, component)
-        return (not available)
-
-    def _available_for_our_arch(self):
-        """ check if the given package is available for our arch """
-        arches = self.appdetails.architecture
-        # if we don't have a arch entry in the document its available
-        # on all architectures we know about
-        if not arches:
-            return True
-        # check the arch field and support both "," and ";"
-        sep = ","
-        if ";" in arches:
-            sep = ";"
-        elif "," in arches:
-            sep = ","
-        for arch in map(string.strip, arches.split(sep)):
-            if arch == self.arch:
-                return True
-        return False
     def _set_action_button_sensitive(self, enabled):
         if self.get_load_status() != 2:
             return
@@ -512,9 +498,6 @@ if __name__ == "__main__":
     icons = gtk.icon_theme_get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
-
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
@@ -524,8 +507,9 @@ if __name__ == "__main__":
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppDetailsViewWebkit(db, distro, icons, cache, history, datadir)
+    view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 

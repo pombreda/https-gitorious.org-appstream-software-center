@@ -419,11 +419,11 @@ class AppStore(gtk.GenericTreeModel):
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: see _refresh_contents.
 
-    def _on_transaction_started(self, *args):
+    def _on_transaction_started(self, *args, **kwargs):
         self._existing_apps = None
         self._installable_apps = None
 
-    def _on_transaction_finished(self, *args):
+    def _on_transaction_finished(self, *args, **kwargs):
         self._existing_apps = None
         self._installable_apps = None
 
@@ -1478,10 +1478,10 @@ class AppView(gtk.TreeView):
             action_btn.set_sensitive(False)
             self._set_cursor(action_btn, None)
 
-    def _on_transaction_finished(self, backend, pkgname, success, tr):
+    def _on_transaction_finished(self, backend, result, tr):
         """ callback when an application install/remove transaction has finished """
         # remove pkg from the block list
-        self._check_remove_pkg_from_blocklist(pkgname)
+        self._check_remove_pkg_from_blocklist(result.pkgname)
 
         action_btn = tr.get_button_by_name('action0')
         if action_btn:

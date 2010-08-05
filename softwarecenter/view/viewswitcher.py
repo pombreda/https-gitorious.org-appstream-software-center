@@ -181,6 +181,15 @@ class ViewSwitcher(gtk.TreeView):
         if model:
             expanded = self.row_expanded(model.get_path(model.installed_iter))
         return expanded
+        
+    def select_channel_node(self, channel_name, installed_only):
+        """ select the specified channel node """
+        model = self.get_model()
+        if model:
+            channel_iter_to_select = model.get_channel_iter_for_name(channel_name,
+                                                                     installed_only)
+            if channel_iter_to_select:
+                self.set_cursor(model.get_path(channel_iter_to_select))
 
     def _on_channels_refreshed(self, model):
         """
@@ -287,8 +296,8 @@ class ViewSwitcherList(gtk.TreeStore):
                 if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
                     del self[(i,)]
                     
-    def on_transaction_finished(self, backend, pkgname, success):
-        if success:
+    def on_transaction_finished(self, backend, result):
+        if result.success:
             self._update_channel_list_installed_view()
             self.emit("channels-refreshed")
 
@@ -372,7 +381,8 @@ class ViewSwitcherList(gtk.TreeStore):
             # check for no installed items for each channel and do not
             # append the channel item in this case
             enquire = xapian.Enquire(self.db.xapiandb)
-            enquire.set_query(channel.get_channel_query())
+            query = channel.get_channel_query()
+            enquire.set_query(query)
             matches = enquire.get_mset(0, len(self.db))
             # only check channels that have a small number of items
             add_channel_item = True

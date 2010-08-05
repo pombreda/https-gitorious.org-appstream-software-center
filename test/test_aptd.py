@@ -33,6 +33,16 @@ class testAptdaemon(unittest.TestCase):
         self.assertEqual(self._pkgs_to_install, ["7zip", "2vcard"])
         self._pkgs_to_install = []
 
+    def _monkey_patched_add_vendor_key_from_keyserver(self, keyid, keyserver):
+        self.assertTrue(keyid.startswith("0x"))
+
+    def test_download_key_from_keyserver(self):
+        keyid = "0EB12F05"
+        keyserver = "keyserver.ubuntu.com"
+        self.aptd.aptd_client.add_vendor_key_from_keyserver = self._monkey_patched_add_vendor_key_from_keyserver
+        self.aptd.add_vendor_key_from_keyserver(keyid, keyserver)
+
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)
