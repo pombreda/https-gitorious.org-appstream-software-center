@@ -42,6 +42,19 @@ class SCTestGUI(unittest.TestCase):
         self.app = app
         self._p()
     
+    def test_supported_only(self):
+        """ test if clicking on the "supported only" menuitems
+            really makes the the amount of items smaller
+        """
+        self._reset_ui()
+        items_all = self.app.label_status.get_text()
+        self.app.menuitem_view_supported_only.activate()
+        items_supported = self.app.label_status.get_text()
+        self.assertNotEqual(items_all, items_supported)
+        len_all = int(items_all.split()[0])
+        len_supported = int(items_supported.split()[0])
+        self.assertTrue(len_all > len_supported)
+
     def test_categories_and_back_forward(self):
         self._reset_ui()
 
