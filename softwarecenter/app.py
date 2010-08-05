@@ -342,6 +342,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             file_menu = self.builder.get_object("menu1")
             file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
 
+        if not options.enable_buy and not options.enable_lp:
+            file_menu.remove(self.builder.get_object("separator_login"))
+
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):
         if os.WEXITSTATUS(condition) == 0:
