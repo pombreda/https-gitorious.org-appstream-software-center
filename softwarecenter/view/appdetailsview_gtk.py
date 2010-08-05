@@ -65,6 +65,8 @@ COLOR_GREEN_OUTLINE = '#8AE234'
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
 
+LOG = logging.getLogger("softwarecenter.view.appdetails")
+
 class PackageStatusBar(gtk.Alignment):
     
     def __init__(self, view):
@@ -95,7 +97,6 @@ class PackageStatusBar(gtk.Alignment):
 
         #self.button.connect('size-allocate', self._on_button_size_allocate)
         self.button.connect('clicked', self._on_button_clicked)
-        self._logger = logging.getLogger("softwarecenter.view.appdetails")
         return
 
     def _on_button_size_allocate(self, button, allocation):
@@ -109,6 +110,10 @@ class PackageStatusBar(gtk.Alignment):
         state = self.pkg_state
         if state == PKG_STATE_INSTALLED:
             AppDetailsViewBase.remove(self.view)
+        elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+            AppDetailsViewBase.reinstall_purchased(self.view)
+        elif state == PKG_STATE_NEEDS_PURCHASE:
+            AppDetailsViewBase.buy_app(self.view)
         elif state == PKG_STATE_UNINSTALLED:
             AppDetailsViewBase.install(self.view)
         elif state == PKG_STATE_REINSTALLABLE:
@@ -116,6 +121,7 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADABLE:
             AppDetailsViewBase.upgrade(self.view)
         elif state == PKG_STATE_NEEDS_SOURCE:
+            # FIXME:  This should be in AppDetailsViewBase
             self.view.use_this_source()
         return
 
@@ -129,6 +135,8 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def configure(self, app_details, state):
+        LOG.debug("configure %s state=%s pkgstate=%s" % (
+                app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = app_details.pkg_state
         self.app_details = app_details
         self.progress.hide()
@@ -136,16 +144,41 @@ class PackageStatusBar(gtk.Alignment):
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
 
-        if state == PKG_STATE_INSTALLED:
-            if app_details.installation_date:
+        # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
+        #         so that all UI controls (menu item, applist view button and appdetails
+        #         view button) are managed centrally:  button text, button sensitivity,
+        #         and the associated callback.
+        if state == PKG_STATE_INSTALLING:
+            self.set_label(_('Installing...'))
+            #self.set_button_label(_('Install'))
+        elif state == PKG_STATE_INSTALLING_PURCHASED:
+            self.set_label(_('Installing purchased...'))
+            self.button.hide()
+            #self.set_button_label(_('Install'))
+        elif state == PKG_STATE_REMOVING:
+            self.set_label(_('Removing...'))
+            #self.set_button_label(_('Remove'))
+        elif state == PKG_STATE_UPGRADING:
+            self.set_label(_('Upgrading...'))
+            #self.set_button_label(_('Upgrade Available'))
+        elif state == PKG_STATE_INSTALLED:
+            if app_details.purchase_date:
+                purchase_date = str(app_details.purchase_date).split()[0]
+                self.set_label(_('Purchased on %s' % purchase_date))
+            elif app_details.installation_date:
                 installation_date = str(app_details.installation_date).split()[0]
-                self.set_label(_('Installed %s' % installation_date))
+                self.set_label(_('Installed on %s' % installation_date))
             else:
                 self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
+        elif state == PKG_STATE_NEEDS_PURCHASE:
+            self.set_label(_("Buy for %s") % app_details.price)
+            self.set_button_label(_('Buy'))
+        elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+            purchase_date = str(app_details.purchase_date).split()[0]
+            self.set_label(_('Purchased on %s' % purchase_date))
+            self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
-            if app_details.price:
-                self.set_label(app_details.price)
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_REINSTALLABLE:
             if app_details.price:
@@ -154,23 +187,23 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
-        elif state == PKG_STATE_INSTALLING:
-            self.set_label(_('Installing...'))
-            #self.set_button_label(_('Install'))
-        elif state == PKG_STATE_REMOVING:
-            self.set_label(_('Removing...'))
-            #self.set_button_label(_('Remove'))
-        elif state == PKG_STATE_UPGRADING:
-            self.set_label(_('Upgrading...'))
-            #self.set_button_label(_('Upgrade Available'))
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
             self.fill_color = COLOR_RED_FILL
             self.line_color = COLOR_RED_OUTLINE
         elif state == PKG_STATE_NEEDS_SOURCE:
-            self.set_button_label(_('Use This Source'))
-            self.set_label(_('Source Unavailable'))
+            channelfile = self.appdetails.channelfile
+            # it has a price and is not available 
+            if channelfile:
+                # FIXME: deal with the EULA stuff
+                self.set_button_label(_("Use This Source"))
+            # check if it comes from a non-enabled component
+            elif self.appdetails._unavailable_component():
+                # FIXME: use a proper message here, but we are in string freeze
+                self.set_button_label(_("Use This Source"))
+            elif self.appdetails._available_for_our_arch():
+                self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
         return
@@ -635,7 +668,7 @@ class ScreenshotView(gtk.Alignment):
             try:
                 pb = gtk.gdk.pixbuf_new_from_file(path)
             except:
-                logging.warn('Screenshot downloaded but the file could not be opened.')
+                LOG.warn('Screenshot downloaded but the file could not be opened.')
                 return False
 
             self.image.set_size_request(-1, -1)
@@ -688,7 +721,7 @@ class ScreenshotView(gtk.Alignment):
         acc.set_name(_('Fetching screenshot ...'))
 
         self.clear()
-        self.appname = app_details.name
+        self.appname = app_details.display_name
         self.thumbnail_url = app_details.thumbnail
         self.large_url = app_details.screenshot
         return
@@ -898,7 +931,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-                'appname' : self.app_details.name, 
+                'appname' : self.app_details.display_name, 
                 'pkgname' : self.app_details.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
@@ -999,14 +1032,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = gobject.markup_escape_text(app_details.name)
+        appname = gobject.markup_escape_text(app_details.display_name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
         # FIXME: Once again (yes, I am working from the end to the beginning of the file..) this is tmp until we find a better place for the errors
         if self.app_details.error:
             summary = app_details.error
         else:
-            summary = app_details.summary
+            summary = app_details.display_summary
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
@@ -1077,16 +1110,25 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     # public API
+    # FIXME:  port to AppDetailsViewBase as
+    #         AppDetailsViewBase.show_app(self, app)
     def show_app(self, app):
-        self._logger.debug("AppDetailsView.show_app '%s'" % app)
+        LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
+            LOG.info("no app selected")
             return
         
+        # set button sensitive again
+        self.action_bar.button.set_sensitive(True)
+
+        # init data
         self.app = app
-        self.app_details = AppDetails(self.db, application=self.app)
+        self.app_details = app.get_details(self.db)
         # for compat with the base class
         self.appdetails = self.app_details
-        self.emit("selected", self.app)
+        #print "AppDetailsViewGtk:"
+        #print self.appdetails
+        # self.emit("selected", self.app)  # << redundant??
         self._update_page(self.app_details)
         self.emit("selected", self.app)
         return
@@ -1100,12 +1142,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.backend.enable_component(self.app_details.component)
 
     # internal callback
-    def _update_interface_on_trans_ended(self):
+    def _update_interface_on_trans_ended(self, result):
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
 
         state = self.action_bar.pkg_state
-        if state == PKG_STATE_REMOVING:
+        # handle purchase: install purchased has multiple steps
+        if state == PKG_STATE_INSTALLING_PURCHASED and not result.pkgname:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
+        elif state == PKG_STATE_INSTALLING_PURCHASED and result.pkgname:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+        # normal states
+        elif state == PKG_STATE_REMOVING:
             self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         elif state == PKG_STATE_INSTALLING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
@@ -1116,7 +1164,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
         state = self.action_bar.pkg_state
-        if state == PKG_STATE_UNINSTALLED:
+        LOG.debug("_on_transaction_stated %s" % state)
+        if state == PKG_STATE_NEEDS_PURCHASE:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
+        elif state == PKG_STATE_UNINSTALLED:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
         elif state == PKG_STATE_INSTALLED:
             self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
@@ -1124,14 +1175,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.action_bar.configure(self.app_details, PKG_STATE_UPGRADING)
         return
 
-    def _on_transaction_stopped(self, backend):
+    def _on_transaction_stopped(self, backend, pkgname):
         self.action_bar.progress.hide()
         self._update_interface_on_trans_ended()
         return
 
-    def _on_transaction_finished(self, backend, success):
+    def _on_transaction_finished(self, backend, result):
         self.action_bar.progress.hide()
-        self._update_interface_on_trans_ended()
+        self._update_interface_on_trans_ended(result)
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
@@ -1238,6 +1289,7 @@ if __name__ == "__main__":
     pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
+
     from softwarecenter.db.database import StoreDatabase
     db = StoreDatabase(pathname, cache)
     db.open()
@@ -1248,12 +1300,16 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
+    from softwarecenter.apt.apthistory import get_apt_history
+    history = get_apt_history()
+
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsViewGtk(db, distro, icons, cache, datadir)
+    view = AppDetailsViewGtk(db, distro, icons, cache, history, datadir)
     from softwarecenter.db.application import Application
+    view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 

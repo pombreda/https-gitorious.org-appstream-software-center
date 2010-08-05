@@ -64,7 +64,7 @@ class LoginDialog(object):
         #self.login_spinner.show()
 
     def login(self):
-        self.loginbackend.login()
+        return self.loginbackend.login()
 
     def cb_need_username_password(self, lp):
         res = self.dialog_login.run()

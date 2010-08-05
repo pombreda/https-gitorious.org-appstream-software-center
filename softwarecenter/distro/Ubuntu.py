@@ -35,6 +35,9 @@ class Ubuntu(Distro):
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
 
+    # purchase subscription
+    PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s"
+
     def get_app_name(self):
         return _("Ubuntu Software Center")
 
@@ -103,17 +106,6 @@ class Ubuntu(Distro):
                      origin.component == "restricted")):
                     return True
         return False
-
-    def get_price(self, doc):
-        # SPECIAL CASE for partner, we don't know the prices there
-        # see bug #552830 so we return None
-        for term_iter in doc.termlist():
-            if (term_iter.term == "XOCpartner" or
-                term_iter.term == "AH%s-partner" % self.get_distro_codename()):
-                return None
-        #TRANSLATORS: This text will be showed as price of the software
-        price = _("Free")
-        return price
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
         # try to figure out the support dates of the release and make
