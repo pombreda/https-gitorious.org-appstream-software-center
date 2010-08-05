@@ -40,25 +40,19 @@ class Application(object):
         
         There is also a __cmp__ method and a name property
     """
-    def __init__(self, appname, pkgname, request, popcon=0):
-        if request.count("/") > 0 and not appname:
-            self.appname = request.split('/')[-1].split('_')[0].split('.deb')[0].capitalize()
-            self.pkgname = request.split('/')[-1].split('_')[0].split('.deb')[0].lower()
-        else:
-            self.pkgname = pkgname
-            if appname:
-                self.appname = appname
-            else:
-                self.appname = pkgname.capitalize()
-        self.appname = self.appname.replace("$kernel", os.uname()[2])
-        self.pkgname = self.pkgname.replace("$kernel", os.uname()[2])
+    def __init__(self, appname="", pkgname="", request="", popcon=0):
+        if not (appname or pkgname):
+            raise ValueError("Need either appname or pkgname or request")
+        # defaults
+        self.pkgname = pkgname
+        self.appname = appname
         self.request = request
-        if not request:
-            if self.pkgname.count("?") > 0:
-                self.request = ('?').join(self.pkgname.split('?')[1:])
-                self.appname = self.appname.split('?')[0]
-                self.pkgname = self.pkgname.split('?')[0]
         self._popcon = popcon
+        # a "?" in the name means its a apturl request
+        if "?" in pkgname:
+            # the bit before the "?" is the pkgname, everything else the req
+            (self.pkgname, sep, self.request) = pkgname.partition("?")
+
     @property
     def name(self):
         """Show user visible name"""
@@ -92,6 +86,16 @@ class Application(object):
             return locale.strcoll(x.pkgname, y.appname)
         else:
             return cmp(x.pkgname, y.pkgname)
+
+class DebFileApplication(Application):
+    def __init__(self, debfile):
+        # deb overrides this
+        if not debfile.endswith(".deb"):
+            raise ValueError("Need a deb file, got '%s'" % debfile)
+        debname = os.path.splitext(os.path.basename(debfile))[0]
+        self.appname = debname.split('_')[0].capitalize()
+        self.pkgname = debname.split('_')[0].lower()
+        self.request = debfile
 
 # the details
 class AppDetails(object):

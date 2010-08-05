@@ -237,7 +237,7 @@ class AppStore(gtk.GenericTreeModel):
                     if term.startswith("AP"):
                         pkgname = term[2:]
                         break
-                app = Application("", pkgname, "")
+                app = Application("", pkgname)
                 self.apps.append(app)
                 
         # if we only have nonapps to be displayed, don't hide them

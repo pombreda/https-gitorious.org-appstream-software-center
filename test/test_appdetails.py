@@ -8,7 +8,7 @@ import apt
 import unittest
 import shutil
 
-from softwarecenter.db.application import Application, AppDetails
+from softwarecenter.db.application import Application, DebFileApplication, AppDetails
 
 class testApplication(unittest.TestCase):
 
@@ -25,16 +25,25 @@ class testApplication(unittest.TestCase):
         self.assertRaises(ValueError, Application, ())
 
     def test_application_deb(self):
-        app = Application(request="/tmp/2vcard_1.0_all.deb")
+        app = DebFileApplication("/tmp/2vcard_1.0_all.deb")
         self.assertEqual(app.pkgname, "2vcard")
         self.assertEqual(app.appname, "2vcard")
-        app = Application(request="/tmp/apt_2.0_i386.deb")
+        app = DebFileApplication("/tmp/apt_2.0_i386.deb")
         self.assertEqual(app.pkgname, "apt")
         self.assertEqual(app.appname, "Apt")
-        app = Application(request="/tmp/odd.deb")
+        app = DebFileApplication("/tmp/odd.deb")
         self.assertEqual(app.pkgname, "odd")
         self.assertEqual(app.appname, "Odd")
     
+    def test_application_with_request(self):
+        app = Application("appname", "pkgname?section=universe&section=multiverse")
+        self.assertEqual(app.appname, "appname")
+        self.assertEqual(app.pkgname, "pkgname")
+        self.assertEqual(app.request, "section=universe&section=multiverse")
+        app = Application("appname", "pkgname?section=a?section=b")
+        self.assertEqual(app.appname, "appname")
+        self.assertEqual(app.pkgname, "pkgname")
+        self.assertEqual(app.request, "section=a?section=b")
 
 if __name__ == "__main__":
     import logging

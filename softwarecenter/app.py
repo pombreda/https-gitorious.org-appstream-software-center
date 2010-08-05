@@ -33,7 +33,7 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-from softwarecenter import Application
+from softwarecenter.db.application import Application, DebFileApplication
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
@@ -791,34 +791,26 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             If the list of packages is only one element long show that,
             otherwise turn it into a comma seperated search
         """
-        if packages:
-            if packages[0].startswith("apt://"):
-                packages[0] = packages[0].partition("://")[2]
-            if packages[0].startswith("apt:"):
-                packages[0] = packages[0].partition(":")[2]
+        # strip away the apt: prefix
+        if packages and packages[0].startswith("apt://"):
+            packages[0] = packages[0].partition("apt://")[2]
+        elif packages and packages[0].startswith("apt:"):
+            packages[0] = packages[0].partition("apt:")[2]
 
         if len(packages) == 1:
-            # FIXME: deal with pkgname/appname requests
-#            # show a single package
- #           full_pkgname = packages[0]
-  #          # if there is a "/" in the string consider it as tuple
-   #         (pkgname, seperator, appname) = full_pkgname.partition("/")
-    #        app = Application(appname, pkgname)
-     #       self.available_pane.on_application_activated(None, app)
             request = packages[0]
-            if "/" in request:
+            if request.endswith(".deb"):
                 # deb file
-                app = Application("", "", request)
-            elif "?" in request:
-                # apt url
-                app = Application("", 
-                                  request.split('?')[0], 
-                                  ('?').join(request.split('?')[1:]))
+                app = DebFileApplication(request)
             else:
                 # package from archive
-                app = Application("", request, "")
-            if (app.pkgname in self.available_pane.cache and 
-                self.available_pane.cache[app.pkgname].installed):
+                # if there is a "/" in the string consider it as tuple
+                (pkgname, sep, appname) = packages[0].partition("/")
+                app = Application(appname, pkgname)
+                self.available_pane.on_application_activated(None, app)
+            # if the pkg is installed, show it in the installed pane
+            if (app.pkgname in self.cache and 
+                self.cache[app.pkgname].installed):
                 self.installed_pane.loaded = True
                 self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
                 self.installed_pane.loaded = False
