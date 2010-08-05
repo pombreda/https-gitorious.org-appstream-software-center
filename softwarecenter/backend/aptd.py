@@ -56,6 +56,12 @@ class TransactionFinishedResult(object):
         self.pkgname = trans.meta_data.get("sc_pkgname")
         self.meta_data = trans.meta_data
 
+class TransactionProgress(object):
+    """ represents the progress of the transaction """
+    def __init__(self, trans):
+        self.pkgname = trans.meta_data.get("sc_pkgname")
+        self.meta_data = trans.meta_data
+        self.progress = trans.progress
 
 class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     """ software center specific code that interacts with aptdaemon """
@@ -305,16 +311,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if not tid:
                 continue
             trans = client.get_transaction(tid, error_handler=lambda x: True)
-            # FIXME: add a bit more data here
+            trans_progress = TransactionProgress(trans)
             try:
-                pkgname = trans.meta_data["sc_pkgname"]
-                self.pending_transactions[pkgname] = trans.progress
+                self.pending_transactions[trans_progress.pkgname] = trans_progress
             except KeyError:
                 # if its not a transaction from us (sc_pkgname) still
                 # add it with the tid as key to get accurate results
                 # (the key of pending_transactions is never directly
                 #  exposed in the UI)
-                self.pending_transactions[trans.tid] = trans.progress
+                self.pending_transactions[trans.tid] = trans_progress
         self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
@@ -324,7 +329,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         try:
             pkgname = trans.meta_data["sc_pkgname"]
-            self.pending_transactions[pkgname] = progress
+            self.pending_transactions[pkgname].progress = progress
             self.emit("transaction-progress-changed", pkgname, progress)
         except KeyError:
             pass

@@ -543,7 +543,7 @@ class AppStore(gtk.GenericTreeModel):
             return (rowref == self.active_app)
         elif column == self.COL_ACTION_IN_PROGRESS:
             if app.pkgname in self.backend.pending_transactions:
-                return self.backend.pending_transactions[app.pkgname]
+                return self.backend.pending_transactions[app.pkgname].progress
             else:
                 return -1
         elif column == self.COL_EXISTS:
