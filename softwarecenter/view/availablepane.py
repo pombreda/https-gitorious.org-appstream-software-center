@@ -28,6 +28,7 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.distro import get_distro
 
 from appview import AppView, AppStore, AppViewFilter
 
@@ -234,7 +235,7 @@ class AvailablePane(SoftwarePane):
         self._logger.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
-        
+
         # if a search is not in progress, clear the current model to
         # display an empty list while the full list is generated; this
         # prevents a visual glitch when a list is replaced
@@ -275,6 +276,7 @@ class AvailablePane(SoftwarePane):
         # set model
         self.app_view.set_model(new_model)
         self.app_view.get_model().active = True
+
         # check if we show subcategory
         self._show_hide_subcategories()
         self.notebook.show()
@@ -358,11 +360,8 @@ class AvailablePane(SoftwarePane):
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
             if self.apps_filter.get_supported_only():
-                query1 = xapian.Query("XOL"+"Ubuntu")
-                query2a = xapian.Query("XOC"+"main")
-                query2b = xapian.Query("XOC"+"restricted")
-                query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
-                query = xapian.Query(xapian.Query.OP_AND, query1, query2)
+                distro = get_distro()
+                query = distro.get_supported_query()
                 enquire = xapian.Enquire(self.db.xapiandb)
                 enquire.set_query(query)
                 matches = enquire.get_mset(0, len(self.db))

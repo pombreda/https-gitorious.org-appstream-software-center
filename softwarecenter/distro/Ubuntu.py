@@ -104,6 +104,14 @@ class Ubuntu(Distro):
                     return True
         return False
 
+    def get_supported_query(self):
+        import xapian
+        query1 = xapian.Query("XOL"+"Ubuntu")
+        query2a = xapian.Query("XOC"+"main")
+        query2b = xapian.Query("XOC"+"restricted")
+        query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
+        return xapian.Query(xapian.Query.OP_AND, query1, query2)
+
     def get_price(self, doc):
         # SPECIAL CASE for partner, we don't know the prices there
         # see bug #552830 so we return None

@@ -291,7 +291,7 @@ class ViewSwitcherList(gtk.TreeStore):
                 if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
                     del self[(i,)]
                     
-    def on_transaction_finished(self, backend, success):
+    def on_transaction_finished(self, backend, pkgname, success):
         if success:
             self._update_channel_list_installed_view()
             self.emit("channels-refreshed")

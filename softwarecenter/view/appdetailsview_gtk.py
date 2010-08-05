@@ -700,7 +700,7 @@ class ScreenshotView(gtk.Alignment):
         acc.set_name(_('Fetching screenshot ...'))
 
         self.clear()
-        self.appname = app_details.name
+        self.appname = app_details.display_name
         self.thumbnail_url = app_details.thumbnail
         self.large_url = app_details.screenshot
         return
@@ -912,7 +912,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_share_clicked(self, button):
         # TRANSLATORS: apturl:%(pkgname) is the apt protocol
         msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
-                'appname' : self.app_details.name, 
+                'appname' : self.app_details.display_name, 
                 'pkgname' : self.app_details.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
@@ -1016,13 +1016,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = gobject.markup_escape_text(self.app_details.name)
+        appname = gobject.markup_escape_text(self.app_details.display_name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
         if error:
             summary = error
         else:
-            summary = self.app_details.summary
+            summary = self.app_details.display_summary
         if not summary:
             summary = ""
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
