@@ -1101,10 +1101,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def show_app(self, app):
         self._logger.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
+            self._logger.warn("no app")
             return
-        
         self.app = app
-        self.app_details = AppDetails(self.db, application=self.app)
+        self.app_details = app.get_details(self.db)
         # for compat with the base class
         self.appdetails = self.app_details
         self.emit("selected", self.app)
