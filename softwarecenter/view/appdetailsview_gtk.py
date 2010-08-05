@@ -1209,13 +1209,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             if self.icons.has_icon(app_details.icon):
                 return self.icons.load_icon(app_details.icon, 84, 0)
             elif app_details.icon_needs_download:
-                self._logger.debug("icon is downloadable: %s" % app_details.icon_file_name)
-                icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
-                                              app_details.icon_file_name)
-                if os.path.exists(icon_file_path):
-                    pb = gtk.gdk.pixbuf_new_from_file(icon_file_path)
-                    return pb
-                # guess we need to download it then
                 self._logger.debug("did not find the icon locally, must download it")
                 # FIXME:  does the url string belong in the Distro class?  if so,
                 #         need to include an equivalent in Debian.py
