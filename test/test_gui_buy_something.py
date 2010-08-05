@@ -94,13 +94,13 @@ class SCBuySomething(unittest.TestCase):
 			gtk.main_iteration()
 		time.sleep(0.1)
         
-    def _on_transaction_finished(self, backend, pkgname, status):
-        print "_on_transaction_finished", backend, pkgname, status
-        if not pkgname:
+    def _on_transaction_finished(self, backend, result):
+        print "_on_transaction_finished", result
+        if not result.pkgname:
             return
-        print "done", pkgname
+        print "done", result.pkgname
         self._finished = True
-        self.assertTrue(status)
+        self.assertTrue(result.success)
 
 if __name__ == "__main__":
     unittest.main()

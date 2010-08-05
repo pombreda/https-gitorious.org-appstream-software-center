@@ -65,6 +65,8 @@ COLOR_GREEN_OUTLINE = '#8AE234'
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
 
+LOG = logging.getLogger("softwarecenter.view.appdetails")
+
 class PackageStatusBar(gtk.Alignment):
     
     def __init__(self, view):
@@ -95,7 +97,6 @@ class PackageStatusBar(gtk.Alignment):
 
         #self.button.connect('size-allocate', self._on_button_size_allocate)
         self.button.connect('clicked', self._on_button_clicked)
-        self._logger = logging.getLogger("softwarecenter.view.appdetails")
         return
 
     def _on_button_size_allocate(self, button, allocation):
@@ -134,6 +135,7 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def configure(self, app_details, state):
+        LOG.warn("configure %s %s" % (app_details.pkgname, state))
         self.pkg_state = app_details.pkg_state
         self.app_details = app_details
         self.progress.hide()
@@ -145,9 +147,11 @@ class PackageStatusBar(gtk.Alignment):
         #         so that all UI controls (menu item, applist view button and appdetails
         #         view button) are managed centrally:  button text, button sensitivity,
         #         and the associated callback.
-        print "confiugre", state
         if state == PKG_STATE_INSTALLING:
             self.set_label(_('Installing...'))
+            #self.set_button_label(_('Install'))
+        elif state == PKG_STATE_INSTALLING_PURCHASED:
+            self.set_label(_('Installing purchased...'))
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
@@ -662,7 +666,7 @@ class ScreenshotView(gtk.Alignment):
             try:
                 pb = gtk.gdk.pixbuf_new_from_file(path)
             except:
-                logging.warn('Screenshot downloaded but the file could not be opened.')
+                LOG.warn('Screenshot downloaded but the file could not be opened.')
                 return False
 
             self.image.set_size_request(-1, -1)
@@ -1107,7 +1111,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     # FIXME:  port to AppDetailsViewBase as
     #         AppDetailsViewBase.show_app(self, app)
     def show_app(self, app):
-        self._logger.debug("AppDetailsView.show_app '%s'" % app)
+        LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             return
         
@@ -1135,13 +1139,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.backend.enable_component(self.app_details.component)
 
     # internal callback
-    def _update_interface_on_trans_ended(self):
-        print "_update_interface_on_trans_ended"
+    def _update_interface_on_trans_ended(self, result):
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
 
         state = self.action_bar.pkg_state
-        if state == PKG_STATE_REMOVING:
+        if state == PKG_STATE_INSTALLING_PURCHASED and not result.pkgname:
+            # a purchase is multiple steps
+            self.action_bar.button_hide()
+        elif state == PKG_STATE_INSTALLING_PURCHASED and result.pkgname:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+        elif state == PKG_STATE_REMOVING:
             self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         elif state == PKG_STATE_INSTALLING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
@@ -1152,7 +1160,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
         state = self.action_bar.pkg_state
-        if state == PKG_STATE_UNINSTALLED:
+        LOG.warn("_on_transaction_stated %s" % state)
+        if state == PKG_STATE_NEEDS_PURCHASE:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
+        elif state == PKG_STATE_UNINSTALLED:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
         elif state == PKG_STATE_INSTALLED:
             self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
@@ -1165,9 +1176,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_interface_on_trans_ended()
         return
 
-    def _on_transaction_finished(self, backend, pkgname, success):
+    def _on_transaction_finished(self, backend, result):
         self.action_bar.progress.hide()
-        self._update_interface_on_trans_ended()
+        self._update_interface_on_trans_ended(result)
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):

@@ -641,7 +641,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(False)
             
-    def _on_transaction_finished(self, backend, pkgname, success):
+    def _on_transaction_finished(self, backend, result):
         """ callback when an application install/remove transaction 
             (or a cache reload) has finished 
         """
