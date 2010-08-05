@@ -31,6 +31,7 @@ if sys.argv[1] == "build":
 setup(name="software-center", version=VERSION,
       scripts=["software-center",
                "utils/update-software-center",
+               "utils/update-software-center-agent",
                ],
       packages = ['softwarecenter',
                   'softwarecenter.apt',

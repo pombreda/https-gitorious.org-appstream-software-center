@@ -23,9 +23,11 @@ import os
 import gobject
 gobject.threads_init()
 import glib
+import logging
 import time
 import threading
-import logging
+
+from softwarecenter.enums import BUY_SOMETHING_HOST
 from softwarecenter.distro import get_distro
 from softwarecenter.utils import get_current_arch
 
@@ -44,7 +46,22 @@ from Queue import Queue
 from login import LoginBackend
 
 UBUNTU_SSO_SERVICE = "https://login.staging.ubuntu.com/api/1.0"
-UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = "http://localhost:8000/api/1.0"
+UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = BUY_SOMETHING_HOST+"/api/1.0"
+
+class EmptyObject(object):
+    pass
+
+def restful_collection_to_real_python(restful_list):
+    """ take a restful and convert it to a python list with real python
+        objects
+    """
+    l = []
+    for entry in restful_list:
+        o = EmptyObject()
+        for attr in entry.lp_attributes:
+            setattr(o, attr, getattr(entry, attr))
+        l.append(o)
+    return l
 
 class RestfulClientWorker(threading.Thread):
     """ a generic worker thread for a lazr.restfulclient """
@@ -56,6 +73,8 @@ class RestfulClientWorker(threading.Thread):
         self._authorizer = authorizer
         self._pending_requests = Queue()
         self._shutdown = False
+        self.daemon = True
+        self.error = None
         self._logger = logging.getLogger("softwarecenter.backend")
 
     def run(self):
@@ -63,7 +82,12 @@ class RestfulClientWorker(threading.Thread):
         Main thread run interface, logs into launchpad
         """
         self._logger.debug("lp worker thread run")
-        self.service = ServiceRoot(self._authorizer, self._service_root_url)
+        try:
+            self.service = ServiceRoot(self._authorizer, self._service_root_url)
+        except AttributeError:
+            self.error = "ERROR_SERVICE_ROOT"
+            self._shutdown = True
+            return
         # loop
         self._wait_for_commands()
 
@@ -113,6 +137,10 @@ class SoftwareCenterAgent(gobject.GObject):
                               gobject.TYPE_NONE, 
                               (gobject.TYPE_PYOBJECT,),
                              ),
+        "error" : (gobject.SIGNAL_RUN_LAST,
+                   gobject.TYPE_NONE, 
+                   (str,),
+                  ),
         }
 
     AVAILABLE_FOR_ME = "subscriptions.getForOAuthToken"
@@ -135,32 +163,43 @@ class SoftwareCenterAgent(gobject.GObject):
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
-        if self._available:
+        if self._available is not None:
             self.emit("available", self._available)
             self._available = None
-        if self._available_for_me:
+        if self._available_for_me is not None:
             self.emit("available-for-me", self._available_for_me)
             self._available_for_me = None
+        if self.worker_thread.error:
+            self.emit("error", self.worker_thread.error)
         return True
 
     def _thread_available_for_me_done(self, result):
-        self._available_for_me =  [x for x in result]
+        # attributes for each element in the result list:
+        # 'application_name', 'archive_id', 'deb_line', 'description', 
+        # 'package_name', 'purchase_date', 'purchase_price', 'series', 
+        # 'signing_key_id'
+        self._available_for_me = restful_collection_to_real_python(result)
 
     def _thread_available_for_me_error(self, error):
-        print "_available_for_me_error:", error
+        logging.error("_available_for_me_error %s" % error)
+        self._available_for_me = []
         
-    def query_available_for_me(self, oauth_token):
+    def query_available_for_me(self, oauth_token, openid_identifier):
         kwargs = { "oauth_token" : oauth_token,
+                   "openid_identifier" : openid_identifier,
                  }
         self.worker_thread.queue_request(self.AVAILABLE_FOR_ME, (), kwargs,
                                          self._thread_available_for_me_done,
                                          self._thread_available_for_me_error)
 
     def _thread_available_done(self, result):
-        self._available = [x for x in result]
+        logging.debug("_thread_available_done %s %s" % (result,
+                      restful_collection_to_real_python(result)))
+        self._available = restful_collection_to_real_python(result)
 
     def _thread_available_error(self, error):
-        print "available_error: ", error
+        logging.error("_thread_available_error %s" % error)
+        self._available = []
 
     def query_available(self, series_name=None, arch_tag=None):
         if not series_name:
@@ -185,9 +224,16 @@ class UbuntuSSOlogin(LoginBackend):
     def __init__(self):
         LoginBackend.__init__(self)
         self.service = UBUNTU_SSO_SERVICE
+        # we get a dict here with the following keys:
+        #  token
+        #  consumer_key (also the openid identifier)
+        #  consumer_secret
+        #  token_secret
+        #  name (that is just 'software-center')
         self.oauth_credentials = None
         self._oauth_credentials = None
         self._login_failure = None
+        self.worker_thread = None
 
     def shutdown(self):
         self.worker_thread.shutdown()
@@ -199,7 +245,8 @@ class UbuntuSSOlogin(LoginBackend):
         authorizer = BasicHttpAuthorizer(username, password)
         self.worker_thread =  RestfulClientWorker(authorizer, self.service)
         self.worker_thread.start()
-        kwargs = { "token_name" : "software-center", }
+        kwargs = { "token_name" : "software-center", 
+                 }
         self.worker_thread.queue_request(self.SSO_AUTHENTICATE_FUNC, (), kwargs,
                                          self._thread_authentication_done,
                                          self._thread_authentication_error)
@@ -228,7 +275,8 @@ class UbuntuSSOlogin(LoginBackend):
 
     def __del__(self):
         print "del"
-        self.worker_thread.shutdown()
+        if self.worker_thread:
+            self.worker_thread.shutdown()
 
 # test code
 def _login_success(lp, token):
@@ -256,7 +304,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) < 2:
-        print "need agent or sso as arguemtn"
+        print "need an argument, one of:  'agent' or 'sso'"
         sys.exit(1)
 
     if sys.argv[1] == "agent":
@@ -264,8 +312,8 @@ if __name__ == "__main__":
         scagent.connect("available-for-me", _available_for_me_result)
         scagent.connect("available", _available)
         # argument is oauth token
-        scagent.query_available_for_me("dummy_oauth")
         scagent.query_available()
+        scagent.query_available_for_me("dummy_oauth", "dummy openid")
 
     elif sys.argv[1] == "sso":
         sso = UbuntuSSOlogin()
@@ -273,6 +321,7 @@ if __name__ == "__main__":
         sso.connect("login-failed", _login_failed)
         sso.connect("need-username-password", _login_need_user_and_password)
         sso.login()
+        
     else:
         print "unknown option"
         sys.exit(1)

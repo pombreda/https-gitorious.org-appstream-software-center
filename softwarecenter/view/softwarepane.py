@@ -38,8 +38,10 @@ from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore, AppViewFilter
 
-#from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
-from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
+if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
+    from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
+else:
+    from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
 
 from softwarecenter.db.database import Application
 
