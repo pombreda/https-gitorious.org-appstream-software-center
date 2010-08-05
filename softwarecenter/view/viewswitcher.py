@@ -107,7 +107,10 @@ class ViewSwitcher(gtk.TreeView):
         self.set_cursor(path)
     
     def on_treeview_selected(self, path):
-        if path[0] == VIEW_PAGE_SEPARATOR_1:
+        model = self.get_model()
+        iter_ = model.get_iter(path)
+        id_ = model.get_value(iter_, 2)
+        if id_ == VIEW_PAGE_SEPARATOR_1:
             return False
         return True
         
