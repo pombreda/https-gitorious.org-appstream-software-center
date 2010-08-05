@@ -245,8 +245,13 @@ class AppDetails(object):
     @property
     def pkg_state(self):
         # check dynamic states from the install backend
-        trans = self._backend.pending_transactions.get(self.pkgname)
-        if trans and self._pkg:
+
+        # puchase state
+        if self.pkgname in self._backend.pending_purchases:
+            return PKG_STATE_INSTALLING_PURCHASED
+
+        # via the pending transactions dict
+        if self._pkg and self.pkgname in self._backend.pending_transactions:
             # FIXME: we don't handle upgrades yet
             if self._pkg.installed:
                 return PKG_STATE_REMOVING

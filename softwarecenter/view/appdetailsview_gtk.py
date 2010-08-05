@@ -135,7 +135,8 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def configure(self, app_details, state):
-        LOG.warn("configure %s %s" % (app_details.pkgname, state))
+        LOG.debug("configure %s state=%s pkgstate=%s" % (
+                app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = app_details.pkg_state
         self.app_details = app_details
         self.progress.hide()
@@ -152,6 +153,7 @@ class PackageStatusBar(gtk.Alignment):
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_('Installing purchased...'))
+            self.button.hide()
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
@@ -1113,6 +1115,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def show_app(self, app):
         LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
+            LOG.info("no app selected")
             return
         
         # set button sensitive again
@@ -1144,11 +1147,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.show()
 
         state = self.action_bar.pkg_state
+        # handle purchase: install purchased has multiple steps
         if state == PKG_STATE_INSTALLING_PURCHASED and not result.pkgname:
-            # a purchase is multiple steps
-            self.action_bar.button_hide()
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
         elif state == PKG_STATE_INSTALLING_PURCHASED and result.pkgname:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+        # normal states
         elif state == PKG_STATE_REMOVING:
             self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         elif state == PKG_STATE_INSTALLING:
@@ -1160,7 +1164,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
         state = self.action_bar.pkg_state
-        LOG.warn("_on_transaction_stated %s" % state)
+        LOG.debug("_on_transaction_stated %s" % state)
         if state == PKG_STATE_NEEDS_PURCHASE:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
         elif state == PKG_STATE_UNINSTALLED:

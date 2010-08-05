@@ -91,6 +91,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         TransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
+        self.pending_purchases = set()
         self._progress_signal = None
         self._logger = logging.getLogger("softwarecenter.backend")
     
@@ -240,7 +241,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def add_repo_add_key_and_install_app(self,
                                          deb_line,
                                          signing_key_id,
-                                         app):
+                                         app,
+                                         purchase=True):
         """ 
         a convenience method that combines all of the steps needed
         to install a for-pay application, including adding the
@@ -249,6 +251,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         package list reload has completed.
         """
         self.emit("transaction-started")
+
+        if purchase:
+            self.pending_purchases.add(app.pkgname)
+
         # metadata so that we know those the add-key and reload transactions
         # are part of a group
         trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
@@ -280,6 +286,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None
+        self.pending_purchases.remove(result.pkgname)
 
     # internal helpers
     def on_transactions_changed(self, current, pending):

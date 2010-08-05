@@ -93,6 +93,7 @@ class SCBuySomething(unittest.TestCase):
 		while gtk.events_pending():
 			gtk.main_iteration()
 		time.sleep(0.1)
+        #time.sleep(10)
         
     def _on_transaction_finished(self, backend, result):
         print "_on_transaction_finished", result
