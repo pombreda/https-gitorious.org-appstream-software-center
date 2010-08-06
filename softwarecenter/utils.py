@@ -20,11 +20,14 @@ import apt
 import apt_pkg
 import logging
 import re
+import urllib
 import time
 import xml.sax.saxutils
 import gobject
 import gio
 import glib
+
+from enums import USER_AGENT
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
@@ -46,6 +49,21 @@ class ExecutionTime(object):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
+class GnomeProxyURLopener(urllib.FancyURLopener):
+    """A urllib.URLOpener that honors the gnome proxy settings"""
+    def __init__(self, user_agent=USER_AGENT):
+        proxies = {}
+        http_proxy = get_http_proxy_string_from_gconf()
+        if http_proxy:
+            proxies = { "http" : http_proxy }
+        urllib.FancyURLopener.__init__(self, proxies)
+        self.version = user_agent
+    def http_error_404(self, url, fp, errcode, errmsg, headers):
+        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
+        raise Url404Error, "404 %s" % url
+    def http_error_403(self, url, fp, errcode, errmsg, headers):
+        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
+        raise Url403Error, "403 %s" % url
 
 def htmlize_package_desc(desc):
     def _is_bullet(line):

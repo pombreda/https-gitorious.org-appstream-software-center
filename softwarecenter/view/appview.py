@@ -42,7 +42,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
-from softwarecenter.backend.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
 from widgets.mkit import get_em_value
 from gtk import gdk
@@ -420,13 +420,33 @@ class AppStore(gtk.GenericTreeModel):
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: see _refresh_contents.
 
-    def _on_transaction_started(self, *args):
+    def _on_transaction_started(self, *args, **kwargs):
         self._existing_apps = None
         self._installable_apps = None
 
-    def _on_transaction_finished(self, *args):
+    def _on_transaction_finished(self, *args, **kwargs):
         self._existing_apps = None
         self._installable_apps = None
+
+
+    def _download_icon_and_show_when_ready(self, icon_file_name):
+        self._logger.debug("icon is downloadable: %s" % icon_file_name)
+        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
+        self._logger.debug("did not find the icon locally, must download it")
+        # FIXME:  does the url string belong in the Distro class?  if so,
+        #         need to include an equivalent in Debian.py
+        # FIXME:  don't hardcode the PPA name
+        url = get_distro().PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
+        def on_image_download_complete(downloader, image_file_path):
+            pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
+                                                      self.icon_size,
+                                                      self.icon_size)
+            # replace the icon in the icon_cache now that we've got the real one
+            icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
+            self.icon_cache[icon_file] = pb
+        image_downloader = ImageDownloader()
+        image_downloader.connect('image-download-complete', on_image_download_complete)
+        image_downloader.download_image(url, icon_file_path)
 
     # GtkTreeModel functions
     def on_get_flags(self):
@@ -522,46 +542,14 @@ class AppStore(gtk.GenericTreeModel):
                     # is called *a lot*. caching is the only option
                     
                     # check if this is a downloadable icon
-                    if self.db.get_icon_needs_download(doc):
-                        self._logger.debug("icon is downloadable: %s" % icon_file_name)
-                        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
-                        # first check if it's in the icon_cache
-                        # downloadable icons are keyed in the icon_cache using the full file path as a key
-                        if icon_file_path in self.icon_cache:
-                            return self.icon_cache[icon_file_path]
-                        # next, check the local downloaded icon cache directory
-                        if os.path.exists(icon_file_path):
-                            pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
-                                                                      self.icon_size,
-                                                                      self.icon_size)
-                            self.icon_cache[icon_name] = pb
-                            return pb
-                        else:
-                            # guess we need to download it then
-                            self._logger.debug("did not find the icon locally, must download it")
-                            # FIXME:  does the url string belong in the Distro class?  if so,
-                            #         need to include an equivalent in Debian.py
-                            # FIXME:  don't hardcode the PPA name
-                            url = get_distro().PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
-                            def on_image_download_complete(downloader, image_file_path):
-                                pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
-                                                                          self.icon_size,
-                                                                          self.icon_size)
-                                # replace the icon in the icon_cache now that we've got the real one
-                                self.icon_cache[icon_file_path] = pb
-        
-                            image_downloader = ImageDownloader()
-                            image_downloader.connect('image-download-complete', on_image_download_complete)
-                            image_downloader.download_image(url, icon_file_path)
-                            
-                            # it's downloading asynchronously, so for now we show the appicon missing icon
-                            self.icon_cache[icon_file_path] = self._appicon_missing_icon
-                            return self._appicon_missing_icon
-                    else:
+                    if not self.db.get_icon_needs_download(doc):
                         # load the icon from the theme
                         icon = self.icons.load_icon(icon_name, self.icon_size, 0)
                         self.icon_cache[icon_name] = icon
                         return icon
+                    else:
+                        self._download_and_show_when_ready(icon_file_name)
+                        return self._appicon_missing_icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)
                 self.icon_cache[icon_name] = self._appicon_missing_icon
@@ -583,7 +571,7 @@ class AppStore(gtk.GenericTreeModel):
             return (rowref == self.active_app)
         elif column == self.COL_ACTION_IN_PROGRESS:
             if app.pkgname in self.backend.pending_transactions:
-                return self.backend.pending_transactions[app.pkgname]
+                return self.backend.pending_transactions[app.pkgname].progress
             else:
                 return -1
         elif column == self.COL_EXISTS:
@@ -1518,10 +1506,10 @@ class AppView(gtk.TreeView):
             action_btn.set_sensitive(False)
             self._set_cursor(action_btn, None)
 
-    def _on_transaction_finished(self, backend, pkgname, success, tr):
+    def _on_transaction_finished(self, backend, result, tr):
         """ callback when an application install/remove transaction has finished """
         # remove pkg from the block list
-        self._check_remove_pkg_from_blocklist(pkgname)
+        self._check_remove_pkg_from_blocklist(result.pkgname)
 
         action_btn = tr.get_button_by_name('action0')
         if action_btn:

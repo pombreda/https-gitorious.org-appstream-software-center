@@ -38,6 +38,9 @@ class Ubuntu(Distro):
     # downloadable icon handling
     PPA_DOWNLOADABLE_ICON_URL = "http://ppa.launchpad.net/%s/meta/ppa/%s"
 
+    # purchase subscription
+    PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s"
+
     def get_app_name(self):
         return _("Ubuntu Software Center")
 
@@ -114,17 +117,6 @@ class Ubuntu(Distro):
         query2b = xapian.Query("XOC"+"restricted")
         query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
         return xapian.Query(xapian.Query.OP_AND, query1, query2)
-
-    def get_price(self, doc):
-        # SPECIAL CASE for partner, we don't know the prices there
-        # see bug #552830 so we return None
-        for term_iter in doc.termlist():
-            if (term_iter.term == "XOCpartner" or
-                term_iter.term == "AH%s-partner" % self.get_distro_codename()):
-                return None
-        #TRANSLATORS: This text will be showed as price of the software
-        price = _("Free")
-        return price
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
         # try to figure out the support dates of the release and make
