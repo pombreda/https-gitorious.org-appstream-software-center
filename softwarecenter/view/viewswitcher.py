@@ -94,6 +94,7 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("row-expanded", self.on_treeview_row_expanded)
         self.connect("row-collapsed", self.on_treeview_row_collapsed)
         self.connect("cursor-changed", self.on_cursor_changed)
+        self.connect("event", self.on_event)
 
         self.get_model().connect("channels-refreshed", self._on_channels_refreshed)
         self.get_model().connect("row-deleted", self._on_row_deleted)
@@ -128,6 +129,22 @@ class ViewSwitcher(gtk.TreeView):
         view_page = action
         self.emit("view-changed", view_page, channel)
         
+    def on_event(self, widget, event):
+        # Deal with keypresses on the viewswitcher
+        if event.type == gtk.gdk.KEY_PRESS:
+            # Get the toplevel node of the currently selected row
+            toplevel = self.get_toplevel_node(self.get_cursor())
+            toplevel_path = (toplevel,)
+
+            # Expand the toplevel node if the right arrow key is clicked
+            if event.keyval == KEYPRESS_RIGHT_ARROW:
+                if not self.row_expanded(toplevel_path):
+                    self.expand_row(toplevel_path, False)
+            # Collapse the toplevel node if the left arrow key is clicked
+            if event.keyval == KEYPRESS_LEFT_ARROW:
+                if self.row_expanded(toplevel_path):
+                    self.collapse_row(toplevel_path)
+        
     def get_view(self):
         """return the current activated view number or None if no
            view is activated (this can happen when a pending view 
@@ -143,6 +160,11 @@ class ViewSwitcher(gtk.TreeView):
         if not path:
             return None
         return path[0]
+    
+    def get_toplevel_node(self, cursor):
+        """Returns the toplevel node of a selected row"""
+        (path, column) = cursor
+        return path[0]
 
     def set_view(self, view_page):
         notebook_page_id = self.view_manager.get_notebook_page_from_view_id(view_page)
@@ -157,11 +179,19 @@ class ViewSwitcher(gtk.TreeView):
         else:
             self.window.set_cursor(self.cursor_hand)
             
-    def expand_available_node(self):
-        """ expand the available pane node in the viewswitcher pane """
+    def expand_row(self, path, open_all):
         model = self.get_model()
         if model:
-            self.expand_row(model.get_path(model.available_iter), False)
+            super(ViewSwitcher, self).expand_row(path, open_all)
+            
+    def collapse_row(self, path):
+        model = self.get_model()
+        if model:
+            super(ViewSwitcher, self).collapse_row(path)
+            
+    def expand_available_node(self):
+        """ expand the available pane node in the viewswitcher pane """
+        self.expand_row(model.get_path(model.available_iter), False)
             
     def is_available_node_expanded(self):
         """ return True if the available pane node in the viewswitcher pane is expanded """
@@ -173,9 +203,7 @@ class ViewSwitcher(gtk.TreeView):
         
     def expand_installed_node(self):
         """ expand the installed pane node in the viewswitcher pane """
-        model = self.get_model()
-        if model:
-            self.expand_row(model.get_path(model.installed_iter), False)
+        self.expand_row(model.get_path(model.installed_iter), False)
             
     def is_installed_node_expanded(self):
         """ return True if the installed pane node in the viewswitcher pane is expanded """

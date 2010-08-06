@@ -98,7 +98,7 @@ CUSTOM_KEY_ICON = "Icon"
 CUSTOM_KEY_SCREENSHOT_URL = "Screenshot-Url"
 CUSTOM_KEY_CATEGORY = "Category"
 
-# pkg action state constants 
+# pkg action state constants
 (   # current
     PKG_STATE_INSTALLED,
     PKG_STATE_UNINSTALLED,
@@ -129,3 +129,7 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    RELEASE,
                                                    CODENAME)
 
+KEYPRESS_UP_ARROW = 65362
+KEYPRESS_RIGHT_ARROW = 65363
+KEYPRESS_DOWN_ARROW = 65364
+KEYPRESS_LEFT_ARROW = 65361
