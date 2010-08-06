@@ -9,6 +9,8 @@ software-center (2.1.8) UNRELEASED; urgency=low
     and tweaked it a little bit
   * merged lp:~mvo/software-center/buy-something, currently needs to
     be enabled via "--enable-buy" to make it work
+  * merged  lp:~and471/software-center/fix-524289 
+    LP: #524289, LP: #537532
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -33,7 +35,7 @@ software-center (2.1.8) UNRELEASED; urgency=low
     - implement a-x-i plugin to index custom metadata
       for the new-apps archive 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 03 Aug 2010 14:32:12 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Aug 2010 11:06:53 +0200
 
 software-center (2.1.7) maverick; urgency=low
 
