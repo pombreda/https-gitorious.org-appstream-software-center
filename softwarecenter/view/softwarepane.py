@@ -182,8 +182,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         """
         model = self.app_view.get_model()
         current_app = self.get_current_app()
-        print current_app
-        
         
         if model and current_app in model.app_index_map:
             index =  model.app_index_map.get(current_app)
