@@ -94,6 +94,7 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("row-expanded", self.on_treeview_row_expanded)
         self.connect("row-collapsed", self.on_treeview_row_collapsed)
         self.connect("cursor-changed", self.on_cursor_changed)
+        self.connect("key-release-event", self.on_key_release_event)
 
         self.get_model().connect("channels-refreshed", self._on_channels_refreshed)
         self.get_model().connect("row-deleted", self._on_row_deleted)
@@ -128,6 +129,21 @@ class ViewSwitcher(gtk.TreeView):
         view_page = action
         self.emit("view-changed", view_page, channel)
         
+    def on_key_release_event(self, widget, event):
+        # Get the toplevel node of the currently selected row
+        toplevel = self.get_toplevel_node(self.get_cursor())
+        toplevel_path = (toplevel,)
+
+        # Expand the toplevel node if the right arrow key is clicked
+        if event.keyval == gtk.keysyms.Right:
+            if not self.row_expanded(toplevel_path):
+                self.expand_row(toplevel_path, False)
+        # Collapse the toplevel node if the left arrow key is clicked
+        elif event.keyval == gtk.keysyms.Left:
+            if self.row_expanded(toplevel_path):
+                self.collapse_row(toplevel_path)
+        return False
+        
     def get_view(self):
         """return the current activated view number or None if no
            view is activated (this can happen when a pending view 
@@ -142,6 +158,11 @@ class ViewSwitcher(gtk.TreeView):
         (path, column) = self.get_cursor()
         if not path:
             return None
+        return path[0]
+    
+    def get_toplevel_node(self, cursor):
+        """Returns the toplevel node of a selected row"""
+        (path, column) = cursor
         return path[0]
 
     def set_view(self, view_page):

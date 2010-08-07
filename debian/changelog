@@ -11,6 +11,7 @@ software-center (2.1.8) UNRELEASED; urgency=low
     be enabled via "--enable-buy" to make it work
   * merged  lp:~and471/software-center/fix-524289 
     LP: #524289, LP: #537532
+  * merged lp:~and471/software-center/fix-keypresses-on-viewswitcher
 
   [ Kiwinote ]
   * softwarecenter/app.py:
