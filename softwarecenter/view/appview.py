@@ -1456,7 +1456,7 @@ class AppView(gtk.TreeView):
             # be sure we dont request an action for a pkg with pre-existing actions
             if pkgname in self._action_block_list:
                 print 'Action already in progress for package: %s' % pkgname
-                return
+                return False
             self._action_block_list.append(pkgname)
             if installed:
                 perform_action = APP_ACTION_REMOVE
