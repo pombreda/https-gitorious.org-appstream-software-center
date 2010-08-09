@@ -65,7 +65,7 @@ class testAppStore(unittest.TestCase):
             filter=self.mock_filter)
         len_now = len(store)
         # the _append_app() is the function we test
-        app = Application("the foobar app", "foo", "")
+        app = Application("the foobar app", "foo")
         store._append_app(app)
         self.assertTrue(len(store) == (len_now + 1))
         # test that it was inserted as the last element
@@ -110,7 +110,7 @@ class testAppStore(unittest.TestCase):
         # create a store with some entries
         store.clear()
         for s in ["bb","dd","gg","ii"]:
-            app = Application(s, s, "")
+            app = Application(s, s)
             store._append_app(app)
         # now test _insert_app_sorted
         test_data = ["hh",
@@ -123,7 +123,7 @@ class testAppStore(unittest.TestCase):
                      "ff"
                     ]
         for s in test_data:
-            app = Application(s, s, "")
+            app = Application(s, s)
             store._insert_app_sorted(app)
             
         expected_app_list = ["aa",

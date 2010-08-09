@@ -7,6 +7,8 @@ import sys
 import time
 import unittest
 
+from mock import Mock
+
 sys.path.insert(0, "..")
 
 from softwarecenter.app import SoftwareCenterApp
@@ -22,9 +24,13 @@ class SCGUITest(unittest.TestCase):
             gtk.main_iteration()
 
     def setUp(self):
+        # options
+        mock_options = Mock()
+        mock_options.enable_lp = False
+        mock_options.enable_buy = True
         apt.apt_pkg.config.set("Dir::log::history", "/tmp")
         apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
-        self.app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, None)
+        self.app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, mock_options)
         self.app.window_main.show_all()
         print "foo0"
         self._p()

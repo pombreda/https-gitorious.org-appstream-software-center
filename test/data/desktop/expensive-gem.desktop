@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=The expensive gem
+Comment=It does nothing
+Icon=gtk-about
+Terminal=false
+Type=Application
+Categories=Application;Games;
+X-AppInstall-Package=expensive-gem
+X-AppInstall-Popcon=32217
+X-AppInstall-Price=999$

@@ -1,90 +1,69 @@
 #!/usr/bin/python
 
+import mock
 import os
 import sys
-sys.path.insert(0,"../")
-
-import apt
 import unittest
-import shutil
 
+sys.path.insert(0,"../")
 from softwarecenter.apt.aptcache import AptCache
-from softwarecenter.db.application import Application, DebFileApplication, AppDetails, AppDetailsDebFile
-from softwarecenter.enums import XAPIAN_BASE_PATH, PKG_STATE_UNKNOWN, PKG_STATE_UNINSTALLED
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.application import Application, AppDetails
+from softwarecenter.distro import get_distro
+from softwarecenter.enums import *
+from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk
 
-class testApplication(unittest.TestCase):
+
+class testAppDetailsView(unittest.TestCase):
+    """ tests the AppDetailsView """
 
     def setUp(self):
+        datadir = "../data"
+        cache = AptCache()
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
-        self.cache = AptCache()
-        self.cache.open()
-        self.db = StoreDatabase(pathname, self.cache)
-        self.db.open()
+        db = StoreDatabase(pathname, cache)
+        db.open()
+        distro = get_distro()
+        # icon mock
+        mock_icons = mock.Mock()
+        mock_icons.load_icon.return_value = None
+        # history mock
+        mock_history = mock.Mock()
+        mock_history.rescan.return_value = True
+        # create a details object
+        self.appdetails = AppDetailsViewGtk(
+            db, distro, mock_icons, cache, mock_history, datadir)
 
-    def test_application_simple(self):
-        app = Application("appname", "pkgname")
-        self.assertEqual(app.appname, "appname")
-        self.assertEqual(app.pkgname, "pkgname")
-        self.assertEqual(app.request, "")
-        self.assertEqual(app.popcon, 0)
-        # ensure that it fails with no argument (there are not "empty" apps)
-        self.assertRaises(ValueError, Application, ())
+    def test_show_app_simple(self):
+        app = Application("7zip","p7zip-full")
+        self.appdetails.show_app(app)
 
-    def test_application_deb(self):
-        app = DebFileApplication("/tmp/2vcard_1.0_all.deb")
-        self.assertEqual(app.pkgname, "2vcard")
-        self.assertEqual(app.appname, "2vcard")
-        app = DebFileApplication("/tmp/apt_2.0_i386.deb")
-        self.assertEqual(app.pkgname, "apt")
-        self.assertEqual(app.appname, "Apt")
-        app = DebFileApplication("/tmp/odd.deb")
-        self.assertEqual(app.pkgname, "odd")
-        self.assertEqual(app.appname, "Odd")
-    
-    def test_application_with_request(self):
-        app = Application("appname", "pkgname?section=universe&section=multiverse")
-        self.assertEqual(app.appname, "appname")
-        self.assertEqual(app.pkgname, "pkgname")
-        self.assertEqual(app.request, "section=universe&section=multiverse")
-        app = Application("appname", "pkgname?section=a?section=b")
-        self.assertEqual(app.appname, "appname")
-        self.assertEqual(app.pkgname, "pkgname")
-        self.assertEqual(app.request, "section=a?section=b")
-
-    def test_appdetails_simple(self):
-        # display name is the summary for packages (per spec)
-        app = Application("", "apt")
-        appdetails = AppDetails(self.db, application=app)
-        self.assertEqual(appdetails.display_name,
-                         "Advanced front-end for dpkg")
-        # appname
-        app = Application("7zip", "p7zip-full")
-        appdetails = app.get_details(self.db)
-        self.assertEqual(appdetails.display_name,
-                         "7zip")
-
-    def test_appdetails_from_deb(self):
-        app = DebFileApplication("./data/test_debs/gdebi-test1.deb")
-        appdetails = AppDetailsDebFile(self.db, application=app)
-        self.assertEqual(appdetails._pkg, None)
-        self.assertTrue(appdetails.error.startswith("Conflicts with "))
-        # state unknown because of the error
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_UNKNOWN)
-
-        # test details getting
-        app = DebFileApplication("./data/test_debs/gdebi-test3.deb")
-        appdetails = app.get_details(self.db)
-        self.assertEqual(appdetails._pkg, None)
-        self.assertEqual(appdetails.error, None)
-        s = "testpackage for gdebi - or-group (impossible-dependency|apt)"
-        self.assertEqual(appdetails.summary, s)
-        self.assertEqual(appdetails.display_summary, s)
-        # state unknown because of the error
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_UNINSTALLED)
-        self.assertEqual(appdetails.warning,
-                         "Only install this file if you trust the origin.")
+    def test_show_app_all_pkg_states(self):
+        app = Application("7zip","p7zip-full")
+        # create details mock
+        mock_app_details = mock.Mock(AppDetails)
+        mock_app_details.pkgname = "pkgname"
+        mock_app_details.appname = "appname"
+        mock_app_details.display_name = "display_name"
+        mock_app_details.display_summary = "display_summary"
+        mock_app_details.error = None
+        mock_app_details.warning = None
+        mock_app_details.description = "description"
+        mock_app_details.website = "website"
+        mock_app_details.thumbnail = None
+        mock_app_details.license = "license"
+        mock_app_details.maintenance_status = "support_status"
+        mock_app_details.purchase_date = "purchase_date"
+        mock_app_details.installation_date = "installation_date"
+        mock_app_details.price = "price"
+        # monkey patch get_details() so that we get the mock object
+        app.get_details = lambda db: mock_app_details
+        # make sure all PKG_STATE_* states work and do not cause crashes
+        for i in range(PKG_STATE_UNKNOWN):
+            mock_app_details.pkg_state = i
+            self.appdetails.show_app(app)
+        
 
 if __name__ == "__main__":
     import logging

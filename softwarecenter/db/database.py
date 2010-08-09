@@ -67,11 +67,13 @@ class StoreDatabase(gobject.GObject):
         gobject.GObject.__init__(self)
         self._db_pathname = pathname
         self._aptcache = cache
+        self._additional_databases = []
+
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
 
-    def open(self, pathname=None, use_axi=True):
+    def open(self, pathname=None, use_axi=True, use_agent=True):
         " open the database "
         if pathname:
             self._db_pathname = pathname
@@ -85,7 +87,17 @@ class StoreDatabase(gobject.GObject):
                 self.xapiandb.add_database(axi)
                 self._axi_values = parse_axi_values_file()
             except:
-                self._logger.exception("failed to add apt-xapian-index")
+                self._logging.exception("failed to add apt-xapian-index")
+        if use_agent:
+            try:
+                sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
+                self.xapiandb.add_database(sca)
+            except Exception as e:
+                logging.warn("failed to add sca db %s" % e)
+        # additional dbs
+        for db in self._additional_databases:
+            self.xapiandb.add_database(db)
+        # parser etc
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
@@ -94,6 +106,13 @@ class StoreDatabase(gobject.GObject):
         self.xapian_parser.add_prefix("pkg_wildcard", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
+
+    def add_database(self, database):
+        self._additional_databases.append(database)
+        self.xapiandb.add_database(database)
+
+    def del_database(self, database):
+        self._additional_databases.remove(database)
 
     def reopen(self):
         " reopen the database "
@@ -186,16 +205,17 @@ class StoreDatabase(gobject.GObject):
         """ get human readable summary of the given document """
         summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
         channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
-        # try to use the description from the apt cache, as this is more up to date
-        if self._aptcache.ready: 
+        # if we do not have the summary in the xapian db, get it
+        # from the apt cache
+        if not summary and self._aptcache.ready: 
             pkgname = self.get_pkgname(doc)
             if (pkgname in self._aptcache and 
                 self._aptcache[pkgname].candidate):
                 return  self._aptcache[pkgname].candidate.summary
-            elif channel and not summary:
+            elif channel:
                 # FIXME: print something if available for our arch
                 pass
-            elif not summary:
+            else:
                 return _("Sorry, '%s' is not available for this type of computer (%s).") % (pkgname, get_current_arch())
         return summary
 
@@ -234,6 +254,11 @@ class StoreDatabase(gobject.GObject):
         if matches:
             return True
         return False
+
+        
+    def get_icon_needs_download(self, doc):
+        """ Return a value if the icon needs to be downloaded """
+        return doc.get_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD)
 
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """

@@ -1,4 +1,62 @@
-software-center (2.1.8) UNRELEASED; urgency=low
+software-center (2.1.9) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/utils.py:
+    - add generic image downloader class
+  * softwarecenter/app.py,
+    softwarecenter/backend/paths.py,
+    softwarecenter/db/application.py,
+    softwarecenter/db/database.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appview.py:
+    - implement download and local caching of downloadable
+      icons, display them in applist and appdetails views
+
+  [ Michael Vogt ]
+  * test/test_database.py:
+    - re-enable sca test again
+  * test/{test_downloader.py, test_ppa_iconfilename.py}:
+    - add tests for the downloader and the iconfilename
+  * softwarecenter/db/update.py:
+    - add support for the inline icon_data, push them into 
+      SOFTWARE_CENTER_ICON_CACHE_DIR, add tests
+
+  [ Kiwinote ]
+  * <all>:
+    - support deb files (much thanks to mvo for all his help!)
+    - support apturls
+  * debian/control:
+    - add homepage field
+  * man/software-center.1:
+    - update man file
+  * softwarecenter/app.py:
+    - if s-c is running and we get a request to open s-c on a specific page, then switch to correct page
+    - update status_bar correctly on back/forward navigation
+    - display available packages in available_pane and installed packages in installed_pane
+  * softwarecenter/db/application.py:
+    - lots and lots of changes to support deb-files and apturls
+  * softwarecenter/db/database.py:
+    - add function to determine if package is in a category
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - refresh packagestatusbar correctly upon cancelled installation / removal
+    - hide packagestatusbar / description / screenshot / info_table when we have a 'not found' error
+    - display warnings in the packagestatusbar
+    - make description accessible
+  * softwarecenter/view/appview.py:
+    - allow apturl requests in custom list views
+    - hide action_btn when application is not available
+  * softwarecenter/view/availablepane.py:
+    - show packages in correct category
+  * softwarecenter/view/installedpane.py:
+    - load listview on demand
+    - add show_app function (ux is worse than in available_pane, as we have no categories or back/forward navigation)
+  * softwarecenter/view/viewswitcher.py:
+    - put cursor in correct position
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 09 Aug 2010 10:27:20 +0200
+
+software-center (2.1.8) maverick; urgency=low
 
   [ Michael Vogt ]
   * merged  lp:~mmcg069/software-center/backforward-tweaks,
@@ -7,50 +65,29 @@ software-center (2.1.8) UNRELEASED; urgency=low
     many thanks
   * merged lp:~kiwinote/software-center/getting-the-small-things-right
     and tweaked it a little bit
+  * merged lp:~mvo/software-center/buy-something, currently needs to
+    be enabled via "--enable-buy" to make it work
+  * merged  lp:~and471/software-center/fix-524289 
+    LP: #524289, LP: #537532
+  * merged lp:~and471/software-center/fix-keypresses-on-viewswitcher,
+    many thanks
+  * merged lp:~mmcg069/software-center/catview-tweaks, many thanks
 
   [ Kiwinote ]
-  * <all>:
-    - support deb files
-    - support apturls
-  * debian/control:
-    - add homepage field
-  * man/software-center.1:
-    - update man file
   * softwarecenter/app.py:
     - save/restore sidebar width (LP: #567128)
     - don't crash if active_pane doesn't have a searchentry (LP: #611718)
-    - if s-c is running and we get a request to open s-c on a specific page, then switch to correct page
-    - update status_bar correctly on back/forward navigation
-    - display available packages in available_pane and installed packages in installed_pane
   * softwarecenter/db/application.py:
     - add new "display_name" and "display_summary" - when app has no appname, 
       display the summary as primary text (per spec)
       LP: #537436
-    - prefer summary from cache over summary from app-install-data
-    - lots and lots of changes to support deb-files and apturls
-  * softwarecenter/db/database.py:
-    - prefer summary from cache over summary from app-install-data
-    - add function to determine if package is in a category
   * softwarecenter/view/appdetailsview_gtk.py:
     - use "display_name" and "display_summary" (LP: #537436)
-    - refresh packagestatusbar correctly upon cancelled installation / removal
-    - hide packagestatusbar / description / screenshot / info_table when we have an error
-    - display warnings in the packagestatusbar
-    - make description accessible
-  * softwarecenter/view/appview.py:
-    - allow apturl requests in custom list views
-    - hide action_btn when application is not available
   * softwarecenter/view/availablepane.py:
     - correctly update the status bar after filtering by support status 
       LP: #528062
-    - show packages in correct category
   * softwarecenter/view/basepane.py:
     - basepane doesn't contain a searchentry
-  * softwarecenter/view/installedpane.py:
-    - load listview on demand
-    - add show_app function (ux is worse than in available_pane, as we have no categories or back/forward navigation)
-  * softwarecenter/view/viewswitcher.py:
-    - put cursor in correct position
 
   [ Gary Lasker ]
   * apt-xapian-index-plugin/software-center.py,
@@ -59,7 +96,7 @@ software-center (2.1.8) UNRELEASED; urgency=low
     - implement a-x-i plugin to index custom metadata
       for the new-apps archive 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 03 Aug 2010 14:32:12 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 09 Aug 2010 09:21:42 +0200
 
 software-center (2.1.7) maverick; urgency=low
 
