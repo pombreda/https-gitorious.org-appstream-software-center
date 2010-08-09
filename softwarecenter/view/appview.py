@@ -1509,7 +1509,10 @@ class AppView(gtk.TreeView):
         """ callback when an application install/remove transaction has finished """
         
         # If this item has just been removed...
-        pkgname = result.meta_data["sc_pkgname"]
+        try:
+            pkgname = result.meta_data["sc_pkgname"]
+        except KeyError:
+            return
         appname = result.meta_data.get("sc_appname", "")
         db = self.get_model().db
         appdetails = Application(appname, pkgname).get_details(db)
