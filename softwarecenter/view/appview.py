@@ -429,14 +429,8 @@ class AppStore(gtk.GenericTreeModel):
         self._installable_apps = None
 
 
-    def _download_icon_and_show_when_ready(self, icon_file_name):
-        self._logger.debug("icon is downloadable: %s" % icon_file_name)
-        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
-        self._logger.debug("did not find the icon locally, must download it")
-        # FIXME:  does the url string belong in the Distro class?  if so,
-        #         need to include an equivalent in Debian.py
-        # FIXME:  don't hardcode the PPA name
-        url = get_distro().PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_file_name)
+    def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
+        self._logger.debug("did not find the icon locally, must download %s" % icon_file_name)
         def on_image_download_complete(downloader, image_file_path):
             pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
                                                       self.icon_size,
@@ -444,6 +438,9 @@ class AppStore(gtk.GenericTreeModel):
             # replace the icon in the icon_cache now that we've got the real one
             icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
             self.icon_cache[icon_file] = pb
+        
+        url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
+        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
         image_downloader = ImageDownloader()
         image_downloader.connect('image-download-complete', on_image_download_complete)
         image_downloader.download_image(url, icon_file_path)
@@ -548,7 +545,9 @@ class AppStore(gtk.GenericTreeModel):
                         self.icon_cache[icon_name] = icon
                         return icon
                     else:
-                        self._download_and_show_when_ready(icon_file_name)
+                        self._download_icon_and_show_when_ready(self.cache, 
+                                                                app.pkgname,
+                                                                icon_file_name)
                         return self._appicon_missing_icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)

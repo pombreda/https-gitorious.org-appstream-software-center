@@ -187,6 +187,10 @@ class AppDetails(object):
     def icon_needs_download(self):
         if self._doc:
             return self._db.get_icon_needs_download(self._doc)
+            
+    @property
+    def icon_url(self):
+        return self._distro.get_downloadable_icon_url(self._cache, self.pkgname, self.icon_file_name)
 
     @property
     def installation_date(self):
@@ -404,6 +408,9 @@ class AppDetails(object):
         details.append("           component: %s" % self.component)
         details.append("         description: %s" % self.description)
         details.append("                icon: %s" % self.icon)
+        details.append("      icon_file_name: %s" % self.icon_file_name)
+        details.append(" icon_needs_download: %s" % self.icon_needs_download)
+        details.append("            icon_url: %s" % self.icon_url)
         details.append("   installation_date: %s" % self.installation_date)
         details.append("       purchase_date: %s" % self.purchase_date)
         details.append("             license: %s" % self.license)

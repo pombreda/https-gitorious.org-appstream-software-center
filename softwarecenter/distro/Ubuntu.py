@@ -203,6 +203,26 @@ class Ubuntu(Distro):
                      "Some updates may be provided by the "
                      "Ubuntu community.") % appname
         return _("Application %s has an unknown maintenance status.") % appname
+        
+    def get_downloadable_icon_url(self, cache, pkgname, icon_filename):
+        """
+        generates the url for a downloadable icon based on its pkgname and the icon filename itself
+        """
+
+        # PPA_DOWNLOADABLE_ICON_URL = "http://ppa.launchpad.net/%s/meta/ppa/%s"
+        full_archive_url = cache[pkgname].candidate.uri
+
+        # >>> cache["daily-journal"].candidate.uri
+        #'http://ppa.launchpad.net/app-review-board/ppa/ubuntu/pool/main/d/daily-journal/daily-journal_10.06.1+newapps2_all.deb'
+
+        # and look for "pool" in there.
+        
+        # pkg._pcache._list.find_index(pkg.candidate._cand.file_list[0][0]).archive_uri("")
+        # 'http://ppa.launchpad.net/app-review-board/ppa/ubuntu/'
+
+        # archive_url = self._pkg._pcache._list.find_index(pkg.candidate._cand.file_list[0][0]).archive_uri("")
+
+        return self.PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_filename)
 
 
 if __name__ == "__main__":

@@ -33,9 +33,9 @@ import cairo
 
 from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.db.application import AppDetails
 from softwarecenter.enums import *
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.utils import ImageDownloader
 
 from appdetailsview import AppDetailsViewBase
@@ -1210,18 +1210,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 return self.icons.load_icon(app_details.icon, 84, 0)
             elif app_details.icon_needs_download:
                 self._logger.debug("did not find the icon locally, must download it")
-                # FIXME:  does the url string belong in the Distro class?  if so,
-                #         need to include an equivalent in Debian.py
-                # FIXME:  don't hardcode the PPA name
-                url = self.distro.PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", app_details.icon_file_name)
+
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the view with the downloaded one
                     pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
                     self.app_info.set_icon_from_pixbuf(pb)
                     
+                icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, app_details.icon_file_name)
                 image_downloader = ImageDownloader()
                 image_downloader.connect('image-download-complete', on_image_download_complete)
-                image_downloader.download_image(url, icon_file_path)
+                image_downloader.download_image(app_details.icon_url, icon_file_path)
                 
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
 
