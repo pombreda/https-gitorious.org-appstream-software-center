@@ -208,21 +208,18 @@ class Ubuntu(Distro):
         """
         generates the url for a downloadable icon based on its pkgname and the icon filename itself
         """
-
-        # PPA_DOWNLOADABLE_ICON_URL = "http://ppa.launchpad.net/%s/meta/ppa/%s"
         full_archive_url = cache[pkgname].candidate.uri
-
-        # >>> cache["daily-journal"].candidate.uri
-        #'http://ppa.launchpad.net/app-review-board/ppa/ubuntu/pool/main/d/daily-journal/daily-journal_10.06.1+newapps2_all.deb'
-
-        # and look for "pool" in there.
-        
-        # pkg._pcache._list.find_index(pkg.candidate._cand.file_list[0][0]).archive_uri("")
-        # 'http://ppa.launchpad.net/app-review-board/ppa/ubuntu/'
-
-        # archive_url = self._pkg._pcache._list.find_index(pkg.candidate._cand.file_list[0][0]).archive_uri("")
-
-        return self.PPA_DOWNLOADABLE_ICON_URL % ("app-review-board", icon_filename)
+        split_at_pool = full_archive_url.split("pool")[0]
+        if split_at_pool.endswith("/ppa/ubuntu/"):
+            # it's a ppa, generate the icon_url for a ppa
+            split_at_ppa = split_at_pool.split("/ppa/")[0]
+            downloadable_icon_url = []
+            downloadable_icon_url.append(split_at_ppa)
+            downloadable_icon_url.append("/meta/ppa/")
+            downloadable_icon_url.append(icon_filename)
+            return "".join(downloadable_icon_url)
+        else:
+            raise ValueError, "we currently support downloadable icons in ppa's only"
 
 
 if __name__ == "__main__":
