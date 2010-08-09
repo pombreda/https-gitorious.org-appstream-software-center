@@ -363,6 +363,7 @@ def update_from_software_center_agent(db, cache):
     """ update index based on the software-center-agent data """
     def _available_cb(sca, available):
         # print "available: ", available
+        logging.debug("available: '%s'" % available)
         sca.available = available
     def _error_cb(sca, error):
         logging.warn("error: %s" % error)
