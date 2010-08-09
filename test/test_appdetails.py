@@ -63,6 +63,7 @@ class testAppDetailsView(unittest.TestCase):
         for i in range(PKG_STATE_UNKNOWN):
             mock_app_details.pkg_state = i
             self.appdetails.show_app(app)
+        
 
 if __name__ == "__main__":
     import logging

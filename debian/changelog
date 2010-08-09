@@ -1,7 +1,23 @@
 software-center (2.1.9) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
+  * softwarecenter/utils.py:
+    - add generic image downloader class
+  * softwarecenter/app.py,
+    softwarecenter/backend/paths.py,
+    softwarecenter/db/application.py,
+    softwarecenter/db/database.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appview.py:
+    - implement download and local caching of downloadable
+      icons, display them in applist and appdetails views
+
+  [ Michael Vogt ]
   * test/test_database.py:
     - re-enable sca test again
+  * test/{test_downloader.py, test_ppa_iconfilename.py}:
+    - add tests for the downloader and the iconfilename
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 09 Aug 2010 10:27:20 +0200
 

@@ -241,7 +241,11 @@ class StoreDatabase(gobject.GObject):
         """ Return the iconname from the xapian document """
         iconname = doc.get_value(XAPIAN_VALUE_ICON)
         return iconname
-
+        
+    def get_icon_needs_download(self, doc):
+        """ Return a value if the icon needs to be downloaded """
+        return doc.get_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD)
+        
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """
         popcon_raw = doc.get_value(XAPIAN_VALUE_POPCON)
