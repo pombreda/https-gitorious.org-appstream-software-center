@@ -91,7 +91,7 @@ class Application(object):
 class DebFileApplication(Application):
     def __init__(self, debfile):
         # deb overrides this
-        if not debfile.endswith(".deb"):
+        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
             raise ValueError("Need a deb file, got '%s'" % debfile)
         debname = os.path.splitext(os.path.basename(debfile))[0]
         self.appname = debname.split('_')[0].capitalize()
@@ -295,7 +295,10 @@ class AppDetails(object):
     @property
     def pkg_state(self):
         if self._error:
-            return PKG_STATE_UNKNOWN
+            if '@@' in self._error:
+                return PKG_STATE_UNKNOWN
+            else:
+                return PKG_STATE_ERROR
         if self._pkg:
             # Don't handle upgrades yet
             #if self._pkg.installed and self._pkg._isUpgradable:
@@ -427,16 +430,13 @@ class AppDetailsDebFile(AppDetails):
         super(AppDetailsDebFile, self).__init__(db, doc, application)
         if doc:
             raise ValueError("doc must be None for deb files")
-        # see if someone is requesting a deb file to be loaded
-        self._deb = None
-        self._init_deb_file()
 
-    def _init_deb_file(self):
         try:
             # for some reason Cache() is much faster than "self._cache._cache"
             # on startup
             self._deb = DebPackage(self._app.request, Cache())
         except (IOError, SystemError),e:
+            self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
                 self._error = _("Not Found") + '@@' + _("The file \"%s\" does not exist.") % self._app.request
@@ -461,9 +461,16 @@ class AppDetailsDebFile(AppDetails):
             return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
 
     @property
+    def maintenance_status(self):
+        return None
+
+    @property
     def pkg_state(self):
         if self._error:
-            return PKG_STATE_UNKNOWN
+            if '@@' in self._error:
+                return PKG_STATE_UNKNOWN
+            else:
+                return PKG_STATE_ERROR
         if self._deb:
             deb_state = self._deb.compare_to_version_in_cache()
             if deb_state == DebPackage.VERSION_NONE:

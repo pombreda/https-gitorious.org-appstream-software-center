@@ -129,8 +129,6 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def configure(self, app_details, state):
-        if not state:
-            state = app_details.pkg_state
         self.pkg_state = state
 
         self.app_details = app_details
@@ -139,7 +137,21 @@ class PackageStatusBar(gtk.Alignment):
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
 
-        if not state == PKG_STATE_UNKNOWN:
+        if state in (PKG_STATE_INSTALLING,
+                     PKG_STATE_REMOVING,
+                     PKG_STATE_UPGRADING):
+            self.button.hide()
+            self.show()
+        elif state == PKG_STATE_UNKNOWN:
+            self.hide()
+        elif state == PKG_STATE_ERROR:
+            self.button.set_sensitive(False)
+            self.button.show()
+            self.show()
+        else:
+            state = app_details.pkg_state
+            self.button.set_sensitive(True)
+            self.button.show()
             self.show()
         
         if state == PKG_STATE_INSTALLED:
@@ -173,9 +185,17 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             #self.set_button_label(_('Upgrade Available'))
+        elif state == PKG_STATE_ERROR:
+            # this is used when the pkg can not be installed
+            # we display the error in the description field
+            self.set_button_label(_("Install"))
+            self.set_label("")
+            self.fill_color = COLOR_RED_FILL
+            self.line_color = COLOR_RED_OUTLINE
         elif state == PKG_STATE_UNKNOWN:
-            # we have an error which we display in the summary field..
-            self.hide()
+            # this is used when the pkg is not in the cache and there is no request
+            # we display the error in the summary field and hide the rest
+            pass
         elif state == PKG_STATE_NEEDS_SOURCE:
             self.set_button_label(_('Use This Source'))
             self.set_label(_('Source Unavailable'))
@@ -1019,7 +1039,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         appname = gobject.markup_escape_text(self.app_details.display_name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
-        if error:
+        if app_details.pkg_state == PKG_STATE_UNKNOWN:
             summary = error
         else:
             summary = self.app_details.display_summary
@@ -1043,7 +1063,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.set_icon_from_pixbuf(pb)
 
         # if we have an error or if we need to enable a source, then hide everything else
-        if error or self.app_details.pkg_state == PKG_STATE_NEEDS_SOURCE:
+        if self.app_details.pkg_state in (PKG_STATE_UNKNOWN, PKG_STATE_NEEDS_SOURCE):
             self.info_table.hide()
             self.screenshot.hide()
             self.desc_section.hide()
@@ -1058,7 +1078,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.grab_focus()
 
         # format new app description
-        description = self.app_details.description
+        if app_details.pkg_state == PKG_STATE_ERROR:
+            description = error
+        else:
+            description = self.app_details.description
         if description:
             self.app_desc.set_description(description, appname)
 

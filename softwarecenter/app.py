@@ -799,8 +799,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if len(packages) == 1:
             request = packages[0]
-            if request.endswith(".deb"):
-                # deb file
+            if request.endswith(".deb") or request.count('/') >= 2:
+                # deb file or other file opened with s-c
                 app = DebFileApplication(request)
             else:
                 # package from archive
