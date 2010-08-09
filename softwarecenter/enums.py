@@ -16,14 +16,27 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+import xdg.BaseDirectory
+
+# buy-something base url
+#BUY_SOMETHING_HOST = "http://localhost:8000/"
+BUY_SOMETHING_HOST = "https://sc.staging.ubuntu.com"
+
+# xapian pathes
+XAPIAN_BASE_PATH = "/var/cache/software-center"
+XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
+    xdg.BaseDirectory.xdg_cache_home,
+    "software-center", 
+    "software-center-agent.db")
 
 # system pathes
-XAPIAN_BASE_PATH = "/var/cache/software-center"
 APP_INSTALL_PATH = "/usr/share/app-install"
 APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
-SOFTWARE_CENTER_PLUGIN_DIR = "/usr/share/software-center/plugins"
+SOFTWARE_CENTER_BASE = "/usr/share/software-center"
+SOFTWARE_CENTER_PLUGIN_DIR = os.path.join(SOFTWARE_CENTER_BASE, "/plugins")
 
 # the various "views" that the app has
 VIEW_PAGE_AVAILABLE = "view-page-available"
@@ -64,8 +77,18 @@ XAPIAN_VALUE_POPCON = 176
 XAPIAN_VALUE_SUMMARY = 177
 XAPIAN_VALUE_ARCHIVE_CHANNEL = 178
 XAPIAN_VALUE_DESKTOP_FILE = 179
-XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 180
-XAPIAN_VALUE_SCREENSHOT_URL = 181
+XAPIAN_VALUE_PRICE = 180
+XAPIAN_VALUE_ARCHIVE_PPA = 181
+XAPIAN_VALUE_ARCHIVE_DEB_LINE = 182
+XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID = 183
+XAPIAN_VALUE_PURCHASED_DATE = 184
+XAPIAN_VALUE_SCREENSHOT_URL = 185
+XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 186
+XAPIAN_VALUE_THUMBNAIL_URL = 187
+
+# fake channels
+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
+AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
 
 # custom keys for the new-apps repository, correspond
 # control file custom fields:

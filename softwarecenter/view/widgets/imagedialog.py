@@ -28,7 +28,7 @@ import urllib
 import gobject
 
 from softwarecenter.enums import *
-from softwarecenter.utils import get_http_proxy_string_from_gconf
+from softwarecenter.utils import GnomeProxyURLopener
 
 ICON_EXCEPTIONS = ["gnome"]
 
@@ -37,22 +37,6 @@ class Url404Error(IOError):
 
 class Url403Error(IOError):
     pass
-
-class GnomeProxyURLopener(urllib.FancyURLopener):
-    """A urllib.URLOpener that honors the gnome proxy settings"""
-    def __init__(self, user_agent=USER_AGENT):
-        proxies = {}
-        http_proxy = get_http_proxy_string_from_gconf()
-        if http_proxy:
-            proxies = { "http" : http_proxy }
-        urllib.FancyURLopener.__init__(self, proxies)
-        self.version = user_agent
-    def http_error_404(self, url, fp, errcode, errmsg, headers):
-        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
-        raise Url404Error, "404 %s" % url
-    def http_error_403(self, url, fp, errcode, errmsg, headers):
-        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
-        raise Url403Error, "403 %s" % url
 
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """

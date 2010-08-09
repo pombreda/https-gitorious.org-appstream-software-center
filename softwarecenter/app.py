@@ -52,12 +52,14 @@ from view.viewmanager import ViewManager
 
 from backend.config import get_config
 from backend import get_install_backend
+from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from plugin import PluginManager
 
 # launchpad stuff
 from view.logindialog import LoginDialog
 from backend.launchpad import GLaunchpad
+from backend.restfulclient import UbuntuSSOlogin, SoftwareCenterAgent
 
 from distro import get_distro
 
@@ -90,10 +92,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     # the size of the icon for dialogs
     APP_ICON_SIZE = 48  # gtk.ICON_SIZE_DIALOG ?
 
-    # FIXME:  REMOVE THIS once launchpad integration is enabled
-    #         by default
-    def __init__(self, datadir, xapian_base_path, args, enable_lp_integration=False):
-    #def __init__(self, datadir, xapian_base_path):
+    def __init__(self, datadir, xapian_base_path, options, args):
     
         self._logger = logging.getLogger(__name__)
         self.datadir = datadir
@@ -323,19 +322,43 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # atk and stuff
         atk.Object.set_name(self.label_status.get_accessible(), "status_text")
-        
+
         # open plugin manager and load plugins
         self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
         self.plugin_manager.load_plugins()
+        
+        # make the local cache directory if it doesn't already exist
+        icon_cache_dir = SOFTWARE_CENTER_ICON_CACHE_DIR
+        if not os.path.exists(icon_cache_dir):
+            os.makedirs(icon_cache_dir)
+        self.icons.append_search_path(icon_cache_dir)
+
+        # run s-c-agent update
+        if options.enable_buy:
+            sc_agent_update = os.path.join(
+                datadir, "update-software-center-agent")
+            (pid, stdin, stdout, stderr) = glib.spawn_async(
+                [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+            glib.child_watch_add(
+                pid, self._on_update_software_center_agent_finished)
+        else:
+            file_menu = self.builder.get_object("menu1")
+            file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default
-        if not enable_lp_integration:
+        if not options.enable_lp:
             file_menu = self.builder.get_object("menu1")
+            file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
+
+        if not options.enable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
-            file_menu.remove(self.builder.get_object("menuitem_login"))
 
     # callbacks
+    def _on_update_software_center_agent_finished(self, pid, condition):
+        if os.WEXITSTATUS(condition) == 0:
+            self.db.reopen()
+
     def on_app_details_changed(self, widget, app, page):
         self.update_app_status_menu()
         self.update_status_bar()
@@ -406,6 +429,24 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         private_archives = self.glaunchpad.get_subscribed_archives()
         self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
             private_archives)
+
+    def _on_sso_login(self, sso, oauth_result):
+        print "_on_sso_login", sso, oauth_result
+        self._sso_login_successful = True
+        # consumer key is the openid identifier
+        self.scagent.query_available_for_me(oauth_result["token"],
+                                            oauth_result["consumer_key"])
+
+    def _available_for_me_result(self, scagent, result_list):
+        #print "available_for_me_result", result_list
+        from db.update import add_from_purchased_but_needs_reinstall_data
+        query = add_from_purchased_but_needs_reinstall_data(result_list, 
+                                                           self.db,
+                                                           self.cache)
+        channel_display_name = _("Previous Purchases")
+        self.view_switcher.get_model().channel_manager.add_channel(
+            channel_display_name, icon=None, query=query)
+        self.view_switcher.select_channel_node(channel_display_name, False)
             
     def on_application_request_action(self, widget, app, action):
         """callback when an app action is requested from the appview,
@@ -457,11 +498,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         return iconinfo.get_filename()
 
     # Menu Items
-    def on_menuitem_login_activate(self, menuitem):
+    def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
-        LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
-        self.glaunchpad.connect_to_server()
+        d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
+        d.login()
+
+    def on_menuitem_reinstall_purchases_activate(self, menuitem):
+        self.sso = UbuntuSSOlogin()
+        self.sso.connect("login-successful", self._on_sso_login)
+        self.scagent = SoftwareCenterAgent()
+        self.scagent.connect("available-for-me", self._available_for_me_result)
+        if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
+            self.scagent.query_available_for_me("dummy", "mvo")
+        else:
+            d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
+            d.login()
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
@@ -579,7 +631,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if (not self._block_menuitem_view and
+        if (not self._block_menuitem_view and self.active_pane.apps_filter and
             self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
@@ -617,7 +669,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.menuitem_install.set_sensitive(False)
         self.menuitem_remove.set_sensitive(False)
             
-    def _on_transaction_finished(self, backend, pkgname, success):
+    def _on_transaction_finished(self, backend, result):
         """ callback when an application install/remove transaction 
             (or a cache reload) has finished 
         """
@@ -666,6 +718,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         pkg_state = None
         error = None
+        # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
+        #         so that all UI controls (menu item, applist view button and appdetails
+        #         view button) are managed centrally:  button text, button sensitivity,
+        #         and callback method
+        # FIXME:  Add buy support here by implementing the above
         if self.active_pane.app_details.appdetails:
             pkg_state = self.active_pane.app_details.appdetails.pkg_state
             error = self.active_pane.app_details.appdetails.error

@@ -62,12 +62,13 @@ class SoftwareCenterMetadataPlugin:
               AA for the Application name
               AP for the Package name
               AC for the categories
-              AT to "applications" for applications
+              AT to "application" for applications
             It sets the following xapian values from the software-center 
             enums:
               XAPIAN_VALUE_ICON
               XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD
               XAPIAN_VALUE_SCREENSHOT_URL
+              XAPIAN_VALUE_THUMBNAIL_URL
             """
         )
 
@@ -85,7 +86,7 @@ class SoftwareCenterMetadataPlugin:
         if ver is None or not CUSTOM_KEY_APPNAME in ver.record:
             return
         # we want to index the following custom fields: 
-        #   XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
+        #   XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Thumbnail-Url, XB-Category
         if CUSTOM_KEY_APPNAME in ver.record:
             name = ver.record[CUSTOM_KEY_APPNAME]
             self.indexer.set_document(document)
@@ -99,6 +100,9 @@ class SoftwareCenterMetadataPlugin:
         if CUSTOM_KEY_SCREENSHOT_URL in ver.record:
             screenshot_url = ver.record[CUSTOM_KEY_SCREENSHOT_URL]
             document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)
+        if CUSTOM_KEY_THUMBNAIL_URL in ver.record:
+            url = ver.record[CUSTOM_KEY_THUMBNAIL_URL]
+            document.add_value(XAPIAN_VALUE_THUMBNAIL_URL, url)
         if CUSTOM_KEY_CATEGORY in ver.record:
             categories_str = ver.record[CUSTOM_KEY_CATEGORY]
             for cat in categories_str.split(";"):

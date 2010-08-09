@@ -77,6 +77,14 @@ class ChannelsManager(object):
         if added:
             self.backend.emit("channels-changed", True)
 
+    def add_channel(self, name, icon, query):
+        # print name, icon, query
+        channel = SoftwareChannel(self.icons, name, None, None, 
+                                  channel_icon=icon,
+                                  channel_query=query)
+        self.extra_channels.append(channel)
+        self.backend.emit("channels-changed", True)
+
     # internal
     def _feed_in_private_sources_list_entry(self, source_entry):
         """
@@ -180,6 +188,7 @@ class ChannelsManager(object):
         
         dist_channel = None
         partner_channel = None
+        for_purchase_channel = None
         new_apps_channel = None
         ppa_channels = []
         other_channels = []
@@ -235,12 +244,20 @@ class ChannelsManager(object):
                                                       None,
                                                       installed_only=installed_only))
         
+        # create a "magic" channel to display items available for purchase                                              
+        for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
+        for_purchase_channel = SoftwareChannel(self.icons, 
+                                               _("For Purchase"), None, None, 
+                                               channel_icon=None,   # FIXME:  need an icon
+                                               channel_query=for_purchase_query)
+        
         # set them in order
         channels = []
         if dist_channel is not None:
             channels.append(dist_channel)
         if partner_channel is not None:
             channels.append(partner_channel)
+        channels.append(for_purchase_channel)
         if new_apps_channel is not None:
             channels.append(new_apps_channel)
         channels.extend(ppa_channels)
@@ -251,7 +268,6 @@ class ChannelsManager(object):
             channels.append(local_channel)
         
         return channels
-        
 
 
 class SoftwareChannel(object):

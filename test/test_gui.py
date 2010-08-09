@@ -4,6 +4,7 @@ import apt
 import glib
 import gtk
 import logging
+from mock import Mock
 import os
 import subprocess
 import sys
@@ -22,14 +23,17 @@ from softwarecenter.backend import get_install_backend
 
 # needed for the install test
 if os.getuid() == 0:
-    subprocess.call(["dpkg", "-r", "hello"])
+    subprocess.call(["dpkg", "-r", "4g8"])
 
 # we make app global as its relatively expensive to create
 # and in setUp it would be created and destroyed for each
 # test
 apt.apt_pkg.config.set("Dir::log::history", "/tmp")
 #apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
-app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH)
+mock_options = Mock()
+mock_options.enable_lp = False
+mock_options.enable_buy = True
+app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, mock_options)
 app.window_main.show_all()
 
 class SCTestGUI(unittest.TestCase):
@@ -38,6 +42,19 @@ class SCTestGUI(unittest.TestCase):
         self.app = app
         self._p()
     
+    def test_supported_only(self):
+        """ test if clicking on the "supported only" menuitems
+            really makes the the amount of items smaller
+        """
+        self._reset_ui()
+        items_all = self.app.label_status.get_text()
+        self.app.menuitem_view_supported_only.activate()
+        items_supported = self.app.label_status.get_text()
+        self.assertNotEqual(items_all, items_supported)
+        len_all = int(items_all.split()[0])
+        len_supported = int(items_supported.split()[0])
+        self.assertTrue(len_all > len_supported)
+
     def test_categories_and_back_forward(self):
         self._reset_ui()
 
@@ -107,13 +124,13 @@ class SCTestGUI(unittest.TestCase):
                          AvailablePane.PAGE_APP_DETAILS)
 
 
-    def test_install_the_hello_package(self):
+    def test_install_the_4g8_package(self):
         self._reset_ui()
 
         # assert we find the right package
-        model = self._run_search("hello")
+        model = self._run_search("4g8")
         treeview = self.app.available_pane.app_view
-        self.assertFirstPkgInModel(model, "hello")
+        self.assertFirstPkgInModel(model, "4g8")
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
         self._p()

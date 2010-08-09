@@ -28,6 +28,7 @@ from apt import debfile
 from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.apt.apthistory import get_apt_history
+from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.utils import *
@@ -117,6 +118,7 @@ class AppDetails(object):
         self._cache = self._db._aptcache
         self._distro = get_distro()
         self._history = get_apt_history()
+        self._backend = get_install_backend()
         self._error = None
 
         # load application
@@ -205,7 +207,6 @@ class AppDetails(object):
 
     @property
     def error(self):
-        # doing this the old way gave massive performance regressions..
         if self._error:
             if self._error.count('@@') > 0:
                 return self._error.split('@@')[1]
@@ -221,10 +222,28 @@ class AppDetails(object):
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
         if not self.summary:
             return MISSING_PKG_ICON
+            
+    @property
+    def icon_file_name(self):
+        if self._doc:
+            return self._db.get_iconname(self._doc)
+            
+    @property
+    def icon_needs_download(self):
+        if self._doc:
+            return self._db.get_icon_needs_download(self._doc)
+            
+    @property
+    def icon_url(self):
+        return self._distro.get_downloadable_icon_url(self._cache, self.pkgname, self.icon_file_name)
 
     @property
     def installation_date(self):
         return self._history.get_installed_date(self.pkgname)
+        
+    @property
+    def purchase_date(self):
+        return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
 
     @property
     def license(self):
@@ -299,6 +318,24 @@ class AppDetails(object):
                 return PKG_STATE_UNKNOWN
             else:
                 return PKG_STATE_ERROR
+        # check dynamic states from the install backend
+
+        # puchase state
+        if self.pkgname in self._backend.pending_purchases:
+            return PKG_STATE_INSTALLING_PURCHASED
+
+        # via the pending transactions dict
+        if self._pkg and self.pkgname in self._backend.pending_transactions:
+            # FIXME: we don't handle upgrades yet
+            if self._pkg.installed:
+                return PKG_STATE_REMOVING
+            else:
+                return PKG_STATE_INSTALLING
+
+        # if we have _pkg that means its either:
+        # - available for download (via sources.list)
+        # - locally installed
+        # - intalled and available for download
         if self._pkg:
             # Don't handle upgrades yet
             #if self._pkg.installed and self._pkg._isUpgradable:
@@ -307,6 +344,12 @@ class AppDetails(object):
                 return PKG_STATE_INSTALLED
             else:
                 return PKG_STATE_UNINSTALLED
+        # if we don't have a _pkg, then its either:
+        #  - its in a unavailable repo
+        #  - the repository information is outdated
+        #  - the repository information is missing (/var/lib/apt/lists empty)
+        #  - its a failure in our meta-data (e.g. typo in the pkgname in
+        #    the metadata)
         if not self._pkg:
             if self.channelname and self._unavailable_channel():
                 return PKG_STATE_NEEDS_SOURCE
@@ -316,15 +359,39 @@ class AppDetails(object):
                     for component in components:
                         if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
                             return PKG_STATE_NEEDS_SOURCE
+                if self.price and self._available_for_our_arch():
+                    return PKG_STATE_NEEDS_PURCHASE
+                if (self.purchase_date and
+                    self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
+                    return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
         return PKG_STATE_UNKNOWN
 
     @property
     def price(self):
         if self._doc:
-            return self._distro.get_price(self._doc)
+            return self._doc.get_value(XAPIAN_VALUE_PRICE)
+
+    @property
+    def ppaname(self):
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA)
+
+    @property
+    def deb_line(self):
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)
+
+    @property
+    def signing_key_id(self):
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID)
 
     @property
     def screenshot(self):
+        # if there is a custom screenshot url provided, use that
+        if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
+            return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
+        # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
 
     @property
@@ -343,6 +410,10 @@ class AppDetails(object):
 
     @property
     def thumbnail(self):
+        # if there is a custom thumbnail url provided, use that
+        if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
+            return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
+        # else use the default
         return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
 
     @property
@@ -424,6 +495,35 @@ class AppDetails(object):
                 return True
         return False
 
+    def __str__(self):
+        details = []
+        details.append("* AppDetails")
+        details.append("                name: %s" % self.name)
+        details.append("                 pkg: %s" % self.pkg)
+        details.append("             pkgname: %s" % self.pkgname)
+        details.append("        architecture: %s" % self.architecture)
+        details.append("         channelname: %s" % self.channelname)
+        details.append("                 ppa: %s" % self.ppaname)
+        details.append("         channelfile: %s" % self.channelfile)
+        details.append("           component: %s" % self.component)
+        details.append("         description: %s" % self.description)
+        details.append("                icon: %s" % self.icon)
+        details.append("      icon_file_name: %s" % self.icon_file_name)
+        details.append(" icon_needs_download: %s" % self.icon_needs_download)
+        details.append("            icon_url: %s" % self.icon_url)
+        details.append("   installation_date: %s" % self.installation_date)
+        details.append("       purchase_date: %s" % self.purchase_date)
+        details.append("             license: %s" % self.license)
+        details.append("  maintenance_status: %s" % self.maintenance_status)
+        details.append("           pkg_state: %s" % self.pkg_state)
+        details.append("               price: %s" % self.price)
+        details.append("          screenshot: %s" % self.screenshot)
+        details.append("             summary: %s" % self.summary)
+        details.append("           thumbnail: %s" % self.thumbnail)
+        details.append("             version: %s" % self.version)
+        details.append("             website: %s" % self.website)
+        return '\n'.join(details)
+
 class AppDetailsDebFile(AppDetails):
     
     def __init__(self, db, doc=None, application=None):
@@ -454,6 +554,7 @@ class AppDetailsDebFile(AppDetails):
     def architecture(self):
         if self._deb:
             return self._deb._sections["Architecture"]
+
     @property
     def description(self):
         if self._deb:
@@ -493,6 +594,7 @@ class AppDetailsDebFile(AppDetails):
         if self._deb:
             description = self._deb._sections["Description"]
             return description.split('\n')[0]
+
     @property
     def display_summary(self):
         return self.summary
@@ -528,4 +630,3 @@ class AppDetailsDebFile(AppDetails):
                 pass
             if website:
                 return website
-

@@ -94,6 +94,7 @@ class ViewSwitcher(gtk.TreeView):
         self.connect("row-expanded", self.on_treeview_row_expanded)
         self.connect("row-collapsed", self.on_treeview_row_collapsed)
         self.connect("cursor-changed", self.on_cursor_changed)
+        self.connect("key-release-event", self.on_key_release_event)
 
         self.get_model().connect("channels-refreshed", self._on_channels_refreshed)
         self.get_model().connect("row-deleted", self._on_row_deleted)
@@ -107,7 +108,10 @@ class ViewSwitcher(gtk.TreeView):
         self.set_cursor(path)
     
     def on_treeview_selected(self, path):
-        if path[0] == VIEW_PAGE_SEPARATOR_1:
+        model = self.get_model()
+        iter_ = model.get_iter(path)
+        id_ = model.get_value(iter_, 2)
+        if id_ == VIEW_PAGE_SEPARATOR_1:
             return False
         return True
         
@@ -125,6 +129,21 @@ class ViewSwitcher(gtk.TreeView):
         view_page = action
         self.emit("view-changed", view_page, channel)
         
+    def on_key_release_event(self, widget, event):
+        # Get the toplevel node of the currently selected row
+        toplevel = self.get_toplevel_node(self.get_cursor())
+        toplevel_path = (toplevel,)
+
+        # Expand the toplevel node if the right arrow key is clicked
+        if event.keyval == gtk.keysyms.Right:
+            if not self.row_expanded(toplevel_path):
+                self.expand_row(toplevel_path, False)
+        # Collapse the toplevel node if the left arrow key is clicked
+        elif event.keyval == gtk.keysyms.Left:
+            if self.row_expanded(toplevel_path):
+                self.collapse_row(toplevel_path)
+        return False
+        
     def get_view(self):
         """return the current activated view number or None if no
            view is activated (this can happen when a pending view 
@@ -139,6 +158,11 @@ class ViewSwitcher(gtk.TreeView):
         (path, column) = self.get_cursor()
         if not path:
             return None
+        return path[0]
+    
+    def get_toplevel_node(self, cursor):
+        """Returns the toplevel node of a selected row"""
+        (path, column) = cursor
         return path[0]
 
     def set_view(self, view_page):
@@ -185,6 +209,15 @@ class ViewSwitcher(gtk.TreeView):
         if model:
             expanded = self.row_expanded(model.get_path(model.installed_iter))
         return expanded
+        
+    def select_channel_node(self, channel_name, installed_only):
+        """ select the specified channel node """
+        model = self.get_model()
+        if model:
+            channel_iter_to_select = model.get_channel_iter_for_name(channel_name,
+                                                                     installed_only)
+            if channel_iter_to_select:
+                self.set_cursor(model.get_path(channel_iter_to_select))
 
     def _on_channels_refreshed(self, model):
         """
@@ -291,8 +324,8 @@ class ViewSwitcherList(gtk.TreeStore):
                 if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
                     del self[(i,)]
                     
-    def on_transaction_finished(self, backend, pkgname, success):
-        if success:
+    def on_transaction_finished(self, backend, result):
+        if result.success:
             self._update_channel_list_installed_view()
             self.emit("channels-refreshed")
 
@@ -376,7 +409,8 @@ class ViewSwitcherList(gtk.TreeStore):
             # check for no installed items for each channel and do not
             # append the channel item in this case
             enquire = xapian.Enquire(self.db.xapiandb)
-            enquire.set_query(channel.get_channel_query())
+            query = channel.get_channel_query()
+            enquire.set_query(query)
             matches = enquire.get_mset(0, len(self.db))
             # only check channels that have a small number of items
             add_channel_item = True
