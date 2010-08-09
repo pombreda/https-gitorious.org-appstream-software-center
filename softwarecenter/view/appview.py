@@ -886,7 +886,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
             if not action_btn:
-                print 'No action button? This doesn\'t make sense!'
+                logging.warn("No action button? This doesn't make sense!")
                 return
             max_layout_width -= (xpad + action_btn.allocation.width) 
 
@@ -917,7 +917,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # per the spec, the progressbar should be the width of the action button
         action_btn = self.get_button_by_name('action0')
         if not action_btn:
-            print 'No action button? This doesn\'t make sense!'
+            logging.warn("No action button? This doesn't make sense!")
             return
 
         x, y, w, h = action_btn.get_allocation_tuple()
@@ -1455,8 +1455,8 @@ class AppView(gtk.TreeView):
             store.row_changed(path[0], store.get_iter(path[0]))
             # be sure we dont request an action for a pkg with pre-existing actions
             if pkgname in self._action_block_list:
-                print 'Action already in progress for package: %s' % pkgname
-                return
+                logging.debug("Action already in progress for package: '%s'" % pkgname)
+                return False
             self._action_block_list.append(pkgname)
             if installed:
                 perform_action = APP_ACTION_REMOVE
