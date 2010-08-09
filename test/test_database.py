@@ -92,14 +92,13 @@ class TestDatabase(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 1)
 
-    def test_build_from_software_center_agent(self):
+    def disabled_for_now_test_build_from_software_center_agent(self):
         from softwarecenter.db.update import update_from_software_center_agent
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         cache = apt.Cache()
-        # do not fail if no software-center agent is running
+        # we test against the real https://sc.ubuntu.com so we need network
         res = update_from_software_center_agent(db, cache)
-        # only test if the server is running
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 1)
         for p in db.postlist(""):
