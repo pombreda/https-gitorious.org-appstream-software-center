@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from apt.debfile import DebPackage
 import apt_pkg
 import locale
 import os
@@ -40,25 +41,19 @@ class Application(object):
         
         There is also a __cmp__ method and a name property
     """
-    def __init__(self, appname, pkgname, request, popcon=0):
-        if request.count("/") > 0 and not appname:
-            self.appname = request.split('/')[-1].split('_')[0].split('.deb')[0].capitalize()
-            self.pkgname = request.split('/')[-1].split('_')[0].split('.deb')[0].lower()
-        else:
-            self.pkgname = pkgname
-            if appname:
-                self.appname = appname
-            else:
-                self.appname = pkgname.capitalize()
-        self.appname = self.appname.replace("$kernel", os.uname()[2])
-        self.pkgname = self.pkgname.replace("$kernel", os.uname()[2])
+    def __init__(self, appname="", pkgname="", request="", popcon=0):
+        if not (appname or pkgname):
+            raise ValueError("Need either appname or pkgname or request")
+        # defaults
+        self.pkgname = pkgname
+        self.appname = appname
         self.request = request
-        if not request:
-            if self.pkgname.count("?") > 0:
-                self.request = ('?').join(self.pkgname.split('?')[1:])
-                self.appname = self.appname.split('?')[0]
-                self.pkgname = self.pkgname.split('?')[0]
         self._popcon = popcon
+        # a "?" in the name means its a apturl request
+        if "?" in pkgname:
+            # the bit before the "?" is the pkgname, everything else the req
+            (self.pkgname, sep, self.request) = pkgname.partition("?")
+
     @property
     def name(self):
         """Show user visible name"""
@@ -92,6 +87,19 @@ class Application(object):
             return locale.strcoll(x.pkgname, y.appname)
         else:
             return cmp(x.pkgname, y.pkgname)
+
+class DebFileApplication(Application):
+    def __init__(self, debfile):
+        # deb overrides this
+        if not debfile.endswith(".deb"):
+            raise ValueError("Need a deb file, got '%s'" % debfile)
+        debname = os.path.splitext(os.path.basename(debfile))[0]
+        self.appname = debname.split('_')[0].capitalize()
+        self.pkgname = debname.split('_')[0].lower()
+        self.request = debfile
+    def get_details(self, db):
+        return AppDetailsDebFile(db, application=self)
+
 
 # the details
 class AppDetails(object):
@@ -135,47 +143,8 @@ class AppDetails(object):
                 if not self._pkg and not debfile_matches and not channel_matches and not section_matches:
                     self._error = _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
 
-        # see if someone is requesting a deb file to be loaded
-        self._deb = None
-        if self._app.request:
-            if self._app.request.count('/') > 0:
-                self._init_deb_file()
-
-        # finally we check to see if a pkg in a xapian document is available to install on our architecture
-        if self._doc and not self._pkg and not self._deb:
-            available_for_arch = self._available_for_our_arch()
-            if not available_for_arch and (self.channelname or self.component):
-                self._error = _("\"%s\" is not available for this type of computer.") % self.name
-
-    def _init_deb_file(self):
-        try:
-            self._deb = debfile.DebPackage(self._app.request, Cache())
-        except (IOError,SystemError),e:
-            self._pkg = None
-            mimetype = guess_type(self._app.request)
-            if (mimetype[0] != None and mimetype[0] != "application/x-debian-package"):
-                self._error =  _("Not Found") + '@@' + _("The file \"%s\" is not a software package.") % self._app.request
-            else:
-                self._error = _("Not Found") + '@@' + _("The file \"%s\" does not exist.") % self._app.request
-
-        if self._deb:
-            # check conflicts and check if installing it would break anything on the current system
-            if not self._deb.check_conflicts() or not self._deb.check_breaks_existing_packages():
-                self._error = _("\"%s\" conflicts with other software.") % self.name
-            # try to satisfy the dependencies
-            if not self._deb._satisfy_depends(self._deb.depends):
-                self._error = _("\"%s\" requires other software to be installed that is not available.") % self.name
-            # check for conflicts again (this time with the packages that are marked for install)
-            if not self._deb.check_conflicts():
-                self._error = _("\"%s\" conflicts with other software.") % self.name
-            # check arch
-            if  self.architecture != "all" and self.architecture != get_current_arch():
-                self._error = _("\"%s\" is not available for this type of computer.") %  self.name
-
     @property
     def architecture(self):
-        if self._deb:
-            return self._deb._sections["Architecture"]
         if self._doc:
             return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
 
@@ -231,9 +200,6 @@ class AppDetails(object):
 
     @property
     def description(self):
-        if self._deb:
-            description = self._deb._sections["Description"]
-            return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
         if self._pkg:
             return self._pkg.candidate.description
 
@@ -330,23 +296,6 @@ class AppDetails(object):
     def pkg_state(self):
         if self._error:
             return PKG_STATE_UNKNOWN
-        if self._deb:
-            deb_state = self._deb.compare_to_version_in_cache()
-            (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
-            if deb_state == DEB_NOT_IN_CACHE:
-                return PKG_STATE_UNINSTALLED
-            elif deb_state == DEB_OLDER_THAN_CACHE:
-                if self._cache[self.pkgname].installed:
-                    return PKG_STATE_INSTALLED
-                else:
-                    return PKG_STATE_UNINSTALLED
-            elif deb_state == DEB_EQUAL_TO_CACHE:
-                return PKG_STATE_REINSTALLABLE
-            elif deb_state == DEB_NEWER_THAN_CACHE:
-                if self._cache[self.pkgname].installed:
-                    return PKG_STATE_UPGRADABLE
-                else:
-                    return PKG_STATE_UNINSTALLED
         if self._pkg:
             # Don't handle upgrades yet
             #if self._pkg.installed and self._pkg._isUpgradable:
@@ -355,7 +304,7 @@ class AppDetails(object):
                 return PKG_STATE_INSTALLED
             else:
                 return PKG_STATE_UNINSTALLED
-        if not self._pkg and not self._deb:
+        if not self._pkg:
             if self.channelname and self._unavailable_channel():
                 return PKG_STATE_NEEDS_SOURCE
             else:
@@ -386,9 +335,6 @@ class AppDetails(object):
             else:
                 # by spec..
                 return self._db.get_pkgname(self._doc)
-        if self._deb:
-            description = self._deb._sections["Description"]
-            return description.split('\n')[0]
         if self._pkg:
             return self._pkg.candidate.summary
 
@@ -398,27 +344,11 @@ class AppDetails(object):
 
     @property
     def version(self):
-        if self._deb:
-            return self._deb._sections["Version"]
         if self._pkg:
             return self._pkg.candidate.version
 
     @property
     def warning(self):
-        # warnings for deb-files
-        # FIXME: use more concise warnings
-        if self._deb:
-            deb_state = self._deb.compare_to_version_in_cache()
-            (DEB_NOT_IN_CACHE, DEB_OLDER_THAN_CACHE, DEB_EQUAL_TO_CACHE, DEB_NEWER_THAN_CACHE) = range(4)
-            if deb_state == DEB_NOT_IN_CACHE:
-                return _("Only install this file if you trust the origin.")
-            elif deb_state == DEB_OLDER_THAN_CACHE:
-                if not self._cache[self.pkgname].installed:
-                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DEB_EQUAL_TO_CACHE:
-                return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DEB_NEWER_THAN_CACHE:
-                return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
         # apturl minver matches
         if not self.pkg_state == PKG_STATE_INSTALLED:
             if self._app.request:
@@ -428,7 +358,7 @@ class AppDetails(object):
                     if apt_pkg.version_compare(minver, self.version) > 0:
                         return _("Version %s or later not available.") % minver
         # can we enable a source
-        if not self._pkg and not self._deb:
+        if not self._pkg:
             source_to_enable = None
             if self.channelname and self._unavailable_channel():
                 source_to_enable = self.channelname
@@ -445,14 +375,6 @@ class AppDetails(object):
 
     @property
     def website(self):
-        if self._deb:
-            website = None
-            try:
-                website = self._deb._sections["Homepage"]
-            except:
-                pass
-            if website:
-                return website
         if self._pkg:
             return self._pkg.candidate.homepage
 
@@ -498,3 +420,105 @@ class AppDetails(object):
             if arch == get_current_arch():
                 return True
         return False
+
+class AppDetailsDebFile(AppDetails):
+    
+    def __init__(self, db, doc=None, application=None):
+        super(AppDetailsDebFile, self).__init__(db, doc, application)
+        if doc:
+            raise ValueError("doc must be None for deb files")
+        # see if someone is requesting a deb file to be loaded
+        self._deb = None
+        self._init_deb_file()
+
+    def _init_deb_file(self):
+        try:
+            # for some reason Cache() is much faster than "self._cache._cache"
+            # on startup
+            self._deb = DebPackage(self._app.request, Cache())
+        except (IOError, SystemError),e:
+            self._pkg = None
+            if not os.path.exists(self._app.request):
+                self._error = _("Not Found") + '@@' + _("The file \"%s\" does not exist.") % self._app.request
+            else:
+                mimetype = guess_type(self._app.request)
+                if mimetype[0] != "application/x-debian-package":
+                    self._error =  _("Not Found") + '@@' + _("The file \"%s\" is not a software package.") % self._app.request
+            return
+
+        # check deb and set failure state on error
+        if not self._deb.check():
+            self._error = self._deb._failure_string
+
+    @property
+    def architecture(self):
+        if self._deb:
+            return self._deb._sections["Architecture"]
+    @property
+    def description(self):
+        if self._deb:
+            description = self._deb._sections["Description"]
+            return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
+
+    @property
+    def pkg_state(self):
+        if self._error:
+            return PKG_STATE_UNKNOWN
+        if self._deb:
+            deb_state = self._deb.compare_to_version_in_cache()
+            if deb_state == DebPackage.VERSION_NONE:
+                return PKG_STATE_UNINSTALLED
+            elif deb_state == DebPackage.VERSION_OUTDATED:
+                if self._cache[self.pkgname].installed:
+                    return PKG_STATE_INSTALLED
+                else:
+                    return PKG_STATE_UNINSTALLED
+            elif deb_state == DebPackage.VERSION_SAME:
+                return PKG_STATE_REINSTALLABLE
+            elif deb_state == DebPackage.VERSION_NEWER:
+                if self._cache[self.pkgname].installed:
+                    return PKG_STATE_UPGRADABLE
+                else:
+                    return PKG_STATE_UNINSTALLED
+    
+    @property
+    def summary(self):
+        if self._deb:
+            description = self._deb._sections["Description"]
+            return description.split('\n')[0]
+    @property
+    def display_summary(self):
+        return self.summary
+
+    @property
+    def version(self):
+        if self._deb:
+            return self._deb._sections["Version"]
+
+    @property
+    def warning(self):
+        # warnings for deb-files
+        # FIXME: use more concise warnings
+        if self._deb:
+            deb_state = self._deb.compare_to_version_in_cache()
+            if deb_state == DebPackage.VERSION_NONE:
+                return _("Only install this file if you trust the origin.")
+            elif deb_state == DebPackage.VERSION_OUTDATED:
+                if not self._cache[self.pkgname].installed:
+                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+            elif deb_state == DebPackage.VERSION_SAME:
+                return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+            elif deb_state == DebPackage.VERSION_NEWER:
+                return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
+
+    @property
+    def website(self):
+        if self._deb:
+            website = None
+            try:
+                website = self._deb._sections["Homepage"]
+            except:
+                pass
+            if website:
+                return website
+
