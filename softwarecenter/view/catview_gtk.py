@@ -815,7 +815,8 @@ class CarouselPoster(mkit.VLinkButton):
             pcr.clip()
             pcr.move_to(ia.x, la.y)
             pcr.set_source_rgba(*rgba)
-            pcr.show_layout(layout)
+            pcr.layout_path(layout)
+            pcr.fill()
             pcr.restore()
             del pcr
         else:
