@@ -48,6 +48,8 @@ class Application(object):
         # defaults
         self.pkgname = pkgname
         self.appname = appname
+        # the request can take additional "request" data like apturl
+        # strings or the path of a local deb package
         self.request = request
         self._popcon = popcon
         # a "?" in the name means its a apturl request

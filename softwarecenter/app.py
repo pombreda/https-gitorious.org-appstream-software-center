@@ -484,10 +484,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # action_func is one of:  "install", "remove" or "upgrade"
         action_func = getattr(self.backend, action)
         if action == 'install':
-            if app.request:
-                if app.request.count('/') < 1:
-                    app.request = None
-            action_func(app.pkgname, app.appname, app.request, appdetails.icon)
+            # the package.deb path name is in the request
+            if app.request and app.request.endswith(".deb"):
+                debfile_name = app.request
+            else:
+                debfile_name = None
+            action_func(app.pkgname, app.appname, appdetails.icon, debfile_name)
         elif callable(action_func):
             action_func(app.pkgname, app.appname, appdetails.icon)
         else:
@@ -858,12 +860,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if len(packages) == 1:
             request = packages[0]
-            if request.endswith(".deb") or request.count('/') >= 2:
+            if (request.endswith(".deb") or os.path.exists(request)):
                 # deb file or other file opened with s-c
                 app = DebFileApplication(request)
             else:
                 # package from archive
                 # if there is a "/" in the string consider it as tuple
+                # of (pkgname, appname) for exact matching (used by
+                # e.g. unity
                 (pkgname, sep, appname) = packages[0].partition("/")
                 app = Application(appname, pkgname)
                 self.available_pane.on_application_activated(None, app)
