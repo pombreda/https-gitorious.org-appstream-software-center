@@ -1,3 +1,10 @@
+software-center (2.1.9) UNRELEASED; urgency=low
+
+  * test/test_database.py:
+    - re-enable sca test again
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 09 Aug 2010 10:27:20 +0200
+
 software-center (2.1.8) maverick; urgency=low
 
   [ Michael Vogt ]
