@@ -412,7 +412,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
-        if view_id == VIEW_PAGE_INSTALLED and not self.installed_pane.loaded and not self.installed_pane.current_appview_selection:
+        if (view_id == VIEW_PAGE_INSTALLED and
+            not self.installed_pane.loaded and
+            not self.installed_pane.get_current_app()):
             self.installed_pane.refresh_apps()
         # switch to new page
         self.view_manager.set_active_view(view_id)
