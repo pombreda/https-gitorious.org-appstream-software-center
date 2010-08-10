@@ -75,9 +75,19 @@ class StoreDatabase(gobject.GObject):
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
         " open the database "
-        if pathname:
-            self._db_pathname = pathname
+        if pathname: self._db_pathname = pathname
+
         self.xapiandb = xapian.Database(self._db_pathname)
+        print self.xapiandb
+        # parser etc
+        self.xapian_parser = xapian.QueryParser()
+        self.xapian_parser.set_database(self.xapiandb)
+        self.xapian_parser.add_boolean_prefix("pkg", "XP")
+        self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.xapian_parser.add_prefix("pkg_wildcard", "XP")
+        self.xapian_parser.add_prefix("pkg_wildcard", "AP")
+        self.xapian_parser.set_default_op(xapian.Query.OP_AND)
+
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
@@ -97,14 +107,7 @@ class StoreDatabase(gobject.GObject):
         # additional dbs
         for db in self._additional_databases:
             self.xapiandb.add_database(db)
-        # parser etc
-        self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "XP")
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
-        self.xapian_parser.add_prefix("pkg_wildcard", "XP")
-        self.xapian_parser.add_prefix("pkg_wildcard", "AP")
-        self.xapian_parser.set_default_op(xapian.Query.OP_AND)
+
         self.emit("open", self._db_pathname)
 
     def add_database(self, database):

@@ -157,7 +157,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                  "package."))
             # FIXME: force rebuild by providing a dbus service for this
             sys.exit(1)
-    
+
+        print self.db.xapian_parser
+
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path(ICON_PATH)

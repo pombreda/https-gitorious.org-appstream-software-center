@@ -19,7 +19,7 @@
 import ConfigParser
 import os
 
-from paths import *
+from ..paths import *
 
 class SoftwareCenterConfig(ConfigParser.SafeConfigParser):
     def __init__(self, config):

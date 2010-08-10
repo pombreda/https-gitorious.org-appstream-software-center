@@ -40,7 +40,7 @@ from lazr.restfulclient.authorize import BasicHttpAuthorizer
 from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
 from oauth.oauth import OAuthConsumer, OAuthToken
 
-from paths import SOFTWARE_CENTER_CACHE_DIR
+from ..paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
 from login import LoginBackend
