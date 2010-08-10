@@ -300,7 +300,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None
-        self.pending_purchases.remove(self.app.pkgname)
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
@@ -432,6 +431,17 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield trans.run(defer=True)
         except Exception, error:
             self._on_trans_error(pkgname, error)
+            # on error we need to clean the pending purchases
+            self._clean_pending_purchases(pkgname)
+        # on success the pending purchase is cleaned when the package
+        # that was purchased finished installing
+        if trans.role == enums.ROLE_INSTALL_PACKAGES:
+            self._clean_pending_purchases(pkgname)
+
+
+    def _clean_pending_purchases(self, pkgname):
+        if pkgname and pkgname in self.pending_purchases:
+            self.pending_purchases.remove(pkgname)
 
     def _on_trans_error(self, error, pkgname=None):
         self._logger.warn("_on_trans_error: %s", error)
