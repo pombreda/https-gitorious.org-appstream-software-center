@@ -46,7 +46,7 @@ class Application(object):
         if not (appname or pkgname):
             raise ValueError("Need either appname or pkgname or request")
         # defaults
-        self.pkgname = pkgname
+        self.pkgname = pkgname.replace("$kernel", os.uname()[2])
         self.appname = appname
         # the request can take additional "request" data like apturl
         # strings or the path of a local deb package
@@ -175,9 +175,9 @@ class AppDetails(object):
                 return channel
         else:
             # check if we have an apturl request to enable a channel
-            channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
+            channel_matches = re.findall(r'channel=([a-z,-]*)', self._app.request)
             if channel_matches:
-                channel = channel_matches[0][8:]
+                channel = channel_matches[0]
                 channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
                 if os.path.exists(channelfile):
                     return channel
@@ -228,7 +228,7 @@ class AppDetails(object):
         elif self._error:
             return self._error
         # this may have changed since we inited the appdetails
-        elif self.pkg_state == PKG_STATE_UNKNOWN:
+        elif self.pkg_state == PKG_STATE_NOT_FOUND:
             self._error =  _("Not Found")
             self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
             return self._error_not_found
@@ -260,7 +260,8 @@ class AppDetails(object):
         
     @property
     def purchase_date(self):
-        return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
 
     @property
     def license(self):
@@ -363,14 +364,23 @@ class AppDetails(object):
         #  - its a failure in our meta-data (e.g. typo in the pkgname in
         #    the metadata)
         if not self._pkg:
-            if self.channelname and self._unavailable_channel():
-                return PKG_STATE_NEEDS_SOURCE
+            if self.channelname:
+                if self._unavailable_channel():
+                    return PKG_STATE_NEEDS_SOURCE
+                else:
+                    self._error =  _("Not Found")
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    return PKG_STATE_NOT_FOUND
             else:
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
                         if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
                             return PKG_STATE_NEEDS_SOURCE
+                else:
+                    self._error =  _("Not Found")
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    return PKG_STATE_NOT_FOUND
                 if self.price and self._available_for_our_arch():
                     return PKG_STATE_NEEDS_PURCHASE
                 if (self.purchase_date and
