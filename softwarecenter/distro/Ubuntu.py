@@ -107,6 +107,14 @@ class Ubuntu(Distro):
                     return True
         return False
 
+    def get_supported_query(self):
+        import xapian
+        query1 = xapian.Query("XOL"+"Ubuntu")
+        query2a = xapian.Query("XOC"+"main")
+        query2b = xapian.Query("XOC"+"restricted")
+        query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
+        return xapian.Query(xapian.Query.OP_AND, query1, query2)
+
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
         # try to figure out the support dates of the release and make
         # sure to look only for stuff in "Ubuntu" and "distro_codename"
@@ -192,6 +200,23 @@ class Ubuntu(Distro):
                      "Some updates may be provided by the "
                      "Ubuntu community.") % appname
         return _("Application %s has an unknown maintenance status.") % appname
+        
+    def get_downloadable_icon_url(self, cache, pkgname, icon_filename):
+        """
+        generates the url for a downloadable icon based on its pkgname and the icon filename itself
+        """
+        full_archive_url = cache[pkgname].candidate.uri
+        split_at_pool = full_archive_url.split("pool")[0]
+        if split_at_pool.endswith("/ppa/ubuntu/"):
+            # it's a ppa, generate the icon_url for a ppa
+            split_at_ppa = split_at_pool.split("/ppa/")[0]
+            downloadable_icon_url = []
+            downloadable_icon_url.append(split_at_ppa)
+            downloadable_icon_url.append("/meta/ppa/")
+            downloadable_icon_url.append(icon_filename)
+            return "".join(downloadable_icon_url)
+        else:
+            raise ValueError, "we currently support downloadable icons in ppa's only"
 
 
 if __name__ == "__main__":

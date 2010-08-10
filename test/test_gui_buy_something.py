@@ -10,6 +10,8 @@ import sys
 import time
 import unittest
 
+from mock import Mock
+
 sys.path.insert(0, "..")
 
 from softwarecenter.app import SoftwareCenterApp
@@ -29,7 +31,11 @@ class SCBuySomething(unittest.TestCase):
             subprocess.call(["dpkg", "-r", "hellox", "hello"])
         apt.apt_pkg.config.set("Dir::log::history", "/tmp")
         apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
-        self.app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH)
+        # mock options
+        mock_options = Mock()
+        mock_options.enable_lp = False
+        mock_options.enable_buy = True
+        self.app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, mock_options)
         self.app.window_main.show_all()
         self._p()
 	self._finished = False
@@ -66,8 +72,8 @@ class SCBuySomething(unittest.TestCase):
             self.app.available_pane.app_details.action_bar.button.get_label(),
             "Buy")
         self._p()
-        # close the purchase dialog again after 1s
-        glib.timeout_add_seconds(1, lambda: self.app.available_pane.app_details.purchase_dialog.response(gtk.RESPONSE_OK))
+        # close the purchase dialog again after 2s
+        glib.timeout_add_seconds(2, lambda: self.app.available_pane.app_details.purchase_dialog.response(gtk.RESPONSE_OK))
         # now simulate a click, the UI will block until the glib timeout 
         # from the previous line hits
         self.app.available_pane.app_details.action_bar.button.clicked()

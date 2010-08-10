@@ -52,6 +52,7 @@ from view.viewmanager import ViewManager
 
 from backend.config import get_config
 from backend import get_install_backend
+from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from plugin import PluginManager
 
@@ -89,10 +90,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     # the size of the icon for dialogs
     APP_ICON_SIZE = 48  # gtk.ICON_SIZE_DIALOG ?
 
-    # FIXME:  REMOVE THIS once launchpad integration is enabled
-    #         by default
-    def __init__(self, datadir, xapian_base_path, enable_lp_integration=False):
-    #def __init__(self, datadir, xapian_base_path):
+    def __init__(self, datadir, xapian_base_path, options):
     
         self._logger = logging.getLogger(__name__)
         self.datadir = datadir
@@ -320,24 +318,39 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
-        # run s-c-agent update
-        sc_agent_update = os.path.join(datadir, "update-software-center-agent")
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-        glib.child_watch_add(pid, self._on_update_software_center_agent_finished)
-
         # atk and stuff
         atk.Object.set_name(self.label_status.get_accessible(), "status_text")
 
         # open plugin manager and load plugins
         self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
         self.plugin_manager.load_plugins()
+        
+        # make the local cache directory if it doesn't already exist
+        icon_cache_dir = SOFTWARE_CENTER_ICON_CACHE_DIR
+        if not os.path.exists(icon_cache_dir):
+            os.makedirs(icon_cache_dir)
+        self.icons.append_search_path(icon_cache_dir)
+
+        # run s-c-agent update
+        if options.enable_buy:
+            sc_agent_update = os.path.join(
+                datadir, "update-software-center-agent")
+            (pid, stdin, stdout, stderr) = glib.spawn_async(
+                [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+            glib.child_watch_add(
+                pid, self._on_update_software_center_agent_finished)
+        else:
+            file_menu = self.builder.get_object("menu1")
+            file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default
-        if not enable_lp_integration:
+        if not options.enable_lp:
             file_menu = self.builder.get_object("menu1")
             file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
+
+        if not options.enable_buy and not options.enable_lp:
+            file_menu.remove(self.builder.get_object("separator_login"))
 
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):
@@ -609,7 +622,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if (not self._block_menuitem_view and
+        if (not self._block_menuitem_view and self.active_pane.apps_filter and
             self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()

@@ -181,7 +181,8 @@ class SoftwareCenterAgent(gobject.GObject):
         self._available_for_me = restful_collection_to_real_python(result)
 
     def _thread_available_for_me_error(self, error):
-        print "_available_for_me_error:", error
+        logging.error("_available_for_me_error %s" % error)
+        self._available_for_me = []
         
     def query_available_for_me(self, oauth_token, openid_identifier):
         kwargs = { "oauth_token" : oauth_token,
@@ -197,7 +198,8 @@ class SoftwareCenterAgent(gobject.GObject):
         self._available = restful_collection_to_real_python(result)
 
     def _thread_available_error(self, error):
-        print "available_error: ", error
+        logging.error("_thread_available_error %s" % error)
+        self._available = []
 
     def query_available(self, series_name=None, arch_tag=None):
         if not series_name:

@@ -97,16 +97,15 @@ class TestDatabase(unittest.TestCase):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         cache = apt.Cache()
-        # do not fail if no software-center agent is running
+        # we test against the real https://sc.ubuntu.com so we need network
         res = update_from_software_center_agent(db, cache)
-        # only test if the server is running
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 1)
         for p in db.postlist(""):
             doc = db.get_document(p.docid)
             self.assertTrue(doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA),
                             "pay-owner/pay-ppa-name")
-
+            self.assertTrue(doc.get_value(XAPIAN_VALUE_ICON).startswith("sc-agent"))
         
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
