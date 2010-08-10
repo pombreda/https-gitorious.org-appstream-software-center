@@ -19,6 +19,7 @@
 
 import apt
 import apt_pkg
+import base64
 import glib
 import logging
 import os
@@ -35,6 +36,7 @@ from glob import glob
 
 
 from softwarecenter.enums import *
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.utils import GnomeProxyURLopener
 from softwarecenter.db.database import parse_axi_values_file
 
@@ -103,6 +105,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Signing-Key-Id' : 'signing_key_id',
                 'Purchased-Date' : 'purchase_date',
                 'PPA'        : 'archive_id',
+                'Icon'       : 'icon',
               }
 
     # map from requested key to a static data element
@@ -384,7 +387,15 @@ def update_from_software_center_agent(db, cache):
         while context.pending():
             context.iteration()
         try:
+            # magic channel
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
+            # icon is transmited inline
+            iconname = "sc-agent-%s" % entry.package_name
+            icondata = base64.b64decode(entry.icon_data)
+            open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
+                              "%s.png" % iconname),"w").write(icondata)
+            entry.icon = iconname
+            # now the normal parser
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:

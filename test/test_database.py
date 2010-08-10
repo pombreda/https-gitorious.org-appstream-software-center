@@ -105,7 +105,7 @@ class TestDatabase(unittest.TestCase):
             doc = db.get_document(p.docid)
             self.assertTrue(doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA),
                             "pay-owner/pay-ppa-name")
-
+            self.assertTrue(doc.get_value(XAPIAN_VALUE_ICON).startswith("sc-agent"))
         
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)

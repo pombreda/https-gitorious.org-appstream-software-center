@@ -18,6 +18,9 @@ software-center (2.1.9) UNRELEASED; urgency=low
     - re-enable sca test again
   * test/{test_downloader.py, test_ppa_iconfilename.py}:
     - add tests for the downloader and the iconfilename
+  * softwarecenter/db/update.py:
+    - add support for the inline icon_data, push them into 
+      SOFTWARE_CENTER_ICON_CACHE_DIR, add tests
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 09 Aug 2010 10:27:20 +0200
 
