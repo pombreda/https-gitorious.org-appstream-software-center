@@ -160,6 +160,13 @@ class SCTestGUI(unittest.TestCase):
                 time.sleep(0.1)
         self.app.available_pane.searchentry.delete_text(0, -1)
 
+    def test_show_unavailable(self):
+        # make sure that certain UI elements are hidden when showing
+        # packages that are not available
+        self.app.show_available_packages(["i-dont-exit"])
+        self._p()
+        self.assertFalse(self.app.available_pane.app_details.screenshot.get_property("visible"))
+
     # helper stuff
     def _p(self):
         """ process gtk events """

@@ -274,15 +274,10 @@ class AppDetails(object):
 
     @property
     def name(self):
-        if self._error:
-            return self._error
-        elif self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return name
-            else:
-                # by spec..
-                return self._db.get_summary(self._doc)
+        """ Return the name of the application, this will always
+            return Application.name. Most UI will want to use
+            the property display_name instead
+        """
         return self._app.name
     
     @property
@@ -293,6 +288,8 @@ class AppDetails(object):
             spec says the name should be the summary for packages
             and the summary the pkgname
         """
+        if self._error:
+            return self._error
         if self._doc:
             name = self._db.get_appname(self._doc)
             if name:
