@@ -66,7 +66,6 @@ class AvailablePane(SoftwarePane):
 
     def __init__(self, 
                  cache,
-                 history,
                  db, 
                  distro, 
                  icons, 
@@ -74,7 +73,7 @@ class AvailablePane(SoftwarePane):
                  navhistory_back_action, 
                  navhistory_forward_action):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
         self._logger = logging.getLogger(__name__)
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
@@ -699,7 +698,6 @@ class AvailablePane(SoftwarePane):
 
 if __name__ == "__main__":
 
-    from softwarecenter.apt.apthistory import get_apt_history
     from softwarecenter.db.database import StoreDatabase
 
     #logging.basicConfig(level=logging.DEBUG)
@@ -723,8 +721,6 @@ if __name__ == "__main__":
     cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
-    #apt history
-    history = get_apt_history()
     # xapian
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
@@ -751,7 +747,7 @@ if __name__ == "__main__":
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 
-    w = AvailablePane(cache, history, db, 'Ubuntu', icons, datadir, None, None)
+    w = AvailablePane(cache, db, 'Ubuntu', icons, datadir, None, None)
     w.show()
 
     win = gtk.Window()

@@ -26,6 +26,7 @@ software-center (2.1.9) UNRELEASED; urgency=low
   * <all>:
     - support deb files (much thanks to mvo for all his help!)
     - support apturls
+    - load history on demand
   * debian/control:
     - add homepage field
   * man/software-center.1:

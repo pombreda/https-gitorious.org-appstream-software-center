@@ -800,9 +800,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     }
 
 
-    def __init__(self, db, distro, icons, cache, history, datadir):
+    def __init__(self, db, distro, icons, cache, datadir):
         gtk.Viewport.__init__(self)
-        AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
+        AppDetailsViewBase.__init__(self, db, distro, icons, cache, datadir)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         # atk
@@ -1297,12 +1297,9 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
-    from softwarecenter.apt.apthistory import get_apt_history
-    history = get_apt_history()
-
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsViewGtk(db, distro, icons, cache, history, datadir)
+    view = AppDetailsViewGtk(db, distro, icons, cache, datadir)
     from softwarecenter.db.application import Application
     view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))

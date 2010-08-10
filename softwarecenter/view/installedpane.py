@@ -40,9 +40,9 @@ class InstalledPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir, show_ratings=False)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         # state
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_installed_only(True)
@@ -188,7 +188,6 @@ class InstalledPane(SoftwarePane):
 
 if __name__ == "__main__":
 
-    from softwarecenter.apt.apthistory import get_apt_history
     from softwarecenter.db.database import StoreDatabase
 
     #logging.basicConfig(level=logging.DEBUG)
@@ -211,8 +210,6 @@ if __name__ == "__main__":
     cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
-    #apt history
-    history = get_apt_history()
     # xapian
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
@@ -239,7 +236,7 @@ if __name__ == "__main__":
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 
-    w = InstalledPane(cache, history, db, 'Ubuntu', icons, datadir)
+    w = InstalledPane(cache, db, 'Ubuntu', icons, datadir)
     w.show()
 
     win = gtk.Window()

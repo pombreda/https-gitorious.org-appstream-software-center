@@ -27,7 +27,6 @@ from apt import Cache
 from apt import debfile
 from gettext import gettext as _
 from mimetypes import guess_type
-from softwarecenter.apt.apthistory import get_apt_history
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
@@ -119,7 +118,7 @@ class AppDetails(object):
         self._db = db
         self._cache = self._db._aptcache
         self._distro = get_distro()
-        self._history = get_apt_history()
+        self._history = None
         self._backend = get_install_backend()
         self._error = None
 
@@ -241,6 +240,11 @@ class AppDetails(object):
 
     @property
     def installation_date(self):
+        if not self._history:
+            from softwarecenter.utils import ExecutionTime
+            with ExecutionTime('load history for db/application.py'):
+                from softwarecenter.apt.apthistory import get_apt_history
+                self._history = get_apt_history()
         return self._history.get_installed_date(self.pkgname)
         
     @property

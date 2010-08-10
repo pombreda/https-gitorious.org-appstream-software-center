@@ -64,7 +64,6 @@ from backend.restfulclient import UbuntuSSOlogin, SoftwareCenterAgent
 from distro import get_distro
 
 from apt.aptcache import AptCache
-from apt.apthistory import get_apt_history
 from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -133,8 +132,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("channels-changed", self.on_channels_changed)
-        #apt history
-        self.history = get_apt_history()
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
@@ -190,7 +187,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
         # available pane
         self.available_pane = AvailablePane(self.cache,
-                                            self.history,
                                             self.db,
                                             self.distro,
                                             self.icons,
@@ -213,7 +209,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # channel pane
         self.channel_pane = ChannelPane(self.cache,
-                                        self.history,
                                         self.db,
                                         self.distro,
                                         self.icons,
@@ -234,7 +229,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
         # installed pane
         self.installed_pane = InstalledPane(self.cache,
-                                            self.history,
                                             self.db, 
                                             self.distro,
                                             self.icons,
@@ -255,7 +249,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # history pane
         self.history_pane = HistoryPane(self.cache,
-                                        self.history,
                                         self.db,
                                         self.distro,
                                         self.icons,
