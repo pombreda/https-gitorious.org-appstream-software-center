@@ -122,30 +122,44 @@ class AppDetails(object):
         self._history = get_apt_history()
         self._backend = get_install_backend()
         self._error = None
+        self._error_details = None
 
         # load application
         self._app = application
         if doc:
-            self._app = Application(self._db.get_appname(doc), self._db.get_pkgname(doc), "")
+            self._app = Application(self._db.get_appname(doc), 
+                                    self._db.get_pkgname(doc), 
+                                    "")
         if self._app.request:
-            self._app.request = self._app.request.replace("$distro", self._distro.get_distro_codename())
+            self._app.request = self._app.request.replace(
+                "$distro", self._distro.get_distro_codename())
 
         # load pkg cache
         self._pkg = None
-        if (self._app.pkgname in self._cache and self._cache[self._app.pkgname].candidate):
+        if (self._app.pkgname in self._cache and 
+            self._cache[self._app.pkgname].candidate):
             self._pkg = self._cache[self._app.pkgname]
 
         # load xapian document
         self._doc = doc
         if not self._doc:
             try:
-                self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
             except IndexError:
+                # if there is no document and no apturl request,
+                # set error state
                 debfile_matches = re.findall(r'/', self._app.request)
-                channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
-                section_matches = re.findall(r'section=[a-z]*', self._app.request)
-                if not self._pkg and not debfile_matches and not channel_matches and not section_matches:
-                    self._error = _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                channel_matches = re.findall(r'channel=[a-z,-]*', 
+                                             self._app.request)
+                section_matches = re.findall(r'section=[a-z]*', 
+                                             self._app.request)
+                if (not self._pkg and 
+                    not debfile_matches and 
+                    not channel_matches and 
+                    not section_matches):
+                    self._error = _("Not Found")
+                    self._error_details = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
 
     @property
     def architecture(self):
@@ -209,14 +223,15 @@ class AppDetails(object):
 
     @property
     def error(self):
-        if self._error:
-            if self._error.count('@@') > 0:
-                return self._error.split('@@')[1]
-            else:
-                return self._error
+        if self._error_details:
+            return self._error_details
+        elif self._error:
+            return self._error
         # this may have changed since we inited the appdetails
-        if self.pkg_state == PKG_STATE_UNKNOWN:
-            self._error =  _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+        elif self.pkg_state == PKG_STATE_UNKNOWN:
+            self._error =  _("Not Found")
+            self._error_details = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            return self._error_details
 
     @property
     def icon(self):
@@ -259,10 +274,9 @@ class AppDetails(object):
 
     @property
     def name(self):
-        if self.error:
-            if self._error.count('@@') > 0:
-                return self._error.split('@@')[0]
-        if self._doc:
+        if self._error:
+            return self._error
+        elif self._doc:
             name = self._db.get_appname(self._doc)
             if name:
                 return name
@@ -316,10 +330,7 @@ class AppDetails(object):
     @property
     def pkg_state(self):
         if self._error:
-            if '@@' in self._error:
-                return PKG_STATE_UNKNOWN
-            else:
-                return PKG_STATE_ERROR
+            return PKG_STATE_ERROR
         # check dynamic states from the install backend
 
         # puchase state
@@ -541,11 +552,13 @@ class AppDetailsDebFile(AppDetails):
             self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
-                self._error = _("Not Found") + '@@' + _("The file \"%s\" does not exist.") % self._app.request
+                self._error = _("Not Found")
+                self._error_details = _("The file \"%s\" does not exist.") % self._app.request
             else:
                 mimetype = guess_type(self._app.request)
                 if mimetype[0] != "application/x-debian-package":
-                    self._error =  _("Not Found") + '@@' + _("The file \"%s\" is not a software package.") % self._app.request
+                    self._error =  _("Not Found")
+                    self._error_details = _("The file \"%s\" is not a software package.") % self._app.request
             return
 
         # check deb and set failure state on error
@@ -570,7 +583,8 @@ class AppDetailsDebFile(AppDetails):
     @property
     def pkg_state(self):
         if self._error:
-            if '@@' in self._error:
+            # mvo: why not just returning PKG_STATE_ERROR for all errors?
+            if self._error_details:
                 return PKG_STATE_UNKNOWN
             else:
                 return PKG_STATE_ERROR
