@@ -122,7 +122,7 @@ class AppDetails(object):
         self._history = get_apt_history()
         self._backend = get_install_backend()
         self._error = None
-        self._error_details = None
+        self._error_not_found = None
 
         # load application
         self._app = application
@@ -159,7 +159,7 @@ class AppDetails(object):
                     not channel_matches and 
                     not section_matches):
                     self._error = _("Not Found")
-                    self._error_details = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
 
     @property
     def architecture(self):
@@ -223,15 +223,15 @@ class AppDetails(object):
 
     @property
     def error(self):
-        if self._error_details:
-            return self._error_details
+        if self._error_not_found:
+            return self._error_not_found
         elif self._error:
             return self._error
         # this may have changed since we inited the appdetails
         elif self.pkg_state == PKG_STATE_UNKNOWN:
             self._error =  _("Not Found")
-            self._error_details = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
-            return self._error_details
+            self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            return self._error_not_found
 
     @property
     def icon(self):
@@ -402,8 +402,9 @@ class AppDetails(object):
     @property
     def screenshot(self):
         # if there is a custom screenshot url provided, use that
-        if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
-            return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
+        if self._doc:
+            if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
+                return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
         # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
 
@@ -424,8 +425,9 @@ class AppDetails(object):
     @property
     def thumbnail(self):
         # if there is a custom thumbnail url provided, use that
-        if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
-            return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
+        if self._doc:
+            if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
+                return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
         # else use the default
         return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
 
@@ -553,12 +555,12 @@ class AppDetailsDebFile(AppDetails):
             self._pkg = None
             if not os.path.exists(self._app.request):
                 self._error = _("Not Found")
-                self._error_details = _("The file \"%s\" does not exist.") % self._app.request
+                self._error_not_found = _("The file \"%s\" does not exist.") % self._app.request
             else:
                 mimetype = guess_type(self._app.request)
                 if mimetype[0] != "application/x-debian-package":
                     self._error =  _("Not Found")
-                    self._error_details = _("The file \"%s\" is not a software package.") % self._app.request
+                    self._error_not_found = _("The file \"%s\" is not a software package.") % self._app.request
             return
 
         # check deb and set failure state on error
@@ -583,9 +585,8 @@ class AppDetailsDebFile(AppDetails):
     @property
     def pkg_state(self):
         if self._error:
-            # mvo: why not just returning PKG_STATE_ERROR for all errors?
-            if self._error_details:
-                return PKG_STATE_UNKNOWN
+            if self._error_not_found:
+                return PKG_STATE_NOT_FOUND
             else:
                 return PKG_STATE_ERROR
         if self._deb:

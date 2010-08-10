@@ -115,9 +115,12 @@ CUSTOM_KEY_CATEGORY = "Category"
     PKG_STATE_NEEDS_PURCHASE,
     PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
     PKG_STATE_ERROR,
-    # this *needs* to be last (for test_appdetails.py)
+    # the package is not found in the DB or cache
+    PKG_STATE_NOT_FOUND, 
+    # this *needs* to be last (for test_appdetails.py) and means
+    # something went wrong and we don't have a state for this PKG
     PKG_STATE_UNKNOWN,
- ) = range(14)
+ ) = range(15)
 
 # application actions
 APP_ACTION_INSTALL = "install"
