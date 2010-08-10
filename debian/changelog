@@ -29,12 +29,15 @@ software-center (2.1.9) UNRELEASED; urgency=low
     - load history on demand
   * debian/control:
     - add homepage field
+  * data/ui/SoftwareCenter.ui:
+    - emit signal when file menu is activated
   * man/software-center.1:
     - update man file
   * softwarecenter/app.py:
     - if s-c is running and we get a request to open s-c on a specific page, then switch to correct page
     - update status_bar correctly on back/forward navigation
     - display available packages in available_pane and installed packages in installed_pane
+    - update file menu on demand
   * softwarecenter/db/application.py:
     - lots and lots of changes to support deb-files and apturls
   * softwarecenter/db/database.py:
