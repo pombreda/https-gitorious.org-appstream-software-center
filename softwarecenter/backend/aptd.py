@@ -300,7 +300,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None
-        self.pending_purchases.remove(result.pkgname)
+        self.pending_purchases.remove(self.app.pkgname)
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
