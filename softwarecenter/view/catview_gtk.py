@@ -330,7 +330,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
         popcon = app[AppStore.COL_POPCON]
-        self.emit("application-activated", Application(appname, pkgname, popcon))
+        self.emit("application-activated", Application(appname, pkgname, "", popcon))
         return False
 
     def _on_category_clicked(self, cat_btn, cat):
@@ -378,7 +378,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         cr.fill()
 
         # draw departments
-        self.departments.draw(cr, self.departments.allocation, expose_area)
+        if self.departments:
+            self.departments.draw(cr, self.departments.allocation, expose_area)
 
         if not self.in_subsection:
             # draw featured carousel

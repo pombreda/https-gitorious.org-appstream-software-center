@@ -241,11 +241,25 @@ class StoreDatabase(gobject.GObject):
         """ Return the iconname from the xapian document """
         iconname = doc.get_value(XAPIAN_VALUE_ICON)
         return iconname
+
+    def pkg_in_category(self, pkgname, cat_query):
+        """ Return True if the given pkg is in the given category """
+        pkg_query1 = xapian.Query("AP"+pkgname)
+        pkg_query2 = xapian.Query("XP"+pkgname)
+        pkg_query = xapian.Query(xapian.Query.OP_OR, pkg_query1, pkg_query2)
+        pkg_and_cat_query = xapian.Query(xapian.Query.OP_AND, pkg_query, cat_query)
+        enquire = xapian.Enquire(self.xapiandb)
+        enquire.set_query(pkg_and_cat_query)
+        matches = enquire.get_mset(0, len(self))
+        if matches:
+            return True
+        return False
+
         
     def get_icon_needs_download(self, doc):
         """ Return a value if the icon needs to be downloaded """
         return doc.get_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD)
-        
+
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """
         popcon_raw = doc.get_value(XAPIAN_VALUE_POPCON)
@@ -263,6 +277,11 @@ class StoreDatabase(gobject.GObject):
         #self._logger.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA"+appname):
+            doc = self.xapiandb.get_document(m.docid)
+            if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
+                return doc
+        # then search for pkgname in the app-install-data namespace
+        for m in self.xapiandb.postlist("AP"+pkgname):
             doc = self.xapiandb.get_document(m.docid)
             if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
                 return doc

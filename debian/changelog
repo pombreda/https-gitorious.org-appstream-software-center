@@ -22,6 +22,38 @@ software-center (2.1.9) UNRELEASED; urgency=low
     - add support for the inline icon_data, push them into 
       SOFTWARE_CENTER_ICON_CACHE_DIR, add tests
 
+  [ Kiwinote ]
+  * <all>:
+    - support deb files (much thanks to mvo for all his help!)
+    - support apturls
+  * debian/control:
+    - add homepage field
+  * man/software-center.1:
+    - update man file
+  * softwarecenter/app.py:
+    - if s-c is running and we get a request to open s-c on a specific page, then switch to correct page
+    - update status_bar correctly on back/forward navigation
+    - display available packages in available_pane and installed packages in installed_pane
+  * softwarecenter/db/application.py:
+    - lots and lots of changes to support deb-files and apturls
+  * softwarecenter/db/database.py:
+    - add function to determine if package is in a category
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - refresh packagestatusbar correctly upon cancelled installation / removal
+    - hide packagestatusbar / description / screenshot / info_table when we have a 'not found' error
+    - display warnings in the packagestatusbar
+    - make description accessible
+  * softwarecenter/view/appview.py:
+    - allow apturl requests in custom list views
+    - hide action_btn when application is not available
+  * softwarecenter/view/availablepane.py:
+    - show packages in correct category
+  * softwarecenter/view/installedpane.py:
+    - load listview on demand
+    - add show_app function (ux is worse than in available_pane, as we have no categories or back/forward navigation)
+  * softwarecenter/view/viewswitcher.py:
+    - put cursor in correct position
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 09 Aug 2010 10:27:20 +0200
 
 software-center (2.1.8) maverick; urgency=low

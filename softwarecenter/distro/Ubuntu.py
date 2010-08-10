@@ -184,7 +184,7 @@ class Ubuntu(Distro):
                                                          'support_end_month_str' : support_end_month_str,
                                                          'support_end_year' : support_end_year}
                
-        # if we couldn't fiure a support date, use a generic maintenance
+        # if we couldn't determine a support date, use a generic maintenance
         # string without the date
         if channelname or component == "partner":
             return _("Canonical does not provide updates for %s. "
@@ -199,8 +199,8 @@ class Ubuntu(Distro):
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the "
                      "Ubuntu community.") % appname
-        return _("Application %s has an unknown maintenance status.") % appname
-        
+        return
+
     def get_downloadable_icon_url(self, cache, pkgname, icon_filename):
         """
         generates the url for a downloadable icon based on its pkgname and the icon filename itself

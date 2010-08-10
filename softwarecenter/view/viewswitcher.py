@@ -167,7 +167,11 @@ class ViewSwitcher(gtk.TreeView):
 
     def set_view(self, view_page):
         notebook_page_id = self.view_manager.get_notebook_page_from_view_id(view_page)
-        self.set_cursor((notebook_page_id,))
+        # FIXME: This isn't really the cleanest way to do this, but afaics it is the only way to achieve this with the current view_manager
+        if view_page == 'view-page-available':
+            self.set_cursor((notebook_page_id,))
+        else:
+            self.set_cursor((notebook_page_id - 1,))
         self.emit("view-changed", view_page, None)
 
     def on_motion_notify_event(self, widget, event):
