@@ -45,7 +45,7 @@ class Application(object):
         if not (appname or pkgname):
             raise ValueError("Need either appname or pkgname or request")
         # defaults
-        self.pkgname = pkgname
+        self.pkgname = pkgname.replace("$kernel", os.uname()[2])
         self.appname = appname
         # the request can take additional "request" data like apturl
         # strings or the path of a local deb package
@@ -121,30 +121,44 @@ class AppDetails(object):
         self._history = None
         self._backend = get_install_backend()
         self._error = None
+        self._error_not_found = None
 
         # load application
         self._app = application
         if doc:
-            self._app = Application(self._db.get_appname(doc), self._db.get_pkgname(doc), "")
+            self._app = Application(self._db.get_appname(doc), 
+                                    self._db.get_pkgname(doc), 
+                                    "")
         if self._app.request:
-            self._app.request = self._app.request.replace("$distro", self._distro.get_distro_codename())
+            self._app.request = self._app.request.replace(
+                "$distro", self._distro.get_distro_codename())
 
         # load pkg cache
         self._pkg = None
-        if (self._app.pkgname in self._cache and self._cache[self._app.pkgname].candidate):
+        if (self._app.pkgname in self._cache and 
+            self._cache[self._app.pkgname].candidate):
             self._pkg = self._cache[self._app.pkgname]
 
         # load xapian document
         self._doc = doc
         if not self._doc:
             try:
-                self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
             except IndexError:
+                # if there is no document and no apturl request,
+                # set error state
                 debfile_matches = re.findall(r'/', self._app.request)
-                channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
-                section_matches = re.findall(r'section=[a-z]*', self._app.request)
-                if not self._pkg and not debfile_matches and not channel_matches and not section_matches:
-                    self._error = _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                channel_matches = re.findall(r'channel=[a-z,-]*', 
+                                             self._app.request)
+                section_matches = re.findall(r'section=[a-z]*', 
+                                             self._app.request)
+                if (not self._pkg and 
+                    not debfile_matches and 
+                    not channel_matches and 
+                    not section_matches):
+                    self._error = _("Not Found")
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
 
     @property
     def architecture(self):
@@ -160,9 +174,9 @@ class AppDetails(object):
                 return channel
         else:
             # check if we have an apturl request to enable a channel
-            channel_matches = re.findall(r'channel=[a-z,-]*', self._app.request)
+            channel_matches = re.findall(r'channel=([a-z,-]*)', self._app.request)
             if channel_matches:
-                channel = channel_matches[0][8:]
+                channel = channel_matches[0]
                 channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
                 if os.path.exists(channelfile):
                     return channel
@@ -208,14 +222,15 @@ class AppDetails(object):
 
     @property
     def error(self):
-        if self._error:
-            if self._error.count('@@') > 0:
-                return self._error.split('@@')[1]
-            else:
-                return self._error
+        if self._error_not_found:
+            return self._error_not_found
+        elif self._error:
+            return self._error
         # this may have changed since we inited the appdetails
-        if self.pkg_state == PKG_STATE_UNKNOWN:
-            self._error =  _("Not Found") + "@@" + _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+        elif self.pkg_state == PKG_STATE_NOT_FOUND:
+            self._error =  _("Not Found")
+            self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            return self._error_not_found
 
     @property
     def icon(self):
@@ -249,7 +264,8 @@ class AppDetails(object):
         
     @property
     def purchase_date(self):
-        return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
 
     @property
     def license(self):
@@ -263,16 +279,10 @@ class AppDetails(object):
 
     @property
     def name(self):
-        if self.error:
-            if self._error.count('@@') > 0:
-                return self._error.split('@@')[0]
-        if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return name
-            else:
-                # by spec..
-                return self._db.get_summary(self._doc)
+        """ Return the name of the application, this will always
+            return Application.name. Most UI will want to use
+            the property display_name instead
+        """
         return self._app.name
     
     @property
@@ -283,6 +293,8 @@ class AppDetails(object):
             spec says the name should be the summary for packages
             and the summary the pkgname
         """
+        if self._error_not_found:
+            return self._error
         if self._doc:
             name = self._db.get_appname(self._doc)
             if name:
@@ -319,11 +331,10 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
+        if self._error_not_found:
+            return PKG_STATE_NOT_FOUND
         if self._error:
-            if '@@' in self._error:
-                return PKG_STATE_UNKNOWN
-            else:
-                return PKG_STATE_ERROR
+            return PKG_STATE_ERROR
         # check dynamic states from the install backend
 
         # puchase state
@@ -357,14 +368,23 @@ class AppDetails(object):
         #  - its a failure in our meta-data (e.g. typo in the pkgname in
         #    the metadata)
         if not self._pkg:
-            if self.channelname and self._unavailable_channel():
-                return PKG_STATE_NEEDS_SOURCE
+            if self.channelname:
+                if self._unavailable_channel():
+                    return PKG_STATE_NEEDS_SOURCE
+                else:
+                    self._error =  _("Not Found")
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    return PKG_STATE_NOT_FOUND
             else:
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
                         if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
                             return PKG_STATE_NEEDS_SOURCE
+                else:
+                    self._error =  _("Not Found")
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    return PKG_STATE_NOT_FOUND
                 if self.price and self._available_for_our_arch():
                     return PKG_STATE_NEEDS_PURCHASE
                 if (self.purchase_date and
@@ -395,8 +415,9 @@ class AppDetails(object):
     @property
     def screenshot(self):
         # if there is a custom screenshot url provided, use that
-        if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
-            return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
+        if self._doc:
+            if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
+                return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
         # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
 
@@ -417,8 +438,9 @@ class AppDetails(object):
     @property
     def thumbnail(self):
         # if there is a custom thumbnail url provided, use that
-        if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
-            return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
+        if self._doc:
+            if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
+                return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
         # else use the default
         return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
 
@@ -545,11 +567,13 @@ class AppDetailsDebFile(AppDetails):
             self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
-                self._error = _("Not Found") + '@@' + _("The file \"%s\" does not exist.") % self._app.request
+                self._error = _("Not Found")
+                self._error_not_found = _("The file \"%s\" does not exist.") % self._app.request
             else:
                 mimetype = guess_type(self._app.request)
                 if mimetype[0] != "application/x-debian-package":
-                    self._error =  _("Not Found") + '@@' + _("The file \"%s\" is not a software package.") % self._app.request
+                    self._error =  _("Not Found")
+                    self._error_not_found = _("The file \"%s\" is not a software package.") % self._app.request
             return
 
         # check deb and set failure state on error
@@ -574,8 +598,8 @@ class AppDetailsDebFile(AppDetails):
     @property
     def pkg_state(self):
         if self._error:
-            if '@@' in self._error:
-                return PKG_STATE_UNKNOWN
+            if self._error_not_found:
+                return PKG_STATE_NOT_FOUND
             else:
                 return PKG_STATE_ERROR
         if self._deb:
@@ -603,6 +627,13 @@ class AppDetailsDebFile(AppDetails):
 
     @property
     def display_summary(self):
+        if self._doc:
+            name = self._db.get_appname(self._doc)
+            if name:
+                return self.summary
+            else:
+                # by spec..
+                return self._db.get_pkgname(self._doc)
         return self.summary
 
     @property

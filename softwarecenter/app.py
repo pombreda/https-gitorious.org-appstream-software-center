@@ -91,7 +91,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     # the size of the icon for dialogs
     APP_ICON_SIZE = 48  # gtk.ICON_SIZE_DIALOG ?
 
-    def __init__(self, datadir, xapian_base_path, options, args):
+    def __init__(self, datadir, xapian_base_path, options, args=None):
     
         self._logger = logging.getLogger(__name__)
         self.datadir = datadir
@@ -933,10 +933,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def run(self, args):
         self.window_main.show_all()
         # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
-        for (i, arg) in enumerate(args[:]):
-            if "," in arg:
-                args.extend(arg.split(","))
-                del args[i]
+        if args:
+            for (i, arg) in enumerate(args[:]):
+                if "," in arg:
+                    args.extend(arg.split(","))
+                    del args[i]
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
