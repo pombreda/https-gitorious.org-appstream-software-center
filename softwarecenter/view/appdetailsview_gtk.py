@@ -237,7 +237,7 @@ class PackageStatusBar(gtk.Alignment):
                 self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
-        if self.app_details.warning:
+        if self.app_details.warning and not self.app_details.error:
             self.set_label(self.app_details.warning)
         return
 
@@ -1005,7 +1005,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_page(self, app_details):
-        error = app_details.error
 
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
@@ -1015,7 +1014,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
         if app_details.pkg_state == PKG_STATE_NOT_FOUND:
-            summary = error
+            summary = app_details._error_not_found
         else:
             summary = app_details.display_summary
         if not summary:
@@ -1046,7 +1045,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # format new app description
         if app_details.pkg_state == PKG_STATE_ERROR:
-            description = error
+            description = app_details.error
         else:
             description = app_details.description
         if description:

@@ -166,6 +166,8 @@ class SCTestGUI(unittest.TestCase):
         self.app.show_available_packages(["i-dont-exit"])
         self._p()
         self.assertFalse(self.app.available_pane.app_details.screenshot.get_property("visible"))
+        self.assertFalse(self.app.available_pane.app_details.info_table.get_property("visible"))
+        self.assertFalse(self.app.available_pane.app_details.desc_section.get_property("visible"))
 
     # helper stuff
     def _p(self):

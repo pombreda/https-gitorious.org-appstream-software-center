@@ -288,7 +288,7 @@ class AppDetails(object):
             spec says the name should be the summary for packages
             and the summary the pkgname
         """
-        if self._error:
+        if self._error_not_found:
             return self._error
         if self._doc:
             name = self._db.get_appname(self._doc)
@@ -326,6 +326,8 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
+        if self._error_not_found:
+            return PKG_STATE_NOT_FOUND
         if self._error:
             return PKG_STATE_ERROR
         # check dynamic states from the install backend
@@ -611,6 +613,13 @@ class AppDetailsDebFile(AppDetails):
 
     @property
     def display_summary(self):
+        if self._doc:
+            name = self._db.get_appname(self._doc)
+            if name:
+                return self.summary
+            else:
+                # by spec..
+                return self._db.get_pkgname(self._doc)
         return self.summary
 
     @property
