@@ -504,7 +504,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             d.login()
 
     def _login_via_dbus_sso(self):
-        self.sso = LoginBackendDbusSSO()
+        self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
         self.sso.connect("login-successful", self._on_sso_login)
         self.sso.login()
 

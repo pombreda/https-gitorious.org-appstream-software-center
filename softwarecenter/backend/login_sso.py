@@ -31,7 +31,7 @@ from login import LoginBackend
 
 class LoginBackendDbusSSO(LoginBackend):
 
-    def __init__(self):
+    def __init__(self, window_id=0):
         super(LoginBackendDbusSSO, self).__init__()
         self.bus = dbus.SessionBus()
         self.proxy = self.bus.get_object('com.ubuntu.sso', '/credentials')
@@ -41,11 +41,12 @@ class LoginBackendDbusSSO(LoginBackend):
                                      self._on_credentials_error)
         self.proxy.connect_to_signal("AuthorizationDenied", 
                                      self._on_authorization_denied)
+        self._window_id = 0
 
     def login(self, username=None, password=None):
         self.proxy.login_or_register_to_get_credentials(
             "Ubuntu Software Center", "terms-of-server-url",
-            _("Ubuntu Software Center"), 0)
+            _("Ubuntu Software Center"), self._window_id)
         
     def _on_credentials_found(self, credentials):
         self.emit("login-successful", credentials)
