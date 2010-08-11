@@ -67,11 +67,13 @@ class StoreDatabase(gobject.GObject):
         gobject.GObject.__init__(self)
         self._db_pathname = pathname
         self._aptcache = cache
+        self._additional_databases = []
+
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
 
-    def open(self, pathname=None, use_axi=True):
+    def open(self, pathname=None, use_axi=True, use_agent=True):
         " open the database "
         if pathname:
             self._db_pathname = pathname
@@ -85,7 +87,17 @@ class StoreDatabase(gobject.GObject):
                 self.xapiandb.add_database(axi)
                 self._axi_values = parse_axi_values_file()
             except:
-                self._logger.exception("failed to add apt-xapian-index")
+                self._logging.exception("failed to add apt-xapian-index")
+        if use_agent:
+            try:
+                sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
+                self.xapiandb.add_database(sca)
+            except Exception as e:
+                logging.warn("failed to add sca db %s" % e)
+        # additional dbs
+        for db in self._additional_databases:
+            self.xapiandb.add_database(db)
+        # parser etc
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
@@ -94,6 +106,13 @@ class StoreDatabase(gobject.GObject):
         self.xapian_parser.add_prefix("pkg_wildcard", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
+
+    def add_database(self, database):
+        self._additional_databases.append(database)
+        self.xapiandb.add_database(database)
+
+    def del_database(self, database):
+        self._additional_databases.remove(database)
 
     def reopen(self):
         " reopen the database "
@@ -223,6 +242,24 @@ class StoreDatabase(gobject.GObject):
         iconname = doc.get_value(XAPIAN_VALUE_ICON)
         return iconname
 
+    def pkg_in_category(self, pkgname, cat_query):
+        """ Return True if the given pkg is in the given category """
+        pkg_query1 = xapian.Query("AP"+pkgname)
+        pkg_query2 = xapian.Query("XP"+pkgname)
+        pkg_query = xapian.Query(xapian.Query.OP_OR, pkg_query1, pkg_query2)
+        pkg_and_cat_query = xapian.Query(xapian.Query.OP_AND, pkg_query, cat_query)
+        enquire = xapian.Enquire(self.xapiandb)
+        enquire.set_query(pkg_and_cat_query)
+        matches = enquire.get_mset(0, len(self))
+        if matches:
+            return True
+        return False
+
+        
+    def get_icon_needs_download(self, doc):
+        """ Return a value if the icon needs to be downloaded """
+        return doc.get_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD)
+
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """
         popcon_raw = doc.get_value(XAPIAN_VALUE_POPCON)
@@ -240,6 +277,11 @@ class StoreDatabase(gobject.GObject):
         #self._logger.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA"+appname):
+            doc = self.xapiandb.get_document(m.docid)
+            if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
+                return doc
+        # then search for pkgname in the app-install-data namespace
+        for m in self.xapiandb.postlist("AP"+pkgname):
             doc = self.xapiandb.get_document(m.docid)
             if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
                 return doc

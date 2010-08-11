@@ -29,6 +29,9 @@ from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
+
+from aptsources.sourceslist import SourceEntry
+
 try:
     from aptdaemon.defer import inline_callbacks
 except ImportError:
@@ -44,18 +47,35 @@ from softwarecenter.view import dialogs
 
 from gettext import gettext as _
 
+# we use this instead of just exposing the aptdaemon Transaction object
+# so that we have a easier time porting it to a different backend
+class TransactionFinishedResult(object):
+    """ represents the result of a transaction """
+    def __init__(self, trans, enum):
+        self.success = (enum != enums.EXIT_FAILED)
+        self.pkgname = trans.meta_data.get("sc_pkgname")
+        self.meta_data = trans.meta_data
+
+class TransactionProgress(object):
+    """ represents the progress of the transaction """
+    def __init__(self, trans):
+        self.pkgname = trans.meta_data.get("sc_pkgname")
+        self.meta_data = trans.meta_data
+        self.progress = trans.progress
+
 class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     """ software center specific code that interacts with aptdaemon """
 
     __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             ()),
+                    # emits a TransactionFinished object
                     'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
-                                            (bool,)),
+                                            (gobject.TYPE_PYOBJECT, )),
                     'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
-                                            ()),                    
+                                            (str,)),                    
                     'transactions-changed':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             (gobject.TYPE_PYOBJECT, )),
@@ -66,6 +86,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     'channels-changed':(gobject.SIGNAL_RUN_FIRST,
                                         gobject.TYPE_NONE,
                                         (bool,)),
+                    # cache reload emits this specific signal as well
+                    'reload-finished':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (bool,)),
                     }
 
     def __init__(self):
@@ -73,6 +97,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         TransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
+        self.pending_purchases = set()
         self._progress_signal = None
         self._logger = logging.getLogger("softwarecenter.backend")
     
@@ -103,49 +128,62 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     # FIXME: upgrade add-ons here
     @inline_callbacks
-    def upgrade(self, pkgname, appname, iconname, addons_install, addons_remove):
+    def upgrade(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
         """ upgrade a single package """
         self.emit("transaction-started")
         try:
             trans = yield self.aptd_client.upgrade_packages([pkgname],
                                                             defer=True)
-            yield self._run_transaction(trans, pkgname, appname, iconname)
+            yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
-            self._on_trans_error(error)
+            self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove(self, pkgname, appname, iconname, addons_install, addons_remove):
+    def remove(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
         """ remove a single package """
         self.emit("transaction-started")
         try:
             trans = yield self.aptd_client.remove_packages([pkgname],
                                                            defer=True)
-            yield self._run_transaction(trans, pkgname, appname, iconname)
+            yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
-            self._on_trans_error(error)
+            self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove_multiple(self, pkgnames, appnames, iconnames):
+    def remove_multiple(self, pkgnames, appnames, iconnames, addons_install=None, addons_remove=None, metadatas=None):
         """ queue a list of packages for removal  """
-        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
-            yield self.remove(pkgname, appname, iconname)
+        if metadatas == None:
+            metadatas = []
+            for item in pkgnames:
+                metadatas.append(None)
+        for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
+            yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, addons_install, addons_remove):
-        """ install a single package """
+    def install(self, pkgname, appname, iconname, file_name=None, addons_install=None, addons_remove=None, metadata=None):
+        """Install a single package from the archive
+           If filename is given a local deb package is installed instead.
+        """
         self.emit("transaction-started")
         try:
-            pkgs = [pkgname] + addons_install
-            trans = yield self.aptd_client.commit_packages([pkgname] + addons_install, [], addons_remove, [], [])
-            yield self._run_transaction(trans, pkgname, appname, iconname)
+            if filename:
+                trans = yield self.aptd_client.install_file(filename,
+                                                            defer=True)
+            else:
+                trans = yield self.aptd_client.commit_packages([pkgname] + addons_install, [], addons_remove, [], [])
+            yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
-            self._on_trans_error(error)
+            self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def install_multiple(self, pkgnames, appnames, iconnames):
+    def install_multiple(self, pkgnames, appnames, iconnames, addons_install=None, addons_remove=None, metadatas=None):
         """ queue a list of packages for install  """
-        for pkgname, appname, iconname in zip(pkgnames, appnames, iconnames):
-            yield self.install(pkgname, appname, iconname)
+        if metadatas == None:
+            metadatas = []
+            for item in pkgnames:
+                metadatas.append(None)
+        for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
+            yield self.install(pkgname, appname, iconname, metadata=metadata)
             
     @inline_callbacks
     def apply_changes(self, pkgname, appname, iconname, addons_install, addons_remove):
@@ -158,11 +196,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error)
 
     @inline_callbacks
-    def reload(self):
+    def reload(self, metadata=None):
         """ reload package list """
         try:
             trans = yield self.aptd_client.update_cache(defer=True)
-            yield self._run_transaction(trans, None, None, None)
+            yield self._run_transaction(trans, None, None, None, metadata)
         except Exception, error:
             self._on_trans_error(error)
 
@@ -186,7 +224,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             line = line.strip()
             if not line:
                 continue
-            entry = aptsources.sourceslist.SourceEntry(line)
+            entry = SourceEntry(line)
             if entry.invalid:
                 continue
             sourcepart = os.path.basename(channelfile)
@@ -194,10 +232,26 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         yield self.reload()
 
     @inline_callbacks
+    def add_vendor_key_from_keyserver(self, keyid, 
+                                      keyserver="keyserver.ubuntu.com",
+                                      metadata=None):
+        # strip the keysize
+        if "/" in keyid:
+            keyid = keyid.split("/")[1]
+        if not keyid.startswith("0x"):
+            keyid = "0x%s" % keyid
+        try:
+            trans = yield self.aptd_client.add_vendor_key_from_keyserver(
+                keyid, keyserver)
+            yield self._run_transaction(trans, None, None, None, metadata)
+        except Exception, error:
+            self._on_trans_error(error)
+
+    @inline_callbacks
     def add_sources_list_entry(self, source_entry, sourcepart=None):
         if isinstance(source_entry, basestring):
             entry = SourceEntry(source_entry)
-        elif isinstance(source_entry, aptsources.sourceslist.SourceEntry):
+        elif isinstance(source_entry, SourceEntry):
             entry = source_entry
         else:
             raise ValueError, "Unsupported entry type %s" % type(source_entry)
@@ -213,6 +267,54 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 self._logger.error("add_repository: '%s'" % err)
                 return
+                
+    def add_repo_add_key_and_install_app(self,
+                                         deb_line,
+                                         signing_key_id,
+                                         app,
+                                         purchase=True):
+        """ 
+        a convenience method that combines all of the steps needed
+        to install a for-pay application, including adding the
+        source entry and the vendor key, reloading the package list,
+        and finally installing the specified application once the
+        package list reload has completed.
+        """
+        self.emit("transaction-started")
+
+        if purchase:
+            self.pending_purchases.add(app.pkgname)
+
+        # metadata so that we know those the add-key and reload transactions
+        # are part of a group
+        trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
+                          'sc_add_repo_and_install_pkgname' : app.pkgname,
+                         }
+        # TODO:  add error checking as needed
+        self.add_sources_list_entry(deb_line)
+        self.add_vendor_key_from_keyserver(signing_key_id, 
+                                           metadata=trans_metadata)
+        self.emit("channels-changed", True)
+        # reload to ensure we have the new package data
+        self.reload(metadata=trans_metadata)
+        # and then queue the install only when the reload finished
+        # otherwise the daemon will fail because he does not know
+        # the new package name yet
+        self._reload_signal_id = self.connect(
+            "reload-finished", self._on_reload_for_add_repo_and_install_app_finished, self, trans_metadata, app)
+            
+    def _on_reload_for_add_repo_and_install_app_finished(self, trans, result, backend, metadata, app):
+        """ 
+        callback that is called once after reload was queued
+        and will trigger the install of the for-pay package itself
+        (after that it will automatically de-register)
+        """
+        #print trans, result, backend
+        if result:
+            self.install(app.pkgname, app.appname, "", metadata)
+        # disconnect again, this is only a one-time operation
+        self.handler_disconnect(self._reload_signal_id)
+        self._reload_signal_id = None
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
@@ -231,16 +333,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if not tid:
                 continue
             trans = client.get_transaction(tid, error_handler=lambda x: True)
-            # FIXME: add a bit more data here
+            trans_progress = TransactionProgress(trans)
             try:
-                pkgname = trans.meta_data["sc_pkgname"]
-                self.pending_transactions[pkgname] = trans.progress
+                self.pending_transactions[trans_progress.pkgname] = trans_progress
             except KeyError:
                 # if its not a transaction from us (sc_pkgname) still
                 # add it with the tid as key to get accurate results
                 # (the key of pending_transactions is never directly
                 #  exposed in the UI)
-                self.pending_transactions[trans.tid] = trans.progress
+                self.pending_transactions[trans.tid] = trans_progress
         self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
@@ -250,13 +351,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         try:
             pkgname = trans.meta_data["sc_pkgname"]
-            self.pending_transactions[pkgname] = progress
+            self.pending_transactions[pkgname].progress = progress
             self.emit("transaction-progress-changed", pkgname, progress)
         except KeyError:
             pass
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
+        self._logger.debug("_on_transaction_finished: %s %s %s" % (
+                trans, enum, trans.meta_data))
         if enum == enums.EXIT_FAILED:
             # daemon died are messages that result from broken
             # cancel handling in aptdaemon (LP: #440941)
@@ -277,7 +380,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     enums.get_error_string_from_enum(trans.error_code),
                     enums.get_error_description_from_enum(trans.error_code),
                     trans.error_details)
-        # send finished signal
+        # send finished signal, use "" here instead of None, because
+        # dbus mangles a None to a str("None")
+        pkgname = ""
         try:
             pkgname = trans.meta_data["sc_pkgname"]
             del self.pending_transactions[pkgname]
@@ -287,9 +392,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # if it was a cache-reload, trigger a-x-i update
         if trans.role == enums.ROLE_UPDATE_CACHE:
             self.update_xapian_index()
+            self.emit("reload-finished", enum != enums.EXIT_FAILED)
         # send appropriate signals
         self.emit("transactions-changed", self.pending_transactions)
-        self.emit("transaction-finished", enum != enums.EXIT_FAILED)
+        self.emit("transaction-finished", TransactionFinishedResult(trans, enum))
 
     def _config_file_conflict(self, transaction, old, new):
         dia = AptConfigFileConflictDialog(old, new)
@@ -312,7 +418,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             transaction.cancel()
 
     @inline_callbacks
-    def _run_transaction(self, trans, pkgname, appname, iconname):
+    def _run_transaction(self, trans, pkgname, appname, iconname, metadata=None):
         # connect signals
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
@@ -330,26 +436,40 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 yield trans.set_debconf_frontend("gnome", defer=True)
                 # set this once the new aptdaemon 0.2.x API can be used
                 trans.set_remove_obsoleted_depends(True, defer=True)
+            # generic metadata
+            if metadata:
+                yield trans.set_meta_data(**metadata)
             # set proxy and run
             http_proxy = get_http_proxy_string_from_gconf()
             if http_proxy:
                 trans.set_http_proxy(http_proxy, defer=True)
             yield trans.run(defer=True)
         except Exception, error:
-            self._on_trans_error(error)
+            self._on_trans_error(pkgname, error)
+            # on error we need to clean the pending purchases
+            self._clean_pending_purchases(pkgname)
+        # on success the pending purchase is cleaned when the package
+        # that was purchased finished installing
+        if trans.role == enums.ROLE_INSTALL_PACKAGES:
+            self._clean_pending_purchases(pkgname)
 
-    def _on_trans_error(self, error):
+
+    def _clean_pending_purchases(self, pkgname):
+        if pkgname and pkgname in self.pending_purchases:
+            self.pending_purchases.remove(pkgname)
+
+    def _on_trans_error(self, error, pkgname=None):
         self._logger.warn("_on_trans_error: %s", error)
         # re-enable the action button again if anything went wrong
-        self.emit("transaction-stopped")
+        self.emit("transaction-stopped", pkgname)
         if isinstance(error, dbus.DBusException):
             name = error.get_dbus_name()
             if name in ["org.freedesktop.PolicyKit.Error.NotAuthorized",
                         "org.freedesktop.DBus.Error.NoReply"]:
                 pass
         else:
-            raise error
-
+            logging.exception("_on_trans_error")
+            #raise error
 
 if __name__ == "__main__":
     #c = client.AptClient()

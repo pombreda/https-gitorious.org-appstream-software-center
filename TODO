@@ -1,5 +1,11 @@
 
-
+Buy something:
+- centralize the Install/Remove/Buy/etc/ functionality as a gtk.Action
+  and wire it to 1) the menu, 2) applist button and 3) appdetails
+  button (tremolux)
+- fetch the metadata as part of the update-software-center-agent-db
+- do screenshot by constructing screenshot urls from update_sc_agent
+  via entry.screenshot_url by using the archive_id
 
 Code:
 - make the order of "cache, db, datadir" identical 

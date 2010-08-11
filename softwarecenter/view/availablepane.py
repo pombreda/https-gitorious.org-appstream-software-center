@@ -28,11 +28,13 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.distro import get_distro
 
 from appview import AppView, AppStore, AppViewFilter
 
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
 from catview_gtk import CategoriesViewGtk as CategoriesView
+from catview import Category
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
@@ -212,7 +214,7 @@ class AvailablePane(SoftwarePane):
             self.notebook.set_current_page(self.PAGE_APPLIST)
             self.update_app_view()
 
-    def refresh_apps(self):
+    def refresh_apps(self, query=None):
         """refresh the applist and update the navigation bar
         """
         logging.debug("refresh_apps")
@@ -226,14 +228,14 @@ class AvailablePane(SoftwarePane):
         self._refresh_apps_with_apt_cache()
 
     @wait_for_apt_cache_ready
-    def _refresh_apps_with_apt_cache(self):
+    def _refresh_apps_with_apt_cache(self, query=None):
         self.refresh_seq_nr += 1
         # build query
         query = self._get_query()
         self._logger.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
-        
+
         # if a search is not in progress, clear the current model to
         # display an empty list while the full list is generated; this
         # prevents a visual glitch when a list is replaced
@@ -265,6 +267,7 @@ class AvailablePane(SoftwarePane):
                              exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
+        #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other
         # events may have happend
         if seq_nr != self.refresh_seq_nr:
@@ -274,6 +277,7 @@ class AvailablePane(SoftwarePane):
         # set model
         self.app_view.set_model(new_model)
         self.app_view.get_model().active = True
+
         # check if we show subcategory
         self._show_hide_subcategories()
         self.notebook.show()
@@ -356,7 +360,15 @@ class AvailablePane(SoftwarePane):
         """
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
-            length = len(self.db)
+            if self.apps_filter.get_supported_only():
+                distro = get_distro()
+                query = distro.get_supported_query()
+                enquire = xapian.Enquire(self.db.xapiandb)
+                enquire.set_query(query)
+                matches = enquire.get_mset(0, len(self.db))
+                length = len(matches)
+            else:
+                length = len(self.db)
 
         if self.custom_list_mode:
             appstore = self.app_view.get_model()
@@ -412,7 +424,7 @@ class AvailablePane(SoftwarePane):
             appstore.active and
             not appstore.nonapps_visible and
             appstore.nonapp_pkgs and
-            not self.is_category_view_showing()):
+            self.is_applist_view_showing()):
             # We want to display the label if there are hidden packages
             # in the appstore.
             label = gettext.ngettext("_%i other_ technical item",
@@ -476,6 +488,26 @@ class AvailablePane(SoftwarePane):
         self.apps_search_term = ""
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
+
+    def show_app(self, app):
+        """ Display an application in the available_pane """
+        cat_of_app = None
+        for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
+            if (not cat_of_app and 
+                cat.untranslated_name != "New Applications" and 
+                cat.untranslated_name != "Featured Applications"):
+                if self.db.pkg_in_category(app.pkgname, cat.query):
+                    cat_of_app = cat
+                    continue
+        if cat_of_app:
+            self.apps_category = cat_of_app
+            self.navigation_bar.add_with_id(cat_of_app.name, self.on_navigation_list, "list", do_callback=False, animate=True)
+        else:
+            self.apps_category = Category("deb", "deb", None, None, False, True, None)
+        self.current_app_by_category[self.apps_category] = app
+        self.navigation_bar.add_with_id(app.name, self.on_navigation_details, "details", animate=True)
+        self.app_details.show_app(app)
+        self.display_details()
 
     # callbacks
     def on_cache_ready(self, cache):
@@ -546,7 +578,7 @@ class AvailablePane(SoftwarePane):
     def display_list(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-        
+
         if self.apps_subcategory:
             self.apps_subcategory = None
         self.set_category(self.apps_category)
@@ -649,10 +681,15 @@ class AvailablePane(SoftwarePane):
         self._show_hide_subcategories(show_category_applist=True)
 
     def is_category_view_showing(self):
-        # check if we are in the category page or if we display a
-        # sub-category page that has no visible applications
+        """ Return True if we are in the category page or if we display a
+            sub-category page
+        """
         return (self.notebook.get_current_page() == self.PAGE_CATEGORY or \
                 self.notebook.get_current_page() == self.PAGE_SUBCATEGORY)
+
+    def is_applist_view_showing(self):
+        """Return True if we are in the applist view """
+        return self.notebook.get_current_page() == self.PAGE_APPLIST
 
     def set_category(self, category):
         #print "set_category", category

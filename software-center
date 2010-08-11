@@ -38,7 +38,7 @@ from optparse import OptionParser
 
 if __name__ == "__main__":
 
-    parser = OptionParser("usage: %prog [options] package", 
+    parser = OptionParser("usage: %prog [options] [package-name | apturl | deb-file]", 
                           version="%prog "+VERSION)
     parser.add_option("--debug", action="store_true",
                       help="enable debug mode", default=False)
@@ -53,6 +53,10 @@ if __name__ == "__main__":
     parser.add_option("--enable-lp", action="store_true",
                       help="enable launchpad integration (for development use)", 
                       default=False)
+    parser.add_option("--enable-buy", action="store_true",
+                      help="enable support to buy softwareware",
+                      default=False)
+
     (options, args) = parser.parse_args()
     
     if options.debug_filter:
@@ -78,8 +82,7 @@ if __name__ == "__main__":
         xapian_base_path = XAPIAN_BASE_PATH
     
     from softwarecenter.app import SoftwareCenterApp
-    
-    app = SoftwareCenterApp(datadir, xapian_base_path, enable_lp_integration=options.enable_lp)
-    # app = SoftwareCenterApp(datadir, xapian_base_path)
+
+    app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
     app.run(args)
 

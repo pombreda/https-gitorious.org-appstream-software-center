@@ -18,12 +18,17 @@
 
 
 import logging
+import gtk
+import urllib
 import gobject
 
 from softwarecenter.apt.aptcache import PackageAddonsManager
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
+from softwarecenter.utils import get_current_arch
+
+from purchasedialog import PurchaseDialog
 
 class AppDetailsViewBase(object):
 
@@ -79,6 +84,8 @@ class AppDetailsViewBase(object):
             return
         self.app = app
         self.appdetails = AppDetails(self.db, application=app)
+        #print "AppDetailsViewWebkit:"
+        #print self.appdetails
         self._draw()
         self.emit("selected", self.app)
     # public interface
@@ -97,6 +104,31 @@ class AppDetailsViewBase(object):
     def apply_changes(self):
         """ apply changes concerning add-ons """
         self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_APPLY)
+
+    def buy_app(self):
+        """ initiate the purchase transaction """
+        url = self.distro.PURCHASE_APP_URL % (urllib.urlencode({
+                    'archive_id' : self.appdetails.ppaname, 
+                    'arch' : get_current_arch() ,
+                    }))
+        self.purchase_dialog = PurchaseDialog(url=url, app=self.app)
+        res = self.purchase_dialog.run()
+        self.purchase_dialog.destroy()
+        del self.purchase_dialog
+        # re-init view if user canceled, otherwise the transactions 
+        # will finish it after some time
+        if res != gtk.RESPONSE_OK:
+            self.show_app(self.app)
+
+    def reinstall_purchased(self):
+        """ reinstall a purchased app """
+        print "reinstall_purchased",  self.app
+        appdetails = self.app.get_details(self.db)
+        deb_line = appdetails.deb_line
+        signing_key_id = appdetails.signing_key_id
+        get_install_backend().add_repo_add_key_and_install_app(deb_line,
+                                                               signing_key_id,
+                                                               self.app)
     # internal callbacks
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the

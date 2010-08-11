@@ -19,17 +19,25 @@
 
 import apt
 import apt_pkg
+import base64
 import glib
 import logging
 import os
+import simplejson
 import string
 import sys
+import time
+import urllib
 import xapian
 
 from ConfigParser import RawConfigParser, NoOptionError
+from gettext import gettext as _
 from glob import glob
 
+
 from softwarecenter.enums import *
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from softwarecenter.utils import GnomeProxyURLopener
 from softwarecenter.db.database import parse_axi_values_file
 
 from locale import getdefaultlocale
@@ -83,48 +91,75 @@ class AppInfoParserBase(object):
     def desktopf(self):
         """ return the file that the AppInfo comes from """
 
-# FIXME: this needs to go into a seperate DB (axi?) as we can
-#        not trigger update-app-install after each apt-get update
-class AptCachePkgParser(AppInfoParserBase):
-    """ parser that fakes a Application from a pkg-record
-        Useful for special repositories like "Whats New"
-    """
+class SoftwareCenterAgentParser(AppInfoParserBase):
+    """ map the data we get from the software-center-agent """
 
-    MAPPING = { 'Name'       : 'AppName',
+    # map from requested key to sca_entry attribute
+    MAPPING = { 'Name'       : 'name',
+                'Comment'    : 'description',
+                'Price'      : 'price',
+                'Package'    : 'package_name',
+                'Categories' : 'categories',
+                'Channel'    : 'channel',
+                'Deb-Line'   : 'deb_line',
+                'Signing-Key-Id' : 'signing_key_id',
+                'Purchased-Date' : 'purchase_date',
+                'PPA'        : 'archive_id',
+                'Icon'       : 'icon',
               }
 
     # map from requested key to a static data element
     STATIC_DATA = { 'Type' : 'Application',
                   }
 
-    def __init__(self, pkg):
-        self.pkg = pkg
-        self.origin = "apt-cache"
+    def __init__(self, sca_entry):
+        self.sca_entry = sca_entry
+        self.origin = "software-center-agent"
     def _apply_mapping(self, key):
+        # strip away bogus prefixes
         if key.startswith("X-AppInstall-"):
             key = key[len("X-AppInstall-"):]
         if key in self.MAPPING:
             return self.MAPPING[key]
         return key
     def get_desktop(self, key):
-        key = self._apply_mapping(key)
-        # check static data
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
-        # we always excpect a AppName, if there is none, fake one
-        if key == "AppName" and not "AppName" in self.pkg.candidate.record:
-            return self.pkg.name
-        return self.pkg.candidate.record[key]
+        return getattr(self.sca_entry, self._apply_mapping(key))
     def has_option_desktop(self, key):
-        # strip away bogus prefixes
-        if key.startswith("X-AppInstall-"):
-            key = key[len("X-AppInstall-"):]
-        if key in self.STATIC_DATA:
-            return True
-        return self._apply_mapping(key) in self.pkg.candidate.record
+        return (key in self.STATIC_DATA or
+                hasattr(self.sca_entry, self._apply_mapping(key)))
     @property
     def desktopf(self):
         return self.origin
+
+
+class JsonTagSectionParser(AppInfoParserBase):
+
+    MAPPING = { 'Name'       : 'application_name',
+                'Comment'    : 'description',
+                'Price'      : 'price',
+                'Package'    : 'package_name',
+                'Categories' : 'categories',
+              }
+
+    def __init__(self, tag_section, url):
+        self.tag_section = tag_section
+        self.url = url
+    def _apply_mapping(self, key):
+        # strip away bogus prefixes
+        if key.startswith("X-AppInstall-"):
+            key = key[len("X-AppInstall-"):]
+        if key in self.MAPPING:
+            return self.MAPPING[key]
+        return key
+    def get_desktop(self, key):
+        return self.tag_section[self._apply_mapping(key)]
+    def has_option_desktop(self, key):
+        return self._apply_mapping(key) in self.tag_section
+    @property
+    def desktopf(self):
+        return self.url
 
 class DesktopTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, tagfile):
@@ -222,12 +257,17 @@ def index_name(doc, name, term_generator):
 def update(db, cache, datadir=APP_INSTALL_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
-    # FIXME: mvo: disabled for now, the problem is that 
-    #             update-software-center is not run often enough 
-    #update_from_apt_cache_for_whats_new_repo(db, cache)
     # add db global meta-data
     LOG.debug("adding popcon_max_desktop '%s'" % popcon_max)
     db.set_metadata("popcon_max_desktop", xapian.sortable_serialise(float(popcon_max)))
+
+def update_from_json_string(db, cache, json_string, origin):
+    """ index from a json string, should include origin url (free form string)
+    """
+    for sec in simplejson.loads(json_string):
+        parser = JsonTagSectionParser(sec, origin)
+        index_app_info_from_parser(parser, db, cache)
+    return True
 
 def update_from_apt_cache_for_whats_new_repo(db, cache):
 
@@ -277,6 +317,91 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
             # Print a warning, no error (Debian Bug #568941)
             LOG.warning("error processing: %s %s" % (desktopf, e))
     return True
+
+def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall_list, db, cache):
+    """Add application that have been purchased but may require a reinstall
+    
+    This adds a inmemory database to the main db with the special
+    PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME channel prefix
+
+    :return: a xapian query to get all the apps that need reinstall
+    """
+    # magic
+    db_purchased = xapian.inmemory_open()
+    # go over the items we have
+    for item in purchased_but_may_need_reinstall_list:
+        # FIXME: what to do with duplicated entries? we will end
+        #        up with two xapian.Document, one for the for-pay
+        #        and one for the availalbe one from s-c-agent
+        #try:
+        #    db.get_xapian_document(item.name,
+        #                           item.package_name)
+        #except IndexError:
+        #    # item is not in the xapian db
+        #    pass
+        #else:
+        #    # ignore items we already have in the db, ignore
+        #    continue
+        # index the item
+        try:
+            # we fake a channel here
+            item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+            # and empty category to make the parser happy
+            item.categories = ""
+            # WARNING: item.name needs to be different than
+            #          the item.name in the DB otherwise the DB
+            #          gets confused about (appname, pkgname) duplication
+            item.name = _("%s (already purchased)") % item.name
+            parser = SoftwareCenterAgentParser(item)
+            index_app_info_from_parser(parser, db_purchased, cache)
+        except Exception, e:
+            logging.exception("error processing: %s " % e)
+    # add new in memory db to the main db
+    db.add_database(db_purchased)
+    # return a query
+    query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
+    return query
+
+def update_from_software_center_agent(db, cache):
+    """ update index based on the software-center-agent data """
+    def _available_cb(sca, available):
+        # print "available: ", available
+        logging.debug("available: '%s'" % available)
+        sca.available = available
+    def _error_cb(sca, error):
+        logging.warn("error: %s" % error)
+        sca.available = []
+    from softwarecenter.backend.restfulclient import SoftwareCenterAgent
+    sca = SoftwareCenterAgent()
+    sca.connect("available", _available_cb)
+    sca.connect("error", _error_cb)
+    sca.query_available()
+    sca.available = None
+    context = glib.main_context_default()
+    while sca.available is None:
+        while context.pending():
+            context.iteration()
+        time.sleep(0.1)
+    for entry in sca.available:
+        # process events
+        while context.pending():
+            context.iteration()
+        try:
+            # magic channel
+            entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
+            # icon is transmited inline
+            iconname = "sc-agent-%s" % entry.package_name
+            icondata = base64.b64decode(entry.icon_data)
+            open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
+                              "%s.png" % iconname),"w").write(icondata)
+            entry.icon = iconname
+            # now the normal parser
+            parser = SoftwareCenterAgentParser(entry)
+            index_app_info_from_parser(parser, db, cache)
+        except Exception, e:
+            logging.warning("error processing: %s " % e)
+    # return true if we have data entries
+    return len(sca.available) > 0
         
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
@@ -318,6 +443,34 @@ def index_app_info_from_parser(parser, db, cache):
             archive_channel = parser.get_desktop("X-AppInstall-Channel")
             doc.add_term("AH"+archive_channel)
             doc.add_value(XAPIAN_VALUE_ARCHIVE_CHANNEL, archive_channel)
+        # singing key (third party)
+        if parser.has_option_desktop("X-AppInstall-Signing-Key-Id"):
+            keyid = parser.get_desktop("X-AppInstall-Signing-Key-Id")
+            doc.add_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID, keyid)
+        # purchased date
+        if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
+            date = parser.get_desktop("X-AppInstall-Purchased-Date")
+            doc.add_value(XAPIAN_VALUE_PURCHASED_DATE, str(date))
+        # deb-line (third party)
+        if parser.has_option_desktop("X-AppInstall-Deb-Line"):
+            debline = parser.get_desktop("X-AppInstall-Deb-Line")
+            doc.add_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE, debline)
+        # PPA (third party stuff)
+        if parser.has_option_desktop("X-AppInstall-PPA"):
+            archive_ppa = parser.get_desktop("X-AppInstall-PPA")
+            doc.add_value(XAPIAN_VALUE_ARCHIVE_PPA, archive_ppa)
+        # screenshot (for third party)
+        if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
+            url = parser.get_desktop("X-AppInstall-Screenshot-Url")
+            doc.add_value(XAPIAN_VALUE_SCREENSHOT_URL, url)
+        # thumbnail (for third party)
+        if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
+            url = parser.get_desktop("X-AppInstall-Thumbnail-Url")
+            doc.add_value(XAPIAN_VALUE_THUMBNAIL_URL, url)
+        # price (pay stuff)
+        if parser.has_option_desktop("X-AppInstall-Price"):
+            price = parser.get_desktop("X-AppInstall-Price")
+            doc.add_value(XAPIAN_VALUE_PRICE, price)
         # icon
         if parser.has_option_desktop("Icon"):
             icon = parser.get_desktop("Icon")
@@ -397,7 +550,6 @@ def index_app_info_from_parser(parser, db, cache):
         db.add_document(doc)
 
 def rebuild_database(pathname):
-    import apt
     cache = apt.Cache(memonly=True)
     # check permission
     if not os.access(pathname, os.W_OK):

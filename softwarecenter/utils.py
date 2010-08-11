@@ -20,8 +20,14 @@ import apt
 import apt_pkg
 import logging
 import re
+import urllib
 import time
 import xml.sax.saxutils
+import gobject
+import gio
+import glib
+
+from enums import USER_AGENT
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
@@ -43,6 +49,21 @@ class ExecutionTime(object):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
+class GnomeProxyURLopener(urllib.FancyURLopener):
+    """A urllib.URLOpener that honors the gnome proxy settings"""
+    def __init__(self, user_agent=USER_AGENT):
+        proxies = {}
+        http_proxy = get_http_proxy_string_from_gconf()
+        if http_proxy:
+            proxies = { "http" : http_proxy }
+        urllib.FancyURLopener.__init__(self, proxies)
+        self.version = user_agent
+    def http_error_404(self, url, fp, errcode, errmsg, headers):
+        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
+        raise Url404Error, "404 %s" % url
+    def http_error_403(self, url, fp, errcode, errmsg, headers):
+        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
+        raise Url403Error, "403 %s" % url
 
 def htmlize_package_desc(desc):
     def _is_bullet(line):
@@ -148,6 +169,48 @@ def sources_filename_from_ppa_entry(entry):
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
+    
+# FIXME: why not call it a generic downloader?
+class ImageDownloader(gobject.GObject):
+
+    __gsignals__ = {
+        "image-url-reachable"     : (gobject.SIGNAL_RUN_LAST,
+                                     gobject.TYPE_NONE,
+                                     (bool,),),
+
+        "image-download-complete" : (gobject.SIGNAL_RUN_LAST,
+                                     gobject.TYPE_NONE,
+                                     (str,),),
+        }
+
+    def download_image(self, url, dest_file_path):
+        self.url = url
+        self.dest_file_path = dest_file_path
+        f = gio.File(url)
+        # first check if the url is reachable
+        f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
+                           self._check_url_reachable_and_then_download_cb)
+                           
+    def _check_url_reachable_and_then_download_cb(self, f, result):
+        try:
+            result = f.query_info_finish(result)
+            self.emit('image-url-reachable', True)
+            # url is reachable, now download the icon file
+            f.load_contents_async(self._icon_download_complete_cb)
+        except glib.GError, e:
+            self.emit('image-url-reachable', False)
+        del f
+
+    def _icon_download_complete_cb(self, f, result, path=None):
+        # The result from the download is actually a tuple with three 
+        # elements (content, size, etag?)
+        # The first element is the actual content so let's grab that
+        content = f.load_contents_finish(result)[0]
+        outputfile = open(self.dest_file_path, "w")
+        outputfile.write(content)
+        outputfile.close()
+        self.emit('image-download-complete', self.dest_file_path)
+
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

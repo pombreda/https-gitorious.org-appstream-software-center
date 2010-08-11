@@ -7,6 +7,8 @@ data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/featured.menu.in
 [type: gettext/xml] data/new.menu.in
 [type: gettext/xml] data/software-center.menu.in
+[type: gettext/xml] data/software-center.schemas.in
+[type: gettext/xml] data/software-center.xml.in
 softwarecenter/app.py
 softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py

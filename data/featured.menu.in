@@ -25,6 +25,7 @@
 	<SCPkgname>supertuxcart</SCPkgname>
 	<SCPkgname>tumiki-fighters</SCPkgname>
 	<SCPkgname>tuxpaint</SCPkgname>
+	<SCPkgname>webservice-office-zoho</SCPkgname>
       </Or>
     </Include>
   </Menu>

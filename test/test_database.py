@@ -14,20 +14,22 @@ from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists
+from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 
-class testDatabase(unittest.TestCase):
+class TestDatabase(unittest.TestCase):
     """ tests the store database """
 
     def setUp(self):
         apt_pkg.config.set("APT::Architecture", "i386")
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
-        self.cache = apt.Cache()
+        self.cache = AptCache()
 
     def test_comma_seperation(self):
-        db = StoreDatabase("/var/cache/software-center/xapian", 
-                           self.cache)
+        xapian_base_path = XAPIAN_BASE_PATH
+        pathname = os.path.join(xapian_base_path, "xapian")
+        db = StoreDatabase(pathname, self.cache)
         # normal
         querries = db._comma_expansion("apt,2vcard,7zip")
         self.assertEqual(len(querries), 3)
@@ -48,7 +50,7 @@ class testDatabase(unittest.TestCase):
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
         self.assertTrue(res)
-        self.assertEqual(db.get_doccount(), 1)
+        self.assertEqual(db.get_doccount(), 5)
         # test if Name[de] was picked up
         i=0
         for it in db.postlist("AAUbuntu Software Zentrum"):
@@ -80,6 +82,31 @@ class testDatabase(unittest.TestCase):
                     break
         self.assertTrue(found_gettext_translation)
 
+    def test_update_from_json_string(self):
+        from softwarecenter.db.update import update_from_json_string
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        cache = apt.Cache()
+        p = os.path.abspath("./data/app-info-json/apps.json")
+        res = update_from_json_string(db, cache, open(p).read(), origin=p)
+        self.assertTrue(res)
+        self.assertEqual(db.get_doccount(), 1)
+
+    def test_build_from_software_center_agent(self):
+        from softwarecenter.db.update import update_from_software_center_agent
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        cache = apt.Cache()
+        # we test against the real https://sc.ubuntu.com so we need network
+        res = update_from_software_center_agent(db, cache)
+        self.assertTrue(res)
+        self.assertEqual(db.get_doccount(), 1)
+        for p in db.postlist(""):
+            doc = db.get_document(p.docid)
+            self.assertTrue(doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA),
+                            "pay-owner/pay-ppa-name")
+            self.assertTrue(doc.get_value(XAPIAN_VALUE_ICON).startswith("sc-agent"))
+        
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
         # fail if AppDetails(db) without document= or application=
@@ -92,16 +119,18 @@ class testDatabase(unittest.TestCase):
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False)
-        self.assertTrue(len(db), 1)
+        self.assertEqual(len(db), 6)
         # test details
         app = Application("Ubuntu Software Center Test", "software-center")
         details = app.get_details(db)
         self.assertNotEqual(details, None)
         self.assertEqual(details.component, "main")
+        self.assertEqual(details.pkgname, "software-center")
         # get the first document
         for doc in db:
-            appdetails = AppDetails(db, doc=doc)
-            break
+            if doc.get_data() == "Ubuntu Software Center Test":
+                appdetails = AppDetails(db, doc=doc)
+                break
         self.assertEqual(appdetails.name, "Ubuntu Software Center Test")
         self.assertEqual(appdetails.pkgname, "software-center")
         # FIXME: add a dekstop file with a real channel to test
@@ -126,10 +155,51 @@ class testDatabase(unittest.TestCase):
         self.assertEqual(appdetails.thumbnail,
                          "http://screenshots.ubuntu.com/thumbnail-404/software-center")
         # FIXME: add document that has a price
-        self.assertEqual(appdetails.price, "Free")
+        self.assertEqual(appdetails.price, '')
         self.assertEqual(appdetails.license, "Open Source")
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)
+        # test apturl replacements
+        # $kernel
+        app = Application("", "linux-headers-$kernel", "channel=$distro-partner")
+        self.assertEqual(app.pkgname, 'linux-headers-'+os.uname()[2])
+        # $distro
+        details = app.get_details(db)
+        from softwarecenter.distro import get_distro
+        distro = get_distro().get_codename()
+        self.assertEqual(app.request, 'channel=' + distro + '-partner')
+        
+    def test_package_states(self):
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        db = StoreDatabase("./data/test.db", self.cache)
+        db.open(use_axi=False)
+        # test PKG_STATE_INSTALLED
+        # FIXME: this will only work if software-center is installed
+        app = Application("Ubuntu Software Center Test", "software-center")
+        appdetails = app.get_details(db)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_INSTALLED)
+        # test PKG_STATE_UNINSTALLED
+        # test PKG_STATE_UPGRADABLE
+        # test PKG_STATE_REINSTALLABLE
+        # test PKG_STATE_INSTALLING
+        # test PKG_STATE_REMOVING
+        # test PKG_STATE_UPGRADING
+        # test PKG_STATE_NEEDS_SOURCE
+        app = Application("Zynjacku Test", "zynjacku-fake")
+        appdetails = app.get_details(db)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_SOURCE)
+        # test PKG_STATE_NEEDS_PURCHASE
+        app = Application("The expensive gem", "expensive-gem")
+        appdetails = app.get_details(db)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_PURCHASE)
+        # test PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
+        # test PKG_STATE_UNKNOWN
+        app = Application("Scintillant Orange", "scintillant-orange")
+        appdetails = app.get_details(db)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_NOT_FOUND)
+
 
     def test_whats_new(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
