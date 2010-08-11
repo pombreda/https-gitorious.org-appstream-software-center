@@ -1307,8 +1307,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app = app
         self.app_details = AppDetails(self.db, application=self.app)
         
-        self.recommended = self._recommended_addons(self.app_details)
-        self.suggested = self._suggested_addons(self.app_details)
+        self.recommended = self.addons_manager.recommended_addons(app.pkgname)
+        self.suggested = self.addons_manager.suggested_addons(app.pkgname)
+
         # for compat with the base class
         self.appdetails = self.app_details
         self.emit("selected", self.app)

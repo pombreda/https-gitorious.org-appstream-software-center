@@ -20,6 +20,7 @@
 import logging
 import gobject
 
+from softwarecenter.apt.aptcache import PackageAddonsManager
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
@@ -39,6 +40,7 @@ class AppDetailsViewBase(object):
         self.icons = icons
         self.cache = cache
         self.cache.connect("cache-ready", self._on_cache_ready)
+        self.addons_manager = PackageAddonsManager(cache)
         self.history = history
         self.datadir = datadir
         self.app = None
@@ -56,117 +58,6 @@ class AppDetailsViewBase(object):
         pass
     
     # add-on handling
-    def _remove_important(self, list):
-        for addon in list:
-            try:
-                pkg = self.cache[addon]
-                if pkg.essential or pkg._pkg.important:
-                    list.remove(addon)
-                    continue
-                
-                rdeps = self.cache.get_installed_rdepends(pkg)
-                if len(rdeps) > 0 or self.is_language_pkg(addon):
-                    list.remove(addon)
-                    continue
-            except KeyError:
-                list.remove(addon)
-    
-    def is_language_pkg(self, addon):
-		language_file = "/usr/share/language-selector/data/pkg_depends" # FIXME: Relative path?
-		file = open(language_file)
-		for line in file:
-			if line.startswith('#'):
-				continue
-			try:
-				line = line.rstrip()
-				if line.find('#') >= 0:
-					continue
-				(cat, code, dep_pkg, lng_pkg) = line.split(':')
-			except ValueError:
-				continue
-			if lng_pkg in addon:
-				file.close()
-				return True
-		file.close()
-		return False
-    
-    def _recommended_addons(self, app_details):
-        pkg = app_details.pkg
-        deps = self.cache.get_depends(pkg)
-        recommended = []
-        rrecommends = self.cache.get_rrecommends(pkg)
-        if len(rrecommends) == 1:
-			recommended += rrecommends
-        for dep in deps:
-            try:
-                if len(self.cache.get_rdepends(self.cache[dep])) == 1:
-                    # pkg is the only known package that depends on dep
-                    recommended += self.cache.get_recommends(self.cache[dep])
-            except KeyError:
-                pass # FIXME: should we handle that differently?
-        self._remove_important(recommended)
-        for addon in recommended:
-            try:
-                pkg_ = self.cache[addon]
-            except KeyError:
-                recommended.remove(addon)
-            else:
-                can_remove = False
-                for addon_ in recommended:
-                    try:
-                        if addon in self.cache.get_provides(self.cache[addon_]) \
-                        or addon in self.cache.get_depends(self.cache[addon_]) \
-                        or addon in self.cache.get_recommends(self.cache[addon_]):
-                            can_remove = True
-                            break
-                    except KeyError:
-                        recommended.remove(addon_)
-                        break
-                if can_remove or not pkg_.candidate or recommended.count(addon) > 1 \
-                or addon == pkg.name or self.is_language_pkg(addon):
-                    recommended.remove(addon)
-        self._remove_important(recommended) # FIXME: see below
-        return recommended
-    
-    def _suggested_addons(self, app_details):
-        pkg = app_details.pkg
-        deps = self.cache.get_depends(pkg)
-        suggested = []
-        rsuggests = self.cache.get_rsuggests(pkg)
-        if len(rsuggests) == 1:
-			suggested += rsuggests
-        suggested += self.cache.get_renhances(pkg)
-        self._remove_important(suggested)
-        for dep in deps:
-            try:
-                if len(self.cache.get_rdepends(self.cache[dep])) == 1:
-                    # pkg is the only known package that depends on dep
-                    suggested += self.cache.get_suggests(self.cache[dep])
-                    suggested += self.cache.get_renhances(self.cache[dep])
-            except KeyError:
-                pass # FIXME: should we handle that differently?
-        for addon in suggested:
-            try: 
-                pkg_ = self.cache[addon]
-            except KeyError:
-                suggested.remove(addon)
-            else:
-                can_remove = False
-                for addon_ in suggested:
-                    try:
-                        if addon in self.cache.get_provides(self.cache[addon_]) \
-                        or addon in self.cache.get_depends(self.cache[addon_]) \
-                        or addon in self.cache.get_recommends(self.cache[addon_]):
-                            can_remove = True
-                    except KeyError:
-                        suggested.remove(addon_)
-                if can_remove or not pkg_.candidate or suggested.count(addon) > 1 \
-                or addon == pkg.name or self.is_language_pkg(addon):
-                    suggested.remove(addon)
-		# FIXME: figure out why I have to call this function two times to get rid of important packages
-		self._remove_important(suggested)
-        return suggested
-        
     def _set_addon_install(self, addon):
         pkg = self.cache[addon]
         if addon not in self.addons_install and pkg.installed == None:
@@ -212,3 +103,4 @@ class AppDetailsViewBase(object):
         # current application
         self._logger.debug("on_cache_ready")
         self.show_app(self.app)
+        self.addons_manager = PackageAddonsManager(cache)
