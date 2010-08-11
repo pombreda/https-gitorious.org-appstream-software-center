@@ -22,6 +22,10 @@ software-center (2.1.9) UNRELEASED; urgency=low
     - add support for the inline icon_data, push them into 
       SOFTWARE_CENTER_ICON_CACHE_DIR, add tests
 
+  [ Didier Roche ]
+  * data/featured.menu.in:
+    - add zoho integration as a featured app
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 09 Aug 2010 10:27:20 +0200
 
 software-center (2.1.8) maverick; urgency=low
