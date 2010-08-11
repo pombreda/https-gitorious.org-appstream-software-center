@@ -98,7 +98,27 @@ class ViewSwitcher(gtk.TreeView):
 
         self.get_model().connect("channels-refreshed", self._on_channels_refreshed)
         self.get_model().connect("row-deleted", self._on_row_deleted)
+        # channels changed
+        self.backend = get_install_backend()
+        self.backend.connect("channels-changed", self.on_channels_changed)
+        self._block_set_cursor_signals = False
         
+    def set_cursor(self, *args, **kwargs):
+        if self._block_set_cursor_signals:
+            return
+        super(ViewSwitcher, self).set_cursor(*args, **kwargs)
+
+    def on_channels_changed(self, backend, res):
+        LOG.debug("on_channels_changed %s" % res)
+        if not res:
+            return
+        # update channel list, but block signals so that the cursor
+        # does not jump around
+        self._block_set_cursor_signals = True
+        model = self.get_model()
+        model._update_channel_list()
+        self._block_set_cursor_signals = False
+
     def on_treeview_row_expanded(self, widget, iter, path):
         # do nothing on a node expansion
         pass
@@ -267,7 +287,6 @@ class ViewSwitcherList(gtk.TreeStore):
         self.backend = get_install_backend()
         self.backend.connect("transactions-changed", self.on_transactions_changed)
         self.backend.connect("transaction-finished", self.on_transaction_finished)
-        self.backend.connect("channels-changed", self.on_channels_changed)
         self.db = db
         self.cache = cache
         self.distro = get_distro()
@@ -295,12 +314,6 @@ class ViewSwitcherList(gtk.TreeStore):
         self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None])
         
         # the progress pane is build on demand
-
-    def on_channels_changed(self, backend, res):
-        LOG.debug("on_channels_changed %s" % res)
-        if res:
-            self.db.open()
-            self._update_channel_list()
 
     def on_transactions_changed(self, backend, total_transactions):
         LOG.debug("on_transactions_changed '%s'" % total_transactions)
@@ -369,6 +382,10 @@ class ViewSwitcherList(gtk.TreeStore):
         self._update_channel_list_installed_view()
         self.emit("channels-refreshed")
         
+    # FIXME: this way of updating is really not ideal because it
+    #        will trigger set_cursor signals and that causes the
+    #        UI to behave funny if the user is in a channel view
+    #        and the backend sends a channels-changed signal
     def _update_channel_list_available_view(self):
         # check what needs to be cleared. we need to append first, kill
         # afterward because otherwise a row without children is collapsed
