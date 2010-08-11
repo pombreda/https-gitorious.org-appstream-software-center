@@ -21,10 +21,6 @@ from softwarecenter.db.application import Application
 from softwarecenter.view.catview import get_category_by_name
 from softwarecenter.backend import get_install_backend
 
-# needed for the install test
-if os.getuid() == 0:
-    subprocess.call(["dpkg", "-r", "4g8"])
-
 # we make app global as its relatively expensive to create
 # and in setUp it would be created and destroyed for each
 # test
@@ -42,17 +38,15 @@ class TestGUIWithMainLoop(unittest.TestCase):
         self.app = app
     
     def _trigger_channel_change(self):
-        # go to first category
-        cat = self.app.available_pane.cat_view.categories[0]
-        self.app.available_pane.cat_view.emit("category-selected", cat)
+        # reset
+        self.app.available_pane.on_navigation_category(None, None)
         self._p()
-        # go to first app
-        column = self.app.available_pane.app_view.get_column(0)
-        self.app.available_pane.app_view.row_activated((0,), column)
+        # navigate to first app
+        self._navigate_to_first_app()
         # trigger channels changed signal
         self.app.backend.emit("channels-changed", True)
         self._p()
-        # we just add boosl here and do the asserts in the test_ function,
+        # we just add bools here and do the asserts in the test_ function,
         # otherwise unittest gets confused
         # make sure we stay on the same page
         self._on_the_right_page = (self.app.available_pane.notebook.get_current_page() == self.app.available_pane.PAGE_APP_DETAILS)
@@ -62,12 +56,48 @@ class TestGUIWithMainLoop(unittest.TestCase):
         # done
         self.app.on_menuitem_close_activate(None)
 
-    def test_jump_on_channel(self):
+    def test_action_bar_visible_in_details_on_channel_change(self):
         glib.timeout_add_seconds(1, self._trigger_channel_change)
         gtk.main()
         self.assertTrue(self._on_the_right_page)
         self.assertTrue(self._action_bar_hidden)
-    
+
+    def _trigger_test_channel_view(self):
+        # reset
+        self.app.available_pane.on_navigation_category(None, None)
+        self._p()
+        # go to the second channel
+        column = self.app.view_switcher.get_column(0)
+        self.app.view_switcher.set_cursor((0,1), column)
+        self._p()
+        # activate first app
+        column = self.app.channel_pane.app_view.get_column(0)
+        self.app.channel_pane.app_view.row_activated((0,), column)
+        # now simulate a channel-change
+        self.app.backend.emit("channels-changed", True)
+        self._p()
+        # we just add bools here and do the asserts in the test_ function,
+        # make sure we stay on the same page
+        self._on_the_right_channel_view_page = (self.app.channel_pane.notebook.get_current_page() == self.app.channel_pane.PAGE_APP_DETAILS)
+        
+
+        # done
+        self.app.on_menuitem_close_activate(None)
+
+    def test_channel_view(self):
+        glib.timeout_add_seconds(1, self._trigger_test_channel_view)
+        gtk.main()
+        self.assertTrue(self._on_the_right_channel_view_page)
+
+    def _navigate_to_first_app(self):
+        # go to first category
+        cat = self.app.available_pane.cat_view.categories[0]
+        self.app.available_pane.cat_view.emit("category-selected", cat)
+        self._p()
+        # go to first app
+        column = self.app.available_pane.app_view.get_column(0)
+        self.app.available_pane.app_view.row_activated((0,), column)
+
     def _p(self):
         """ process gtk events """
         while gtk.events_pending():
