@@ -421,15 +421,8 @@ class AppDetails(object):
     @property
     def summary(self):
         if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                if self._pkg:
-                    return self._pkg.candidate.summary
-                return self._db.get_summary(self._doc)
-            else:
-                # by spec..
-                return self._db.get_pkgname(self._doc)
-        if self._pkg:
+            return self._db.get_summary(self._doc)
+        elif self._pkg:
             return self._pkg.candidate.summary
 
     @property
