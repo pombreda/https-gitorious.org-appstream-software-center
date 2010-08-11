@@ -1,4 +1,4 @@
-software-center (2.1.9) UNRELEASED; urgency=low
+software-center (2.1.9) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/utils.py:
@@ -66,7 +66,7 @@ software-center (2.1.9) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - put cursor in correct position
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 20:58:22 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 23:19:03 +0200
 
 software-center (2.1.8) maverick; urgency=low
 
