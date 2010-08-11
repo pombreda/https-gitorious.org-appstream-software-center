@@ -423,7 +423,7 @@ class AvailablePane(SoftwarePane):
             appstore.active and
             not appstore.nonapps_visible and
             appstore.nonapp_pkgs and
-            not self.is_category_view_showing()):
+            self.is_applist_view_showing()):
             # We want to display the label if there are hidden packages
             # in the appstore.
             label = gettext.ngettext("_%i other_ technical item",
@@ -660,10 +660,15 @@ class AvailablePane(SoftwarePane):
         self._show_hide_subcategories(show_category_applist=True)
 
     def is_category_view_showing(self):
-        # check if we are in the category page or if we display a
-        # sub-category page that has no visible applications
+        """ Return True if we are in the category page or if we display a
+            sub-category page
+        """
         return (self.notebook.get_current_page() == self.PAGE_CATEGORY or \
                 self.notebook.get_current_page() == self.PAGE_SUBCATEGORY)
+
+    def is_applist_view_showing(self):
+        """Return True if we are in the applist view """
+        return self.notebook.get_current_page() == self.PAGE_APPLIST
 
     def set_category(self, category):
         #print "set_category", category
