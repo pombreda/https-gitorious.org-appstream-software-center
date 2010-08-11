@@ -198,7 +198,7 @@ class TestDatabase(unittest.TestCase):
         # test PKG_STATE_UNKNOWN
         app = Application("Scintillant Orange", "scintillant-orange")
         appdetails = app.get_details(db)
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_UNKNOWN)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_NOT_FOUND)
 
 
     def test_whats_new(self):

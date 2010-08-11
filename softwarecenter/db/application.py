@@ -327,10 +327,10 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
-        if self._error_not_found:
-            return PKG_STATE_NOT_FOUND
-        if self._error:
-            return PKG_STATE_ERROR
+        #if self._error_not_found:
+        #    return PKG_STATE_NOT_FOUND
+        #if self._error:
+        #    return PKG_STATE_ERROR
         # check dynamic states from the install backend
 
         # puchase state
@@ -372,6 +372,12 @@ class AppDetails(object):
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
                     return PKG_STATE_NOT_FOUND
             else:
+
+                if self.price and self._available_for_our_arch():
+                    return PKG_STATE_NEEDS_PURCHASE
+                if (self.purchase_date and
+                    self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
+                    return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
@@ -381,11 +387,6 @@ class AppDetails(object):
                     self._error =  _("Not Found")
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
                     return PKG_STATE_NOT_FOUND
-                if self.price and self._available_for_our_arch():
-                    return PKG_STATE_NEEDS_PURCHASE
-                if (self.purchase_date and
-                    self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
-                    return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
         return PKG_STATE_UNKNOWN
 
     @property
