@@ -870,7 +870,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # e.g. unity
                 (pkgname, sep, appname) = packages[0].partition("/")
                 app = Application(appname, pkgname)
-                self.available_pane.on_application_activated(None, app)
             # if the pkg is installed, show it in the installed pane
             if (app.pkgname in self.cache and 
                 self.cache[app.pkgname].installed):

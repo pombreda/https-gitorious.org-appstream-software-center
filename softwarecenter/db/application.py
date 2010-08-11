@@ -207,12 +207,12 @@ class AppDetails(object):
             return comp
         # then apturl requests
         if not self._doc:
-            section_matches = re.findall(r'section=[a-z]*', self._app.request)
+            section_matches = re.findall(r'section=([a-z]+)', self._app.request)
             if section_matches:
                 valid_section_matches = []
                 for section_match in section_matches:
-                    if self._unavailable_component(component_to_check=section_match[8:]) and valid_section_matches.count(section_match[8:]) == 0:
-                        valid_section_matches.append(section_match[8:])
+                    if self._unavailable_component(component_to_check=section_match) and valid_section_matches.count(section_match) == 0:
+                        valid_section_matches.append(section_match)
                 if valid_section_matches:
                     return ('&').join(valid_section_matches)
 
