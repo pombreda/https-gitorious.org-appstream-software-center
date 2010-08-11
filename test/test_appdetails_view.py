@@ -57,6 +57,8 @@ class testAppDetailsView(unittest.TestCase):
         mock_app_details.purchase_date = "purchase_date"
         mock_app_details.installation_date = "installation_date"
         mock_app_details.price = "price"
+        # FIXME: this should vanish from the app_details
+        mock_app_details._error_not_found = ""
         # monkey patch get_details() so that we get the mock object
         app.get_details = lambda db: mock_app_details
         # make sure all PKG_STATE_* states work and do not cause crashes
