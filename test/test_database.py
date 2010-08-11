@@ -159,6 +159,15 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(appdetails.license, "Open Source")
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)
+        # test apturl replacements
+        # $kernel
+        app = Application("", "linux-headers-$kernel", "channel=$distro-partner")
+        self.assertEqual(app.pkgname, 'linux-headers-'+os.uname()[2])
+        # $distro
+        details = app.get_details(db)
+        from softwarecenter.distro import get_distro
+        distro = get_distro().get_codename()
+        self.assertEqual(app.request, 'channel=' + distro + '-partner')
         
     def test_package_states(self):
         db = xapian.WritableDatabase("./data/test.db", 
@@ -189,7 +198,7 @@ class TestDatabase(unittest.TestCase):
         # test PKG_STATE_UNKNOWN
         app = Application("Scintillant Orange", "scintillant-orange")
         appdetails = app.get_details(db)
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_UNKNOWN)
+        self.assertEqual(appdetails.pkg_state, PKG_STATE_NOT_FOUND)
 
 
     def test_whats_new(self):
