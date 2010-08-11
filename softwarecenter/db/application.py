@@ -16,11 +16,17 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from apt.debfile import DebPackage
+import apt_pkg
 import locale
 import os
+import re
 import string
 
+from apt import Cache
+from apt import debfile
 from gettext import gettext as _
+from mimetypes import guess_type
 from softwarecenter.apt.apthistory import get_apt_history
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
@@ -36,10 +42,21 @@ class Application(object):
         
         There is also a __cmp__ method and a name property
     """
-    def __init__(self, appname, pkgname, popcon=0):
+    def __init__(self, appname="", pkgname="", request="", popcon=0):
+        if not (appname or pkgname):
+            raise ValueError("Need either appname or pkgname or request")
+        # defaults
+        self.pkgname = pkgname.replace("$kernel", os.uname()[2])
         self.appname = appname
-        self.pkgname = pkgname
+        # the request can take additional "request" data like apturl
+        # strings or the path of a local deb package
+        self.request = request
         self._popcon = popcon
+        # a "?" in the name means its a apturl request
+        if "?" in pkgname:
+            # the bit before the "?" is the pkgname, everything else the req
+            (self.pkgname, sep, self.request) = pkgname.partition("?")
+
     @property
     def name(self):
         """Show user visible name"""
@@ -74,6 +91,19 @@ class Application(object):
         else:
             return cmp(x.pkgname, y.pkgname)
 
+class DebFileApplication(Application):
+    def __init__(self, debfile):
+        # deb overrides this
+        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
+            raise ValueError("Need a deb file, got '%s'" % debfile)
+        debname = os.path.splitext(os.path.basename(debfile))[0]
+        self.appname = debname.split('_')[0].capitalize()
+        self.pkgname = debname.split('_')[0].lower()
+        self.request = debfile
+    def get_details(self, db):
+        return AppDetailsDebFile(db, application=self)
+
+
 # the details
 class AppDetails(object):
     """ The details for a Application. This contains all the information
@@ -91,34 +121,48 @@ class AppDetails(object):
         self._distro = get_distro()
         self._history = get_apt_history()
         self._backend = get_install_backend()
+        # FIXME: why two error states ?
+        self._error = None
+        self._error_not_found = None
+
+        # load application
+        self._app = application
         if doc:
-            self.init_from_doc(doc)
-        elif application:
-            self.init_from_application(application)
-    def init_from_doc(self, doc):
-        """ init the application details from a xapian document """
-        logging.debug("AppDetails.init_from_doc with doc: %s" % doc)
-        self._doc = doc
-        self._app = Application(self._db.get_appname(self._doc),
-                                self._db.get_pkgname(self._doc),)
-        self._init_common()
-    def init_from_application(self, app):
-        """ init the application details from a Application
-            class (appname, pkgname)
-        """
-        logging.debug("AppDetails.init_from_app with app: %s" % app)
-        self._app = app
-        try:
-            self._doc = self._db.get_xapian_document(self._app.appname, self._app.pkgname)
-        except IndexError:
-            self._doc = None
-            self._app = Application("Not Found", app.pkgname)
-        self._init_common()
-    def _init_common(self):
+            self._app = Application(self._db.get_appname(doc), 
+                                    self._db.get_pkgname(doc), 
+                                    "")
+
+        # sustitute for apturl
+        if self._app.request:
+            self._app.request = self._app.request.replace(
+                "$distro", self._distro.get_distro_codename())
+
+        # load pkg cache
         self._pkg = None
-        if (self.pkgname in self._cache and 
-            self._cache[self.pkgname].candidate):
-            self._pkg = self._cache[self.pkgname]
+        if (self._app.pkgname in self._cache and 
+            self._cache[self._app.pkgname].candidate):
+            self._pkg = self._cache[self._app.pkgname]
+
+        # load xapian document
+        self._doc = doc
+        if not self._doc:
+            try:
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
+            except IndexError:
+                # if there is no document and no apturl request,
+                # set error state
+                debfile_matches = re.findall(r'/', self._app.request)
+                channel_matches = re.findall(r'channel=[a-z,-]*', 
+                                             self._app.request)
+                section_matches = re.findall(r'section=[a-z]*', 
+                                             self._app.request)
+                if (not self._pkg and 
+                    not debfile_matches and 
+                    not channel_matches and 
+                    not section_matches):
+                    self._error = _("Not Found")
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
 
     @property
     def architecture(self):
@@ -128,10 +172,18 @@ class AppDetails(object):
     @property
     def channelname(self):
         if self._doc:
-            channel =  self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            channel = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
             path = APP_INSTALL_CHANNELS_PATH + channel + ".list"
             if os.path.exists(path):
                 return channel
+        else:
+            # check if we have an apturl request to enable a channel
+            channel_matches = re.findall(r'channel=([a-z,-]*)', self._app.request)
+            if channel_matches:
+                channel = channel_matches[0]
+                channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
+                if os.path.exists(channelfile):
+                    return channel
 
     @property
     def channelfile(self):
@@ -156,6 +208,16 @@ class AppDetails(object):
         if self._doc:
             comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
             return comp
+        # then apturl requests
+        if not self._doc:
+            section_matches = re.findall(r'section=([a-z]+)', self._app.request)
+            if section_matches:
+                valid_section_matches = []
+                for section_match in section_matches:
+                    if self._unavailable_component(component_to_check=section_match) and valid_section_matches.count(section_match) == 0:
+                        valid_section_matches.append(section_match)
+                if valid_section_matches:
+                    return ('&').join(valid_section_matches)
 
     @property
     def description(self):
@@ -164,12 +226,15 @@ class AppDetails(object):
 
     @property
     def error(self):
-        if not self._pkg:
-            available_for_arch = self._available_for_our_arch()
-            if not available_for_arch and (self.channelname or self.component):
-                return _("\"%s\" is not available for this type of computer.") % self.name
-        if not self.summary:
-            return _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+        if self._error_not_found:
+            return self._error_not_found
+        elif self._error:
+            return self._error
+        # this may have changed since we inited the appdetails
+        elif self.pkg_state == PKG_STATE_NOT_FOUND:
+            self._error =  _("Not Found")
+            self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            return self._error_not_found
 
     @property
     def icon(self):
@@ -198,7 +263,8 @@ class AppDetails(object):
         
     @property
     def purchase_date(self):
-        return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
 
     @property
     def license(self):
@@ -212,6 +278,10 @@ class AppDetails(object):
 
     @property
     def name(self):
+        """ Return the name of the application, this will always
+            return Application.name. Most UI will want to use
+            the property display_name instead
+        """
         return self._app.name
     
     @property
@@ -222,6 +292,8 @@ class AppDetails(object):
             spec says the name should be the summary for packages
             and the summary the pkgname
         """
+        if self._error_not_found:
+            return self._error
         if self._doc:
             name = self._db.get_appname(self._doc)
             if name:
@@ -258,8 +330,6 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
-        # check dynamic states from the install backend
-
         # puchase state
         if self.pkgname in self._backend.pending_purchases:
             return PKG_STATE_INSTALLING_PURCHASED
@@ -278,7 +348,7 @@ class AppDetails(object):
         # - intalled and available for download
         if self._pkg:
             # Don't handle upgrades yet
-            #if self._pkg.installed and self.pkg._isUpgradable:
+            #if self._pkg.installed and self._pkg._isUpgradable:
             #    return PKG_STATE_UPGRADABLE
             if self._pkg.installed:
                 return PKG_STATE_INSTALLED
@@ -292,17 +362,29 @@ class AppDetails(object):
         #    the metadata)
         if not self._pkg:
             if self.channelname:
-                return PKG_STATE_NEEDS_SOURCE
-            if (self.component and
-                self._unavailable_component() and
-                self._available_for_our_arch()):
-                return PKG_STATE_NEEDS_SOURCE
-            if self.price and self._available_for_our_arch():
-                return PKG_STATE_NEEDS_PURCHASE
-            if (self.purchase_date and
-                self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
-                return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
+                if self._unavailable_channel():
+                    return PKG_STATE_NEEDS_SOURCE
+                else:
+                    self._error =  _("Not Found")
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    return PKG_STATE_NOT_FOUND
+            else:
+                if self.price and self._available_for_our_arch():
+                    return PKG_STATE_NEEDS_PURCHASE
+                if (self.purchase_date and
+                    self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
+                    return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
+                if self.component:
+                    components = self.component.split('&')
+                    for component in components:
+                        if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
+                            return PKG_STATE_NEEDS_SOURCE
+                else:
+                    self._error =  _("Not Found")
+                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    return PKG_STATE_NOT_FOUND
         return PKG_STATE_UNKNOWN
+
     @property
     def price(self):
         if self._doc:
@@ -326,21 +408,25 @@ class AppDetails(object):
     @property
     def screenshot(self):
         # if there is a custom screenshot url provided, use that
-        if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
-            return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
+        if self._doc:
+            if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
+                return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
         # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
-        
+
     @property
     def summary(self):
         if self._doc:
             return self._db.get_summary(self._doc)
+        elif self._pkg:
+            return self._pkg.candidate.summary
 
     @property
     def thumbnail(self):
         # if there is a custom thumbnail url provided, use that
-        if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
-            return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
+        if self._doc:
+            if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
+                return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
         # else use the default
         return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
 
@@ -351,23 +437,51 @@ class AppDetails(object):
 
     @property
     def warning(self):
+        # apturl minver matches
+        if not self.pkg_state == PKG_STATE_INSTALLED:
+            if self._app.request:
+                minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
+                if minver_matches and self.version:
+                    minver = minver_matches[0][7:]
+                    if apt_pkg.version_compare(minver, self.version) > 0:
+                        return _("Version %s or later not available.") % minver
+        # can we enable a source
         if not self._pkg:
-            source = None
-            if self.channelname:
-                source = self.channelname
+            source_to_enable = None
+            if self.channelname and self._unavailable_channel():
+                source_to_enable = self.channelname
             elif self.component:
-                source = self.component
-            if source:
-                return _("This software is available from the \"%s\" source, which you are not currently using.") % source
+                source_to_enable = self.component
+            if source_to_enable:
+                sources = source_to_enable.split('&')
+                warning = _("Available from the \"%s\"") % sources[0]
+                if len(sources) > 1:
+                    for source in sources[1:]:
+                       warning += _(", or from the \"%s\"") % source
+                warning += _(" source.")
+                return warning
 
     @property
     def website(self):
         if self._pkg:
             return self._pkg.candidate.homepage
 
-    def _unavailable_component(self):
+    def _unavailable_channel(self):
+        """ Check if the given doc refers to a channel that is currently not enabled """
+        # this is basically just a test to see if canonical-partner is enabled, it won't return true for anything else really..
+        channel = self.channelname
+        if not channel:
+            return False
+        if channel.count('-') != 1:
+            return False
+        available = self._cache.component_available(channel.split('-')[0], channel.split('-')[1])
+        return (not available)
+
+    def _unavailable_component(self, component_to_check=None):
         """ Check if the given doc refers to a component that is currently not enabled """
-        if self.component:
+        if component_to_check:
+            component = component_to_check
+        elif self.component:
             component = self.component
         else:
             component =  self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
@@ -394,7 +508,7 @@ class AppDetails(object):
             if arch == get_current_arch():
                 return True
         return False
-        
+
     def __str__(self):
         details = []
         details.append("* AppDetails")
@@ -423,3 +537,119 @@ class AppDetails(object):
         details.append("             version: %s" % self.version)
         details.append("             website: %s" % self.website)
         return '\n'.join(details)
+
+class AppDetailsDebFile(AppDetails):
+    
+    def __init__(self, db, doc=None, application=None):
+        super(AppDetailsDebFile, self).__init__(db, doc, application)
+        if doc:
+            raise ValueError("doc must be None for deb files")
+
+        try:
+            # for some reason Cache() is much faster than "self._cache._cache"
+            # on startup
+            self._deb = DebPackage(self._app.request, Cache())
+        except (IOError, SystemError),e:
+            self._deb = None
+            self._pkg = None
+            if not os.path.exists(self._app.request):
+                self._error = _("Not Found")
+                self._error_not_found = _("The file \"%s\" does not exist.") % self._app.request
+            else:
+                mimetype = guess_type(self._app.request)
+                if mimetype[0] != "application/x-debian-package":
+                    self._error =  _("Not Found")
+                    self._error_not_found = _("The file \"%s\" is not a software package.") % self._app.request
+            return
+
+        # check deb and set failure state on error
+        if not self._deb.check():
+            self._error = self._deb._failure_string
+
+    @property
+    def architecture(self):
+        if self._deb:
+            return self._deb._sections["Architecture"]
+
+    @property
+    def description(self):
+        if self._deb:
+            description = self._deb._sections["Description"]
+            return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
+
+    @property
+    def maintenance_status(self):
+        return None
+
+    @property
+    def pkg_state(self):
+        if self._error:
+            if self._error_not_found:
+                return PKG_STATE_NOT_FOUND
+            else:
+                return PKG_STATE_ERROR
+        if self._deb:
+            deb_state = self._deb.compare_to_version_in_cache()
+            if deb_state == DebPackage.VERSION_NONE:
+                return PKG_STATE_UNINSTALLED
+            elif deb_state == DebPackage.VERSION_OUTDATED:
+                if self._cache[self.pkgname].installed:
+                    return PKG_STATE_INSTALLED
+                else:
+                    return PKG_STATE_UNINSTALLED
+            elif deb_state == DebPackage.VERSION_SAME:
+                return PKG_STATE_REINSTALLABLE
+            elif deb_state == DebPackage.VERSION_NEWER:
+                if self._cache[self.pkgname].installed:
+                    return PKG_STATE_UPGRADABLE
+                else:
+                    return PKG_STATE_UNINSTALLED
+    
+    @property
+    def summary(self):
+        if self._deb:
+            description = self._deb._sections["Description"]
+            return description.split('\n')[0]
+
+    @property
+    def display_summary(self):
+        if self._doc:
+            name = self._db.get_appname(self._doc)
+            if name:
+                return self.summary
+            else:
+                # by spec..
+                return self._db.get_pkgname(self._doc)
+        return self.summary
+
+    @property
+    def version(self):
+        if self._deb:
+            return self._deb._sections["Version"]
+
+    @property
+    def warning(self):
+        # warnings for deb-files
+        # FIXME: use more concise warnings
+        if self._deb:
+            deb_state = self._deb.compare_to_version_in_cache()
+            if deb_state == DebPackage.VERSION_NONE:
+                return _("Only install this file if you trust the origin.")
+            elif deb_state == DebPackage.VERSION_OUTDATED:
+                if not self._cache[self.pkgname].installed:
+                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+            elif deb_state == DebPackage.VERSION_SAME:
+                return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+            elif deb_state == DebPackage.VERSION_NEWER:
+                return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
+
+    @property
+    def website(self):
+        if self._deb:
+            website = None
+            try:
+                website = self._deb._sections["Homepage"]
+            except:
+                pass
+            if website:
+                return website

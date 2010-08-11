@@ -98,7 +98,7 @@ CUSTOM_KEY_ICON = "Icon"
 CUSTOM_KEY_SCREENSHOT_URL = "Screenshot-Url"
 CUSTOM_KEY_CATEGORY = "Category"
 
-# pkg action state constants 
+# pkg action state constants
 (   # current
     PKG_STATE_INSTALLED,
     PKG_STATE_UNINSTALLED,
@@ -114,9 +114,13 @@ CUSTOM_KEY_CATEGORY = "Category"
     PKG_STATE_NEEDS_SOURCE,
     PKG_STATE_NEEDS_PURCHASE,
     PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
-    # this *needs* to be last (for test_appdetails.py)
+    PKG_STATE_ERROR,
+    # the package is not found in the DB or cache
+    PKG_STATE_NOT_FOUND, 
+    # this *needs* to be last (for test_appdetails.py) and means
+    # something went wrong and we don't have a state for this PKG
     PKG_STATE_UNKNOWN,
- ) = range(13)
+ ) = range(15)
 
 # application actions
 APP_ACTION_INSTALL = "install"

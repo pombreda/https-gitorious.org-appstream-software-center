@@ -38,7 +38,7 @@ from optparse import OptionParser
 
 if __name__ == "__main__":
 
-    parser = OptionParser("usage: %prog [options] package", 
+    parser = OptionParser("usage: %prog [options] [package-name | apturl | deb-file]", 
                           version="%prog "+VERSION)
     parser.add_option("--debug", action="store_true",
                       help="enable debug mode", default=False)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         xapian_base_path = XAPIAN_BASE_PATH
     
     from softwarecenter.app import SoftwareCenterApp
-    
-    app = SoftwareCenterApp(datadir, xapian_base_path, options)
+
+    app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
     app.run(args)
 

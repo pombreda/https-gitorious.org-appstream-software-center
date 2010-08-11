@@ -159,11 +159,17 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, metadata=None):
-        """ install a single package """
+    def install(self, pkgname, appname, iconname, filename=None, metadata=None):
+        """Install a single package from the archive
+           If filename is given a local deb package is installed instead.
+        """
         self.emit("transaction-started")
         try:
-            trans = yield self.aptd_client.install_packages([pkgname],
+            if filename:
+                trans = yield self.aptd_client.install_file(filename,
+                                                            defer=True)
+            else:
+                trans = yield self.aptd_client.install_packages([pkgname],
                                                             defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:

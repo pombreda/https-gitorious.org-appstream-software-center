@@ -34,6 +34,7 @@ from appview import AppView, AppStore, AppViewFilter
 
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
 from catview_gtk import CategoriesViewGtk as CategoriesView
+from catview import Category
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
@@ -488,6 +489,26 @@ class AvailablePane(SoftwarePane):
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
 
+    def show_app(self, app):
+        """ Display an application in the available_pane """
+        cat_of_app = None
+        for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
+            if (not cat_of_app and 
+                cat.untranslated_name != "New Applications" and 
+                cat.untranslated_name != "Featured Applications"):
+                if self.db.pkg_in_category(app.pkgname, cat.query):
+                    cat_of_app = cat
+                    continue
+        if cat_of_app:
+            self.apps_category = cat_of_app
+            self.navigation_bar.add_with_id(cat_of_app.name, self.on_navigation_list, "list", do_callback=False, animate=True)
+        else:
+            self.apps_category = Category("deb", "deb", None, None, False, True, None)
+        self.current_app_by_category[self.apps_category] = app
+        self.navigation_bar.add_with_id(app.name, self.on_navigation_details, "details", animate=True)
+        self.app_details.show_app(app)
+        self.display_details()
+
     # callbacks
     def on_cache_ready(self, cache):
         """ refresh the application list when the cache is re-opened """
@@ -557,7 +578,7 @@ class AvailablePane(SoftwarePane):
     def display_list(self):
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
-        
+
         if self.apps_subcategory:
             self.apps_subcategory = None
         self.set_category(self.apps_category)

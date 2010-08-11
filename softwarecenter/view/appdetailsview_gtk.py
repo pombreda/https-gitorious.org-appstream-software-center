@@ -149,12 +149,20 @@ class PackageStatusBar(gtk.Alignment):
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
                      PKG_STATE_REMOVING,
-                     PKG_STATE_UPGRADING,
-                     PKG_STATE_UNKNOWN):
+                     PKG_STATE_UPGRADING):
             self.button.hide()
+            self.show()
+        elif state == PKG_STATE_NOT_FOUND:
+            self.hide()
+        elif state == PKG_STATE_ERROR:
+            self.button.set_sensitive(False)
+            self.button.show()
+            self.show()
         else:
             state = app_details.pkg_state
+            self.button.set_sensitive(True)
             self.button.show()
+            self.show()
 
         # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
@@ -204,11 +212,17 @@ class PackageStatusBar(gtk.Alignment):
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
-        elif state == PKG_STATE_UNKNOWN:
-            self.set_button_label("")
-            self.set_label(_("Error"))
+        elif state == PKG_STATE_ERROR:
+            # this is used when the pkg can not be installed
+            # we display the error in the description field
+            self.set_button_label(_("Install"))
+            self.set_label("")
             self.fill_color = COLOR_RED_FILL
             self.line_color = COLOR_RED_OUTLINE
+        elif state == PKG_STATE_NOT_FOUND:
+            # this is used when the pkg is not in the cache and there is no request
+            # we display the error in the summary field and hide the rest
+            pass
         elif state == PKG_STATE_NEEDS_SOURCE:
             channelfile = self.app_details.channelfile
             # it has a price and is not available 
@@ -223,6 +237,8 @@ class PackageStatusBar(gtk.Alignment):
                 self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
+        if self.app_details.warning and not self.app_details.error:
+            self.set_label(self.app_details.warning)
         return
 
     def draw(self, cr, a, expose_area):
@@ -282,6 +298,7 @@ class AppDescription(gtk.VBox):
         p = gtk.Label()
         p.set_markup(fragment)
         p.set_line_wrap(True)
+        p.set_selectable(True)
 
         hb = gtk.HBox()
         hb.pack_start(p, False)
@@ -303,6 +320,7 @@ class AppDescription(gtk.VBox):
         point = gtk.Label()
         point.set_markup(fragment)
         point.set_line_wrap(True)
+        point.set_selectable(True)
 
         hb = gtk.HBox(spacing=mkit.EM)
         hb.pack_start(a, False)
@@ -455,7 +473,7 @@ class PackageInfoTable(gtk.VBox):
     def set_support_status(self, support_status):
         self.support_label.set_text(support_status)
         return
-        
+
 
 class ScreenshotView(gtk.Alignment):
 
@@ -855,11 +873,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # draw icon frame as well...
             self._draw_icon_frame(cr)
 
-        self.action_bar.draw(cr,
-                             self.action_bar.allocation,
-                             event.area)
+        if self.action_bar.get_property('visible'):
+            self.action_bar.draw(cr,
+                                 self.action_bar.allocation,
+                                 event.area)
 
-        self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
+        if self.screenshot.get_property('visible'):
+            self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
 
         if self.homepage_btn.get_property('visible'):
             self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
@@ -985,6 +1005,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_page(self, app_details):
+
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
@@ -992,11 +1013,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         appname = gobject.markup_escape_text(app_details.display_name)
 
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
-        # FIXME: Once again (yes, I am working from the end to the beginning of the file..) this is tmp until we find a better place for the errors
-        if self.app_details.error:
-            summary = app_details.error
+        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
+            summary = app_details._error_not_found
         else:
             summary = app_details.display_summary
+        if not summary:
+            summary = ""
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
@@ -1007,32 +1029,37 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
         self.app_info.set_icon_from_pixbuf(pb)
 
+        # if we have an error or if we need to enable a source, then hide everything else
+        if app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE):
+            self.info_table.hide()
+            self.screenshot.hide()
+            self.desc_section.hide()
+        else:
+            self.desc_section.show()
+            self.info_table.show()
+            self.screenshot.show()
+
         # depending on pkg install state set action labels
         self.action_bar.configure(app_details, app_details.pkg_state)
         self.action_bar.button.grab_focus()
 
         # format new app description
-        # FIXME: This is a bit messy, but the warnings need to be displayed somewhere until we find a better place for them
-        # IDEA:  Put warning into the PackageStatusBar.  Makes sense(?).
-        if app_details.warning:
-            if app_details.description:
-                description = "Warning: " + app_details.warning + "\n\n" + app_details.description
-            else:
-                description = "Warning: " + app_details.warning
+        if app_details.pkg_state == PKG_STATE_ERROR:
+            description = app_details.error
         else:
             description = app_details.description
         if description:
             self.app_desc.set_description(description, appname)
 
         # show or hide the homepage button and set uri if homepage specified
-        if app_details.website:
+        if app_details.website and self.info_table.get_property('visible'):
             self.homepage_btn.show()
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self._gwibber_is_available and not app_details.error:
+        if self._gwibber_is_available and self.info_table.get_property('visible'):
             self.share_btn.show()
         else:
             self.share_btn.hide()
@@ -1078,18 +1105,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.appdetails = self.app_details
         #print "AppDetailsViewGtk:"
         #print self.appdetails
-        # self.emit("selected", self.app)  # << redundant??
         self._update_page(self.app_details)
         self.emit("selected", self.app)
         return
 
     # public interface
     def use_this_source(self):
-        if self.app_details.channelfile:
+        if self.app_details.channelfile and self.app_details._unavailable_channel():
             self.backend.enable_channel(self.app_details.channelfile)
         elif self.app_details.component:
-            # this is broken atm?
-            self.backend.enable_component(self.app_details.component)
+            components = self.app_details.component.split('&')
+            for component in components:
+                self.backend.enable_component(component)
 
     # internal callback
     def _update_interface_on_trans_ended(self, result):
@@ -1123,6 +1150,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
         elif state == PKG_STATE_UPGRADABLE:
             self.action_bar.configure(self.app_details, PKG_STATE_UPGRADING)
+        elif state == PKG_STATE_REINSTALLABLE:
+            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
+            # FIXME: is there a way to tell if we are installing/removing?
+            # we will assume that it is being installed, but this means that during removals we get the text "Installing.."
+            # self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
         return
 
     def _on_transaction_stopped(self, backend, pkgname):

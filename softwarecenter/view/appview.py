@@ -72,7 +72,8 @@ class AppStore(gtk.GenericTreeModel):
      COL_IS_ACTIVE,
      COL_ACTION_IN_PROGRESS,
      COL_EXISTS,
-     COL_ACCESSIBLE) = range(12)
+     COL_ACCESSIBLE,
+     COL_REQUEST) = range(13)
 
     column_type = (str,
                    str,
@@ -85,6 +86,7 @@ class AppStore(gtk.GenericTreeModel):
                    bool,
                    int,
                    bool,
+                   str,
                    str)
 
     ICON_SIZE = 24
@@ -218,7 +220,7 @@ class AppStore(gtk.GenericTreeModel):
                 # when doing multiple queries we need to ensure
                 # we don't add duplicates
                 popcon = self.db.get_popcon(doc)
-                app = Application(appname, pkgname, popcon)
+                app = Application(appname, pkgname, "", popcon)
                 if not app in already_added:
                     if self.sortmode == SORT_BY_ALPHABET:
                         self._insert_app_sorted(app)
@@ -237,7 +239,6 @@ class AppStore(gtk.GenericTreeModel):
                         pkgname = term[2:]
                         break
                 app = Application("", pkgname)
-
                 self.apps.append(app)
                 
         # if we only have nonapps to be displayed, don't hide them
@@ -477,10 +478,17 @@ class AppStore(gtk.GenericTreeModel):
             # rendered, with all data but package name absent and the text
             # markup colored gray.
             if column == self.COL_APP_NAME:
+                if app.request:
+                    return app.appname
                 return _("Not found")
             elif column == self.COL_TEXT:
                 return "%s\n" % app.pkgname
             elif column == self.COL_MARKUP:
+                if app.request:
+                    s = "%s\n<small>%s</small>" % (
+                        gobject.markup_escape_text(app.appname),
+                        gobject.markup_escape_text(_("Not Found")))
+                    return s
                 s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
                     gobject.markup_escape_text(_("Not found")),
                     gobject.markup_escape_text(app.pkgname))
@@ -497,14 +505,21 @@ class AppStore(gtk.GenericTreeModel):
             elif column == self.COL_POPCON:
                 return 0
             elif column == self.COL_IS_ACTIVE:
+                if app.request:
+                    # this may be wrong, but we don't want to do any checks at this moment
+                    return (rowref == self.active_app)
                 # This ensures the missing package will not expand
                 return False
             elif column == self.COL_EXISTS:
+                if app.request:
+                    return True
                 return False
             elif column == self.COL_ACTION_IN_PROGRESS:
                 return -1
             elif column == self.COL_ACCESSIBLE:
                 return '%s\n%s' % (app.pkgname, _('Package state unknown'))
+            elif column == self.COL_REQUEST:
+                return app.request
 
         # Otherwise the app should return app data normally.
         if column == self.COL_APP_NAME:
@@ -582,7 +597,8 @@ class AppStore(gtk.GenericTreeModel):
             if pkgname in self.cache and self.cache[pkgname].is_installed:
                 return "%s\n%s\n%s" % (appname, _('Installed'), summary)
             return "%s\n%s\n%s" % (appname, _('Not Installed'), summary) 
-
+        elif column == self.COL_REQUEST:
+            return app.request
     def on_iter_next(self, rowref):
         #self._logger.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -1077,11 +1093,12 @@ class CellRendererAppView2(gtk.CellRendererText):
             btn.render(window, widget, self._layout)
             xs += btn.allocation.width + spacing
 
-        for btn in self._buttons[end]:
-            xb -= btn.allocation.width
-            btn.set_position(xb, y-btn.allocation.height)
-            btn.render(window, widget, self._layout)
-            xb -= spacing
+        if self.props.available:
+            for btn in self._buttons[end]:
+                xb -= btn.allocation.width
+                btn.set_position(xb, y-btn.allocation.height)
+                btn.render(window, widget, self._layout)
+                xb -= spacing
         return
 
     def do_get_size(self, widget, cell_area):
@@ -1308,6 +1325,7 @@ class AppView(gtk.TreeView):
         # update active app, use row-ref as argument
         model._set_active_app(row)
         installed = model[row][AppStore.COL_INSTALLED]
+
         action_btn = tr.get_button_by_name('action0')
         #if not action_btn: return False
 
@@ -1327,8 +1345,9 @@ class AppView(gtk.TreeView):
 
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
+        request = model[row][AppStore.COL_REQUEST]
         popcon = model[row][AppStore.COL_POPCON]
-        self.emit("application-selected", Application(name, pkgname, popcon))
+        self.emit("application-selected", Application(name, pkgname, request, popcon))
         return False
 
     def _on_row_activated(self, view, path, column, tr):
@@ -1342,8 +1361,9 @@ class AppView(gtk.TreeView):
         if exists:
             name = model[path][AppStore.COL_APP_NAME]
             pkgname = model[path][AppStore.COL_PKGNAME]
+            request = model[path][AppStore.COL_REQUEST]
             popcon = model[path][AppStore.COL_POPCON]
-            self.emit("application-activated", Application(name, pkgname, popcon))
+            self.emit("application-activated", Application(name, pkgname, request, popcon))
 
     def _on_button_press_event(self, view, event, tr):
         if event.button != 1:
@@ -1449,6 +1469,7 @@ class AppView(gtk.TreeView):
 
         appname = model[path][AppStore.COL_APP_NAME]
         pkgname = model[path][AppStore.COL_PKGNAME]
+        request = model[path][AppStore.COL_REQUEST]
         installed = model[path][AppStore.COL_INSTALLED]
         popcon = model[path][AppStore.COL_POPCON]
 
@@ -1459,15 +1480,16 @@ class AppView(gtk.TreeView):
                             btn.name,
                             appname,
                             pkgname,
+                            request,
                             popcon,
                             installed,
                             model,
                             path)
         return
 
-    def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
+    def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, popcon, installed, store, path):
         if btn_id == 'info':
-            self.emit("application-activated", Application(appname, pkgname, popcon))
+            self.emit("application-activated", Application(appname, pkgname, request, popcon))
         elif btn_id == 'action0':
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
@@ -1480,7 +1502,7 @@ class AppView(gtk.TreeView):
                 perform_action = APP_ACTION_REMOVE
             else:
                 perform_action = APP_ACTION_INSTALL
-            self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
+            self.emit("application-request-action", Application(appname, pkgname, request, popcon), perform_action)
         return False
 
     def _set_cursor(self, btn, cursor):

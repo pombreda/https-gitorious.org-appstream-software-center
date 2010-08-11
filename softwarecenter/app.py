@@ -33,7 +33,7 @@ import xapian
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-from softwarecenter import Application
+from softwarecenter.db.application import Application, DebFileApplication
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
@@ -72,7 +72,8 @@ class SoftwarecenterDbusController(dbus.service.Object):
     """ 
     This is a helper to provide the SoftwarecenterIFace
     
-    It provides 
+    It provides only a bringToFront method that takes 
+    additional arguments about what packages to show
     """
     def __init__(self, parent, bus_name,
                  object_path='/com/ubuntu/Softwarecenter'):
@@ -80,7 +81,9 @@ class SoftwarecenterDbusController(dbus.service.Object):
         self.parent = parent
 
     @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
-    def bringToFront(self):
+    def bringToFront(self, args):
+        if args != 'nothing-to-show':
+            self.parent.show_available_packages(args)
         self.parent.window_main.present()
         return True
 
@@ -91,7 +94,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     # the size of the icon for dialogs
     APP_ICON_SIZE = 48  # gtk.ICON_SIZE_DIALOG ?
 
-    def __init__(self, datadir, xapian_base_path, options):
+    def __init__(self, datadir, xapian_base_path, options, args=None):
     
         self._logger = logging.getLogger(__name__)
         self.datadir = datadir
@@ -108,7 +111,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # setup dbus and exit if there is another instance already
         # running
-        self.setup_dbus_or_bring_other_instance_to_front()
+        self.setup_dbus_or_bring_other_instance_to_front(args)
         self.setup_database_rebuilding_listener()
         
         try:
@@ -411,6 +414,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
+        if (view_id == VIEW_PAGE_INSTALLED and
+            not self.installed_pane.loaded and
+            not self.installed_pane.get_current_app()):
+            self.installed_pane.refresh_apps()
         # switch to new page
         self.view_manager.set_active_view(view_id)
         self.update_app_list_view(channel)
@@ -476,7 +483,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             
         # action_func is one of:  "install", "remove" or "upgrade"
         action_func = getattr(self.backend, action)
-        if callable(action_func):
+        if action == 'install':
+            # the package.deb path name is in the request
+            if app.request and app.request.endswith(".deb"):
+                debfile_name = app.request
+            else:
+                debfile_name = None
+            action_func(app.pkgname, app.appname, appdetails.icon, debfile_name)
+        elif callable(action_func):
             action_func(app.pkgname, app.appname, appdetails.icon)
         else:
             logging.error("Not a valid action in AptdaemonBackend: '%s'" % action)
@@ -646,9 +660,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             
     def on_navhistory_back_action_activate(self, navhistory_back_action):
         self.available_pane.nav_history.nav_back()
+        self.available_pane._status_text = ""
+        self.update_status_bar()
+        self.update_app_status_menu()
         
     def on_navhistory_forward_action_activate(self, navhistory_forward_action):
         self.available_pane.nav_history.nav_forward()
+        self.available_pane._status_text = ""
+        self.update_status_bar()
+        self.update_app_status_menu()
             
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
@@ -815,7 +835,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                 "DatabaseRebuilding",
                                 "com.ubuntu.Softwarecenter")
 
-    def setup_dbus_or_bring_other_instance_to_front(self):
+    def setup_dbus_or_bring_other_instance_to_front(self, args):
         """ 
         This sets up a dbus listener
         """
@@ -830,7 +850,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             proxy_obj = bus.get_object('com.ubuntu.Softwarecenter', 
                                        '/com/ubuntu/Softwarecenter')
             iface = dbus.Interface(proxy_obj, 'com.ubuntu.SoftwarecenterIFace')
-            iface.bringToFront()
+            if args:
+                iface.bringToFront(args)
+            else:
+                # None can not be transported over dbus
+                iface.bringToFront('nothing-to-show')
             sys.exit()
         except dbus.DBusException, e:
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter',bus)
@@ -841,13 +865,34 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             If the list of packages is only one element long show that,
             otherwise turn it into a comma seperated search
         """
+        # strip away the apt: prefix
+        if packages and packages[0].startswith("apt://"):
+            packages[0] = packages[0].partition("apt://")[2]
+        elif packages and packages[0].startswith("apt:"):
+            packages[0] = packages[0].partition("apt:")[2]
+
         if len(packages) == 1:
-            # show a single package
-            full_pkgname = packages[0]
-            # if there is a "/" in the string consider it as tuple
-            (pkgname, seperator, appname) = full_pkgname.partition("/")
-            app = Application(appname, pkgname)
-            self.available_pane.on_application_activated(None, app)
+            request = packages[0]
+            if (request.endswith(".deb") or os.path.exists(request)):
+                # deb file or other file opened with s-c
+                app = DebFileApplication(request)
+            else:
+                # package from archive
+                # if there is a "/" in the string consider it as tuple
+                # of (pkgname, appname) for exact matching (used by
+                # e.g. unity
+                (pkgname, sep, appname) = packages[0].partition("/")
+                app = Application(appname, pkgname)
+            # if the pkg is installed, show it in the installed pane
+            if (app.pkgname in self.cache and 
+                self.cache[app.pkgname].installed):
+                self.installed_pane.loaded = True
+                self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
+                self.installed_pane.loaded = False
+                self.installed_pane.show_app(app)
+            else:
+                self.available_pane.show_app(app)
+
         if len(packages) > 1:
             # turn multiple packages into a search with ","
             # turn off de-duplication
@@ -907,10 +952,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def run(self, args):
         self.window_main.show_all()
         # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
-        for (i, arg) in enumerate(args[:]):
-            if "," in arg:
-                args.extend(arg.split(","))
-                del args[i]
+        if args:
+            for (i, arg) in enumerate(args[:]):
+                if "," in arg:
+                    args.extend(arg.split(","))
+                    del args[i]
         self.show_available_packages(args)
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
