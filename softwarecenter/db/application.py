@@ -121,6 +121,7 @@ class AppDetails(object):
         self._distro = get_distro()
         self._history = get_apt_history()
         self._backend = get_install_backend()
+        # FIXME: why two error states ?
         self._error = None
         self._error_not_found = None
 
@@ -130,6 +131,8 @@ class AppDetails(object):
             self._app = Application(self._db.get_appname(doc), 
                                     self._db.get_pkgname(doc), 
                                     "")
+
+        # sustitute for apturl
         if self._app.request:
             self._app.request = self._app.request.replace(
                 "$distro", self._distro.get_distro_codename())
@@ -327,12 +330,6 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
-        #if self._error_not_found:
-        #    return PKG_STATE_NOT_FOUND
-        #if self._error:
-        #    return PKG_STATE_ERROR
-        # check dynamic states from the install backend
-
         # puchase state
         if self.pkgname in self._backend.pending_purchases:
             return PKG_STATE_INSTALLING_PURCHASED
@@ -372,7 +369,6 @@ class AppDetails(object):
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
                     return PKG_STATE_NOT_FOUND
             else:
-
                 if self.price and self._available_for_our_arch():
                     return PKG_STATE_NEEDS_PURCHASE
                 if (self.purchase_date and

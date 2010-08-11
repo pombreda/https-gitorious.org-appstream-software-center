@@ -71,7 +71,8 @@ class SoftwarecenterDbusController(dbus.service.Object):
     """ 
     This is a helper to provide the SoftwarecenterIFace
     
-    It provides 
+    It provides only a bringToFront method that takes 
+    additional arguments about what packages to show
     """
     def __init__(self, parent, bus_name,
                  object_path='/com/ubuntu/Softwarecenter'):
@@ -841,6 +842,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             if args:
                 iface.bringToFront(args)
             else:
+                # None can not be transported over dbus
                 iface.bringToFront('nothing-to-show')
             sys.exit()
         except dbus.DBusException, e:
