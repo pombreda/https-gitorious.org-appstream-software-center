@@ -633,7 +633,6 @@ class CellRendererButton2:
         self.has_focus = False
 
         self._widget = None
-        self._geometry = None
         return
 
     def _layout_reset(self, layout):
@@ -642,21 +641,15 @@ class CellRendererButton2:
         return
 
     def configure_geometry(self, widget):
-        if self._geometry: return
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
-        max_w = 0
+        max_size = (0,0)
         for variant in self.markup_variants:
             layout.set_markup(gobject.markup_escape_text(variant))
-            max_size = max(self.get_size(), layout.get_pixel_extents()[1][2:])
+            max_size = max(max_size, layout.get_pixel_extents()[1][2:])
 
         w, h = max_size
         self.set_size(w+2*self.xpad, h+2*self.ypad)
-        self._geometry = True
-        return
-
-    def scrub_geometry(self):
-        self._geometry = None
         return
 
     def point_in(self, x, y):
@@ -1257,8 +1250,6 @@ class AppView(gtk.TreeView):
         tr.set_property('ypad', pad)
 
         for btn in tr.get_buttons():
-            # reset cached button geometry (x, y, w, h)
-            btn.scrub_geometry()
             # recalc button geometry and cache
             btn.configure_geometry(self)
 

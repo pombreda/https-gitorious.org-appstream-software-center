@@ -23,6 +23,8 @@ software-center (2.1.9) UNRELEASED; urgency=low
       SOFTWARE_CENTER_ICON_CACHE_DIR, add tests
   * softwarecenter/backend/login_sso.py:
     - add support for ubuntu-sso-client login
+  * merged lp:~mmcg069/software-center/appview-fix, that fixes
+    overly large buttons
 
   [ Didier Roche ]
   * data/featured.menu.in:
