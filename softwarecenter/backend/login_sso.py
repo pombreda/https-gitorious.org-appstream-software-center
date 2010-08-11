@@ -41,12 +41,13 @@ class LoginBackendDbusSSO(LoginBackend):
                                      self._on_credentials_error)
         self.proxy.connect_to_signal("AuthorizationDenied", 
                                      self._on_authorization_denied)
-        self._window_id = 0
+        self._window_id = window_id
 
     def login(self, username=None, password=None):
         self.proxy.login_or_register_to_get_credentials(
-            "Ubuntu Software Center", "terms-of-server-url",
-            _("Ubuntu Software Center"), self._window_id)
+            "Ubuntu Software Center", "terms-of-service",
+            _("Ubuntu Software Center"), 
+            self._window_id)
         
     def _on_credentials_found(self, credentials):
         self.emit("login-successful", credentials)
