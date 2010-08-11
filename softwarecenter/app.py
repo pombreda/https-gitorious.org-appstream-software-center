@@ -60,6 +60,7 @@ from plugin import PluginManager
 from view.logindialog import LoginDialog
 from backend.launchpad import GLaunchpad
 from backend.restfulclient import UbuntuSSOlogin, SoftwareCenterAgent
+from backend.login_sso import LoginBackendDbusSSO
 
 from distro import get_distro
 
@@ -420,14 +421,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.width = allocation.width
 
     def _on_lp_login(self, lp, token):
-        print "_on_lp_login"
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()
         self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
             private_archives)
 
     def _on_sso_login(self, sso, oauth_result):
-        print "_on_sso_login", sso, oauth_result
         self._sso_login_successful = True
         # consumer key is the openid identifier
         self.scagent.query_available_for_me(oauth_result["token"],
@@ -495,16 +494,28 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
         d.login()
 
-    def on_menuitem_reinstall_purchases_activate(self, menuitem):
+    def _login_via_buildin_sso(self):
         self.sso = UbuntuSSOlogin()
         self.sso.connect("login-successful", self._on_sso_login)
-        self.scagent = SoftwareCenterAgent()
-        self.scagent.connect("available-for-me", self._available_for_me_result)
         if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
             self.scagent.query_available_for_me("dummy", "mvo")
         else:
             d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
             d.login()
+
+    def _login_via_dbus_sso(self):
+        self.sso = LoginBackendDbusSSO()
+        self.sso.connect("login-successful", self._on_sso_login)
+        self.sso.login()
+
+    def on_menuitem_reinstall_purchases_activate(self, menuitem):
+        self.scagent = SoftwareCenterAgent()
+        self.scagent.connect("available-for-me", self._available_for_me_result)
+        # support both buildin or ubuntu-sso-login
+        if "SOFWARE_CENTER_USE_BUILDIN_LOGIN" in os.environ:
+            self._login_via_buildin_sso()
+        else:
+            self._login_via_dbus_sso()
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()

@@ -21,6 +21,8 @@ software-center (2.1.9) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - add support for the inline icon_data, push them into 
       SOFTWARE_CENTER_ICON_CACHE_DIR, add tests
+  * softwarecenter/backend/login_sso.py:
+    - add support for ubuntu-sso-client login
 
   [ Didier Roche ]
   * data/featured.menu.in:

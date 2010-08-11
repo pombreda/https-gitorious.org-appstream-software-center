@@ -36,7 +36,8 @@ Depends: ${python:Depends},
          python-xdg,
          python-gconf,
          aptdaemon (>= 0.31),
-	 python-lazr.restfulclient
+	 python-lazr.restfulclient,
+         ubuntu-sso-client
 Recommends: lsb-release, python-launchpad-integration, 
             apt-xapian-index (>= 0.38ubuntu1), update-notifier,
             software-properties-gtk, sessioninstaller
