@@ -281,7 +281,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                           'sc_add_repo_and_install_pkgname' : app.pkgname,
                          }
         # TODO:  add error checking as needed
-        self.app = app
         self.add_sources_list_entry(deb_line)
         self.add_vendor_key_from_keyserver(signing_key_id, 
                                            metadata=trans_metadata)
@@ -292,9 +291,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # otherwise the daemon will fail because he does not know
         # the new package name yet
         self._reload_signal_id = self.connect(
-            "reload-finished", self._on_reload_for_add_repo_and_install_app_finished, self, trans_metadata)
+            "reload-finished", self._on_reload_for_add_repo_and_install_app_finished, self, trans_metadata, app)
             
-    def _on_reload_for_add_repo_and_install_app_finished(self, trans, result, backend, metadata):
+    def _on_reload_for_add_repo_and_install_app_finished(self, trans, result, backend, metadata, app):
         """ 
         callback that is called once after reload was queued
         and will trigger the install of the for-pay package itself
@@ -302,11 +301,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         #print trans, result, backend
         if result:
-            self.install(self.app.pkgname, self.app.appname, "", metadata)
+            self.install(app.pkgname, app.appname, "", metadata)
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None
-        self.pending_purchases.remove(result.pkgname)
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
@@ -438,6 +436,17 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield trans.run(defer=True)
         except Exception, error:
             self._on_trans_error(pkgname, error)
+            # on error we need to clean the pending purchases
+            self._clean_pending_purchases(pkgname)
+        # on success the pending purchase is cleaned when the package
+        # that was purchased finished installing
+        if trans.role == enums.ROLE_INSTALL_PACKAGES:
+            self._clean_pending_purchases(pkgname)
+
+
+    def _clean_pending_purchases(self, pkgname):
+        if pkgname and pkgname in self.pending_purchases:
+            self.pending_purchases.remove(pkgname)
 
     def _on_trans_error(self, error, pkgname=None):
         self._logger.warn("_on_trans_error: %s", error)
