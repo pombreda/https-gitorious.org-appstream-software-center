@@ -493,7 +493,9 @@ class AvailablePane(SoftwarePane):
         """ Display an application in the available_pane """
         cat_of_app = None
         for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
-            if not cat_of_app and cat.untranslated_name != "New Applications" and cat.untranslated_name != "Featured Applications":
+            if (not cat_of_app and 
+                cat.untranslated_name != "New Applications" and 
+                cat.untranslated_name != "Featured Applications"):
                 if self.db.pkg_in_category(app.pkgname, cat.query):
                     cat_of_app = cat
                     continue
