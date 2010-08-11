@@ -44,8 +44,10 @@ class LoginBackendDbusSSO(LoginBackend):
         self._window_id = window_id
 
     def login(self, username=None, password=None):
-        self.proxy.login_or_register_to_get_credentials(
-            "Ubuntu Software Center", "terms-of-service",
+        # alternatively use:
+        #  login_or_register_to_get_credentials(appname, tc, help, xid)
+        self.proxy.login_to_get_credentials(
+            "Ubuntu Software Center", 
             _("Ubuntu Software Center"), 
             self._window_id)
         
