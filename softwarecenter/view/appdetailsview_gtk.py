@@ -798,13 +798,15 @@ class AddonCheckButton(gtk.HBox):
     
     def __init__(self, db, icons, pkgname):
         gtk.HBox.__init__(self, spacing=6)
-        self.app_details = AppDetails(db, application=Application("None", pkgname))
-
+        self.app_details = AppDetails(db, 
+                                      application=Application("None", pkgname))
+        # the checkbutton
         self.checkbutton = gtk.CheckButton()
         self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
         self.pack_start(self.checkbutton, False)
-            
-        self.image = gtk.Image()
+        # the hbox inside the checkbutton that contains the icon and description
+        hbox = gtk.HBox()
+        image = gtk.Image()
         icon = None
         try:
             doc = db.get_xapian_document('', pkgname)
@@ -816,17 +818,22 @@ class AddonCheckButton(gtk.HBox):
                 icon = potential_icon
         if icon == None:
             icon = MISSING_APP_ICON
-        icon_pixbuf = icons.load_icon(icon, 24, ()).scale_simple(24, 24, gtk.gdk.INTERP_BILINEAR)
+        icon_pixbuf = icons.load_icon(icon, 24, 0)
         try:
-            self.image.set_from_pixbuf(icon_pixbuf)
+            image.set_from_pixbuf(icon_pixbuf)
         except TypeError:
-            pass # For testing purposes
-        self.pack_start(self.image, False, False)
-            
-        text = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.display_name.capitalize(), 
-        'pkgname': self.app_details.pkgname}
-        self.description = mkit.HLinkButton(text)
-        self.pack_start(self.description, False)
+            logging.warning("cant set icon for '%s' " % pkgname)
+        hbox.pack_start(image, False, False)
+        # the display_name
+        label = gtk.Label(self.app_details.display_name)
+        hbox.pack_start(label, False)
+        # and put it into the the checkbo
+        self.checkbutton.add(hbox)
+        # this is the addon_pkgname
+        self.addon_pkgname = mkit.HLinkButton(_("(%(pkgname)s)") % {
+                'pkgname' : pkgname } )
+        self.pack_start(self.addon_pkgname, False)
+        
     
     def _on_checkbutton_toggled(self, checkbutton):
         self.emit("toggled")
@@ -877,15 +884,15 @@ class AddonView(gtk.VBox):
         
         for addon in recommended:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
-            checkbutton.description.connect("clicked", 
-                                            self._on_description_clicked, addon)
+            checkbutton.addon_pkgname.connect(
+                "clicked", self._on_description_clicked, addon)
             checkbutton.set_active(self.cache[addon].installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         for addon in suggested:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
-            checkbutton.description.connect("clicked", 
-                                            self._on_description_clicked, addon)
+            checkbutton.addon_pkgname.connect(
+                "clicked", self._on_description_clicked, addon)
             checkbutton.set_active(self.cache[addon].installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
