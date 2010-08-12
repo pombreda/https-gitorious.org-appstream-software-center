@@ -871,6 +871,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         elif packages and packages[0].startswith("apt:"):
             packages[0] = packages[0].partition("apt:")[2]
 
+        # allow s-c to be called with a search term
+        if packages and packages[0].startswith("search:"):
+            packages[0] = packages[0].partition("search:")[2]
+            self.available_pane.navigation_bar.remove_all(animate=False) # animate *must* be false here
+            self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
+            self.available_pane.notebook.set_current_page(
+                self.available_pane.PAGE_APPLIST)
+            self.available_pane.searchentry.set_text(" ".join(packages))
+            return
+
         if len(packages) == 1:
             request = packages[0]
             if (request.endswith(".deb") or os.path.exists(request)):
@@ -891,6 +901,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self.installed_pane.loaded = False
                 self.installed_pane.show_app(app)
             else:
+                self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
                 self.available_pane.show_app(app)
 
         if len(packages) > 1:

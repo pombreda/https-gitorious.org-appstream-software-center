@@ -87,7 +87,7 @@ class StoreDatabase(gobject.GObject):
                 self.xapiandb.add_database(axi)
                 self._axi_values = parse_axi_values_file()
             except:
-                self._logging.exception("failed to add apt-xapian-index")
+                self._logger.exception("failed to add apt-xapian-index")
         if use_agent:
             try:
                 sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)

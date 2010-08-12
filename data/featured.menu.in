@@ -21,8 +21,8 @@
 	<SCPkgname>liferea</SCPkgname>
 	<SCPkgname>arista</SCPkgname>
 	<SCPkgname>gtg</SCPkgname>
-	<SCPkgname>freeciv</SCPkgname>
-	<SCPkgname>supertuxcart</SCPkgname>
+	<SCPkgname>freeciv-client-gtk</SCPkgname>
+	<SCPkgname>supertuxkart</SCPkgname>
 	<SCPkgname>tumiki-fighters</SCPkgname>
 	<SCPkgname>tuxpaint</SCPkgname>
 	<SCPkgname>webservice-office-zoho</SCPkgname>

@@ -12,6 +12,7 @@ data/unbranded-software-center.desktop.in
 softwarecenter/app.py
 softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py
+softwarecenter/db/application.py
 softwarecenter/db/database.py
 softwarecenter/distro/Debian.py
 softwarecenter/distro/__init__.py
