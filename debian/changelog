@@ -3,9 +3,15 @@ software-center (2.1.10) UNRELEASED; urgency=low
   [ Kiwinote ]
   * po/POTFILES.in:
     - mark softwarecenter/db/application.py for translation
+  * softwarecenter/app.py:
+    - switch to available view when we are in the installed view and we get a
+      request for a pkg in the available view
   * softwarecenter/view/appdetailsview_gtk.py,
     softwarecenter/view/appdetailsview_webkit.py:
     - use the same gwibber text in both appdetails views (LP: #614220)
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/installedpane.py:
+    - refresh navigation bar correctly when we get a request to display a pkg
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 23:19:03 +0200
 

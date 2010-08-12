@@ -499,6 +499,7 @@ class AvailablePane(SoftwarePane):
                 if self.db.pkg_in_category(app.pkgname, cat.query):
                     cat_of_app = cat
                     continue
+        self.navigation_bar.remove_all(animate=False) # animate *must* be false here
         if cat_of_app:
             self.apps_category = cat_of_app
             self.navigation_bar.add_with_id(cat_of_app.name, self.on_navigation_list, "list", do_callback=False, animate=True)
