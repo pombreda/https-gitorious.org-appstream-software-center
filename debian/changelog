@@ -1,6 +1,8 @@
 software-center (2.1.10) UNRELEASED; urgency=low
 
   [ Kiwinote ]
+  * po/POTFILES.in:
+    - mark softwarecenter/db/application.py for translation
   * softwarecenter/view/appdetailsview_gtk.py,
     softwarecenter/view/appdetailsview_webkit.py:
     - use the same gwibber text in both appdetails views (LP: #614220)
