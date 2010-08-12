@@ -10,6 +10,8 @@ software-center (2.1.10) UNRELEASED; urgency=low
       request for a pkg in the available view
     - allow s-c to be passed a search term (LP: #612507)
       The syntax is "software-center search:search term"
+  * softwarecenter/db/database.py:
+    - fix typo (LP: #616183)
   * softwarecenter/view/appdetailsview_gtk.py,
     softwarecenter/view/appdetailsview_webkit.py:
     - use the same gwibber text in both appdetails views (LP: #614220)
