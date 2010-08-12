@@ -1,6 +1,8 @@
 software-center (2.1.10) UNRELEASED; urgency=low
 
   [ Kiwinote ]
+  * data/featured.menu.in:
+    - fix typos to make a few more featured apps appear in the list
   * po/POTFILES.in:
     - mark softwarecenter/db/application.py for translation
   * softwarecenter/app.py:
