@@ -1,3 +1,12 @@
+software-center (2.1.10) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appdetailsview_webkit.py:
+    - use the same gwibber text in both appdetails views (LP: #614220)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 23:19:03 +0200
+
 software-center (2.1.9) maverick; urgency=low
 
   [ Gary Lasker ]

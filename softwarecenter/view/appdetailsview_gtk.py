@@ -906,8 +906,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_share_clicked(self, button):
-        # TRANSLATORS: apturl:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s! apturl:%(pkgname)s") % {
+        # TRANSLATORS: apt:%(pkgname) is the apt protocol
+        msg = _("Check out %(appname)s! apt:%(pkgname)s") % {
                 'appname' : self.app_details.display_name, 
                 'pkgname' : self.app_details.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
