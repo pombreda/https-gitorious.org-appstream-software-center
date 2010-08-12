@@ -42,6 +42,19 @@ class SCTestGUI(unittest.TestCase):
         self.app = app
         self._p()
     
+    def test_supported_only(self):
+        """ test if clicking on the "supported only" menuitems
+            really makes the the amount of items smaller
+        """
+        self._reset_ui()
+        items_all = self.app.label_status.get_text()
+        self.app.menuitem_view_supported_only.activate()
+        items_supported = self.app.label_status.get_text()
+        self.assertNotEqual(items_all, items_supported)
+        len_all = int(items_all.split()[0])
+        len_supported = int(items_supported.split()[0])
+        self.assertTrue(len_all > len_supported)
+
     def test_categories_and_back_forward(self):
         self._reset_ui()
 
@@ -146,6 +159,15 @@ class SCTestGUI(unittest.TestCase):
                     gtk.main_iteration()
                 time.sleep(0.1)
         self.app.available_pane.searchentry.delete_text(0, -1)
+
+    def test_show_unavailable(self):
+        # make sure that certain UI elements are hidden when showing
+        # packages that are not available
+        self.app.show_available_packages(["i-dont-exit"])
+        self._p()
+        self.assertFalse(self.app.available_pane.app_details.screenshot.get_property("visible"))
+        self.assertFalse(self.app.available_pane.app_details.info_table.get_property("visible"))
+        self.assertFalse(self.app.available_pane.app_details.desc_section.get_property("visible"))
 
     # helper stuff
     def _p(self):

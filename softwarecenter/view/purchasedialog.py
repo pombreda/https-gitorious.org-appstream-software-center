@@ -91,12 +91,23 @@ class PurchaseDialog(gtk.Dialog):
             logging.exception("error processing json")
             return
         if res["successful"] == False:
-            if "failure_reason" in res:
+            self.hide()
+            if res.get("user_canceled", False):
+                # no need to show anything, the user did the
+                # cancel
+                pass
+            elif "failure_reason" in res:
                 dialogs.error(self,
                               _("Failure in the purchase process"),
                               res["failure_reason"])
+            else:
+                # hrm, bad - the server did not told us anything
+                dialogs.error(self,
+                              _("Failure in the purchase process"),
+                              _("The server gave no reason"))
             self.response(gtk.RESPONSE_CANCEL)
             return
+
         self.response(gtk.RESPONSE_OK)
         # gather data from response
         deb_line = res["deb_line"]

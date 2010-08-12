@@ -42,6 +42,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
 from widgets.mkit import get_em_value
 from gtk import gdk
@@ -71,7 +72,8 @@ class AppStore(gtk.GenericTreeModel):
      COL_IS_ACTIVE,
      COL_ACTION_IN_PROGRESS,
      COL_EXISTS,
-     COL_ACCESSIBLE) = range(12)
+     COL_ACCESSIBLE,
+     COL_REQUEST) = range(13)
 
     column_type = (str,
                    str,
@@ -84,6 +86,7 @@ class AppStore(gtk.GenericTreeModel):
                    bool,
                    int,
                    bool,
+                   str,
                    str)
 
     ICON_SIZE = 24
@@ -217,7 +220,7 @@ class AppStore(gtk.GenericTreeModel):
                 # when doing multiple queries we need to ensure
                 # we don't add duplicates
                 popcon = self.db.get_popcon(doc)
-                app = Application(appname, pkgname, popcon)
+                app = Application(appname, pkgname, "", popcon)
                 if not app in already_added:
                     if self.sortmode == SORT_BY_ALPHABET:
                         self._insert_app_sorted(app)
@@ -236,7 +239,6 @@ class AppStore(gtk.GenericTreeModel):
                         pkgname = term[2:]
                         break
                 app = Application("", pkgname)
-
                 self.apps.append(app)
                 
         # if we only have nonapps to be displayed, don't hide them
@@ -427,6 +429,23 @@ class AppStore(gtk.GenericTreeModel):
         self._existing_apps = None
         self._installable_apps = None
 
+
+    def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
+        self._logger.debug("did not find the icon locally, must download %s" % icon_file_name)
+        def on_image_download_complete(downloader, image_file_path):
+            pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
+                                                      self.icon_size,
+                                                      self.icon_size)
+            # replace the icon in the icon_cache now that we've got the real one
+            icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
+            self.icon_cache[icon_file] = pb
+        
+        url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
+        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
+        image_downloader = ImageDownloader()
+        image_downloader.connect('image-download-complete', on_image_download_complete)
+        image_downloader.download_image(url, icon_file_path)
+
     # GtkTreeModel functions
     def on_get_flags(self):
         return (gtk.TREE_MODEL_LIST_ONLY|
@@ -459,10 +478,17 @@ class AppStore(gtk.GenericTreeModel):
             # rendered, with all data but package name absent and the text
             # markup colored gray.
             if column == self.COL_APP_NAME:
+                if app.request:
+                    return app.appname
                 return _("Not found")
             elif column == self.COL_TEXT:
                 return "%s\n" % app.pkgname
             elif column == self.COL_MARKUP:
+                if app.request:
+                    s = "%s\n<small>%s</small>" % (
+                        gobject.markup_escape_text(app.appname),
+                        gobject.markup_escape_text(_("Not Found")))
+                    return s
                 s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
                     gobject.markup_escape_text(_("Not found")),
                     gobject.markup_escape_text(app.pkgname))
@@ -479,14 +505,21 @@ class AppStore(gtk.GenericTreeModel):
             elif column == self.COL_POPCON:
                 return 0
             elif column == self.COL_IS_ACTIVE:
+                if app.request:
+                    # this may be wrong, but we don't want to do any checks at this moment
+                    return (rowref == self.active_app)
                 # This ensures the missing package will not expand
                 return False
             elif column == self.COL_EXISTS:
+                if app.request:
+                    return True
                 return False
             elif column == self.COL_ACTION_IN_PROGRESS:
                 return -1
             elif column == self.COL_ACCESSIBLE:
                 return '%s\n%s' % (app.pkgname, _('Package state unknown'))
+            elif column == self.COL_REQUEST:
+                return app.request
 
         # Otherwise the app should return app data normally.
         if column == self.COL_APP_NAME:
@@ -511,17 +544,26 @@ class AppStore(gtk.GenericTreeModel):
             return s
         elif column == self.COL_ICON:
             try:
-                icon_name = self.db.get_iconname(doc)
-                if icon_name:
-                    icon_name = os.path.splitext(icon_name)[0]
+                icon_file_name = self.db.get_iconname(doc)
+                if icon_file_name:
+                    icon_name = os.path.splitext(icon_file_name)[0]
                     if icon_name in self.icon_cache:
                         return self.icon_cache[icon_name]
                     # icons.load_icon takes between 0.001 to 0.01s on my
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
-                    icon = self.icons.load_icon(icon_name, self.icon_size, 0)
-                    self.icon_cache[icon_name] = icon
-                    return icon
+                    
+                    # check if this is a downloadable icon
+                    if not self.db.get_icon_needs_download(doc):
+                        # load the icon from the theme
+                        icon = self.icons.load_icon(icon_name, self.icon_size, 0)
+                        self.icon_cache[icon_name] = icon
+                        return icon
+                    else:
+                        self._download_icon_and_show_when_ready(self.cache, 
+                                                                app.pkgname,
+                                                                icon_file_name)
+                        return self._appicon_missing_icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)
                 self.icon_cache[icon_name] = self._appicon_missing_icon
@@ -555,7 +597,8 @@ class AppStore(gtk.GenericTreeModel):
             if pkgname in self.cache and self.cache[pkgname].is_installed:
                 return "%s\n%s\n%s" % (appname, _('Installed'), summary)
             return "%s\n%s\n%s" % (appname, _('Not Installed'), summary) 
-
+        elif column == self.COL_REQUEST:
+            return app.request
     def on_iter_next(self, rowref):
         #self._logger.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
@@ -606,7 +649,6 @@ class CellRendererButton2:
         self.has_focus = False
 
         self._widget = None
-        self._geometry = None
         return
 
     def _layout_reset(self, layout):
@@ -615,21 +657,15 @@ class CellRendererButton2:
         return
 
     def configure_geometry(self, widget):
-        if self._geometry: return
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
-        max_w = 0
+        max_size = (0,0)
         for variant in self.markup_variants:
             layout.set_markup(gobject.markup_escape_text(variant))
-            max_size = max(self.get_size(), layout.get_pixel_extents()[1][2:])
+            max_size = max(max_size, layout.get_pixel_extents()[1][2:])
 
         w, h = max_size
         self.set_size(w+2*self.xpad, h+2*self.ypad)
-        self._geometry = True
-        return
-
-    def scrub_geometry(self):
-        self._geometry = None
         return
 
     def point_in(self, x, y):
@@ -886,7 +922,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
             if not action_btn:
-                print 'No action button? This doesn\'t make sense!'
+                logging.warn("No action button? This doesn't make sense!")
                 return
             max_layout_width -= (xpad + action_btn.allocation.width) 
 
@@ -917,7 +953,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # per the spec, the progressbar should be the width of the action button
         action_btn = self.get_button_by_name('action0')
         if not action_btn:
-            print 'No action button? This doesn\'t make sense!'
+            logging.warn("No action button? This doesn't make sense!")
             return
 
         x, y, w, h = action_btn.get_allocation_tuple()
@@ -1057,11 +1093,12 @@ class CellRendererAppView2(gtk.CellRendererText):
             btn.render(window, widget, self._layout)
             xs += btn.allocation.width + spacing
 
-        for btn in self._buttons[end]:
-            xb -= btn.allocation.width
-            btn.set_position(xb, y-btn.allocation.height)
-            btn.render(window, widget, self._layout)
-            xb -= spacing
+        if self.props.available:
+            for btn in self._buttons[end]:
+                xb -= btn.allocation.width
+                btn.set_position(xb, y-btn.allocation.height)
+                btn.render(window, widget, self._layout)
+                xb -= spacing
         return
 
     def do_get_size(self, widget, cell_area):
@@ -1230,8 +1267,6 @@ class AppView(gtk.TreeView):
         tr.set_property('ypad', pad)
 
         for btn in tr.get_buttons():
-            # reset cached button geometry (x, y, w, h)
-            btn.scrub_geometry()
             # recalc button geometry and cache
             btn.configure_geometry(self)
 
@@ -1290,6 +1325,7 @@ class AppView(gtk.TreeView):
         # update active app, use row-ref as argument
         model._set_active_app(row)
         installed = model[row][AppStore.COL_INSTALLED]
+
         action_btn = tr.get_button_by_name('action0')
         #if not action_btn: return False
 
@@ -1309,8 +1345,9 @@ class AppView(gtk.TreeView):
 
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
+        request = model[row][AppStore.COL_REQUEST]
         popcon = model[row][AppStore.COL_POPCON]
-        self.emit("application-selected", Application(name, pkgname, popcon))
+        self.emit("application-selected", Application(name, pkgname, request, popcon))
         return False
 
     def _on_row_activated(self, view, path, column, tr):
@@ -1324,8 +1361,9 @@ class AppView(gtk.TreeView):
         if exists:
             name = model[path][AppStore.COL_APP_NAME]
             pkgname = model[path][AppStore.COL_PKGNAME]
+            request = model[path][AppStore.COL_REQUEST]
             popcon = model[path][AppStore.COL_POPCON]
-            self.emit("application-activated", Application(name, pkgname, popcon))
+            self.emit("application-activated", Application(name, pkgname, request, popcon))
 
     def _on_button_press_event(self, view, event, tr):
         if event.button != 1:
@@ -1431,6 +1469,7 @@ class AppView(gtk.TreeView):
 
         appname = model[path][AppStore.COL_APP_NAME]
         pkgname = model[path][AppStore.COL_PKGNAME]
+        request = model[path][AppStore.COL_REQUEST]
         installed = model[path][AppStore.COL_INSTALLED]
         popcon = model[path][AppStore.COL_POPCON]
 
@@ -1441,28 +1480,29 @@ class AppView(gtk.TreeView):
                             btn.name,
                             appname,
                             pkgname,
+                            request,
                             popcon,
                             installed,
                             model,
                             path)
         return
 
-    def _app_activated_cb(self, btn, btn_id, appname, pkgname, popcon, installed, store, path):
+    def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, popcon, installed, store, path):
         if btn_id == 'info':
-            self.emit("application-activated", Application(appname, pkgname, popcon))
+            self.emit("application-activated", Application(appname, pkgname, request, popcon))
         elif btn_id == 'action0':
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
             # be sure we dont request an action for a pkg with pre-existing actions
             if pkgname in self._action_block_list:
-                print 'Action already in progress for package: %s' % pkgname
-                return
+                logging.debug("Action already in progress for package: '%s'" % pkgname)
+                return False
             self._action_block_list.append(pkgname)
             if installed:
                 perform_action = APP_ACTION_REMOVE
             else:
                 perform_action = APP_ACTION_INSTALL
-            self.emit("application-request-action", Application(appname, pkgname, popcon), perform_action)
+            self.emit("application-request-action", Application(appname, pkgname, request, popcon), perform_action)
         return False
 
     def _set_cursor(self, btn, cursor):
@@ -1480,6 +1520,20 @@ class AppView(gtk.TreeView):
 
     def _on_transaction_finished(self, backend, result, tr):
         """ callback when an application install/remove transaction has finished """
+        
+        # If this item has just been removed...
+        try:
+            pkgname = result.meta_data["sc_pkgname"]
+        except KeyError:
+            return
+        appname = result.meta_data.get("sc_appname", "")
+        db = self.get_model().db
+        appdetails = Application(appname, pkgname).get_details(db)
+        # ...then manually emit "cursor-changed" as an item has
+        # just been removed and so everything else needs to update
+        if appdetails.pkg_state == PKG_STATE_UNINSTALLED:
+            self.emit("cursor-changed")
+        
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
 

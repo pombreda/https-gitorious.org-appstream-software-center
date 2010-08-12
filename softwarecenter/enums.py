@@ -21,7 +21,7 @@ import xdg.BaseDirectory
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
-BUY_SOMETHING_HOST = "http://sc.staging.ubuntu.com"
+BUY_SOMETHING_HOST = "https://sc.staging.ubuntu.com"
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"
@@ -84,7 +84,7 @@ XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID = 183
 XAPIAN_VALUE_PURCHASED_DATE = 184
 XAPIAN_VALUE_SCREENSHOT_URL = 185
 XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 186
-
+XAPIAN_VALUE_THUMBNAIL_URL = 187
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
@@ -114,8 +114,13 @@ CUSTOM_KEY_CATEGORY = "Category"
     PKG_STATE_NEEDS_SOURCE,
     PKG_STATE_NEEDS_PURCHASE,
     PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+    PKG_STATE_ERROR,
+    # the package is not found in the DB or cache
+    PKG_STATE_NOT_FOUND, 
+    # this *needs* to be last (for test_appdetails.py) and means
+    # something went wrong and we don't have a state for this PKG
     PKG_STATE_UNKNOWN,
- ) = range(13)
+ ) = range(15)
 
 # application actions
 APP_ACTION_INSTALL = "install"

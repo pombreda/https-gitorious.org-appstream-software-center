@@ -32,7 +32,7 @@ from softwarecenter.distro import get_distro
 from launchpadlib.launchpad import Launchpad
 from launchpadlib.credentials import RequestTokenAuthorizationEngine
 from launchpadlib.uris import EDGE_SERVICE_ROOT, STAGING_SERVICE_ROOT
-from paths import SOFTWARE_CENTER_CACHE_DIR
+from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
 from login import LoginBackend
