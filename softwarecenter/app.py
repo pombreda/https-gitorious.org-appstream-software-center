@@ -206,6 +206,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_app_selected)
         self.available_pane.app_details.connect("application-request-action", 
                                                 self.on_application_request_action)
+        self.available_pane.app_details.connect("navigation-request", 
+                                                self.on_application_request_navigation,
+                                                self.available_pane)
         self.available_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
         self.available_pane.connect("app-list-changed", 
@@ -248,6 +251,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_app_selected)
         self.installed_pane.app_details.connect("application-request-action", 
                                                 self.on_application_request_action)
+        self.installed_pane.app_details.connect("navigation-request", 
+                                                self.on_application_request_navigation,
+                                                self.installed_pane)
         self.installed_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
         self.installed_pane.connect("app-list-changed", 
@@ -450,6 +456,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             channel_display_name, icon=None, query=query)
         self.view_switcher.select_channel_node(channel_display_name, False)
             
+    def on_application_request_navigation(self, widget, pkgname, pane):
+        pane.show_app(Application("", pkgname))
+
     def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
         """callback when an app action is requested from the appview,
            if action is "remove", must check if other dependencies have to be

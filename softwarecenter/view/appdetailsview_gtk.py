@@ -825,7 +825,7 @@ class AddonCheckButton(gtk.HBox):
             
         text = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.display_name.capitalize(), 
         'pkgname': self.app_details.pkgname}
-        self.description = gtk.Label(text)
+        self.description = mkit.HLinkButton(text)
         self.pack_start(self.description, False)
     
     def _on_checkbutton_toggled(self, checkbutton):
@@ -845,6 +845,9 @@ class AddonView(gtk.VBox):
     __gsignals__ = {'toggled':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (str, gobject.TYPE_PYOBJECT)),
+                    'description-clicked':(gobject.SIGNAL_RUN_FIRST,
+                                           gobject.TYPE_NONE,
+                                           (str, )),
                    }
     
     def __init__(self, db, icons):
@@ -853,9 +856,10 @@ class AddonView(gtk.VBox):
         self.icons = icons
         self.recommended_addons = None
         self.suggested_addons = None
+        # FIXME: uhh, no - reuse the exsiting one
         self.cache = AptCache()
         self.cache.open()
-        
+
         self.label = gtk.Label(_("<b>Choose add-ons</b>"))
         self.label.set_use_markup(True)
         self.label.set_alignment(0, 0.5)
@@ -875,11 +879,15 @@ class AddonView(gtk.VBox):
         
         for addon in recommended:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
+            checkbutton.description.connect("clicked", 
+                                            self._on_description_clicked, addon)
             checkbutton.set_active(self.cache[addon].installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         for addon in suggested:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
+            checkbutton.description.connect("clicked", 
+                                            self._on_description_clicked, addon)
             checkbutton.set_active(self.cache[addon].installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
@@ -888,6 +896,9 @@ class AddonView(gtk.VBox):
     def _on_checkbutton_toggled(self, checkbutton):
         addon = checkbutton.get_addon()
         self.emit("toggled", addon, checkbutton.get_active())
+    
+    def _on_description_clicked(self, label, addon):
+        self.emit("description-clicked", addon)
 
 class TotalSizeBar(gtk.HBox):
     __gsignals__ = {'changes-canceled': (gobject.SIGNAL_RUN_FIRST,
@@ -1052,6 +1063,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                         gobject.TYPE_NONE,
                                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
                                        ),
+        "navigation-request" : ( gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 (str,
+                                 ),
+                                ),
+
                     }
 
 
@@ -1247,6 +1264,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # add-on handling
         self.addon_view = AddonView(self.db, self.icons)
         self.addon_view.connect("toggled", self._on_addon_view_toggled)
+        self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
         self.desc_section.body.pack_start(self.addon_view, False)
         
         self.size_hbox = gtk.HBox(spacing=mkit.SPACING_XLARGE)
@@ -1594,6 +1612,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 return self.icons.load_icon(app_details.icon, 84, 0)
             elif app_details.icon_needs_download:
                 self._logger.debug("did not find the icon locally, must download it")
+
+    def _on_addon_view_description_clicked(self, button, pkgname):
+        self.emit("navigation-request", pkgname)
+        return
 
     def _on_addon_view_toggled(self, view, addon, isActive):
         if isActive:
