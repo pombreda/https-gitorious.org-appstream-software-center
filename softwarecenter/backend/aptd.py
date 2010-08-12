@@ -186,7 +186,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.install(pkgname, appname, iconname, metadata=metadata)
             
     @inline_callbacks
-    def apply_changes(self, pkgname, appname, iconname, addons_install, addons_remove):
+    def apply_changes(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
         """ install and remove add-ons """
         self.emit("transaction-started")
         try:

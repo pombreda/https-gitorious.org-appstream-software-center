@@ -792,31 +792,37 @@ class AddonCheckButton(gtk.HBox):
                    }
     
     def __init__(self, db, icons, pkgname):
-		gtk.HBox.__init__(self, spacing=6)
-		self.app_details = AppDetails(db, application=Application("None", pkgname))
+        gtk.HBox.__init__(self, spacing=6)
+        self.app_details = AppDetails(db, application=Application("None", pkgname))
 
-		self.checkbutton = gtk.CheckButton()
-		self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
-		self.pack_start(self.checkbutton, False)
-			
-		self.image = gtk.Image()
-		icon = None
-		try:
-			doc = db.get_xapian_document('', pkgname)
-		except IndexError: 
-			pass
-		potential_icon = db.get_iconname(doc)
-		if potential_icon:
-			if icons.has_icons(potential_icon):
-				icon = potential_icon
-		if icon == None:
-			icon = MISSING_APP_ICON
-		icon_file = icons.lookup_icon(icon, 24, ()).get_filename()
-		self.image.set_from_file(icon_file)
-		self.pack_start(self.image, False)
-			
-		self.description = gtk.Label(self.app_details.summary.capitalize())
-		self.pack_start(self.description, False)
+        self.checkbutton = gtk.CheckButton()
+        self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
+        self.pack_start(self.checkbutton, False)
+            
+        self.image = gtk.Image()
+        icon = None
+        try:
+            doc = db.get_xapian_document('', pkgname)
+        except IndexError: 
+            pass
+        potential_icon = db.get_iconname(doc)
+        if potential_icon:
+            if icons.has_icon(potential_icon):
+                icon = potential_icon
+        if icon == None:
+            icon = MISSING_APP_ICON
+        icon_pixbuf = icons.load_icon(icon, 24, ()).scale_simple(24, 24, gtk.gdk.INTERP_BILINEAR)
+        try:
+            self.image.set_from_pixbuf(icon_pixbuf)
+        except TypeError:
+            pass # For testing purposes
+        self.pack_start(self.image, False, False)
+            
+        text = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.display_name.capitalize(), 
+        'pkgname': self.app_details.pkgname}
+        self.description = gtk.Label(text)
+        self.pack_start(self.description, False)
+    
     def _on_checkbutton_toggled(self, checkbutton):
         self.emit("toggled")
     def get_active(self):
@@ -1328,6 +1334,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_details = app.get_details(self.db)
         self.recommended = self.addons_manager.recommended_addons(app.pkgname)
         self.suggested = self.addons_manager.suggested_addons(app.pkgname)
+        LOG.debug("AppDetailsView.show_app recommended '%s'" % self.recommended)
+        LOG.debug("AppDetailsView.show_app suggested '%s'" % self.suggested)
         
         # for compat with the base class
         self.appdetails = self.app_details

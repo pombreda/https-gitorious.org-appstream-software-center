@@ -276,6 +276,7 @@ class PackageAddonsManager(object):
     """ class that abstracts the addons handling """
 
     LANGPACK_PKGDEPENDS = "/usr/share/language-selector/data/pkg_depends"
+    (RECOMMENDED, SUGGESTED) = range(2)
     
     def __init__(self, cache):
         self.cache = cache
@@ -320,29 +321,38 @@ class PackageAddonsManager(object):
             language_packages.add(language_pkg)
         return language_packages
     
-    def recommended_addons(self, pkgname):
+    def _addons_for_pkg(self, pkgname, type):
         pkg = self.cache[pkgname]
         deps = self.cache.get_depends(pkg)
-        recommended = []
-        rrecommends = self.cache.get_rrecommends(pkg)
-        if len(rrecommends) == 1:
-            recommended += rrecommends
+        addons = []
+        if type == self.RECOMMENDED:
+            rrecommends = self.cache.get_rrecommends(pkg)
+            if len(rrecommends) == 1:
+                addons += rrecommends
+        elif type == self.SUGGESTED:
+            addons += self.cache.get_renhances(pkg)
+        
         for dep in deps:
             try:
-                if len(self.cache.get_rdepends(self.cache[dep])) == 1:
-                    # pkg is the only known package that depends on dep
-                    recommended += self.cache.get_recommends(self.cache[dep])
+                pkgdep = self.cache[dep]
+                if len(self.cache.get_rdepends(pkgdep)) == 1:
+                    # pkg is the only known package that depends on pkgdep
+                    if type == self.RECOMMENDED:
+                        addons += self.cache.get_recommends(pkgdep)
+                    elif type == self.SUGGESTED:
+                        addons += self.cache.get_suggests(pkgdep)
+                        addons += self.cache.get_renhances(pkgdep)
             except KeyError:
                 pass # FIXME: should we handle that differently?
-        self._remove_important_or_langpack(recommended)
-        for addon in recommended:
+        self._remove_important_or_langpack(addons)
+        for addon in addons:
             try:
                 pkg_ = self.cache[addon]
             except KeyError:
-                recommended.remove(addon)
+                addons.remove(addon)
             else:
                 can_remove = False
-                for addon_ in recommended:
+                for addon_ in addons:
                     try:
                         if addon in self.cache.get_provides(self.cache[addon_]) \
                         or addon in self.cache.get_depends(self.cache[addon_]) \
@@ -350,52 +360,20 @@ class PackageAddonsManager(object):
                             can_remove = True
                             break
                     except KeyError:
-                        recommended.remove(addon_)
+                        addons.remove(addon_)
                         break
-                if can_remove or not pkg_.candidate or recommended.count(addon) > 1 \
+                if can_remove or not pkg_.candidate or addons.count(addon) > 1 \
                 or addon == pkg.name or self._is_language_pkg(addon):
-                    recommended.remove(addon)
-        self._remove_important_or_langpack(recommended) # FIXME: see below
-        return recommended
+                    addons.remove(addon)
+        # FIXME: figure out why I have to call this function two times to get rid of important packages
+		self._remove_important_or_langpack(addons)
+        return addons
+    
+    def recommended_addons(self, pkgname):
+        return self._addons_for_pkg(pkgname, self.RECOMMENDED)
     
     def suggested_addons(self, pkgname):
-        pkg = self.cache[pkgname]
-        deps = self.cache.get_depends(pkg)
-        suggested = []
-        rsuggests = self.cache.get_rsuggests(pkg)
-        if len(rsuggests) == 1:
-			suggested += rsuggests
-        suggested += self.cache.get_renhances(pkg)
-        self._remove_important_or_langpack(suggested)
-        for dep in deps:
-            try:
-                if len(self.cache.get_rdepends(self.cache[dep])) == 1:
-                    # pkg is the only known package that depends on dep
-                    suggested += self.cache.get_suggests(self.cache[dep])
-                    suggested += self.cache.get_renhances(self.cache[dep])
-            except KeyError:
-                pass # FIXME: should we handle that differently?
-        for addon in suggested:
-            try: 
-                pkg_ = self.cache[addon]
-            except KeyError:
-                suggested.remove(addon)
-            else:
-                can_remove = False
-                for addon_ in suggested:
-                    try:
-                        if addon in self.cache.get_provides(self.cache[addon_]) \
-                        or addon in self.cache.get_depends(self.cache[addon_]) \
-                        or addon in self.cache.get_recommends(self.cache[addon_]):
-                            can_remove = True
-                    except KeyError:
-                        suggested.remove(addon_)
-                if can_remove or not pkg_.candidate or suggested.count(addon) > 1 \
-                or addon == pkg.name or self._is_language_pkg(addon):
-                    suggested.remove(addon)
-		# FIXME: figure out why I have to call this function two times to get rid of important packages
-		self._remove_important_or_langpack(suggested)
-        return suggested
+        return self._addons_for_pkg(pkgname, self.SUGGESTED)
     
 
 if __name__ == "__main__":
