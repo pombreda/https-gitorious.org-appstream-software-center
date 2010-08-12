@@ -35,8 +35,17 @@ class AppDetailsViewBase(object):
     __gsignals__ = {
         "application-request-action" : (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
+                                        (gobject.TYPE_PYOBJECT, 
+                                         gobject.TYPE_PYOBJECT, 
+                                         gobject.TYPE_PYOBJECT, 
+                                         str),
                                        ),
+        "navigation-request" : ( gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 (str,
+                                 ),
+                                ),
+
     }
 
     def __init__(self, db, distro, icons, cache, history, datadir):
