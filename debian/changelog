@@ -20,7 +20,7 @@ software-center (2.1.10) UNRELEASED; urgency=low
     - refresh navigation bar correctly when we get a request to display a pkg
   * softwarecenter/view/pendingview.py:
     - display the name of the application holding the lock, when waiting for
-      a package manager to quit (LP: #440058, #444261, #511213)
+      a package manager to quit (LP: #440058, #511213)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 23:19:03 +0200
 
