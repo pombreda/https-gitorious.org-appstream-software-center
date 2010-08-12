@@ -850,15 +850,13 @@ class AddonView(gtk.VBox):
                                            (str, )),
                    }
     
-    def __init__(self, db, icons):
+    def __init__(self, cache, db, icons):
         gtk.VBox.__init__(self, False, 12)
+        self.cache = cache
         self.db = db
         self.icons = icons
         self.recommended_addons = None
         self.suggested_addons = None
-        # FIXME: uhh, no - reuse the exsiting one
-        self.cache = AptCache()
-        self.cache.open()
 
         self.label = gtk.Label(_("<b>Choose add-ons</b>"))
         self.label.set_use_markup(True)
@@ -1262,7 +1260,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         app_desc_hb.pack_end(self.screenshot)
 
         # add-on handling
-        self.addon_view = AddonView(self.db, self.icons)
+        self.addon_view = AddonView(self.cache, self.db, self.icons)
         self.addon_view.connect("toggled", self._on_addon_view_toggled)
         self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
         self.desc_section.body.pack_start(self.addon_view, False)
