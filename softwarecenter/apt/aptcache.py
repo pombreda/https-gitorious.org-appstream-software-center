@@ -231,7 +231,7 @@ class AptCache(gobject.GObject):
     def get_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
         
-    def _get_changes(self, pkg):
+    def _get_changes_without_applying(self, pkg):
         if pkg.installed == None:
             pkg.mark_install()
         else:
@@ -251,21 +251,21 @@ class AptCache(gobject.GObject):
         return changes
     def get_all_deps_installing(self, pkg):
         """ Return all dependencies of pkg that will be marked for install """
-        changes = self._get_changes(pkg)
+        changes = self._get_changes_without_applying(pkg)
         installing_deps = []
         for change in changes.keys():
             if change != pkg.name and changes[change] == PKG_STATE_INSTALLING:
                 installing_deps.append(change)
         return installing_deps
     def get_all_deps_removing(self, pkg):
-        changes = self._get_changes(pkg)
+        changes = self._get_changes_without_applying(pkg)
         removing_deps = []
         for change in changes.keys():
             if change != pkg.name and changes[change] == PKG_STATE_REMOVING:
                 removing_deps.append(change)
         return removing_deps
     def get_all_deps_upgrading(self, pkg):
-        changes = self._get_changes(pkg)
+        changes = self._get_changes_without_applying(pkg)
         upgrading_deps = []
         for change in changes.keys():
             if change != pkg.name and changes[change] == PKG_STATE_UPGRADING:
