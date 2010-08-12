@@ -807,20 +807,11 @@ class AddonCheckButton(gtk.HBox):
         # the hbox inside the checkbutton that contains the icon and description
         hbox = gtk.HBox()
         image = gtk.Image()
-        icon = None
-        try:
-            doc = db.get_xapian_document('', pkgname)
-        except IndexError: 
-            pass
-        potential_icon = db.get_iconname(doc)
-        if potential_icon:
-            if icons.has_icon(potential_icon):
-                icon = potential_icon
-        if icon == None:
+        icon = self.app_details.icon
+        if not icons.has_icon(icon):
             icon = MISSING_APP_ICON
-        icon_pixbuf = icons.load_icon(icon, 24, 0)
         try:
-            image.set_from_pixbuf(icon_pixbuf)
+            image.set_from_icon_name(icon, 24)
         except TypeError:
             logging.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(image, False, False)
