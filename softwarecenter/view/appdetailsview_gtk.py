@@ -1071,9 +1071,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             description = app_details.description
         if description:
             self.app_desc.set_description(description, appname)
-
-        # a11y for description
-        self.app_desc.body.a11y.set_name("Description: " + description)
+            # a11y for description
+            self.app_desc.body.a11y.set_name("Description: " + description)
 
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website and self.info_table.get_property('visible'):
@@ -1154,9 +1153,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         state = self.action_bar.pkg_state
         # handle purchase: install purchased has multiple steps
-        if state == PKG_STATE_INSTALLING_PURCHASED and not result.pkgname:
+        if (state == PKG_STATE_INSTALLING_PURCHASED and 
+            result and
+            not result.pkgname):
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
-        elif state == PKG_STATE_INSTALLING_PURCHASED and result.pkgname:
+        elif (state == PKG_STATE_INSTALLING_PURCHASED and 
+              result and
+              result.pkgname):
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         # normal states
         elif state == PKG_STATE_REMOVING:
@@ -1283,7 +1286,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         icon = None
         if app_details.icon:
             if self.icons.has_icon(app_details.icon):
-                return self.icons.load_icon(app_details.icon, 84, 0)
+                try:
+                    return self.icons.load_icon(app_details.icon, 84, 0)
+                except glib.GError, e:
+                    logging.warn("failed to load '%s'" % app_details.icon)
+                    return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download:
                 self._logger.debug("did not find the icon locally, must download it")
 
