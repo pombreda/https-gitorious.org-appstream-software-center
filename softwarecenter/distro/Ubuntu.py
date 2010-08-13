@@ -90,7 +90,7 @@ class Ubuntu(Distro):
 
     def get_license_text(self, component):
         if component in ("main", "universe"):
-            return _("Open Source")
+            return _("Open source")
         elif component == "restricted":
             return _("Proprietary")
 
