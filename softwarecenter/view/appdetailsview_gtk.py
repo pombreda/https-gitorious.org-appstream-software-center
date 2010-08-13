@@ -1283,7 +1283,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         icon = None
         if app_details.icon:
             if self.icons.has_icon(app_details.icon):
-                return self.icons.load_icon(app_details.icon, 84, 0)
+                try:
+                    return self.icons.load_icon(app_details.icon, 84, 0)
+                except glib.GError, e:
+                    logging.warn("failed to load '%s'" % app_details.icon)
+                    return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download:
                 self._logger.debug("did not find the icon locally, must download it")
 
