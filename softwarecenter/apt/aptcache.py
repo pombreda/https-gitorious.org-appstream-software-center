@@ -282,14 +282,19 @@ class PackageAddonsManager(object):
         self.cache = cache
         self._language_packages = self._read_language_pkgs()
 
-    def _remove_important_or_langpack(self, addon_list):
+    def _remove_important_or_langpack(self, addon_list, app_pkg):
         """ remove packages that are essential or important
             or langpacks
         """
         for addon in addon_list:
             try:
                 pkg = self.cache[addon]
-                if pkg.essential or pkg._pkg.important:
+                if pkg.essential or pkg._pkg.important or addon == app_pkg.name:
+                    addon_list.remove(addon)
+                    continue
+                
+                deps = self.cache.get_depends(app_pkg)
+                if addon in deps:
                     addon_list.remove(addon)
                     continue
                 
@@ -347,7 +352,7 @@ class PackageAddonsManager(object):
                         addons += self.cache.get_renhances(pkgdep)
             except KeyError:
                 pass # FIXME: should we handle that differently?
-        self._remove_important_or_langpack(addons)
+        self._remove_important_or_langpack(addons, pkg)
         for addon in addons:
             try:
                 pkg_ = self.cache[addon]
@@ -369,7 +374,7 @@ class PackageAddonsManager(object):
                 or addon == pkg.name or self._is_language_pkg(addon):
                     addons.remove(addon)
         # FIXME: figure out why I have to call this function two times to get rid of important packages
-		self._remove_important_or_langpack(addons)
+		self._remove_important_or_langpack(addons, pkg)
         return addons
     
     def recommended_addons(self, pkgname):

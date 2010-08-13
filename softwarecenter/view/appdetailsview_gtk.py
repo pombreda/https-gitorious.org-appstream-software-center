@@ -815,7 +815,8 @@ class AddonCheckButton(gtk.HBox):
         if not icon or not icons.has_icon(icon):
             icon = MISSING_APP_ICON
         try:
-            image.set_from_icon_name(icon, 24)
+            filename = icons.lookup_icon(icon, 24, ()).get_filename()
+            image.set_from_file(filename)
         except TypeError:
             logging.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(image, False, False)
