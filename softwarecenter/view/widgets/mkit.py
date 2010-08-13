@@ -151,7 +151,7 @@ SPACING_MED         = max(2, int(0.666*EM+0.5))
 SPACING_SMALL       = max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
-CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
+CORNER_RADIUS = 0
 
 # use the link color as the clicked color for labels
 _scheme = get_gtk_color_scheme_dict()
