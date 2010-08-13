@@ -812,7 +812,7 @@ class AddonCheckButton(gtk.HBox):
         hbox = gtk.HBox()
         image = gtk.Image()
         icon = self.app_details.icon
-        if not icons.has_icon(icon):
+        if not icon or not icons.has_icon(icon):
             icon = MISSING_APP_ICON
         try:
             image.set_from_icon_name(icon, 24)
@@ -1634,7 +1634,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         total_install_size = 0 # in kB
         label_string = ""
         
-        pkg = self.cache[self.app_details.pkgname]
+        try:
+            pkg = self.cache[self.app_details.pkgname]
+        except KeyError:
+            self.size_hbox.hide_all()
+            return False
         version = pkg.installed
         if version == None:
             version = max(pkg.versions)

@@ -322,7 +322,10 @@ class PackageAddonsManager(object):
         return language_packages
     
     def _addons_for_pkg(self, pkgname, type):
-        pkg = self.cache[pkgname]
+        try:
+            pkg = self.cache[pkgname]
+        except KeyError:
+            return []
         deps = self.cache.get_depends(pkg)
         addons = []
         if type == self.RECOMMENDED:
