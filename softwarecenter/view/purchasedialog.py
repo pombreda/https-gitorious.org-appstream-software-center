@@ -28,6 +28,18 @@ from softwarecenter.distro import get_distro
 
 import dialogs
 
+class ScrolledWebkitWindow(gtk.ScrolledWindow):
+
+    def __init__(self):
+        super(ScrolledWebkitWindow, self).__init__()
+        self.webkit = webkit.WebView()
+        settings = self.webkit.get_settings()
+        settings.set_property("enable-plugins", False)
+        self.webkit.show()
+        # put a scrolled arond it
+        self.add(self.webkit)
+        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+
 class PurchaseDialog(gtk.Dialog):
 
     LOADING_HTML = """
@@ -46,28 +58,33 @@ class PurchaseDialog(gtk.Dialog):
         self.set_title("")
         self.app = app
         self.set_size_request(700, 700)
-        self.webkit = webkit.WebView()
-        settings = self.webkit.get_settings()
-        settings.set_property("enable-plugins", False)
+        self.wk = ScrolledWebkitWindow()
+        self.wk.webkit.connect("create-web-view", 
+                                   self._on_create_webview_request)
         # a possible way to do IPC (script or title change)
-        self.webkit.connect("script-alert", self._on_script_alert)
-        self.webkit.connect("title-changed", self._on_title_changed)
-        self.webkit.load_html_string(self.LOADING_HTML, "file:///")
-        self.webkit.show()
+        self.wk.webkit.connect("script-alert", self._on_script_alert)
+        self.wk.webkit.connect("title-changed", self._on_title_changed)
+        self.wk.webkit.load_html_string(self.LOADING_HTML, "file:///")
+        self.wk.show()
         while gtk.events_pending():
             gtk.main_iteration()
         if url:
-            self.webkit.load_uri(url)
+            self.wk.webkit.load_uri(url)
         elif html:
-            self.webkit.load_html_string(html, "file:///")
+            self.wk.webkit.load_html_string(html, "file:///")
         else:
-            self.webkit.load_html_string(DUMMY_HTML, "file:///")
-        scroll = gtk.ScrolledWindow()
-        scroll.add(self.webkit)
-        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll.show()
-        self.vbox.pack_start(scroll)
+            self.wk.webkit.load_html_string(DUMMY_HTML, "file:///")
+        self.vbox.pack_start(self.wk)
         self.distro = get_distro()
+
+    def _on_create_webview_request(self, view, frame):
+        logging.debug("_on_create_webview_request")
+        window = gtk.Window()
+        wk = ScrolledWebkitWindow()
+        wk.show()
+        window.add(wk)
+        window.show()
+        return wk.webkit
 
     def run(self):
         return gtk.Dialog.run(self)
@@ -157,6 +174,14 @@ DUMMY_HTML = """
 if __name__ == "__main__":
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
     #url = "http://www.ubuntu.com"
-    d = PurchaseDialog(app=None, html=DUMMY_HTML)
+    #d = PurchaseDialog(app=None, html=DUMMY_HTML)
     #d = PurchaseDialog(app=None, url="http://spiegel.de")
+    import urllib
+    from softwarecenter.enums import BUY_SOMETHING_HOST
+    url = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s" % ( 
+        urllib.urlencode({
+                'archive_id' : "mvo/private-test", 
+                'arch' : "i386",
+                }))
+    d = PurchaseDialog(app=None, url=url)
     d.run()
