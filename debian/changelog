@@ -1,3 +1,54 @@
+software-center (2.1.11) UNRELEASED; urgency=low
+
+  * Implemented add-on handling.
+
+ -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Fri, 13 Aug 2010 14:57:26 +0000
+
+software-center (2.1.10) maverick; urgency=low
+
+  [ Kiwinote ]
+  * data/featured.menu.in:
+    - fix typos to make a few more featured apps appear in the list
+  * po/POTFILES.in:
+    - mark softwarecenter/db/application.py for translation
+  * softwarecenter/app.py:
+    - switch to available view when we are in the installed view and we get a
+      request for a pkg in the available view
+    - allow s-c to be passed a search term (LP: #612507)
+      The syntax is "software-center search:search term"
+    - make catalog rebuilding window accessible (LP: #538373)
+  * softwarecenter/db/database.py:
+    - fix typo (LP: #616183)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use the same gwibber text in both appdetails views (LP: #614220)
+    - make application name and summary accessible and grab focus (LP: #608140)
+    - make description accessible (LP: #608140)
+    - make info table accessible (LP: #608141)
+    - reset pane to top left on show_app()
+  * softwarecenter/view/appdetailsview_webkit.py:
+    - use the same gwibber text in both appdetails views (LP: #614220)
+  * softwarecenter/view/availablepane.py:
+    - refresh navigation bar correctly when we get a request to display a pkg
+  * softwarecenter/view/catview_gtk.py:
+    - make poster and paging dot accessible (LP: #600306, #608152, #609411)
+  * softwarecenter/view/installedpane.py:
+    - refresh navigation bar correctly when we get a request to display a pkg
+  * softwarecenter/view/pendingview.py:
+    - display the name of the application holding the lock, when waiting for
+      a package manager to quit (LP: #440058, #511213)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash when icon can not be loaded
+    - fix crash when description is None
+  * debian/software-center.postinst:
+    - run update-apt-xapian-index -u to ensure the xapian index
+      is there (LP: #617397)
+  * data/software-center.js:
+    - add missing network.protocol-handler.app.apt (thanks to Chris Coulson)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
+
 software-center (2.1.9) UNRELEASED; urgency=low
 
   [ Gary Lasker ]
@@ -66,10 +117,7 @@ software-center (2.1.9) UNRELEASED; urgency=low
   * softwarecenter/view/viewswitcher.py:
     - put cursor in correct position
     
-  [ Mohamed Amine IL Idrissi ]
-  * Implemented add-on handling.
-
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 20:58:22 +0200
+  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 20:58:22 +0200
 
 software-center (2.1.8) maverick; urgency=low
 

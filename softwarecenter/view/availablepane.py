@@ -492,6 +492,9 @@ class AvailablePane(SoftwarePane):
     def show_app(self, app):
         """ Display an application in the available_pane """
         cat_of_app = None
+        # FIXME: it would be great to extract this code so that
+        #        we can use it to show the category in search hits
+        #        as well
         for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
             if (not cat_of_app and 
                 cat.untranslated_name != "New Applications" and 
@@ -499,6 +502,9 @@ class AvailablePane(SoftwarePane):
                 if self.db.pkg_in_category(app.pkgname, cat.query):
                     cat_of_app = cat
                     continue
+        # FIXME: we need to figure out why it does not work with animate=True
+        #        - race ?
+        self.navigation_bar.remove_all(animate=False) # animate *must* be false here
         if cat_of_app:
             self.apps_category = cat_of_app
             self.navigation_bar.add_with_id(cat_of_app.name, self.on_navigation_list, "list", do_callback=False, animate=True)
