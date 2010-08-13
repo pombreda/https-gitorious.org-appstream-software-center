@@ -822,12 +822,12 @@ class AddonCheckButton(gtk.HBox):
         # the display_name
         label = gtk.Label(self.app_details.display_name)
         hbox.pack_start(label, False)
-        # and put it into the the checkbo
+        # and put it into the the checkbox
         self.checkbutton.add(hbox)
         # this is the addon_pkgname
-        self.addon_pkgname = mkit.HLinkButton(_("(%(pkgname)s)") % {
+        self.addon_pkgname = gtk.Label(_(" (%(pkgname)s)") % {
                 'pkgname' : pkgname } )
-        self.pack_start(self.addon_pkgname, False)
+        hbox.pack_start(self.addon_pkgname, False)
         
     
     def _on_checkbutton_toggled(self, checkbutton):
@@ -879,19 +879,20 @@ class AddonView(gtk.VBox):
         
         for addon in recommended:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
-            checkbutton.addon_pkgname.connect(
-                "clicked", self._on_description_clicked, addon)
+            #checkbutton.addon_pkgname.connect(
+            #    "clicked", self._on_description_clicked, addon)
             checkbutton.set_active(self.cache[addon].installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         for addon in suggested:
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
-            checkbutton.addon_pkgname.connect(
-                "clicked", self._on_description_clicked, addon)
+            #checkbutton.addon_pkgname.connect(
+            #    "clicked", self._on_description_clicked, addon)
             checkbutton.set_active(self.cache[addon].installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         self.show_all()
+        return False
     
     def _on_checkbutton_toggled(self, checkbutton):
         addon = checkbutton.get_addon()
@@ -1592,15 +1593,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self._set_addon_remove(addon)
         if self.app_details.pkg_state == PKG_STATE_INSTALLED:
             self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
-        self.update_totalsize()
+        gobject.idle_add(self.update_totalsize)
         
     def _on_totalsize_changescanceled(self, widget):
         self.addons_install = []
         self.addons_remove = []
         self.addon_view.set_addons(self.app_details, 
-                                    self._recommended_addons(self.app_details),
-                                    self._suggested_addons(self.app_details))
+                                    self.recommended,
+                                    self.suggested)
         self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+        self.update_totalsize()
     
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -1704,6 +1706,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.totalsize_label.set_label(label_string)
             self.size_hbox.show_all()
+        return False
 
 
 if __name__ == "__main__":
