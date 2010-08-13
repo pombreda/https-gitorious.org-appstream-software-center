@@ -34,6 +34,7 @@ software-center (2.1.10) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - fix crash when icon can not be loaded
+    - fix crash when description is None
   * debian/software-center.postinst:
     - run update-apt-xapian-index -u to ensure the xapian index
       is there (LP: #617397)

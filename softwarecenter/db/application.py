@@ -578,6 +578,7 @@ class AppDetailsDebFile(AppDetails):
         if self._deb:
             description = self._deb._sections["Description"]
             return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
+        return ""
 
     @property
     def maintenance_status(self):
