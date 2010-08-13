@@ -12,8 +12,11 @@ software-center (2.1.10) UNRELEASED; urgency=low
       The syntax is "software-center search:search term"
   * softwarecenter/db/database.py:
     - fix typo (LP: #616183)
-  * softwarecenter/view/appdetailsview_gtk.py,
-    softwarecenter/view/appdetailsview_webkit.py:
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use the same gwibber text in both appdetails views (LP: #614220)
+    - make application name and summary accessible
+    - make info table accessible (LP: #608141)
+  * softwarecenter/view/appdetailsview_webkit.py:
     - use the same gwibber text in both appdetails views (LP: #614220)
   * softwarecenter/view/availablepane.py,
     softwarecenter/view/installedpane.py:

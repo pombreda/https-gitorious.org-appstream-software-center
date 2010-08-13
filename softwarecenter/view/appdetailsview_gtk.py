@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import atk
 import dialogs
 import gio
 import glib
@@ -421,8 +422,6 @@ class PackageInfoTable(gtk.VBox):
         self.support_label = gtk.Label()
 
         self.version_label.set_selectable(True)
-        self.license_label.set_selectable(True)
-        self.support_label.set_selectable(True)
 
         self.connect('realize', self._on_realize)
         return
@@ -444,9 +443,19 @@ class PackageInfoTable(gtk.VBox):
             a = gtk.Alignment(1.0, 0.0)
             a.add(k)
 
+            # we need this extra box to avoid orca repeating itself
+            b = gtk.Alignment(0.0, 0.0)
+            b.add(v)
+
             row = gtk.HBox(spacing=mkit.SPACING_XLARGE)
             row.pack_start(a, False)
-            row.pack_start(v, False)
+            row.pack_start(b, False)
+
+            # a11y stuff
+            row.set_property("can-focus", True)
+            row.a11y = row.get_accessible()
+            row.a11y.set_name(kstr)
+
             self.pack_start(row, False)
 
         for row in self.get_children():
@@ -462,18 +471,18 @@ class PackageInfoTable(gtk.VBox):
             v.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
         return
 
-    def set_version(self, version):
+    def configure(self, version, license, updates):
+
+        # set labels
         self.version_label.set_text(version)
-        return
-
-    def set_license(self, license):
         self.license_label.set_text(license)
-        return
+        self.support_label.set_text(updates)
 
-    def set_support_status(self, support_status):
-        self.support_label.set_text(support_status)
-        return
-
+        # set a11y texts
+        for row in self.get_children():
+            key = row.a11y.get_name().split(":")[0]
+            value = row.get_children()[1].get_children()[0].get_text()
+            row.a11y.set_name(key + ': ' + value)
 
 class ScreenshotView(gtk.Alignment):
 
@@ -806,8 +815,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         # atk
-        atk_desc = self.get_accessible()
-        atk_desc.set_name(_("Description"))
+        self.a11y = self.get_accessible()
+        self.a11y.set_name("app_details pane")
 
         # aptdaemon
         self.backend.connect("transaction-started", self._on_transaction_started)
@@ -961,6 +970,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.body.set_spacing(mkit.SPACING_LARGE)
         self.vbox.pack_start(self.app_info, False)
 
+        self.app_info.header.set_property("can-focus", True)
+        self.app_info.header.a11y = self.app_info.header.get_accessible()
+
         # controls which are displayed if the app is installed
         self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
@@ -1023,7 +1035,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
-        
+
+        self.app_info.header.a11y.set_name("Application: " + appname + ". Summary: " + summary)
+        self.app_info.header.a11y.set_role(atk.ROLE_PANEL)
+
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
         self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
@@ -1073,17 +1088,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # set the strings in the package info table
         if app_details.version:
-            self.info_table.set_version('%s (%s)' % (app_details.version, app_details.pkgname))
+            version = '%s (%s)' % (app_details.version, app_details.pkgname)
         else:
-            self.info_table.set_version(_("Unknown"))
+            version = _("Unknown")
         if app_details.license:
-            self.info_table.set_license(app_details.license)
+            license = app_details.license
         else:
-            self.info_table.set_license(_("Unknown"))
+            license = _("Unknown")
         if app_details.maintenance_status:
-            self.info_table.set_support_status(app_details.maintenance_status)
+            support = app_details.maintenance_status
         else:
-            self.info_table.set_support_status(_("Unknown"))
+            support = _("Unknown")
+        self.info_table.configure(version, license, support)
         return
 
     # public API
