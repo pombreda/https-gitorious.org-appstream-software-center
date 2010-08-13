@@ -19,8 +19,11 @@ software-center (2.1.10) UNRELEASED; urgency=low
     - make info table accessible (LP: #608141)
   * softwarecenter/view/appdetailsview_webkit.py:
     - use the same gwibber text in both appdetails views (LP: #614220)
-  * softwarecenter/view/availablepane.py,
-    softwarecenter/view/installedpane.py:
+  * softwarecenter/view/availablepane.py:
+    - refresh navigation bar correctly when we get a request to display a pkg
+  * softwarecenter/view/catview_gtk.py:
+    - make poster and paging dot accessible (LP: #600306, #608152, #609411)
+  * softwarecenter/view/installedpane.py:
     - refresh navigation bar correctly when we get a request to display a pkg
   * softwarecenter/view/pendingview.py:
     - display the name of the application holding the lock, when waiting for
