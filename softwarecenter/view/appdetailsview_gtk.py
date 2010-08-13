@@ -1123,6 +1123,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # set button sensitive again
         self.action_bar.button.set_sensitive(True)
 
+        # reset view to top left
+        self.get_vadjustment().set_value(0)
+        self.get_hadjustment().set_value(0)
+
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)

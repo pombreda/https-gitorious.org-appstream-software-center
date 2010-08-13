@@ -10,6 +10,7 @@ software-center (2.1.10) UNRELEASED; urgency=low
       request for a pkg in the available view
     - allow s-c to be passed a search term (LP: #612507)
       The syntax is "software-center search:search term"
+    - make catalog rebuilding window accessible (LP: #538373)
   * softwarecenter/db/database.py:
     - fix typo (LP: #616183)
   * softwarecenter/view/appdetailsview_gtk.py:
@@ -17,6 +18,7 @@ software-center (2.1.10) UNRELEASED; urgency=low
     - make application name and summary accessible and grab focus (LP: #608140)
     - make description accessible (LP: #608140)
     - make info table accessible (LP: #608141)
+    - reset pane to top left on show_app()
   * softwarecenter/view/appdetailsview_webkit.py:
     - use the same gwibber text in both appdetails views (LP: #614220)
   * softwarecenter/view/availablepane.py:
