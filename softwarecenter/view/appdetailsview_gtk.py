@@ -1125,9 +1125,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         state = self.action_bar.pkg_state
         # handle purchase: install purchased has multiple steps
-        if state == PKG_STATE_INSTALLING_PURCHASED and not result.pkgname:
+        if (state == PKG_STATE_INSTALLING_PURCHASED and 
+            result and
+            not result.pkgname):
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
-        elif state == PKG_STATE_INSTALLING_PURCHASED and result.pkgname:
+        elif (state == PKG_STATE_INSTALLING_PURCHASED and 
+              result and
+              result.pkgname):
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         # normal states
         elif state == PKG_STATE_REMOVING:
