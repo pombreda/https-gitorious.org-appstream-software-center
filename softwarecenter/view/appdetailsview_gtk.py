@@ -930,70 +930,9 @@ class TotalSizeBar(gtk.HBox):
         self.line_color = COLOR_GREEN_OUTLINE
         
     def configure(self, app_details, addons_install, addons_remove):
-        def pkg_downloaded(pkg_version):
-            filename = os.path.basename(pkg_version.filename)
-            # FIXME: use relative path here
-            return os.path.exists("/var/cache/apt/archives/" + filename)
-        
         if not addons_install and not addons_remove:
             self.hide()
             return
-        
-        pkgs_to_install = []
-        pkgs_to_remove = []
-        total_download_size = 0 # in kB
-        total_install_size = 0 # in kB
-        label_string = _("Total size: ")
-        
-        for addon in addons_install:
-            version = max(self.cache[addon].versions)
-            pkgs_to_install.append(version)
-            deps_inst = self.cache.get_all_deps_installing(self.cache[addon])
-            for dep in deps_inst:
-                if self.cache[dep].installed == None:
-                    version = max(self.cache[dep].versions)
-                    pkgs_to_install.append(version)
-            deps_remove = self.cache.get_all_deps_removing(self.cache[addon])
-            for dep in deps_remove:
-                if self.cache[dep].installed != None:
-                    version = self.cache[dep].installed
-                    pkgs_to_remove.append(version)
-        for addon in addons_remove:
-            version = self.cache[addon].installed
-            pkgs_to_remove.append(version)
-            deps_inst = self.cache.get_all_deps_installing(self.cache[addon])
-            for dep in deps_inst:
-                if self.cache[dep].installed == None:
-                    version = max(self.cache[dep].versions)
-                    pkgs_to_install.append(version)
-            deps_remove = self.cache.get_all_deps_removing(self.cache[addon])
-            for dep in deps_remove:
-                if self.cache[dep].installed != None:
-                    version = self.cache[dep].installed
-                    pkgs_to_remove.append(version)
-            
-            
-        for pkg in pkgs_to_install:
-            if not pkg_downloaded(pkg):
-                total_download_size += pkg.size
-            total_install_size += pkg.installed_size
-        for pkg in pkgs_to_remove:
-            total_install_size -= pkg.installed_size
-        
-        if total_download_size > 0:
-            download_size = apt_pkg.size_to_str(total_download_size)
-            label_string += _("%sB to download, " % (download_size))
-        if total_install_size > 0:
-            install_size = apt_pkg.size_to_str(total_install_size)
-            label_string += _("%sB when installed" % (install_size))
-        elif total_install_size < 0:
-            remove_size = apt_pkg.size_to_str(-total_install_size)
-            label_string += _("%sB to be freed" % (remove_size))
-        
-        #if total_download_size > 0 or total_install_size != 0:
-        #    self.label_size.set_label(label_string)
-        #else:
-        #    self.label_size.set_label(_("Changes have been made"))
         if app_details.price:
             self.label_price.set_label(app_details.price)
         else:
@@ -1639,6 +1578,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download:
                 self._logger.debug("did not find the icon locally, must download it")
+        else:
+            return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
 
     def _on_addon_view_description_clicked(self, button, pkgname):
         self.emit("navigation-request", pkgname)
