@@ -14,7 +14,8 @@ software-center (2.1.10) UNRELEASED; urgency=low
     - fix typo (LP: #616183)
   * softwarecenter/view/appdetailsview_gtk.py:
     - use the same gwibber text in both appdetails views (LP: #614220)
-    - make application name and summary accessible
+    - make application name and summary accessible and grab focus (LP: #608140)
+    - make description accessible (LP: #608140)
     - make info table accessible (LP: #608141)
   * softwarecenter/view/appdetailsview_webkit.py:
     - use the same gwibber text in both appdetails views (LP: #614220)

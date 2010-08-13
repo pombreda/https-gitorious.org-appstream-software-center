@@ -970,6 +970,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.body.set_spacing(mkit.SPACING_LARGE)
         self.vbox.pack_start(self.app_info, False)
 
+        # a11y for name/summary
         self.app_info.header.set_property("can-focus", True)
         self.app_info.header.a11y = self.app_info.header.get_accessible()
 
@@ -989,6 +990,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # application description wigdets
         self.app_desc = AppDescription()
         app_desc_hb.pack_start(self.app_desc, False)
+
+        # a11y for description
+        self.app_desc.body.set_property("can-focus", True)
+        self.app_desc.body.a11y = self.app_desc.body.get_accessible()
 
         # screenshot
         self.screenshot = ScreenshotView(self.distro, self.icons)
@@ -1036,8 +1041,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # set app- icon, name and summary in the header
         self.app_info.set_label(markup=markup)
 
+        # a11y for name/summary
         self.app_info.header.a11y.set_name("Application: " + appname + ". Summary: " + summary)
         self.app_info.header.a11y.set_role(atk.ROLE_PANEL)
+        self.app_info.header.grab_focus()
 
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
@@ -1056,7 +1063,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # depending on pkg install state set action labels
         self.action_bar.configure(app_details, app_details.pkg_state)
-        self.action_bar.button.grab_focus()
 
         # format new app description
         if app_details.pkg_state == PKG_STATE_ERROR:
@@ -1065,6 +1071,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             description = app_details.description
         if description:
             self.app_desc.set_description(description, appname)
+
+        # a11y for description
+        self.app_desc.body.a11y.set_name("Description: " + description)
 
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website and self.info_table.get_property('visible'):
