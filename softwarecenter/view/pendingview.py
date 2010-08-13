@@ -114,7 +114,10 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             except Exception:
                 icon = self.icons.load_icon(MISSING_APP_ICON,
                                             self.ICON_SIZE, 0)
-        status = get_status_string_from_enum(trans.status)
+        if trans.status == STATUS_WAITING_LOCK:
+            status = trans.status_details
+        else:
+            status = get_status_string_from_enum(trans.status)
         status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
         self.append([trans.tid, icon, appname, status_text, trans.progress,
@@ -158,7 +161,10 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                 # FIXME: the spaces around %s are poor mans padding because
                 #        setting xpad on the cell-renderer seems to not work
                 name = row[self.COL_NAME]
-                st = get_status_string_from_enum(status)
+                if trans.status == STATUS_WAITING_LOCK:
+                    st = trans.status_details
+                else:
+                    st = get_status_string_from_enum(status)
                 row[self.COL_STATUS] = self._render_status_text(name, st)
 
     def _render_status_text(self, name, status):
