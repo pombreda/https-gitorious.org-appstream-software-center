@@ -223,6 +223,7 @@ class AppDetails(object):
     def description(self):
         if self._pkg:
             return self._pkg.candidate.description
+        return ""
 
     @property
     def error(self):
@@ -318,6 +319,7 @@ class AppDetails(object):
             else:
                 # by spec..
                 return self._db.get_pkgname(self._doc)
+        return ""
 
     @property
     def pkg(self):
@@ -576,6 +578,7 @@ class AppDetailsDebFile(AppDetails):
         if self._deb:
             description = self._deb._sections["Description"]
             return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
+        return ""
 
     @property
     def maintenance_status(self):

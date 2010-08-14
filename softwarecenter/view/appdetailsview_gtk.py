@@ -1071,9 +1071,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             description = app_details.description
         if description:
             self.app_desc.set_description(description, appname)
-
-        # a11y for description
-        self.app_desc.body.a11y.set_name("Description: " + description)
+            # a11y for description
+            self.app_desc.body.a11y.set_name("Description: " + description)
 
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website and self.info_table.get_property('visible'):
@@ -1122,6 +1121,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         
         # set button sensitive again
         self.action_bar.button.set_sensitive(True)
+
+        # reset view to top left
+        self.get_vadjustment().set_value(0)
+        self.get_hadjustment().set_value(0)
 
         # init data
         self.app = app
