@@ -411,78 +411,51 @@ class AppDescription(gtk.VBox):
         self.show_all()
         return    
 
+class PackageInfo(gtk.HBox):
 
-class PackageInfoTable(gtk.VBox):
-
-    def __init__(self):
-        gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
-
-        self.version_label = gtk.Label()
-        self.license_label = gtk.Label()
-        self.support_label = gtk.Label()
-
-        self.version_label.set_selectable(True)
-
+    def __init__(self, key):
+        gtk.HBox.__init__(self, spacing=mkit.SPACING_XLARGE)
+        self.key = key
+        self.value_object = gtk.Label()
         self.connect('realize', self._on_realize)
         return
 
     def _on_realize(self, widget):
+        # key
+        k = gtk.Label()
         dark = self.style.dark[self.state].to_string()
         key_markup = '<b><span color="%s">%s</span></b>'
-        max_lw = 0  # max key label width
+        k.set_markup(key_markup  % (dark, self.key))
+        a = gtk.Alignment(1.0, 0.0)
+        # the line below is 'wrong', but in reality it works quite ok
+        a.set_size_request(100, -1)
+        a.add(k)
+        self.pack_start(a, False)
 
-        for kstr, v in [(_('Version:'), self.version_label),
-                        (_('License:'), self.license_label),
-                        (_('Updates:'), self.support_label)]:
+        # value
+        v = self.value_object
+        v.set_line_wrap(True)
+        v.set_selectable(True)
+        b = gtk.Alignment(0.0, 0.0)
+        b.add(v)
+        self.pack_start(b, False)
 
-            k = gtk.Label()
-            k.set_markup(key_markup  % (dark, kstr))
-            v.set_line_wrap(True)
-            max_lw = max(max_lw, k.get_layout().get_pixel_extents()[1][2])
-
-            a = gtk.Alignment(1.0, 0.0)
-            a.add(k)
-
-            # we need this extra box to avoid orca repeating itself
-            b = gtk.Alignment(0.0, 0.0)
-            b.add(v)
-
-            row = gtk.HBox(spacing=mkit.SPACING_XLARGE)
-            row.pack_start(a, False)
-            row.pack_start(b, False)
-
-            # a11y stuff
-            row.set_property("can-focus", True)
-            row.a11y = row.get_accessible()
-            row.a11y.set_name(kstr)
-
-            self.pack_start(row, False)
-
-        for row in self.get_children():
-            k, v = row.get_children()
-            k.set_size_request(max_lw+3*mkit.EM, -1)
+        # a11y stuff
+        self.set_property("can-focus", True)
+        self.a11y = self.get_accessible()
 
         self.show_all()
         return
 
     def set_width(self, width):
-        for row in self.get_children():
-            k, v = row.get_children()
-            v.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
+        if self.get_children():
+            k, v = self.get_children()
+            v.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
         return
 
-    def configure(self, version, license, updates):
-
-        # set labels
-        self.version_label.set_text(version)
-        self.license_label.set_text(license)
-        self.support_label.set_text(updates)
-
-        # set a11y texts
-        for row in self.get_children():
-            key = row.a11y.get_name().split(":")[0]
-            value = row.get_children()[1].get_children()[0].get_text()
-            row.a11y.set_name(key + ': ' + value)
+    def set_value(self, value):
+        self.value_object.set_text(value)
+        self.a11y.set_name(self.key + ' ' + value)
 
 class ScreenshotView(gtk.Alignment):
 
@@ -854,7 +827,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         for pt in self.app_desc.points:
             pt.set_size_request(w-7*mkit.EM-166, -1)
 
-        self.info_table.set_width(w-6*mkit.EM)
+        self.version_info.set_width(w-6*mkit.EM)
+        self.license_info.set_width(w-6*mkit.EM)
+        self.support_info.set_width(w-6*mkit.EM)
 
         self._full_redraw()   #  ewww
         return
@@ -967,7 +942,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
 
-        self.app_info.body.set_spacing(mkit.SPACING_LARGE)
+        self.app_info.body.set_spacing(mkit.SPACING_MED)
         self.vbox.pack_start(self.app_info, False)
 
         # a11y for name/summary
@@ -1014,9 +989,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
 
-        # package info table
-        self.info_table = PackageInfoTable()
-        self.app_info.body.pack_start(self.info_table, False)
+        # package info
+        self.version_info = PackageInfo(_("Version:"))
+        self.app_info.body.pack_start(self.version_info, False)
+
+        self.license_info = PackageInfo(_("License:"))
+        self.app_info.body.pack_start(self.license_info, False)
+
+        self.support_info = PackageInfo(_("Updates:"))
+        self.app_info.body.pack_start(self.support_info, False)
 
         self.show_all()
         return
@@ -1053,12 +1034,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # if we have an error or if we need to enable a source, then hide everything else
         if app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE):
-            self.info_table.hide()
             self.screenshot.hide()
+            self.version_info.hide()
+            self.license_info.hide()
+            self.support_info.hide()
             self.desc_section.hide()
         else:
             self.desc_section.show()
-            self.info_table.show()
+            self.version_info.show()
+            self.license_info.show()
+            self.support_info.show()
             self.screenshot.show()
 
         # depending on pkg install state set action labels
@@ -1075,14 +1060,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.app_desc.body.a11y.set_name("Description: " + description)
 
         # show or hide the homepage button and set uri if homepage specified
-        if app_details.website and self.info_table.get_property('visible'):
+        if app_details.website:
             self.homepage_btn.show()
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self._gwibber_is_available and self.info_table.get_property('visible'):
+        if self._gwibber_is_available:
             self.share_btn.show()
         else:
             self.share_btn.hide()
@@ -1107,7 +1092,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             support = app_details.maintenance_status
         else:
             support = _("Unknown")
-        self.info_table.configure(version, license, support)
+        self.version_info.set_value(version)
+        self.license_info.set_value(license)
+        self.support_info.set_value(support)
         return
 
     # public API

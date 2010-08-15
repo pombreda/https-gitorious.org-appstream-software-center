@@ -1,5 +1,10 @@
 software-center (2.1.11) UNRELEASED; urgency=low
 
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use package info lines rather than package info tables
+      (for devildante to use in the addons branch)
+
   [ Milo Casagrande ]
   * softwarecenter/db/application.py:
     - make 'source available' warning more suitable for translation.
