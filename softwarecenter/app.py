@@ -478,7 +478,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     # for appdetailsview-webkit
                     # self._set_action_button_sensitive(True)
 
-                    self.backend.emit("transaction-stopped")
+                    self.backend.emit("transaction-stopped", app.pkgname)
                     return
             
         # action_func is one of:  "install", "remove" or "upgrade"
