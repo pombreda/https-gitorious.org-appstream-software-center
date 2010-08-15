@@ -750,12 +750,12 @@ class CellRendererButton2:
         # this prevents the button overdrawing on its self,
         # which results in transparent pixels accumulating alpha value
         cr = window.cairo_create()
-        cr.set_operator(cairo.OPERATOR_CLEAR)
+        #cr.set_operator(cairo.OPERATOR_CLEAR)
         cr.rectangle(x, y, w, h)
         cr.clip()
-        cr.paint_with_alpha(0)
+        #cr.paint_with_alpha(0)
 
-        cr.set_operator(cairo.OPERATOR_OVER)
+        #cr.set_operator(cairo.OPERATOR_OVER)
         
         #widget.style.paint_box(window,
                                #self.state,
