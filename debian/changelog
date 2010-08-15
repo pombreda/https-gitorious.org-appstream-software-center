@@ -3,6 +3,7 @@ software-center (2.1.11) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/app.py:
     - pass required argument to fix crash (LP: #618212)
+    - fix crash in setting supported filter (LP: #618243)
   * softwarecenter/view/appdetailsview_gtk.py:
     - use package info lines rather than package info tables
       (for devildante to use in the addons branch)
