@@ -190,6 +190,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """ install and remove add-ons """
         self.emit("transaction-started")
         try:
+            print addons_install, addons_remove
             trans = yield self.aptd_client.commit_packages(addons_install, [], addons_remove, [], [])
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:

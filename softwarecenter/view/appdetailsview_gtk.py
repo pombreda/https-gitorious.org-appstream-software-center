@@ -875,21 +875,30 @@ class AddonView(gtk.VBox):
     def _on_description_clicked(self, label, addon):
         self.emit("description-clicked", addon)
 
-class TotalSizeBar(gtk.HBox):
+class TotalSizeBar(gtk.Alignment):
     __gsignals__ = {'changes-canceled': (gobject.SIGNAL_RUN_FIRST,
                                          gobject.TYPE_NONE,
                                          ()),
                    }
     
     def __init__(self, cache, view):
-        gtk.HBox.__init__(self)
+        gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        self.set_redraw_on_allocate(False)
+        self.set_padding(mkit.SPACING_SMALL,
+                         mkit.SPACING_SMALL,
+                         mkit.SPACING_SMALL+2,
+                         mkit.SPACING_SMALL)
+        
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.add(self.hbox)
+        
         self.cache = cache
         self.view = view
         self.applying = False
         
         self.label_price = gtk.Label()
         self.label_price.set_line_wrap(True)
-        self.pack_start(self.label_price, False, False)
+        self.hbox.pack_start(self.label_price, False, False)
         
         self.hbuttonbox = gtk.HButtonBox()
         self.hbuttonbox.set_layout(gtk.BUTTONBOX_END)
@@ -899,7 +908,7 @@ class TotalSizeBar(gtk.HBox):
         self.button_cancel.connect("clicked", self._on_button_cancel_clicked)
         self.hbuttonbox.pack_start(self.button_cancel, False)
         self.hbuttonbox.pack_start(self.button_apply, False)
-        self.pack_start(self.hbuttonbox)
+        self.hbox.pack_start(self.hbuttonbox)
         
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
@@ -1141,8 +1150,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox.set_redraw_on_allocate(False)
-
-        
         
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
@@ -1194,14 +1201,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.size_hbox = gtk.HBox(spacing=mkit.SPACING_XLARGE)
         self.app_info.body.pack_start(self.size_hbox, False)
         
-        dark = self.style.dark[self.state].to_string()
-        key_markup = '<b><span color="%s">%s</span></b>'
-        text = _("Total size:")
-        self.size_label = gtk.Label()
-        self.size_label.set_markup(key_markup % (dark, text))
-        self.size_hbox.pack_start(self.size_label, False)
-        self.totalsize_label = gtk.Label()
-        self.size_hbox.pack_start(self.totalsize_label, False)
+        self.totalsize_info = PackageInfo(_("Total size:"))
+        self.app_info.body.pack_start(self.totalsize_info, False)
         
         self.totalsize_bar = TotalSizeBar(self.cache, self)
         self.totalsize_bar.connect("changes-canceled", self._on_totalsize_changescanceled)
@@ -1626,7 +1627,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         try:
             pkg = self.cache[self.app_details.pkgname]
         except KeyError:
-            self.size_hbox.hide_all()
+            self.totalsize_info.hide_all()
             return False
         version = pkg.installed
         if version == None:
@@ -1695,10 +1696,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string += _("%sB to be freed" % (remove_size))
         
         if label_string == "":
-            self.size_hbox.hide_all()
+            self.totalsize_info.hide_all()
         else:
-            self.totalsize_label.set_label(label_string)
-            self.size_hbox.show_all()
+            self.totalsize_info.set_value(label_string)
+            self.totalsize_info.show_all()
         return False
 
 
