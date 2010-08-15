@@ -1,3 +1,11 @@
+software-center (2.1.11) UNRELEASED; urgency=low
+
+  [ Milo Casagrande ]
+  * softwarecenter/db/application.py:
+    - make 'source available' warning more suitable for translation.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
+
 software-center (2.1.10) maverick; urgency=low
 
   [ Kiwinote ]
