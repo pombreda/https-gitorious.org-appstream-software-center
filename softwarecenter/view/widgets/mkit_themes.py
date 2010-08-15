@@ -176,7 +176,7 @@ class Human(Theme):
                    gtk.STATE_ACTIVE:        self.fg[gtk.STATE_NORMAL],
                    gtk.STATE_PRELIGHT:      self.bg[gtk.STATE_NORMAL].lighten(),
                    gtk.STATE_SELECTED:      self.bg[gtk.STATE_NORMAL].lighten(),
-                   gtk.STATE_INSENSITIVE:   self.light[gtk.STATE_INSENSITIVE]}
+                   gtk.STATE_INSENSITIVE:   self.bg[gtk.STATE_INSENSITIVE]}
         return palette
 
     def get_text_states(self):
@@ -609,6 +609,7 @@ class ThemeRegistry:
                 "Dust Sand": DustSand,
                 "New Wave": NewWave,
                 "Ambiance": Ambiance,
+                "Ambiance-maverick-beta": Ambiance,
                 "Radiance": Radiance}
 
     def retrieve(self, theme_name):
