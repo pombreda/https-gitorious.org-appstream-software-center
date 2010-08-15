@@ -152,7 +152,8 @@ class PackageStatusBar(gtk.Alignment):
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
                      PKG_STATE_REMOVING,
-                     PKG_STATE_UPGRADING):
+                     PKG_STATE_UPGRADING,
+                     APP_ACTION_APPLY):
             self.button.hide()
             self.show()
         elif state == PKG_STATE_NOT_FOUND:
@@ -161,8 +162,8 @@ class PackageStatusBar(gtk.Alignment):
             self.button.set_sensitive(False)
             self.button.show()
             self.show()
-        else:
             state = app_details.pkg_state
+        else:
             self.button.set_sensitive(True)
             self.button.show()
             self.show()
@@ -216,7 +217,7 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
         elif state == APP_ACTION_APPLY:
-            self.set_label(_('Applying changes...'))
+            self.set_label(_('Changing add-ons...'))
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -788,8 +789,8 @@ class AddonCheckButton(gtk.HBox):
         if not icon or not icons.has_icon(icon):
             icon = MISSING_APP_ICON
         try:
-            filename = icons.lookup_icon(icon, 24, ()).get_filename()
-            image.set_from_file(filename)
+            pixbuf = icons.load_icon(icon, 24, ()).scale_simple(24, 24, gtk.gdk.INTERP_BILINEAR)
+            image.set_from_pixbuf(pixbuf)
         except TypeError:
             logging.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(image, False, False)
@@ -1440,7 +1441,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
-        self.totalsize_bar.hbuttonbox.hide()
         
         if self.totalsize_bar.get_applying():
             self.action_bar.configure(self.app_details, APP_ACTION_APPLY)
