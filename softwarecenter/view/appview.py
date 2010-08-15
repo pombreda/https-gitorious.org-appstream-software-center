@@ -44,7 +44,7 @@ from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
-from widgets.mkit import get_em_value
+from widgets.mkit import get_em_value, get_mkit_theme
 from gtk import gdk
 
 from gettext import gettext as _
@@ -646,9 +646,11 @@ class CellRendererButton2:
         self.ypad = ypad
         self.allocation = gdk.Rectangle(0,0,1,1)
         self.state = gtk.STATE_NORMAL
+        self.shape = 0
         self.has_focus = False
 
         self._widget = None
+        self.theme = get_mkit_theme()
         return
 
     def _layout_reset(self, layout):
@@ -754,14 +756,18 @@ class CellRendererButton2:
         cr.paint_with_alpha(0)
 
         cr.set_operator(cairo.OPERATOR_OVER)
+        
+        #widget.style.paint_box(window,
+                               #self.state,
+                               #shadow,
+                               #(x, y, w, h),
+                               #widget,
+                               #"button",
+                               #x, y, w, h)
+
+        # use mkit to draw the cell renderer button. more reliable results
+        self.theme.paint_bg(cr, self, x, y, w, h)
         del cr
-        widget.style.paint_box(window,
-                               self.state,
-                               shadow,
-                               (x, y, w, h),
-                               widget,
-                               "button",
-                               x, y, w, h)
 
         # if we have more than one markup variant
         # we need to calc layout x-offset for current variant markup
@@ -775,13 +781,14 @@ class CellRendererButton2:
 
         if self.has_focus and self.state != gtk.STATE_INSENSITIVE and \
             self._widget.has_focus():
+            w, h = layout.get_pixel_extents()[1][2:]
             widget.style.paint_focus(window,
                                      self.state,
-                                     (x+2, y+2, w-4, h-4),
+                                     (xo-3, y+ypad, w+6, h),
                                      widget,
                                      "expander",
-                                     x+2, y+2,
-                                     w-4, h-4)
+                                     xo-3, y+ypad,
+                                     w+6, h)
 
         widget.style.paint_layout(window,
                                   self.state,
