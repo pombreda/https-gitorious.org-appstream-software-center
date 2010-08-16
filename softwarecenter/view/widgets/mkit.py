@@ -596,7 +596,7 @@ class Style:
         shape.layout(cr, 0, 0, w-1, h-1, arrow_width=aw, radius=curv)
         cr.set_source_rgba(r, g, b, alpha)
         cr.stroke_preserve()
-        cr.set_source_rgba(r, g, b, 0.5*alpha)
+        cr.set_source_rgba(r, g, b, 0.3*alpha)
         cr.stroke()
 
         # inner bevel/highlight

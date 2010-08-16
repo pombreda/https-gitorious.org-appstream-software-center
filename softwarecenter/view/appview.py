@@ -793,6 +793,7 @@ class CellRendererButton2:
                                      xo-3, y+ypad,
                                      w+6, h)
 
+        # etch
         pcr = pangocairo.CairoContext(cr)
         pcr.move_to(xo, y+ypad+1)
         pcr.layout_path(layout)

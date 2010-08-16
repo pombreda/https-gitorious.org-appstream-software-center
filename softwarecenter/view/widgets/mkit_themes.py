@@ -610,6 +610,7 @@ class ThemeRegistry:
                 "New Wave": NewWave,
                 "Ambiance": Ambiance,
                 "Ambiance-maverick-beta": Ambiance,
+                "Ambiance-maverick-beta-dark": Ambiance,
                 "Radiance": Radiance}
 
     def retrieve(self, theme_name):
