@@ -334,10 +334,13 @@ class PackageAddonsManager(object):
         deps = self.cache.get_depends(pkg)
         addons = []
         if type == self.RECOMMENDED:
-            rrecommends = self.cache.get_rrecommends(pkg)
-            if len(rrecommends) == 1:
-                addons += rrecommends
+            recommends = self.cache.get_recommends(pkg)
+            if len(recommends) == 1:
+                addons += recommends
         elif type == self.SUGGESTED:
+            suggests = self.cache.get_suggests(pkg)
+            if len(suggests) == 1:
+                addons += suggests
             addons += self.cache.get_renhances(pkg)
         
         for dep in deps:
