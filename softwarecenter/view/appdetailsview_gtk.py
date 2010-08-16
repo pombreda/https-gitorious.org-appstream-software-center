@@ -282,7 +282,7 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.footer, False)
         self.show_all()
 
-        self.paragraphs = []
+        self.paragraph = []
         self.points = []
         return
 
@@ -422,6 +422,8 @@ class PackageInfoTable(gtk.VBox):
         self.support_label = gtk.Label()
 
         self.version_label.set_selectable(True)
+        self.license_label.set_selectable(True)
+        self.support_label.set_selectable(True)
 
         self.connect('realize', self._on_realize)
         return
