@@ -282,7 +282,7 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.footer, False)
         self.show_all()
 
-        self.paragraph = []
+        self.paragraphs = []
         self.points = []
         return
 
