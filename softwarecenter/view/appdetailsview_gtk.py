@@ -894,8 +894,8 @@ class AddonsStateBar(gtk.Alignment):
     def __init__(self, cache, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_redraw_on_allocate(False)
-        self.set_padding(mkit.SPACING_SMALL,
-                         mkit.SPACING_SMALL,
+        self.set_padding(mkit.SPACING_LARGE,
+                         mkit.SPACING_LARGE,
                          mkit.SPACING_SMALL+2,
                          mkit.SPACING_SMALL)
         
@@ -1087,7 +1087,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         
         if self.addons_bar.get_property('visible'):
             self.addons_bar.draw(cr,
-                                 self.addons_bar.allocation,
+                                 self.addons_bar.hbox.allocation,
                                  event.area)
 
         if self.screenshot.get_property('visible'):
