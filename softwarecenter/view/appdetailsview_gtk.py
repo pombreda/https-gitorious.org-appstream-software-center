@@ -883,7 +883,7 @@ class AddonView(gtk.VBox):
     def _on_description_clicked(self, label, addon):
         self.emit("description-clicked", addon)
 
-class TotalSizeBar(gtk.Alignment):
+class AddonsStateBar(gtk.Alignment):
     __gsignals__ = {'changes-canceled': (gobject.SIGNAL_RUN_FIRST,
                                          gobject.TYPE_NONE,
                                          ()),
@@ -1083,9 +1083,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                  self.action_bar.allocation,
                                  event.area)
         
-        if self.totalsize_bar.get_property('visible'):
-            self.totalsize_bar.draw(cr,
-                                 self.totalsize_bar.allocation,
+        if self.addons_bar.get_property('visible'):
+            self.addons_bar.draw(cr,
+                                 self.addons_bar.allocation,
                                  event.area)
 
         if self.screenshot.get_property('visible'):
@@ -1212,9 +1212,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.totalsize_info = PackageInfo(_("Total size:"))
         self.app_info.body.pack_start(self.totalsize_info, False)
         
-        self.totalsize_bar = TotalSizeBar(self.cache, self)
-        self.totalsize_bar.connect("changes-canceled", self._on_totalsize_changescanceled)
-        self.app_info.body.pack_start(self.totalsize_bar, False)
+        self.addons_bar = AddonsStateBar(self.cache, self)
+        self.addons_bar.connect("changes-canceled", self._on_addonsbar_changescanceled)
+        self.app_info.body.pack_start(self.addons_bar, False)
         
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
@@ -1347,8 +1347,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.totalsize_info.hide_all()
         gobject.idle_add(self.update_totalsize)
         
-        # Update total size bar
-        self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+        # Update addons state bar
+        self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         return
 
     # public API
@@ -1399,24 +1399,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_interface_on_trans_ended(self, result):
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
-        self.totalsize_bar.button_apply.set_sensitive(True)
-        self.totalsize_bar.button_cancel.set_sensitive(True)
+        self.addons_bar.button_apply.set_sensitive(True)
+        self.addons_bar.button_cancel.set_sensitive(True)
         state = self.action_bar.pkg_state
         pkg_state = None
         if state == PKG_STATE_INSTALLING or state == PKG_STATE_UPGRADING \
-        or self.totalsize_bar.applying:
-            self.totalsize_bar.show_all()
+        or self.addons_bar.applying:
+            self.addons_bar.show_all()
             pkg_state = PKG_STATE_INSTALLED
         else:
-            self.totalsize_bar.hide_all()
+            self.addons_bar.hide_all()
             pkg_state = PKG_STATE_UNINSTALLED
 
-        if self.totalsize_bar.applying:
+        if self.addons_bar.applying:
             self.action_bar.configure(self.app_details, pkg_state)
             self.addons_install = []
             self.addons_remove = []
-            self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
-            self.totalsize_bar.applying = False
+            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+            self.addons_bar.applying = False
             
             for widget in self.addon_view:
                 if widget != self.addon_view.label:
@@ -1443,7 +1443,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
             self.addons_install = []
             self.addons_remove = []
-            self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         elif state == PKG_STATE_UPGRADING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         return False
@@ -1451,7 +1451,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
         
-        if self.totalsize_bar.get_applying():
+        if self.addons_bar.get_applying():
             self.action_bar.configure(self.app_details, APP_ACTION_APPLY)
             return
         
@@ -1593,16 +1593,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self._set_addon_remove(addon)
         if self.app_details.pkg_state == PKG_STATE_INSTALLED:
-            self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         gobject.idle_add(self.update_totalsize)
         
-    def _on_totalsize_changescanceled(self, widget):
+    def _on_addonsbar_changescanceled(self, widget):
         self.addons_install = []
         self.addons_remove = []
         self.addon_view.set_addons(self.app_details, 
                                     self.recommended,
                                     self.suggested)
-        self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+        self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         gobject.idle_add(self.update_totalsize)
     
     def get_icon_filename(self, iconname, iconsize):
