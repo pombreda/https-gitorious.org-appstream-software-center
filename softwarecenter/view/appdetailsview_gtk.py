@@ -795,7 +795,7 @@ class AddonCheckButton(gtk.HBox):
             logging.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(image, False, False)
         # the display_name
-        label = gtk.Label(self.app_details.display_name)
+        label = gtk.Label(self.app_details.summary.capitalize())
         hbox.pack_start(label, False)
         # and put it into the the checkbox
         self.checkbutton.add(hbox)
@@ -853,17 +853,25 @@ class AddonView(gtk.VBox):
                 self.remove(widget)
         
         for addon in recommended:
+            try:
+                pkg = self.cache[addon]
+            except KeyError:
+                continue
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
             #checkbutton.addon_pkgname.connect(
             #    "clicked", self._on_description_clicked, addon)
-            checkbutton.set_active(self.cache[addon].installed != None)
+            checkbutton.set_active(pkg.installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         for addon in suggested:
+            try:
+                pkg = self.cache[addon]
+            except KeyError:
+                continue
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
             #checkbutton.addon_pkgname.connect(
             #    "clicked", self._on_description_clicked, addon)
-            checkbutton.set_active(self.cache[addon].installed != None)
+            checkbutton.set_active(pkg.installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         self.show_all()
@@ -1569,6 +1577,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download:
                 self._logger.debug("did not find the icon locally, must download it")
+            else:
+                return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
         else:
             return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
 
