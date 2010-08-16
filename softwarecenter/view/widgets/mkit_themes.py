@@ -423,14 +423,14 @@ class Ambiance(DustSand):
                                                        0.33)
 
         # provide two colours per state for background vertical linear gradients
-        palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL].shade(1.2),
+        palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL],
                                          self.bg[gtk.STATE_NORMAL].shade(0.85)),
 
-                  gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_NORMAL].shade(0.96),
+                  gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_NORMAL].shade(0.94),
                                          self.bg[gtk.STATE_NORMAL].shade(0.65)),
 
-                  gtk.STATE_SELECTED:   (selected_color.shade(1.075),
-                                         selected_color.shade(0.875)),
+                  gtk.STATE_SELECTED:   (selected_color.shade(1.0),
+                                         selected_color.shade(0.85)),
     
                   gtk.STATE_PRELIGHT:   (prelight_color.shade(1.35),
                                          prelight_color.shade(1.1)),

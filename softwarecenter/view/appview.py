@@ -35,6 +35,8 @@ import sys
 import time
 import xapian
 import cairo
+import pangocairo
+
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -44,7 +46,7 @@ from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
-from widgets.mkit import get_em_value, get_mkit_theme
+from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha
 from gtk import gdk
 
 from gettext import gettext as _
@@ -656,6 +658,7 @@ class CellRendererButton2:
     def _layout_reset(self, layout):
         layout.set_width(-1)
         layout.set_ellipsize(pango.ELLIPSIZE_NONE)
+        self.layout = layout
         return
 
     def configure_geometry(self, widget):
@@ -738,9 +741,10 @@ class CellRendererButton2:
 
         if not layout:
             pc = widget.get_pango_context()
-            layout = pango.Layout(pc)
+            self.layout = pango.Layout(pc)
         else:
             self._layout_reset(layout)
+        self.layout = layout
 
         layout.set_markup(self.markup_variants[self.current_variant])
         xpad, ypad = self.xpad, self.ypad
@@ -767,7 +771,6 @@ class CellRendererButton2:
 
         # use mkit to draw the cell renderer button. more reliable results
         self.theme.paint_bg(cr, self, x, y, w, h)
-        del cr
 
         # if we have more than one markup variant
         # we need to calc layout x-offset for current variant markup
@@ -789,6 +792,12 @@ class CellRendererButton2:
                                      "expander",
                                      xo-3, y+ypad,
                                      w+6, h)
+
+        pcr = pangocairo.CairoContext(cr)
+        pcr.move_to(xo, y+ypad+1)
+        pcr.layout_path(layout)
+        pcr.set_source_rgba(*floats_from_gdkcolor_with_alpha(widget.style.light[self.state], 0.5))
+        pcr.fill()
 
         widget.style.paint_layout(window,
                                   self.state,

@@ -24,6 +24,7 @@ import gtk
 import cairo
 import pango
 import gobject
+import pangocairo
 
 from mkit_themes import Color, ColorArray, ThemeRegistry
 
@@ -577,7 +578,7 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
+        shape.layout(cr, 1, 1, w, h-1, arrow_width=aw, radius=curv)
         lin = cairo.LinearGradient(0, 0, 0, h)
         r, g, b = color1.floats()
         lin.add_color_stop_rgba(0.0, r, g, b, alpha)
@@ -590,26 +591,33 @@ class Style:
         cr.translate(0.5, 0.5)
         cr.set_line_width(1.0)
 
-        w -= 1
-        h -= 1
-
         # strong outline
         r, g, b = self.dark_line[state].floats()
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
+        shape.layout(cr, 0, 0, w-1, h-1, arrow_width=aw, radius=curv)
         cr.set_source_rgba(r, g, b, alpha)
         cr.stroke_preserve()
         cr.set_source_rgba(r, g, b, 0.5*alpha)
         cr.stroke()
 
         # inner bevel/highlight
+        shape.layout(cr, 1, 1, w-2, h-2, arrow_width=aw, radius=curv-1)
         if part.state != gtk.STATE_ACTIVE:
             r, g, b = self.light_line[state].floats()
+            lin = cairo.LinearGradient(0, 0, 0, h)
+            lin.add_color_stop_rgba(0.0, r, g, b, alpha)
+            lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
+            cr.set_source(lin)
+            cr.stroke()
+
+            shape.layout(cr, 2, 2, w-3, h-2, arrow_width=aw, radius=curv-1)
+            lin = cairo.LinearGradient(0, 0, 0, h)
+            lin.add_color_stop_rgba(0.0, r, g, b, alpha*0.3)
+            lin.add_color_stop_rgba(1.0, r, g, b, 0.05)
+            cr.set_source(lin)
         else:
             r, g, b = self.dark_line[state].floats()
             alpha *= 0.225
-
-        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=curv-1)
-        cr.set_source_rgba(r, g, b, alpha)
+            cr.set_source_rgba(r, g, b, alpha)
         cr.stroke()
 
         cr.restore()
@@ -661,14 +669,22 @@ class Style:
         cr.restore()
         return
 
-    def paint_layout(self, cr, widget, part, x, y, sxO=0):
-        layout = part.get_layout()
+    def paint_layout(self, cr, widget, part, x, y, clip=None, sxO=0, etched=True):
+        layout = part.layout
+        if etched:
+            pcr = pangocairo.CairoContext(cr)
+            pcr.move_to(x, y+1)
+            pcr.layout_path(layout)
+            r,g,b = self.light_line[part.state].floats()
+            pcr.set_source_rgba(r,g,b,0.5)
+            pcr.fill()
+
         widget.style.paint_layout(widget.window,
                                   self.text_states[part.state],
                                   False,
-                                  None,   # clip area
+                                  clip,   # clip area
                                   widget,
-                                  None,
+                                  'button',
                                   x, y,
                                   layout)
         return
