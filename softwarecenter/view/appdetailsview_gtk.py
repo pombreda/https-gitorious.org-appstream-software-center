@@ -789,7 +789,7 @@ class AddonCheckButton(gtk.HBox):
         if not icon or not icons.has_icon(icon):
             icon = MISSING_APP_ICON
         try:
-            pixbuf = icons.load_icon(icon, 24, ()).scale_simple(24, 24, gtk.gdk.INTERP_BILINEAR)
+            pixbuf = icons.load_icon(icon, 22, ()).scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
             image.set_from_pixbuf(pixbuf)
         except TypeError:
             logging.warning("cant set icon for '%s' " % pkgname)
@@ -828,7 +828,7 @@ class AddonView(gtk.VBox):
                    }
     
     def __init__(self, cache, db, icons):
-        gtk.VBox.__init__(self, False, 12)
+        gtk.VBox.__init__(self, False, mkit.SPACING_MED)
         self.cache = cache
         self.db = db
         self.icons = icons
@@ -841,7 +841,6 @@ class AddonView(gtk.VBox):
         self.pack_start(self.label, False, False)
     
     def set_addons(self, app_details, recommended, suggested):
-        self.hide_all()
         if len(recommended) == 0 and len(suggested) == 0:
             return
         self.recommended_addons = recommended
@@ -1341,10 +1340,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.support_info.set_value(support)
         
         # Update add-on interface
-        self.addon_view.set_addons(self.app_details, self.recommended, self.suggested)
+        self.addon_view.hide_all()
+        gobject.idle_add(self.addon_view.set_addons, self.app_details, self.recommended, self.suggested)
         
         # Update total size label
-        self.update_totalsize()
+        self.totalsize_info.hide_all()
+        gobject.idle_add(self.update_totalsize)
         
         # Update total size bar
         self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
@@ -1602,7 +1603,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                     self.recommended,
                                     self.suggested)
         self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
-        self.update_totalsize()
+        gobject.idle_add(self.update_totalsize)
     
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
