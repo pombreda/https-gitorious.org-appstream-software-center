@@ -775,7 +775,7 @@ class AddonCheckButton(gtk.HBox):
                    }
     
     def __init__(self, db, icons, pkgname):
-        gtk.HBox.__init__(self, spacing=mkit.SPACING_XLARGE)
+        gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
         self.app_details = AppDetails(db, 
                                       application=Application("None", pkgname))
         # the checkbutton
@@ -783,7 +783,7 @@ class AddonCheckButton(gtk.HBox):
         self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
         self.pack_start(self.checkbutton, False)
         # the hbox inside the checkbutton that contains the icon and description
-        hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        hbox = gtk.HBox(spacing=mkit.SPACING_MED)
         image = gtk.Image()
         icon = self.app_details.icon
         if not icon or not icons.has_icon(icon):
@@ -795,14 +795,16 @@ class AddonCheckButton(gtk.HBox):
             logging.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(image, False, False)
         # the display_name
-        label = gtk.Label(self.app_details.summary.capitalize())
+        display_name = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.summary.capitalize(),
+                                                        'pkgname': pkgname}
+        label = gtk.Label(display_name)
         hbox.pack_start(label, False)
         # and put it into the the checkbox
         self.checkbutton.add(hbox)
         # this is the addon_pkgname
-        self.addon_pkgname = gtk.Label(_(" (%(pkgname)s)") % {
-                'pkgname' : pkgname } )
-        hbox.pack_start(self.addon_pkgname, False)
+        #self.addon_pkgname = gtk.Label(_(" (%(pkgname)s)") % {
+        #        'pkgname' : pkgname } )
+        #hbox.pack_start(self.addon_pkgname, False)
         
     
     def _on_checkbutton_toggled(self, checkbutton):
