@@ -795,7 +795,7 @@ class AddonCheckButton(gtk.HBox):
             logging.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(image, False, False)
         # the display_name
-        display_name = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.summary.capitalize(),
+        display_name = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.display_name.capitalize(),
                                                         'pkgname': pkgname}
         label = gtk.Label(display_name)
         hbox.pack_start(label, False)
@@ -1164,7 +1164,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
         self.app_info.image.set_size_request(84, 84)
-        self.app_info.set_spacing(mkit.SPACING_LARGE)
+        self.app_info.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
@@ -1182,7 +1182,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.body.pack_start(self.action_bar, False)
         
         # FramedSection which contains the app description
-        self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_LARGE)
+        self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
         self.desc_section.header_alignment.set_padding(0,0,0,0)
 
         self.app_info.body.pack_start(self.desc_section, False)
@@ -1201,22 +1201,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # screenshot
         self.screenshot = ScreenshotView(self.distro, self.icons)
         app_desc_hb.pack_end(self.screenshot)
-
-        # add-on handling
-        self.addon_view = AddonView(self.cache, self.db, self.icons)
-        self.addon_view.connect("toggled", self._on_addon_view_toggled)
-        self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
-        self.desc_section.body.pack_start(self.addon_view, False)
-        
-        self.size_hbox = gtk.HBox(spacing=mkit.SPACING_XLARGE)
-        self.app_info.body.pack_start(self.size_hbox, False)
-        
-        self.totalsize_info = PackageInfo(_("Total size:"))
-        self.app_info.body.pack_start(self.totalsize_info, False)
-        
-        self.addons_bar = AddonsStateBar(self.cache, self)
-        self.addons_bar.connect("changes-canceled", self._on_addonsbar_changescanceled)
-        self.app_info.body.pack_start(self.addons_bar, False)
         
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
@@ -1232,6 +1216,23 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
+
+        alignment = gtk.Alignment()
+        alignment.set_padding(mkit.SPACING_LARGE, 0, 0, 0)
+        self.desc_section.body.pack_start(alignment, False)
+        
+        # add-on handling
+        self.addon_view = AddonView(self.cache, self.db, self.icons)
+        self.addon_view.connect("toggled", self._on_addon_view_toggled)
+        self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
+        alignment.add(self.addon_view)
+        
+        self.totalsize_info = PackageInfo(_("Total size:"))
+        self.app_info.body.pack_start(self.totalsize_info, False)
+        
+        self.addons_bar = AddonsStateBar(self.cache, self)
+        self.addons_bar.connect("changes-canceled", self._on_addonsbar_changescanceled)
+        self.app_info.body.pack_start(self.addons_bar, False)
 
         # package info
         self.version_info = PackageInfo(_("Version:"))
@@ -1630,6 +1631,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             filename = os.path.basename(pkg_version.filename)
             # FIXME: use relative path here
             return os.path.exists("/var/cache/apt/archives/" + filename)
+        
+        while gtk.events_pending():
+            gtk.main_iteration()
         
         pkgs_to_install = []
         pkgs_to_remove = []
