@@ -775,7 +775,7 @@ class AddonCheckButton(gtk.HBox):
                    }
     
     def __init__(self, db, icons, pkgname):
-        gtk.HBox.__init__(self, spacing=6)
+        gtk.HBox.__init__(self, spacing=mkit.SPACING_XLARGE)
         self.app_details = AppDetails(db, 
                                       application=Application("None", pkgname))
         # the checkbutton
@@ -783,7 +783,7 @@ class AddonCheckButton(gtk.HBox):
         self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
         self.pack_start(self.checkbutton, False)
         # the hbox inside the checkbutton that contains the icon and description
-        hbox = gtk.HBox()
+        hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
         image = gtk.Image()
         icon = self.app_details.icon
         if not icon or not icons.has_icon(icon):
@@ -835,7 +835,7 @@ class AddonView(gtk.VBox):
         self.recommended_addons = None
         self.suggested_addons = None
 
-        self.label = gtk.Label(_("<b>Choose add-ons</b>"))
+        self.label = gtk.Label(_("<b>Choose add-ons:</b>"))
         self.label.set_use_markup(True)
         self.label.set_alignment(0, 0.5)
         self.pack_start(self.label, False, False)
