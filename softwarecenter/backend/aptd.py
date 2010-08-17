@@ -23,10 +23,12 @@ import logging
 import os
 import subprocess
 import sys
+import time
 from softwarecenter.utils import *
 
 from aptdaemon import client
 from aptdaemon import enums
+from aptdaemon.errors import AuthorizationFailed
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
 
@@ -46,6 +48,8 @@ from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.view import dialogs
 
 from gettext import gettext as _
+
+POLICYKIT_AUTH_PATH = '/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1'
 
 # we use this instead of just exposing the aptdaemon Transaction object
 # so that we have a easier time porting it to a different backend
@@ -118,16 +122,21 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         axi.update_async(True, True)
 
     @inline_callbacks
-    def fix_broken_depends(self):
+    def fix_broken_depends(self, attempt=1):
         self.emit("transaction-started")
         try:
             trans = yield self.aptd_client.fix_broken_depends(defer=True)
             yield self._run_transaction(trans, None, None, None)
         except Exception, error:
-            self._on_trans_error(error)
+            if isinstance(error, AuthorizationFailed) and attempt == 1:
+                subprocess.Popen(POLICYKIT_AUTH_PATH)
+                time.sleep(1)
+                self.fix_broken_depends(attempt=2)
+            else:
+                self._on_trans_error(error)
 
     @inline_callbacks
-    def upgrade(self, pkgname, appname, iconname, metadata=None):
+    def upgrade(self, pkgname, appname, iconname, metadata=None, attempt=1):
         """ upgrade a single package """
         self.emit("transaction-started")
         try:
@@ -135,10 +144,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                                             defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
-            self._on_trans_error(error, pkgname)
+            if isinstance(error, AuthorizationFailed) and attempt == 1:
+                subprocess.Popen(POLICYKIT_AUTH_PATH)
+                time.sleep(1)
+                self.upgrade(pkgname, appname, iconname, metadata=metadata, attempt=2)
+            else:
+                self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove(self, pkgname, appname, iconname, metadata=None):
+    def remove(self, pkgname, appname, iconname, metadata=None, attempt=1):
         """ remove a single package """
         self.emit("transaction-started")
         try:
@@ -146,7 +160,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                                            defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
-            self._on_trans_error(error, pkgname)
+            if isinstance(error, AuthorizationFailed) and attempt == 1:
+                subprocess.Popen(POLICYKIT_AUTH_PATH)
+                time.sleep(1)
+                self.remove(pkgname, appname, iconname, metadata=metadata, attempt=2)
+            else:
+                self._on_trans_error(error, pkgname)
 
     @inline_callbacks
     def remove_multiple(self, pkgnames, appnames, iconnames, metadatas=None):
@@ -159,7 +178,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, filename=None, metadata=None):
+    def install(self, pkgname, appname, iconname, filename=None, metadata=None, attempt=1):
         """Install a single package from the archive
            If filename is given a local deb package is installed instead.
         """
@@ -173,7 +192,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                                             defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
-            self._on_trans_error(error, pkgname)
+            if isinstance(error, AuthorizationFailed) and attempt == 1:
+                subprocess.Popen(POLICYKIT_AUTH_PATH)
+                time.sleep(1)
+                self.install(pkgname, appname, iconname, filename=filename, metadata=metadata, attempt=2)
+            else:
+                self._on_trans_error(error, pkgname)
 
     @inline_callbacks
     def install_multiple(self, pkgnames, appnames, iconnames, metadatas=None):
@@ -186,24 +210,32 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.install(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def reload(self, metadata=None):
+    def reload(self, metadata=None, attempt=1):
         """ reload package list """
         try:
             trans = yield self.aptd_client.update_cache(defer=True)
             yield self._run_transaction(trans, None, None, None, metadata)
         except Exception, error:
-            self._on_trans_error(error)
+            if isinstance(error, AuthorizationFailed) and attempt == 1:
+                subprocess.Popen(POLICYKIT_AUTH_PATH)
+                time.sleep(1)
+                self.reload(metadata=metadata, attempt=2)
+            else:
+                self._on_trans_error(error)
 
     @inline_callbacks
-    def enable_component(self, component):
+    def enable_component(self, component, attempt=1):
         self._logger.debug("enable_component: %s" % component)
         try:
             yield self.aptd_client.enable_distro_component(component, defer=True)
-        except dbus.DBusException, err:
-            if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                self._logger.error("enable_component: '%s'" % err)
-                return
-            raise
+        except Exception, error:
+            if isinstance(error, AuthorizationFailed) and attempt == 1:
+                subprocess.Popen(POLICYKIT_AUTH_PATH)
+                time.sleep(1)
+                self.enable_component(component, attempt=2)
+            else:
+                self._on_trans_error(error, component)
+            return
         # now update the cache
         yield self.reload()
 
