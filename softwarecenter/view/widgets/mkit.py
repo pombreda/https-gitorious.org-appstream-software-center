@@ -402,12 +402,12 @@ class ShapeMidArrow(Shape):
     def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
         aw = kwargs['arrow_width']
 
-        cr.move_to(0, y)
+        cr.move_to(x, y)
         # arrow head
         cr.line_to(w-aw, y)
         cr.line_to(w-x+1, (h+y)/2)
         cr.line_to(w-aw, h)
-        cr.line_to(0, h)
+        cr.line_to(x, h)
         cr.close_path()
         return
 
@@ -431,11 +431,13 @@ class ShapeEndCap(Shape):
 
     def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
         r = kwargs['radius']
+        aw = kwargs['arrow_width']
 
         cr.move_to(x, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
         cr.line_to(x, h)
+        cr.line_to(x+aw, (h+y)/2)
         cr.close_path()
         return
 
@@ -604,16 +606,10 @@ class Style:
         if part.state != gtk.STATE_ACTIVE:
             r, g, b = self.light_line[state].floats()
             lin = cairo.LinearGradient(0, 0, 0, h)
-            lin.add_color_stop_rgba(0.0, r, g, b, alpha)
+            lin.add_color_stop_rgba(0.0, r, g, b, 0.7*alpha)
             lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
             cr.set_source(lin)
             cr.stroke()
-
-            shape.layout(cr, 2, 2, w-3, h-2, arrow_width=aw, radius=curv-1)
-            lin = cairo.LinearGradient(0, 0, 0, h)
-            lin.add_color_stop_rgba(0.0, r, g, b, alpha*0.3)
-            lin.add_color_stop_rgba(1.0, r, g, b, 0.05)
-            cr.set_source(lin)
         else:
             r, g, b = self.dark_line[state].floats()
             alpha *= 0.225
