@@ -9,6 +9,17 @@ software-center (2.1.11) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - use package info lines rather than package info tables
       (for devildante to use in the addons branch)
+  * softwarecenter/view/appview.py:
+    - don't show duplicate app/pkg (in channelviews)
+    - count pkgs when displaying pkgs and apps
+  * softwarecenter/view/availablepane.py:
+    - two way 'show/hide technical packages' action bar
+      (the number of technical pkgs to show is not very accurate)
+  * softwarecenter/view/channelpane.py:
+    - two way 'show/hide technical packages' action bar
+      (this is accurate, LP: #594833)
+  * softwarecenter/view/widgets/actionbar.py:
+    - disable text getting bold on hover
 
   [ Milo Casagrande ]
   * softwarecenter/db/application.py:

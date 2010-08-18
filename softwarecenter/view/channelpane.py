@@ -147,8 +147,6 @@ class ChannelPane(SoftwarePane):
             self.emit("app-list-changed", len(self.app_view.get_model()))
         else:
             logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
-        # reset nonapps
-        self.nonapps_visible = False
         return False
 
     def set_channel(self, channel):
@@ -237,24 +235,41 @@ class ChannelPane(SoftwarePane):
 
     def _update_action_bar(self):
         appstore = self.app_view.get_model()
-        # We want to display the label if there are hidden packages
-        # in the appstore.
-        if (appstore and
-            appstore.active and
-            not appstore.nonapps_visible and
-            appstore.nonapp_pkgs):
-            label = gettext.ngettext("_%i other_ technical item",
-                                     "_%i other_ technical items",
-                                     appstore.nonapp_pkgs
-                                     ) % appstore.nonapp_pkgs
-            self.action_bar.set_label(label, self._show_nonapp_pkgs)
-        else:
-            self.action_bar.unset_label()
+
+        # calculate the number of apps/pkgs
+        # yes, this is 'strange', but we have to deal with the existing appstore
+        if appstore and appstore.active:
+            if appstore.nonapps_visible:
+                pkgs = appstore.nonapp_pkgs
+                apps = len(appstore) - pkgs
+            else:
+                apps = len(appstore)
+                pkgs = appstore.nonapp_pkgs - apps
+            #print 'apps: ' + str(apps)
+            #print 'pkgs: ' + str(pkgs)
+
+        self.action_bar.unset_label()
+
+        if (appstore and appstore.active and not self.channel.installed_only and
+            pkgs != apps and pkgs > 0 and apps > 0):
+            if appstore.nonapps_visible:
+                label = gettext.ngettext("_Hide %i technical item_",
+                                         "_Hide %i technical items_",
+                                         pkgs) % pkgs
+                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
+            elif not appstore.nonapps_visible:
+                label = gettext.ngettext("_Show %i technical item_",
+                                         "_Show %i technical items_",
+                                         pkgs) % pkgs
+                self.action_bar.set_label(label, self._show_nonapp_pkgs)
 
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = True
         self.refresh_apps()
-        self._update_action_bar()
+
+    def _hide_nonapp_pkgs(self):
+        self.nonapps_visible = False
+        self.refresh_apps()
 
     def display_search(self):
         self.navigation_bar.remove_id("details")
