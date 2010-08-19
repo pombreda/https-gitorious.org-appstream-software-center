@@ -452,8 +452,8 @@ class AmbianceMaverick(DustSand):
         selected_color = color_from_string('#F07746')
         #selected_color = self.bg[gtk.STATE_NORMAL].mix(focus_color,
         #                                               0.65)
-        prelight_color = self.bg[gtk.STATE_NORMAL].mix(selected_color,
-                                                       0.5)
+        #prelight_color = self.bg[gtk.STATE_NORMAL].mix(selected_color,
+        #                                               0.5)
 
         # provide two colours per state for background vertical linear gradients
         palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL],
@@ -462,22 +462,30 @@ class AmbianceMaverick(DustSand):
                   gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_NORMAL].shade(0.94),
                                          self.bg[gtk.STATE_NORMAL].shade(0.65)),
 
-                  gtk.STATE_SELECTED:   (selected_color.shade(1.35),
-                                         selected_color.shade(1.05)),
+                  gtk.STATE_SELECTED:   (selected_color.shade(1.45),
+                                         selected_color.shade(1.15)),
     
-                  gtk.STATE_PRELIGHT:   (prelight_color.shade(1.175),
-                                         prelight_color.shade(1.05)),
+                  gtk.STATE_PRELIGHT:   (self.bg[gtk.STATE_PRELIGHT].shade(1.025),
+                                         self.bg[gtk.STATE_PRELIGHT].shade(0.925)),
 
                   gtk.STATE_INSENSITIVE: (self.bg[gtk.STATE_INSENSITIVE],
                                           self.bg[gtk.STATE_INSENSITIVE])
                   }
         return palette
 
+    def get_dark_line_palette(self):
+        palette = {gtk.STATE_NORMAL:      self.bg[gtk.STATE_NORMAL].shade(0.575),
+                   gtk.STATE_ACTIVE:      self.bg[gtk.STATE_ACTIVE].shade(0.5),
+                   gtk.STATE_PRELIGHT:    self.bg[gtk.STATE_PRELIGHT].shade(0.575),
+                   gtk.STATE_SELECTED:    self.bg[gtk.STATE_NORMAL].shade(0.575),
+                   gtk.STATE_INSENSITIVE: self.bg[gtk.STATE_NORMAL].darken()}
+        return palette
+
     def get_light_line_palette(self):
         palette = DustSand.get_light_line_palette(self)
         palette[gtk.STATE_NORMAL] = self.bg[gtk.STATE_NORMAL].shade(1.1)
-        selected_color = color_from_string('#D9C7BD')
-        palette[gtk.STATE_SELECTED] = selected_color.shade(1.12)
+        selected_color = color_from_string('#F07746')
+        palette[gtk.STATE_SELECTED] = selected_color.shade(1.525)
         return palette
 
 
