@@ -677,16 +677,23 @@ class Style:
     def paint_layout(self, cr, widget, part, x, y, clip=None, sxO=0, etched=True):
         layout = part.layout
 
+        a = 0.5
         if etched and CACHED_THEME_NAME == 'Ambiance-maverick-beta':
-            if part.state in (gtk.STATE_PRELIGHT, gtk.STATE_ACTIVE):
+            if part.state == gtk.STATE_PRELIGHT:
+                print 'Etched==False'
                 etched = False
+            if part.is_active:
+                if part.state == gtk.STATE_ACTIVE:
+                    a = 0.3
+                else:
+                    a = 0.4
 
         if etched:
             pcr = pangocairo.CairoContext(cr)
             pcr.move_to(x, y+1)
             pcr.layout_path(layout)
-            r,g,b = self.light_line[part.state].floats()
-            pcr.set_source_rgba(r,g,b,0.5)
+            r,g,b = self.light_line[gtk.STATE_NORMAL].floats()
+            pcr.set_source_rgba(r,g,b,a)
             pcr.fill()
 
         widget.style.paint_layout(widget.window,
