@@ -582,7 +582,12 @@ class Style:
         cr.translate(x-sxO, y)
 
         # bg linear vertical gradient
-        color1, color2 = self.gradients[state]
+        if state != gtk.STATE_ACTIVE or not part.is_active:
+            color1, color2 = self.gradients[state]
+        elif state == gtk.STATE_ACTIVE and part.is_active:
+            color1, color2 = self.gradients[gtk.STATE_SELECTED]
+            #color1 = color2
+            color1 = color2.shade(1.1)
 
         shape.layout(cr, 1, 1, w, h-1, arrow_width=aw, radius=curv)
         lin = cairo.LinearGradient(0, 0, 0, h)
@@ -616,7 +621,7 @@ class Style:
             cr.stroke()
         else:
             r, g, b = self.dark_line[state].floats()
-            alpha *= 0.225
+            alpha *= 0.23
             cr.set_source_rgba(r, g, b, alpha)
         cr.stroke()
 
@@ -673,7 +678,7 @@ class Style:
         layout = part.layout
 
         if etched and CACHED_THEME_NAME == 'Ambiance-maverick-beta':
-            if part.state == gtk.STATE_PRELIGHT and part.is_active:
+            if part.state in (gtk.STATE_PRELIGHT, gtk.STATE_ACTIVE) and part.is_active:
                 etched = False
 
         if etched:

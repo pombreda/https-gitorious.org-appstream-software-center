@@ -459,14 +459,14 @@ class AmbianceMaverick(DustSand):
         palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL],
                                          self.bg[gtk.STATE_NORMAL].shade(0.85)),
 
-                  gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_NORMAL].shade(0.94),
-                                         self.bg[gtk.STATE_NORMAL].shade(0.65)),
+                  gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_ACTIVE].shade(0.935),
+                                         self.bg[gtk.STATE_ACTIVE].shade(0.95)),
 
                   gtk.STATE_SELECTED:   (selected_color.shade(1.3),
                                          selected_color.shade(1.025)),
     
-                  gtk.STATE_PRELIGHT:   (self.bg[gtk.STATE_PRELIGHT].shade(1.025),
-                                         self.bg[gtk.STATE_PRELIGHT].shade(0.925)),
+                  gtk.STATE_PRELIGHT:   (self.bg[gtk.STATE_PRELIGHT].shade(0.99),
+                                         self.bg[gtk.STATE_PRELIGHT].shade(0.875)),
 
                   gtk.STATE_INSENSITIVE: (self.bg[gtk.STATE_INSENSITIVE],
                                           self.bg[gtk.STATE_INSENSITIVE])
