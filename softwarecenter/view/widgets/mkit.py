@@ -678,7 +678,7 @@ class Style:
         layout = part.layout
 
         if etched and CACHED_THEME_NAME == 'Ambiance-maverick-beta':
-            if part.state in (gtk.STATE_PRELIGHT, gtk.STATE_ACTIVE) and part.is_active:
+            if part.state in (gtk.STATE_PRELIGHT, gtk.STATE_ACTIVE):
                 etched = False
 
         if etched:
