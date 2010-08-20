@@ -661,6 +661,12 @@ class CellRendererButton2:
         self.layout = layout
         return
 
+
+    # Part compat
+    @property
+    def is_active(self):
+        return self.has_focus
+
     def configure_geometry(self, widget):
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
@@ -794,11 +800,12 @@ class CellRendererButton2:
                                      w+6, h)
 
         # etch
-        pcr = pangocairo.CairoContext(cr)
-        pcr.move_to(xo, y+ypad+1)
-        pcr.layout_path(layout)
-        pcr.set_source_rgba(*floats_from_gdkcolor_with_alpha(widget.style.light[self.state], 0.5))
-        pcr.fill()
+        if not (self.has_focus and self.state == gtk.STATE_PRELIGHT):
+            pcr = pangocairo.CairoContext(cr)
+            pcr.move_to(xo, y+ypad+1)
+            pcr.layout_path(layout)
+            pcr.set_source_rgba(*floats_from_gdkcolor_with_alpha(widget.style.light[self.state], 0.5))
+            pcr.fill()
 
         widget.style.paint_layout(window,
                                   self.state,
