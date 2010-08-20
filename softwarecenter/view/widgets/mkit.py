@@ -433,10 +433,10 @@ class ShapeEndCap(Shape):
         r = kwargs['radius']
         aw = kwargs['arrow_width']
 
-        cr.move_to(x, y)
+        cr.move_to(x-1, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(x, h)
+        cr.line_to(x-1, h)
         cr.line_to(x+aw, (h+y)/2)
         cr.close_path()
         return
@@ -571,6 +571,10 @@ class Style:
         curv = self["curvature"]
         aw = self["arrow-width"]
 
+        if CACHED_THEME_NAME == 'Ambiance-maverick-beta':
+            if state == gtk.STATE_PRELIGHT and part.is_active:
+                state = gtk.STATE_SELECTED
+
         cr.save()
         cr.rectangle(x, y, w+1, h)
 
@@ -667,6 +671,11 @@ class Style:
 
     def paint_layout(self, cr, widget, part, x, y, clip=None, sxO=0, etched=True):
         layout = part.layout
+
+        if etched and CACHED_THEME_NAME == 'Ambiance-maverick-beta':
+            if part.state == gtk.STATE_PRELIGHT and part.is_active:
+                etched = False
+
         if etched:
             pcr = pangocairo.CairoContext(cr)
             pcr.move_to(x, y+1)
@@ -908,7 +917,7 @@ class LinkButton(gtk.EventBox):
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
 
-        self.alignment = gtk.Alignment(xalign=0.5, yalign=0.55)
+        self.alignment = gtk.Alignment(xalign=0.5)
         self.add(self.alignment)
 
         self.label = gtk.Label()
@@ -1193,6 +1202,9 @@ class HLinkButton(LinkButton):
 
 class VLinkButton(LinkButton):
 
+    MAX_WIDTH  = None
+    MAX_HEIGHT = None
+
     def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
         LinkButton.__init__(self, markup, icon_name, icon_size)
 
@@ -1204,7 +1216,9 @@ class VLinkButton(LinkButton):
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
-            self.box.pack_end(self.label)
+            self.label_alignment = gtk.Alignment(0.5, 0, xscale=1.0)
+            self.box.pack_end(self.label_alignment)
+            self.label_alignment.add(self.label)
 
         self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
@@ -1223,4 +1237,19 @@ class VLinkButton(LinkButton):
 
         w += max(lw, iw)
         w += 2*self.get_border_width() + 2*self._xmargin
+        
+        if self.MAX_WIDTH and w > self.MAX_WIDTH:
+            if self.label:
+                self.label.set_line_wrap(True)
+                self.label.set_justify(gtk.JUSTIFY_CENTER)
+                self.connect('size-allocate', self._on_allocate_set_label_width)
+            return self.MAX_WIDTH
         return w
+    
+    def _on_allocate_set_label_width(self, widget, allocation):
+        if not self.label: return
+        layout = self.label.get_layout()
+        layout.set_width(pango.SCALE*self.MAX_WIDTH)
+        w, h = layout.get_pixel_extents()[1][2:]
+        self.label.set_size_request(w, h)
+        return

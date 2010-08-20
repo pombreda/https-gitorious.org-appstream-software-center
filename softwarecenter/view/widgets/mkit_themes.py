@@ -450,8 +450,8 @@ class AmbianceMaverick(DustSand):
 
     def get_grad_palette(self):
         selected_color = color_from_string('#F07746')
-        #selected_color = self.bg[gtk.STATE_NORMAL].mix(focus_color,
-        #                                               0.65)
+        selected_color = self.bg[gtk.STATE_NORMAL].mix(selected_color,
+                                                       0.85)
         #prelight_color = self.bg[gtk.STATE_NORMAL].mix(selected_color,
         #                                               0.5)
 
@@ -462,8 +462,8 @@ class AmbianceMaverick(DustSand):
                   gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_NORMAL].shade(0.94),
                                          self.bg[gtk.STATE_NORMAL].shade(0.65)),
 
-                  gtk.STATE_SELECTED:   (selected_color.shade(1.45),
-                                         selected_color.shade(1.15)),
+                  gtk.STATE_SELECTED:   (selected_color.shade(1.3),
+                                         selected_color.shade(1.025)),
     
                   gtk.STATE_PRELIGHT:   (self.bg[gtk.STATE_PRELIGHT].shade(1.025),
                                          self.bg[gtk.STATE_PRELIGHT].shade(0.925)),

@@ -734,15 +734,19 @@ class CategoryButton(mkit.HLinkButton):
         self.set_internal_spacing(mkit.SPACING_LARGE)
         self.set_border_width(mkit.BORDER_WIDTH_SMALL)
         return
-        
-        
+
+
 class SubcategoryButton(mkit.VLinkButton):
 
     ICON_SIZE = 48
+    MAX_WIDTH  = None#9*mkit.EM
+    MAX_HEIGHT = None#11*mkit.EM
 
     def __init__(self, markup, icon_name, icons):
         mkit.VLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
+        self.set_size_request(self.get_size_request()[0],
+                              self.MAX_HEIGHT or self.get_size_request()[1])
         return
 
 
