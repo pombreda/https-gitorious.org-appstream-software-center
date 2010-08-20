@@ -680,7 +680,6 @@ class Style:
         a = 0.5
         if etched and CACHED_THEME_NAME == 'Ambiance-maverick-beta':
             if part.state == gtk.STATE_PRELIGHT:
-                print 'Etched==False'
                 etched = False
             if part.is_active:
                 if part.state == gtk.STATE_ACTIVE:
