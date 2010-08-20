@@ -417,6 +417,7 @@ class PackageInfo(gtk.HBox):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_XLARGE)
         self.key = key
         self.value_object = gtk.Label()
+        self.a11y = self.get_accessible()
         self.connect('realize', self._on_realize)
         return
 
@@ -440,9 +441,7 @@ class PackageInfo(gtk.HBox):
         b.add(v)
         self.pack_start(b, False)
 
-        # a11y stuff
         self.set_property("can-focus", True)
-        self.a11y = self.get_accessible()
 
         self.show_all()
         return

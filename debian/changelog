@@ -6,6 +6,8 @@ software-center (2.1.11) UNRELEASED; urgency=low
     - fix crash in setting supported filter (LP: #618243)
   * softwarecenter/backend/aptd.py:
     - try to start policykit auth agent when it is not running (LP: #499937)
+  * softwarecenter/db/application.py:
+    - fail nicely on not available for architecture (mit-scheme)
   * softwarecenter/view/appdetailsview_gtk.py:
     - use package info lines rather than package info tables
       (for devildante to use in the addons branch)
