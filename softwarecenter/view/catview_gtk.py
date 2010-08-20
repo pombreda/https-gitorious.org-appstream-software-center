@@ -192,7 +192,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.hbox_inner.pack_start(self.featured_carousel, False)
 
         # create new-apps widget
-        new_cat = get_category_by_name(self.categories, 'New Applications')
+        new_cat = get_category_by_name(self.categories, 'What\u2019s New')
+        # "What's New", the name of a category of new stuff.
         if new_cat:
             new_apps = AppStore(self.cache,
                                 self.db,
@@ -205,14 +206,16 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                 global_icon_cache=False,
                                 nonapps_visible=True)
             self.newapps_carousel = CarouselView(
-                new_apps, _("What's New"), self.icons, start_random=False)
+                new_apps, _("What\u2019s New"), self.icons,
+                start_random=False)
+            # "What's New", the name of a category of new stuff.
             self.newapps_carousel.more_btn.connect('clicked',
                                            self._on_category_clicked,
                                            new_cat)
             # pack new carousel into hbox
             self.hbox_inner.pack_start(self.newapps_carousel, False)
 
-        # append carousel's to lobby page
+        # append carousels to lobby page
         self.vbox.pack_start(self.hbox_inner, False)
         return
 
