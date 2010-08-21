@@ -24,6 +24,7 @@ import gtk
 import cairo
 import pango
 import gobject
+import pangocairo
 
 from mkit_themes import Color, ColorArray, ThemeRegistry
 
@@ -708,7 +709,7 @@ class FramedSection(gtk.VBox):
         self.pack_start(self.footer_alignment, False)
 
         self.image = gtk.Image()
-        self.label = gtk.Label()
+        self.label = EtchedLabel()
 
         self.header.pack_start(self.label, False)
         if label_markup:
@@ -754,37 +755,24 @@ class FramedSection(gtk.VBox):
     def draw(self, cr, a, expose_area, draw_border=True):
         if not_overlapping(a, expose_area): return
 
-        cr.save()
-        cr.rectangle(a)
-        cr.clip()
+#        cr.save()
+#        cr.translate(0.5, 0.5)
+#        cr.rectangle(a)
+#        cr.clip_preserve()
 
-        a = self.header_alignment.allocation
+        #a = self.header_alignment.allocation
 
         # fill section white
-        rr = ShapeRoundedRectangle()
-        rr.layout(cr,
-                  a.x+1, a.y,
-                  a.x + a.width-1, a.y + a.height,
-                  radius=CORNER_RADIUS)
+        #cr.rectangle(a)
+        #cr.set_source_rgb(*floats_from_gdkcolor_wit(self.style.base[self.state]))
+        #cr.fill()
+        #cr.save()
+#        cr.set_line_width(1)
+#        cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[self.state]))
+#        cr.stroke()
+        #cr.restore()
 
-        cr.set_source_rgb(*floats_from_gdkcolor(self.style.bg[self.state]))
-        cr.fill()
-
-        #if draw_border:
-            #cr.save()
-            #cr.set_line_width(1)
-            #cr.translate(0.5, 0.5)
-            #rr.layout(cr,
-                      #a.x, a.y,
-                      #a.x + a.width-1, a.y + a.height,
-                      #radius=CORNER_RADIUS)
-
-            #cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[self.state]))
-            #cr.stroke_preserve()
-            #cr.stroke()
-            #cr.restore()
-
-        cr.restore()
+#        cr.restore()
         return
 
 
@@ -831,7 +819,7 @@ class LayoutView(FramedSection):
 
         # pack columns into widget
         for i in range(n_columns):
-            self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_SMALL))
+            self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_MED))
 
         # pack buttons into appropriate columns
         i = 0
@@ -899,7 +887,8 @@ class LinkButton(gtk.EventBox):
         self.alignment = gtk.Alignment(xalign=0.5, yalign=0.55)
         self.add(self.alignment)
 
-        self.label = gtk.Label()
+        self.label = EtchedLabel()
+        self.label.set_etching_rgba(1,1,1,0.55)
         self.image = gtk.Image()
 
         self._layout = None
@@ -1140,6 +1129,41 @@ class LinkButton(gtk.EventBox):
                                    self,
                                    'expander',
                                    x-3, y-1, w+6, h+2)
+        return
+
+
+class EtchedLabel(gtk.Label):
+    
+    def __init__(self, *args, **kwargs):
+        gtk.Label.__init__(self, *args, **kwargs)
+        self.rgba = 1,1,1,0.5
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def set_etching_rgba(self, r, g, b, a):
+        self.rgba = r, g, b, a
+        return
+
+    def _on_expose(self, widget, event):
+        l = self.get_layout()
+        a = widget.allocation
+        pc = pangocairo.CairoContext(widget.window.cairo_create())
+
+
+        x, y = a.x, a.y+1
+        lw, lh = l.get_pixel_extents()[1][2:]
+        ax, ay = self.get_alignment()
+
+        if lw < a.width:
+            x += int((a.width-lw)*ax)
+        if lh < a.height:
+            y += int((a.height-lh)*ay)
+
+        pc.move_to(x, y)
+        pc.layout_path(l)
+        pc.set_source_rgba(*self.rgba)
+        pc.fill()
+        del pc
         return
 
 

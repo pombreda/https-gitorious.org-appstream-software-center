@@ -38,7 +38,7 @@ CAROUSEL_ICON_SIZE =             4*mkit.EM
 #CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
 CAROUSEL_POSTER_MIN_WIDTH =      11*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
-CAROUSEL_PAGING_DOT_SIZE =       mkit.EM
+CAROUSEL_PAGING_DOT_SIZE =       max(6, int(0.6*mkit.EM+0.5))
 
 # as per spec transition timeout should be 15000 (15 seconds)
 CAROUSEL_TRANSITION_TIMEOUT =    15000
@@ -99,13 +99,16 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.db = db
         self.icons = icons
 
+        self.section_color = mkit.floats_from_string('#0769BC')
+        self.section_image = cairo.ImageSurface.create_from_png('data/images/clouds.png')
+
         gtk.Viewport.__init__(self)
         CategoriesView.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_LARGE)
         self.vbox.set_redraw_on_allocate(False)
         self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.add(self.vbox)
@@ -185,9 +188,9 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                  nonapps_visible=False)
 
         self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
-        self.featured_carousel.more_btn.connect('clicked',
-                                  self._on_category_clicked,
-                                  featured_cat)
+        #self.featured_carousel.more_btn.connect('clicked',
+        #                          self._on_category_clicked,
+        #                          featured_cat)
         # pack featured carousel into hbox
         self.hbox_inner.pack_start(self.featured_carousel, False)
 
@@ -201,14 +204,14 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                 new_cat.item_limit,
                                 new_cat.sortmode,
                                 self.apps_filter,
-                                icon_size=CAROUSEL_ICON_SIZE,
+                                icon_size=best_stock_size,
                                 global_icon_cache=False,
-                                nonapps_visible=True)
+                                nonapps_visible=False)
             self.newapps_carousel = CarouselView(
                 new_apps, _("What's New"), self.icons, start_random=False)
-            self.newapps_carousel.more_btn.connect('clicked',
-                                           self._on_category_clicked,
-                                           new_cat)
+            #self.newapps_carousel.more_btn.connect('clicked',
+            #                               self._on_category_clicked,
+            #                               new_cat)
             # pack new carousel into hbox
             self.hbox_inner.pack_start(self.newapps_carousel, False)
 
@@ -219,6 +222,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
     def _append_departments(self):
         # create departments widget
         self.departments = mkit.LayoutView()
+        self.departments.header_alignment.set_padding(3, 6, 0, 0)
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
@@ -369,28 +373,94 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         return
 
     def _on_expose(self, widget, event):
+        # context setup
         expose_area = event.area
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
         cr.clip_preserve()
 
+        # base color
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
 
-        # draw departments
-        if self.departments:
-            self.departments.draw(cr, self.departments.allocation, expose_area)
+        # sky
+        r,g,b = self.section_color
+        lin = cairo.LinearGradient(0,0,0,150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.3)
+        lin.add_color_stop_rgba(1, r,g,b,0)
+        cr.set_source(lin)
+        cr.rectangle(0,0,
+                     widget.allocation.width, 150)
+        cr.fill()
 
-        if not self.in_subsection:
-            # draw featured carousel
-            if self.featured_carousel:
-                self.featured_carousel.draw(cr,
-                                            self.featured_carousel.allocation,
-                                            expose_area)
-            if self.newapps_carousel:
-                self.newapps_carousel.draw(cr,
-                                           self.newapps_carousel.allocation,
-                                           expose_area)
+        # clouds
+        w = self.section_image.get_width()
+        cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
+        cr.paint()
+
+        
+        ## draw departments
+        #if self.departments:
+            #self.departments.draw(cr, self.departments.allocation, expose_area)
+
+        if self.in_subsection: return
+
+        ## draw carousels
+        #r,g,b = mkit.floats_from_string('#F27B4A')
+        r,g,b = mkit.floats_from_string('#FFA500')
+        #r,g,b = mkit.floats_from_string('#FF0000')
+
+
+        ca = self.hbox_inner.allocation
+        rr = mkit.ShapeRoundedRectangle()
+
+        lin = cairo.LinearGradient(ca.x, ca.y, ca.x, ca.y+ca.height)
+        lin.add_color_stop_rgba(0, r,g,b, 0.12)
+        lin.add_color_stop_rgba(0.52, r,g,b, 0.02)
+        lin.add_color_stop_rgba(1, r,g,b, 0.12)
+        cr.set_source(lin)
+        rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=3)
+        #cr.rectangle(ca)
+        cr.fill()
+
+        # outline
+        cr.save()
+        cr.translate(0.5,0.5)
+        #cr.rectangle(ca)
+        rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=3)
+        cr.set_line_width(1)
+        cr.set_source_rgb(r,g,b)
+        #cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.mid[self.state]))
+        cr.stroke()
+
+        # inline
+        rr.layout(cr, ca.x+1, ca.y+1, ca.x+ca.width-1, ca.y+ca.height-1, radius=2.5)
+        cr.set_source_rgba(1,1,1,0.85)
+        cr.stroke()
+
+        # midline
+        # orange
+
+        lin = cairo.LinearGradient(ca.x, ca.y, ca.x, ca.y+ca.height)
+        lin.add_color_stop_rgba(0.05, r,g,b, 0)
+        lin.add_color_stop_rgba(0.5, r,g,b, 0.8)
+        lin.add_color_stop_rgba(0.95, r,g,b, 0)
+        cr.set_source(lin)
+
+        cr.move_to(ca.x+ca.width/2, ca.y)
+        cr.rel_line_to(0, ca.height)
+        #cr.set_source_rgba(r,g,b, 0.5)
+        cr.stroke()
+
+        cr.restore()
+
+        # draw featured carousel
+        self.featured_carousel.draw(cr,
+                                        self.featured_carousel.allocation,
+                                        expose_area)
+        self.newapps_carousel.draw(cr,
+                                       self.newapps_carousel.allocation,
+                                       expose_area)
 
         del cr
         return
@@ -436,6 +506,8 @@ class CarouselView(mkit.FramedSection):
     def __init__(self, carousel_apps, title, icons, start_random=True):
         mkit.FramedSection.__init__(self)
 
+        self.label.set_etching_rgba(1,1,1,1)
+
         self.icons = icons
 
         self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
@@ -458,11 +530,11 @@ class CarouselView(mkit.FramedSection):
         self.set_label(H2 % title)
 
         label = _('All')
-        self.more_btn = mkit.HLinkButton(label)
-        self.more_btn.set_underline(True)
-        self.more_btn.set_subdued(True)
+        #self.more_btn = mkit.HLinkButton(label)
+        #self.more_btn.set_underline(True)
+        #self.more_btn.set_subdued(True)
 
-        self.header.pack_end(self.more_btn, False)
+        #self.header.pack_end(self.more_btn, False)
 
         if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
@@ -488,8 +560,8 @@ class CarouselView(mkit.FramedSection):
         return
 
     def _on_style_set(self, widget, old_style):
-        self.more_btn.label.realize()
-        self.more_btn.label.modify_text(gtk.STATE_NORMAL, self.style.dark[gtk.STATE_NORMAL])
+        #self.more_btn.label.realize()
+        #self.more_btn.label.modify_text(gtk.STATE_NORMAL, self.style.dark[gtk.STATE_NORMAL])
         return
 
     def _on_page_selected(self, page_sel, page):
@@ -696,7 +768,7 @@ class CarouselView(mkit.FramedSection):
         if mkit.not_overlapping(a, expose_area): return
         mkit.FramedSection.draw(self, cr, a, expose_area)
 
-        self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
+        #self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
         #self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
 
         if not self.carousel_apps: return
@@ -985,9 +1057,16 @@ class PagingDot(mkit.LinkButton):
 
     def draw(self, cr, a, expose_area, alpha):
         cr.save()
-        cr.rectangle(a)
-        cr.clip_preserve()
+        #cr.rectangle(a)
+        #cr.clip()
         r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+
+        
+        cr.save()
+        cr.translate(0.5,0.5)
+        cr.set_line_width(1)
+        c = mkit.ShapeCircle()
+        c.layout(cr, a.x, a.y, a.width, a.height)
 
         if self.is_selected:
             if self.state == gtk.STATE_PRELIGHT or self.has_focus():
