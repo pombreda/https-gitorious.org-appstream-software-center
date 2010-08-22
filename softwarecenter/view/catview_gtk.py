@@ -414,18 +414,12 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
             cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
             cr.paint()
 
-        ## draw departments
-        #if self.departments:
-            #self.departments.draw(cr, self.departments.allocation, expose_area)
-
         if self.in_subsection: return
 
         ## draw carousels
         #r,g,b = mkit.floats_from_string('#F27B4A')
         r,g,b = mkit.floats_from_string('#FFA500')
         #r,g,b = mkit.floats_from_string('#FF0000')
-
-
 
         ca = self.hbox_inner.allocation
         lin = cairo.LinearGradient(ca.x, ca.y+80, ca.x, ca.y+ca.height)
@@ -493,11 +487,28 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         cr.stroke()
 
         cairo.Context.reset_clip(cr)
+        cr.rectangle(ca.x+ca.width/2-1, ca.y+1, 1, ca.height)
+        cr.clip()
+        cr.set_source_rgba(1,1,1,0.2)
+        cr.mask(lin)
+
+        cairo.Context.reset_clip(cr)
         cr.rectangle(ca.x+ca.width/2, ca.y, 1, ca.height)
         cr.clip()
         cr.set_source_rgba(0,0,0,0.2)
         cr.mask(lin)
+
+        cairo.Context.reset_clip(cr)
+        cr.rectangle(ca.x+ca.width/2+1, ca.y+1, 1, ca.height)
+        cr.clip()
+        cr.set_source_rgba(1,1,1,0.2)
+        cr.mask(lin)
         cr.restore()
+
+
+
+        # draw departments
+        self.departments.draw(cr, self.departments.allocation, expose_area)
 
         # draw featured carousel
         self.featured_carousel.draw(cr,
@@ -562,7 +573,7 @@ class CarouselView(mkit.FramedSection):
     def __init__(self, carousel_apps, title, icons, start_random=True):
         mkit.FramedSection.__init__(self)
 
-        self.label.set_etching_rgba(1,1,1,1)
+        #self.label.set_etching_rgba(1,1,1,1)
 
         self.icons = icons
 
@@ -861,8 +872,8 @@ class CategoryButton(mkit.HLinkButton):
         self.set_internal_spacing(mkit.SPACING_LARGE)
         self.set_border_width(mkit.BORDER_WIDTH_SMALL)
         return
-        
-        
+
+
 class SubcategoryButton(mkit.VLinkButton):
 
     ICON_SIZE = 48
