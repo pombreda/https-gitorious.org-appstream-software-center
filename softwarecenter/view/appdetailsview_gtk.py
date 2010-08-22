@@ -482,11 +482,20 @@ class PackageInfoTable(gtk.VBox):
         self.license_label.set_text(license)
         self.support_label.set_text(updates)
 
+        import atk
         # set a11y texts
         for row in self.get_children():
+            k, l = row.get_children()
             key = row.a11y.get_name().split(":")[0]
-            value = row.get_children()[1].get_children()[0].get_text()
-            row.a11y.set_name(key + ': ' + value)
+            k = k.get_children()[0]
+            l = l.get_children()[0]
+            row.a11y.set_name(key + ': ' + l.get_text())
+
+            kacc = k.get_accessible()
+            lacc = l.get_accessible()
+
+            kacc.add_relationship(atk.RELATION_LABEL_FOR, lacc)
+            lacc.add_relationship(atk.RELATION_LABELLED_BY, kacc)
 
 class ScreenshotView(gtk.Alignment):
 

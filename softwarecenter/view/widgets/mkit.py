@@ -819,7 +819,7 @@ class LayoutView(FramedSection):
 
         # pack columns into widget
         for i in range(n_columns):
-            self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_MED))
+            self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_LARGE))
 
         # pack buttons into appropriate columns
         i = 0
