@@ -33,7 +33,7 @@ from softwarecenter.distro import get_distro
 from appview import AppView, AppStore, AppViewFilter
 
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
-from catview_gtk import CategoriesViewGtk as CategoriesView
+from catview_gtk import LobbyViewGtk, SubCategoryViewGtk
 from catview import Category
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
@@ -106,7 +106,7 @@ class AvailablePane(SoftwarePane):
         self.scroll_categories = gtk.ScrolledWindow()
         self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
-        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
+        self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
                                        self.cache,
                                        self.db,
                                        self.icons,
@@ -115,7 +115,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
 
         # sub-categories view
-        self.subcategories_view = CategoriesView(self.datadir,
+        self.subcategories_view = SubCategoryViewGtk(self.datadir,
                                                  APP_INSTALL_PATH,
                                                  self.cache,
                                                  self.db,

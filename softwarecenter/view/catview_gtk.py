@@ -90,8 +90,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                  db,
                  icons,
                  apps_filter,
-                 apps_limit=0,
-                 root_category=None):
+                 apps_limit=0):
 
         """ init the widget, takes
         
@@ -108,7 +107,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         self.section_color = mkit.floats_from_string('#0769BC')
         self.section_image = cairo.ImageSurface.create_from_png('data/images/clouds.png')
-        self.subsection_image = None
 
         gtk.Viewport.__init__(self)
         CategoriesView.__init__(self)
@@ -125,12 +123,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Departments"))
 
-        # append sections
-        self.featured_carousel = None
-        self.newapps_carousel = None
-        self.departments = None
-        self.welcome = None
-
         # appstore stuff
         self.categories = []
         self.header = ''
@@ -142,18 +134,170 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self._poster_sigs = []
 
         # FIXME: move this to shared code
-        if not root_category:
-            self.categories = self.parse_applications_menu(desktopdir)
-            self.in_subsection = False
-            self.header = _('Departments')
-            self._build_homepage_view()
-        else:
-            self.in_subsection = True
-            self.set_subcategory(root_category)
-
         self.vbox.connect('expose-event', self._on_expose)
         self.connect('size-allocate', self._on_allocate)
         self.connect('style-set', self._on_style_set)
+        return
+
+    def build(self, desktopdir):
+        pass
+
+    def _full_redraw_cb(self):
+        self.queue_draw()
+        return False
+
+    def _full_redraw(self):
+        # If we relied on a single queue_draw newly exposed (previously
+        # clipped) regions of the Viewport are blighted with
+        # visual artefacts, so...
+
+        # Two draws are queued; one immediately and one as an idle process
+
+        # The immediate draw results in visual artefacts
+        # but without which the resize feels 'laggy'.
+        # The idle redraw cleans up the regions affected by 
+        # visual artefacts.
+
+        # This all seems to happen fast enough such that the user will
+        # not to notice the temporary visual artefacts.  Peace out.
+
+        self.queue_draw()
+        gobject.idle_add(self._full_redraw_cb)
+        return
+
+    def _get_best_fit_width(self):
+        if not self.parent: return 1
+        # parent alllocation less the sum of all border widths
+        return self.parent.allocation.width - 4*mkit.BORDER_WIDTH_LARGE
+
+    def _on_style_set(self, widget, old_style):
+        mkit.update_em_metrics()
+        self.queue_draw()
+        return
+
+    def _on_app_clicked(self, btn):
+        app = btn.app
+        appname = app[AppStore.COL_APP_NAME]
+        pkgname = app[AppStore.COL_PKGNAME]
+        popcon = app[AppStore.COL_POPCON]
+        self.emit("application-activated", Application(appname, pkgname, "", popcon))
+        return False
+
+    def _on_category_clicked(self, cat_btn, cat):
+        """emit the category-selected signal when a category was clicked"""
+        self._logger.debug("on_category_changed: %s" % cat.name)
+        self.emit("category-selected", cat)
+        return
+
+    def _image_path(self,name):
+        return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
+
+    def set_section_color(self, color):
+        self.section_color = color
+        return
+
+    def set_section_image(self, image):
+        self.section_image = image
+        return
+
+
+
+class LobbyViewGtk(CategoriesViewGtk):
+
+    def __init__(self, 
+                 datadir,
+                 desktopdir, 
+                 cache,
+                 db,
+                 icons,
+                 apps_filter,
+                 apps_limit=0):
+        CategoriesViewGtk.__init__(self, 
+                 datadir,
+                 desktopdir, 
+                 cache,
+                 db,
+                 icons,
+                 apps_filter,
+                 apps_limit=0)
+
+        # sections
+        self.featured_carousel = None
+        self.newapps_carousel = None
+        self.departments = None
+        self.build(desktopdir)
+        return
+
+    def _on_allocate(self, widget, allocation):
+        if self._prev_width != widget.parent.allocation.width:
+            self._prev_width = widget.parent.allocation.width
+            best_fit = self._get_best_fit_width()
+
+            self.featured_carousel.set_width(best_fit/2)
+            self.newapps_carousel.set_width(best_fit/2)
+            self.departments.set_width(best_fit)
+
+            # cleanup any signals, its ok if there are none
+            self._cleanup_poster_sigs()
+            self._full_redraw()
+        else:
+            self.queue_draw()
+        return
+
+    def _on_expose(self, widget, event):
+        # context setup
+        expose_area = event.area
+        cr = widget.window.cairo_create()
+        cr.rectangle(expose_area)
+        cr.clip_preserve()
+
+        # base color
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
+        cr.fill()
+
+        # sky
+        r,g,b = self.section_color
+        lin = cairo.LinearGradient(0,0,0,150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.3)
+        lin.add_color_stop_rgba(1, r,g,b,0)
+        cr.set_source(lin)
+        cr.rectangle(0,0,
+                     widget.allocation.width, 150)
+        cr.fill()
+
+        # clouds
+        if isinstance(self.section_image, cairo.ImageSurface):
+            w = self.section_image.get_width()
+            cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
+            cr.paint()
+
+        # draw featured carousel
+        self.featured_carousel.draw(cr,
+                                    self.featured_carousel.allocation,
+                                    expose_area)
+        self.newapps_carousel.draw(cr,
+                                   self.newapps_carousel.allocation,
+                                   expose_area)
+
+        # draw departments
+        self.departments.draw(cr, self.departments.allocation, expose_area)
+        del cr
+        return
+
+    def _on_show_all_clicked(self, show_all_btn):
+        self.emit("show-category-applist")
+
+    def _cleanup_poster_sigs(self):
+        # clean-up and connect signal handlers
+        for sig_id in self._poster_sigs:
+            gobject.source_remove(sig_id)
+        self._poster_sigs = []
+        if self.featured_carousel:
+            for poster in self.featured_carousel.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        if self.newapps_carousel:
+            for poster in self.newapps_carousel.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
         return
 
     def _build_homepage_view(self):
@@ -161,12 +305,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         # changing order of methods changes order that they appear in the page
         self._append_departments()
         self._append_featured_and_new()
-        return
-
-    def _build_subcat_view(self, root_category, num_items):
-        # these methods add sections to the page
-        # changing order of methods changes order that they appear in the page
-        self._append_subcat_departments(root_category, num_items)
         return
 
     def _append_featured_and_new(self):
@@ -259,7 +397,94 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
         return
-        
+
+    def start_carousels(self):
+        self.featured_carousel.start()
+        self.newapps_carousel.start()
+        return
+
+    def stop_carousels(self):
+        self.featured_carousel.stop()
+        self.newapps_carousel.start()
+        return
+
+    def build(self, desktopdir):
+        self.categories = self.parse_applications_menu(desktopdir)
+        self.header = _('Departments')
+        self._build_homepage_view()
+        return
+
+
+class SubCategoryViewGtk(CategoriesViewGtk):
+
+    def __init__(self, 
+                 datadir,
+                 desktopdir, 
+                 cache,
+                 db,
+                 icons,
+                 apps_filter,
+                 apps_limit=0,
+                 root_category=None):
+        CategoriesViewGtk.__init__(self, 
+                 datadir,
+                 desktopdir, 
+                 cache,
+                 db,
+                 icons,
+                 apps_filter,
+                 apps_limit)
+
+        self.root_category = root_category
+
+        # sections
+        self.departments = None
+        self.build(desktopdir)
+        return
+
+    def _on_allocate(self, widget, allocation):
+        if self._prev_width != widget.parent.allocation.width and \
+            self.departments:
+            self._prev_width = widget.parent.allocation.width
+            best_fit = self._get_best_fit_width()
+            self.departments.set_width(best_fit)
+            self._full_redraw()
+        else:
+            self.queue_draw()
+        return
+
+    def _on_expose(self, widget, event):
+        # context setup
+        expose_area = event.area
+        cr = widget.window.cairo_create()
+        cr.rectangle(expose_area)
+        cr.clip_preserve()
+
+        # base color
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
+        cr.fill()
+
+        # sky
+        r,g,b = self.section_color
+        lin = cairo.LinearGradient(0,0,0,150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.3)
+        lin.add_color_stop_rgba(1, r,g,b,0)
+        cr.set_source(lin)
+        cr.rectangle(0,0,
+                     widget.allocation.width, 150)
+        cr.fill()
+
+        # clouds
+        if isinstance(self.section_image, cairo.ImageSurface):
+            w = self.section_image.get_width()
+            cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
+            cr.paint()
+
+        # draw departments
+        self.departments.draw(cr, self.departments.allocation, expose_area)
+        del cr
+        return
+
     def _append_subcat_departments(self, root_category, num_items):
         # create departments widget
         if not self.departments:
@@ -304,155 +529,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.departments.set_width(best_fit)
         return
 
-    def _full_redraw_cb(self):
-        self.queue_draw()
-        return False
-
-    def _full_redraw(self):
-        # If we relied on a single queue_draw newly exposed (previously
-        # clipped) regions of the Viewport are blighted with
-        # visual artefacts, so...
-
-        # Two draws are queued; one immediately and one as an idle process
-
-        # The immediate draw results in visual artefacts
-        # but without which the resize feels 'laggy'.
-        # The idle redraw cleans up the regions affected by 
-        # visual artefacts.
-
-        # This all seems to happen fast enough such that the user will
-        # not to notice the temporary visual artefacts.  Peace out.
-
-        self.queue_draw()
-        gobject.idle_add(self._full_redraw_cb)
-        return
-
-    def _get_best_fit_width(self):
-        if not self.parent: return 1
-        # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - 4*mkit.BORDER_WIDTH_LARGE
-
-    def _on_style_set(self, widget, old_style):
-        mkit.update_em_metrics()
-        self.queue_draw()
-        return
-
-    def _on_app_clicked(self, btn):
-        app = btn.app
-        appname = app[AppStore.COL_APP_NAME]
-        pkgname = app[AppStore.COL_PKGNAME]
-        popcon = app[AppStore.COL_POPCON]
-        self.emit("application-activated", Application(appname, pkgname, "", popcon))
-        return False
-
-    def _on_category_clicked(self, cat_btn, cat):
-        """emit the category-selected signal when a category was clicked"""
-        self._logger.debug("on_category_changed: %s" % cat.name)
-        self.emit("category-selected", cat)
-        return
-
-    def _on_show_hide_carousel_clicked(self, btn, carousel):
-        carousel_visible = self.carousel.get_carousel_visible()
-        if carousel_visible:
-            carousel.show_carousel(False)
-        else:
-            carousel.show_carousel(True)
-            self._cleanup_poster_sigs()
-
-        self._full_redraw()
-        return
-
-    def _on_allocate(self, widget, allocation):
-        if self._prev_width != widget.parent.allocation.width:
-            self._prev_width = widget.parent.allocation.width
-            best_fit = self._get_best_fit_width()
-
-            if self.featured_carousel:
-                self.featured_carousel.set_width(best_fit/2)
-            if self.newapps_carousel:
-                self.newapps_carousel.set_width(best_fit/2)
-            if self.departments:
-                self.departments.set_width(best_fit)
-
-            # cleanup any signals, its ok if there are none
-            self._cleanup_poster_sigs()
-
-        self._full_redraw()   #  ewww
-        return
-
-    def _on_expose(self, widget, event):
-        # context setup
-        expose_area = event.area
-        cr = widget.window.cairo_create()
-        cr.rectangle(expose_area)
-        cr.clip_preserve()
-
-        # base color
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
-        cr.fill()
-
-        # sky
-        r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,0,0,150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,
-                     widget.allocation.width, 150)
-        cr.fill()
-
-        # clouds
-
-        # subsection
-        if isinstance(self.subsection_image, gtk.gdk.Pixbuf):
-            w = self.subsection_image.get_width()
-            h = self.subsection_image.get_height()
-            cr.set_source_pixbuf(self.subsection_image, widget.allocation.width-w, 0)
-            cr.paint_with_alpha(0.4)
-        elif isinstance(self.section_image, cairo.ImageSurface):
-            w = self.section_image.get_width()
-            cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
-            cr.paint()
-
-        if not self.in_subsection:
-            # draw featured carousel
-            self.featured_carousel.draw(cr,
-                                            self.featured_carousel.allocation,
-                                            expose_area)
-            self.newapps_carousel.draw(cr,
-                                           self.newapps_carousel.allocation,
-                                           expose_area)
-
-        # draw departments
-        self.departments.draw(cr, self.departments.allocation, expose_area)
-        del cr
-        return
-
-    def _cleanup_poster_sigs(self):
-        # clean-up and connect signal handlers
-        for sig_id in self._poster_sigs:
-            gobject.source_remove(sig_id)
-        self._poster_sigs = []
-        if self.featured_carousel:
-            for poster in self.featured_carousel.posters:
-                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
-        if self.newapps_carousel:
-            for poster in self.newapps_carousel.posters:
-                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
-        return
-
-    def _image_path(self,name):
-        return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
-        
-    def _on_show_all_clicked(self, show_all_btn):
-        self.emit("show-category-applist")
-
-    def start_carousels(self):
-        self.featured_carousel.start()
-        return
-
-    def stop_carousels(self):
-        self.featured_carousel.stop()
+    def _build_subcat_view(self, root_category, num_items):
+        # these methods add sections to the page
+        # changing order of methods changes order that they appear in the page
+        self._append_subcat_departments(root_category, num_items)
         return
 
     def set_subcategory(self, root_category, num_items=0, block=False):
@@ -466,12 +546,9 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self._build_subcat_view(root_category, num_items)
         return
 
-    def set_section_color(self, color):
-        self.section_color = color
-        return
-
-    def set_section_image(self, image):
-        self.section_image = image
+    def build(self, desktopdir):
+        self.in_subsection = True
+        self.set_subcategory(self.root_category)
         return
 
 
