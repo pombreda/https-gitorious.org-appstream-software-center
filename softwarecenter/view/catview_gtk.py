@@ -480,7 +480,7 @@ class CarouselView(mkit.FramedSection):
     def __init__(self, carousel_apps, title, icons, start_random=True):
         mkit.FramedSection.__init__(self)
 
-        #self.label.set_etching_rgba(1,1,1,1)
+        self.label.set_etching_rgba(1,1,1,0.8)
 
         self.icons = icons
 
@@ -936,12 +936,18 @@ class CarouselPoster(mkit.VLinkButton):
         cr.rectangle(a)
         cr.clip()
 
-        self.alpha = alpha
-        self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
-
         la = self.label.allocation  # label allocation
         ia = self.image.allocation
         layout = self.label.get_layout()
+
+        surf = SHADOW_CACHE['bloom96']
+        x = ia.x + (ia.width-96)/2
+        y = ia.y + (ia.height-96)/2 + 5
+        cr.set_source_surface(surf, x, y)
+        cr.paint_with_alpha(0.5)
+
+        self.alpha = alpha
+        self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
 
         if alpha < 1.0:
             # text colour from gtk.Style

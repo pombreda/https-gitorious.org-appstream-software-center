@@ -938,7 +938,6 @@ class LinkButton(gtk.EventBox):
     def _on_realize(self, widget):
         self.set_size_request(self.calc_width(), 
                               self.get_size_request()[1])
-        
         if self._subdued:
             self._colorise_label_normal()
         return
@@ -957,7 +956,8 @@ class LinkButton(gtk.EventBox):
 
         cr.rectangle(a)
         cr.clip_preserve()
-        cr.set_source_rgba(1,1,1, 0.33*self.alpha)
+        r,g,b = floats_from_string('#FFFFC1')
+        cr.set_source_rgba(r,g,b, 0.33*self.alpha)
         cr.mask_surface(self._image_surface, x, y)
         return True
 
