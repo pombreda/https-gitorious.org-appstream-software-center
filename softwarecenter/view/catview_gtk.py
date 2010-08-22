@@ -31,10 +31,10 @@ from softwarecenter.distro import get_distro
 from catview import *
 
 
-SHADOW_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/rshadow-n.png'),
-                'w' : cairo.ImageSurface.create_from_png('data/images/rshadow-w.png'),
-                'e' : cairo.ImageSurface.create_from_png('data/images/rshadow-e.png'),
-                'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom.png')}
+SURFACE_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/rshadow-n.png'),
+                 'w' : cairo.ImageSurface.create_from_png('data/images/rshadow-w.png'),
+                 'e' : cairo.ImageSurface.create_from_png('data/images/rshadow-e.png'),
+                 'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom.png')}
 
 
 
@@ -754,15 +754,15 @@ class CarouselView(mkit.FramedSection):
         cr.mask(lin)
 
         #rr = mkit.ShapeRoundedRectangle()
-        shad = SHADOW_CACHE['w']
+        shad = SURFACE_CACHE['w']
         cr.set_source_surface(shad, ca.x-7, ca.y-5)
         #cr.paint()
         cr.mask(lin)
-        shad = SHADOW_CACHE['e']
+        shad = SURFACE_CACHE['e']
         cr.set_source_surface(shad, ca.x+ca.width-34, ca.y-5)
         cr.mask(lin)
 
-        shad = SHADOW_CACHE['n']
+        shad = SURFACE_CACHE['n']
         cr.save()
         w = shad.get_width()
         xo = 0
@@ -940,7 +940,7 @@ class CarouselPoster(mkit.VLinkButton):
         ia = self.image.allocation
         layout = self.label.get_layout()
 
-        surf = SHADOW_CACHE['bloom96']
+        surf = SURFACE_CACHE['bloom96']
         x = ia.x + (ia.width-96)/2
         y = ia.y + (ia.height-96)/2 + 5
         cr.set_source_surface(surf, x, y)
