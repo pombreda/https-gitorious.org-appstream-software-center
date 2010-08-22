@@ -34,7 +34,7 @@ from catview import *
 SHADOW_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/rshadow-n.png'),
                 'w' : cairo.ImageSurface.create_from_png('data/images/rshadow-w.png'),
                 'e' : cairo.ImageSurface.create_from_png('data/images/rshadow-e.png'),
-                'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom96.png')}
+                'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom.png')}
 
 
 
@@ -944,7 +944,7 @@ class CarouselPoster(mkit.VLinkButton):
         x = ia.x + (ia.width-96)/2
         y = ia.y + (ia.height-96)/2 + 5
         cr.set_source_surface(surf, x, y)
-        cr.paint_with_alpha(0.5)
+        cr.paint_with_alpha(0.333)
 
         self.alpha = alpha
         self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
