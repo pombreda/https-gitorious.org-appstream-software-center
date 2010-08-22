@@ -31,9 +31,9 @@ from softwarecenter.distro import get_distro
 from catview import *
 
 
-SHADOW_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/shadow-n.png'),
-                'w' : cairo.ImageSurface.create_from_png('data/images/shadow-w.png'),
-                'e' : cairo.ImageSurface.create_from_png('data/images/shadow-e.png'),
+SHADOW_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/rshadow-n.png'),
+                'w' : cairo.ImageSurface.create_from_png('data/images/rshadow-w.png'),
+                'e' : cairo.ImageSurface.create_from_png('data/images/rshadow-e.png'),
                 'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom96.png')}
 
 
@@ -435,21 +435,21 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         #rr = mkit.ShapeRoundedRectangle()
         shad = SHADOW_CACHE['w']
-        cr.set_source_surface(shad, ca.x-6, ca.y-6)
+        cr.set_source_surface(shad, ca.x-7, ca.y-5)
         #cr.paint()
         cr.mask(lin)
         shad = SHADOW_CACHE['e']
-        cr.set_source_surface(shad, ca.x+ca.width-41, ca.y-6)
+        cr.set_source_surface(shad, ca.x+ca.width-34, ca.y-5)
         cr.mask(lin)
 
         shad = SHADOW_CACHE['n']
         cr.save()
         w = shad.get_width()
         xo = 0
-        cr.rectangle(ca.x+43, ca.y-6, ca.width-84, shad.get_height())
+        cr.rectangle(ca.x+34, ca.y-5, ca.width-68, shad.get_height())
         cr.clip()
         for i in range(ca.width/w + 1):
-            cr.set_source_surface(shad, ca.x+43+xo, ca.y-6)
+            cr.set_source_surface(shad, ca.x+34+xo, ca.y-5)
             cr.paint()
             xo+=w
 
@@ -481,7 +481,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         ## midline
         cr.save()
-        cr.rectangle(ca.x+1, ca.y-1, ca.width, ca.height)
+        #cr.rectangle(ca.x+1, ca.y-1, ca.width, ca.height)
+
+        rr = mkit.ShapeRoundedRectangle()
+        rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=4.5)
         cr.clip_preserve()
         cr.set_source_rgba(r,g,b,0.3)
         cr.mask(lin)
@@ -490,7 +493,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         cr.stroke()
 
         cairo.Context.reset_clip(cr)
-        cr.rectangle(ca.x+ca.width/2, ca.y-1, 1, ca.height)
+        cr.rectangle(ca.x+ca.width/2, ca.y, 1, ca.height)
         cr.clip()
         cr.set_source_rgba(0,0,0,0.2)
         cr.mask(lin)
