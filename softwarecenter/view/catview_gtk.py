@@ -400,12 +400,12 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def start_carousels(self):
         self.featured_carousel.start()
-        self.newapps_carousel.start()
+        self.newapps_carousel.start(offset=5000)
         return
 
     def stop_carousels(self):
         self.featured_carousel.stop()
-        self.newapps_carousel.start()
+        self.newapps_carousel.stop()
         return
 
     def build(self, desktopdir):
@@ -761,11 +761,19 @@ class CarouselView(mkit.FramedSection):
             gobject.source_remove(self._trans_id)
         return
 
-    def start(self):
+    def start(self, offset=0):
         if self._is_playing: return
         self._is_playing = True
-        self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
+        if not offset:
+            self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
                                              self.transition)
+            return
+
+        def _offset_start_cb():
+            self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
+                                         self.transition)
+            return False
+        gobject.timeout_add(offset, _offset_start_cb)
         return
 
     def restart(self):
