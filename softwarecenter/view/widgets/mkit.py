@@ -894,7 +894,6 @@ class LinkButton(gtk.EventBox):
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
-        self._fixed_width = None
         self._markup = None
         self._use_underline = False
         self._subdued = False
@@ -1124,14 +1123,6 @@ class LinkButton(gtk.EventBox):
 
     def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
         if not_overlapping(a, expose_area): return
-
-        # for testing
-        #cr.save()
-        #cr.rectangle(a)
-        #cr.clip_preserve()
-        #cr.set_source_rgb(1, 0, 0)
-        #cr.stroke()
-        #cr.restore()
 
         if self.has_focus() and focus_draw:
             a = self.label.allocation

@@ -573,8 +573,6 @@ class CarouselView(mkit.FramedSection):
         self.title = title
         self.posters = []
         self.n_posters = 0
-        self._show_carousel = True
-
         self.set_redraw_on_allocate(False)
         self.carousel_apps = carousel_apps  # an AppStore
 
@@ -599,6 +597,7 @@ class CarouselView(mkit.FramedSection):
             self._offset = 0
 
         self._is_playing = False
+        self._play_offset = 0
         self._width = 0
         self._alpha = 1.0
         self._fader = 0
@@ -773,12 +772,14 @@ class CarouselView(mkit.FramedSection):
             self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
                                          self.transition)
             return False
+
+        self._play_offset = 0
         gobject.timeout_add(offset, _offset_start_cb)
         return
 
     def restart(self):
         self.stop()
-        self.start()
+        self.start(self._play_offset)
         return
 
     def next(self):
