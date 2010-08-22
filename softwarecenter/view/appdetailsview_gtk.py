@@ -1327,6 +1327,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
 
+    def set_section_color(self, color):
+        self.section_color = color
+        return
+
+    def set_section_image(self, image):
+        self.section_image = image
+        return
+
+
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

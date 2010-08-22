@@ -30,6 +30,7 @@ import os
 import subprocess
 import sys
 import xapian
+import cairo
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
@@ -39,6 +40,7 @@ from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 import softwarecenter.view.dialogs as dialogs
+from softwarecenter.view.widgets.mkit import floats_from_string
 
 import view.dialogs
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
@@ -199,6 +201,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             datadir,
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
+
+
+        color = floats_from_string('#0769BC')
+        image = cairo.ImageSurface.create_from_png('data/images/clouds.png')
+        self.available_pane.set_section_color(color)
+        self.available_pane.set_section_image(image)
+
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_AVAILABLE)
@@ -241,6 +250,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.distro,
                                             self.icons,
                                             datadir)
+        
+        color = floats_from_string('#aea79f')
+        image = cairo.ImageSurface.create_from_png('data/images/arrows.png')
+        self.installed_pane.set_section_color(color)
+        self.installed_pane.set_section_image(image)
+        
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_INSTALLED)

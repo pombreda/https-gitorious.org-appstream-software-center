@@ -31,6 +31,13 @@ from softwarecenter.distro import get_distro
 from catview import *
 
 
+SHADOW_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/shadow-n.png'),
+                'w' : cairo.ImageSurface.create_from_png('data/images/shadow-w.png'),
+                'e' : cairo.ImageSurface.create_from_png('data/images/shadow-e.png'),
+                'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom96.png')}
+
+
+
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
@@ -101,6 +108,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         self.section_color = mkit.floats_from_string('#0769BC')
         self.section_image = cairo.ImageSurface.create_from_png('data/images/clouds.png')
+        self.subsection_image = None
 
         gtk.Viewport.__init__(self)
         CategoriesView.__init__(self)
@@ -108,7 +116,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_LARGE)
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
         self.vbox.set_redraw_on_allocate(False)
         self.vbox.set_border_width(mkit.BORDER_WIDTH_LARGE)
         self.add(self.vbox)
@@ -175,7 +183,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         # so based on the value of 4*em we try to choose a sane stock
         # icon size
-        best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
+        best_stock_size = mkit.get_nearest_stock_size(64)
         featured_apps = AppStore(self.cache,
                                  self.db, 
                                  self.icons,
@@ -188,9 +196,9 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                  nonapps_visible=False)
 
         self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
-        #self.featured_carousel.more_btn.connect('clicked',
-        #                          self._on_category_clicked,
-        #                          featured_cat)
+        self.featured_carousel.more_btn.connect('clicked',
+                                  self._on_category_clicked,
+                                  featured_cat)
         # pack featured carousel into hbox
         self.hbox_inner.pack_start(self.featured_carousel, False)
 
@@ -209,9 +217,9 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                 nonapps_visible=False)
             self.newapps_carousel = CarouselView(
                 new_apps, _("What's New"), self.icons, start_random=False)
-            #self.newapps_carousel.more_btn.connect('clicked',
-            #                               self._on_category_clicked,
-            #                               new_cat)
+            self.newapps_carousel.more_btn.connect('clicked',
+                                           self._on_category_clicked,
+                                           new_cat)
             # pack new carousel into hbox
             self.hbox_inner.pack_start(self.newapps_carousel, False)
 
@@ -394,11 +402,18 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         cr.fill()
 
         # clouds
-        w = self.section_image.get_width()
-        cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
-        cr.paint()
 
-        
+        # subsection
+        if isinstance(self.subsection_image, gtk.gdk.Pixbuf):
+            w = self.subsection_image.get_width()
+            h = self.subsection_image.get_height()
+            cr.set_source_pixbuf(self.subsection_image, widget.allocation.width-w, 0)
+            cr.paint_with_alpha(0.4)
+        elif isinstance(self.section_image, cairo.ImageSurface):
+            w = self.section_image.get_width()
+            cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
+            cr.paint()
+
         ## draw departments
         #if self.departments:
             #self.departments.draw(cr, self.departments.allocation, expose_area)
@@ -411,47 +426,74 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         #r,g,b = mkit.floats_from_string('#FF0000')
 
 
+
         ca = self.hbox_inner.allocation
-        rr = mkit.ShapeRoundedRectangle()
+        lin = cairo.LinearGradient(ca.x, ca.y+80, ca.x, ca.y+ca.height)
+        lin.add_color_stop_rgba(0,0,0,0,1)
+        lin.add_color_stop_rgba(1,0,0,0,0)
+        cr.mask(lin)
 
-        lin = cairo.LinearGradient(ca.x, ca.y, ca.x, ca.y+ca.height)
-        lin.add_color_stop_rgba(0, r,g,b, 0.12)
-        lin.add_color_stop_rgba(0.52, r,g,b, 0.02)
-        lin.add_color_stop_rgba(1, r,g,b, 0.12)
-        cr.set_source(lin)
-        rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=3)
-        #cr.rectangle(ca)
-        cr.fill()
+        #rr = mkit.ShapeRoundedRectangle()
+        shad = SHADOW_CACHE['w']
+        cr.set_source_surface(shad, ca.x-6, ca.y-6)
+        #cr.paint()
+        cr.mask(lin)
+        shad = SHADOW_CACHE['e']
+        cr.set_source_surface(shad, ca.x+ca.width-41, ca.y-6)
+        cr.mask(lin)
 
-        # outline
+        shad = SHADOW_CACHE['n']
         cr.save()
-        cr.translate(0.5,0.5)
-        #cr.rectangle(ca)
-        rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=3)
-        cr.set_line_width(1)
-        cr.set_source_rgb(r,g,b)
-        #cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.mid[self.state]))
+        w = shad.get_width()
+        xo = 0
+        cr.rectangle(ca.x+43, ca.y-6, ca.width-84, shad.get_height())
+        cr.clip()
+        for i in range(ca.width/w + 1):
+            cr.set_source_surface(shad, ca.x+43+xo, ca.y-6)
+            cr.paint()
+            xo+=w
+
+        cr.restore()
+
+        #lin = cairo.LinearGradient(ca.x, ca.y, ca.x, ca.y+ca.height)
+        #lin.add_color_stop_rgba(0, r,g,b, 0.12)
+        #lin.add_color_stop_rgba(0.52, r,g,b, 0.02)
+        #lin.add_color_stop_rgba(1, r,g,b, 0.12)
+        #cr.set_source(lin)
+        #rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=3)
+        ##cr.rectangle(ca)
+        #cr.fill()
+
+        ## outline
+        #cr.save()
+        #cr.translate(0.5,0.5)
+        ##cr.rectangle(ca)
+        #rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=3)
+        #cr.set_line_width(1)
+        #cr.set_source_rgb(r,g,b)
+        ##cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.mid[self.state]))
+        #cr.stroke()
+
+        ## inline
+        #rr.layout(cr, ca.x+1, ca.y+1, ca.x+ca.width-1, ca.y+ca.height-1, radius=2.5)
+        #cr.set_source_rgba(1,1,1,0.85)
+        #cr.stroke()
+
+        ## midline
+        cr.save()
+        cr.rectangle(ca.x+1, ca.y-1, ca.width, ca.height)
+        cr.clip_preserve()
+        cr.set_source_rgba(r,g,b,0.3)
+        cr.mask(lin)
+
+        cr.set_source_rgba(1,1,1,0.5)
         cr.stroke()
 
-        # inline
-        rr.layout(cr, ca.x+1, ca.y+1, ca.x+ca.width-1, ca.y+ca.height-1, radius=2.5)
-        cr.set_source_rgba(1,1,1,0.85)
-        cr.stroke()
-
-        # midline
-        # orange
-
-        lin = cairo.LinearGradient(ca.x, ca.y, ca.x, ca.y+ca.height)
-        lin.add_color_stop_rgba(0.05, r,g,b, 0)
-        lin.add_color_stop_rgba(0.5, r,g,b, 0.8)
-        lin.add_color_stop_rgba(0.95, r,g,b, 0)
-        cr.set_source(lin)
-
-        cr.move_to(ca.x+ca.width/2, ca.y)
-        cr.rel_line_to(0, ca.height)
-        #cr.set_source_rgba(r,g,b, 0.5)
-        cr.stroke()
-
+        cairo.Context.reset_clip(cr)
+        cr.rectangle(ca.x+ca.width/2, ca.y-1, 1, ca.height)
+        cr.clip()
+        cr.set_source_rgba(0,0,0,0.2)
+        cr.mask(lin)
         cr.restore()
 
         # draw featured carousel
@@ -497,9 +539,20 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         if self.categories == root_category.subcategories:
             return
         self.header = root_category.name
+
+        ico_inf = self.icons.lookup_icon(root_category.iconname, 150, 0)
         self.categories = root_category.subcategories
         self._build_subcat_view(root_category, num_items)
         return
+
+    def set_section_color(self, color):
+        self.section_color = color
+        return
+
+    def set_section_image(self, image):
+        self.section_image = image
+        return
+
 
 class CarouselView(mkit.FramedSection):
 
@@ -530,11 +583,11 @@ class CarouselView(mkit.FramedSection):
         self.set_label(H2 % title)
 
         label = _('All')
-        #self.more_btn = mkit.HLinkButton(label)
-        #self.more_btn.set_underline(True)
-        #self.more_btn.set_subdued(True)
+        self.more_btn = mkit.HLinkButton(label)
+        self.more_btn.set_underline(True)
+        self.more_btn.set_subdued(True)
 
-        #self.header.pack_end(self.more_btn, False)
+        self.header.pack_end(self.more_btn, False)
 
         if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
@@ -560,8 +613,8 @@ class CarouselView(mkit.FramedSection):
         return
 
     def _on_style_set(self, widget, old_style):
-        #self.more_btn.label.realize()
-        #self.more_btn.label.modify_text(gtk.STATE_NORMAL, self.style.dark[gtk.STATE_NORMAL])
+        self.more_btn.label.realize()
+        self.more_btn.label.modify_text(gtk.STATE_NORMAL, self.style.dark[gtk.STATE_NORMAL])
         return
 
     def _on_page_selected(self, page_sel, page):
@@ -768,12 +821,11 @@ class CarouselView(mkit.FramedSection):
         if mkit.not_overlapping(a, expose_area): return
         mkit.FramedSection.draw(self, cr, a, expose_area)
 
-        #self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
+        self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
         #self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
 
         if not self.carousel_apps: return
         alpha = self._alpha
-        layout = self._layout
 
         for poster in self.posters:
             # check that posters have an app set
@@ -876,8 +928,14 @@ class CarouselPoster(mkit.VLinkButton):
 
         ia = self.image.allocation
         if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-            pb = self.image.get_pixbuf()
+            x = a.x + (a.width - 96)/2
+            y = ia.y + (ia.height - 96)/2 + 5
+            # paint bloom
+            cr.set_source_surface(SHADOW_CACHE['bloom96'], x, y)
+            cr.paint()
+            
             # paint pixbuf
+            pb = self.image.get_pixbuf()
             x = a.x + (a.width - pb.get_width())/2
             y = ia.y + (ia.height - pb.get_height())/2
             cr.set_source_pixbuf(pb, x, y)
@@ -892,8 +950,6 @@ class CarouselPoster(mkit.VLinkButton):
 
             pcr = pangocairo.CairoContext(cr)
             pcr.save()
-            pcr.rectangle(la.x, la.y, la.width, la.height)
-            pcr.clip()
             pcr.move_to(ia.x, la.y)
             pcr.set_source_rgba(*rgba)
             pcr.layout_path(layout)
@@ -901,6 +957,15 @@ class CarouselPoster(mkit.VLinkButton):
             pcr.restore()
             del pcr
         else:
+            pcr = pangocairo.CairoContext(cr)
+            pcr.save()
+            pcr.move_to(ia.x, la.y+1)
+            pcr.set_source_rgba(1,1,1,0.85)
+            pcr.layout_path(layout)
+            pcr.fill()
+            pcr.restore()
+            del pcr
+
             self.style.paint_layout(self.window,
                                     self.state,
                                     True,

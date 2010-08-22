@@ -697,6 +697,16 @@ class AvailablePane(SoftwarePane):
         """Return True if we are in the applist view """
         return self.notebook.get_current_page() == self.PAGE_APPLIST
 
+    def set_section_color(self, color):
+        self.cat_view.set_section_color(color)
+        SoftwarePane.set_section_color(self, color)
+        return
+
+    def set_section_image(self, image):
+        self.cat_view.set_section_image(image)
+        SoftwarePane.set_section_image(self, image)
+        return
+
     def set_category(self, category):
         #print "set_category", category
         #import traceback

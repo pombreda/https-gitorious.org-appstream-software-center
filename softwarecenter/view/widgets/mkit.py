@@ -898,7 +898,6 @@ class LinkButton(gtk.EventBox):
         self._markup = None
         self._use_underline = False
         self._subdued = False
-        self._base_pixbuf = None
         self._xmargin = 3
 
         if markup:
@@ -932,6 +931,7 @@ class LinkButton(gtk.EventBox):
         self.connect("button-release-event", self._on_button_release)
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
+        self.image.connect('expose-event', self._on_image_expose)
         return
 
     def _on_realize(self, widget):
@@ -942,9 +942,26 @@ class LinkButton(gtk.EventBox):
             self._colorise_label_normal()
         return
 
+    def _on_image_expose(self, widget, event):
+        pb = self.image.get_pixbuf()
+        a = widget.allocation
+        x = a.x + (a.width - pb.get_width())/2
+        y = a.y + (a.height - pb.get_height())/2
+        cr = widget.window.cairo_create()
+
+        cr.set_source_pixbuf(pb, x, y)
+        cr.paint()
+
+        if self.state != gtk.STATE_ACTIVE: return
+
+        cr.rectangle(a)
+        cr.clip_preserve()
+        cr.set_source_rgba(1,1,1, 0.33)
+        cr.mask_surface(self._image_surface, x, y)
+        return True
+
     def _on_enter(self, cat, event):
         if cat == self._button_press_origin:
-            self._colorise_image_active()
             self._colorise_label_active()
             cat.set_state(gtk.STATE_ACTIVE)
         else:
@@ -953,7 +970,6 @@ class LinkButton(gtk.EventBox):
         return
 
     def _on_leave(self, cat, event):
-        self._colorise_image_normal()
         self._colorise_label_normal()
         cat.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
@@ -977,7 +993,6 @@ class LinkButton(gtk.EventBox):
         if event.button != 1: return
         self._button_press_origin = cat
         self._colorise_label_active()
-        self._colorise_image_active()
         cat.set_state(gtk.STATE_ACTIVE)
         return
 
@@ -991,7 +1006,6 @@ class LinkButton(gtk.EventBox):
             return
 
         self._colorise_label_normal()
-        self._colorise_image_normal()
 
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
@@ -1042,17 +1056,16 @@ class LinkButton(gtk.EventBox):
             self.label.set_markup('<span color="%s">%s</span>' % (col, self._markup))
         return
 
-    def _colorise_image_active(self):
-        if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
-
-        pb = self.image.get_pixbuf().copy()
-        pb.saturate_and_pixelate(pb, 3, False)
-        self.image.set_from_pixbuf(pb)
-        return
-
-    def _colorise_image_normal(self):
-        if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
-        self.image.set_from_pixbuf(self._base_pixbuf)
+    def _cache_image_surface(self, pb):
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                  pb.get_width(),
+                                  pb.get_height())
+        cr = cairo.Context(surf)
+        cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
+        cr.set_source_pixbuf(pb, 0,0)
+        cr.paint()
+        self._image_surface = surf
+        del cr
         return
 
     def set_underline(self, use_underline):
@@ -1100,12 +1113,12 @@ class LinkButton(gtk.EventBox):
         except:
             return
         self.image.set_from_pixbuf(pb)
-        self._base_pixbuf = pb
+        self._cache_image_surface(pb)
         return
 
     def set_image_from_pixbuf(self, pb):
         self.image.set_from_pixbuf(pb)
-        self._base_pixbuf = pb
+        self._cache_image_surface(pb)
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
