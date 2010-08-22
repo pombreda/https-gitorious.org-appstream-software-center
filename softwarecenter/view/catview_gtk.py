@@ -183,7 +183,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         # so based on the value of 4*em we try to choose a sane stock
         # icon size
-        best_stock_size = mkit.get_nearest_stock_size(64)
+        best_stock_size = 64#mkit.get_nearest_stock_size(64)
         featured_apps = AppStore(self.cache,
                                  self.db, 
                                  self.icons,
@@ -889,7 +889,7 @@ class CarouselPoster(mkit.VLinkButton):
         self.connect('size-allocate', self._on_allocate)
 
         # a11y for poster
-        self.set_property("can-focus", True)
+#        self.set_property("can-focus", True)
         self.a11y = self.get_accessible()
         return
 
@@ -926,22 +926,11 @@ class CarouselPoster(mkit.VLinkButton):
         cr.rectangle(a)
         cr.clip()
 
-        ia = self.image.allocation
-        if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-            x = a.x + (a.width - 96)/2
-            y = ia.y + (ia.height - 96)/2 + 5
-            # paint bloom
-            cr.set_source_surface(SHADOW_CACHE['bloom96'], x, y)
-            cr.paint()
-            
-            # paint pixbuf
-            pb = self.image.get_pixbuf()
-            x = a.x + (a.width - pb.get_width())/2
-            y = ia.y + (ia.height - pb.get_height())/2
-            cr.set_source_pixbuf(pb, x, y)
-            cr.paint_with_alpha(alpha)
+        self.alpha = alpha
+        self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
 
         la = self.label.allocation  # label allocation
+        ia = self.image.allocation
         layout = self.label.get_layout()
 
         if alpha < 1.0:

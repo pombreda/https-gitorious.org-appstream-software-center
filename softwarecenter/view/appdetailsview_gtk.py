@@ -467,13 +467,16 @@ class PackageInfoTable(gtk.VBox):
         return
 
     def set_width(self, width):
+        #print width
         for row in self.get_children():
             k, v = row.get_children()
-            v.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
+            l = v.get_children()[0]
+            l.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
         return
 
     def configure(self, version, license, updates):
-
+#        print updates
+        
         # set labels
         self.version_label.set_text(version)
         self.license_label.set_text(license)

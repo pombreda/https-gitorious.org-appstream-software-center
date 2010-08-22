@@ -229,6 +229,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.distro,
                                         self.icons,
                                         datadir)
+        color = floats_from_string('#9D607E')
+        image = cairo.ImageSurface.create_from_png('data/images/arrows.png')
+        self.channel_pane.set_section_color(color)
+        self.channel_pane.set_section_image(image)
+        
+
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_CHANNEL)

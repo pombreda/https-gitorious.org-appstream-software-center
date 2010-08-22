@@ -94,7 +94,7 @@ def get_em_value():
     return l.get_pixel_extents()[1][2]
 
 def get_nearest_stock_size(desired_size):
-    stock_sizes = (16, 24, 32, 48, 64)
+    stock_sizes = (16, 24, 32, 48, 64, 84)
     desired_to_stock_ratios = []
 
     # first divide the desired icon size by each of the stock sizes
@@ -899,6 +899,7 @@ class LinkButton(gtk.EventBox):
         self._use_underline = False
         self._subdued = False
         self._xmargin = 3
+        self.alpha = 1.0
 
         if markup:
             self.set_label(markup)
@@ -950,13 +951,13 @@ class LinkButton(gtk.EventBox):
         cr = widget.window.cairo_create()
 
         cr.set_source_pixbuf(pb, x, y)
-        cr.paint()
+        cr.paint_with_alpha(self.alpha)
 
         if self.state != gtk.STATE_ACTIVE: return
 
         cr.rectangle(a)
         cr.clip_preserve()
-        cr.set_source_rgba(1,1,1, 0.33)
+        cr.set_source_rgba(1,1,1, 0.33*self.alpha)
         cr.mask_surface(self._image_surface, x, y)
         return True
 
