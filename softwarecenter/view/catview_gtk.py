@@ -751,6 +751,7 @@ class CarouselView(mkit.FramedSection):
         return
 
     def stop(self):
+        print 'Stopping ...'
         if not self._is_playing: return
         self._alpha = 1.0
         self._is_playing = False
@@ -762,6 +763,7 @@ class CarouselView(mkit.FramedSection):
 
     def start(self, offset=0):
         if self._is_playing: return
+        print 'Starting ...', offset
         self._is_playing = True
         if not offset:
             self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
@@ -771,6 +773,7 @@ class CarouselView(mkit.FramedSection):
         def _offset_start_cb():
             self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
                                          self.transition)
+            print 'offset'
             return False
 
         self._play_offset = 0
@@ -778,6 +781,7 @@ class CarouselView(mkit.FramedSection):
         return
 
     def restart(self):
+        print 'Restarting ...', self._play_offset
         self.stop()
         self.start(self._play_offset)
         return
