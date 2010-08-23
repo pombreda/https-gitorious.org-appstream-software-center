@@ -193,7 +193,7 @@ class PackageStatusBar(gtk.Alignment):
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_NEEDS_PURCHASE:
             self.set_label(_("Buy for %s") % app_details.price)
-            self.set_button_label(_('Buy'))
+            self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             purchase_date = str(app_details.purchase_date).split()[0]
             self.set_label(_('Purchased on %s' % purchase_date))

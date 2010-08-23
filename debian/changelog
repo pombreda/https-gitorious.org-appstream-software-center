@@ -17,6 +17,7 @@ software-center (2.1.11) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - use package info lines rather than package info tables
       (for devildante to use in the addons branch)
+    - add elipsis to buy button for mpt (LP: #622708)
   * softwarecenter/view/appview.py:
     - don't show duplicate app/pkg (in channelviews)
     - count pkgs when displaying pkgs and apps
