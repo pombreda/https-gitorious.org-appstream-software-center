@@ -1351,8 +1351,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.section_color = color
         return
 
-    def set_section_image(self, image):
-        self.section_image = image
+    def set_section_image(self, id, surf):
+        self.section_image = surf
         return
 
 

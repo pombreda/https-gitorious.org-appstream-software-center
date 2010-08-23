@@ -192,8 +192,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.app_details.set_section_color(color)
         return
 
-    def set_section_image(self, image):
-        self.app_details.set_section_image(image)
+    def set_section_image(self, id, surf):
+        self.app_details.set_section_image(id, surf)
         return
 
     def get_status_text(self):

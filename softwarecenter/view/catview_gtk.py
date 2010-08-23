@@ -35,8 +35,7 @@ SURFACE_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/rshadow-n
                  'w' : cairo.ImageSurface.create_from_png('data/images/rshadow-w.png'),
                  'e' : cairo.ImageSurface.create_from_png('data/images/rshadow-e.png')}
 
-MASK_SURFACE_CACHE = {'bloom' : cairo.ImageSurface.create_from_png('data/images/bloom.png'),
-                      'default-section-image': cairo.ImageSurface.create_from_png('data/images/clouds.png')}
+MASK_SURFACE_CACHE = {'bloom' : cairo.ImageSurface.create_from_png('data/images/bloom.png')}
 
 
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
@@ -106,6 +105,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.db = db
         self.icons = icons
 
+        self._surf_id = 0
         self.section_color = mkit.floats_from_string('#0769BC')
 
         gtk.Viewport.__init__(self)
@@ -173,6 +173,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
     def _on_style_set(self, widget, old_style):
         mkit.update_em_metrics()
 
+        global MASK_SURFACE_CACHE
         # cache masked versions of the cached surfaces
         for id, surf in MASK_SURFACE_CACHE.iteritems():
             new_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
@@ -208,8 +209,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.section_color = color
         return
 
-    def set_section_image(self, image):
-        MASK_SURFACE_CACHE['%s-section-image' % self.get_name()] = image
+    def set_section_image(self, id, surf):
+        global MASK_SURFACE_CACHE
+        self._surf_id = id
+        MASK_SURFACE_CACHE['%s-section-image' % id] = surf
         return
 
 
@@ -232,9 +235,6 @@ class LobbyViewGtk(CategoriesViewGtk):
                  icons,
                  apps_filter,
                  apps_limit=0)
-
-        # name
-        self.set_name('lobby')
 
         # sections
         self.featured_carousel = None
@@ -282,7 +282,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         cr.fill()
 
        # clouds
-        s = MASK_SURFACE_CACHE['default-section-image']
+        s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
 
@@ -450,9 +450,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
                  apps_filter,
                  apps_limit)
 
-        # name
-        self.set_name('subcat')
-
         # data
         self.root_category = root_category
 
@@ -491,11 +488,11 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         lin.add_color_stop_rgba(1, r,g,b,0)
         cr.set_source(lin)
         cr.rectangle(0,0,
-                     widget.allocation.width, 150)
+                     a.width, 150)
         cr.fill()
 
         # clouds
-        s = MASK_SURFACE_CACHE['subcat-section-image']
+        s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
 

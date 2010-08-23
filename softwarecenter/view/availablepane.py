@@ -702,9 +702,9 @@ class AvailablePane(SoftwarePane):
         SoftwarePane.set_section_color(self, color)
         return
 
-    def set_section_image(self, image):
-        self.cat_view.set_section_image(image)
-        SoftwarePane.set_section_image(self, image)
+    def set_section_image(self, id, surf):
+        self.cat_view.set_section_image(id, surf)
+        SoftwarePane.set_section_image(self, id, surf)
         return
 
     def set_category(self, category):
