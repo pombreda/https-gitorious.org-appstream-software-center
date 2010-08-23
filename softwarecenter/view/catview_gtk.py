@@ -1033,7 +1033,7 @@ class CarouselPoster(mkit.VLinkButton):
             pcr = pangocairo.CairoContext(cr)
             pcr.save()
             pcr.move_to(ia.x, la.y+1)
-            pcr.set_source_rgba(1,1,1,0.85)
+            pcr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[0],0.85))
             pcr.layout_path(layout)
             pcr.fill()
             pcr.restore()
