@@ -38,6 +38,9 @@ SURFACE_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/rshadow-n
 
 
 
+
+
+
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
@@ -247,6 +250,7 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _on_expose(self, widget, event):
         # context setup
         expose_area = event.area
+        a = widget.allocation
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
         cr.clip_preserve()
@@ -257,7 +261,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # sky
         r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,0,0,150)
+        lin = cairo.LinearGradient(0,a.y,0,a.y+150)
         lin.add_color_stop_rgba(0, r,g,b, 0.3)
         lin.add_color_stop_rgba(1, r,g,b,0)
         cr.set_source(lin)
@@ -834,8 +838,9 @@ class CarouselView(mkit.FramedSection):
 
         ## draw carousels
         #r,g,b = mkit.floats_from_string('#F27B4A')
-        r,g,b = mkit.floats_from_string('#FFA500')
+        #r,g,b = mkit.floats_from_string('#FFA500')
         #r,g,b = mkit.floats_from_string('#FF0000')
+        r,g,b = mkit.floats_from_gdkcolor(self.style.mid[0])
         cr.save()
         ca = a#self.hbox_inner.allocation
         lin = cairo.LinearGradient(ca.x, ca.y+80, ca.x, ca.y+ca.height)
@@ -896,14 +901,14 @@ class CarouselView(mkit.FramedSection):
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=5.5)
         cr.clip()
-        cr.set_source_rgba(r,g,b,0.3)
+        cr.set_source_rgba(r,g,b,0.2)
         cr.mask(lin)
 
         cr.save()
         cr.translate(0.5,0.5)
         cr.set_line_width(1)
         rr.layout(cr, ca.x, ca.y, ca.x+ca.width-1, ca.y+ca.height, radius=5)
-        cr.set_source_rgba(1,1,1,0.5)
+        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.white,0.75))
         cr.stroke()
         cr.restore()
 
@@ -1039,7 +1044,7 @@ class CarouselPoster(mkit.VLinkButton):
         x = ia.x + (ia.width-96)/2
         y = ia.y + (ia.height-96)/2 + 5
         cr.set_source_surface(surf, x, y)
-        cr.paint_with_alpha(0.333)
+        cr.paint()
 
         self.alpha = alpha
         self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
