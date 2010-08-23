@@ -152,7 +152,7 @@ SPACING_MED         = max(2, int(0.666*EM+0.5))
 SPACING_SMALL       = max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
-CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
+CORNER_RADIUS = 0
 
 # use the link color as the clicked color for labels
 _scheme = get_gtk_color_scheme_dict()
@@ -741,7 +741,9 @@ class FramedSection(gtk.VBox):
 
         self.image = gtk.Image()
         self.label = gtk.Label()
-
+        # Make sure the user can select and copy the title/summary
+        self.label.set_selectable(True)
+        
         self.header.pack_start(self.label, False)
         if label_markup:
             self.set_label(label_markup)

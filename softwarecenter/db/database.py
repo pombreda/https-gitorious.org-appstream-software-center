@@ -23,7 +23,7 @@ import os
 import re
 import string
 import xapian
-from softwarecenter import Application
+from softwarecenter.db.application import Application
 
 from softwarecenter.utils import *
 from softwarecenter.enums import *
