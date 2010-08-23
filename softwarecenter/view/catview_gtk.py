@@ -192,7 +192,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
             self.hbox_inner.pack_start(self.featured_carousel, False)
 
         # create new-apps widget
-        new_cat = get_category_by_name(self.categories, 'New Applications')
+        new_cat = get_category_by_name(self.categories, 
+                                       u"What\u2019s New")
         if new_cat:
             new_apps = AppStore(self.cache,
                                 self.db,
