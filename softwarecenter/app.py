@@ -205,8 +205,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         color = floats_from_string('#0769BC')
         image = cairo.ImageSurface.create_from_png('data/images/clouds.png')
-        self.available_pane.set_section_color(color)
-        self.available_pane.set_section_image(image)
+        # for available_pane we dont need to set section color or image
+        # bcos they are the defaults  
+        #self.available_pane.set_section_color(color)
+        #self.available_pane.set_section_image(image)
 
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,

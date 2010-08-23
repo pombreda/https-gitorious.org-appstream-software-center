@@ -34,11 +34,8 @@ from catview import *
 SURFACE_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/rshadow-n.png'),
                  'w' : cairo.ImageSurface.create_from_png('data/images/rshadow-w.png'),
                  'e' : cairo.ImageSurface.create_from_png('data/images/rshadow-e.png'),
-                 'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom.png')}
-
-
-
-
+                 'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom.png'),
+                 'default-section-image': cairo.ImageSurface.create_from_png('data/images/clouds.png')}
 
 
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
@@ -109,7 +106,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.icons = icons
 
         self.section_color = mkit.floats_from_string('#0769BC')
-        self.section_image = cairo.ImageSurface.create_from_png('data/images/clouds.png')
 
         gtk.Viewport.__init__(self)
         CategoriesView.__init__(self)
@@ -175,6 +171,20 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
     def _on_style_set(self, widget, old_style):
         mkit.update_em_metrics()
+
+        # cache masked versions of the cached surfaces
+        for id in ('bloom96', '%s-section-image' % self.get_name(), 'default-section-image'):
+            if id in SURFACE_CACHE:
+                surf = SURFACE_CACHE[id]
+                new_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                              surf.get_width(),
+                                              surf.get_height())
+                cr = cairo.Context(new_surf)
+                cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
+                cr.mask_surface(surf,0,0)
+                SURFACE_CACHE[id] = new_surf
+                del cr
+
         self.queue_draw()
         return
 
@@ -200,7 +210,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         return
 
     def set_section_image(self, image):
-        self.section_image = image
+        SURFACE_CACHE['%s-section-image' % self.get_name()] = image
         return
 
 
@@ -223,6 +233,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                  icons,
                  apps_filter,
                  apps_limit=0)
+
+        # name
+        self.set_name('lobby')
 
         # sections
         self.featured_carousel = None
@@ -269,18 +282,10 @@ class LobbyViewGtk(CategoriesViewGtk):
                      widget.allocation.width, 150)
         cr.fill()
 
-        # clouds
-        w = self.section_image.get_width()
-        h = self.section_image.get_height()
-        cr.save()
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
-        cr.translate(a.x+a.width-w, a.y)
-        cr.rectangle(0,0,w,h)
-        cr.clip()
-        cr.mask_surface(self.section_image, 0, 0)
-        cr.restore()
-        #cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
-        #cr.paint()
+       # clouds
+        s = SURFACE_CACHE['default-section-image']
+        cr.set_source_surface(s, a.width-s.get_width(), 0)
+        cr.paint()
 
         # draw featured carousel
         self.featured_carousel.draw(cr,
@@ -446,6 +451,10 @@ class SubCategoryViewGtk(CategoriesViewGtk):
                  apps_filter,
                  apps_limit)
 
+        # name
+        self.set_name('subcat')
+
+        # data
         self.root_category = root_category
 
         # sections
@@ -487,15 +496,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         cr.fill()
 
         # clouds
-        w = self.section_image.get_width()
-        h = self.section_image.get_height()
-        cr.save()
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
-        cr.translate(a.x+a.width-w, a.y)
-        cr.rectangle(0,0,w,h)
-        cr.clip()
-        cr.mask_surface(self.section_image, 0, 0)
-        cr.restore()
+        s = SURFACE_CACHE['subcat-section-image']
+        cr.set_source_surface(s, a.width-s.get_width(), 0)
+        cr.paint()
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)
@@ -998,20 +1001,10 @@ class CarouselPoster(mkit.VLinkButton):
         ia = self.image.allocation
         layout = self.label.get_layout()
 
-        cr.save()
-        surf = SURFACE_CACHE['bloom96']
         x = ia.x + (ia.width-96)/2
         y = ia.y + (ia.height-96)/2 + 5
-        w = surf.get_width()
-        h = surf.get_height()
-        cr.translate(x, y)
-        cr.rectangle(0,0,w,h)
-        cr.clip()
-        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[0], 0.85))
-        cr.mask_surface(surf, 0,0)
-        #cr.set_source_surface(surf, x, y)
-        #cr.paint()
-        cr.restore()
+        cr.set_source_surface(SURFACE_CACHE['bloom96'], x, y)
+        cr.paint()
 
         self.alpha = alpha
         self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
