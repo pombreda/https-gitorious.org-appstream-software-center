@@ -753,7 +753,7 @@ class FramedSection(gtk.VBox):
         return
 
     def draw(self, cr, a, expose_area, draw_border=True):
-        if not_overlapping(a, expose_area): return
+#        if not_overlapping(a, expose_area): return
 
 #        cr.save()
 #        cr.translate(0.5, 0.5)
@@ -856,8 +856,8 @@ class LayoutView(FramedSection):
     def draw(self, cr, a, expose_area):
         if not_overlapping(a, expose_area): return
 
-        cr.save()
-        FramedSection.draw(self, cr, a, expose_area)
+#        cr.save()
+#        FramedSection.draw(self, cr, a, expose_area)
 
         for btn in self.widget_list:
             a = btn.allocation
@@ -865,7 +865,7 @@ class LayoutView(FramedSection):
 
             btn.draw(cr, a, expose_area)
 
-        cr.restore()
+#        cr.restore()
         return
 
 

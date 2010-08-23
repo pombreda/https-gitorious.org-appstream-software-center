@@ -270,10 +270,17 @@ class LobbyViewGtk(CategoriesViewGtk):
         cr.fill()
 
         # clouds
-        if isinstance(self.section_image, cairo.ImageSurface):
-            w = self.section_image.get_width()
-            cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
-            cr.paint()
+        w = self.section_image.get_width()
+        h = self.section_image.get_height()
+        cr.save()
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
+        cr.translate(a.x+a.width-w, a.y)
+        cr.rectangle(0,0,w,h)
+        cr.clip()
+        cr.mask_surface(self.section_image, 0, 0)
+        cr.restore()
+        #cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
+        #cr.paint()
 
         # draw featured carousel
         self.featured_carousel.draw(cr,
@@ -829,110 +836,58 @@ class CarouselView(mkit.FramedSection):
             btn.set_label(self._show_label)
         return
 
-    def get_carousel_visible(self):
-        return self._show_carousel
-
     def draw(self, cr, a, expose_area):
         if mkit.not_overlapping(a, expose_area): return
         #mkit.FramedSection.draw(self, cr, a, expose_area)
 
-        ## draw carousels
-        #r,g,b = mkit.floats_from_string('#F27B4A')
-        #r,g,b = mkit.floats_from_string('#FFA500')
-        #r,g,b = mkit.floats_from_string('#FF0000')
-        r,g,b = mkit.floats_from_gdkcolor(self.style.mid[0])
         cr.save()
-        ca = a#self.hbox_inner.allocation
-        lin = cairo.LinearGradient(ca.x, ca.y+80, ca.x, ca.y+ca.height)
+
+        lin = cairo.LinearGradient(a.x, a.y+80, a.x, a.y+a.height)
         lin.add_color_stop_rgba(0,0,0,0,1)
         lin.add_color_stop_rgba(1,0,0,0,0)
+
+        shad = SURFACE_CACHE['w']
+        cr.set_source_surface(shad, a.x-7, a.y-5)
         cr.mask(lin)
 
-        #rr = mkit.ShapeRoundedRectangle()
-        shad = SURFACE_CACHE['w']
-        cr.set_source_surface(shad, ca.x-7, ca.y-5)
-        #cr.paint()
-        cr.mask(lin)
         shad = SURFACE_CACHE['e']
-        cr.set_source_surface(shad, ca.x+ca.width-34, ca.y-5)
+        cr.set_source_surface(shad, a.x+a.width-34, a.y-5)
         cr.mask(lin)
 
         shad = SURFACE_CACHE['n']
-        cr.save()
         w = shad.get_width()
         xo = 0
-        cr.rectangle(ca.x+34, ca.y-5, ca.width-68, shad.get_height())
+
+        cr.save()
+        cr.rectangle(a.x+34, a.y-5, a.width-68, shad.get_height())
         cr.clip()
-        for i in range(ca.width/w + 1):
-            cr.set_source_surface(shad, ca.x+34+xo, ca.y-5)
+
+        for i in range(a.width/w+1):
+            cr.set_source_surface(shad, a.x+34+xo, a.y-5)
             cr.paint()
             xo+=w
 
         cr.restore()
 
-        #lin = cairo.LinearGradient(ca.x, ca.y, ca.x, ca.y+ca.height)
-        #lin.add_color_stop_rgba(0, r,g,b, 0.12)
-        #lin.add_color_stop_rgba(0.52, r,g,b, 0.02)
-        #lin.add_color_stop_rgba(1, r,g,b, 0.12)
-        #cr.set_source(lin)
-        #rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=3)
-        ##cr.rectangle(ca)
-        #cr.fill()
-
-        ## outline
-        #cr.save()
-        #cr.translate(0.5,0.5)
-        ##cr.rectangle(ca)
-        #rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=3)
-        #cr.set_line_width(1)
-        #cr.set_source_rgb(r,g,b)
-        ##cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.mid[self.state]))
-        #cr.stroke()
-
-        ## inline
-        #rr.layout(cr, ca.x+1, ca.y+1, ca.x+ca.width-1, ca.y+ca.height-1, radius=2.5)
-        #cr.set_source_rgba(1,1,1,0.85)
-        #cr.stroke()
-
-        ## midline
-        cr.save()
-        #cr.rectangle(ca.x+1, ca.y-1, ca.width, ca.height)
-
+        r,g,b = mkit.floats_from_gdkcolor(self.style.mid[0])
         rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=5.5)
+
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=5.5)
         cr.clip()
-        cr.set_source_rgba(r,g,b,0.2)
+        cr.set_source_rgba(r,g,b,0.5)
         cr.mask(lin)
 
         cr.save()
         cr.translate(0.5,0.5)
         cr.set_line_width(1)
-        rr.layout(cr, ca.x, ca.y, ca.x+ca.width-1, ca.y+ca.height, radius=5)
-        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.white,0.75))
+        rr.layout(cr, a.x, a.y, a.x+a.width-1, a.y+a.height, radius=5)
+        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[0],0.75))
         cr.stroke()
         cr.restore()
 
-        #cairo.Context.reset_clip(cr)
-        #cr.rectangle(ca.x+ca.width/2-1, ca.y+1, 1, ca.height)
-        #cr.clip()
-        #cr.set_source_rgba(1,1,1,0.2)
-        #cr.mask(lin)
-
-        #cairo.Context.reset_clip(cr)
-        #cr.rectangle(ca.x+ca.width/2, ca.y, 1, ca.height)
-        #cr.clip()
-        #cr.set_source_rgba(0,0,0,0.2)
-        #cr.mask(lin)
-
-        #cairo.Context.reset_clip(cr)
-        #cr.rectangle(ca.x+ca.width/2+1, ca.y+1, 1, ca.height)
-        #cr.clip()
-        #cr.set_source_rgba(1,1,1,0.2)
-        #cr.mask(lin)
         cr.restore()
-        cr.restore()
+
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
-        #self.play_pause_btn.draw(cr, self.play_pause_btn.allocation, expose_area)
 
         if not self.carousel_apps: return
         alpha = self._alpha
