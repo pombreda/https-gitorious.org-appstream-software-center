@@ -1008,7 +1008,7 @@ class CarouselPoster(mkit.VLinkButton):
         cr.translate(x, y)
         cr.rectangle(0,0,w,h)
         cr.clip()
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
+        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[0], 0.85))
         cr.mask_surface(surf, 0,0)
         #cr.set_source_surface(surf, x, y)
         #cr.paint()
