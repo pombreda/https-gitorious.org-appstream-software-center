@@ -1,3 +1,16 @@
+software-center (2.1.11) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/__init__.py:
+    - don't import Application
+  * softwarecenter/db/application.py:
+    - only import get_install_backend when we actually need it (LP: #620011)
+  * softwarecenter/db/database.py,
+    test/test_appview.py:
+    - import Application from the correct location
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
+
 software-center (2.1.10) maverick; urgency=low
 
   [ Kiwinote ]

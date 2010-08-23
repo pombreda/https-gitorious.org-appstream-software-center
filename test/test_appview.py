@@ -8,8 +8,8 @@ import apt
 import unittest
 import shutil
 
-from softwarecenter import Application
 from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.view.appview import AppStore
 from softwarecenter.enums import *
