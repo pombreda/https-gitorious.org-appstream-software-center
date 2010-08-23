@@ -903,8 +903,7 @@ class CarouselView(mkit.FramedSection):
         cr.translate(0.5,0.5)
         cr.set_line_width(1)
         rr.layout(cr, ca.x, ca.y, ca.x+ca.width-1, ca.y+ca.height, radius=5)
-        cr.set_source_rgba(1,1,1,0.4)
-        cr.stroke_preserve()
+        cr.set_source_rgba(1,1,1,0.5)
         cr.stroke()
         cr.restore()
 
