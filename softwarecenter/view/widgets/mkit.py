@@ -741,7 +741,9 @@ class FramedSection(gtk.VBox):
 
         self.image = gtk.Image()
         self.label = gtk.Label()
-
+        # Make sure the user can select and copy the title/summary
+        self.label.set_selectable(True)
+        
         self.header.pack_start(self.label, False)
         if label_markup:
             self.set_label(label_markup)
