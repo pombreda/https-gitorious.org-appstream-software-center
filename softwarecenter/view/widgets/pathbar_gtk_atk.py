@@ -666,6 +666,11 @@ class PathPart(gtk.EventBox):
         parent_h = self._parent.allocation.height
         self.set_size_request(w, max(parent_h, h))
 
+    @property
+    def is_active(self):
+        if not self._parent: return False
+        return self._parent.get_active() == self
+
     def do_callback(self):
         self.callback(self._parent, self)
         return
