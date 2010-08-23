@@ -164,32 +164,32 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.hbox_inner.set_homogeneous(True)
 
         featured_cat = get_category_by_name(self.categories,
-                                            'Featured Applications')    # untranslated name
+                                            'Featured')    # untranslated name
+        if featured_cat:
+            # the spec says the carousel icons should be 4em
+            # however, by not using a stock icon size, icons sometimes dont
+            # look to great.
 
-        # the spec says the carousel icons should be 4em
-        # however, by not using a stock icon size, icons sometimes dont
-        # look to great.
+            # so based on the value of 4*em we try to choose a sane stock
+            # icon size
+            best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
+            featured_apps = AppStore(self.cache,
+                                     self.db, 
+                                     self.icons,
+                                     featured_cat.query,
+                                     self.apps_limit,
+                                     exact=True,
+                                     filter=self.apps_filter,
+                                     icon_size=best_stock_size,
+                                     global_icon_cache=False,
+                                     nonapps_visible=False)
 
-        # so based on the value of 4*em we try to choose a sane stock
-        # icon size
-        best_stock_size = mkit.get_nearest_stock_size(CAROUSEL_ICON_SIZE)
-        featured_apps = AppStore(self.cache,
-                                 self.db, 
-                                 self.icons,
-                                 featured_cat.query,
-                                 self.apps_limit,
-                                 exact=True,
-                                 filter=self.apps_filter,
-                                 icon_size=best_stock_size,
-                                 global_icon_cache=False,
-                                 nonapps_visible=False)
-
-        self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
-        self.featured_carousel.more_btn.connect('clicked',
-                                  self._on_category_clicked,
-                                  featured_cat)
-        # pack featured carousel into hbox
-        self.hbox_inner.pack_start(self.featured_carousel, False)
+            self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
+            self.featured_carousel.more_btn.connect('clicked',
+                                                    self._on_category_clicked,
+                                                    featured_cat)
+            # pack featured carousel into hbox
+            self.hbox_inner.pack_start(self.featured_carousel, False)
 
         # create new-apps widget
         new_cat = get_category_by_name(self.categories, 'New Applications')
@@ -231,7 +231,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            if cat.untranslated_name not in ('Featured Applications',
+            if cat.untranslated_name not in ('Featured',
                                              'New Applications'):
                 #enquirer.set_query(cat.query)
                 ## limiting the size here does not make it faster
@@ -417,11 +417,13 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.emit("show-category-applist")
 
     def start_carousels(self):
-        self.featured_carousel.start()
+        if self.featured_carousel:
+            self.featured_carousel.start()
         return
 
     def stop_carousels(self):
-        self.featured_carousel.stop()
+        if self.featured_carousel:
+            self.featured_carousel.stop()
         return
 
     def set_subcategory(self, root_category, num_items=0, block=False):
