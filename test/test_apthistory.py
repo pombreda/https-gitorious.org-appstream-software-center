@@ -44,7 +44,6 @@ class testAptHistory(unittest.TestCase):
         return True
 
     def test_apthistory_rescan_big(self):
-        return
         """ create big history file and ensure that on rescan the
             events are still processed
         """
