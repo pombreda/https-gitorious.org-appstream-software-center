@@ -164,7 +164,7 @@ class ChannelPane(SoftwarePane):
             dialog.set_title("")
             dialog.set_markup("<big><b>%s</b></big>" % _("Add channel"))
             dialog.format_secondary_text(_("The selected channel is not yet "
-                                           "added, do you want to add it now?"))
+                                           "added. Do you want to add it now?"))
             dialog.add_buttons(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                                gtk.STOCK_ADD, gtk.RESPONSE_YES)
             res = dialog.run()
