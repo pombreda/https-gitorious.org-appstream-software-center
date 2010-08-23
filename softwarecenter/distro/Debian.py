@@ -81,9 +81,9 @@ class Debian(Distro):
 
     def get_license_text(self, component):
         if component in ("main",):
-            return _("Open Source")
+            return _("Open source")
         elif component == "contrib":
-            return _("Open Source with proprietary parts")
+            return _("Open source, with proprietary parts")
         elif component == "restricted":
             return _("Proprietary")
 

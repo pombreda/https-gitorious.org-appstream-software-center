@@ -133,7 +133,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self._prev_width = 0
         self._poster_sigs = []
 
-        # FIXME: move this to shared code
         self.vbox.connect('expose-event', self._on_expose)
         self.connect('size-allocate', self._on_allocate)
         self.connect('style-set', self._on_style_set)
@@ -354,29 +353,30 @@ class LobbyViewGtk(CategoriesViewGtk):
                                   featured_cat)
         # pack featured carousel into hbox
         self.hbox_inner.pack_start(self.featured_carousel, False)
-
         # create new-apps widget
-        new_cat = get_category_by_name(self.categories, 'New Applications')
-        if new_cat:
-            new_apps = AppStore(self.cache,
-                                self.db,
-                                self.icons,
-                                new_cat.query,
-                                new_cat.item_limit,
-                                new_cat.sortmode,
-                                self.apps_filter,
-                                icon_size=best_stock_size,
-                                global_icon_cache=False,
-                                nonapps_visible=False)
-            self.newapps_carousel = CarouselView(
-                new_apps, _("What's New"), self.icons, start_random=False)
-            self.newapps_carousel.more_btn.connect('clicked',
-                                           self._on_category_clicked,
-                                           new_cat)
-            # pack new carousel into hbox
-            self.hbox_inner.pack_start(self.newapps_carousel, False)
+        new_cat = get_category_by_name(self.categories, 
+                                       "New Applications")
+        new_apps = AppStore(self.cache,
+                            self.db,
+                            self.icons,
+                            new_cat.query,
+                            new_cat.item_limit,
+                            new_cat.sortmode,
+                            self.apps_filter,
+                            icon_size=best_stock_size,
+                            global_icon_cache=False,
+                            nonapps_visible=False)
+        self.newapps_carousel = CarouselView(
+            new_apps, _(u"What\u2019s New"), self.icons,
+            start_random=False)
+        # "What's New", a section for new software.
+        self.newapps_carousel.more_btn.connect('clicked',
+                                       self._on_category_clicked,
+                                       new_cat)
+        # pack new carousel into hbox
+        self.hbox_inner.pack_start(self.newapps_carousel, False)
 
-        # append carousel's to lobby page
+        # append carousels to lobby page
         self.vbox.pack_start(self.hbox_inner, False)
         return
 
@@ -394,7 +394,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            if cat.untranslated_name not in ('Featured Applications',
+            if cat.untranslated_name not in ('Featured',
                                              'New Applications'):
                 #enquirer.set_query(cat.query)
                 ## limiting the size here does not make it faster
@@ -930,10 +930,14 @@ class CategoryButton(mkit.HLinkButton):
 class SubcategoryButton(mkit.VLinkButton):
 
     ICON_SIZE = 48
+    MAX_WIDTH  = None#9*mkit.EM
+    MAX_HEIGHT = None#11*mkit.EM
 
     def __init__(self, markup, icon_name, icons):
         mkit.VLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
         self.set_border_width(mkit.BORDER_WIDTH_MED)
+        self.set_size_request(self.get_size_request()[0],
+                              self.MAX_HEIGHT or self.get_size_request()[1])
         return
 
 
@@ -1000,7 +1004,7 @@ class CarouselPoster(mkit.VLinkButton):
         x = ia.x + (ia.width-96)/2
         y = ia.y + (ia.height-96)/2 + 5
         cr.set_source_surface(MASK_SURFACE_CACHE['bloom'], x, y)
-        cr.paint()
+        cr.paint_with_alpha(0.7)
 
         self.alpha = alpha
         self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))

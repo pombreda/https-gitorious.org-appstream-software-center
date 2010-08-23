@@ -152,7 +152,7 @@ SPACING_MED         = max(2, int(0.666*EM+0.5))
 SPACING_SMALL       = max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
-CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
+CORNER_RADIUS = 0
 
 # use the link color as the clicked color for labels
 _scheme = get_gtk_color_scheme_dict()
@@ -402,12 +402,12 @@ class ShapeMidArrow(Shape):
     def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
         aw = kwargs['arrow_width']
 
-        cr.move_to(0, y)
+        cr.move_to(x, y)
         # arrow head
         cr.line_to(w-aw, y)
         cr.line_to(w-x+1, (h+y)/2)
         cr.line_to(w-aw, h)
-        cr.line_to(0, h)
+        cr.line_to(x, h)
         cr.close_path()
         return
 
@@ -431,11 +431,13 @@ class ShapeEndCap(Shape):
 
     def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
         r = kwargs['radius']
+        aw = kwargs['arrow_width']
 
-        cr.move_to(x, y)
+        cr.move_to(x-1, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(x, h)
+        cr.line_to(x-1, h)
+        cr.line_to(x+aw, (h+y)/2)
         cr.close_path()
         return
 
@@ -569,6 +571,10 @@ class Style:
         curv = self["curvature"]
         aw = self["arrow-width"]
 
+        if CACHED_THEME_NAME == 'Ambiance-maverick-beta':
+            if state == gtk.STATE_PRELIGHT and part.is_active:
+                state = gtk.STATE_SELECTED
+
         cr.save()
         cr.rectangle(x, y, w+1, h)
 
@@ -576,9 +582,14 @@ class Style:
         cr.translate(x-sxO, y)
 
         # bg linear vertical gradient
-        color1, color2 = self.gradients[state]
+        if state != gtk.STATE_ACTIVE or not part.is_active:
+            color1, color2 = self.gradients[state]
+        elif state == gtk.STATE_ACTIVE and part.is_active:
+            color1, color2 = self.gradients[gtk.STATE_SELECTED]
+            #color1 = color2
+            color1 = color2.shade(1.1)
 
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
+        shape.layout(cr, 1, 1, w, h-1, arrow_width=aw, radius=curv)
         lin = cairo.LinearGradient(0, 0, 0, h)
         r, g, b = color1.floats()
         lin.add_color_stop_rgba(0.0, r, g, b, alpha)
@@ -591,26 +602,27 @@ class Style:
         cr.translate(0.5, 0.5)
         cr.set_line_width(1.0)
 
-        w -= 1
-        h -= 1
-
         # strong outline
         r, g, b = self.dark_line[state].floats()
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
+        shape.layout(cr, 0, 0, w-1, h-1, arrow_width=aw, radius=curv)
         cr.set_source_rgba(r, g, b, alpha)
         cr.stroke_preserve()
-        cr.set_source_rgba(r, g, b, 0.5*alpha)
+        cr.set_source_rgba(r, g, b, 0.3*alpha)
         cr.stroke()
 
         # inner bevel/highlight
+        shape.layout(cr, 1, 1, w-2, h-2, arrow_width=aw, radius=curv-1)
         if part.state != gtk.STATE_ACTIVE:
             r, g, b = self.light_line[state].floats()
+            lin = cairo.LinearGradient(0, 0, 0, h)
+            lin.add_color_stop_rgba(0.0, r, g, b, 0.7*alpha)
+            lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
+            cr.set_source(lin)
+            cr.stroke()
         else:
             r, g, b = self.dark_line[state].floats()
-            alpha *= 0.225
-
-        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=curv-1)
-        cr.set_source_rgba(r, g, b, alpha)
+            alpha *= 0.23
+            cr.set_source_rgba(r, g, b, alpha)
         cr.stroke()
 
         cr.restore()
@@ -662,14 +674,33 @@ class Style:
         cr.restore()
         return
 
-    def paint_layout(self, cr, widget, part, x, y, sxO=0):
-        layout = part.get_layout()
+    def paint_layout(self, cr, widget, part, x, y, clip=None, sxO=0, etched=True):
+        layout = part.layout
+
+        a = 0.5
+        if etched and CACHED_THEME_NAME == 'Ambiance-maverick-beta':
+            if part.state == gtk.STATE_PRELIGHT:
+                etched = False
+            if part.is_active:
+                if part.state == gtk.STATE_ACTIVE:
+                    a = 0.3
+                else:
+                    a = 0.4
+
+        if etched:
+            pcr = pangocairo.CairoContext(cr)
+            pcr.move_to(x, y+1)
+            pcr.layout_path(layout)
+            r,g,b = self.light_line[gtk.STATE_NORMAL].floats()
+            pcr.set_source_rgba(r,g,b,a)
+            pcr.fill()
+
         widget.style.paint_layout(widget.window,
                                   self.text_states[part.state],
                                   False,
-                                  None,   # clip area
+                                  clip,   # clip area
                                   widget,
-                                  None,
+                                  'button',
                                   x, y,
                                   layout)
         return
@@ -710,7 +741,8 @@ class FramedSection(gtk.VBox):
 
         self.image = gtk.Image()
         self.label = EtchedLabel()
-
+        # Make sure the user can select and copy the title/summary
+        #self.label.set_selectable(True)
         self.header.pack_start(self.label, False)
         if label_markup:
             self.set_label(label_markup)
@@ -884,7 +916,7 @@ class LinkButton(gtk.EventBox):
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
 
-        self.alignment = gtk.Alignment(xalign=0.5, yalign=0.55)
+        self.alignment = gtk.Alignment(xalign=0.5)
         self.add(self.alignment)
 
         self.label = EtchedLabel()
@@ -1211,6 +1243,9 @@ class HLinkButton(LinkButton):
 
 class VLinkButton(LinkButton):
 
+    MAX_WIDTH  = None
+    MAX_HEIGHT = None
+
     def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
         LinkButton.__init__(self, markup, icon_name, icon_size)
 
@@ -1222,7 +1257,9 @@ class VLinkButton(LinkButton):
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
-            self.box.pack_end(self.label)
+            self.label_alignment = gtk.Alignment(0.5, 0, xscale=1.0)
+            self.box.pack_end(self.label_alignment)
+            self.label_alignment.add(self.label)
 
         self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
@@ -1241,4 +1278,19 @@ class VLinkButton(LinkButton):
 
         w += max(lw, iw)
         w += 2*self.get_border_width() + 2*self._xmargin
+        
+        if self.MAX_WIDTH and w > self.MAX_WIDTH:
+            if self.label:
+                self.label.set_line_wrap(True)
+                self.label.set_justify(gtk.JUSTIFY_CENTER)
+                self.connect('size-allocate', self._on_allocate_set_label_width)
+            return self.MAX_WIDTH
         return w
+    
+    def _on_allocate_set_label_width(self, widget, allocation):
+        if not self.label: return
+        layout = self.label.get_layout()
+        layout.set_width(pango.SCALE*self.MAX_WIDTH)
+        w, h = layout.get_pixel_extents()[1][2:]
+        self.label.set_size_request(w, h)
+        return
