@@ -33,9 +33,10 @@ from catview import *
 
 SURFACE_CACHE = {'n' : cairo.ImageSurface.create_from_png('data/images/rshadow-n.png'),
                  'w' : cairo.ImageSurface.create_from_png('data/images/rshadow-w.png'),
-                 'e' : cairo.ImageSurface.create_from_png('data/images/rshadow-e.png'),
-                 'bloom96' : cairo.ImageSurface.create_from_png('data/images/bloom.png'),
-                 'default-section-image': cairo.ImageSurface.create_from_png('data/images/clouds.png')}
+                 'e' : cairo.ImageSurface.create_from_png('data/images/rshadow-e.png')}
+
+MASK_SURFACE_CACHE = {'bloom' : cairo.ImageSurface.create_from_png('data/images/bloom.png'),
+                      'default-section-image': cairo.ImageSurface.create_from_png('data/images/clouds.png')}
 
 
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
@@ -173,17 +174,15 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         mkit.update_em_metrics()
 
         # cache masked versions of the cached surfaces
-        for id in ('bloom96', '%s-section-image' % self.get_name(), 'default-section-image'):
-            if id in SURFACE_CACHE:
-                surf = SURFACE_CACHE[id]
-                new_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
-                                              surf.get_width(),
-                                              surf.get_height())
-                cr = cairo.Context(new_surf)
-                cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
-                cr.mask_surface(surf,0,0)
-                SURFACE_CACHE[id] = new_surf
-                del cr
+        for id, surf in MASK_SURFACE_CACHE.iteritems():
+            new_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                          surf.get_width(),
+                                          surf.get_height())
+            cr = cairo.Context(new_surf)
+            cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
+            cr.mask_surface(surf,0,0)
+            MASK_SURFACE_CACHE[id] = new_surf
+            del cr
 
         self.queue_draw()
         return
@@ -210,7 +209,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         return
 
     def set_section_image(self, image):
-        SURFACE_CACHE['%s-section-image' % self.get_name()] = image
+        MASK_SURFACE_CACHE['%s-section-image' % self.get_name()] = image
         return
 
 
@@ -283,7 +282,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         cr.fill()
 
        # clouds
-        s = SURFACE_CACHE['default-section-image']
+        s = MASK_SURFACE_CACHE['default-section-image']
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
 
@@ -496,7 +495,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         cr.fill()
 
         # clouds
-        s = SURFACE_CACHE['subcat-section-image']
+        s = MASK_SURFACE_CACHE['subcat-section-image']
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
 
@@ -1003,7 +1002,7 @@ class CarouselPoster(mkit.VLinkButton):
 
         x = ia.x + (ia.width-96)/2
         y = ia.y + (ia.height-96)/2 + 5
-        cr.set_source_surface(SURFACE_CACHE['bloom96'], x, y)
+        cr.set_source_surface(MASK_SURFACE_CACHE['bloom'], x, y)
         cr.paint()
 
         self.alpha = alpha
