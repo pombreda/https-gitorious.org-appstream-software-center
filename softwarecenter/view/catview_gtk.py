@@ -467,6 +467,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     def _on_expose(self, widget, event):
         # context setup
         expose_area = event.area
+        a = widget.allocation
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
         cr.clip_preserve()
@@ -486,10 +487,15 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         cr.fill()
 
         # clouds
-        if isinstance(self.section_image, cairo.ImageSurface):
-            w = self.section_image.get_width()
-            cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
-            cr.paint()
+        w = self.section_image.get_width()
+        h = self.section_image.get_height()
+        cr.save()
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
+        cr.translate(a.x+a.width-w, a.y)
+        cr.rectangle(0,0,w,h)
+        cr.clip()
+        cr.mask_surface(self.section_image, 0, 0)
+        cr.restore()
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)
@@ -607,6 +613,7 @@ class CarouselView(mkit.FramedSection):
             self._icon_size = 48
             self._offset = 0
 
+        self._transition_ids = []
         self._is_playing = False
         self._play_offset = 0
         self._width = 0
@@ -766,10 +773,8 @@ class CarouselView(mkit.FramedSection):
         if not self._is_playing: return
         self._alpha = 1.0
         self._is_playing = False
-        if self._fader:
-            gobject.source_remove(self._fader)
-        if self._trans_id:
-            gobject.source_remove(self._trans_id)
+        for id in self._transition_ids:
+            gobject.source_remove(id)
         return
 
     def start(self, offset=0):
@@ -777,24 +782,18 @@ class CarouselView(mkit.FramedSection):
         print 'Starting ...', offset
         self._is_playing = True
         if not offset:
-            self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
-                                             self.transition)
+            self._transition_ids.append(gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
+                                             self.transition))
             return
 
         def _offset_start_cb():
-            self._trans_id = gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
-                                         self.transition)
+            self._transition_ids.append(gobject.timeout_add(CAROUSEL_TRANSITION_TIMEOUT,
+                                         self.transition))
             print 'offset'
             return False
 
         self._play_offset = 0
-        gobject.timeout_add(offset, _offset_start_cb)
-        return
-
-    def restart(self):
-        print 'Restarting ...', self._play_offset
-        self.stop()
-        self.start(self._play_offset)
+        self._transition_ids.append(gobject.timeout_add(offset, _offset_start_cb))
         return
 
     def next(self):
