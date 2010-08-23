@@ -888,7 +888,7 @@ class LinkButton(gtk.EventBox):
         self.add(self.alignment)
 
         self.label = EtchedLabel()
-        self.label.set_etching_rgba(1,1,1,0.55)
+        self.label.set_etching_alpha(0.55)
         self.image = gtk.Image()
 
         self._layout = None
@@ -1141,12 +1141,12 @@ class EtchedLabel(gtk.Label):
     
     def __init__(self, *args, **kwargs):
         gtk.Label.__init__(self, *args, **kwargs)
-        self.rgba = 1,1,1,0.5
+        self.alpha = 0.5
         self.connect('expose-event', self._on_expose)
         return
 
-    def set_etching_rgba(self, r, g, b, a):
-        self.rgba = r, g, b, a
+    def set_etching_alpha(self, a):
+        self.alpha = a
         return
 
     def _on_expose(self, widget, event):
@@ -1166,7 +1166,8 @@ class EtchedLabel(gtk.Label):
 
         pc.move_to(x, y)
         pc.layout_path(l)
-        pc.set_source_rgba(*self.rgba)
+        r,g,b = floats_from_gdkcolor(self.style.light[self.state])
+        pc.set_source_rgba(r,g,b,self.alpha)
         pc.fill()
         del pc
         return

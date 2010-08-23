@@ -232,9 +232,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         if self._prev_width != widget.parent.allocation.width:
             self._prev_width = widget.parent.allocation.width
             best_fit = self._get_best_fit_width()
-
-            self.featured_carousel.set_width(best_fit/2)
-            self.newapps_carousel.set_width(best_fit/2)
+            carousel_w = (best_fit-mkit.SPACING_MED)/2
+            self.featured_carousel.set_width(carousel_w)
+            self.newapps_carousel.set_width(carousel_w)
             self.departments.set_width(best_fit)
 
             # cleanup any signals, its ok if there are none
@@ -557,7 +557,7 @@ class CarouselView(mkit.FramedSection):
     def __init__(self, carousel_apps, title, icons, start_random=True):
         mkit.FramedSection.__init__(self)
 
-        self.label.set_etching_rgba(1,1,1,0.8)
+        self.label.set_etching_alpha(0.8)
 
         self.icons = icons
 
@@ -894,13 +894,19 @@ class CarouselView(mkit.FramedSection):
         #cr.rectangle(ca.x+1, ca.y-1, ca.width, ca.height)
 
         rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=6)
-        cr.clip_preserve()
+        rr.layout(cr, ca.x, ca.y, ca.x+ca.width, ca.y+ca.height, radius=5.5)
+        cr.clip()
         cr.set_source_rgba(r,g,b,0.3)
         cr.mask(lin)
 
-        cr.set_source_rgba(1,1,1,0.5)
+        cr.save()
+        cr.translate(0.5,0.5)
+        cr.set_line_width(1)
+        rr.layout(cr, ca.x, ca.y, ca.x+ca.width-1, ca.y+ca.height, radius=5)
+        cr.set_source_rgba(1,1,1,0.4)
+        cr.stroke_preserve()
         cr.stroke()
+        cr.restore()
 
         #cairo.Context.reset_clip(cr)
         #cr.rectangle(ca.x+ca.width/2-1, ca.y+1, 1, ca.height)
