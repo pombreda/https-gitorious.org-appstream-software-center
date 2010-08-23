@@ -1,6 +1,6 @@
 <Menu>
   <Menu>
-    <_Name>Featured Applications</_Name>
+    <_Name>Featured</_Name>
     <SCIcon>gtk-about</SCIcon>
     <Include>
       <Or>
