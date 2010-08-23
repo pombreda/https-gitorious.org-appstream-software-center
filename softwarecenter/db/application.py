@@ -28,7 +28,6 @@ from apt import debfile
 from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.apt.apthistory import get_apt_history
-from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.utils import *
@@ -120,6 +119,10 @@ class AppDetails(object):
         self._cache = self._db._aptcache
         self._distro = get_distro()
         self._history = get_apt_history()
+        # import here (intead of global) to avoid dbus dependency
+        # in update-software-center (that imports application, but
+        # never uses AppDetails) LP: #620011
+        from softwarecenter.backend import get_install_backend
         self._backend = get_install_backend()
         # FIXME: why two error states ?
         self._error = None
