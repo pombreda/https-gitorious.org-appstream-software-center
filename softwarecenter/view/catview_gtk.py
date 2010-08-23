@@ -880,8 +880,12 @@ class CarouselView(mkit.FramedSection):
         cr.save()
         cr.translate(0.5,0.5)
         cr.set_line_width(1)
+        r,g,b = mkit.floats_from_gdkcolor(self.style.light[0])
         rr.layout(cr, a.x, a.y, a.x+a.width-1, a.y+a.height, radius=5)
-        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[0],0.75))
+        lin = cairo.LinearGradient(a.x, a.y+80, a.x, a.y+a.height)
+        lin.add_color_stop_rgba(0,r,g,b,1)
+        lin.add_color_stop_rgba(1,r,g,b,0)
+        cr.set_source(lin)
         cr.stroke()
         cr.restore()
 
