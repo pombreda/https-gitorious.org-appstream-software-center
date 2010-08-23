@@ -877,6 +877,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_expose(self, widget, event):
         expose_area = event.area
+        a = widget.allocation
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
         cr.clip_preserve()
@@ -893,13 +894,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         lin.add_color_stop_rgba(1, r,g,b,0)
         cr.set_source(lin)
         cr.rectangle(0,0,
-                     widget.allocation.width, 150)
+                     a.width, 150)
         cr.fill()
+
 
         # clouds
         w = self.section_image.get_width()
-        cr.set_source_surface(self.section_image, widget.allocation.width-w, 0)
-        cr.paint()
+        h = self.section_image.get_height()
+        cr.save()
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
+        cr.translate(a.x+a.width-w, a.y)
+        cr.rectangle(0,0,w,h)
+        cr.clip()
+        cr.mask_surface(self.section_image, 0, 0)
+        cr.restore()
 
         # if the appicon is not that big draw a rectangle behind it
         # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view
