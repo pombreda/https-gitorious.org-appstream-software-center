@@ -763,6 +763,10 @@ class CarouselPoster(mkit.VLinkButton):
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
         self.connect('size-allocate', self._on_allocate)
+
+        # a11y for poster
+        self.set_property("can-focus", True)
+        self.a11y = self.get_accessible()
         return
 
     def _on_allocate(self, widget, allocation):
@@ -775,12 +779,16 @@ class CarouselPoster(mkit.VLinkButton):
     def set_application(self, app):
         self.app = app
 
-        markup = '%s' % (app[AppStore.COL_APP_NAME] or 
-                         app[AppStore.COL_PKGNAME])
+        name = app[AppStore.COL_APP_NAME] or app[AppStore.COL_PKGNAME]
+
+        markup = '%s' % (name)
         pb = app[AppStore.COL_ICON]
 
         self.set_label(markup)
         self.set_image_from_pixbuf(pb)
+
+        # set a11y text
+        self.a11y.set_name(name)
 
         if not self.image.window:
             self.box.pack_start(self.image, False)
@@ -965,6 +973,11 @@ class PagingDot(mkit.LinkButton):
         self.set_size_request(-1, CAROUSEL_PAGING_DOT_SIZE)
         self.is_selected = False
         self.page_number = page_number
+
+        # a11y for page selector
+        self.set_property("can-focus", True)
+        self.a11y = self.get_accessible()
+        self.a11y.set_name("Go to page " + str(self.page_number + 1))
         return
 
     def calc_width(self):

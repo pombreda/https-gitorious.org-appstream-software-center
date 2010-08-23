@@ -1,4 +1,61 @@
-software-center (2.1.9) UNRELEASED; urgency=low
+software-center (2.1.11) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * <all>:
+    - load history on demand
+  * data/ui/SoftwareCenter.ui:
+    - emit signal when file menu is activated
+  * softwarecenter/app.py:
+    - update file menu on demand
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
+
+software-center (2.1.10) maverick; urgency=low
+
+  [ Kiwinote ]
+  * data/featured.menu.in:
+    - fix typos to make a few more featured apps appear in the list
+  * po/POTFILES.in:
+    - mark softwarecenter/db/application.py for translation
+  * softwarecenter/app.py:
+    - switch to available view when we are in the installed view and we get a
+      request for a pkg in the available view
+    - allow s-c to be passed a search term (LP: #612507)
+      The syntax is "software-center search:search term"
+    - make catalog rebuilding window accessible (LP: #538373)
+  * softwarecenter/db/database.py:
+    - fix typo (LP: #616183)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use the same gwibber text in both appdetails views (LP: #614220)
+    - make application name and summary accessible and grab focus (LP: #608140)
+    - make description accessible (LP: #608140)
+    - make info table accessible (LP: #608141)
+    - reset pane to top left on show_app()
+  * softwarecenter/view/appdetailsview_webkit.py:
+    - use the same gwibber text in both appdetails views (LP: #614220)
+  * softwarecenter/view/availablepane.py:
+    - refresh navigation bar correctly when we get a request to display a pkg
+  * softwarecenter/view/catview_gtk.py:
+    - make poster and paging dot accessible (LP: #600306, #608152, #609411)
+  * softwarecenter/view/installedpane.py:
+    - refresh navigation bar correctly when we get a request to display a pkg
+  * softwarecenter/view/pendingview.py:
+    - display the name of the application holding the lock, when waiting for
+      a package manager to quit (LP: #440058, #511213)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash when icon can not be loaded
+    - fix crash when description is None
+  * debian/software-center.postinst:
+    - run update-apt-xapian-index -u to ensure the xapian index
+      is there (LP: #617397)
+  * data/software-center.js:
+    - add missing network.protocol-handler.app.apt (thanks to Chris Coulson)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
+
+software-center (2.1.9) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/utils.py:
@@ -21,30 +78,37 @@ software-center (2.1.9) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - add support for the inline icon_data, push them into 
       SOFTWARE_CENTER_ICON_CACHE_DIR, add tests
+  * softwarecenter/backend/login_sso.py:
+    - add support for ubuntu-sso-client login
+  * merged lp:~mmcg069/software-center/appview-fix, that fixes
+    overly large buttons
+
+  [ Didier Roche ]
+  * data/featured.menu.in:
+    - add zoho integration as a featured app
 
   [ Kiwinote ]
   * <all>:
     - support deb files (much thanks to mvo for all his help!)
     - support apturls
-    - load history on demand
   * debian/control:
     - add homepage field
-  * data/ui/SoftwareCenter.ui:
-    - emit signal when file menu is activated
   * man/software-center.1:
     - update man file
   * softwarecenter/app.py:
-    - if s-c is running and we get a request to open s-c on a specific page, then switch to correct page
+    - if s-c is running and we get a request to open s-c on a specific page, 
+      then switch to correct page
     - update status_bar correctly on back/forward navigation
-    - display available packages in available_pane and installed packages in installed_pane
-    - update file menu on demand
+    - display available packages in available_pane and installed packages in 
+      installed_pane
   * softwarecenter/db/application.py:
     - lots and lots of changes to support deb-files and apturls
   * softwarecenter/db/database.py:
     - add function to determine if package is in a category
   * softwarecenter/view/appdetailsview_gtk.py:
     - refresh packagestatusbar correctly upon cancelled installation / removal
-    - hide packagestatusbar / description / screenshot / info_table when we have a 'not found' error
+    - hide packagestatusbar / description / screenshot / info_table when
+      we have a 'not found' error
     - display warnings in the packagestatusbar
     - make description accessible
   * softwarecenter/view/appview.py:
@@ -54,11 +118,12 @@ software-center (2.1.9) UNRELEASED; urgency=low
     - show packages in correct category
   * softwarecenter/view/installedpane.py:
     - load listview on demand
-    - add show_app function (ux is worse than in available_pane, as we have no categories or back/forward navigation)
+    - add show_app function (ux is worse than in available_pane, as we have 
+      no categories or back/forward navigation)
   * softwarecenter/view/viewswitcher.py:
     - put cursor in correct position
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 09 Aug 2010 10:27:20 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 23:19:03 +0200
 
 software-center (2.1.8) maverick; urgency=low
 

@@ -86,7 +86,6 @@ def get_gtk_color_scheme_dict():
 def get_em_value():
     # calc the width of a wide character, use as 1em
     w = gtk.Window()
-    w.realize()
     pc = w.get_pango_context()
     l = pango.Layout(pc)
     # 'M' is wide

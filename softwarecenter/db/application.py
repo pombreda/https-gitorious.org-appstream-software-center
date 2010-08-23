@@ -120,6 +120,7 @@ class AppDetails(object):
         self._distro = get_distro()
         self._history = None
         self._backend = get_install_backend()
+        # FIXME: why two error states ?
         self._error = None
         self._error_not_found = None
 
@@ -129,6 +130,8 @@ class AppDetails(object):
             self._app = Application(self._db.get_appname(doc), 
                                     self._db.get_pkgname(doc), 
                                     "")
+
+        # sustitute for apturl
         if self._app.request:
             self._app.request = self._app.request.replace(
                 "$distro", self._distro.get_distro_codename())
@@ -206,12 +209,12 @@ class AppDetails(object):
             return comp
         # then apturl requests
         if not self._doc:
-            section_matches = re.findall(r'section=[a-z]*', self._app.request)
+            section_matches = re.findall(r'section=([a-z]+)', self._app.request)
             if section_matches:
                 valid_section_matches = []
                 for section_match in section_matches:
-                    if self._unavailable_component(component_to_check=section_match[8:]) and valid_section_matches.count(section_match[8:]) == 0:
-                        valid_section_matches.append(section_match[8:])
+                    if self._unavailable_component(component_to_check=section_match) and valid_section_matches.count(section_match) == 0:
+                        valid_section_matches.append(section_match)
                 if valid_section_matches:
                     return ('&').join(valid_section_matches)
 
@@ -219,6 +222,7 @@ class AppDetails(object):
     def description(self):
         if self._pkg:
             return self._pkg.candidate.description
+        return ""
 
     @property
     def error(self):
@@ -319,6 +323,7 @@ class AppDetails(object):
             else:
                 # by spec..
                 return self._db.get_pkgname(self._doc)
+        return ""
 
     @property
     def pkg(self):
@@ -331,12 +336,6 @@ class AppDetails(object):
 
     @property
     def pkg_state(self):
-        if self._error_not_found:
-            return PKG_STATE_NOT_FOUND
-        if self._error:
-            return PKG_STATE_ERROR
-        # check dynamic states from the install backend
-
         # puchase state
         if self.pkgname in self._backend.pending_purchases:
             return PKG_STATE_INSTALLING_PURCHASED
@@ -376,6 +375,11 @@ class AppDetails(object):
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
                     return PKG_STATE_NOT_FOUND
             else:
+                if self.price and self._available_for_our_arch():
+                    return PKG_STATE_NEEDS_PURCHASE
+                if (self.purchase_date and
+                    self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
+                    return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
@@ -385,11 +389,6 @@ class AppDetails(object):
                     self._error =  _("Not Found")
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
                     return PKG_STATE_NOT_FOUND
-                if self.price and self._available_for_our_arch():
-                    return PKG_STATE_NEEDS_PURCHASE
-                if (self.purchase_date and
-                    self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
-                    return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
         return PKG_STATE_UNKNOWN
 
     @property
@@ -424,15 +423,8 @@ class AppDetails(object):
     @property
     def summary(self):
         if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                if self._pkg:
-                    return self._pkg.candidate.summary
-                return self._db.get_summary(self._doc)
-            else:
-                # by spec..
-                return self._db.get_pkgname(self._doc)
-        if self._pkg:
+            return self._db.get_summary(self._doc)
+        elif self._pkg:
             return self._pkg.candidate.summary
 
     @property
@@ -590,6 +582,7 @@ class AppDetailsDebFile(AppDetails):
         if self._deb:
             description = self._deb._sections["Description"]
             return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
+        return ""
 
     @property
     def maintenance_status(self):

@@ -157,7 +157,7 @@ class ChannelsManager(object):
                 db_origins.add(origin)
         # origins
         self._logger.debug("cache_origins: %s" % cache_origins)
-        self._logger.debug("db_origins: %s" % cache_origins)
+        self._logger.debug("db_origins: %s" % db_origins)
         if cache_origins != db_origins:
             return True
         return False

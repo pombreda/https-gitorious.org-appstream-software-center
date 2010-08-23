@@ -317,8 +317,8 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         subprocess.call([cmd, self.appdetails.website])
 
     def on_button_share_clicked(self):
-        # TRANSLATORS: apturl:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s apt:%(pkgname)s") % {
+        # TRANSLATORS: apt:%(pkgname) is the apt protocol
+        msg = _("Check out %(appname)s! apt:%(pkgname)s") % {
             'appname' : self.app.appname, 
             'pkgname' : self.app.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])

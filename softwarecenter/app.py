@@ -60,6 +60,7 @@ from plugin import PluginManager
 from view.logindialog import LoginDialog
 from backend.launchpad import GLaunchpad
 from backend.restfulclient import UbuntuSSOlogin, SoftwareCenterAgent
+from backend.login_sso import LoginBackendDbusSSO
 
 from distro import get_distro
 
@@ -70,7 +71,8 @@ class SoftwarecenterDbusController(dbus.service.Object):
     """ 
     This is a helper to provide the SoftwarecenterIFace
     
-    It provides 
+    It provides only a bringToFront method that takes 
+    additional arguments about what packages to show
     """
     def __init__(self, parent, bus_name,
                  object_path='/com/ubuntu/Softwarecenter'):
@@ -405,14 +407,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_switcher.width = allocation.width
 
     def _on_lp_login(self, lp, token):
-        print "_on_lp_login"
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()
         self.view_switcher.get_model().channel_manager.feed_in_private_sources_list_entries(
             private_archives)
 
     def _on_sso_login(self, sso, oauth_result):
-        print "_on_sso_login", sso, oauth_result
         self._sso_login_successful = True
         # consumer key is the openid identifier
         self.scagent.query_available_for_me(oauth_result["token"],
@@ -541,16 +541,28 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
         d.login()
 
-    def on_menuitem_reinstall_purchases_activate(self, menuitem):
+    def _login_via_buildin_sso(self):
         self.sso = UbuntuSSOlogin()
         self.sso.connect("login-successful", self._on_sso_login)
-        self.scagent = SoftwareCenterAgent()
-        self.scagent.connect("available-for-me", self._available_for_me_result)
         if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
             self.scagent.query_available_for_me("dummy", "mvo")
         else:
             d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
             d.login()
+
+    def _login_via_dbus_sso(self):
+        self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
+        self.sso.connect("login-successful", self._on_sso_login)
+        self.sso.login()
+
+    def on_menuitem_reinstall_purchases_activate(self, menuitem):
+        self.scagent = SoftwareCenterAgent()
+        self.scagent.connect("available-for-me", self._available_for_me_result)
+        # support both buildin or ubuntu-sso-login
+        if "SOFWARE_CENTER_USE_BUILDIN_LOGIN" in os.environ:
+            self._login_via_buildin_sso()
+        else:
+            self._login_via_dbus_sso()
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
@@ -753,7 +765,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
         self._database_is_rebuilding = is_rebuilding
         self.window_rebuilding.set_transient_for(self.window_main)
-        self.window_rebuilding.set_title("")
+        self.window_rebuilding.set_title(self.window_main.get_title())
+
+        # set a11y text
+        text = self.window_rebuilding.get_children()[0]
+        text.set_property("can-focus", True)
+        text.a11y = text.get_accessible()
+        text.a11y.set_name(text.get_children()[0].get_text())
+
         self.window_main.set_sensitive(not is_rebuilding)
         # show dialog about the rebuilding status
         if is_rebuilding:
@@ -808,6 +827,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             if args:
                 iface.bringToFront(args)
             else:
+                # None can not be transported over dbus
                 iface.bringToFront('nothing-to-show')
             sys.exit()
         except dbus.DBusException, e:
@@ -825,6 +845,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         elif packages and packages[0].startswith("apt:"):
             packages[0] = packages[0].partition("apt:")[2]
 
+        # allow s-c to be called with a search term
+        if packages and packages[0].startswith("search:"):
+            packages[0] = packages[0].partition("search:")[2]
+            self.available_pane.navigation_bar.remove_all(animate=False) # animate *must* be false here
+            self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
+            self.available_pane.notebook.set_current_page(
+                self.available_pane.PAGE_APPLIST)
+            self.available_pane.searchentry.set_text(" ".join(packages))
+            return
+
         if len(packages) == 1:
             request = packages[0]
             if (request.endswith(".deb") or os.path.exists(request)):
@@ -837,7 +867,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # e.g. unity
                 (pkgname, sep, appname) = packages[0].partition("/")
                 app = Application(appname, pkgname)
-                self.available_pane.on_application_activated(None, app)
             # if the pkg is installed, show it in the installed pane
             if (app.pkgname in self.cache and 
                 self.cache[app.pkgname].installed):
@@ -846,6 +875,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self.installed_pane.loaded = False
                 self.installed_pane.show_app(app)
             else:
+                self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
                 self.available_pane.show_app(app)
 
         if len(packages) > 1:
