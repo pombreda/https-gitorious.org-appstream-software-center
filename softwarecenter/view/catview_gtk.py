@@ -342,49 +342,51 @@ class LobbyViewGtk(CategoriesViewGtk):
         # the spec says the carousel icons should be 4em
         # however, by not using a stock icon size, icons sometimes dont
         # look to great.
+        if featured_cat:
+            # so based on the value of 4*em we try to choose a sane stock
+            # icon size
+            best_stock_size = 64#mkit.get_nearest_stock_size(64)
+            featured_apps = AppStore(self.cache,
+                                     self.db, 
+                                     self.icons,
+                                     featured_cat.query,
+                                     self.apps_limit,
+                                     exact=True,
+                                     filter=self.apps_filter,
+                                     icon_size=best_stock_size,
+                                     global_icon_cache=False,
+                                     nonapps_visible=False)
 
-        # so based on the value of 4*em we try to choose a sane stock
-        # icon size
-        best_stock_size = 64#mkit.get_nearest_stock_size(64)
-        featured_apps = AppStore(self.cache,
-                                 self.db, 
-                                 self.icons,
-                                 featured_cat.query,
-                                 self.apps_limit,
-                                 exact=True,
-                                 filter=self.apps_filter,
-                                 icon_size=best_stock_size,
-                                 global_icon_cache=False,
-                                 nonapps_visible=False)
+            self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
+            self.featured_carousel.more_btn.connect('clicked',
+                                                    self._on_category_clicked,
+                                                    featured_cat)
+            # pack featured carousel into hbox
+            self.hbox_inner.pack_start(self.featured_carousel, False)
 
-        self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
-        self.featured_carousel.more_btn.connect('clicked',
-                                  self._on_category_clicked,
-                                  featured_cat)
-        # pack featured carousel into hbox
-        self.hbox_inner.pack_start(self.featured_carousel, False)
         # create new-apps widget
         new_cat = get_category_by_name(self.categories, 
                                        u"What\u2019s New")
-        new_apps = AppStore(self.cache,
-                            self.db,
-                            self.icons,
-                            new_cat.query,
-                            new_cat.item_limit,
-                            new_cat.sortmode,
-                            self.apps_filter,
-                            icon_size=best_stock_size,
-                            global_icon_cache=False,
-                            nonapps_visible=False)
-        self.newapps_carousel = CarouselView(
-            new_apps, _(u"What\u2019s New"), self.icons,
-            start_random=False)
-        # "What's New", a section for new software.
-        self.newapps_carousel.more_btn.connect('clicked',
-                                       self._on_category_clicked,
-                                       new_cat)
-        # pack new carousel into hbox
-        self.hbox_inner.pack_start(self.newapps_carousel, False)
+        if new_cat:
+            new_apps = AppStore(self.cache,
+                                self.db,
+                                self.icons,
+                                new_cat.query,
+                                new_cat.item_limit,
+                                new_cat.sortmode,
+                                self.apps_filter,
+                                icon_size=best_stock_size,
+                                global_icon_cache=False,
+                                nonapps_visible=False)
+            self.newapps_carousel = CarouselView(
+                new_apps, _(u"What\u2019s New"), self.icons,
+                start_random=False)
+            # "What's New", a section for new software.
+            self.newapps_carousel.more_btn.connect('clicked',
+                                                   self._on_category_clicked,
+                                                   new_cat)
+            # pack new carousel into hbox
+            self.hbox_inner.pack_start(self.newapps_carousel, False)
 
         # append carousels to lobby page
         self.vbox.pack_start(self.hbox_inner, False)
