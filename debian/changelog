@@ -1,3 +1,33 @@
+software-center (2.1.12) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - pass required argument to fix crash (LP: #618212)
+    - fix crash in setting supported filter (LP: #618243)
+  * softwarecenter/db/application.py:
+    - fail nicely on not available for architecture (mit-scheme)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use package info lines rather than package info tables
+      (for devildante to use in the addons branch)
+    - add elipsis to buy button for mpt (LP: #622708)
+  * softwarecenter/view/appview.py:
+    - don't show duplicate app/pkg (in channelviews)
+    - count pkgs when displaying pkgs and apps
+  * softwarecenter/view/availablepane.py:
+    - two way 'show/hide technical packages' action bar
+      (the number of technical pkgs to show is not very accurate)
+  * softwarecenter/view/channelpane.py:
+    - two way 'show/hide technical packages' action bar
+      (this is accurate, LP: #594833)
+  * softwarecenter/view/widgets/actionbar.py:
+    - disable text getting bold on hover
+  
+  [ Milo Casagrande ]
+  * softwarecenter/db/application.py:
+    - make 'source available' warning more suitable for translation.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 24 Aug 2010 15:21:10 +0200
+
 software-center (2.1.11) maverick; urgency=low
 
   [ Kiwinote ]

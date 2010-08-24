@@ -173,6 +173,7 @@ class AppStore(gtk.GenericTreeModel):
 
     def _perform_search(self):
         already_added = set()
+        self.nonapp_pkgs = 0
         for q in self.search_query:
             self._logger.debug("using query: '%s'" % q)
             enquire = xapian.Enquire(self.db.xapiandb)
@@ -181,6 +182,7 @@ class AppStore(gtk.GenericTreeModel):
                                  q, xapian.Query("ATapplication")))
 
                 matches = enquire.get_mset(0, len(self.db))
+                # FIXME: estimates aren't really good enough..
                 self.nonapp_pkgs = matches.get_matches_estimated()
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  xapian.Query("ATapplication"), q)
@@ -223,12 +225,17 @@ class AppStore(gtk.GenericTreeModel):
                 # we don't add duplicates
                 popcon = self.db.get_popcon(doc)
                 app = Application(appname, pkgname, "", popcon)
-                if not app in already_added:
+                # FIXME: falsely assuming that apps come before nonapps
+                if not appname:
+                    added = pkgname in already_added
+                    if self.nonapps_visible and not added:
+                        self.nonapp_pkgs += 1
+                if appname or not added:
                     if self.sortmode == SORT_BY_ALPHABET:
                         self._insert_app_sorted(app)
                     else:
                         self._append_app(app)
-                    already_added.add(app)
+                    already_added.add(pkgname)
                 # keep the UI going
                 while gtk.events_pending():
                     gtk.main_iteration()

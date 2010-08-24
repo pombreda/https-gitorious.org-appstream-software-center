@@ -501,7 +501,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     # for appdetailsview-webkit
                     # self._set_action_button_sensitive(True)
 
-                    self.backend.emit("transaction-stopped")
+                    self.backend.emit("transaction-stopped", app.pkgname)
                     return
             
         # action_func is one of:  "install", "remove" or "upgrade"
@@ -670,13 +670,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if (not self._block_menuitem_view and self.active_pane.apps_filter and
+        if (not self._block_menuitem_view and
+            self.active_pane.apps_filter and
             self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
 
     def on_menuitem_view_supported_only_activate(self, widget):
         if (not self._block_menuitem_view and
+            self.active_pane.apps_filter and
             not self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()

@@ -70,7 +70,7 @@ class SCBuySomething(unittest.TestCase):
         self._p()
         self.assertEqual(
             self.app.available_pane.app_details.action_bar.button.get_label(),
-            "Buy")
+            u"Buy\u2026")
         self._p()
         # close the purchase dialog again after 2s
         glib.timeout_add_seconds(2, lambda: self.app.available_pane.app_details.purchase_dialog.response(gtk.RESPONSE_OK))
