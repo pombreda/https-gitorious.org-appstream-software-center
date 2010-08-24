@@ -257,8 +257,10 @@ class LobbyViewGtk(CategoriesViewGtk):
             self._prev_width = widget.parent.allocation.width
             best_fit = self._get_best_fit_width()
             carousel_w = (best_fit-mkit.SPACING_MED)/2
-            self.featured_carousel.set_width(carousel_w)
-            self.newapps_carousel.set_width(carousel_w)
+            if self.featured_carousel:
+                self.featured_carousel.set_width(carousel_w)
+            if self.newapps_carousel:
+                self.newapps_carousel.set_width(carousel_w)
             self.departments.set_width(best_fit)
 
             # cleanup any signals, its ok if there are none
@@ -290,18 +292,20 @@ class LobbyViewGtk(CategoriesViewGtk):
                      widget.allocation.width, 150)
         cr.fill()
 
-       # clouds
+        # clouds
         s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
 
         # draw featured carousel
-        self.featured_carousel.draw(cr,
-                                    self.featured_carousel.allocation,
-                                    expose_area)
-        self.newapps_carousel.draw(cr,
-                                   self.newapps_carousel.allocation,
-                                   expose_area)
+        if self.featured_carousel:
+            self.featured_carousel.draw(cr,
+                                        self.featured_carousel.allocation,
+                                        expose_area)
+        if self.newapps_carousel:
+            self.newapps_carousel.draw(cr,
+                                       self.newapps_carousel.allocation,
+                                       expose_area)
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)
@@ -426,13 +430,17 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def start_carousels(self):
-        self.featured_carousel.start()
-        self.newapps_carousel.start(offset=5000)
+        if self.featured_carousel:
+            self.featured_carousel.start()
+        if self.newapps_carousel:
+            self.newapps_carousel.start(offset=5000)
         return
 
     def stop_carousels(self):
-        self.featured_carousel.stop()
-        self.newapps_carousel.stop()
+        if self.featured_carousel:
+            self.featured_carousel.stop()
+        if self.newapps_carousel:
+            self.newapps_carousel.stop()
         return
 
     def build(self, desktopdir):
