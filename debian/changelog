@@ -14,6 +14,8 @@ software-center (2.1.11) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/mkit-theme-tweaks, many thanks
   * merged lp:~and471/software-center/a-few-of-my-favorite-things, many
     thanks
+  * softwarecenter/backend/login_sso.py:
+    - updated for the latest ubuntu-sso-client API
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
 
