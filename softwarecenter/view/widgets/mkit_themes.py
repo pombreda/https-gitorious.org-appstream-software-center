@@ -176,7 +176,7 @@ class Human(Theme):
                    gtk.STATE_ACTIVE:        self.fg[gtk.STATE_NORMAL],
                    gtk.STATE_PRELIGHT:      self.bg[gtk.STATE_NORMAL].lighten(),
                    gtk.STATE_SELECTED:      self.bg[gtk.STATE_NORMAL].lighten(),
-                   gtk.STATE_INSENSITIVE:   self.light[gtk.STATE_INSENSITIVE]}
+                   gtk.STATE_INSENSITIVE:   self.bg[gtk.STATE_INSENSITIVE]}
         return palette
 
     def get_text_states(self):
@@ -423,14 +423,14 @@ class Ambiance(DustSand):
                                                        0.33)
 
         # provide two colours per state for background vertical linear gradients
-        palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL].shade(1.2),
+        palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL],
                                          self.bg[gtk.STATE_NORMAL].shade(0.85)),
 
-                  gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_NORMAL].shade(0.96),
+                  gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_NORMAL].shade(0.94),
                                          self.bg[gtk.STATE_NORMAL].shade(0.65)),
 
-                  gtk.STATE_SELECTED:   (selected_color.shade(1.075),
-                                         selected_color.shade(0.875)),
+                  gtk.STATE_SELECTED:   (selected_color.shade(1.0),
+                                         selected_color.shade(0.85)),
     
                   gtk.STATE_PRELIGHT:   (prelight_color.shade(1.35),
                                          prelight_color.shade(1.1)),
@@ -438,6 +438,54 @@ class Ambiance(DustSand):
                   gtk.STATE_INSENSITIVE: (self.bg[gtk.STATE_INSENSITIVE],
                                           self.bg[gtk.STATE_INSENSITIVE])
                   }
+        return palette
+
+
+class AmbianceMaverick(DustSand):
+
+    def get_properties(self, gtksettings):
+        props = DustSand.get_properties(self, gtksettings)
+        props['curvature'] = 4.5
+        return props
+
+    def get_grad_palette(self):
+        selected_color = color_from_string('#F07746')
+        selected_color = self.bg[gtk.STATE_NORMAL].mix(selected_color,
+                                                       0.85)
+        #prelight_color = self.bg[gtk.STATE_NORMAL].mix(selected_color,
+        #                                               0.5)
+
+        # provide two colours per state for background vertical linear gradients
+        palette = {gtk.STATE_NORMAL:    (self.bg[gtk.STATE_NORMAL],
+                                         self.bg[gtk.STATE_NORMAL].shade(0.85)),
+
+                  gtk.STATE_ACTIVE:     (self.bg[gtk.STATE_ACTIVE].shade(0.935),
+                                         self.bg[gtk.STATE_ACTIVE].shade(0.95)),
+
+                  gtk.STATE_SELECTED:   (selected_color.shade(1.3),
+                                         selected_color.shade(1.025)),
+    
+                  gtk.STATE_PRELIGHT:   (self.bg[gtk.STATE_PRELIGHT].shade(0.99),
+                                         self.bg[gtk.STATE_PRELIGHT].shade(0.875)),
+
+                  gtk.STATE_INSENSITIVE: (self.bg[gtk.STATE_INSENSITIVE],
+                                          self.bg[gtk.STATE_INSENSITIVE])
+                  }
+        return palette
+
+    def get_dark_line_palette(self):
+        palette = {gtk.STATE_NORMAL:      self.bg[gtk.STATE_NORMAL].shade(0.575),
+                   gtk.STATE_ACTIVE:      self.bg[gtk.STATE_ACTIVE].shade(0.5),
+                   gtk.STATE_PRELIGHT:    self.bg[gtk.STATE_PRELIGHT].shade(0.575),
+                   gtk.STATE_SELECTED:    self.bg[gtk.STATE_NORMAL].shade(0.575),
+                   gtk.STATE_INSENSITIVE: self.bg[gtk.STATE_NORMAL].darken()}
+        return palette
+
+    def get_light_line_palette(self):
+        palette = DustSand.get_light_line_palette(self)
+        palette[gtk.STATE_NORMAL] = self.bg[gtk.STATE_NORMAL].shade(1.1)
+        selected_color = color_from_string('#F07746')
+        palette[gtk.STATE_SELECTED] = selected_color.shade(1.525)
         return palette
 
 
@@ -609,6 +657,8 @@ class ThemeRegistry:
                 "Dust Sand": DustSand,
                 "New Wave": NewWave,
                 "Ambiance": Ambiance,
+                "Ambiance-maverick-beta": AmbianceMaverick,
+                "Ambiance-maverick-beta-dark": Ambiance,
                 "Radiance": Radiance}
 
     def retrieve(self, theme_name):
