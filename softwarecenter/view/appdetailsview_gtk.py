@@ -246,25 +246,15 @@ class PackageStatusBar(gtk.Alignment):
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
-        rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr,
-                  a.x, a.y,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
         r,g,b = self.view.section_color
+        cr.rectangle(a)
         cr.set_source_rgba(r,g,b,0.333)
 #        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.fill()
 
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
-
-        rr.layout(cr,
-                  a.x, a.y,
-                  a.x+a.width, a.y+a.height-1,
-                  radius=mkit.CORNER_RADIUS)
-
+        cr.rectangle(a.x, a.y, a.width-1, a.height-1)
         cr.set_source_rgba(r,g,b,0.5)
         cr.stroke()
         cr.restore()
