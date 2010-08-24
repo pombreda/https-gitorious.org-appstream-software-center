@@ -456,11 +456,18 @@ class AppDetails(object):
                 source_to_enable = self.component
             if source_to_enable:
                 sources = source_to_enable.split('&')
-                warning = _("Available from the \"%s\"") % sources[0]
-                if len(sources) > 1:
-                    for source in sources[1:]:
-                       warning += _(", or from the \"%s\"") % source
-                warning += _(" source.")
+                sources_length = len(sources)
+                if sources_length == 1:
+                    warning = _("Available from the \"%s\" source.") % sources[0]
+                elif sources_length > 1:
+                    # Translators: the visible string is constructed concatenating 
+                    # the following 3 strings like this: 
+                    # Available from the following sources: %s, ... %s, %s.                
+                    warning = _("Available from the following sources: ")
+                    # Cycle through all, but the last
+                    for source in sources[:-1]:
+                        warning += _("\"%s\", ") % source
+                    warning += _("\"%s\".") % sources[sources_length - 1]
                 return warning
 
     @property

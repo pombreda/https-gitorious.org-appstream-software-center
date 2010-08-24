@@ -1,8 +1,18 @@
 software-center (2.1.11) UNRELEASED; urgency=low
+  
+  [ Mohamed Amine IL Idrissi ]
+  * (all): Implemented add-on handling.
 
-  * Implemented add-on handling.
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use package info lines rather than package info tables
+      (for devildante to use in the addons branch)
 
- -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Fri, 13 Aug 2010 14:57:26 +0000
+  [ Milo Casagrande ]
+  * softwarecenter/db/application.py:
+    - make 'source available' warning more suitable for translation.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
 
 software-center (2.1.10) maverick; urgency=low
 
@@ -49,7 +59,7 @@ software-center (2.1.10) maverick; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
 
-software-center (2.1.9) UNRELEASED; urgency=low
+software-center (2.1.9) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/utils.py:
@@ -116,8 +126,8 @@ software-center (2.1.9) UNRELEASED; urgency=low
       no categories or back/forward navigation)
   * softwarecenter/view/viewswitcher.py:
     - put cursor in correct position
-    
-  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 20:58:22 +0200
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Aug 2010 23:19:03 +0200
 
 software-center (2.1.8) maverick; urgency=low
 

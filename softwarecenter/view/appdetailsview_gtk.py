@@ -152,7 +152,8 @@ class PackageStatusBar(gtk.Alignment):
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
                      PKG_STATE_REMOVING,
-                     PKG_STATE_UPGRADING):
+                     PKG_STATE_UPGRADING,
+                     APP_ACTION_APPLY):
             self.button.hide()
             self.show()
         elif state == PKG_STATE_NOT_FOUND:
@@ -161,8 +162,8 @@ class PackageStatusBar(gtk.Alignment):
             self.button.set_sensitive(False)
             self.button.show()
             self.show()
-        else:
             state = app_details.pkg_state
+        else:
             self.button.set_sensitive(True)
             self.button.show()
             self.show()
@@ -216,7 +217,7 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
         elif state == APP_ACTION_APPLY:
-            self.set_label(_('Applying changes...'))
+            self.set_label(_('Changing add-ons...'))
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -418,78 +419,51 @@ class AppDescription(gtk.VBox):
         self.show_all()
         return    
 
+class PackageInfo(gtk.HBox):
 
-class PackageInfoTable(gtk.VBox):
-
-    def __init__(self):
-        gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
-
-        self.version_label = gtk.Label()
-        self.license_label = gtk.Label()
-        self.support_label = gtk.Label()
-
-        self.version_label.set_selectable(True)
-
+    def __init__(self, key):
+        gtk.HBox.__init__(self, spacing=mkit.SPACING_XLARGE)
+        self.key = key
+        self.value_object = gtk.Label()
         self.connect('realize', self._on_realize)
         return
 
     def _on_realize(self, widget):
+        # key
+        k = gtk.Label()
         dark = self.style.dark[self.state].to_string()
         key_markup = '<b><span color="%s">%s</span></b>'
-        max_lw = 0  # max key label width
+        k.set_markup(key_markup  % (dark, self.key))
+        a = gtk.Alignment(1.0, 0.0)
+        # the line below is 'wrong', but in reality it works quite ok
+        a.set_size_request(100, -1)
+        a.add(k)
+        self.pack_start(a, False)
 
-        for kstr, v in [(_('Version:'), self.version_label),
-                        (_('License:'), self.license_label),
-                        (_('Updates:'), self.support_label)]:
+        # value
+        v = self.value_object
+        v.set_line_wrap(True)
+        v.set_selectable(True)
+        b = gtk.Alignment(0.0, 0.0)
+        b.add(v)
+        self.pack_start(b, False)
 
-            k = gtk.Label()
-            k.set_markup(key_markup  % (dark, kstr))
-            v.set_line_wrap(True)
-            max_lw = max(max_lw, k.get_layout().get_pixel_extents()[1][2])
-
-            a = gtk.Alignment(1.0, 0.0)
-            a.add(k)
-
-            # we need this extra box to avoid orca repeating itself
-            b = gtk.Alignment(0.0, 0.0)
-            b.add(v)
-
-            row = gtk.HBox(spacing=mkit.SPACING_XLARGE)
-            row.pack_start(a, False)
-            row.pack_start(b, False)
-
-            # a11y stuff
-            row.set_property("can-focus", True)
-            row.a11y = row.get_accessible()
-            row.a11y.set_name(kstr)
-
-            self.pack_start(row, False)
-
-        for row in self.get_children():
-            k, v = row.get_children()
-            k.set_size_request(max_lw+3*mkit.EM, -1)
+        # a11y stuff
+        self.set_property("can-focus", True)
+        self.a11y = self.get_accessible()
 
         self.show_all()
         return
 
     def set_width(self, width):
-        for row in self.get_children():
-            k, v = row.get_children()
-            v.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
+        if self.get_children():
+            k, v = self.get_children()
+            v.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
         return
 
-    def configure(self, version, license, updates):
-
-        # set labels
-        self.version_label.set_text(version)
-        self.license_label.set_text(license)
-        self.support_label.set_text(updates)
-
-        # set a11y texts
-        for row in self.get_children():
-            key = row.a11y.get_name().split(":")[0]
-            value = row.get_children()[1].get_children()[0].get_text()
-            row.a11y.set_name(key + ': ' + value)
+    def set_value(self, value):
+        self.value_object.set_text(value)
+        self.a11y.set_name(self.key + ' ' + value)
 
 class ScreenshotView(gtk.Alignment):
 
@@ -801,7 +775,7 @@ class AddonCheckButton(gtk.HBox):
                    }
     
     def __init__(self, db, icons, pkgname):
-        gtk.HBox.__init__(self, spacing=6)
+        gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
         self.app_details = AppDetails(db, 
                                       application=Application("None", pkgname))
         # the checkbutton
@@ -809,25 +783,28 @@ class AddonCheckButton(gtk.HBox):
         self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
         self.pack_start(self.checkbutton, False)
         # the hbox inside the checkbutton that contains the icon and description
-        hbox = gtk.HBox()
+        hbox = gtk.HBox(spacing=mkit.SPACING_MED)
         image = gtk.Image()
         icon = self.app_details.icon
-        if not icons.has_icon(icon):
+        if not icon or not icons.has_icon(icon):
             icon = MISSING_APP_ICON
         try:
-            image.set_from_icon_name(icon, 24)
+            pixbuf = icons.load_icon(icon, 22, ()).scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
+            image.set_from_pixbuf(pixbuf)
         except TypeError:
             logging.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(image, False, False)
         # the display_name
-        label = gtk.Label(self.app_details.display_name)
+        display_name = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.display_name.capitalize(),
+                                                        'pkgname': pkgname}
+        label = gtk.Label(display_name)
         hbox.pack_start(label, False)
         # and put it into the the checkbox
         self.checkbutton.add(hbox)
         # this is the addon_pkgname
-        self.addon_pkgname = gtk.Label(_(" (%(pkgname)s)") % {
-                'pkgname' : pkgname } )
-        hbox.pack_start(self.addon_pkgname, False)
+        #self.addon_pkgname = gtk.Label(_(" (%(pkgname)s)") % {
+        #        'pkgname' : pkgname } )
+        #hbox.pack_start(self.addon_pkgname, False)
         
     
     def _on_checkbutton_toggled(self, checkbutton):
@@ -853,20 +830,19 @@ class AddonView(gtk.VBox):
                    }
     
     def __init__(self, cache, db, icons):
-        gtk.VBox.__init__(self, False, 12)
+        gtk.VBox.__init__(self, False, mkit.SPACING_MED)
         self.cache = cache
         self.db = db
         self.icons = icons
         self.recommended_addons = None
         self.suggested_addons = None
 
-        self.label = gtk.Label(_("<b>Choose add-ons</b>"))
+        self.label = gtk.Label(_("<b>Choose add-ons:</b>"))
         self.label.set_use_markup(True)
         self.label.set_alignment(0, 0.5)
         self.pack_start(self.label, False, False)
     
     def set_addons(self, app_details, recommended, suggested):
-        self.hide_all()
         if len(recommended) == 0 and len(suggested) == 0:
             return
         self.recommended_addons = recommended
@@ -878,17 +854,25 @@ class AddonView(gtk.VBox):
                 self.remove(widget)
         
         for addon in recommended:
+            try:
+                pkg = self.cache[addon]
+            except KeyError:
+                continue
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
             #checkbutton.addon_pkgname.connect(
             #    "clicked", self._on_description_clicked, addon)
-            checkbutton.set_active(self.cache[addon].installed != None)
+            checkbutton.set_active(pkg.installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         for addon in suggested:
+            try:
+                pkg = self.cache[addon]
+            except KeyError:
+                continue
             checkbutton = AddonCheckButton(self.db, self.icons, addon)
             #checkbutton.addon_pkgname.connect(
             #    "clicked", self._on_description_clicked, addon)
-            checkbutton.set_active(self.cache[addon].installed != None)
+            checkbutton.set_active(pkg.installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
             self.pack_start(checkbutton, False)
         self.show_all()
@@ -901,21 +885,30 @@ class AddonView(gtk.VBox):
     def _on_description_clicked(self, label, addon):
         self.emit("description-clicked", addon)
 
-class TotalSizeBar(gtk.HBox):
+class AddonsStateBar(gtk.Alignment):
     __gsignals__ = {'changes-canceled': (gobject.SIGNAL_RUN_FIRST,
                                          gobject.TYPE_NONE,
                                          ()),
                    }
     
     def __init__(self, cache, view):
-        gtk.HBox.__init__(self)
+        gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        self.set_redraw_on_allocate(False)
+        self.set_padding(mkit.SPACING_LARGE,
+                         mkit.SPACING_LARGE,
+                         mkit.SPACING_SMALL+2,
+                         mkit.SPACING_SMALL)
+        
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.add(self.hbox)
+        
         self.cache = cache
         self.view = view
         self.applying = False
         
         self.label_price = gtk.Label()
         self.label_price.set_line_wrap(True)
-        self.pack_start(self.label_price, False, False)
+        self.hbox.pack_start(self.label_price, False, False)
         
         self.hbuttonbox = gtk.HButtonBox()
         self.hbuttonbox.set_layout(gtk.BUTTONBOX_END)
@@ -925,7 +918,7 @@ class TotalSizeBar(gtk.HBox):
         self.button_cancel.connect("clicked", self._on_button_cancel_clicked)
         self.hbuttonbox.pack_start(self.button_cancel, False)
         self.hbuttonbox.pack_start(self.button_apply, False)
-        self.pack_start(self.hbuttonbox)
+        self.hbox.pack_start(self.hbuttonbox)
         
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
@@ -1057,7 +1050,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         for pt in self.app_desc.points:
             pt.set_size_request(w-7*mkit.EM-166, -1)
 
-        self.info_table.set_width(w-6*mkit.EM)
+        self.version_info.set_width(w-6*mkit.EM)
+        self.license_info.set_width(w-6*mkit.EM)
+        self.support_info.set_width(w-6*mkit.EM)
 
         self._full_redraw()   #  ewww
         return
@@ -1090,9 +1085,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                  self.action_bar.allocation,
                                  event.area)
         
-        if self.totalsize_bar.get_property('visible'):
-            self.totalsize_bar.draw(cr,
-                                 self.totalsize_bar.allocation,
+        if self.addons_bar.get_property('visible'):
+            self.addons_bar.draw(cr,
+                                 self.addons_bar.hbox.allocation,
                                  event.area)
 
         if self.screenshot.get_property('visible'):
@@ -1165,19 +1160,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox.set_redraw_on_allocate(False)
-
-        
         
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
         self.app_info.image.set_size_request(84, 84)
-        self.app_info.set_spacing(mkit.SPACING_LARGE)
+        self.app_info.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
 
-        self.app_info.body.set_spacing(mkit.SPACING_LARGE)
+        self.app_info.body.set_spacing(mkit.SPACING_MED)
         self.vbox.pack_start(self.app_info, False)
 
         # a11y for name/summary
@@ -1189,7 +1182,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.body.pack_start(self.action_bar, False)
         
         # FramedSection which contains the app description
-        self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_LARGE)
+        self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
         self.desc_section.header_alignment.set_padding(0,0,0,0)
 
         self.app_info.body.pack_start(self.desc_section, False)
@@ -1208,28 +1201,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # screenshot
         self.screenshot = ScreenshotView(self.distro, self.icons)
         app_desc_hb.pack_end(self.screenshot)
-
-        # add-on handling
-        self.addon_view = AddonView(self.cache, self.db, self.icons)
-        self.addon_view.connect("toggled", self._on_addon_view_toggled)
-        self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
-        self.desc_section.body.pack_start(self.addon_view, False)
-        
-        self.size_hbox = gtk.HBox(spacing=mkit.SPACING_XLARGE)
-        self.app_info.body.pack_start(self.size_hbox, False)
-        
-        dark = self.style.dark[self.state].to_string()
-        key_markup = '<b><span color="%s">%s</span></b>'
-        text = _("Total size:")
-        self.size_label = gtk.Label()
-        self.size_label.set_markup(key_markup % (dark, text))
-        self.size_hbox.pack_start(self.size_label, False)
-        self.totalsize_label = gtk.Label()
-        self.size_hbox.pack_start(self.totalsize_label, False)
-        
-        self.totalsize_bar = TotalSizeBar(self.cache, self)
-        self.totalsize_bar.connect("changes-canceled", self._on_totalsize_changescanceled)
-        self.app_info.body.pack_start(self.totalsize_bar, False)
         
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
@@ -1246,9 +1217,32 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
 
-        # package info table
-        self.info_table = PackageInfoTable()
-        self.app_info.body.pack_start(self.info_table, False)
+        alignment = gtk.Alignment()
+        alignment.set_padding(mkit.SPACING_LARGE, 0, 0, 0)
+        self.desc_section.body.pack_start(alignment, False)
+        
+        # add-on handling
+        self.addon_view = AddonView(self.cache, self.db, self.icons)
+        self.addon_view.connect("toggled", self._on_addon_view_toggled)
+        self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
+        alignment.add(self.addon_view)
+        
+        self.totalsize_info = PackageInfo(_("Total size:"))
+        self.app_info.body.pack_start(self.totalsize_info, False)
+        
+        self.addons_bar = AddonsStateBar(self.cache, self)
+        self.addons_bar.connect("changes-canceled", self._on_addonsbar_changescanceled)
+        self.app_info.body.pack_start(self.addons_bar, False)
+
+        # package info
+        self.version_info = PackageInfo(_("Version:"))
+        self.app_info.body.pack_start(self.version_info, False)
+
+        self.license_info = PackageInfo(_("License:"))
+        self.app_info.body.pack_start(self.license_info, False)
+
+        self.support_info = PackageInfo(_("Updates:"))
+        self.app_info.body.pack_start(self.support_info, False)
 
         self.show_all()
         return
@@ -1285,12 +1279,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # if we have an error or if we need to enable a source, then hide everything else
         if app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE):
-            self.info_table.hide()
             self.screenshot.hide()
+            self.version_info.hide()
+            self.license_info.hide()
+            self.support_info.hide()
             self.desc_section.hide()
         else:
             self.desc_section.show()
-            self.info_table.show()
+            self.version_info.show()
+            self.license_info.show()
+            self.support_info.show()
             self.screenshot.show()
 
         # depending on pkg install state set action labels
@@ -1307,14 +1305,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.app_desc.body.a11y.set_name("Description: " + description)
 
         # show or hide the homepage button and set uri if homepage specified
-        if app_details.website and self.info_table.get_property('visible'):
+        if app_details.website:
             self.homepage_btn.show()
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self._gwibber_is_available and self.info_table.get_property('visible'):
+        if self._gwibber_is_available:
             self.share_btn.show()
         else:
             self.share_btn.hide()
@@ -1339,16 +1337,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             support = app_details.maintenance_status
         else:
             support = _("Unknown")
-        self.info_table.configure(version, license, support)
+        
+        self.version_info.set_value(version)
+        self.license_info.set_value(license)
+        self.support_info.set_value(support)
         
         # Update add-on interface
-        self.addon_view.set_addons(self.app_details, self.recommended, self.suggested)
+        self.addon_view.hide_all()
+        gobject.idle_add(self.addon_view.set_addons, self.app_details, self.recommended, self.suggested)
         
         # Update total size label
-        self.update_totalsize()
+        self.totalsize_info.hide_all()
+        gobject.idle_add(self.update_totalsize)
         
-        # Update total size bar
-        self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+        # Update addons state bar
+        self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         return
 
     # public API
@@ -1399,24 +1402,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_interface_on_trans_ended(self, result):
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
-        self.totalsize_bar.button_apply.set_sensitive(True)
-        self.totalsize_bar.button_cancel.set_sensitive(True)
+        self.addons_bar.button_apply.set_sensitive(True)
+        self.addons_bar.button_cancel.set_sensitive(True)
         state = self.action_bar.pkg_state
         pkg_state = None
         if state == PKG_STATE_INSTALLING or state == PKG_STATE_UPGRADING \
-        or self.totalsize_bar.applying:
-            self.totalsize_bar.show_all()
+        or self.addons_bar.applying:
+            self.addons_bar.show_all()
             pkg_state = PKG_STATE_INSTALLED
         else:
-            self.totalsize_bar.hide_all()
+            self.addons_bar.hide_all()
             pkg_state = PKG_STATE_UNINSTALLED
 
-        if self.totalsize_bar.applying:
+        if self.addons_bar.applying:
             self.action_bar.configure(self.app_details, pkg_state)
             self.addons_install = []
             self.addons_remove = []
-            self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
-            self.totalsize_bar.applying = False
+            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+            self.addons_bar.applying = False
             
             for widget in self.addon_view:
                 if widget != self.addon_view.label:
@@ -1443,16 +1446,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
             self.addons_install = []
             self.addons_remove = []
-            self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         elif state == PKG_STATE_UPGRADING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         return False
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
-        self.totalsize_bar.hbuttonbox.hide()
         
-        if self.totalsize_bar.get_applying():
+        if self.addons_bar.get_applying():
             self.action_bar.configure(self.app_details, APP_ACTION_APPLY)
             return
         
@@ -1579,6 +1581,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download:
                 self._logger.debug("did not find the icon locally, must download it")
+            else:
+                return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
         else:
             return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
 
@@ -1592,17 +1596,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self._set_addon_remove(addon)
         if self.app_details.pkg_state == PKG_STATE_INSTALLED:
-            self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         gobject.idle_add(self.update_totalsize)
         
-    def _on_totalsize_changescanceled(self, widget):
+    def _on_addonsbar_changescanceled(self, widget):
         self.addons_install = []
         self.addons_remove = []
         self.addon_view.set_addons(self.app_details, 
                                     self.recommended,
                                     self.suggested)
-        self.totalsize_bar.configure(self.app_details, self.addons_install, self.addons_remove)
-        self.update_totalsize()
+        self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+        gobject.idle_add(self.update_totalsize)
     
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -1628,13 +1632,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # FIXME: use relative path here
             return os.path.exists("/var/cache/apt/archives/" + filename)
         
+        while gtk.events_pending():
+            gtk.main_iteration()
+        
         pkgs_to_install = []
         pkgs_to_remove = []
         total_download_size = 0 # in kB
         total_install_size = 0 # in kB
         label_string = ""
         
-        pkg = self.cache[self.app_details.pkgname]
+        try:
+            pkg = self.cache[self.app_details.pkgname]
+        except KeyError:
+            self.totalsize_info.hide_all()
+            return False
         version = pkg.installed
         if version == None:
             version = max(pkg.versions)
@@ -1702,10 +1713,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string += _("%sB to be freed" % (remove_size))
         
         if label_string == "":
-            self.size_hbox.hide_all()
+            self.totalsize_info.hide_all()
         else:
-            self.totalsize_label.set_label(label_string)
-            self.size_hbox.show_all()
+            self.totalsize_info.set_value(label_string)
+            self.totalsize_info.show_all()
         return False
 
 

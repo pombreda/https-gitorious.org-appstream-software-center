@@ -500,7 +500,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 debfile_name = None
             action_func(app.pkgname, app.appname, appdetails.icon, debfile_name, addons_install, addons_remove)
         elif callable(action_func):
-            action_func(app.pkgname, app.appname, appdetails.icon, addons_install, addons_remove)
+            action_func(app.pkgname, app.appname, appdetails.icon, addons_install=addons_install, addons_remove=addons_remove)
         else:
             logging.error("Not a valid action in AptdaemonBackend: '%s'" % action)
             

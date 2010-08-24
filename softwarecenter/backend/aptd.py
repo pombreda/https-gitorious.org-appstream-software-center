@@ -160,7 +160,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, file_name=None, addons_install=None, addons_remove=None, metadata=None):
+    def install(self, pkgname, appname, iconname, filename=None, addons_install=None, addons_remove=None, metadata=None):
         """Install a single package from the archive
            If filename is given a local deb package is installed instead.
         """
