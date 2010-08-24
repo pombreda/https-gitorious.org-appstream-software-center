@@ -413,9 +413,11 @@ class AppDescription(gtk.VBox):
 
 class PackageInfo(gtk.HBox):
 
-    def __init__(self, key):
+    def __init__(self, key, info_keys):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_XLARGE)
         self.key = key
+        self.info_keys = info_keys
+        self.info_keys.append(key)
         self.value_object = gtk.Label()
         self.a11y = self.get_accessible()
         self.connect('realize', self._on_realize)
@@ -428,8 +430,14 @@ class PackageInfo(gtk.HBox):
         key_markup = '<b><span color="%s">%s</span></b>'
         k.set_markup(key_markup  % (dark, self.key))
         a = gtk.Alignment(1.0, 0.0)
-        # the line below is 'wrong', but in reality it works quite ok
-        a.set_size_request(100, -1)
+        # determine max width of all keys
+        max_lw = 0
+        for key in self.info_keys:
+            tmp = gtk.Label()
+            tmp.set_markup(key_markup  % (dark, key))
+            max_lw = max(max_lw, tmp.get_layout().get_pixel_extents()[1][2])
+            del tmp
+        a.set_size_request(max_lw+3*mkit.EM, -1)
         a.add(k)
         self.pack_start(a, False)
 
@@ -989,13 +997,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_desc.footer.pack_start(self.share_btn, False)
 
         # package info
-        self.version_info = PackageInfo(_("Version:"))
+        self.info_keys = []
+
+        self.version_info = PackageInfo(_("Version:"), self.info_keys)
         self.app_info.body.pack_start(self.version_info, False)
 
-        self.license_info = PackageInfo(_("License:"))
+        self.license_info = PackageInfo(_("License:"), self.info_keys)
         self.app_info.body.pack_start(self.license_info, False)
 
-        self.support_info = PackageInfo(_("Updates:"))
+        self.support_info = PackageInfo(_("Updates:"), self.info_keys)
         self.app_info.body.pack_start(self.support_info, False)
 
         self.show_all()
