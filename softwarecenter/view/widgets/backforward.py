@@ -172,6 +172,9 @@ class ButtonPart(gtk.EventBox):
 
     def __init__(self, arrow_type, signal_name, part_size):
         gtk.EventBox.__init__(self)
+
+        self.is_active = False
+
         self.set_redraw_on_allocate(False)
         self.set_visible_window(False)
 
