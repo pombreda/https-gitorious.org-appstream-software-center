@@ -84,12 +84,12 @@ class PackageStatusBar(gtk.Alignment):
         self.add(self.hbox)
 
         self.view = view
-        self.label = gtk.Label()
+        self.label = mkit.EtchedLabel()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
 
-        self.fill_color = COLOR_GREEN_FILL
-        self.line_color = COLOR_GREEN_OUTLINE
+        self.fill_color = view.section_color
+        self.line_color = view.section_color
 
         self.pkg_state = None
 
@@ -129,7 +129,7 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def set_label(self, label):
-        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
+        m = '<span color="%s"><big>%s</big></span>' % (COLOR_BLACK, label)
         self.label.set_markup(m)
         return
 
@@ -248,11 +248,12 @@ class PackageStatusBar(gtk.Alignment):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr,
-                  a.x-1, a.y-1,
+                  a.x, a.y,
                   a.x+a.width, a.y+a.height,
                   radius=mkit.CORNER_RADIUS)
 
-        cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
+        r,g,b = self.view.section_color
+        cr.set_source_rgba(r,g,b,0.333)
 #        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.fill()
 
@@ -260,11 +261,11 @@ class PackageStatusBar(gtk.Alignment):
         cr.translate(0.5, 0.5)
 
         rr.layout(cr,
-                  a.x-1, a.y-1,
-                  a.x+a.width, a.y+a.height,
+                  a.x, a.y,
+                  a.x+a.width, a.y+a.height-1,
                   radius=mkit.CORNER_RADIUS)
 
-        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
+        cr.set_source_rgba(r,g,b,0.5)
         cr.stroke()
         cr.restore()
         return
@@ -468,23 +469,35 @@ class PackageInfoTable(gtk.VBox):
         return
 
     def set_width(self, width):
+        #print width
         for row in self.get_children():
             k, v = row.get_children()
-            v.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
+            l = v.get_children()[0]
+            l.set_size_request(width-k.allocation.width-row.get_spacing(), -1)
         return
 
     def configure(self, version, license, updates):
-
+#        print updates
+        
         # set labels
         self.version_label.set_text(version)
         self.license_label.set_text(license)
         self.support_label.set_text(updates)
 
+        import atk
         # set a11y texts
         for row in self.get_children():
+            k, l = row.get_children()
             key = row.a11y.get_name().split(":")[0]
-            value = row.get_children()[1].get_children()[0].get_text()
-            row.a11y.set_name(key + ': ' + value)
+            k = k.get_children()[0]
+            l = l.get_children()[0]
+            row.a11y.set_name(key + ': ' + l.get_text())
+
+            kacc = k.get_accessible()
+            lacc = l.get_accessible()
+
+            kacc.add_relationship(atk.RELATION_LABEL_FOR, lacc)
+            lacc.add_relationship(atk.RELATION_LABELLED_BY, kacc)
 
 class ScreenshotView(gtk.Alignment):
 
@@ -816,6 +829,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
+        self.section_color = mkit.floats_from_string('#0769BC')
+        self.section_image = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/clouds.png'))
+
         # atk
         self.a11y = self.get_accessible()
         self.a11y.set_name("app_details pane")
@@ -863,15 +879,37 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_expose(self, widget, event):
         expose_area = event.area
+        a = widget.allocation
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
         cr.clip_preserve()
         #cr.clip()
 
-        #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.55))
-        cr.set_source_rgba(*mkit.floats_from_gdkcolor(self.style.base[gtk.STATE_NORMAL]))
+        # base color
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
- #       self.app_info.draw(cr, self.app_info.allocation, expose_area)
+
+        # sky
+        r,g,b = self.section_color
+        lin = cairo.LinearGradient(0,0,0,150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.3)
+        lin.add_color_stop_rgba(1, r,g,b,0)
+        cr.set_source(lin)
+        cr.rectangle(0,0,
+                     a.width, 150)
+        cr.fill()
+
+
+        # clouds
+        w = self.section_image.get_width()
+        h = self.section_image.get_height()
+        cr.save()
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
+        cr.translate(a.x+a.width-w, a.y)
+        cr.rectangle(0,0,w,h)
+        cr.clip()
+        cr.mask_surface(self.section_image, 0, 0)
+        cr.restore()
 
         # if the appicon is not that big draw a rectangle behind it
         # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view
@@ -956,7 +994,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.vbox = gtk.VBox()
         self.add(self.vbox)
         self.vbox.set_border_width(mkit.BORDER_WIDTH_XLARGE)
-
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox.set_redraw_on_allocate(False)
 
@@ -1267,6 +1304,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         rr = mkit.ShapeRoundedRectangle()
 
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[0]))
+        cr.fill()
+
         cr.save()
 
         # line width should be 0.05em but for the sake of simplicity
@@ -1307,6 +1348,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 image_downloader.download_image(app_details.icon_url, icon_file_path)
                 
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
+
+    def set_section_color(self, color):
+        self.section_color = color
+        return
+
+    def set_section_image(self, id, surf):
+        self.section_image = surf
+        return
+
+
 
 
 if __name__ == "__main__":

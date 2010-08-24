@@ -30,6 +30,7 @@ import os
 import subprocess
 import sys
 import xapian
+import cairo
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
@@ -39,6 +40,7 @@ from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 import softwarecenter.view.dialogs as dialogs
+from softwarecenter.view.widgets.mkit import floats_from_string
 
 import view.dialogs
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
@@ -95,7 +97,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     APP_ICON_SIZE = 48  # gtk.ICON_SIZE_DIALOG ?
 
     def __init__(self, datadir, xapian_base_path, options, args=None):
-    
+
         self._logger = logging.getLogger(__name__)
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
@@ -199,6 +201,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             datadir,
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
+
+
+        color = floats_from_string('#0769BC')
+        image = cairo.ImageSurface.create_from_png(
+            os.path.join(datadir, 'images/clouds.png'))
+        self.available_pane.set_section_color(color)
+        self.available_pane.set_section_image(image_id=0, surf=image)
+
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_AVAILABLE)
@@ -220,6 +230,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.distro,
                                         self.icons,
                                         datadir)
+        color = floats_from_string('#aea79f')
+        image = cairo.ImageSurface.create_from_png(
+            os.path.join(datadir, 'images/arrows.png'))
+        self.channel_pane.set_section_color(color)
+        self.channel_pane.set_section_image(image_id=1, surf=image)
+
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_CHANNEL)
@@ -241,6 +257,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.distro,
                                             self.icons,
                                             datadir)
+        
+        color = floats_from_string('#aea79f')
+        image = cairo.ImageSurface.create_from_png(
+            os.path.join(datadir, 'images/arrows.png'))
+        self.installed_pane.set_section_color(color)
+        self.installed_pane.set_section_image(image_id=2, surf=image)
+        
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_INSTALLED)
