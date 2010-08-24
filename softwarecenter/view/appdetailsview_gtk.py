@@ -1373,8 +1373,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
-        self.recommended = self.addons_manager.recommended_addons(app.pkgname)
-        self.suggested = self.addons_manager.suggested_addons(app.pkgname)
+        addons = self.addons_manager.get_addons(app.pkgname)
+        self.recommended = addons[0]
+        self.suggested = addons[1]
         LOG.debug("AppDetailsView.show_app recommended '%s'" % self.recommended)
         LOG.debug("AppDetailsView.show_app suggested '%s'" % self.suggested)
         

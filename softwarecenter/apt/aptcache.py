@@ -276,36 +276,11 @@ class PackageAddonsManager(object):
     """ class that abstracts the addons handling """
 
     LANGPACK_PKGDEPENDS = "/usr/share/language-selector/data/pkg_depends"
-    (RECOMMENDED, SUGGESTED) = range(2)
     
     def __init__(self, cache):
         self.cache = cache
         self._language_packages = self._read_language_pkgs()
 
-    def _remove_important_or_langpack(self, addon_list, app_pkg):
-        """ remove packages that are essential or important
-            or langpacks
-        """
-        for addon in addon_list:
-            try:
-                pkg = self.cache[addon]
-                if pkg.essential or pkg._pkg.important or addon == app_pkg.name:
-                    addon_list.remove(addon)
-                    continue
-                
-                deps = self.cache.get_depends(app_pkg)
-                if addon in deps:
-                    addon_list.remove(addon)
-                    continue
-                
-                rdeps = self.cache.get_installed_rdepends(pkg)
-                if (len(rdeps) > 0 or 
-                    self._is_language_pkg(addon)):
-                    addon_list.remove(addon)
-                    continue
-            except KeyError:
-                addon_list.remove(addon)
-    
     def _is_language_pkg(self, addon):
         # a simple "addon in self._language_packages" is not enough
         for template in self._language_packages:
@@ -326,66 +301,107 @@ class PackageAddonsManager(object):
             language_packages.add(language_pkg)
         return language_packages
     
-    def _addons_for_pkg(self, pkgname, type):
-        try:
-            pkg = self.cache[pkgname]
-        except KeyError:
-            return []
+    def get_addons(self, pkgname):
+
+        # deb file, or pkg needing source, etc
+        if not pkgname in self.cache:
+            return ([],[])
+
+        # initial setup
+        pkg = self.cache[pkgname]
+        addons_rec = [] # recommended addons
+        addons_sug = [] # suggested addons
+
+        # get addons
+        recommends = self.cache.get_recommends(pkg)
+        if len(recommends) == 1: # why only one?
+            addons_rec += recommends
+        suggests = self.cache.get_suggests(pkg)
+        if len(suggests) == 1:
+            addons_sug += suggests
+        addons_sug += self.cache.get_renhances(pkg)
+
+        # get even more addons
         deps = self.cache.get_depends(pkg)
-        addons = []
-        if type == self.RECOMMENDED:
-            recommends = self.cache.get_recommends(pkg)
-            if len(recommends) == 1:
-                addons += recommends
-        elif type == self.SUGGESTED:
-            suggests = self.cache.get_suggests(pkg)
-            if len(suggests) == 1:
-                addons += suggests
-            addons += self.cache.get_renhances(pkg)
-        
         for dep in deps:
-            try:
+            if dep in self.cache:
                 pkgdep = self.cache[dep]
                 if len(self.cache.get_rdepends(pkgdep)) == 1:
                     # pkg is the only known package that depends on pkgdep
-                    if type == self.RECOMMENDED:
-                        addons += self.cache.get_recommends(pkgdep)
-                    elif type == self.SUGGESTED:
-                        addons += self.cache.get_suggests(pkgdep)
-                        addons += self.cache.get_renhances(pkgdep)
-            except KeyError:
-                pass # FIXME: should we handle that differently?
-        self._remove_important_or_langpack(addons, pkg)
-        for addon in addons:
-            try:
-                pkg_ = self.cache[addon]
-            except KeyError:
+                    addons_rec += self.cache.get_recommends(pkgdep)
+                    addons_sug += self.cache.get_suggests(pkgdep)
+                    addons_sug += self.cache.get_renhances(pkgdep)
+
+        # merge the two lists (list(set()) removes the duplicates)
+        addons = list(set(addons_rec)) + ['@@']
+        for addon_sug in addons_sug:
+            if not addon_sug in addons:
+                addons.append(addon_sug)
+
+        # we now remove the addons we don't want displayed
+        i = 0
+        while i < len(addons):
+            addon = addons[i]
+
+            if addon == '@@':
+                i += 1
+                continue
+
+            #
+            if not addon in self.cache:
                 addons.remove(addon)
-            else:
-                can_remove = False
-                for addon_ in addons:
-                    try:
-                        if addon in self.cache.get_provides(self.cache[addon_]) \
-                        or addon in self.cache.get_depends(self.cache[addon_]) \
-                        or addon in self.cache.get_recommends(self.cache[addon_]):
-                            can_remove = True
-                            break
-                    except KeyError:
-                        addons.remove(addon_)
+                continue
+
+            # initial setup
+            addon_pkg = self.cache[addon]
+
+            #
+            if addon_pkg.essential or addon_pkg._pkg.important or addon == pkg.name:
+                addons.remove(addon)
+                continue
+
+            #
+            if addon in deps:
+                addons.remove(addon)
+                continue
+
+            #
+            rdeps = self.cache.get_installed_rdepends(addon_pkg)
+            if rdeps or self._is_language_pkg(addon):
+                addons.remove(addon)
+                continue
+
+            can_remove = False
+            for addon_ in addons:
+                if addon_ == '@@':
+                    break
+                try:
+                    if addon in self.cache.get_provides(self.cache[addon_]) \
+                    or addon in self.cache.get_depends(self.cache[addon_]) \
+                    or addon in self.cache.get_recommends(self.cache[addon_]):
+                        can_remove = True
                         break
-                if can_remove or not pkg_.candidate or addons.count(addon) > 1 \
-                or addon == pkg.name or self._is_language_pkg(addon):
-                    addons.remove(addon)
-        # FIXME: figure out why I have to call this function two times to get rid of important packages
-		self._remove_important_or_langpack(addons, pkg)
-        return addons
-    
-    def recommended_addons(self, pkgname):
-        return self._addons_for_pkg(pkgname, self.RECOMMENDED)
-    
-    def suggested_addons(self, pkgname):
-        return self._addons_for_pkg(pkgname, self.SUGGESTED)
-    
+                except KeyError:
+                    addons.remove(addon_)
+                    break
+            if can_remove or not pkg.candidate or addons.count(addon) > 1 \
+            or self._is_language_pkg(addon):
+                addons.remove(addon)
+                continue
+            i += 1
+
+        addon_rec = []
+        addon_sug = []
+        switch = 0
+        for addon in addons:
+            if addon == '@@':
+                switch = 1
+            elif switch == 0:
+                addon_rec.append(addon)
+            elif switch == 1:
+                addon_sug.append(addon)
+
+        return (addon_rec, addon_sug)
 
 if __name__ == "__main__":
     c = AptCache()
