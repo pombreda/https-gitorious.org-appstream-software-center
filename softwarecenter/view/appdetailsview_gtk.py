@@ -441,6 +441,12 @@ class PackageInfo(gtk.HBox):
         b.add(v)
         self.pack_start(b, False)
 
+        # a11y
+        kacc = k.get_accessible()
+        vacc = v.get_accessible()
+        kacc.add_relationship(atk.RELATION_LABEL_FOR, vacc)
+        vacc.add_relationship(atk.RELATION_LABELLED_BY, kacc)
+
         self.set_property("can-focus", True)
 
         self.show_all()
@@ -449,7 +455,8 @@ class PackageInfo(gtk.HBox):
     def set_width(self, width):
         if self.get_children():
             k, v = self.get_children()
-            v.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
+            l = v.get_children()[0]
+            l.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
         return
 
     def set_value(self, value):
