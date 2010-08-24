@@ -409,7 +409,8 @@ class PackageInfo(gtk.HBox):
         self.key = key
         self.info_keys = info_keys
         self.info_keys.append(key)
-        self.value_object = gtk.Label()
+        self.value_label = gtk.Label()
+        self.value_label.set_selectable(True)
         self.a11y = self.get_accessible()
         self.connect('realize', self._on_realize)
         return
@@ -433,7 +434,7 @@ class PackageInfo(gtk.HBox):
         self.pack_start(a, False)
 
         # value
-        v = self.value_object
+        v = self.value_label
         v.set_line_wrap(True)
         v.set_selectable(True)
         b = gtk.Alignment(0.0, 0.0)
@@ -443,7 +444,6 @@ class PackageInfo(gtk.HBox):
         # a11y
         kacc = k.get_accessible()
         vacc = v.get_accessible()
-
         kacc.add_relationship(atk.RELATION_LABEL_FOR, vacc)
         vacc.add_relationship(atk.RELATION_LABELLED_BY, kacc)
 
@@ -460,7 +460,7 @@ class PackageInfo(gtk.HBox):
         return
 
     def set_value(self, value):
-        self.value_object.set_text(value)
+        self.value_label.set_text(value)
         self.a11y.set_name(self.key + ' ' + value)
 
 class ScreenshotView(gtk.Alignment):
