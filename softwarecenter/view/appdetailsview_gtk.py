@@ -86,12 +86,12 @@ class PackageStatusBar(gtk.Alignment):
         self.add(self.hbox)
 
         self.view = view
-        self.label = gtk.Label()
+        self.label = mkit.EtchedLabel()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
 
-        self.fill_color = COLOR_GREEN_FILL
-        self.line_color = COLOR_GREEN_OUTLINE
+        self.fill_color = view.section_color
+        self.line_color = view.section_color
 
         self.pkg_state = None
 
@@ -131,7 +131,7 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def set_label(self, label):
-        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
+        m = '<span color="%s"><big>%s</big></span>' % (COLOR_BLACK, label)
         self.label.set_markup(m)
         return
 
@@ -196,7 +196,7 @@ class PackageStatusBar(gtk.Alignment):
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_NEEDS_PURCHASE:
             self.set_label(_("Buy for %s") % app_details.price)
-            self.set_button_label(_('Buy'))
+            self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             purchase_date = str(app_details.purchase_date).split()[0]
             self.set_label(_('Purchased on %s' % purchase_date))
@@ -254,25 +254,16 @@ class PackageStatusBar(gtk.Alignment):
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
-        rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr,
-                  a.x-1, a.y-1,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
-        cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
+        r,g,b = self.view.section_color
+        cr.rectangle(a)
+        cr.set_source_rgba(r,g,b,0.333)
 #        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.fill()
 
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
-
-        rr.layout(cr,
-                  a.x-1, a.y-1,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
-        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
+        cr.rectangle(a.x, a.y, a.width-1, a.height-1)
+        cr.set_source_rgba(r,g,b,0.5)
         cr.stroke()
         cr.restore()
         return
@@ -421,10 +412,14 @@ class AppDescription(gtk.VBox):
 
 class PackageInfo(gtk.HBox):
 
-    def __init__(self, key):
+    def __init__(self, key, info_keys):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_XLARGE)
         self.key = key
-        self.value_object = gtk.Label()
+        self.info_keys = info_keys
+        self.info_keys.append(key)
+        self.value_label = gtk.Label()
+        self.value_label.set_selectable(True)
+        self.a11y = self.get_accessible()
         self.connect('realize', self._on_realize)
         return
 
@@ -435,22 +430,32 @@ class PackageInfo(gtk.HBox):
         key_markup = '<b><span color="%s">%s</span></b>'
         k.set_markup(key_markup  % (dark, self.key))
         a = gtk.Alignment(1.0, 0.0)
-        # the line below is 'wrong', but in reality it works quite ok
-        a.set_size_request(100, -1)
+        # determine max width of all keys
+        max_lw = 0
+        for key in self.info_keys:
+            tmp = gtk.Label()
+            tmp.set_markup(key_markup  % (dark, key))
+            max_lw = max(max_lw, tmp.get_layout().get_pixel_extents()[1][2])
+            del tmp
+        a.set_size_request(max_lw+3*mkit.EM, -1)
         a.add(k)
         self.pack_start(a, False)
 
         # value
-        v = self.value_object
+        v = self.value_label
         v.set_line_wrap(True)
         v.set_selectable(True)
         b = gtk.Alignment(0.0, 0.0)
         b.add(v)
         self.pack_start(b, False)
 
-        # a11y stuff
+        # a11y
+        kacc = k.get_accessible()
+        vacc = v.get_accessible()
+        kacc.add_relationship(atk.RELATION_LABEL_FOR, vacc)
+        vacc.add_relationship(atk.RELATION_LABELLED_BY, kacc)
+
         self.set_property("can-focus", True)
-        self.a11y = self.get_accessible()
 
         self.show_all()
         return
@@ -458,11 +463,12 @@ class PackageInfo(gtk.HBox):
     def set_width(self, width):
         if self.get_children():
             k, v = self.get_children()
-            v.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
+            l = v.get_children()[0]
+            l.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
         return
 
     def set_value(self, value):
-        self.value_object.set_text(value)
+        self.value_label.set_text(value)
         self.a11y.set_name(self.key + ' ' + value)
 
 class ScreenshotView(gtk.Alignment):
@@ -1010,6 +1016,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
+        self.section_color = mkit.floats_from_string('#0769BC')
+        self.section_image = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/clouds.png'))
+
         # atk
         self.a11y = self.get_accessible()
         self.a11y.set_name("app_details pane")
@@ -1059,15 +1068,37 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_expose(self, widget, event):
         expose_area = event.area
+        a = widget.allocation
         cr = widget.window.cairo_create()
         cr.rectangle(expose_area)
         cr.clip_preserve()
         #cr.clip()
 
-        #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[gtk.STATE_NORMAL], 0.55))
-        cr.set_source_rgba(*mkit.floats_from_gdkcolor(self.style.base[gtk.STATE_NORMAL]))
+        # base color
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
- #       self.app_info.draw(cr, self.app_info.allocation, expose_area)
+
+        # sky
+        r,g,b = self.section_color
+        lin = cairo.LinearGradient(0,0,0,150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.3)
+        lin.add_color_stop_rgba(1, r,g,b,0)
+        cr.set_source(lin)
+        cr.rectangle(0,0,
+                     a.width, 150)
+        cr.fill()
+
+
+        # clouds
+        w = self.section_image.get_width()
+        h = self.section_image.get_height()
+        cr.save()
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
+        cr.translate(a.x+a.width-w, a.y)
+        cr.rectangle(0,0,w,h)
+        cr.clip()
+        cr.mask_surface(self.section_image, 0, 0)
+        cr.restore()
 
         # if the appicon is not that big draw a rectangle behind it
         # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view
@@ -1157,7 +1188,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.vbox = gtk.VBox()
         self.add(self.vbox)
         self.vbox.set_border_width(mkit.BORDER_WIDTH_XLARGE)
-
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox.set_redraw_on_allocate(False)
         
@@ -1226,22 +1256,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addon_view.connect("toggled", self._on_addon_view_toggled)
         self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
         alignment.add(self.addon_view)
-        
-        self.totalsize_info = PackageInfo(_("Total size:"))
+
+        # package info
+        self.info_keys = []
+
+        self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
         self.app_info.body.pack_start(self.totalsize_info, False)
         
         self.addons_bar = AddonsStateBar(self.cache, self)
         self.addons_bar.connect("changes-canceled", self._on_addonsbar_changescanceled)
         self.app_info.body.pack_start(self.addons_bar, False)
 
-        # package info
-        self.version_info = PackageInfo(_("Version:"))
+        self.version_info = PackageInfo(_("Version:"), self.info_keys)
         self.app_info.body.pack_start(self.version_info, False)
 
-        self.license_info = PackageInfo(_("License:"))
+        self.license_info = PackageInfo(_("License:"), self.info_keys)
         self.app_info.body.pack_start(self.license_info, False)
 
-        self.support_info = PackageInfo(_("Updates:"))
+        self.support_info = PackageInfo(_("Updates:"), self.info_keys)
         self.app_info.body.pack_start(self.support_info, False)
 
         self.show_all()
@@ -1554,6 +1586,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         rr = mkit.ShapeRoundedRectangle()
 
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[0]))
+        cr.fill()
+
         cr.save()
 
         # line width should be 0.05em but for the sake of simplicity
@@ -1719,6 +1755,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.totalsize_info.set_value(label_string)
             self.totalsize_info.show_all()
         return False
+
+    def set_section_color(self, color):
+        self.section_color = color
+        return
+
+    def set_section_image(self, id, surf):
+        self.section_image = surf
+        return
+
+
 
 
 if __name__ == "__main__":

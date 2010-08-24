@@ -28,7 +28,6 @@ from apt import debfile
 from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.apt.apthistory import get_apt_history
-from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.utils import *
@@ -120,6 +119,10 @@ class AppDetails(object):
         self._cache = self._db._aptcache
         self._distro = get_distro()
         self._history = get_apt_history()
+        # import here (intead of global) to avoid dbus dependency
+        # in update-software-center (that imports application, but
+        # never uses AppDetails) LP: #620011
+        from softwarecenter.backend import get_install_backend
         self._backend = get_install_backend()
         # FIXME: why two error states ?
         self._error = None
@@ -362,6 +365,7 @@ class AppDetails(object):
         #  - the repository information is missing (/var/lib/apt/lists empty)
         #  - its a failure in our meta-data (e.g. typo in the pkgname in
         #    the metadata)
+        #  - not available for our architecture
         if not self._pkg:
             if self.channelname:
                 if self._unavailable_channel():
@@ -381,6 +385,9 @@ class AppDetails(object):
                     for component in components:
                         if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
                             return PKG_STATE_NEEDS_SOURCE
+                        if component and not self._available_for_our_arch():
+                            self._error_not_found = _("Not available for this type of computer (%s).") % get_current_arch()
+                            return PKG_STATE_NOT_FOUND
                 else:
                     self._error =  _("Not Found")
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()

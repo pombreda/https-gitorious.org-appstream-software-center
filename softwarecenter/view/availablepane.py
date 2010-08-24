@@ -33,8 +33,8 @@ from softwarecenter.distro import get_distro
 from appview import AppView, AppStore, AppViewFilter
 
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
-from catview_gtk import CategoriesViewGtk as CategoriesView
-from catview import Category
+from catview_gtk import LobbyViewGtk, SubCategoryViewGtk
+from catview import Category, CategoriesView
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
@@ -106,7 +106,7 @@ class AvailablePane(SoftwarePane):
         self.scroll_categories = gtk.ScrolledWindow()
         self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
-        self.cat_view = CategoriesView(self.datadir, APP_INSTALL_PATH,
+        self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
                                        self.cache,
                                        self.db,
                                        self.icons,
@@ -115,7 +115,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
 
         # sub-categories view
-        self.subcategories_view = CategoriesView(self.datadir,
+        self.subcategories_view = SubCategoryViewGtk(self.datadir,
                                                  APP_INSTALL_PATH,
                                                  self.cache,
                                                  self.db,
@@ -203,7 +203,6 @@ class AvailablePane(SoftwarePane):
             self.notebook.get_current_page() == self.PAGE_APP_DETAILS):
             return
         if (not show_category_applist and
-            not self.nonapps_visible and
             self.apps_category and
             self.apps_category.subcategories and
             not (self.apps_search_term or self.apps_subcategory)):
@@ -295,8 +294,6 @@ class AvailablePane(SoftwarePane):
         if self.scroll_app_list.window:
             self.scroll_app_list.window.set_cursor(None)
 
-        # reset nonapps
-        self.nonapps_visible = False
         return False
 
     def update_navigation_button(self):
@@ -420,25 +417,39 @@ class AvailablePane(SoftwarePane):
             
     def _update_action_bar_label(self):
         appstore = self.app_view.get_model()
-        if (appstore and 
-            appstore.active and
-            not appstore.nonapps_visible and
-            appstore.nonapp_pkgs and
-            self.is_applist_view_showing()):
-            # We want to display the label if there are hidden packages
-            # in the appstore.
-            label = gettext.ngettext("_%i other_ technical item",
-                                     "_%i other_ technical items",
-                                     appstore.nonapp_pkgs
-                                     ) % appstore.nonapp_pkgs
-            self.action_bar.set_label(label, self._show_nonapp_pkgs)
-        else:
-            self.action_bar.unset_label()
+
+        # calculate the number of apps/pkgs
+        if appstore and appstore.active:
+            pkgs = appstore.nonapp_pkgs
+            if appstore.nonapps_visible:
+                apps = len(appstore) - pkgs
+            else:
+                apps = len(appstore)
+            #print 'apps: ' + str(apps)
+            #print 'pkgs: ' + str(pkgs)
+
+        self.action_bar.unset_label()
+
+        if (appstore and appstore.active and self.is_applist_view_showing() and
+            pkgs != apps and pkgs > 0 and apps > 0):
+            if appstore.nonapps_visible:
+                label = gettext.ngettext("_Hide %i technical item_",
+                                         "_Hide %i technical items_",
+                                         pkgs) % pkgs
+                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
+            elif not appstore.nonapps_visible:
+                label = gettext.ngettext("_Show %i technical item_",
+                                         "_Show %i technical items_",
+                                         pkgs) % pkgs
+                self.action_bar.set_label(label, self._show_nonapp_pkgs)
             
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = True
         self.refresh_apps()
-        self._update_action_bar()
+
+    def _hide_nonapp_pkgs(self):
+        self.nonapps_visible = False
+        self.refresh_apps()
 
     def _install_current_appstore(self):
         '''
@@ -696,6 +707,16 @@ class AvailablePane(SoftwarePane):
     def is_applist_view_showing(self):
         """Return True if we are in the applist view """
         return self.notebook.get_current_page() == self.PAGE_APPLIST
+
+    def set_section_color(self, color):
+        self.cat_view.set_section_color(color)
+        SoftwarePane.set_section_color(self, color)
+        return
+
+    def set_section_image(self, image_id, surf):
+        self.cat_view.set_section_image(image_id, surf)
+        SoftwarePane.set_section_image(self, image_id, surf)
+        return
 
     def set_category(self, category):
         #print "set_category", category

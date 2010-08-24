@@ -1,18 +1,59 @@
-software-center (2.1.11) UNRELEASED; urgency=low
-  
+software-center (2.1.12) UNRELEASED; urgency=low
+
   [ Mohamed Amine IL Idrissi ]
-  * (all): Implemented add-on handling.
+  * <all>:
+    - Implemented add-on handling.
 
   [ Kiwinote ]
+  * softwarecenter/app.py:
+    - pass required argument to fix crash (LP: #618212)
+    - fix crash in setting supported filter (LP: #618243)
+  * softwarecenter/db/application.py:
+    - fail nicely on not available for architecture (mit-scheme)
   * softwarecenter/view/appdetailsview_gtk.py:
     - use package info lines rather than package info tables
       (for devildante to use in the addons branch)
-
+    - add elipsis to buy button for mpt (LP: #622708)
+  * softwarecenter/view/appview.py:
+    - don't show duplicate app/pkg (in channelviews)
+    - count pkgs when displaying pkgs and apps
+  * softwarecenter/view/availablepane.py:
+    - two way 'show/hide technical packages' action bar
+      (the number of technical pkgs to show is not very accurate)
+  * softwarecenter/view/channelpane.py:
+    - two way 'show/hide technical packages' action bar
+      (this is accurate, LP: #594833)
+  * softwarecenter/view/widgets/actionbar.py:
+    - disable text getting bold on hover
+  
   [ Milo Casagrande ]
   * softwarecenter/db/application.py:
     - make 'source available' warning more suitable for translation.
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Aug 2010 16:46:13 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 24 Aug 2010 15:21:10 +0200
+
+software-center (2.1.11) maverick; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/__init__.py:
+    - don't import Application
+  * softwarecenter/db/application.py:
+    - only import get_install_backend when we actually need it (LP: #620011)
+  * softwarecenter/db/database.py,
+    test/test_appview.py:
+    - import Application from the correct location
+  
+  [ Michael Vogt ]
+  * merged lp:~mpt/software-center/fit-and-finish, many thanks
+  * merged lp:~mmcg069/software-center/mkit-theme-tweaks, many thanks
+  * merged lp:~and471/software-center/a-few-of-my-favorite-things, many
+    thanks
+  * merged lp:~mmcg069/software-center/mkit-theme-tweaks, many thanks
+  * merged  lp:~mmcg069/software-center/visual-overhaul	
+  * softwarecenter/backend/login_sso.py:
+    - updated for the latest ubuntu-sso-client API
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 24 Aug 2010 14:59:36 +0200
 
 software-center (2.1.10) maverick; urgency=low
 

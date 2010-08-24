@@ -1,6 +1,6 @@
 <Menu>
   <Menu>
-    <_Name>New Applications</_Name>
+    <_Name>What&#x2019;s New</_Name>
     <SCIcon>gtk-about</SCIcon>
     <SCSortMode>3</SCSortMode>
     <SCItemLimit>20</SCItemLimit>

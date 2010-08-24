@@ -209,11 +209,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self._logger.debug("enable_component: %s" % component)
         try:
             yield self.aptd_client.enable_distro_component(component, defer=True)
-        except dbus.DBusException, err:
-            if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                self._logger.error("enable_component: '%s'" % err)
-                return
-            raise
+        except Exception, error:
+            self._on_trans_error(error, component)
+            return
         # now update the cache
         yield self.reload()
 
@@ -311,7 +309,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         #print trans, result, backend
         if result:
-            self.install(app.pkgname, app.appname, "", metadata)
+            self.install(app.pkgname, 
+                         app.appname, 
+                         iconname="", 
+                         metadata=metadata)
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None

@@ -217,14 +217,14 @@ class ActionBar(gtk.HBox):
 
     def _hover_link(self, linkbox, *args):
         # Makes the link in given eventbox bold
-        label = linkbox.get_child()
-        label.set_markup("<b><u>%s</u></b>" % label.get_text())
+#        label = linkbox.get_child()
+#        label.set_markup("<b><u>%s</u></b>" % label.get_text())
         self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
 
     def _unhover_link(self, linkbox, *args):
         # Sets the link in given eventbox to its base state
-        label = linkbox.get_child()
-        label.set_markup("<u>%s</u>" % label.get_text())
+#        label = linkbox.get_child()
+#        label.set_markup("<u>%s</u>" % label.get_text())
         self.window.set_cursor(None)
 
 

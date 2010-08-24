@@ -84,7 +84,8 @@ class RestfulClientWorker(threading.Thread):
         self._logger.debug("lp worker thread run")
         try:
             self.service = ServiceRoot(self._authorizer, self._service_root_url)
-        except AttributeError:
+        except:
+            logging.exception("worker thread can not connect to service root")
             self.error = "ERROR_SERVICE_ROOT"
             self._shutdown = True
             return

@@ -156,7 +156,7 @@ class TestDatabase(unittest.TestCase):
                          "http://screenshots.ubuntu.com/thumbnail-404/software-center")
         # FIXME: add document that has a price
         self.assertEqual(appdetails.price, '')
-        self.assertEqual(appdetails.license, "Open Source")
+        self.assertEqual(appdetails.license, "Open source")
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)
         # test apturl replacements
