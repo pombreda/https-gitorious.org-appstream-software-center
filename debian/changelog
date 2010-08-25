@@ -29,6 +29,9 @@ software-center (2.1.12) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py:
     - Rename the "App Expo" node to "Independent" per the USC spec 
+  
+  [ Mohamed Amine IL Idrissi ]
+  * (all): Implemented add-on handling.
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 24 Aug 2010 21:40:45 -0400
 

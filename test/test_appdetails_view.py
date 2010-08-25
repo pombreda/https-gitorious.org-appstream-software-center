@@ -65,6 +65,27 @@ class testAppDetailsView(unittest.TestCase):
         for i in range(PKG_STATE_UNKNOWN):
             mock_app_details.pkg_state = i
             self.appdetails.show_app(app)
+    
+    def test_show_app_addons(self):
+        app = Application("Web browser", "firefox")
+        mock_app_details = mock.Mock(AppDetails)
+        mock_app_details.pkgname = "firefox"
+        mock_app_details.appname = "Web browser"
+        mock_app_details.display_name = "display_name"
+        mock_app_details.display_summary = "display_summary"
+        mock_app_details.error = None
+        mock_app_details.warning = None
+        mock_app_details.description = "description"
+        mock_app_details.website = "website"
+        mock_app_details.thumbnail = None
+        mock_app_details.license = "license"
+        mock_app_details.maintenance_status = "support_status"
+        mock_app_details.purchase_date = "purchase_date"
+        mock_app_details.installation_date = "installation_date"
+        mock_app_details.price = "price"
+        mock_app_details._error_not_found = ""
+        app.get_details = lambda db: mock_app_details
+        self.appdetails.show_app(app)
         
 
 if __name__ == "__main__":
