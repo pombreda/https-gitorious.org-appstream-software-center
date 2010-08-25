@@ -774,11 +774,6 @@ class ScreenshotView(gtk.Alignment):
 class Addon(gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
     
-    __gsignals__ = {'toggled': (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,
-                                ()), 
-                   }
-    
     def __init__(self, db, icons, pkgname):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
@@ -788,7 +783,7 @@ class Addon(gtk.HBox):
 
         # checkbutton
         self.checkbutton = gtk.CheckButton()
-        self.checkbutton.connect("toggled", self.on_checkbutton_toggled)
+        self.checkbutton.pkgname = self.app.pkgname
         self.pack_start(self.checkbutton, False)
 
         # icon
@@ -819,18 +814,14 @@ class Addon(gtk.HBox):
   #              'pkgname' : pkgname } )
    #     hbox.pack_start(self.pkgname, False)
 
-    def on_checkbutton_toggled(self, checkbutton):
-        self.emit("toggled")
-
     def get_active(self):
         return self.checkbutton.get_active()
 
     def set_active(self, is_active):
         self.checkbutton.set_active(is_active)    
 
-class AddonView(gtk.VBox):
-    """ A widget that handles the application add-ons """
-    # TODO: sort add-ons in alphabetical order
+class AddonTable(gtk.VBox):
+    """ Widget to display a table of addons. """
     
     __gsignals__ = {'toggled':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
@@ -856,6 +847,8 @@ class AddonView(gtk.VBox):
     def set_addons(self, app_details, recommended, suggested):
         if not recommended and not suggested:
             return
+
+        # FIXME: sort the addons in alphabetical order
         self.recommended_addons = recommended
         self.suggested_addons = suggested
         self.app_details = app_details
@@ -866,23 +859,22 @@ class AddonView(gtk.VBox):
                 self.remove(widget)
 
         # set the new addons
-        for addon in recommended + suggested:
+        for addon_name in recommended + suggested:
             try:
-                pkg = self.cache[addon]
+                pkg = self.cache[addon_name]
             except KeyError:
                 continue
-            checkbutton = Addon(self.db, self.icons, addon)
-            #checkbutton.pkgname.connect(
-            #    "clicked", self._on_description_clicked, addon)
-            checkbutton.set_active(pkg.installed != None)
-            checkbutton.connect("toggled", self._on_checkbutton_toggled)
-            self.pack_start(checkbutton, False)
+            addon = Addon(self.db, self.icons, addon_name)
+            #addon.pkgname.connect(
+            #    "clicked", self._on_description_clicked, addon_name)
+            addon.set_active(pkg.installed != None)
+            addon.checkbutton.connect("toggled", self._on_checkbutton_toggled)
+            self.pack_start(addon, False)
         self.show_all()
         return False
     
     def _on_checkbutton_toggled(self, checkbutton):
-        addon = checkbutton.app.pkgname
-        self.emit("toggled", addon, checkbutton.get_active())
+        self.emit("toggled", checkbutton.pkgname, checkbutton.get_active())
     
     def _on_description_clicked(self, label, addon):
         self.emit("description-clicked", addon)
@@ -1248,7 +1240,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.desc_section.body.pack_start(alignment, False)
         
         # add-on handling
-        self.addon_view = AddonView(self.cache, self.db, self.icons)
+        self.addon_view = AddonTable(self.cache, self.db, self.icons)
         self.addon_view.connect("toggled", self._on_addon_view_toggled)
         self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
         alignment.add(self.addon_view)
