@@ -1140,7 +1140,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # remove old content
         self.desc_installed_where.foreach(lambda c: c.destroy())
         # see if we have the location if its installed
-        if app_details.pkg_state == PKG_STATE_INSTALLED:
+        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
             searcher = GMenuSearcher()
             where = searcher.get_main_menu_path(self.app_details.desktop_file)
             if not where:
