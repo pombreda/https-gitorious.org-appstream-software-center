@@ -366,7 +366,7 @@ class SoftwareChannel(object):
         elif channel_name == self.distro.get_distro_channel_name():
             channel_display_name = self.distro.get_distro_channel_description()
         elif channel_name == "Application Review Board PPA":
-            channel_display_name = _("App Expo")
+            channel_display_name = _("Independent")
         elif channel_name == "notdownloadable":
             channel_display_name = _("Other")
         else:

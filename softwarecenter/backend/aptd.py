@@ -299,7 +299,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         #print trans, result, backend
         if result:
-            self.install(app.pkgname, app.appname, "", metadata)
+            self.install(app.pkgname, 
+                         app.appname, 
+                         iconname="", 
+                         metadata=metadata)
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None
