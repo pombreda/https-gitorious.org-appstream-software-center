@@ -35,6 +35,8 @@ software-center (2.1.12) maverick; urgency=low
     easier for the user to discover the newly installed software
   * softwarecenter/backend/login_sso.py:
     - use Sign into "Ubuntu Software Center Store" as sso login name
+  * debian/control:
+    - tighten dependency on ubuntu-sso-client (LP: #624127)
 
   [ Mohamed Amine IL Idrissi ]
   * (all): Implemented add-on handling.
