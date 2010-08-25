@@ -54,13 +54,13 @@ class AppDetailsViewBase(object):
         self.icons = icons
         self.cache = cache
         self.cache.connect("cache-ready", self._on_cache_ready)
-        self.addons_manager = PackageAddonsManager(cache)
+        #self.addons_managertmp = PackageAddonsManager(cache)
         self.history = history
         self.datadir = datadir
         self.app = None
         self.appdetails = None
-        self.addons_install = []
-        self.addons_remove = []
+        self.addons_to_install = []
+        self.addons_to_remove = []
         # aptdaemon
         self.backend = get_install_backend()
         self._logger = logging.getLogger(__name__)
@@ -71,21 +71,6 @@ class AppDetailsViewBase(object):
         """
         pass
     
-    # add-on handling
-    def _set_addon_install(self, addon):
-        pkg = self.cache[addon]
-        if addon not in self.addons_install and pkg.installed == None:
-            self.addons_install.append(addon)
-        if addon in self.addons_remove:
-            self.addons_remove.remove(addon)
-    
-    def _set_addon_remove(self, addon):
-        pkg = self.cache[addon]
-        if addon not in self.addons_remove and pkg.installed != None:
-            self.addons_remove.append(addon)
-        if addon in self.addons_install:
-            self.addons_install.remove(addon)
-        
     # public API
     def show_app(self, app):
         """ show the given application """
@@ -103,16 +88,16 @@ class AppDetailsViewBase(object):
         self.backend.reload()
     def install(self):
         """ install the current application, fire an action request """
-        self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_INSTALL)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_INSTALL)
     def remove(self):
         """ remove the current application, , fire an action request """
-        self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_REMOVE)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_REMOVE)
     def upgrade(self):
         """ upgrade the current application, fire an action request """
-        self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_UPGRADE)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_UPGRADE)
     def apply_changes(self):
         """ apply changes concerning add-ons """
-        self.emit("application-request-action", self.app, self.addons_install, self.addons_remove, APP_ACTION_APPLY)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_APPLY)
 
     def buy_app(self):
         """ initiate the purchase transaction """
@@ -144,4 +129,4 @@ class AppDetailsViewBase(object):
         # current application
         self._logger.debug("on_cache_ready")
         self.show_app(self.app)
-        self.addons_manager = PackageAddonsManager(cache)
+        #self.addons_manager = PackageAddonsManager(cache)

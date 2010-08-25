@@ -820,22 +820,20 @@ class Addon(gtk.HBox):
     def set_active(self, is_active):
         self.checkbutton.set_active(is_active)    
 
-class AddonTable(gtk.VBox):
+class AddonsTable(gtk.VBox):
     """ Widget to display a table of addons. """
     
-    __gsignals__ = {'toggled':(gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,
-                                (str, gobject.TYPE_PYOBJECT)),
-                    'description-clicked':(gobject.SIGNAL_RUN_FIRST,
+    __gsignals__ = {'description-clicked':(gobject.SIGNAL_RUN_FIRST,
                                            gobject.TYPE_NONE,
                                            (str, )),
                    }
     
-    def __init__(self, cache, db, icons):
+    def __init__(self, addons_manager):
         gtk.VBox.__init__(self, False, mkit.SPACING_MED)
-        self.cache = cache
-        self.db = db
-        self.icons = icons
+        self.addons_manager = addons_manager
+        self.cache = self.addons_manager.view.cache
+        self.db = self.addons_manager.view.db
+        self.icons = self.addons_manager.view.icons
         self.recommended_addons = None
         self.suggested_addons = None
 
@@ -844,14 +842,13 @@ class AddonTable(gtk.VBox):
         self.label.set_alignment(0, 0.5)
         self.pack_start(self.label, False, False)
     
-    def set_addons(self, app_details, recommended, suggested):
-        if not recommended and not suggested:
-            return
-
+    def set_addons(self, addons):
         # FIXME: sort the addons in alphabetical order
-        self.recommended_addons = recommended
-        self.suggested_addons = suggested
-        self.app_details = app_details
+        self.recommended_addons = addons[0]
+        self.suggested_addons = addons[1]
+
+        if not self.recommended_addons and not self.suggested_addons:
+            return
 
         # clear any existing addons
         for widget in self:
@@ -859,7 +856,7 @@ class AddonTable(gtk.VBox):
                 self.remove(widget)
 
         # set the new addons
-        for addon_name in recommended + suggested:
+        for addon_name in self.recommended_addons + self.suggested_addons:
             try:
                 pkg = self.cache[addon_name]
             except KeyError:
@@ -868,25 +865,23 @@ class AddonTable(gtk.VBox):
             #addon.pkgname.connect(
             #    "clicked", self._on_description_clicked, addon_name)
             addon.set_active(pkg.installed != None)
-            addon.checkbutton.connect("toggled", self._on_checkbutton_toggled)
+            addon.checkbutton.connect("toggled", self.addons_manager.mark_changes)
             self.pack_start(addon, False)
         self.show_all()
         return False
     
-    def _on_checkbutton_toggled(self, checkbutton):
-        self.emit("toggled", checkbutton.pkgname, checkbutton.get_active())
-    
     def _on_description_clicked(self, label, addon):
         self.emit("description-clicked", addon)
 
-class AddonsStateBar(gtk.Alignment):
-    __gsignals__ = {'changes-canceled': (gobject.SIGNAL_RUN_FIRST,
-                                         gobject.TYPE_NONE,
-                                         ()),
-                   }
+class AddonsStatusBar(gtk.Alignment):
     
-    def __init__(self, cache, view):
+    def __init__(self, addons_manager):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        self.addons_manager = addons_manager
+        self.addons_table = self.addons_manager.table
+        self.cache = self.addons_manager.view.cache
+        self.view = self.addons_manager.view
+        
         self.set_redraw_on_allocate(False)
         self.set_padding(mkit.SPACING_LARGE,
                          mkit.SPACING_LARGE,
@@ -895,12 +890,11 @@ class AddonsStateBar(gtk.Alignment):
         
         self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
         self.add(self.hbox)
-        
-        self.cache = cache
-        self.view = view
+
+
         self.applying = False
         
-        self.label_price = gtk.Label()
+        self.label_price = gtk.Label(_("Free"))
         self.label_price.set_line_wrap(True)
         self.hbox.pack_start(self.label_price, False, False)
         
@@ -909,7 +903,7 @@ class AddonsStateBar(gtk.Alignment):
         self.button_apply = gtk.Button(_("Apply Changes"))
         self.button_apply.connect("clicked", self._on_button_apply_clicked)
         self.button_cancel = gtk.Button(_("Cancel"))
-        self.button_cancel.connect("clicked", self._on_button_cancel_clicked)
+        self.button_cancel.connect("clicked", self.addons_manager.restore)
         self.hbuttonbox.pack_start(self.button_cancel, False)
         self.hbuttonbox.pack_start(self.button_apply, False)
         self.hbox.pack_start(self.hbuttonbox)
@@ -917,15 +911,12 @@ class AddonsStateBar(gtk.Alignment):
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
         
-    def configure(self, app_details, addons_install, addons_remove):
-        if not addons_install and not addons_remove:
+    def configure(self):
+        # FIXME: addons are not always free, but the old implementation of determining price was buggy
+        if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
             self.hide()
-            return
-        if app_details.price:
-            self.label_price.set_label(app_details.price)
         else:
-            self.label_price.set_label(_("Free"))
-        self.show()
+            self.show()
             
     def draw(self, cr, a, expose_area):
         if mkit.not_overlapping(a, expose_area): return
@@ -965,9 +956,50 @@ class AddonsStateBar(gtk.Alignment):
         self.button_cancel.set_sensitive(False)
         AppDetailsViewBase.apply_changes(self.view)
         
-    def _on_button_cancel_clicked(self, button):
-        self.emit("changes-canceled")
-        
+class AddonsManager():
+    def __init__(self, view):
+        self.view = view
+
+        from softwarecenter.apt.aptcache import PackageAddonsManager
+        self._addons_cache = PackageAddonsManager(self.view.cache)
+
+        self.table = AddonsTable(self)
+        self.status_bar = AddonsStatusBar(self)
+
+        self.addons_to_install = []
+        self.addons_to_remove = []
+
+    def mark_changes(self, checkbutton):
+        addon = checkbutton.pkgname
+        installed = self.view.cache[addon].installed
+        if checkbutton.get_active():
+            if addon not in self.addons_to_install and not installed:
+                self.addons_to_install.append(addon)
+            if addon in self.addons_to_remove:
+                self.addons_to_remove.remove(addon)
+        else:
+            if addon not in self.addons_to_remove and installed:
+                self.addons_to_remove.append(addon)
+            if addon in self.addons_to_install:
+                self.addons_to_install.remove(addon)
+        if self.view.app_details.pkg_state == PKG_STATE_INSTALLED:
+            self.status_bar.configure()
+        gobject.idle_add(self.view.update_totalsize)
+
+    def configure(self, pkgname):
+        self.addons = self._addons_cache.get_addons(pkgname)
+        self.table.set_addons(self.addons)
+
+# old
+        self.view.recommended = self.addons[0]
+        self.view.suggested = self.addons[1]
+
+    def restore(self, *button):
+        self.addons_to_install = []
+        self.addons_to_remove = []
+        self.configure(self.view.app.pkgname)
+        self.status_bar.configure()
+        gobject.idle_add(self.view.update_totalsize)
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
@@ -1020,6 +1052,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # app specific data
         self.app = None
         self.app_details = None
+
+        # addons manager
+        self.addons_manager = AddonsManager(self)
+        self.addons_to_install = self.addons_manager.addons_to_install
+        self.addons_to_remove = self.addons_manager.addons_to_remove
 
         # switches
         self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
@@ -1240,8 +1277,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.desc_section.body.pack_start(alignment, False)
         
         # add-on handling
-        self.addon_view = AddonTable(self.cache, self.db, self.icons)
-        self.addon_view.connect("toggled", self._on_addon_view_toggled)
+        self.addon_view = self.addons_manager.table
         self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
         alignment.add(self.addon_view)
 
@@ -1251,8 +1287,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
         self.app_info.body.pack_start(self.totalsize_info, False)
         
-        self.addons_bar = AddonsStateBar(self.cache, self)
-        self.addons_bar.connect("changes-canceled", self._on_addonsbar_changescanceled)
+        self.addons_bar = self.addons_manager.status_bar
         self.app_info.body.pack_start(self.addons_bar, False)
 
         self.version_info = PackageInfo(_("Version:"), self.info_keys)
@@ -1361,17 +1396,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
-        
-        # Update add-on interface
+
+        # refresh addons interface
         self.addon_view.hide_all()
-        gobject.idle_add(self.addon_view.set_addons, self.app_details, self.recommended, self.suggested)
+        gobject.idle_add(self.addons_manager.configure, self.app_details.pkgname)
+#        gobject.idle_add(self.addon_view.set_addons, self.app_details, self.recommended, self.suggested)
         
         # Update total size label
         self.totalsize_info.hide_all()
         gobject.idle_add(self.update_totalsize)
         
         # Update addons state bar
-        self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+        self.addons_bar.configure()
         return
 
     # public API
@@ -1393,14 +1429,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
-        addons = self.addons_manager.get_addons(app.pkgname)
-        self.recommended = addons[0]
-        self.suggested = addons[1]
-        LOG.debug("AppDetailsView.show_app recommended '%s'" % self.recommended)
-        LOG.debug("AppDetailsView.show_app suggested '%s'" % self.suggested)
+        #addons = self.addons_managertmp.get_addons(app.pkgname)
+        #self.recommended = addons[0]
+        #self.suggested = addons[1]
+        #LOG.debug("AppDetailsView.show_app recommended '%s'" % self.recommended)
+        #LOG.debug("AppDetailsView.show_app suggested '%s'" % self.suggested)
         
-        self.addons_install = []
-        self.addons_remove = []
+
         
         # for compat with the base class
         self.appdetails = self.app_details
@@ -1437,9 +1472,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         if self.addons_bar.applying:
             self.action_bar.configure(self.app_details, pkg_state)
-            self.addons_install = []
-            self.addons_remove = []
-            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
+            self.addons_manager.addons_to_install = []
+            self.addons_manager.addons_to_remove = []
+            self.addons_bar.configure()
             self.addons_bar.applying = False
             
             for widget in self.addon_view:
@@ -1461,13 +1496,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # normal states
         elif state == PKG_STATE_REMOVING:
             self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
-            self.addons_install = []
-            self.addons_remove = []
         elif state == PKG_STATE_INSTALLING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
-            self.addons_install = []
-            self.addons_remove = []
-            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
         elif state == PKG_STATE_UPGRADING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         return False
@@ -1615,24 +1645,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.emit("navigation-request", pkgname)
         return
 
-    def _on_addon_view_toggled(self, view, addon, isActive):
-        if isActive:
-            self._set_addon_install(addon)
-        else:
-            self._set_addon_remove(addon)
-        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
-            self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
-        gobject.idle_add(self.update_totalsize)
-        
-    def _on_addonsbar_changescanceled(self, widget):
-        self.addons_install = []
-        self.addons_remove = []
-        self.addon_view.set_addons(self.app_details, 
-                                    self.recommended,
-                                    self.suggested)
-        self.addons_bar.configure(self.app_details, self.addons_install, self.addons_remove)
-        gobject.idle_add(self.update_totalsize)
-    
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
@@ -1686,7 +1698,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     version = self.cache[dep].installed
                     pkgs_to_remove.append(version)
         
-        for addon in self.addons_install:
+        for addon in self.addons_manager.addons_to_install:
             version = max(self.cache[addon].versions)
             pkgs_to_install.append(version)
             deps_inst = self.cache.get_all_deps_installing(self.cache[addon])
@@ -1699,7 +1711,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 if self.cache[dep].installed != None:
                     version = self.cache[dep].installed
                     pkgs_to_remove.append(version)
-        for addon in self.addons_remove:
+        for addon in self.addons_manager.addons_to_remove:
             version = self.cache[addon].installed
             pkgs_to_remove.append(version)
             deps_inst = self.cache.get_all_deps_installing(self.cache[addon])
