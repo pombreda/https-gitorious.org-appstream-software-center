@@ -217,7 +217,8 @@ class Ubuntu(Distro):
             downloadable_icon_url.append(icon_filename)
             return "".join(downloadable_icon_url)
         else:
-            raise ValueError, "we currently support downloadable icons in ppa's only"
+            #raise ValueError, "we currently support downloadable icons in ppa's only"
+            return None
 
 
 if __name__ == "__main__":

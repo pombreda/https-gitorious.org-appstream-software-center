@@ -33,6 +33,10 @@ software-center (2.1.12) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py:
     - Rename the "App Expo" node to "Independent" per the USC spec 
+  
+  [ Michael Vogt ]
+  * implement the "Find it at" part of the specification to make it
+    easier for the user to discover the newly installed software
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 24 Aug 2010 21:40:45 -0400
 

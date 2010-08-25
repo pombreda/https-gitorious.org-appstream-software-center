@@ -39,7 +39,7 @@ from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.utils import ImageDownloader
+from softwarecenter.utils import ImageDownloader, GMenuSearcher
 
 from appdetailsview import AppDetailsViewBase
 
@@ -1217,6 +1217,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
 
+        # the location of the app (if its installed)
+        self.desc_installed_where = gtk.HBox()
+        self.app_info.body.pack_start(self.desc_installed_where)
+
         # FramedSection which contains the app description
         self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
         self.desc_section.header_alignment.set_padding(0,0,0,0)
@@ -1359,6 +1363,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # then begin screenshot download and display sequence
             self.screenshot.download_and_display()
 
+        # show where it is
+        self._configure_where_is_it()
+
         # set the strings in the package info table
         if app_details.version:
             version = '%s (%s)' % (app_details.version, app_details.pkgname)
@@ -1387,6 +1394,32 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # Update addons state bar
         self.addons_bar.configure()
         return
+
+    def _configure_where_is_it(self):
+        # remove old content
+        self.desc_installed_where.foreach(lambda c: c.destroy())
+        # see if we have the location if its installed
+        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+            searcher = GMenuSearcher()
+            where = searcher.get_main_menu_path(self.app_details.desktop_file)
+            if not where:
+                return
+            label = gtk.Label(_("Find it in the menu at "))
+            self.desc_installed_where.pack_start(label, False, False)
+            for (i, item) in enumerate(where):
+                iconname = item.get_icon()
+                if self.icons.has_icon(iconname) and i > 0:
+                    image = gtk.Image()
+                    image.set_from_icon_name(iconname, 32)
+                    self.desc_installed_where.pack_start(image, False, False)
+                label_name = gtk.Label(item.get_name())
+                self.desc_installed_where.pack_start(label_name, False, False)
+                if i+1 < len(where):
+                    # FIXME: we need a different arrow here for RTL languages
+                    right_arrow = gtk.Label(u" \u25B6 ")
+                    self.desc_installed_where.pack_start(right_arrow, 
+                                                         False, False)
+            self.desc_installed_where.show_all()
 
     # public API
     # FIXME:  port to AppDetailsViewBase as
@@ -1755,9 +1788,9 @@ if __name__ == "__main__":
     scroll = gtk.ScrolledWindow()
     view = AppDetailsViewGtk(db, distro, icons, cache, history, datadir)
     from softwarecenter.db.application import Application
-    view.show_app(Application("Pay App Example", "pay-app"))
+    #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    #view.show_app(Application("Movie Player", "totem"))
+    view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #view.show_app(Application("", "2vcard"))
 
