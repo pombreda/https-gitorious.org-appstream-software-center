@@ -224,7 +224,7 @@ class GMenuSearcher(object):
                 self._search_gmenu_dir(dirlist+[item], needle)
             elif item.get_type() == gmenu.TYPE_ENTRY:
                 if os.path.basename(item.get_desktop_file_path()) == needle:
-                    self._found = dirlist
+                    self._found = dirlist+[item]
     def get_main_menu_path(self, desktop_file):
         needle = os.path.basename(desktop_file)
         for n in ["applications.menu", "settings.menu"]:
