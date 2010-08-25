@@ -19,35 +19,35 @@ class TestWhereIsit(unittest.TestCase):
     def setUp(self):
         datadir = "../data"
         cache = AptCache()
+        cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
         self.db = StoreDatabase(pathname, cache)
         self.db.open()
 
-    def search_gmenu_dir(self, dirlist, needle):
-        for item in dirlist[-1].get_contents():
-            mtype = item.get_type()
-            if mtype == gmenu.TYPE_DIRECTORY:
-                self.search_gmenu_dir(dirlist+[item], needle)
-            elif item.get_type() == gmenu.TYPE_ENTRY:
-                if os.path.basename(item.get_desktop_file_path()) == needle:
-                    self.found = dirlist
-
-    def test_where_is_it_applications(self):
+    def test_where_is_it_in_system(self):
         app = Application("Hardware Drivers", "jockey-gtk")
         details = app.get_details(self.db)
         self.assertEqual(details.desktop_file, 
                          "/usr/share/app-install/desktop/jockey-gtk.desktop")
         # search the settings menu
-        self.found = None
-        tree = gmenu.lookup_tree("settings.menu")
-        self.search_gmenu_dir([tree.get_root_directory()], 
-                              os.path.basename(details.desktop_file))
-        self.assertEqual(self.found[0].get_name(), "System")
-        self.assertEqual(self.found[0].get_icon(), "preferences-other")
-        self.assertEqual(self.found[1].get_name(), "Administration")
-        self.assertEqual(self.found[1].get_icon(), "preferences-system")
-        # search the applications menu
+        found = main_menu_path_for_desktop_file(details.desktop_file)
+        self.assertEqual(found[0].get_name(), "System")
+        self.assertEqual(found[0].get_icon(), "preferences-other")
+        self.assertEqual(found[1].get_name(), "Administration")
+        self.assertEqual(found[1].get_icon(), "preferences-system")
+
+    def test_where_is_it_in_applications(self):
+        app = Application("Calculator", "gcalctool")
+        details = app.get_details(self.db)
+        self.assertEqual(details.desktop_file, 
+                         "/usr/share/app-install/desktop/gcalctool.desktop")
+        # search the settings menu
+        found = main_menu_path_for_desktop_file(details.desktop_file)
+        self.assertEqual(found[0].get_name(), "Applications")
+        self.assertEqual(found[0].get_icon(), "applications-other")
+        self.assertEqual(found[1].get_name(), "Accessories")
+        self.assertEqual(found[1].get_icon(), "applications-utilities")
         
 
 if __name__ == "__main__":

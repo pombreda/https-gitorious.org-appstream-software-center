@@ -18,14 +18,15 @@
 
 import apt
 import apt_pkg
+import gobject
+import gio
+import glib
 import logging
+import os
 import re
 import urllib
 import time
 import xml.sax.saxutils
-import gobject
-import gio
-import glib
 
 from enums import USER_AGENT
 
@@ -210,6 +211,30 @@ class ImageDownloader(gobject.GObject):
         outputfile.write(content)
         outputfile.close()
         self.emit('image-download-complete', self.dest_file_path)
+
+
+def main_menu_path_for_desktop_file(desktop_file):
+    import gmenu
+
+    def _search_gmenu_dir(dirlist, needle):
+        global _found
+        for item in dirlist[-1].get_contents():
+            mtype = item.get_type()
+            if mtype == gmenu.TYPE_DIRECTORY:
+                _search_gmenu_dir(dirlist+[item], needle)
+            elif item.get_type() == gmenu.TYPE_ENTRY:
+                if os.path.basename(item.get_desktop_file_path()) == needle:
+                    _found = dirlist
+    global _found
+    _found = None
+    needle = os.path.basename(desktop_file)
+    for n in ["applications.menu", "settings.menu"]:
+        tree = gmenu.lookup_tree(n)
+        _search_gmenu_dir([tree.get_root_directory()], 
+                          os.path.basename(desktop_file))
+        if _found:
+            return _found
+    return None
 
 
 if __name__ == "__main__":
