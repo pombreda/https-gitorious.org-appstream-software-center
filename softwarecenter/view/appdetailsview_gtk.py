@@ -131,7 +131,7 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def set_label(self, label):
-        m = '<span color="%s"><big>%s</big></span>' % (COLOR_BLACK, label)
+        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
         self.label.set_markup(m)
         return
 
