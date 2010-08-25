@@ -56,6 +56,8 @@ class AptCache(gobject.GObject):
     # APT::Update::Post-Invoke-Success)
     APT_FINISHED_STAMP = "/var/lib/update-notifier/dpkg-run-stamp"
 
+    LANGPACK_PKGDEPENDS = "/usr/share/language-selector/data/pkg_depends"
+
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
                                      ()),
@@ -80,6 +82,8 @@ class AptCache(gobject.GObject):
             gio.FILE_MONITOR_NONE)
         self.apt_finished_monitor.connect(
             "changed", self._on_apt_finished_stamp_changed)
+        # this is fast, so ok
+        self._language_packages = self._read_language_pkgs()
     def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
         if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             return 
@@ -170,16 +174,7 @@ class AptCache(gobject.GObject):
                 if item.origin:
                     origins.add(item.origin)
         return origins
-    def get_installed_rdepends(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, True)
-    def get_installed_rrecommends(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, True)
-    def get_installed_rsuggests(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, True)
-    def get_installed_renhances(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, True)
-    def get_installed_rprovides(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, True)
+
     def component_available(self, distro_codename, component):
         """ check if the given component is enabled """
         # FIXME: test for more properties here?
@@ -209,6 +204,10 @@ class AptCache(gobject.GObject):
                 if not_in_list(deps_str, dep_.name):
                     deps_str.append(dep_.name)
         return deps_str
+
+    # FIXME: there are cleaner ways to do this than below
+
+    # pkg relations
     def get_depends(self, pkg):
         return self._get_depends_by_type_str(pkg, self.DEPENDENCY_TYPES)
     def get_recommends(self, pkg):
@@ -219,7 +218,8 @@ class AptCache(gobject.GObject):
         return self._get_depends_by_type_str(pkg, self.ENHANCES_TYPES)
     def get_provides(self, pkg):
         return self._get_depends_by_type_str(pkg, self.PROVIDES_TYPES)
-        
+
+    # reverse pkg relations
     def get_rdepends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, False)
     def get_rrecommends(self, pkg):
@@ -230,7 +230,40 @@ class AptCache(gobject.GObject):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
     def get_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
+
+    # installed reverse pkg relations
+    def get_installed_rdepends(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, True)
+    def get_installed_rrecommends(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, True)
+    def get_installed_rsuggests(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, True)
+    def get_installed_renhances(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, True)
+    def get_installed_rprovides(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, True)
+
+    # language pack stuff
+    def _is_language_pkg(self, addon):
+        # a simple "addon in self._language_packages" is not enough
+        for template in self._language_packages:
+            if addon.startswith(template):
+                return True
+        return False
+    def _read_language_pkgs(self):
+        language_packages = set()
+        for line in open(self.LANGPACK_PKGDEPENDS):
+            line = line.strip()
+            if line.startswith('#'):
+                continue
+            try:
+                (cat, code, dep_pkg, language_pkg) = line.split(':')
+            except ValueError:
+                continue
+            language_packages.add(language_pkg)
+        return language_packages
         
+    # these are used for calculating the total size
     def _get_changes_without_applying(self, pkg):
         if pkg.installed == None:
             pkg.mark_install()
@@ -272,65 +305,37 @@ class AptCache(gobject.GObject):
                 upgrading_deps.append(change)
         return upgrading_deps
 
-class PackageAddonsManager(object):
-    """ class that abstracts the addons handling """
-
-    LANGPACK_PKGDEPENDS = "/usr/share/language-selector/data/pkg_depends"
-    
-    def __init__(self, cache):
-        self.cache = cache
-        self._language_packages = self._read_language_pkgs()
-
-    def _is_language_pkg(self, addon):
-        # a simple "addon in self._language_packages" is not enough
-        for template in self._language_packages:
-            if addon.startswith(template):
-                return True
-        return False
-
-    def _read_language_pkgs(self):
-        language_packages = set()
-        for line in open(self.LANGPACK_PKGDEPENDS):
-            line = line.strip()
-            if line.startswith('#'):
-                continue
-            try:
-                (cat, code, dep_pkg, language_pkg) = line.split(':')
-            except ValueError:
-                continue
-            language_packages.add(language_pkg)
-        return language_packages
-    
+    # determine the addons for a given package
     def get_addons(self, pkgname):
 
         # deb file, or pkg needing source, etc
-        if not pkgname in self.cache:
+        if not pkgname in self._cache:
             return ([],[])
 
         # initial setup
-        pkg = self.cache[pkgname]
+        pkg = self._cache[pkgname]
         addons_rec = [] # recommended addons
         addons_sug = [] # suggested addons
 
         # get addons
-        recommends = self.cache.get_recommends(pkg)
+        recommends = self.get_recommends(pkg)
         if len(recommends) == 1: # why only one?
             addons_rec += recommends
-        suggests = self.cache.get_suggests(pkg)
+        suggests = self.get_suggests(pkg)
         if len(suggests) == 1:
             addons_sug += suggests
-        addons_sug += self.cache.get_renhances(pkg)
+        addons_sug += self.get_renhances(pkg)
 
         # get even more addons
-        deps = self.cache.get_depends(pkg)
+        deps = self.get_depends(pkg)
         for dep in deps:
-            if dep in self.cache:
-                pkgdep = self.cache[dep]
-                if len(self.cache.get_rdepends(pkgdep)) == 1:
+            if dep in self._cache:
+                pkgdep = self._cache[dep]
+                if len(self.get_rdepends(pkgdep)) == 1:
                     # pkg is the only known package that depends on pkgdep
-                    addons_rec += self.cache.get_recommends(pkgdep)
-                    addons_sug += self.cache.get_suggests(pkgdep)
-                    addons_sug += self.cache.get_renhances(pkgdep)
+                    addons_rec += self.get_recommends(pkgdep)
+                    addons_sug += self.get_suggests(pkgdep)
+                    addons_sug += self.get_renhances(pkgdep)
 
         # merge the two lists (list(set()) removes the duplicates)
         addons = list(set(addons_rec)) + ['@@']
@@ -348,12 +353,12 @@ class PackageAddonsManager(object):
                 continue
 
             #
-            if not addon in self.cache:
+            if not addon in self._cache:
                 addons.remove(addon)
                 continue
 
             # initial setup
-            addon_pkg = self.cache[addon]
+            addon_pkg = self._cache[addon]
 
             #
             if addon_pkg.essential or addon_pkg._pkg.important or addon == pkg.name:
@@ -366,7 +371,7 @@ class PackageAddonsManager(object):
                 continue
 
             #
-            rdeps = self.cache.get_installed_rdepends(addon_pkg)
+            rdeps = self.get_installed_rdepends(addon_pkg)
             if rdeps or self._is_language_pkg(addon):
                 addons.remove(addon)
                 continue
@@ -376,9 +381,9 @@ class PackageAddonsManager(object):
                 if addon_ == '@@':
                     break
                 try:
-                    if addon in self.cache.get_provides(self.cache[addon_]) \
-                    or addon in self.cache.get_depends(self.cache[addon_]) \
-                    or addon in self.cache.get_recommends(self.cache[addon_]):
+                    if addon in self.get_provides(self._cache[addon_]) \
+                    or addon in self.get_depends(self._cache[addon_]) \
+                    or addon in self.get_recommends(self._cache[addon_]):
                         can_remove = True
                         break
                 except KeyError:
@@ -390,6 +395,7 @@ class PackageAddonsManager(object):
                 continue
             i += 1
 
+        # we now reformat the addons
         addon_rec = []
         addon_sug = []
         switch = 0
@@ -401,6 +407,7 @@ class PackageAddonsManager(object):
             elif switch == 1:
                 addon_sug.append(addon)
 
+        # and then we can finally send the list back :)
         return (addon_rec, addon_sug)
 
 if __name__ == "__main__":

@@ -36,7 +36,6 @@ from gettext import gettext as _
 import apt_pkg
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.application import AppDetails, Application
-from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.utils import ImageDownloader, GMenuSearcher
@@ -951,9 +950,6 @@ class AddonsManager():
     def __init__(self, view):
         self.view = view
 
-        from softwarecenter.apt.aptcache import PackageAddonsManager
-        self._addons_cache = PackageAddonsManager(self.view.cache)
-
         self.table = AddonsTable(self)
         self.status_bar = AddonsStatusBar(self)
 
@@ -978,7 +974,7 @@ class AddonsManager():
         gobject.idle_add(self.view.update_totalsize)
 
     def configure(self, pkgname):
-        self.addons = self._addons_cache.get_addons(pkgname)
+        self.addons = self.view.cache.get_addons(pkgname)
         self.table.set_addons(self.addons)
 
     def restore(self, *button):
