@@ -975,6 +975,7 @@ class AddonsManager():
 
     def configure(self, pkgname):
         self.addons = self.view.cache.get_addons(pkgname)
+        print 'hm, updated'
         self.table.set_addons(self.addons)
 
     def restore(self, *button):
@@ -1470,10 +1471,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             pkg_state = PKG_STATE_UNINSTALLED
 
         if self.addons_bar.applying:
-            self.action_bar.configure(self.app_details, pkg_state)
-            self.addons_manager.addons_to_install = []
-            self.addons_manager.addons_to_remove = []
-            self.addons_bar.configure()
+            self.addons_manager.restore()
             self.addons_bar.applying = False
             
             for widget in self.addon_view:
