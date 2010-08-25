@@ -20,6 +20,7 @@ class testAppDetailsView(unittest.TestCase):
     def setUp(self):
         datadir = "../data"
         cache = AptCache()
+        cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
         db = StoreDatabase(pathname, cache)
@@ -47,6 +48,7 @@ class testAppDetailsView(unittest.TestCase):
         mock_app_details.appname = "appname"
         mock_app_details.display_name = "display_name"
         mock_app_details.display_summary = "display_summary"
+        mock_app_details.desktop_file = "firefox.desktop"
         mock_app_details.error = None
         mock_app_details.warning = None
         mock_app_details.description = "description"
