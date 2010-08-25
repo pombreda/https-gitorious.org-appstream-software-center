@@ -57,3 +57,6 @@ XAPIAN_VALUE_ARCHIVE_DEBLINE - a deb line for the sources.list to access the giv
 XAPIAN_VALUE_ARCHIVE_SIGNING_KEYID - signing key id for the repository
 XAPIAN_VALUE_PURCHASED_DATE - the data a for-pay app was purchased (only available after the software-center-agent server was queried)
 XAPIAN_VALUE_SCREENSHOT_URL - a (optional) screenshot url that overrides the default
+XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD - icon needs to be fetched
+XAPIAN_VALUE_THUMBNAIL_URL - thumbnail url 
+

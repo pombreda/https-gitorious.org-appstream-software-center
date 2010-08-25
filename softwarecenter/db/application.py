@@ -223,6 +223,11 @@ class AppDetails(object):
                     return ('&').join(valid_section_matches)
 
     @property
+    def desktop_file(self):
+        if self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_DESKTOP_FILE)
+
+    @property
     def description(self):
         if self._pkg:
             return self._pkg.candidate.description
@@ -536,6 +541,7 @@ class AppDetails(object):
         details.append("                 ppa: %s" % self.ppaname)
         details.append("         channelfile: %s" % self.channelfile)
         details.append("           component: %s" % self.component)
+        details.append("        desktop_file: %s" % self.desktop_file)
         details.append("         description: %s" % self.description)
         details.append("                icon: %s" % self.icon)
         details.append("      icon_file_name: %s" % self.icon_file_name)
