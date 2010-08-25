@@ -1,3 +1,10 @@
+software-center (2.1.13) UNRELEASED; urgency=low
+
+  * softwarecenter/view/appdetailsview_gtk.py: Done some tweaking and
+    polishing to the addons view
+
+ -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Wed, 25 Aug 2010 22:32:07 +0000
+
 software-center (2.1.12) maverick; urgency=low
 
   [ Kiwinote ]

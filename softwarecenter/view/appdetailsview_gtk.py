@@ -784,6 +784,11 @@ class AddonCheckButton(gtk.HBox):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
         self.app_details = AppDetails(db, 
                                       application=Application("None", pkgname))
+        self.db = db
+        self.icons = icons
+        self.pkgname = pkgname
+        self.connect("realize", self._on_realize)
+        
         # the checkbutton
         self.checkbutton = gtk.CheckButton()
         self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
@@ -792,19 +797,21 @@ class AddonCheckButton(gtk.HBox):
         hbox = gtk.HBox(spacing=mkit.SPACING_MED)
         image = gtk.Image()
         icon = self.app_details.icon
-        if not icon or not icons.has_icon(icon):
+        if not icon or not self.icons.has_icon(icon):
             icon = MISSING_APP_ICON
         try:
-            pixbuf = icons.load_icon(icon, 22, ()).scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
+            pixbuf = self.icons.load_icon(icon, 22, ()).scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
             image.set_from_pixbuf(pixbuf)
         except TypeError:
-            logging.warning("cant set icon for '%s' " % pkgname)
+            logging.warning("cant set icon for '%s' " % self.pkgname)
         hbox.pack_start(image, False, False)
         # the display_name
-        display_name = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.display_name.capitalize(),
-                                                        'pkgname': pkgname}
-        label = gtk.Label(display_name)
-        hbox.pack_start(label, False)
+        summary_label = gtk.Label(_("%(summary)s") % {'summary': self.app_details.display_name.capitalize()})
+        hbox.pack_start(summary_label, False)
+        # the package name
+        self.pkgname_label = gtk.Label()
+        hbox.pack_start(self.pkgname_label, False)
+        
         # and put it into the the checkbox
         self.checkbutton.add(hbox)
         # this is the addon_pkgname
@@ -812,7 +819,11 @@ class AddonCheckButton(gtk.HBox):
         #        'pkgname' : pkgname } )
         #hbox.pack_start(self.addon_pkgname, False)
         
-    
+    def _on_realize(self, widget):
+        dark = self.style.dark[self.state].to_string()
+        key_markup = '<span color="%s">(%s)</span>'
+        self.pkgname_label.set_markup(key_markup  % (dark, self.pkgname))
+        
     def _on_checkbutton_toggled(self, checkbutton):
         self.emit("toggled")
     def get_active(self):
@@ -842,11 +853,18 @@ class AddonView(gtk.VBox):
         self.icons = icons
         self.recommended_addons = None
         self.suggested_addons = None
+        self.connect("realize", self._on_realize)
 
-        self.label = gtk.Label(_("<b>Choose add-ons:</b>"))
+        self.label = gtk.Label()
         self.label.set_use_markup(True)
         self.label.set_alignment(0, 0.5)
         self.pack_start(self.label, False, False)
+    
+    def _on_realize(self, widget):
+        markup = _('<b><span color="%s">Add-ons</span></b>')
+        color = self.label.style.dark[self.label.state].to_string()
+        self.label.set_markup(markup % color)
+
     
     def set_addons(self, app_details, recommended, suggested):
         if len(recommended) == 0 and len(suggested) == 0:
@@ -900,8 +918,8 @@ class AddonsStateBar(gtk.Alignment):
     def __init__(self, cache, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_redraw_on_allocate(False)
-        self.set_padding(mkit.SPACING_LARGE,
-                         mkit.SPACING_LARGE,
+        self.set_padding(mkit.SPACING_SMALL,
+                         mkit.SPACING_SMALL,
                          mkit.SPACING_SMALL+2,
                          mkit.SPACING_SMALL)
         
@@ -914,7 +932,7 @@ class AddonsStateBar(gtk.Alignment):
         
         self.label_price = gtk.Label()
         self.label_price.set_line_wrap(True)
-        self.hbox.pack_start(self.label_price, False, False)
+        self.hbox.pack_start(self.label_price, False)
         
         self.hbuttonbox = gtk.HButtonBox()
         self.hbuttonbox.set_layout(gtk.BUTTONBOX_END)
@@ -922,12 +940,12 @@ class AddonsStateBar(gtk.Alignment):
         self.button_apply.connect("clicked", self._on_button_apply_clicked)
         self.button_cancel = gtk.Button(_("Cancel"))
         self.button_cancel.connect("clicked", self._on_button_cancel_clicked)
-        self.hbuttonbox.pack_start(self.button_cancel, False)
-        self.hbuttonbox.pack_start(self.button_apply, False)
-        self.hbox.pack_start(self.hbuttonbox)
+        self.hbox.pack_end(self.button_apply, False)
+        self.hbox.pack_end(self.button_cancel, False)
+        #self.hbox.pack_start(self.hbuttonbox, False)
         
-        self.fill_color = COLOR_GREEN_FILL
-        self.line_color = COLOR_GREEN_OUTLINE
+        self.fill_color = view.section_color
+        self.line_color = view.section_color
         
     def configure(self, app_details, addons_install, addons_remove):
         if not addons_install and not addons_remove:
@@ -943,25 +961,16 @@ class AddonsStateBar(gtk.Alignment):
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
-        rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr,
-                  a.x-1, a.y-1,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
-        cr.set_source_rgb(*mkit.floats_from_string(self.fill_color))
+        r,g,b = self.view.section_color
+        cr.rectangle(a)
+        cr.set_source_rgba(r,g,b,0.333)
 #        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.fill()
 
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
-
-        rr.layout(cr,
-                  a.x-1, a.y-1,
-                  a.x+a.width, a.y+a.height,
-                  radius=mkit.CORNER_RADIUS)
-
-        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
+        cr.rectangle(a.x, a.y, a.width-1, a.height-1)
+        cr.set_source_rgba(r,g,b,0.5)
         cr.stroke()
         cr.restore()
         return
@@ -1118,7 +1127,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         
         if self.addons_bar.get_property('visible'):
             self.addons_bar.draw(cr,
-                                 self.addons_bar.hbox.allocation,
+                                 self.addons_bar.allocation,
                                  event.area)
 
         if self.screenshot.get_property('visible'):
@@ -1718,17 +1727,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         version = pkg.installed
         if version == None:
             version = max(pkg.versions)
-            pkgs_to_install.append(version)
             deps_inst = self.cache.get_all_deps_installing(pkg)
             for dep in deps_inst:
                 if self.cache[dep].installed == None:
-                    version = max(self.cache[dep].versions)
-                    pkgs_to_install.append(version)
+                    dep_version = max(self.cache[dep].versions)
+                    pkgs_to_install.append(dep_version)
             deps_remove = self.cache.get_all_deps_removing(pkg)
             for dep in deps_remove:
                 if self.cache[dep].installed != None:
-                    version = self.cache[dep].installed
-                    pkgs_to_remove.append(version)
+                    dep_version = self.cache[dep].installed
+                    pkgs_to_remove.append(dep_version)
+        pkgs_to_install.append(version)
         
         for addon in self.addons_install:
             version = max(self.cache[addon].versions)
@@ -1776,7 +1785,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string += _("%sB to download, " % (download_size))
         if total_install_size > 0:
             install_size = apt_pkg.size_to_str(total_install_size)
-            label_string += _("%sB when installed" % (install_size))
+            if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+                label_string += _("%sB on disk" % (install_size))
+            else:
+                label_string += _("%sB when installed" % (install_size))
         elif total_install_size < 0:
             remove_size = apt_pkg.size_to_str(-total_install_size)
             label_string += _("%sB to be freed" % (remove_size))
