@@ -1,4 +1,4 @@
-software-center (2.1.12) UNRELEASED; urgency=low
+software-center (2.1.12) maverick; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -33,11 +33,13 @@ software-center (2.1.12) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * implement the "Find it at" part of the specification to make it
     easier for the user to discover the newly installed software
+  * softwarecenter/backend/login_sso.py:
+    - use Sign into "Ubuntu Software Center Store" as sso login name
 
   [ Mohamed Amine IL Idrissi ]
   * (all): Implemented add-on handling.
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 25 Aug 2010 22:22:38 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 25 Aug 2010 22:48:59 +0200
 
 software-center (2.1.11) maverick; urgency=low
 
