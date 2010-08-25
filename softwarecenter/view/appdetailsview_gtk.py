@@ -771,9 +771,8 @@ class ScreenshotView(gtk.Alignment):
             cr.fill()
         return
 
-class AddonCheckButton(gtk.HBox):
-    """ A widget that represents an add-on: 
-    |CheckButton|Icon|Description| """
+class Addon(gtk.HBox):
+    """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
     
     __gsignals__ = {'toggled': (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
@@ -782,46 +781,52 @@ class AddonCheckButton(gtk.HBox):
     
     def __init__(self, db, icons, pkgname):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
-        self.app_details = AppDetails(db, 
-                                      application=Application("None", pkgname))
-        # the checkbutton
+
+        # data
+        self.app = Application("", pkgname)
+        self.app_details = self.app.get_details(db)
+
+        # checkbutton
         self.checkbutton = gtk.CheckButton()
-        self.checkbutton.connect("toggled", self._on_checkbutton_toggled)
+        self.checkbutton.connect("toggled", self.on_checkbutton_toggled)
         self.pack_start(self.checkbutton, False)
-        # the hbox inside the checkbutton that contains the icon and description
+
+        # icon
         hbox = gtk.HBox(spacing=mkit.SPACING_MED)
-        image = gtk.Image()
-        icon = self.app_details.icon
-        if not icon or not icons.has_icon(icon):
-            icon = MISSING_APP_ICON
+        self.icon = gtk.Image()
+        proposed_icon = self.app_details.icon
+        if not proposed_icon or not icons.has_icon(proposed_icon):
+            proposed_icon = MISSING_APP_ICON
         try:
-            pixbuf = icons.load_icon(icon, 22, ()).scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
-            image.set_from_pixbuf(pixbuf)
+            pixbuf = icons.load_icon(proposed_icon, 22, ()).scale_simple(22, 22,
+                                     gtk.gdk.INTERP_BILINEAR)
+            self.icon.set_from_pixbuf(pixbuf)
         except TypeError:
             logging.warning("cant set icon for '%s' " % pkgname)
-        hbox.pack_start(image, False, False)
-        # the display_name
-        display_name = _("%(summary)s (%(pkgname)s)") % {'summary': self.app_details.display_name.capitalize(),
-                                                        'pkgname': pkgname}
-        label = gtk.Label(display_name)
-        hbox.pack_start(label, False)
-        # and put it into the the checkbox
+        hbox.pack_start(self.icon, False, False)
+
+        # name
+        display_name = _("%(summary)s (%(pkgname)s)") % {
+            'summary': self.app_details.display_name.capitalize(),
+            'pkgname': pkgname}
+        self.title = gtk.Label(display_name)
+        hbox.pack_start(self.title, False)
         self.checkbutton.add(hbox)
-        # this is the addon_pkgname
-        #self.addon_pkgname = gtk.Label(_(" (%(pkgname)s)") % {
-        #        'pkgname' : pkgname } )
-        #hbox.pack_start(self.addon_pkgname, False)
-        
-    
-    def _on_checkbutton_toggled(self, checkbutton):
+
+        # pkgname
+#        FIXME: this is blocked on navigation issues
+ #       self.pkgname = gtk.Label(_("(%(pkgname)s)") % {
+  #              'pkgname' : pkgname } )
+   #     hbox.pack_start(self.pkgname, False)
+
+    def on_checkbutton_toggled(self, checkbutton):
         self.emit("toggled")
+
     def get_active(self):
         return self.checkbutton.get_active()
+
     def set_active(self, is_active):
-        self.checkbutton.set_active(is_active)
-    def get_addon(self):
-        return self.app_details.pkgname
-    
+        self.checkbutton.set_active(is_active)    
 
 class AddonView(gtk.VBox):
     """ A widget that handles the application add-ons """
@@ -849,34 +854,25 @@ class AddonView(gtk.VBox):
         self.pack_start(self.label, False, False)
     
     def set_addons(self, app_details, recommended, suggested):
-        if len(recommended) == 0 and len(suggested) == 0:
+        if not recommended and not suggested:
             return
         self.recommended_addons = recommended
         self.suggested_addons = suggested
         self.app_details = app_details
-            
+
+        # clear any existing addons
         for widget in self:
             if widget != self.label:
                 self.remove(widget)
-        
-        for addon in recommended:
+
+        # set the new addons
+        for addon in recommended + suggested:
             try:
                 pkg = self.cache[addon]
             except KeyError:
                 continue
-            checkbutton = AddonCheckButton(self.db, self.icons, addon)
-            #checkbutton.addon_pkgname.connect(
-            #    "clicked", self._on_description_clicked, addon)
-            checkbutton.set_active(pkg.installed != None)
-            checkbutton.connect("toggled", self._on_checkbutton_toggled)
-            self.pack_start(checkbutton, False)
-        for addon in suggested:
-            try:
-                pkg = self.cache[addon]
-            except KeyError:
-                continue
-            checkbutton = AddonCheckButton(self.db, self.icons, addon)
-            #checkbutton.addon_pkgname.connect(
+            checkbutton = Addon(self.db, self.icons, addon)
+            #checkbutton.pkgname.connect(
             #    "clicked", self._on_description_clicked, addon)
             checkbutton.set_active(pkg.installed != None)
             checkbutton.connect("toggled", self._on_checkbutton_toggled)
@@ -885,7 +881,7 @@ class AddonView(gtk.VBox):
         return False
     
     def _on_checkbutton_toggled(self, checkbutton):
-        addon = checkbutton.get_addon()
+        addon = checkbutton.app.pkgname
         self.emit("toggled", addon, checkbutton.get_active())
     
     def _on_description_clicked(self, label, addon):
@@ -1456,7 +1452,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             
             for widget in self.addon_view:
                 if widget != self.addon_view.label:
-                    addon = widget.get_addon()
+                    addon = widget.app.pkgname
                     widget.set_active(self.cache[addon].installed != None)
             return False
         
