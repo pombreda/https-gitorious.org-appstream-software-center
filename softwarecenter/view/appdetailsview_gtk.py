@@ -1402,13 +1402,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             where = searcher.get_main_menu_path(self.app_details.desktop_file)
             if not where:
                 return
-            label = gtk.Label(_("Find it in the menu at "))
+            label = gtk.Label(_("Find it in "))
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
                 if self.icons.has_icon(iconname) and i > 0:
                     image = gtk.Image()
-                    image.set_from_icon_name(iconname, 32)
+                    image.set_from_icon_name(iconname, 16)
+                    # FIXME: Use the size most closely matching the font size
                     self.desc_installed_where.pack_start(image, False, False)
                 label_name = gtk.Label(item.get_name())
                 self.desc_installed_where.pack_start(label_name, False, False)
