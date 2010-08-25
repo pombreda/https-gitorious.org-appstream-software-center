@@ -31,7 +31,8 @@ class TestWhereIsit(unittest.TestCase):
         self.assertEqual(details.desktop_file, 
                          "/usr/share/app-install/desktop/jockey-gtk.desktop")
         # search the settings menu
-        found = main_menu_path_for_desktop_file(details.desktop_file)
+        searcher = GMenuSearcher()
+        found = searcher.get_main_menu_path(details.desktop_file)
         self.assertEqual(found[0].get_name(), "System")
         self.assertEqual(found[0].get_icon(), "preferences-other")
         self.assertEqual(found[1].get_name(), "Administration")
@@ -43,7 +44,8 @@ class TestWhereIsit(unittest.TestCase):
         self.assertEqual(details.desktop_file, 
                          "/usr/share/app-install/desktop/gcalctool.desktop")
         # search the settings menu
-        found = main_menu_path_for_desktop_file(details.desktop_file)
+        searcher = GMenuSearcher()
+        found = searcher.get_main_menu_path(details.desktop_file)
         self.assertEqual(found[0].get_name(), "Applications")
         self.assertEqual(found[0].get_icon(), "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")

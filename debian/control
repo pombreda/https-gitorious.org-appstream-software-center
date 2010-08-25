@@ -36,6 +36,7 @@ Depends: ${python:Depends},
          python-webkit,
          python-xdg,
          python-gconf,
+         python-gmenu,
          aptdaemon (>= 0.31),
 	 python-lazr.restfulclient,
          ubuntu-sso-client
