@@ -36,7 +36,7 @@ APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
 SOFTWARE_CENTER_BASE = "/usr/share/software-center"
-SOFTWARE_CENTER_PLUGIN_DIR = os.path.join(SOFTWARE_CENTER_BASE, "/plugins")
+SOFTWARE_CENTER_PLUGIN_DIR = os.path.join(SOFTWARE_CENTER_BASE, "plugins")
 
 # the various "views" that the app has
 VIEW_PAGE_AVAILABLE = "view-page-available"
