@@ -22,7 +22,6 @@ import gtk
 import urllib
 import gobject
 
-from softwarecenter.apt.aptcache import PackageAddonsManager
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
@@ -40,12 +39,6 @@ class AppDetailsViewBase(object):
                                          gobject.TYPE_PYOBJECT, 
                                          str),
                                        ),
-        "navigation-request" : ( gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
-                                 (str,
-                                 ),
-                                ),
-
     }
 
     def __init__(self, db, distro, icons, cache, history, datadir):
@@ -54,7 +47,6 @@ class AppDetailsViewBase(object):
         self.icons = icons
         self.cache = cache
         self.cache.connect("cache-ready", self._on_cache_ready)
-        #self.addons_managertmp = PackageAddonsManager(cache)
         self.history = history
         self.datadir = datadir
         self.app = None
@@ -70,7 +62,6 @@ class AppDetailsViewBase(object):
             you need to overwrite
         """
         pass
-    
     # public API
     def show_app(self, app):
         """ show the given application """
@@ -123,10 +114,10 @@ class AppDetailsViewBase(object):
         get_install_backend().add_repo_add_key_and_install_app(deb_line,
                                                                signing_key_id,
                                                                self.app)
+
     # internal callbacks
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the
         # current application
         self._logger.debug("on_cache_ready")
         self.show_app(self.app)
-        #self.addons_manager = PackageAddonsManager(cache)

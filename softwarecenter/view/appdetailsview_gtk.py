@@ -205,7 +205,7 @@ class PackageStatusBar(gtk.Alignment):
             if app_details.price:
                 self.set_label(app_details.price)
             else:
-                self.set_label("Free")
+                self.set_label(_("Free"))
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_REINSTALLABLE:
             if app_details.price:
@@ -217,7 +217,7 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
         elif state == APP_ACTION_APPLY:
-            self.set_label(_('Changing add-ons...'))
+            self.set_label(_('Changing Add-ons\u2026'))
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -823,11 +823,6 @@ class Addon(gtk.HBox):
 class AddonsTable(gtk.VBox):
     """ Widget to display a table of addons. """
     
-    __gsignals__ = {'description-clicked':(gobject.SIGNAL_RUN_FIRST,
-                                           gobject.TYPE_NONE,
-                                           (str, )),
-                   }
-    
     def __init__(self, addons_manager):
         gtk.VBox.__init__(self, False, mkit.SPACING_MED)
         self.addons_manager = addons_manager
@@ -837,7 +832,7 @@ class AddonsTable(gtk.VBox):
         self.recommended_addons = None
         self.suggested_addons = None
 
-        self.label = gtk.Label(_("<b>Choose add-ons:</b>"))
+        self.label = gtk.Label(_("<b>Choose Add-ons:</b>"))
         self.label.set_use_markup(True)
         self.label.set_alignment(0, 0.5)
         self.pack_start(self.label, False, False)
@@ -862,16 +857,12 @@ class AddonsTable(gtk.VBox):
             except KeyError:
                 continue
             addon = Addon(self.db, self.icons, addon_name)
-            #addon.pkgname.connect(
-            #    "clicked", self._on_description_clicked, addon_name)
+            #addon.pkgname.connect("clicked", not yet suitable for use)
             addon.set_active(pkg.installed != None)
             addon.checkbutton.connect("toggled", self.addons_manager.mark_changes)
             self.pack_start(addon, False)
         self.show_all()
         return False
-    
-    def _on_description_clicked(self, label, addon):
-        self.emit("description-clicked", addon)
 
 class AddonsStatusBar(gtk.Alignment):
     
@@ -990,10 +981,6 @@ class AddonsManager():
         self.addons = self._addons_cache.get_addons(pkgname)
         self.table.set_addons(self.addons)
 
-# old
-        self.view.recommended = self.addons[0]
-        self.view.suggested = self.addons[1]
-
     def restore(self, *button):
         self.addons_to_install = []
         self.addons_to_remove = []
@@ -1022,12 +1009,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                         gobject.TYPE_NONE,
                                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
                                        ),
-        "navigation-request" : ( gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
-                                 (str,
-                                 ),
-                                ),
-
                     }
 
 
@@ -1215,7 +1196,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.vbox.set_border_width(mkit.BORDER_WIDTH_XLARGE)
         # we have our own viewport so we know when the viewport grows/shrinks
         self.vbox.set_redraw_on_allocate(False)
-        
+
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
         self.app_info.image.set_size_request(84, 84)
@@ -1235,7 +1216,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # controls which are displayed if the app is installed
         self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
-        
+
         # FramedSection which contains the app description
         self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
         self.desc_section.header_alignment.set_padding(0,0,0,0)
@@ -1256,7 +1237,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # screenshot
         self.screenshot = ScreenshotView(self.distro, self.icons)
         app_desc_hb.pack_end(self.screenshot)
-        
+
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
@@ -1278,7 +1259,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         
         # add-on handling
         self.addon_view = self.addons_manager.table
-        self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
         alignment.add(self.addon_view)
 
         # package info
@@ -1392,7 +1372,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             support = app_details.maintenance_status
         else:
             support = _("Unknown")
-        
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
@@ -1400,7 +1379,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # refresh addons interface
         self.addon_view.hide_all()
         gobject.idle_add(self.addons_manager.configure, self.app_details.pkgname)
-#        gobject.idle_add(self.addon_view.set_addons, self.app_details, self.recommended, self.suggested)
         
         # Update total size label
         self.totalsize_info.hide_all()
@@ -1429,14 +1407,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
-        #addons = self.addons_managertmp.get_addons(app.pkgname)
-        #self.recommended = addons[0]
-        #self.suggested = addons[1]
-        #LOG.debug("AppDetailsView.show_app recommended '%s'" % self.recommended)
-        #LOG.debug("AppDetailsView.show_app suggested '%s'" % self.suggested)
-        
-
-        
         # for compat with the base class
         self.appdetails = self.app_details
         #print "AppDetailsViewGtk:"
@@ -1636,30 +1606,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download:
                 self._logger.debug("did not find the icon locally, must download it")
-            else:
-                return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
-        else:
-            return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
 
-    def _on_addon_view_description_clicked(self, button, pkgname):
-        self.emit("navigation-request", pkgname)
-        return
-
-    def get_icon_filename(self, iconname, iconsize):
-        iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
-        if not iconinfo:
-            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
-        return iconinfo.get_filename()
-                
-    def on_image_download_complete(downloader, image_file_path):
-        # when the download is complete, replace the icon in the view with the downloaded one
-        pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
-        self.app_info.set_icon_from_pixbuf(pb)
-            
-        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, app_details.icon_file_name)
-        image_downloader = ImageDownloader()
-        image_downloader.connect('image-download-complete', on_image_download_complete)
-        image_downloader.download_image(app_details.icon_url, icon_file_path)
+                def on_image_download_complete(downloader, image_file_path):
+                    # when the download is complete, replace the icon in the view with the downloaded one
+                    pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
+                    self.app_info.set_icon_from_pixbuf(pb)
+                    
+                icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, app_details.icon_file_name)
+                image_downloader = ImageDownloader()
+                image_downloader.connect('image-download-complete', on_image_download_complete)
+                image_downloader.download_image(app_details.icon_url, icon_file_path)
                 
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
