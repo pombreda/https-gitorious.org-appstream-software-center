@@ -1257,15 +1257,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addon_view.connect("description-clicked", self._on_addon_view_description_clicked)
         alignment.add(self.addon_view)
         
-        self.totalsize_info = PackageInfo(_("Total size:"))
-        self.app_info.body.pack_start(self.totalsize_info, False)
-        
         self.addons_bar = AddonsStateBar(self.cache, self)
         self.addons_bar.connect("changes-canceled", self._on_addonsbar_changescanceled)
         self.app_info.body.pack_start(self.addons_bar, False)
 
         # package info
         self.info_keys = []
+        
+        self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
+        self.app_info.body.pack_start(self.totalsize_info, False)
 
         self.version_info = PackageInfo(_("Version:"), self.info_keys)
         self.app_info.body.pack_start(self.version_info, False)
