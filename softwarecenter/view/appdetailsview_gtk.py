@@ -959,6 +959,9 @@ class AddonsManager():
     def mark_changes(self, checkbutton):
         addon = checkbutton.pkgname
         installed = self.view.cache[addon].installed
+        print self.addons_to_install
+        print self.addons_to_remove
+        print installed
         if checkbutton.get_active():
             if addon not in self.addons_to_install and not installed:
                 self.addons_to_install.append(addon)
@@ -971,14 +974,20 @@ class AddonsManager():
                 self.addons_to_install.remove(addon)
         if self.view.app_details.pkg_state == PKG_STATE_INSTALLED:
             self.status_bar.configure()
+        print self.addons_to_install
+        print self.addons_to_remove
         gobject.idle_add(self.view.update_totalsize)
 
     def configure(self, pkgname):
+        print 'configure'
+        print self.addons_to_install
+        print self.addons_to_remove
         self.addons = self.view.cache.get_addons(pkgname)
         print 'hm, updated'
         self.table.set_addons(self.addons)
 
     def restore(self, *button):
+        print 'restore'
         self.addons_to_install = []
         self.addons_to_remove = []
         self.configure(self.view.app.pkgname)
@@ -1456,6 +1465,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # internal callback
     def _update_interface_on_trans_ended(self, result):
+        print 'ting'
+        print self.addons_to_install
+        print self.addons_to_remove
         self.action_bar.button.set_sensitive(True)
         self.action_bar.button.show()
         self.addons_bar.button_apply.set_sensitive(True)
@@ -1471,13 +1483,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             pkg_state = PKG_STATE_UNINSTALLED
 
         if self.addons_bar.applying:
-            self.addons_manager.restore()
             self.addons_bar.applying = False
             
             for widget in self.addon_view:
                 if widget != self.addon_view.label:
                     addon = widget.app.pkgname
                     widget.set_active(self.cache[addon].installed != None)
+            print 'mehe'
+            print self.addons_to_install
+            print self.addons_to_remove
             return False
         
         state = self.action_bar.pkg_state
@@ -1497,7 +1511,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
         elif state == PKG_STATE_UPGRADING:
             self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+        print 'tong'
+        print self.addons_to_install
+        print self.addons_to_remove
         return False
+
 
     def _on_transaction_started(self, backend):
         self.action_bar.button.hide()
@@ -1525,11 +1543,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_transaction_stopped(self, backend, pkgname):
         self.action_bar.progress.hide()
+        print 'stopped'
         self._update_interface_on_trans_ended(pkgname)
         return
 
     def _on_transaction_finished(self, backend, result):
         self.action_bar.progress.hide()
+        print 'finished'
         self._update_interface_on_trans_ended(result)
         return
 
