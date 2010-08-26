@@ -2,8 +2,13 @@ software-center (2.1.13.1) UNRELEASED; urgency=low
 
   * softwarcenter/app.py:
     - fix incorrect state of install/remove menu items (LP: #624716)
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview_gtk.py:
+    - activate the appropriate install/remove menu item when
+      selecting an app directly from in the Featured or What's
+      New panels (LP: #624732) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Aug 2010 11:24:28 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Aug 2010 11:57:38 -0400
 
 software-center (2.1.13) maverick; urgency=low
 
