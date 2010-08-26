@@ -1,4 +1,12 @@
-software-center (2.1.14) UNRELEASED; urgency=low
+software-center (2.1.14.1) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * make the currency string not translatable, since it will not
+    vary by locale currently (the agent always uses US$)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 21:12:46 +0200
+
+software-center (2.1.14) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarcenter/app.py:
@@ -23,7 +31,7 @@ software-center (2.1.14) UNRELEASED; urgency=low
   [ Mohamed Amine IL Idrissi ]
   * Do not include download size of installed app.
   
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Aug 2010 14:36:13 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 20:52:44 +0200
 
 software-center (2.1.13) maverick; urgency=low
 
