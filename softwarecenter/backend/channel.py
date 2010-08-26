@@ -334,7 +334,7 @@ class SoftwareChannel(object):
         """
         return the display name for the corresponding channel for use in the UI
         """
-        return self._channel_display_name
+        return self._channel_display_name[0].upper() + self._channel_display_name[1:]
         
     def get_channel_icon(self):
         """

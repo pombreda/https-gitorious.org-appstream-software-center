@@ -17,6 +17,8 @@ software-center (2.1.14) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
     - don't crash on encountering broken packages while getting deps
+  * softwarecenter/backend/channel.py:
+    - force first letter of display_name to be upper case
   
   [ Mohamed Amine IL Idrissi ]
   * Do not include download size of installed app.
