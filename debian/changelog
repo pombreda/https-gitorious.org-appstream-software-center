@@ -12,6 +12,9 @@ software-center (2.1.13) UNRELEASED; urgency=low
   * merged  lp:~mpt/software-center/fit-and-finish-2, fixes not
     precise string (many thanks)
 
+  [ Kiwinote ]
+  * hide action_bar in featured pane
+
  -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Wed, 25 Aug 2010 22:32:07 +0000
 
 software-center (2.1.12.1) maverick; urgency=low
