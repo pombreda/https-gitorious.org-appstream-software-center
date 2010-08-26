@@ -30,6 +30,7 @@ import os
 import subprocess
 import sys
 import xapian
+import cairo
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
@@ -39,6 +40,7 @@ from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 import softwarecenter.view.dialogs as dialogs
+from softwarecenter.view.widgets.mkit import floats_from_string
 
 import view.dialogs
 from view.viewswitcher import ViewSwitcher, ViewSwitcherList
@@ -94,7 +96,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     APP_ICON_SIZE = 48  # gtk.ICON_SIZE_DIALOG ?
 
     def __init__(self, datadir, xapian_base_path, options, args=None):
-    
+
         self._logger = logging.getLogger(__name__)
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
@@ -193,6 +195,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             datadir,
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
+
+
+        color = floats_from_string('#0769BC')
+        image = cairo.ImageSurface.create_from_png(
+            os.path.join(datadir, 'images/clouds.png'))
+        self.available_pane.set_section_color(color)
+        self.available_pane.set_section_image(image_id=0, surf=image)
+
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_AVAILABLE)
@@ -211,6 +221,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.distro,
                                         self.icons,
                                         datadir)
+        color = floats_from_string('#aea79f')
+        image = cairo.ImageSurface.create_from_png(
+            os.path.join(datadir, 'images/arrows.png'))
+        self.channel_pane.set_section_color(color)
+        self.channel_pane.set_section_image(image_id=1, surf=image)
+
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_CHANNEL)
@@ -229,6 +245,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.distro,
                                             self.icons,
                                             datadir)
+        
+        color = floats_from_string('#aea79f')
+        image = cairo.ImageSurface.create_from_png(
+            os.path.join(datadir, 'images/arrows.png'))
+        self.installed_pane.set_section_color(color)
+        self.installed_pane.set_section_image(image_id=2, surf=image)
+        
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_INSTALLED)
@@ -321,16 +344,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.icons.append_search_path(icon_cache_dir)
 
         # run s-c-agent update
-        if options.enable_buy:
+        if options.disable_buy:
+            file_menu = self.builder.get_object("menu1")
+            file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+        else:
             sc_agent_update = os.path.join(
                 datadir, "update-software-center-agent")
             (pid, stdin, stdout, stderr) = glib.spawn_async(
                 [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
             glib.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
-        else:
-            file_menu = self.builder.get_object("menu1")
-            file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default
@@ -338,7 +362,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             file_menu = self.builder.get_object("menu1")
             file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
 
-        if not options.enable_buy and not options.enable_lp:
+        if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
 
     # callbacks
@@ -429,7 +453,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             channel_display_name, icon=None, query=query)
         self.view_switcher.select_channel_node(channel_display_name, False)
             
-    def on_application_request_action(self, widget, app, action):
+    def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
         """callback when an app action is requested from the appview,
            if action is "remove", must check if other dependencies have to be
            removed as well and show a dialog in that case
@@ -457,10 +481,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     # for appdetailsview-webkit
                     # self._set_action_button_sensitive(True)
 
-                    self.backend.emit("transaction-stopped")
+                    self.backend.emit("transaction-stopped", app.pkgname)
                     return
             
-        # action_func is one of:  "install", "remove" or "upgrade"
+        # action_func is one of:  "install", "remove", "upgrade", or "apply_changes"
         action_func = getattr(self.backend, action)
         if action == 'install':
             # the package.deb path name is in the request
@@ -468,9 +492,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 debfile_name = app.request
             else:
                 debfile_name = None
-            action_func(app.pkgname, app.appname, appdetails.icon, debfile_name)
+            action_func(app.pkgname, app.appname, appdetails.icon, debfile_name, addons_install, addons_remove)
         elif callable(action_func):
-            action_func(app.pkgname, app.appname, appdetails.icon)
+            action_func(app.pkgname, app.appname, appdetails.icon, addons_install=addons_install, addons_remove=addons_remove)
         else:
             logging.error("Not a valid action in AptdaemonBackend: '%s'" % action)
             
@@ -566,11 +590,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, APP_ACTION_INSTALL)
+        self.on_application_request_action(self, app, [], [], APP_ACTION_INSTALL)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, APP_ACTION_REMOVE)
+        self.on_application_request_action(self, app, [], [], APP_ACTION_REMOVE)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -686,13 +710,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
-        if (not self._block_menuitem_view and self.active_pane.apps_filter and
+        if (not self._block_menuitem_view and
+            self.active_pane.apps_filter and
             self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
 
     def on_menuitem_view_supported_only_activate(self, widget):
         if (not self._block_menuitem_view and
+            self.active_pane.apps_filter and
             not self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()

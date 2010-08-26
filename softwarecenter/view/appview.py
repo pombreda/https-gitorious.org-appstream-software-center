@@ -35,6 +35,8 @@ import sys
 import time
 import xapian
 import cairo
+import pangocairo
+
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -44,7 +46,7 @@ from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.backend import get_install_backend
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
-from widgets.mkit import get_em_value
+from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha
 from gtk import gdk
 
 from gettext import gettext as _
@@ -171,6 +173,7 @@ class AppStore(gtk.GenericTreeModel):
 
     def _perform_search(self):
         already_added = set()
+        self.nonapp_pkgs = 0
         for q in self.search_query:
             self._logger.debug("using query: '%s'" % q)
             enquire = xapian.Enquire(self.db.xapiandb)
@@ -179,6 +182,7 @@ class AppStore(gtk.GenericTreeModel):
                                  q, xapian.Query("ATapplication")))
 
                 matches = enquire.get_mset(0, len(self.db))
+                # FIXME: estimates aren't really good enough..
                 self.nonapp_pkgs = matches.get_matches_estimated()
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  xapian.Query("ATapplication"), q)
@@ -221,12 +225,17 @@ class AppStore(gtk.GenericTreeModel):
                 # we don't add duplicates
                 popcon = self.db.get_popcon(doc)
                 app = Application(appname, pkgname, "", popcon)
-                if not app in already_added:
+                # FIXME: falsely assuming that apps come before nonapps
+                if not appname:
+                    added = pkgname in already_added
+                    if self.nonapps_visible and not added:
+                        self.nonapp_pkgs += 1
+                if appname or not added:
                     if self.sortmode == SORT_BY_ALPHABET:
                         self._insert_app_sorted(app)
                     else:
                         self._append_app(app)
-                    already_added.add(app)
+                    already_added.add(pkgname)
                 # keep the UI going
                 while gtk.events_pending():
                     gtk.main_iteration()
@@ -646,15 +655,24 @@ class CellRendererButton2:
         self.ypad = ypad
         self.allocation = gdk.Rectangle(0,0,1,1)
         self.state = gtk.STATE_NORMAL
+        self.shape = 0
         self.has_focus = False
 
         self._widget = None
+        self.theme = get_mkit_theme()
         return
 
     def _layout_reset(self, layout):
         layout.set_width(-1)
         layout.set_ellipsize(pango.ELLIPSIZE_NONE)
+        self.layout = layout
         return
+
+
+    # Part compat
+    @property
+    def is_active(self):
+        return self.has_focus
 
     def configure_geometry(self, widget):
         pc = widget.get_pango_context()
@@ -736,9 +754,10 @@ class CellRendererButton2:
 
         if not layout:
             pc = widget.get_pango_context()
-            layout = pango.Layout(pc)
+            self.layout = pango.Layout(pc)
         else:
             self._layout_reset(layout)
+        self.layout = layout
 
         layout.set_markup(self.markup_variants[self.current_variant])
         xpad, ypad = self.xpad, self.ypad
@@ -748,20 +767,23 @@ class CellRendererButton2:
         # this prevents the button overdrawing on its self,
         # which results in transparent pixels accumulating alpha value
         cr = window.cairo_create()
-        cr.set_operator(cairo.OPERATOR_CLEAR)
+        #cr.set_operator(cairo.OPERATOR_CLEAR)
         cr.rectangle(x, y, w, h)
         cr.clip()
-        cr.paint_with_alpha(0)
+        #cr.paint_with_alpha(0)
 
-        cr.set_operator(cairo.OPERATOR_OVER)
-        del cr
-        widget.style.paint_box(window,
-                               self.state,
-                               shadow,
-                               (x, y, w, h),
-                               widget,
-                               "button",
-                               x, y, w, h)
+        #cr.set_operator(cairo.OPERATOR_OVER)
+        
+        #widget.style.paint_box(window,
+                               #self.state,
+                               #shadow,
+                               #(x, y, w, h),
+                               #widget,
+                               #"button",
+                               #x, y, w, h)
+
+        # use mkit to draw the cell renderer button. more reliable results
+        self.theme.paint_bg(cr, self, x, y, w, h)
 
         # if we have more than one markup variant
         # we need to calc layout x-offset for current variant markup
@@ -775,13 +797,22 @@ class CellRendererButton2:
 
         if self.has_focus and self.state != gtk.STATE_INSENSITIVE and \
             self._widget.has_focus():
+            w, h = layout.get_pixel_extents()[1][2:]
             widget.style.paint_focus(window,
                                      self.state,
-                                     (x+2, y+2, w-4, h-4),
+                                     (xo-3, y+ypad, w+6, h),
                                      widget,
                                      "expander",
-                                     x+2, y+2,
-                                     w-4, h-4)
+                                     xo-3, y+ypad,
+                                     w+6, h)
+
+        # etch
+        if not (self.has_focus and self.state == gtk.STATE_PRELIGHT):
+            pcr = pangocairo.CairoContext(cr)
+            pcr.move_to(xo, y+ypad+1)
+            pcr.layout_path(layout)
+            pcr.set_source_rgba(*floats_from_gdkcolor_with_alpha(widget.style.light[self.state], 0.5))
+            pcr.fill()
 
         widget.style.paint_layout(window,
                                   self.state,
@@ -1125,7 +1156,10 @@ class AppView(gtk.TreeView):
                                   ),
         "application-request-action" : (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, str),
+                                        (gobject.TYPE_PYOBJECT,
+                                         gobject.TYPE_PYOBJECT, 
+                                         gobject.TYPE_PYOBJECT,
+                                         str),
                                        ),
     }
 
@@ -1502,7 +1536,7 @@ class AppView(gtk.TreeView):
                 perform_action = APP_ACTION_REMOVE
             else:
                 perform_action = APP_ACTION_INSTALL
-            self.emit("application-request-action", Application(appname, pkgname, request, popcon), perform_action)
+            self.emit("application-request-action", Application(appname, pkgname, request, popcon), [], [], perform_action)
         return False
 
     def _set_cursor(self, btn, cursor):

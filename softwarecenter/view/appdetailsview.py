@@ -22,7 +22,6 @@ import gtk
 import urllib
 import gobject
 
-from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
@@ -35,7 +34,10 @@ class AppDetailsViewBase(object):
     __gsignals__ = {
         "application-request-action" : (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, str),
+                                        (gobject.TYPE_PYOBJECT, 
+                                         gobject.TYPE_PYOBJECT, 
+                                         gobject.TYPE_PYOBJECT, 
+                                         str),
                                        ),
     }
 
@@ -48,6 +50,8 @@ class AppDetailsViewBase(object):
         self.datadir = datadir
         self.app = None
         self.appdetails = None
+        self.addons_to_install = []
+        self.addons_to_remove = []
         # aptdaemon
         self.backend = get_install_backend()
         self._logger = logging.getLogger(__name__)
@@ -74,13 +78,16 @@ class AppDetailsViewBase(object):
         self.backend.reload()
     def install(self):
         """ install the current application, fire an action request """
-        self.emit("application-request-action", self.app, APP_ACTION_INSTALL)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_INSTALL)
     def remove(self):
         """ remove the current application, , fire an action request """
-        self.emit("application-request-action", self.app, APP_ACTION_REMOVE)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_REMOVE)
     def upgrade(self):
         """ upgrade the current application, fire an action request """
-        self.emit("application-request-action", self.app, APP_ACTION_UPGRADE)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_UPGRADE)
+    def apply_changes(self):
+        """ apply changes concerning add-ons """
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_APPLY)
 
     def buy_app(self):
         """ initiate the purchase transaction """

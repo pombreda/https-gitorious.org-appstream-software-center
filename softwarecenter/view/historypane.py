@@ -107,15 +107,17 @@ class HistoryPane(gtk.VBox, BasePane):
         installs_button = installs_action.create_tool_item()
         self.toolbar.insert(installs_button, 1)
 
-        removals_action = gtk.RadioAction('filter_removals', _('All Removals'), None, None, self.REMOVED)
-        removals_action.set_group(all_action)
-        removals_button = removals_action.create_tool_item()
-        self.toolbar.insert(removals_button, 2)
-
-        upgrades_action = gtk.RadioAction('filter_upgrads', _('All Upgrades'), None, None, self.UPGRADED)
+        upgrades_action = gtk.RadioAction(
+            'filter_upgrads', _('Updates'), None, None, self.UPGRADED)
         upgrades_action.set_group(all_action)
         upgrades_button = upgrades_action.create_tool_item()
-        self.toolbar.insert(upgrades_button, 3)
+        self.toolbar.insert(upgrades_button, 2)
+
+        removals_action = gtk.RadioAction(
+            'filter_removals', _('Removals'), None, None, self.REMOVED)
+        removals_action.set_group(all_action)
+        removals_button = removals_action.create_tool_item()
+        self.toolbar.insert(removals_button, 3)
 
         self.view = gtk.TreeView()
         self.view.show()

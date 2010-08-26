@@ -24,6 +24,7 @@ import gtk
 import cairo
 import pango
 import gobject
+import pangocairo
 
 from mkit_themes import Color, ColorArray, ThemeRegistry
 
@@ -93,7 +94,7 @@ def get_em_value():
     return l.get_pixel_extents()[1][2]
 
 def get_nearest_stock_size(desired_size):
-    stock_sizes = (16, 24, 32, 48, 64)
+    stock_sizes = (16, 24, 32, 48, 64, 84)
     desired_to_stock_ratios = []
 
     # first divide the desired icon size by each of the stock sizes
@@ -151,7 +152,7 @@ SPACING_MED         = max(2, int(0.666*EM+0.5))
 SPACING_SMALL       = max(1, int(0.333*EM+0.5))
 
 # recommended corner radius
-CORNER_RADIUS =         max(2, int(0.2*EM+0.5))
+CORNER_RADIUS = 0
 
 # use the link color as the clicked color for labels
 _scheme = get_gtk_color_scheme_dict()
@@ -401,12 +402,12 @@ class ShapeMidArrow(Shape):
     def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
         aw = kwargs['arrow_width']
 
-        cr.move_to(0, y)
+        cr.move_to(x, y)
         # arrow head
         cr.line_to(w-aw, y)
         cr.line_to(w-x+1, (h+y)/2)
         cr.line_to(w-aw, h)
-        cr.line_to(0, h)
+        cr.line_to(x, h)
         cr.close_path()
         return
 
@@ -430,11 +431,13 @@ class ShapeEndCap(Shape):
 
     def _layout_ltr(self, cr, x, y, w, h, *args, **kwargs):
         r = kwargs['radius']
+        aw = kwargs['arrow_width']
 
-        cr.move_to(x, y)
+        cr.move_to(x-1, y)
         cr.arc(w-r, r+y, r, 270*PI_OVER_180, 0)
         cr.arc(w-r, h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(x, h)
+        cr.line_to(x-1, h)
+        cr.line_to(x+aw, (h+y)/2)
         cr.close_path()
         return
 
@@ -577,7 +580,7 @@ class Style:
         # bg linear vertical gradient
         color1, color2 = self.gradients[state]
 
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
+        shape.layout(cr, 1, 1, w, h-1, arrow_width=aw, radius=curv)
         lin = cairo.LinearGradient(0, 0, 0, h)
         r, g, b = color1.floats()
         lin.add_color_stop_rgba(0.0, r, g, b, alpha)
@@ -590,26 +593,27 @@ class Style:
         cr.translate(0.5, 0.5)
         cr.set_line_width(1.0)
 
-        w -= 1
-        h -= 1
-
         # strong outline
         r, g, b = self.dark_line[state].floats()
-        shape.layout(cr, 0, 0, w, h, arrow_width=aw, radius=curv)
+        shape.layout(cr, 0, 0, w-1, h-1, arrow_width=aw, radius=curv)
         cr.set_source_rgba(r, g, b, alpha)
         cr.stroke_preserve()
-        cr.set_source_rgba(r, g, b, 0.5*alpha)
+        cr.set_source_rgba(r, g, b, 0.3*alpha)
         cr.stroke()
 
         # inner bevel/highlight
+        shape.layout(cr, 1, 1, w-2, h-2, arrow_width=aw, radius=curv-1)
         if part.state != gtk.STATE_ACTIVE:
             r, g, b = self.light_line[state].floats()
+            lin = cairo.LinearGradient(0, 0, 0, h)
+            lin.add_color_stop_rgba(0.0, r, g, b, 0.7*alpha)
+            lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
+            cr.set_source(lin)
+            cr.stroke()
         else:
             r, g, b = self.dark_line[state].floats()
-            alpha *= 0.225
-
-        shape.layout(cr, 1, 1, w-1, h-1, arrow_width=aw, radius=curv-1)
-        cr.set_source_rgba(r, g, b, alpha)
+            alpha *= 0.23
+            cr.set_source_rgba(r, g, b, alpha)
         cr.stroke()
 
         cr.restore()
@@ -661,14 +665,33 @@ class Style:
         cr.restore()
         return
 
-    def paint_layout(self, cr, widget, part, x, y, sxO=0):
-        layout = part.get_layout()
+    def paint_layout(self, cr, widget, part, x, y, clip=None, sxO=0, etched=True):
+        layout = part.layout
+
+        a = 0.5
+        if etched and CACHED_THEME_NAME == 'Ambiance-maverick-beta':
+            if part.state == gtk.STATE_PRELIGHT:
+                etched = False
+            if part.is_active:
+                if part.state == gtk.STATE_ACTIVE:
+                    a = 0.3
+                else:
+                    a = 0.4
+
+        if etched:
+            pcr = pangocairo.CairoContext(cr)
+            pcr.move_to(x, y+1)
+            pcr.layout_path(layout)
+            r,g,b = self.light_line[gtk.STATE_NORMAL].floats()
+            pcr.set_source_rgba(r,g,b,a)
+            pcr.fill()
+
         widget.style.paint_layout(widget.window,
                                   self.text_states[part.state],
                                   False,
-                                  None,   # clip area
+                                  clip,   # clip area
                                   widget,
-                                  None,
+                                  'button',
                                   x, y,
                                   layout)
         return
@@ -708,8 +731,9 @@ class FramedSection(gtk.VBox):
         self.pack_start(self.footer_alignment, False)
 
         self.image = gtk.Image()
-        self.label = gtk.Label()
-
+        self.label = EtchedLabel()
+        # Make sure the user can select and copy the title/summary
+        #self.label.set_selectable(True)
         self.header.pack_start(self.label, False)
         if label_markup:
             self.set_label(label_markup)
@@ -752,39 +776,26 @@ class FramedSection(gtk.VBox):
         return
 
     def draw(self, cr, a, expose_area, draw_border=True):
-        if not_overlapping(a, expose_area): return
+#        if not_overlapping(a, expose_area): return
 
-        cr.save()
-        cr.rectangle(a)
-        cr.clip()
+#        cr.save()
+#        cr.translate(0.5, 0.5)
+#        cr.rectangle(a)
+#        cr.clip_preserve()
 
-        a = self.header_alignment.allocation
+        #a = self.header_alignment.allocation
 
         # fill section white
-        rr = ShapeRoundedRectangle()
-        rr.layout(cr,
-                  a.x+1, a.y,
-                  a.x + a.width-1, a.y + a.height,
-                  radius=CORNER_RADIUS)
+        #cr.rectangle(a)
+        #cr.set_source_rgb(*floats_from_gdkcolor_wit(self.style.base[self.state]))
+        #cr.fill()
+        #cr.save()
+#        cr.set_line_width(1)
+#        cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[self.state]))
+#        cr.stroke()
+        #cr.restore()
 
-        cr.set_source_rgb(*floats_from_gdkcolor(self.style.bg[self.state]))
-        cr.fill()
-
-        #if draw_border:
-            #cr.save()
-            #cr.set_line_width(1)
-            #cr.translate(0.5, 0.5)
-            #rr.layout(cr,
-                      #a.x, a.y,
-                      #a.x + a.width-1, a.y + a.height,
-                      #radius=CORNER_RADIUS)
-
-            #cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[self.state]))
-            #cr.stroke_preserve()
-            #cr.stroke()
-            #cr.restore()
-
-        cr.restore()
+#        cr.restore()
         return
 
 
@@ -831,7 +842,7 @@ class LayoutView(FramedSection):
 
         # pack columns into widget
         for i in range(n_columns):
-            self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_SMALL))
+            self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_LARGE))
 
         # pack buttons into appropriate columns
         i = 0
@@ -868,8 +879,8 @@ class LayoutView(FramedSection):
     def draw(self, cr, a, expose_area):
         if not_overlapping(a, expose_area): return
 
-        cr.save()
-        FramedSection.draw(self, cr, a, expose_area)
+#        cr.save()
+#        FramedSection.draw(self, cr, a, expose_area)
 
         for btn in self.widget_list:
             a = btn.allocation
@@ -877,7 +888,7 @@ class LayoutView(FramedSection):
 
             btn.draw(cr, a, expose_area)
 
-        cr.restore()
+#        cr.restore()
         return
 
 
@@ -896,21 +907,21 @@ class LinkButton(gtk.EventBox):
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
 
-        self.alignment = gtk.Alignment(xalign=0.5, yalign=0.55)
+        self.alignment = gtk.Alignment(xalign=0.5)
         self.add(self.alignment)
 
-        self.label = gtk.Label()
+        self.label = EtchedLabel()
+        self.label.set_etching_alpha(0.55)
         self.image = gtk.Image()
 
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
-        self._fixed_width = None
         self._markup = None
         self._use_underline = False
         self._subdued = False
-        self._base_pixbuf = None
         self._xmargin = 3
+        self.alpha = 1.0
 
         if markup:
             self.set_label(markup)
@@ -943,19 +954,37 @@ class LinkButton(gtk.EventBox):
         self.connect("button-release-event", self._on_button_release)
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
+        self.image.connect('expose-event', self._on_image_expose)
         return
 
     def _on_realize(self, widget):
         self.set_size_request(self.calc_width(), 
                               self.get_size_request()[1])
-        
         if self._subdued:
             self._colorise_label_normal()
         return
 
+    def _on_image_expose(self, widget, event):
+        pb = self.image.get_pixbuf()
+        a = widget.allocation
+        x = a.x + (a.width - pb.get_width())/2
+        y = a.y + (a.height - pb.get_height())/2
+        cr = widget.window.cairo_create()
+
+        cr.set_source_pixbuf(pb, x, y)
+        cr.paint_with_alpha(self.alpha)
+
+        if self.state != gtk.STATE_ACTIVE: return
+
+        cr.rectangle(a)
+        cr.clip_preserve()
+        r,g,b = floats_from_string('#FFFFC1')
+        cr.set_source_rgba(r,g,b, 0.33*self.alpha)
+        cr.mask_surface(self._image_surface, x, y)
+        return True
+
     def _on_enter(self, cat, event):
         if cat == self._button_press_origin:
-            self._colorise_image_active()
             self._colorise_label_active()
             cat.set_state(gtk.STATE_ACTIVE)
         else:
@@ -964,7 +993,6 @@ class LinkButton(gtk.EventBox):
         return
 
     def _on_leave(self, cat, event):
-        self._colorise_image_normal()
         self._colorise_label_normal()
         cat.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
@@ -988,7 +1016,6 @@ class LinkButton(gtk.EventBox):
         if event.button != 1: return
         self._button_press_origin = cat
         self._colorise_label_active()
-        self._colorise_image_active()
         cat.set_state(gtk.STATE_ACTIVE)
         return
 
@@ -1002,7 +1029,6 @@ class LinkButton(gtk.EventBox):
             return
 
         self._colorise_label_normal()
-        self._colorise_image_normal()
 
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
@@ -1053,17 +1079,16 @@ class LinkButton(gtk.EventBox):
             self.label.set_markup('<span color="%s">%s</span>' % (col, self._markup))
         return
 
-    def _colorise_image_active(self):
-        if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
-
-        pb = self.image.get_pixbuf().copy()
-        pb.saturate_and_pixelate(pb, 3, False)
-        self.image.set_from_pixbuf(pb)
-        return
-
-    def _colorise_image_normal(self):
-        if self.image.get_storage_type() != gtk.IMAGE_PIXBUF: return
-        self.image.set_from_pixbuf(self._base_pixbuf)
+    def _cache_image_surface(self, pb):
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                  pb.get_width(),
+                                  pb.get_height())
+        cr = cairo.Context(surf)
+        cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
+        cr.set_source_pixbuf(pb, 0,0)
+        cr.paint()
+        self._image_surface = surf
+        del cr
         return
 
     def set_underline(self, use_underline):
@@ -1111,24 +1136,16 @@ class LinkButton(gtk.EventBox):
         except:
             return
         self.image.set_from_pixbuf(pb)
-        self._base_pixbuf = pb
+        self._cache_image_surface(pb)
         return
 
     def set_image_from_pixbuf(self, pb):
         self.image.set_from_pixbuf(pb)
-        self._base_pixbuf = pb
+        self._cache_image_surface(pb)
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0, focus_draw=True):
         if not_overlapping(a, expose_area): return
-
-        # for testing
-        #cr.save()
-        #cr.rectangle(a)
-        #cr.clip_preserve()
-        #cr.set_source_rgb(1, 0, 0)
-        #cr.stroke()
-        #cr.restore()
 
         if self.has_focus() and focus_draw:
             a = self.label.allocation
@@ -1140,6 +1157,42 @@ class LinkButton(gtk.EventBox):
                                    self,
                                    'expander',
                                    x-3, y-1, w+6, h+2)
+        return
+
+
+class EtchedLabel(gtk.Label):
+    
+    def __init__(self, *args, **kwargs):
+        gtk.Label.__init__(self, *args, **kwargs)
+        self.alpha = 0.5
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def set_etching_alpha(self, a):
+        self.alpha = a
+        return
+
+    def _on_expose(self, widget, event):
+        l = self.get_layout()
+        a = widget.allocation
+        pc = pangocairo.CairoContext(widget.window.cairo_create())
+
+
+        x, y = a.x, a.y+1
+        lw, lh = l.get_pixel_extents()[1][2:]
+        ax, ay = self.get_alignment()
+
+        if lw < a.width:
+            x += int((a.width-lw)*ax)
+        if lh < a.height:
+            y += int((a.height-lh)*ay)
+
+        pc.move_to(x, y)
+        pc.layout_path(l)
+        r,g,b = floats_from_gdkcolor(self.style.light[self.state])
+        pc.set_source_rgba(r,g,b,self.alpha)
+        pc.fill()
+        del pc
         return
 
 
@@ -1181,6 +1234,9 @@ class HLinkButton(LinkButton):
 
 class VLinkButton(LinkButton):
 
+    MAX_WIDTH  = None
+    MAX_HEIGHT = None
+
     def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
         LinkButton.__init__(self, markup, icon_name, icon_size)
 
@@ -1192,7 +1248,9 @@ class VLinkButton(LinkButton):
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
-            self.box.pack_end(self.label)
+            self.label_alignment = gtk.Alignment(0.5, 0, xscale=1.0)
+            self.box.pack_end(self.label_alignment)
+            self.label_alignment.add(self.label)
 
         self.set_border_width(BORDER_WIDTH_SMALL)
         self.show_all()
@@ -1211,4 +1269,19 @@ class VLinkButton(LinkButton):
 
         w += max(lw, iw)
         w += 2*self.get_border_width() + 2*self._xmargin
+        
+        if self.MAX_WIDTH and w > self.MAX_WIDTH:
+            if self.label:
+                self.label.set_line_wrap(True)
+                self.label.set_justify(gtk.JUSTIFY_CENTER)
+                self.connect('size-allocate', self._on_allocate_set_label_width)
+            return self.MAX_WIDTH
         return w
+    
+    def _on_allocate_set_label_width(self, widget, allocation):
+        if not self.label: return
+        layout = self.label.get_layout()
+        layout.set_width(pango.SCALE*self.MAX_WIDTH)
+        w, h = layout.get_pixel_extents()[1][2:]
+        self.label.set_size_request(w, h)
+        return

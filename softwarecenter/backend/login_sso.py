@@ -31,6 +31,8 @@ from login import LoginBackend
 
 class LoginBackendDbusSSO(LoginBackend):
 
+    APPNAME = _("Ubuntu Software Center Store")
+    
     def __init__(self, window_id=0):
         super(LoginBackendDbusSSO, self).__init__()
         self.bus = dbus.SessionBus()
@@ -47,18 +49,24 @@ class LoginBackendDbusSSO(LoginBackend):
         # alternatively use:
         #  login_or_register_to_get_credentials(appname, tc, help, xid)
         self.proxy.login_to_get_credentials(
-            "Ubuntu Software Center", 
+            self.APPNAME,
             _("Ubuntu Software Center"), 
             self._window_id)
         
-    def _on_credentials_found(self, credentials):
+    def _on_credentials_found(self, app_name, credentials):
+        if app_name != self.APPNAME:
+            return
         self.emit("login-successful", credentials)
 
-    def _on_credentials_error(self, error):
+    def _on_credentials_error(self, app_name, error, detailed_error):
+        if app_name != self.APPNAME:
+            return
         # FIXME: do something useful with the error
         self.emit("login-failed")
 
-    def _on_authorization_denied(self, appname):
+    def _on_authorization_denied(self, app_name):
+        if app_name != self.APPNAME:
+            return
         self.cancel_login()
     
 if __name__ == "__main__":

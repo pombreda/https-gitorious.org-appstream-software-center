@@ -126,8 +126,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error)
 
+    # FIXME: upgrade add-ons here
     @inline_callbacks
-    def upgrade(self, pkgname, appname, iconname, metadata=None):
+    def upgrade(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
         """ upgrade a single package """
         self.emit("transaction-started")
         try:
@@ -138,7 +139,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove(self, pkgname, appname, iconname, metadata=None):
+    def remove(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
         """ remove a single package """
         self.emit("transaction-started")
         try:
@@ -149,7 +150,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove_multiple(self, pkgnames, appnames, iconnames, metadatas=None):
+    def remove_multiple(self, pkgnames, appnames, iconnames, addons_install=None, addons_remove=None, metadatas=None):
         """ queue a list of packages for removal  """
         if metadatas == None:
             metadatas = []
@@ -159,7 +160,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, filename=None, metadata=None):
+    def install(self, pkgname, appname, iconname, filename=None, addons_install=None, addons_remove=None, metadata=None):
         """Install a single package from the archive
            If filename is given a local deb package is installed instead.
         """
@@ -169,21 +170,30 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 trans = yield self.aptd_client.install_file(filename,
                                                             defer=True)
             else:
-                trans = yield self.aptd_client.install_packages([pkgname],
-                                                            defer=True)
+                trans = yield self.aptd_client.commit_packages([pkgname] + addons_install, [], addons_remove, [], [])
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def install_multiple(self, pkgnames, appnames, iconnames, metadatas=None):
+    def install_multiple(self, pkgnames, appnames, iconnames, addons_install=None, addons_remove=None, metadatas=None):
         """ queue a list of packages for install  """
         if metadatas == None:
             metadatas = []
             for item in pkgnames:
                 metadatas.append(None)
         for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
-            yield self.install(pkgname, appname, iconname, metadata)
+            yield self.install(pkgname, appname, iconname, metadata=metadata)
+            
+    @inline_callbacks
+    def apply_changes(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
+        """ install and remove add-ons """
+        self.emit("transaction-started")
+        try:
+            trans = yield self.aptd_client.commit_packages(addons_install, [], addons_remove, [], [])
+            yield self._run_transaction(trans, pkgname, appname, iconname)
+        except Exception, error:
+            self._on_trans_error(error)
 
     @inline_callbacks
     def reload(self, metadata=None):
@@ -199,11 +209,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self._logger.debug("enable_component: %s" % component)
         try:
             yield self.aptd_client.enable_distro_component(component, defer=True)
-        except dbus.DBusException, err:
-            if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                self._logger.error("enable_component: '%s'" % err)
-                return
-            raise
+        except Exception, error:
+            self._on_trans_error(error, component)
+            return
         # now update the cache
         yield self.reload()
 
@@ -301,7 +309,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """
         #print trans, result, backend
         if result:
-            self.install(app.pkgname, app.appname, "", metadata)
+            self.install(app.pkgname, 
+                         app.appname, 
+                         iconname="", 
+                         metadata=metadata)
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None

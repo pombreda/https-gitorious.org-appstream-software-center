@@ -186,6 +186,14 @@ class SoftwarePane(gtk.VBox, BasePane):
             logging.debug("found app: %s at index %s" % (current_app.pkgname, index))
             self.app_view.set_cursor(index)
 
+    def set_section_color(self, color):
+        self.app_details.set_section_color(color)
+        return
+
+    def set_section_image(self, image_id, surf):
+        self.app_details.set_section_image(image_id, surf)
+        return
+
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         raise NotImplementedError

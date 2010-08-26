@@ -133,7 +133,8 @@ class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
         return gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, cell_area, expose_area, flags)
     def do_get_size(self, widget, cell_area):
         image = self.get_property("image")
-        self.set_property("pixbuf", image.get_current_pixbuf())
+        if image:
+            self.set_property("pixbuf", image.get_current_pixbuf())
         return gtk.CellRendererPixbuf.do_get_size(self, widget, cell_area)
 
 if __name__ == "__main__":
