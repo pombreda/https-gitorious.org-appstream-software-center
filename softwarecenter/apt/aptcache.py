@@ -336,11 +336,15 @@ class AptCache(gobject.GObject):
             if rdeps or self._is_language_pkg(addon):
                 LOG.debug("filter %s" % addon)
                 return False
+            if self._is_language_pkg(addon):
+                LOG.debug("filter %s" % addon)
+                return False
             # looks good
             return True
         #----------------------------------------------------------------
         # deb file, or pkg needing source, etc
-        if not pkgname in self._cache:
+        if (not pkgname in self._cache or
+            not self._cache[pkgname].candidate):
             return ([],[])
 
         # initial setup
@@ -399,9 +403,11 @@ class AptCache(gobject.GObject):
                 except KeyError:
                     addons.remove(addon_)
                     break
-            if (can_remove or not pkg.candidate or addons.count(addon) > 1 or
-                self._is_language_pkg(addon)):
+            if (can_remove or
+                addons.count(addon) > 1):
                 addons.remove(addon)
+                logging.warn("removing %s because of %s" % (
+                        addon, addon_))
                 continue
             i += 1
 
