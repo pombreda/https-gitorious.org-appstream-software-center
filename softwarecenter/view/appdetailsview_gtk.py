@@ -807,6 +807,7 @@ class AddonCheckButton(gtk.HBox):
         hbox.pack_start(image, False, False)
         # the display_name
         summary_label = gtk.Label(_("%(summary)s") % {'summary': self.app_details.display_name.capitalize()})
+        summary_label.set_line_wrap(True)
         hbox.pack_start(summary_label, False)
         # the package name
         self.pkgname_label = gtk.Label()
