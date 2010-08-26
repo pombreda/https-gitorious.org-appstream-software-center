@@ -898,11 +898,6 @@ class CarouselView(mkit.FramedSection):
         r,g,b = mkit.floats_from_gdkcolor(self.style.mid[0])
         rr = mkit.ShapeRoundedRectangle()
 
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=5.5)
-        cr.clip()
-        cr.set_source_rgba(r,g,b,0.5)
-        cr.mask(lin)
-
         cairo.Context.reset_clip(cr)
         cr.save()
         cr.translate(0.5,0.5)
