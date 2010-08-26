@@ -12,7 +12,13 @@ software-center (2.1.14) UNRELEASED; urgency=low
     - wire in icons for For Purchase, Independent and Other
       nodes in the left navigation pane (LP: #614213, LP: #614214,
       LP: #614215), many thanks to vish for pointers to suitable
-      icons in the theme! 
+      icons in the theme!
+  * merge lp:~mpt/software-center/featured-and-whats-new-background,
+    removes grey background from "Featured" and "What's New" boxes,
+    thanks mpt!
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - display currency in software item screen for items for
+      purchase (LP: #618821)
   
   [ Mohamed Amine IL Idrissi ]
   * Do not include download size of installed app.
