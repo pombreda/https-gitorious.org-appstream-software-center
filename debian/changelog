@@ -16,11 +16,14 @@ software-center (2.1.14) UNRELEASED; urgency=low
   * merge lp:~mpt/software-center/featured-and-whats-new-background,
     removes grey background from "Featured" and "What's New" boxes,
     thanks mpt!
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - display currency in software item screen for items for
+      purchase (LP: #618821)
   
   [ Mohamed Amine IL Idrissi ]
   * Do not include download size of installed app.
   
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Aug 2010 14:10:00 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Aug 2010 14:36:13 -0400
 
 software-center (2.1.13) maverick; urgency=low
 
