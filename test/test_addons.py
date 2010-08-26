@@ -26,6 +26,12 @@ class TestSCAddons(unittest.TestCase):
         self.assertEqual(res, (["kdebase-bin"], 
                                ["dwww", "deborphan", "menu"]))
 
+
+    def test_enhances(self):
+        res = self.cache.get_addons("gwenview")
+        self.assertEqual(res, ([], ["kipi-plugins"]))
+        
+
     def test_lonley_dependency(self):
         # gets additional recommends via lonely dependency
         # for arduino-core, there is a dependency on avrdude, nothing

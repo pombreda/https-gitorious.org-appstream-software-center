@@ -22,6 +22,7 @@ import apt
 import apt_pkg
 import datetime
 import locale
+import logging
 import gettext
 import gio
 import glib
@@ -33,6 +34,8 @@ import time
 
 from gettext import gettext as _
 from softwarecenter.enums import *
+
+LOG = logging.getLogger(__name__)
 
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
@@ -310,11 +313,11 @@ class AptCache(gobject.GObject):
         """ get the list of addons for the given pkgname
             :return: a tuple of pkgnames (recommends, suggests)
         """
-
         def _addons_filter(addon):
             """ helper for get_addons that filters out unneeded ones """
             # we don't know about this one
             if not addon in self._cache:
+                LOG.debug("filter %s" % addon)
                 return False
             addon_pkg = self._cache[addon]
             # we don't care for essential or important (or refrences
@@ -322,19 +325,20 @@ class AptCache(gobject.GObject):
             if (addon_pkg.essential or
                 addon_pkg._pkg.important or
                 addon == pkg.name):
-                addons.remove(addon)
+                LOG.debug("filter %s" % addon)
                 return False
             # we have it in our dependencies already
             if addon in deps:
+                LOG.debug("filter %s" % addon)
                 return False
             # its a language-pack, language-selector should deal with it
             rdeps = self.get_installed_rdepends(addon_pkg)
             if rdeps or self._is_language_pkg(addon):
+                LOG.debug("filter %s" % addon)
                 return False
-            # looks good so far
+            # looks good
             return True
-
-
+        #----------------------------------------------------------------
         # deb file, or pkg needing source, etc
         if not pkgname in self._cache:
             return ([],[])
@@ -344,8 +348,9 @@ class AptCache(gobject.GObject):
 
         # recommended addons
         addons_rec = self.get_recommends(pkg)
-        # suggested addons
+        # suggested addons and renhances
         addons_sug = self.get_suggests(pkg)
+        addons_sug += self.get_renhances(pkg)
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
