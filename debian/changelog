@@ -1,21 +1,26 @@
-software-center (2.1.13) UNRELEASED; urgency=low
+software-center (2.1.13) maverick; urgency=low
+
+  [ Kiwinote ]
+  * refactor addons code
+  * allow ourselves to install/remove via menu/list_view (LP: #624406)
+  * hide action_bar in featured pane
 
   [ Mohamed Amine IL Idrissi ]
-  * softwarecenter/view/appdetailsview_gtk.py: Done some tweaking and
-    polishing to the addons view
-  
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - minor ui changes to the addons view
+
   [ Michael Vogt ]
   * merged  lp:~mmcg069/software-center/whereitsit-tweaks to fix
     icon size in "where-is-it" code (many thanks)
-  * merged  lp:~mmcg069/software-center/linkbutton-tweaks to fix
-    overly big spacing (many thanks)
   * merged  lp:~mpt/software-center/fit-and-finish-2, fixes not
-    precise string (many thanks)
+    precise string and remove the yellow color from the search
+    widget (many thanks)
+  * merged  lp:~mmcg069/software-center/fit-and-finish-22, 
+    many thanks
+  * software-center:
+    - make --enable-buy the default
 
-  [ Kiwinote ]
-  * hide action_bar in featured pane
-
- -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Wed, 25 Aug 2010 22:32:07 +0000
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 15:58:05 +0200
 
 software-center (2.1.12.1) maverick; urgency=low
 

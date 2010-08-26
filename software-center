@@ -53,8 +53,8 @@ if __name__ == "__main__":
     parser.add_option("--enable-lp", action="store_true",
                       help="enable launchpad integration (for development use)", 
                       default=False)
-    parser.add_option("--enable-buy", action="store_true",
-                      help="enable support to buy softwareware",
+    parser.add_option("--disable-buy", action="store_true",
+                      help="disable support to buy softwareware",
                       default=False)
 
     (options, args) = parser.parse_args()

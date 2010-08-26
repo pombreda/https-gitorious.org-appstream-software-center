@@ -147,10 +147,7 @@ class PathBar(gtk.HBox):
         return
 
     def _part_leave_notify(self, part, event):
-        if part == self._active_part:
-            part.set_state(gtk.STATE_SELECTED)
-        else:
-            part.set_state(gtk.STATE_NORMAL)
+        part.set_state(gtk.STATE_NORMAL)
         self._part_queue_draw(part)
         return
 
@@ -190,7 +187,6 @@ class PathBar(gtk.HBox):
         # react to spacebar, enter, numpad-enter
         if event.keyval in (32, 65293, 65421):
             self.set_active(part)
-            part.set_state(gtk.STATE_SELECTED)
             self._part_queue_draw(part)
         return
 
@@ -464,7 +460,6 @@ class PathBar(gtk.HBox):
             self._active_part.set_state(gtk.STATE_NORMAL)
             self._part_queue_draw(self._active_part)
 
-        part.set_state(gtk.STATE_SELECTED)
         self._part_queue_draw(part)
         self._active_part = part
         if do_callback and part.callback:
