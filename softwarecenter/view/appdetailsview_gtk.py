@@ -1626,24 +1626,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _draw_icon_frame(self, cr):
         # draw small or no icon background
         a = self.app_info.image.allocation
-
         rr = mkit.ShapeRoundedRectangle()
 
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[0]))
-
         cr.save()
-
-        # line width should be 0.05em but for the sake of simplicity
-        # make it 0.25 pixels
-        cr.set_line_width(0.25)
+        cr.set_line_width(1)
         cr.translate(0.5, 0.5)
 
-        r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        #cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[0]))
+        # line width should be 0.05em but for the sake of simplicity
+        # make it 0.25 pixels
+
+        r,g,b = mkit.floats_from_gdkcolor(self.style.mid[self.state])
         rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-        cr.set_source_rgb(r, g, b)
-        cr.stroke_preserve()
-        cr.set_source_rgba(r, g, b, 0.33)   # for strong corners
+        cr.set_source_rgb(r, g, b)   # for strong corners
         cr.stroke()
 
         cr.restore()
