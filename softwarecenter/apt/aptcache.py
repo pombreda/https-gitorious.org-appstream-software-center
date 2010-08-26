@@ -377,12 +377,13 @@ class AptCache(gobject.GObject):
 
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))
+        # filter out stuff we don't want
         addons_rec = filter(_addons_filter, addons_rec)
         addons_sug = filter(_addons_filter, addons_sug)
-        addons = addons_rec + ["@@"] + addons_sug
         
         # we now remove the addons we don't want displayed
         i = 0
+        addons = addons_rec + ["@@"] + addons_sug
         while i < len(addons):
             addon = addons[i]
 
@@ -405,8 +406,8 @@ class AptCache(gobject.GObject):
                     break
             if can_remove:
                 addons.remove(addon)
-                logging.warn("removing %s because of %s" % (
-                        addon, addon_))
+                logging.warn("pkg %s removing %s because of %s" % (
+                        pkg.name, addon, addon_))
                 continue
             i += 1
 

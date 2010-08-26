@@ -42,7 +42,11 @@ class TestSCAddons(unittest.TestCase):
         res = self.cache.get_addons("arduino-core")
         self.assertEqual(res, ([], ["avrdude-doc"]))
 
+    def test_addons_removal_included_depends(self):
+        res = self.cache.get_addons("amule-gnome-support")
+        self.assertEqual(res, (['amule', 'amule-daemon'], []))
         
+
 
 if __name__ == "__main__":
     import logging
