@@ -1218,7 +1218,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.body.pack_start(self.action_bar, False)
 
         # the location of the app (if its installed)
-        self.desc_installed_where = gtk.HBox()
+        self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
         self.app_info.body.pack_start(self.desc_installed_where)
 
         # FramedSection which contains the app description
@@ -1404,19 +1404,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             where = searcher.get_main_menu_path(self.app_details.desktop_file)
             if not where:
                 return
-            label = gtk.Label(_("Find it in the menu at "))
+            label = gtk.Label(_("Find it in the menu at:"))
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
                 if self.icons.has_icon(iconname) and i > 0:
                     image = gtk.Image()
-                    image.set_from_icon_name(iconname, 32)
+                    image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
                     self.desc_installed_where.pack_start(image, False, False)
-                label_name = gtk.Label(item.get_name())
+
+                label_name = gtk.Label()
+                label_name.set_markup('<i>%s</i>' % gobject.markup_escape_text(item.get_name()))
                 self.desc_installed_where.pack_start(label_name, False, False)
                 if i+1 < len(where):
-                    # FIXME: we need a different arrow here for RTL languages
-                    right_arrow = gtk.Label(u" \u25B6 ")
+                    right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
                     self.desc_installed_where.pack_start(right_arrow, 
                                                          False, False)
             self.desc_installed_where.show_all()
