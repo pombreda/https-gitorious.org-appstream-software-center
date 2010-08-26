@@ -67,6 +67,11 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                gobject.TYPE_NONE, 
                                (gobject.TYPE_PYOBJECT, ),
                               ),
+                              
+        "application-selected" : (gobject.SIGNAL_RUN_LAST,
+                                  gobject.TYPE_NONE,
+                                  (gobject.TYPE_PYOBJECT, ),
+                                 ),
 
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE,
@@ -202,6 +207,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
         popcon = app[AppStore.COL_POPCON]
+        self.emit("application-selected", Application(appname, pkgname, "", popcon))
         self.emit("application-activated", Application(appname, pkgname, "", popcon))
         return False
 
