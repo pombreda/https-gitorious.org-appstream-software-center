@@ -342,12 +342,10 @@ class AptCache(gobject.GObject):
                     addons_sug += self.get_suggests(pkgdep)
                     addons_sug += self.get_renhances(pkgdep)
 
-        # merge the two lists (list(set()) removes the duplicates)
-        addons = list(set(addons_rec)) + ['@@']
-        for addon_sug in addons_sug:
-            if not addon_sug in addons:
-                addons.append(addon_sug)
-
+        # remove duplicates from suggests (sets are great!)
+        addons_sug = list(set(addons_sug)-set(addons_rec))
+        addons = addons_rec + ["@@"] + addons_sug
+        
         # we now remove the addons we don't want displayed
         i = 0
         while i < len(addons):
@@ -416,6 +414,8 @@ class AptCache(gobject.GObject):
                 addon_sug.append(addon)
 
         # and then we can finally send the list back :)
+        addons_rec.sort()
+        addons_sug.sort()
         return (addon_rec, addon_sug)
 
 if __name__ == "__main__":
