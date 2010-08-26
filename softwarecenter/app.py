@@ -359,16 +359,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.icons.append_search_path(icon_cache_dir)
 
         # run s-c-agent update
-        if options.enable_buy:
+        if options.disable_buy:
+            file_menu = self.builder.get_object("menu1")
+            file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+        else:
             sc_agent_update = os.path.join(
                 datadir, "update-software-center-agent")
             (pid, stdin, stdout, stderr) = glib.spawn_async(
                 [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
             glib.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
-        else:
-            file_menu = self.builder.get_object("menu1")
-            file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default
@@ -376,7 +377,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             file_menu = self.builder.get_object("menu1")
             file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
 
-        if not options.enable_buy and not options.enable_lp:
+        if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
 
     # callbacks
