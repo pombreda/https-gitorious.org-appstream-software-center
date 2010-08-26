@@ -47,8 +47,7 @@ class TestSCAddons(unittest.TestCase):
         self.assertEqual(res, (['amule', 'amule-daemon'], []))
         
 
-
 if __name__ == "__main__":
     import logging
-    #logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     unittest.main()

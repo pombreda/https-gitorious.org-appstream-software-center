@@ -352,9 +352,13 @@ class AptCache(gobject.GObject):
 
         # recommended addons
         addons_rec = self.get_recommends(pkg)
+        LOG.debug("recommends: %s" % addons_rec)
         # suggested addons and renhances
         addons_sug = self.get_suggests(pkg)
-        addons_sug += self.get_renhances(pkg)
+        LOG.debug("suggests: %s" % addons_sug)
+        renhances = self.get_renhances(pkg)
+        LOG.debug("renhances: %s" % renhances)
+        addons_sug += renhances
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
@@ -371,12 +375,22 @@ class AptCache(gobject.GObject):
                 pkgdep = self._cache[dep]
                 if len(self.get_rdepends(pkgdep)) == 1:
                     # pkg is the only known package that depends on pkgdep
-                    addons_rec += self.get_recommends(pkgdep)
-                    addons_sug += self.get_suggests(pkgdep)
-                    addons_sug += self.get_renhances(pkgdep)
+                    pkgdep_rec =  self.get_recommends(pkgdep)
+                    LOG.debug("recommends from lonley dependency %s: %s" % (
+                            pkgdep, pkgdep_rec))
+                    addons_rec += pkgdep_rec
+                    pkgdep_sug =  self.get_suggests(pkgdep)
+                    LOG.debug("suggests from lonley dependency %s: %s" % (
+                            pkgdep, pkgdep_sug))
+                    addons_sug += pkgdep_sug
+                    pkgdep_enh = self.get_renhances(pkgdep)
+                    LOG.debug("renhances from lonley dependency %s: %s" % (
+                            pkgdep, pkgdep_enh))
+                    addons_sug += pkgdep_enh
 
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))
+
         # filter out stuff we don't want
         addons_rec = filter(_addons_filter, addons_rec)
         addons_sug = filter(_addons_filter, addons_sug)
