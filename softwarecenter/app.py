@@ -216,6 +216,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_app_selected)
         self.available_pane.app_details.connect("application-request-action", 
                                                 self.on_application_request_action)
+        self.available_pane.app_details.connect("navigation-request", 
+                                                self.on_application_request_navigation,
+                                                self.available_pane)
         self.available_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
         self.available_pane.connect("app-list-changed", 
@@ -271,6 +274,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_app_selected)
         self.installed_pane.app_details.connect("application-request-action", 
                                                 self.on_application_request_action)
+        self.installed_pane.app_details.connect("navigation-request", 
+                                                self.on_application_request_navigation,
+                                                self.installed_pane)
         self.installed_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
         self.installed_pane.connect("app-list-changed", 
@@ -473,7 +479,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             channel_display_name, icon=None, query=query)
         self.view_switcher.select_channel_node(channel_display_name, False)
             
-    def on_application_request_action(self, widget, app, action):
+    def on_application_request_navigation(self, widget, pkgname, pane):
+        pane.show_app(Application("", pkgname))
+
+    def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
         """callback when an app action is requested from the appview,
            if action is "remove", must check if other dependencies have to be
            removed as well and show a dialog in that case
@@ -504,7 +513,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     self.backend.emit("transaction-stopped", app.pkgname)
                     return
             
-        # action_func is one of:  "install", "remove" or "upgrade"
+        # action_func is one of:  "install", "remove", "upgrade", or "apply_changes"
         action_func = getattr(self.backend, action)
         if action == 'install':
             # the package.deb path name is in the request
@@ -512,9 +521,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 debfile_name = app.request
             else:
                 debfile_name = None
-            action_func(app.pkgname, app.appname, appdetails.icon, debfile_name)
+            action_func(app.pkgname, app.appname, appdetails.icon, debfile_name, addons_install, addons_remove)
         elif callable(action_func):
-            action_func(app.pkgname, app.appname, appdetails.icon)
+            action_func(app.pkgname, app.appname, appdetails.icon, addons_install=addons_install, addons_remove=addons_remove)
         else:
             logging.error("Not a valid action in AptdaemonBackend: '%s'" % action)
             
