@@ -1156,7 +1156,10 @@ class AppView(gtk.TreeView):
                                   ),
         "application-request-action" : (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, str),
+                                        (gobject.TYPE_PYOBJECT,
+                                         gobject.TYPE_PYOBJECT, 
+                                         gobject.TYPE_PYOBJECT,
+                                         str),
                                        ),
     }
 
@@ -1533,7 +1536,7 @@ class AppView(gtk.TreeView):
                 perform_action = APP_ACTION_REMOVE
             else:
                 perform_action = APP_ACTION_INSTALL
-            self.emit("application-request-action", Application(appname, pkgname, request, popcon), perform_action)
+            self.emit("application-request-action", Application(appname, pkgname, request, popcon), [], [], perform_action)
         return False
 
     def _set_cursor(self, btn, cursor):
