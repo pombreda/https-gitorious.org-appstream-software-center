@@ -44,7 +44,8 @@ class TestSCAddons(unittest.TestCase):
 
     def test_addons_removal_included_depends(self):
         res = self.cache.get_addons("amule-gnome-support")
-        self.assertEqual(res, (['amule', 'amule-daemon'], []))
+        self.assertEqual(res, (['amule-daemon'], []))
+
         
 
 if __name__ == "__main__":

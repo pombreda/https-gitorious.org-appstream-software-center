@@ -324,6 +324,10 @@ class AptCache(gobject.GObject):
                 LOG.debug("circular %s" % addon)
                 return False
             
+            if addon in all_deps_if_installed:
+                LOG.debug("would get installed automatically %s" % addon)
+                return False
+
             addon_pkg = self._cache[addon]
             # we don't care for essential or important (or refrences
             # to ourself)
@@ -393,59 +397,19 @@ class AptCache(gobject.GObject):
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
 
+        # now get all_deps if the package would be installed
+        all_deps_if_installed = self.get_all_deps_installing(pkg)
+
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))
 
         # filter out stuff we don't want
         addons_rec = filter(_addons_filter, addons_rec)
         addons_sug = filter(_addons_filter, addons_sug)
+
         
-        # we now remove the addons we don't want displayed
-        i = 0
-        addons = addons_rec + ["@@"] + addons_sug
-        while i < len(addons):
-            addon = addons[i]
-
-            if addon == '@@':
-                i += 1
-                continue
-
-            can_remove = False
-            for addon_ in addons:
-                if addon_ == '@@':
-                    break
-                try:
-                    if (addon in self.get_provides(self._cache[addon_]) or
-                        addon in self.get_depends(self._cache[addon_]) or
-                        addon in self.get_recommends(self._cache[addon_])):
-                        can_remove = True
-                        break
-                except KeyError:
-                    addons.remove(addon_)
-                    break
-            if can_remove:
-                addons.remove(addon)
-                logging.warn("pkg %s removing %s because of %s" % (
-                        pkg.name, addon, addon_))
-                continue
-            i += 1
-
-        # we now reformat the addons
-        addon_rec = []
-        addon_sug = []
-        switch = 0
-        for addon in addons:
-            if addon == '@@':
-                switch = 1
-            elif switch == 0:
-                addon_rec.append(addon)
-            elif switch == 1:
-                addon_sug.append(addon)
-
-        # and then we can finally send the list back :)
-        addons_rec.sort()
-        addons_sug.sort()
-        return (addon_rec, addon_sug)
+        
+        return (addons_rec, addons_sug)
 
 if __name__ == "__main__":
     c = AptCache()
