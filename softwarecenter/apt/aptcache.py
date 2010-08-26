@@ -399,7 +399,12 @@ class AptCache(gobject.GObject):
                     addons_sug += pkgdep_enh
 
         # now get all_deps if the package would be installed
-        all_deps_if_installed = self.get_all_deps_installing(pkg)
+        try:
+            all_deps_if_installed = self.get_all_deps_installing(pkg)
+        except:
+            # if we have broken packages, then we return no addons
+            LOG.debug("broken packages encountered while getting deps for %s" % pkgname)
+            return ([],[])
 
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))

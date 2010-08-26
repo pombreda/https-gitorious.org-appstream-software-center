@@ -13,6 +13,10 @@ software-center (2.1.14) UNRELEASED; urgency=low
       nodes in the left navigation pane (LP: #614213, LP: #614214,
       LP: #614215), many thanks to vish for pointers to suitable
       icons in the theme! 
+
+  [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py:
+    - don't crash on encountering broken packages while getting deps
   
   [ Mohamed Amine IL Idrissi ]
   * Do not include download size of installed app.
