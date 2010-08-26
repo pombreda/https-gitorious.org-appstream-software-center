@@ -163,8 +163,8 @@ class PackageStatusBar(gtk.Alignment):
             self.button.set_sensitive(False)
             self.button.show()
             self.show()
-            state = app_details.pkg_state
         else:
+            state = app_details.pkg_state
             self.button.set_sensitive(True)
             self.button.show()
             self.show()
@@ -1465,15 +1465,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.show()
         self.addons_bar.button_apply.set_sensitive(True)
         self.addons_bar.button_cancel.set_sensitive(True)
-        state = self.action_bar.pkg_state
-        pkg_state = None
-        if state == PKG_STATE_INSTALLING or state == PKG_STATE_UPGRADING \
-        or self.addons_bar.applying:
-            self.addons_bar.show_all()
-            pkg_state = PKG_STATE_INSTALLED
-        else:
-            self.addons_bar.hide_all()
-            pkg_state = PKG_STATE_UNINSTALLED
+
+        self.addons_bar.configure()
 
         if self.addons_bar.applying:
             self.addons_bar.applying = False
