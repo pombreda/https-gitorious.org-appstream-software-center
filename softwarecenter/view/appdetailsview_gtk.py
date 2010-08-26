@@ -1405,7 +1405,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             where = searcher.get_main_menu_path(self.app_details.desktop_file)
             if not where:
                 return
-            label = gtk.Label(_("Find it in "))
+            label = gtk.Label(_("Find it in the menu: "))
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
@@ -1415,7 +1415,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()
-                label_name.set_markup('<i>%s</i>' % gobject.markup_escape_text(item.get_name()))
+                label_name.set_text(item.get_name())
                 self.desc_installed_where.pack_start(label_name, False, False)
                 if i+1 < len(where):
                     right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
@@ -1596,25 +1596,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _draw_icon_frame(self, cr):
         # draw small or no icon background
         a = self.app_info.image.allocation
-
         rr = mkit.ShapeRoundedRectangle()
 
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[0]))
-        cr.fill()
-
         cr.save()
-
-        # line width should be 0.05em but for the sake of simplicity
-        # make it 1 pixel
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
 
-        r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
+        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        #cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[0]))
+        # line width should be 0.05em but for the sake of simplicity
+        # make it 0.25 pixels
+
+        r,g,b = mkit.floats_from_gdkcolor(self.style.mid[self.state])
         rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-        cr.set_source_rgb(r, g, b)
-        cr.stroke_preserve()
-        cr.set_source_rgba(r, g, b, 0.33)   # for strong corners
+        cr.set_source_rgb(r, g, b)   # for strong corners
         cr.stroke()
 
         cr.restore()

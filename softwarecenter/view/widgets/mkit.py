@@ -571,10 +571,6 @@ class Style:
         curv = self["curvature"]
         aw = self["arrow-width"]
 
-        if CACHED_THEME_NAME == 'Ambiance-maverick-beta':
-            if state == gtk.STATE_PRELIGHT and part.is_active:
-                state = gtk.STATE_SELECTED
-
         cr.save()
         cr.rectangle(x, y, w+1, h)
 
@@ -582,12 +578,7 @@ class Style:
         cr.translate(x-sxO, y)
 
         # bg linear vertical gradient
-        if state != gtk.STATE_ACTIVE or not part.is_active:
-            color1, color2 = self.gradients[state]
-        elif state == gtk.STATE_ACTIVE and part.is_active:
-            color1, color2 = self.gradients[gtk.STATE_SELECTED]
-            #color1 = color2
-            color1 = color2.shade(1.1)
+        color1, color2 = self.gradients[state]
 
         shape.layout(cr, 1, 1, w, h-1, arrow_width=aw, radius=curv)
         lin = cairo.LinearGradient(0, 0, 0, h)
