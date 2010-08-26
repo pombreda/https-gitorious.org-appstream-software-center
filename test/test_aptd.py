@@ -41,6 +41,14 @@ class testAptdaemon(unittest.TestCase):
         keyserver = "keyserver.ubuntu.com"
         self.aptd.aptd_client.add_vendor_key_from_keyserver = self._monkey_patched_add_vendor_key_from_keyserver
         self.aptd.add_vendor_key_from_keyserver(keyid, keyserver)
+        
+    def test_apply_changes(self):
+        pkgname = "gimp"
+        appname = "The GIMP app"
+        iconname = "icon-gimp"
+        addons_install = ["gimp-data-extras", "gimp-gutenprint"]
+        addons_remove = ["gimp-plugin-registry"]
+        yield self.aptd.apply_changes(pkgname, appname ,iconname, addons_install, addons_remove)
 
 
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ from login import LoginBackend
 
 class LoginBackendDbusSSO(LoginBackend):
 
-    APPNAME = "ubuntu-software-center"
+    APPNAME = _("Ubuntu Software Center Store")
     
     def __init__(self, window_id=0):
         super(LoginBackendDbusSSO, self).__init__()
