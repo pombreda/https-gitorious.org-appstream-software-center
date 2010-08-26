@@ -112,6 +112,8 @@ class PackageStatusBar(gtk.Alignment):
     def _on_button_clicked(self, button):
         button.set_sensitive(False)
         state = self.pkg_state
+        self.view.addons_to_install = self.view.addons_manager.addons_to_install
+        self.view.addons_to_remove = self.view.addons_manager.addons_to_remove
         if state == PKG_STATE_INSTALLED:
             AppDetailsViewBase.remove(self.view)
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
@@ -161,8 +163,8 @@ class PackageStatusBar(gtk.Alignment):
             self.button.set_sensitive(False)
             self.button.show()
             self.show()
-            state = app_details.pkg_state
         else:
+            state = app_details.pkg_state
             self.button.set_sensitive(True)
             self.button.show()
             self.show()
@@ -971,8 +973,7 @@ class AddonsManager():
                 self.addons_to_remove.append(addon)
             if addon in self.addons_to_install:
                 self.addons_to_install.remove(addon)
-        if self.view.app_details.pkg_state == PKG_STATE_INSTALLED:
-            self.status_bar.configure()
+        self.status_bar.configure()
         gobject.idle_add(self.view.update_totalsize)
 
     def configure(self, pkgname):
@@ -980,12 +981,12 @@ class AddonsManager():
         self.addons_to_remove = []
         self.addons = self.view.cache.get_addons(pkgname)
         self.table.set_addons(self.addons)
+        self.status_bar.configure()
 
     def restore(self, *button):
         self.addons_to_install = []
         self.addons_to_remove = []
         self.configure(self.view.app.pkgname)
-        self.status_bar.configure()
         gobject.idle_add(self.view.update_totalsize)
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
@@ -1464,15 +1465,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.show()
         self.addons_bar.button_apply.set_sensitive(True)
         self.addons_bar.button_cancel.set_sensitive(True)
-        state = self.action_bar.pkg_state
-        pkg_state = None
-        if state == PKG_STATE_INSTALLING or state == PKG_STATE_UPGRADING \
-        or self.addons_bar.applying:
-            self.addons_bar.show_all()
-            pkg_state = PKG_STATE_INSTALLED
-        else:
-            self.addons_bar.hide_all()
-            pkg_state = PKG_STATE_UNINSTALLED
+
+        self.addons_bar.configure()
 
         if self.addons_bar.applying:
             self.addons_bar.applying = False
