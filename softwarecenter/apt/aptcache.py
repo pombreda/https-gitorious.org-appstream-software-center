@@ -315,19 +315,20 @@ class AptCache(gobject.GObject):
         """
         def _addons_filter(addon):
             """ helper for get_addons that filters out unneeded ones """
-            # we don't know about this one
+            # we don't know about this one (prefectly legal for suggests)
             if not addon in self._cache:
                 LOG.debug("not in cache %s" % addon)
                 return False
-
+            # can happen via "lonley" depends
             if addon == pkg.name:
                 LOG.debug("circular %s" % addon)
                 return False
-            
+            # this addon would get installed anyway (e.g. via indirect
+            # dependency) so it would be misleading to show it
             if addon in all_deps_if_installed:
                 LOG.debug("would get installed automatically %s" % addon)
                 return False
-
+            # get the pkg
             addon_pkg = self._cache[addon]
             # we don't care for essential or important (or refrences
             # to ourself)
