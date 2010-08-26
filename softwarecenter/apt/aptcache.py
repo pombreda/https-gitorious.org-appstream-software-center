@@ -307,6 +307,9 @@ class AptCache(gobject.GObject):
 
     # determine the addons for a given package
     def get_addons(self, pkgname):
+        """ get the list of addons for the given pkgname
+            :return: a tuple of pkgnames (recommends, suggests)
+        """
 
         # deb file, or pkg needing source, etc
         if not pkgname in self._cache:
@@ -314,19 +317,21 @@ class AptCache(gobject.GObject):
 
         # initial setup
         pkg = self._cache[pkgname]
-        addons_rec = [] # recommended addons
-        addons_sug = [] # suggested addons
 
-        # get addons
-        recommends = self.get_recommends(pkg)
-        if len(recommends) == 1: # why only one?
-            addons_rec += recommends
-        suggests = self.get_suggests(pkg)
-        if len(suggests) == 1:
-            addons_sug += suggests
-        addons_sug += self.get_renhances(pkg)
+        # recommended addons
+        addons_rec = self.get_recommends(pkg)
+        # suggested addons
+        addons_sug = self.get_suggests(pkg)
 
-        # get even more addons
+        # get more addons, the idea is that if a package foo-data
+        # just depends on foo we want to get the info about
+        # "recommends, suggests, enhances" for foo-data as well
+        # 
+        # FIXME: find a good package where this is actually the case and
+        #        replace the existing test 
+        #        (arduino-core -> avrdude -> avrdude-doc) with that
+        # FIXME2: if it turns out we don't have good/better examples,
+        #         kill it
         deps = self.get_depends(pkg)
         for dep in deps:
             if dep in self._cache:
@@ -352,7 +357,7 @@ class AptCache(gobject.GObject):
                 i += 1
                 continue
 
-            #
+            # we don't know about this one
             if not addon in self._cache:
                 addons.remove(addon)
                 continue
@@ -360,17 +365,20 @@ class AptCache(gobject.GObject):
             # initial setup
             addon_pkg = self._cache[addon]
 
-            #
-            if addon_pkg.essential or addon_pkg._pkg.important or addon == pkg.name:
+            # we don't care for essential or important (or refrences
+            # to ourself)
+            if (addon_pkg.essential or
+                addon_pkg._pkg.important or
+                addon == pkg.name):
                 addons.remove(addon)
                 continue
 
-            #
+            # we have it in our dependencies already
             if addon in deps:
                 addons.remove(addon)
                 continue
 
-            #
+            # its a language-pack, language-selector should deal with it
             rdeps = self.get_installed_rdepends(addon_pkg)
             if rdeps or self._is_language_pkg(addon):
                 addons.remove(addon)
@@ -381,16 +389,16 @@ class AptCache(gobject.GObject):
                 if addon_ == '@@':
                     break
                 try:
-                    if addon in self.get_provides(self._cache[addon_]) \
-                    or addon in self.get_depends(self._cache[addon_]) \
-                    or addon in self.get_recommends(self._cache[addon_]):
+                    if (addon in self.get_provides(self._cache[addon_]) or
+                        addon in self.get_depends(self._cache[addon_]) or
+                        addon in self.get_recommends(self._cache[addon_])):
                         can_remove = True
                         break
                 except KeyError:
                     addons.remove(addon_)
                     break
-            if can_remove or not pkg.candidate or addons.count(addon) > 1 \
-            or self._is_language_pkg(addon):
+            if (can_remove or not pkg.candidate or addons.count(addon) > 1 or
+                self._is_language_pkg(addon)):
                 addons.remove(addon)
                 continue
             i += 1
