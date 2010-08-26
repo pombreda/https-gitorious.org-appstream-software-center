@@ -216,7 +216,7 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
         elif state == APP_ACTION_APPLY:
-            self.set_label(_('Changing Add-ons\u2026'))
+            self.set_label(_(u'Changing Add-ons\u2026'))
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
