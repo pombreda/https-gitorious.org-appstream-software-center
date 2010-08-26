@@ -71,6 +71,37 @@ class Debian(Distro):
                 depends = None
                 break
         return (primary, button_text)
+    
+    def get_install_warning_text(self, cache, pkg, appname):
+        primary = _("To install %s, these items must be removed:" % appname)
+        button_text = _("Install Anyway")
+
+        depends = []
+        deps_remove = self.cache.get_all_deps_removing(pkg)
+        for dep in deps_remove:
+            if self.cache[dep].installed != None:
+                depends.append(dep)
+
+        # alter it if a meta-package is affected
+        for m in depends:
+            if cache[m].section == "metapackages":
+                primary = _("If you install %s, future updates will not "
+                              "include new items in <b>%s</b> set. "
+                              "Are you sure you want to continue?") % (appname, cache[m].installed.summary)
+                button_text = _("Install Anyway")
+                depends = []
+                break
+
+        # alter it if an important meta-package is affected
+        for m in self.IMPORTANT_METAPACKAGES:
+            if m in depends:
+                primary = _("Installing %s may cause core applications to "
+                            "be removed. "
+                            "Are you sure you want to continue?" % appname)
+                button_text = _("Install Anyway")
+                depends = None
+                break
+        return (primary, button_text)
 
     def get_distro_codename(self):
         if not hasattr(self ,"codename"):
