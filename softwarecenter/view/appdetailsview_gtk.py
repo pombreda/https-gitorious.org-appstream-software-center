@@ -805,6 +805,7 @@ class Addon(gtk.HBox):
 
         # name
         self.title = gtk.Label(self.app_details.display_name.capitalize())
+        self.title.set_line_wrap(True)
         hbox.pack_start(self.title, False)
         self.checkbutton.add(hbox)
 
@@ -1709,7 +1710,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 pkgs_to_remove.remove(pkg)
             
         for pkg in pkgs_to_install:
-            if not pkg_downloaded(pkg):
+            if not pkg_downloaded(pkg) and pkg.installed_size == 0:
                 total_download_size += pkg.size
             total_install_size += pkg.installed_size
         for pkg in pkgs_to_remove:

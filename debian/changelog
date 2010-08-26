@@ -1,5 +1,6 @@
 software-center (2.1.14) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarcenter/app.py:
     - fix incorrect state of install/remove menu items (LP: #624716)
   * softwarecenter/view/availablepane.py,
@@ -12,7 +13,10 @@ software-center (2.1.14) UNRELEASED; urgency=low
       nodes in the left navigation pane (LP: #614213, LP: #614214,
       LP: #614215), many thanks to vish for pointers to suitable
       icons in the theme! 
-
+  
+  [ Mohamed Amine IL Idrissi ]
+  * Do not include download size of installed app.
+  
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Aug 2010 12:48:03 -0400
 
 software-center (2.1.13) maverick; urgency=low
