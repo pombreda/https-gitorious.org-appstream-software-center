@@ -1411,7 +1411,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             where = searcher.get_main_menu_path(self.app_details.desktop_file)
             if not where:
                 return
-            label = gtk.Label(_("Find it in "))
+            label = gtk.Label(_("Find it in the menu: "))
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
@@ -1421,7 +1421,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()
-                label_name.set_markup('<i>%s</i>' % gobject.markup_escape_text(item.get_name()))
+                label_name.set_markup(
+                    gobject.markup_escape_text(item.get_name()))
                 self.desc_installed_where.pack_start(label_name, False, False)
                 if i+1 < len(where):
                     right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
