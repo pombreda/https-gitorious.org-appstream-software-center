@@ -6,9 +6,11 @@ software-center (2.1.13) UNRELEASED; urgency=low
   
   [ Michael Vogt ]
   * merged  lp:~mmcg069/software-center/whereitsit-tweaks to fix
-    icon size in "where-is-it" code
+    icon size in "where-is-it" code (many thanks)
   * merged  lp:~mmcg069/software-center/linkbutton-tweaks to fix
-    overly big spacing
+    overly big spacing (many thanks)
+  * merged  lp:~mpt/software-center/fit-and-finish-2, fixes not
+    precise string (many thanks)
 
  -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Wed, 25 Aug 2010 22:32:07 +0000
 
