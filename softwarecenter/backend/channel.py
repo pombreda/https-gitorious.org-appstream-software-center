@@ -381,11 +381,13 @@ class SoftwareChannel(object):
         elif channel_name == self.distro.get_distro_channel_name():
             channel_icon = self._get_icon("distributor-logo")
         elif channel_name == "Application Review Board PPA":
-            channel_icon = self._get_icon("unknown-channel")
+            channel_icon = self._get_icon("system-users")
+        elif channel_name == "For Purchase":
+            channel_icon = self._get_icon("emblem-money")
         elif channel_origin and channel_origin.startswith("LP-PPA"):
             channel_icon = self._get_icon("ppa")
         elif channel_name == "notdownloadable":
-            channel_icon = self._get_icon("unknown-channel")
+            channel_icon = self._get_icon("application-default-icon")
         # TODO: add check for generic repository source (e.g., Google, Inc.)
         #       self._get_icon("generic-repository")
         else:
