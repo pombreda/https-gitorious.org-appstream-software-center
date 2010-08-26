@@ -19,8 +19,23 @@ class TestSCAddons(unittest.TestCase):
         self.assertEqual(res, ([], ["p7zip-rar"]))
         # apt has no relevant ones
         res = self.cache.get_addons("apt")
-        self.assertEqual(res, ([], []))
-        self.assertTrue(res, ([], []))
+        self.assertEqual(res, ([], ["wajig", "apt-doc"]))
+        # synaptic
+        res = self.cache.get_addons("synaptic")
+        # FIXME: kdebase?!?!?! that is rather unneeded
+        self.assertEqual(res, (["kdebase-bin"], 
+                               ["dwww", "menu", "deborphan"]))
+
+    def test_lonley_dependency(self):
+        # gets additional recommends via lonely dependency
+        # for arduino-core, there is a dependency on avrdude, nothing
+        # else depends on avrdude other than arduino-core, so
+        # we want to get the recommends/suggests/enhances for
+        # this package too
+        # FIXME: why only for "lonley" dependencies and not all?
+        res = self.cache.get_addons("arduino-core")
+        self.assertEqual(res, ([], ["avrdude-doc"]))
+
         
 
 if __name__ == "__main__":

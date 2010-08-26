@@ -317,19 +317,21 @@ class AptCache(gobject.GObject):
 
         # initial setup
         pkg = self._cache[pkgname]
-        addons_rec = [] # recommended addons
-        addons_sug = [] # suggested addons
 
-        # get addons
-        recommends = self.get_recommends(pkg)
-        if len(recommends) == 1: # why only one?
-            addons_rec += recommends
-        suggests = self.get_suggests(pkg)
-        if len(suggests) == 1:
-            addons_sug += suggests
-        addons_sug += self.get_renhances(pkg)
+        # recommended addons
+        addons_rec = self.get_recommends(pkg)
+        # suggested addons
+        addons_sug = self.get_suggests(pkg)
 
-        # get even more addons
+        # get more addons, the idea is that if a package foo-data
+        # just depends on foo we want to get the info about
+        # "recommends, suggests, enhances" for foo-data as well
+        # 
+        # FIXME: find a good package where this is actually the case and
+        #        replace the existing test 
+        #        (arduino-core -> avrdude -> avrdude-doc) with that
+        # FIXME2: if it turns out we don't have good/better examples,
+        #         kill it
         deps = self.get_depends(pkg)
         for dep in deps:
             if dep in self._cache:
