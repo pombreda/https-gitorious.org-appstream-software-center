@@ -1631,13 +1631,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[0]))
-        cr.fill()
 
         cr.save()
 
         # line width should be 0.05em but for the sake of simplicity
-        # make it 1 pixel
-        cr.set_line_width(1)
+        # make it 0.25 pixels
+        cr.set_line_width(0.25)
         cr.translate(0.5, 0.5)
 
         r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
