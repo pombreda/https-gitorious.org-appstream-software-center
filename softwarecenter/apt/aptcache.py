@@ -355,7 +355,7 @@ class AptCache(gobject.GObject):
                 i += 1
                 continue
 
-            #
+            # we don't know about this one
             if not addon in self._cache:
                 addons.remove(addon)
                 continue
@@ -363,17 +363,20 @@ class AptCache(gobject.GObject):
             # initial setup
             addon_pkg = self._cache[addon]
 
-            #
-            if addon_pkg.essential or addon_pkg._pkg.important or addon == pkg.name:
+            # we don't care for essential or important (or refrences
+            # to ourself)
+            if (addon_pkg.essential or
+                addon_pkg._pkg.important or
+                addon == pkg.name):
                 addons.remove(addon)
                 continue
 
-            #
+            # we have it in our dependencies already
             if addon in deps:
                 addons.remove(addon)
                 continue
 
-            #
+            # its a language-pack, language-selector should deal with it
             rdeps = self.get_installed_rdepends(addon_pkg)
             if rdeps or self._is_language_pkg(addon):
                 addons.remove(addon)
@@ -384,16 +387,16 @@ class AptCache(gobject.GObject):
                 if addon_ == '@@':
                     break
                 try:
-                    if addon in self.get_provides(self._cache[addon_]) \
-                    or addon in self.get_depends(self._cache[addon_]) \
-                    or addon in self.get_recommends(self._cache[addon_]):
+                    if (addon in self.get_provides(self._cache[addon_]) or
+                        addon in self.get_depends(self._cache[addon_]) or
+                        addon in self.get_recommends(self._cache[addon_])):
                         can_remove = True
                         break
                 except KeyError:
                     addons.remove(addon_)
                     break
-            if can_remove or not pkg.candidate or addons.count(addon) > 1 \
-            or self._is_language_pkg(addon):
+            if (can_remove or not pkg.candidate or addons.count(addon) > 1 or
+                self._is_language_pkg(addon)):
                 addons.remove(addon)
                 continue
             i += 1
