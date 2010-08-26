@@ -556,11 +556,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, APP_ACTION_INSTALL)
+        self.on_application_request_action(self, app, [], [], APP_ACTION_INSTALL)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, APP_ACTION_REMOVE)
+        self.on_application_request_action(self, app, [], [], APP_ACTION_REMOVE)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()

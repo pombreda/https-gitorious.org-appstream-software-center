@@ -2,6 +2,7 @@ software-center (2.1.13) UNRELEASED; urgency=low
 
   [ Kiwinote ]
   * refactor addons code
+  * allow ourselves to install/remove via menu/list_view (LP: #624406)
 
   [ Mohamed Amine IL Idrissi ]
   * softwarecenter/view/appdetailsview_gtk.py:

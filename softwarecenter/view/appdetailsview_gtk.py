@@ -1200,7 +1200,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # framed section that contains all app details
         self.app_info = mkit.FramedSection()
         self.app_info.image.set_size_request(84, 84)
-        self.app_info.set_spacing(mkit.SPACING_XLARGE)
+        self.app_info.set_spacing(mkit.SPACING_LARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
