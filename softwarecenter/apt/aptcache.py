@@ -403,8 +403,7 @@ class AptCache(gobject.GObject):
                 except KeyError:
                     addons.remove(addon_)
                     break
-            if (can_remove or
-                addons.count(addon) > 1):
+            if can_remove:
                 addons.remove(addon)
                 logging.warn("removing %s because of %s" % (
                         addon, addon_))
