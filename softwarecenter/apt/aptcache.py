@@ -317,27 +317,32 @@ class AptCache(gobject.GObject):
             """ helper for get_addons that filters out unneeded ones """
             # we don't know about this one
             if not addon in self._cache:
-                LOG.debug("filter %s" % addon)
+                LOG.debug("not in cache %s" % addon)
                 return False
+
+            if addon == pkg.name:
+                LOG.debug("circular %s" % addon)
+                return False
+            
             addon_pkg = self._cache[addon]
             # we don't care for essential or important (or refrences
             # to ourself)
             if (addon_pkg.essential or
-                addon_pkg._pkg.important or
-                addon == pkg.name):
-                LOG.debug("filter %s" % addon)
+                addon_pkg._pkg.important):
+                LOG.debug("essential or important %s" % addon)
                 return False
             # we have it in our dependencies already
             if addon in deps:
-                LOG.debug("filter %s" % addon)
+                LOG.debug("already a dependency %s" % addon)
                 return False
             # its a language-pack, language-selector should deal with it
-            rdeps = self.get_installed_rdepends(addon_pkg)
-            if rdeps or self._is_language_pkg(addon):
-                LOG.debug("filter %s" % addon)
-                return False
             if self._is_language_pkg(addon):
-                LOG.debug("filter %s" % addon)
+                LOG.debug("part of language pkg rdepends %s" % addon)
+                return False
+            # something on the system depends on it
+            rdeps = self.get_installed_rdepends(addon_pkg)
+            if rdeps:
+                LOG.debug("already has a installed rdepends %s" % addon)
                 return False
             # looks good
             return True
