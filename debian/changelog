@@ -1,3 +1,14 @@
+software-center (2.1.13) UNRELEASED; urgency=low
+
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/view/appdetailsview_gtk.py: Done some tweaking and
+    polishing to the addons view
+  
+  [ Michael Vogt ]
+  * merged  lp:~mmcg069/software-center/whereitsit-tweaks
+
+ -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Wed, 25 Aug 2010 22:32:07 +0000
+
 software-center (2.1.12.1) maverick; urgency=low
 
   * fix plugin loading
