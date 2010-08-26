@@ -19,12 +19,18 @@ class TestSCAddons(unittest.TestCase):
         self.assertEqual(res, ([], ["p7zip-rar"]))
         # apt has no relevant ones
         res = self.cache.get_addons("apt")
-        self.assertEqual(res, ([], ["wajig", "apt-doc"]))
+        self.assertEqual(res, ([], ["apt-doc", "wajig"]))
         # synaptic
         res = self.cache.get_addons("synaptic")
         # FIXME: kdebase?!?!?! that is rather unneeded
         self.assertEqual(res, (["kdebase-bin"], 
-                               ["dwww", "menu", "deborphan"]))
+                               ["dwww", "deborphan", "menu"]))
+
+
+    def test_enhances(self):
+        res = self.cache.get_addons("gwenview")
+        self.assertEqual(res, ([], ["kipi-plugins"]))
+        
 
     def test_lonley_dependency(self):
         # gets additional recommends via lonely dependency
@@ -40,5 +46,5 @@ class TestSCAddons(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

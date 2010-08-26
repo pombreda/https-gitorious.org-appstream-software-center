@@ -22,6 +22,7 @@ import apt
 import apt_pkg
 import datetime
 import locale
+import logging
 import gettext
 import gio
 import glib
@@ -33,6 +34,8 @@ import time
 
 from gettext import gettext as _
 from softwarecenter.enums import *
+
+LOG = logging.getLogger(__name__)
 
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
@@ -310,9 +313,38 @@ class AptCache(gobject.GObject):
         """ get the list of addons for the given pkgname
             :return: a tuple of pkgnames (recommends, suggests)
         """
-
+        def _addons_filter(addon):
+            """ helper for get_addons that filters out unneeded ones """
+            # we don't know about this one
+            if not addon in self._cache:
+                LOG.debug("filter %s" % addon)
+                return False
+            addon_pkg = self._cache[addon]
+            # we don't care for essential or important (or refrences
+            # to ourself)
+            if (addon_pkg.essential or
+                addon_pkg._pkg.important or
+                addon == pkg.name):
+                LOG.debug("filter %s" % addon)
+                return False
+            # we have it in our dependencies already
+            if addon in deps:
+                LOG.debug("filter %s" % addon)
+                return False
+            # its a language-pack, language-selector should deal with it
+            rdeps = self.get_installed_rdepends(addon_pkg)
+            if rdeps or self._is_language_pkg(addon):
+                LOG.debug("filter %s" % addon)
+                return False
+            if self._is_language_pkg(addon):
+                LOG.debug("filter %s" % addon)
+                return False
+            # looks good
+            return True
+        #----------------------------------------------------------------
         # deb file, or pkg needing source, etc
-        if not pkgname in self._cache:
+        if (not pkgname in self._cache or
+            not self._cache[pkgname].candidate):
             return ([],[])
 
         # initial setup
@@ -320,8 +352,9 @@ class AptCache(gobject.GObject):
 
         # recommended addons
         addons_rec = self.get_recommends(pkg)
-        # suggested addons
+        # suggested addons and renhances
         addons_sug = self.get_suggests(pkg)
+        addons_sug += self.get_renhances(pkg)
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
@@ -342,12 +375,12 @@ class AptCache(gobject.GObject):
                     addons_sug += self.get_suggests(pkgdep)
                     addons_sug += self.get_renhances(pkgdep)
 
-        # merge the two lists (list(set()) removes the duplicates)
-        addons = list(set(addons_rec)) + ['@@']
-        for addon_sug in addons_sug:
-            if not addon_sug in addons:
-                addons.append(addon_sug)
-
+        # remove duplicates from suggests (sets are great!)
+        addons_sug = list(set(addons_sug)-set(addons_rec))
+        addons_rec = filter(_addons_filter, addons_rec)
+        addons_sug = filter(_addons_filter, addons_sug)
+        addons = addons_rec + ["@@"] + addons_sug
+        
         # we now remove the addons we don't want displayed
         i = 0
         while i < len(addons):
@@ -355,33 +388,6 @@ class AptCache(gobject.GObject):
 
             if addon == '@@':
                 i += 1
-                continue
-
-            # we don't know about this one
-            if not addon in self._cache:
-                addons.remove(addon)
-                continue
-
-            # initial setup
-            addon_pkg = self._cache[addon]
-
-            # we don't care for essential or important (or refrences
-            # to ourself)
-            if (addon_pkg.essential or
-                addon_pkg._pkg.important or
-                addon == pkg.name):
-                addons.remove(addon)
-                continue
-
-            # we have it in our dependencies already
-            if addon in deps:
-                addons.remove(addon)
-                continue
-
-            # its a language-pack, language-selector should deal with it
-            rdeps = self.get_installed_rdepends(addon_pkg)
-            if rdeps or self._is_language_pkg(addon):
-                addons.remove(addon)
                 continue
 
             can_remove = False
@@ -397,9 +403,11 @@ class AptCache(gobject.GObject):
                 except KeyError:
                     addons.remove(addon_)
                     break
-            if (can_remove or not pkg.candidate or addons.count(addon) > 1 or
-                self._is_language_pkg(addon)):
+            if (can_remove or
+                addons.count(addon) > 1):
                 addons.remove(addon)
+                logging.warn("removing %s because of %s" % (
+                        addon, addon_))
                 continue
             i += 1
 
@@ -416,6 +424,8 @@ class AptCache(gobject.GObject):
                 addon_sug.append(addon)
 
         # and then we can finally send the list back :)
+        addons_rec.sort()
+        addons_sug.sort()
         return (addon_rec, addon_sug)
 
 if __name__ == "__main__":
