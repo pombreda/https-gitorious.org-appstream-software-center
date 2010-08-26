@@ -1,7 +1,6 @@
 # coding: utf-8
 #
-# SearchEntry - An enhanced search entry with alternating background colouring 
-#               and timeout support
+# SearchEntry - An enhanced search entry with timeout
 #
 # Copyright (C) 2007 Sebastian Heinlein
 #               2007-2009 Canonical Ltd.
@@ -38,8 +37,7 @@ class SearchEntry(gtk.Entry):
 
     def __init__(self, icon_theme=None):
         """
-        Creates an enhanced IconEntry that supports a time out when typing
-        and uses a different background colour when the search is active
+        Creates an enhanced IconEntry that triggers a timeout when typing
         """
         gtk.Entry.__init__(self)
         if not icon_theme:
@@ -51,12 +49,6 @@ class SearchEntry(gtk.Entry):
         self.set_icon_from_stock(gtk.ENTRY_ICON_PRIMARY, gtk.STOCK_FIND)
         self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, None)
 
-        # Do not draw a yellow bg if an a11y theme is used
-        settings = gtk.settings_get_default()
-        theme = settings.get_property("gtk-theme-name")
-        self._a11y = (theme.startswith("HighContrast") or
-                      theme.startswith("LowContrast"))
-        
         # set sensible atk name
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Search"))
@@ -129,24 +121,12 @@ class SearchEntry(gtk.Entry):
 
     def _check_style(self):
         """
-        Use a different background colour if a search is active
+        Show the clear icon whenever the field is not empty
         """
-        # show/hide icon
         if self.get_text() != "":
             self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, gtk.STOCK_CLEAR)
         else:
             self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, None)
-        # Based on the Rhythmbox code
-        yellowish = gtk.gdk.Color(63479, 63479, 48830)
-        black = gtk.gdk.Color(0, 0, 0)
-        if self._a11y == True:
-            return
-        if self.get_text() == "":
-            self.modify_base(gtk.STATE_NORMAL, None)
-            self.modify_text(gtk.STATE_NORMAL, None)
-        else:
-            self.modify_base(gtk.STATE_NORMAL, yellowish)
-            self.modify_text(gtk.STATE_NORMAL, black)
 
 def on_entry_changed(self, terms):
     print terms

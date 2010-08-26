@@ -216,9 +216,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_app_selected)
         self.available_pane.app_details.connect("application-request-action", 
                                                 self.on_application_request_action)
-        self.available_pane.app_details.connect("navigation-request", 
-                                                self.on_application_request_navigation,
-                                                self.available_pane)
         self.available_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
         self.available_pane.connect("app-list-changed", 
@@ -274,9 +271,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                              self.on_app_selected)
         self.installed_pane.app_details.connect("application-request-action", 
                                                 self.on_application_request_action)
-        self.installed_pane.app_details.connect("navigation-request", 
-                                                self.on_application_request_navigation,
-                                                self.installed_pane)
         self.installed_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
         self.installed_pane.connect("app-list-changed", 
@@ -365,16 +359,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.icons.append_search_path(icon_cache_dir)
 
         # run s-c-agent update
-        if options.enable_buy:
+        if options.disable_buy:
+            file_menu = self.builder.get_object("menu1")
+            file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+        else:
             sc_agent_update = os.path.join(
                 datadir, "update-software-center-agent")
             (pid, stdin, stdout, stderr) = glib.spawn_async(
                 [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
             glib.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
-        else:
-            file_menu = self.builder.get_object("menu1")
-            file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+
 
         # FIXME:  REMOVE THIS once launchpad integration is enabled
         #         by default
@@ -382,7 +377,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             file_menu = self.builder.get_object("menu1")
             file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
 
-        if not options.enable_buy and not options.enable_lp:
+        if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
 
     # callbacks
@@ -479,9 +474,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             channel_display_name, icon=None, query=query)
         self.view_switcher.select_channel_node(channel_display_name, False)
             
-    def on_application_request_navigation(self, widget, pkgname, pane):
-        pane.show_app(Application("", pkgname))
-
     def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
         """callback when an app action is requested from the appview,
            if action is "remove", must check if other dependencies have to be
@@ -565,11 +557,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, APP_ACTION_INSTALL)
+        self.on_application_request_action(self, app, [], [], APP_ACTION_INSTALL)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, APP_ACTION_REMOVE)
+        self.on_application_request_action(self, app, [], [], APP_ACTION_REMOVE)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()
@@ -773,9 +765,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         #         view button) are managed centrally:  button text, button sensitivity,
         #         and callback method
         # FIXME:  Add buy support here by implementing the above
-        if self.active_pane.app_details.appdetails:
-            pkg_state = self.active_pane.app_details.appdetails.pkg_state
-            error = self.active_pane.app_details.appdetails.error
+        appdetails = app.get_details(self.db)
+        if appdetails:
+            pkg_state = appdetails.pkg_state
+            error = appdetails.error
         if self.active_pane.app_view.is_action_in_progress_for_selected_app():
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)

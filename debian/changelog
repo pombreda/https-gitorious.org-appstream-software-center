@@ -1,3 +1,62 @@
+software-center (2.1.14.1) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * make the currency string not translatable, since it will not
+    vary by locale currently (the agent always uses US$)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 21:12:46 +0200
+
+software-center (2.1.14) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarcenter/app.py:
+    - fix incorrect state of install/remove menu items (LP: #624716)
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview_gtk.py:
+    - activate the appropriate install/remove menu item when
+      selecting an app directly from in the Featured or What's
+      New panels (LP: #624732) 
+  * softwarecenter/backend/channel.py:
+    - wire in icons for For Purchase, Independent and Other
+      nodes in the left navigation pane (LP: #614213, LP: #614214,
+      LP: #614215), many thanks to vish for pointers to suitable
+      icons in the theme!
+  * merge lp:~mpt/software-center/featured-and-whats-new-background,
+    removes grey background from "Featured" and "What's New" boxes,
+    thanks mpt!
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - display currency in software item screen for items for
+      purchase (LP: #618821)
+  
+  [ Mohamed Amine IL Idrissi ]
+  * Do not include download size of installed app.
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 20:52:44 +0200
+
+software-center (2.1.13) maverick; urgency=low
+
+  [ Kiwinote ]
+  * refactor addons code
+  * allow ourselves to install/remove via menu/list_view (LP: #624406)
+  * hide action_bar in featured pane
+
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - minor ui changes to the addons view
+
+  [ Michael Vogt ]
+  * merged  lp:~mmcg069/software-center/whereitsit-tweaks to fix
+    icon size in "where-is-it" code (many thanks)
+  * merged  lp:~mpt/software-center/fit-and-finish-2, fixes not
+    precise string and remove the yellow color from the search
+    widget (many thanks)
+  * merged  lp:~mmcg069/software-center/fit-and-finish-22, 
+    many thanks
+  * software-center:
+    - make --enable-buy the default
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 15:58:05 +0200
+
 software-center (2.1.12.1) maverick; urgency=low
 
   * fix plugin loading
