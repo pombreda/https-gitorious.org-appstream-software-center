@@ -130,7 +130,7 @@ class PackageStatusBar(gtk.Alignment):
         return
 
     def set_label(self, label):
-        m = '<span color="%s"><big>%s</big></span>' % (COLOR_BLACK, label)
+        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
         self.label.set_markup(m)
         return
 
@@ -1404,7 +1404,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             where = searcher.get_main_menu_path(self.app_details.desktop_file)
             if not where:
                 return
-            label = gtk.Label(_("Find it in the menu at:"))
+            label = gtk.Label(_("Find it in "))
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
