@@ -311,6 +311,30 @@ class AptCache(gobject.GObject):
             :return: a tuple of pkgnames (recommends, suggests)
         """
 
+        def _addons_filter(addon):
+            """ helper for get_addons that filters out unneeded ones """
+            # we don't know about this one
+            if not addon in self._cache:
+                return False
+            addon_pkg = self._cache[addon]
+            # we don't care for essential or important (or refrences
+            # to ourself)
+            if (addon_pkg.essential or
+                addon_pkg._pkg.important or
+                addon == pkg.name):
+                addons.remove(addon)
+                return False
+            # we have it in our dependencies already
+            if addon in deps:
+                return False
+            # its a language-pack, language-selector should deal with it
+            rdeps = self.get_installed_rdepends(addon_pkg)
+            if rdeps or self._is_language_pkg(addon):
+                return False
+            # looks good so far
+            return True
+
+
         # deb file, or pkg needing source, etc
         if not pkgname in self._cache:
             return ([],[])
@@ -344,6 +368,8 @@ class AptCache(gobject.GObject):
 
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))
+        addons_rec = filter(_addons_filter, addons_rec)
+        addons_sug = filter(_addons_filter, addons_sug)
         addons = addons_rec + ["@@"] + addons_sug
         
         # we now remove the addons we don't want displayed
@@ -353,33 +379,6 @@ class AptCache(gobject.GObject):
 
             if addon == '@@':
                 i += 1
-                continue
-
-            # we don't know about this one
-            if not addon in self._cache:
-                addons.remove(addon)
-                continue
-
-            # initial setup
-            addon_pkg = self._cache[addon]
-
-            # we don't care for essential or important (or refrences
-            # to ourself)
-            if (addon_pkg.essential or
-                addon_pkg._pkg.important or
-                addon == pkg.name):
-                addons.remove(addon)
-                continue
-
-            # we have it in our dependencies already
-            if addon in deps:
-                addons.remove(addon)
-                continue
-
-            # its a language-pack, language-selector should deal with it
-            rdeps = self.get_installed_rdepends(addon_pkg)
-            if rdeps or self._is_language_pkg(addon):
-                addons.remove(addon)
                 continue
 
             can_remove = False
