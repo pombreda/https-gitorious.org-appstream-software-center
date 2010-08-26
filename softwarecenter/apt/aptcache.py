@@ -307,6 +307,9 @@ class AptCache(gobject.GObject):
 
     # determine the addons for a given package
     def get_addons(self, pkgname):
+        """ get the list of addons for the given pkgname
+            :return: a tuple of pkgnames (recommends, suggests)
+        """
 
         # deb file, or pkg needing source, etc
         if not pkgname in self._cache:
