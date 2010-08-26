@@ -1,3 +1,10 @@
+software-center (2.1.13.1) UNRELEASED; urgency=low
+
+  * softwarcenter/app.py:
+    - fix incorrect state of install/remove menu items (LP: #624716)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Aug 2010 11:24:28 -0400
+
 software-center (2.1.13) maverick; urgency=low
 
   [ Kiwinote ]
