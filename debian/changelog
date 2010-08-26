@@ -1,8 +1,17 @@
-software-center (2.1.12) UNRELEASED; urgency=low
+software-center (2.1.13) UNRELEASED; urgency=low
 
-  [ Mohamed Amine IL Idrissi ]
-  * <all>:
-    - Implemented add-on handling.
+  [ Kiwinote ]
+  * refactor addons code
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 25 Aug 2010 23:31:08 +0200
+
+software-center (2.1.12.1) maverick; urgency=low
+
+  * fix plugin loading
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 25 Aug 2010 23:31:08 +0200
+
+software-center (2.1.12) maverick; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -37,8 +46,15 @@ software-center (2.1.12) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * implement the "Find it at" part of the specification to make it
     easier for the user to discover the newly installed software
+  * softwarecenter/backend/login_sso.py:
+    - use Sign into "Ubuntu Software Center Store" as sso login name
+  * debian/control:
+    - tighten dependency on ubuntu-sso-client (LP: #624127)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 24 Aug 2010 21:40:45 -0400
+  [ Mohamed Amine IL Idrissi ]
+  * (all): Implemented add-on handling.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 25 Aug 2010 23:06:27 +0200
 
 software-center (2.1.11) maverick; urgency=low
 
