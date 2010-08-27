@@ -898,27 +898,6 @@ class CarouselView(mkit.FramedSection):
         r,g,b = mkit.floats_from_gdkcolor(self.style.mid[0])
         rr = mkit.ShapeRoundedRectangle()
 
-        cairo.Context.reset_clip(cr)
-        cr.save()
-        cr.translate(0.5,0.5)
-        cr.set_line_width(1)
-        r,g,b = mkit.floats_from_gdkcolor(self.style.dark[0])
-        rr.layout(cr, a.x, a.y, a.x+a.width-1, a.y+a.height, radius=5)
-        lin = cairo.LinearGradient(a.x, a.y+80, a.x, a.y+a.height)
-        lin.add_color_stop_rgba(0,r,g,b,1)
-        lin.add_color_stop_rgba(1,r,g,b,0)
-        cr.set_source(lin)
-        cr.stroke()
-
-        r,g,b = mkit.floats_from_gdkcolor(self.style.light[0])
-        rr.layout(cr, a.x+1, a.y+1, a.x+a.width-2, a.y+a.height, radius=4.5)
-        lin = cairo.LinearGradient(a.x, a.y+80, a.x, a.y+a.height)
-        lin.add_color_stop_rgba(0,r,g,b,1)
-        lin.add_color_stop_rgba(1,r,g,b,0)
-        cr.set_source(lin)
-        cr.stroke()
-        cr.restore()
-
         cr.restore()
 
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
@@ -1033,10 +1012,10 @@ class CarouselPoster(mkit.VLinkButton):
         ia = self.image.allocation
         layout = self.label.get_layout()
 
-        x = ia.x + (ia.width-96)/2
-        y = ia.y + (ia.height-96)/2 + 5
-        cr.set_source_surface(MASK_SURFACE_CACHE['bloom'], x, y)
-        cr.paint_with_alpha(0.7)
+        #x = ia.x + (ia.width-96)/2
+        #y = ia.y + (ia.height-96)/2 + 5
+        #cr.set_source_surface(MASK_SURFACE_CACHE['bloom'], x, y)
+        #cr.paint_with_alpha(0.7)
 
         self.alpha = alpha
         self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))

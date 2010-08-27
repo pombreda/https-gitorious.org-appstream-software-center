@@ -1,3 +1,11 @@
+software-center (2.1.14.2) UNRELEASED; urgency=low
+
+  * merged lp:~mmcg069/software-center/small-things that cleans
+    up no longer needed code in the carousel after mpts made 
+    the background white
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Aug 2010 09:57:53 +0200
+
 software-center (2.1.14.1) maverick; urgency=low
 
   [ Gary Lasker ]
