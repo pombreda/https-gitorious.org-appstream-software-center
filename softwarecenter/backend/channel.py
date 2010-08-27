@@ -20,9 +20,11 @@
 import apt
 import glib
 import gettext
+import logging
+import string
 import urlparse
 import xapian
-import logging
+
 from aptsources.sourceslist import SourceEntry, SourcesList
 
 from gettext import gettext as _
@@ -370,6 +372,10 @@ class SoftwareChannel(object):
         elif channel_name == "notdownloadable":
             channel_display_name = _("Other")
         else:
+            # we can't use "capitalize() as it will make subsequent words
+            # lowercase
+            return string.capwords(self._channel_display_name[0])
+
             channel_display_name = channel_name
         return channel_display_name
     
