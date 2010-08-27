@@ -9,7 +9,11 @@ software-center (2.1.14.2) UNRELEASED; urgency=low
   * softwarecenter/apt/aptcache.py:
     - don't crash on encountering broken packages while getting deps
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Aug 2010 09:57:53 +0200
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/apt/aptcache.py: Packages that enhance a package that
+    is provided by the main app are now add-ons (LP: #625252)
+
+ -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Fri, 27 Aug 2010 13:10:54 +0000
 
 software-center (2.1.14.1) maverick; urgency=low
 

@@ -220,7 +220,11 @@ class AptCache(gobject.GObject):
     def get_enhances(self, pkg):
         return self._get_depends_by_type_str(pkg, self.ENHANCES_TYPES)
     def get_provides(self, pkg):
-        return self._get_depends_by_type_str(pkg, self.PROVIDES_TYPES)
+        provides_list = pkg.candidate._cand.provides_list
+        provides = []
+        for provided in provides_list:
+            provides.append(provided[0]) # the package name
+        return provides
 
     # reverse pkg relations
     def get_rdepends(self, pkg):
@@ -231,6 +235,12 @@ class AptCache(gobject.GObject):
         return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, False)
     def get_renhances(self, pkg):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
+    def get_renhances_lowlevel(self, pkg):
+        renhances = []
+        for dep in pkg.rev_depends_list:
+            if dep.dep_type_untranslated == "Enhances":
+                renhances.append(dep.parent_pkg.name)
+        return renhances
     def get_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
 
@@ -369,6 +379,13 @@ class AptCache(gobject.GObject):
         renhances = self.get_renhances(pkg)
         LOG.debug("renhances: %s" % renhances)
         addons_sug += renhances
+        provides = self.get_provides(pkg)
+        LOG.debug("provides: %s" % provides)
+        for provide in provides:
+            virtual_pkg = self._cache._cache[provide]
+            renhances = self.get_renhances_lowlevel(virtual_pkg)
+            LOG.debug("renhances of %s: %s" % (provide, renhances))
+            addons_sug += renhances
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
