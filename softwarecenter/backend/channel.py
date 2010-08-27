@@ -374,9 +374,7 @@ class SoftwareChannel(object):
         else:
             # we can't use "capitalize() as it will make subsequent words
             # lowercase
-            return string.capwords(self._channel_display_name[0])
-
-            channel_display_name = channel_name
+            return string.capwords(channel_name)
         return channel_display_name
     
     def _get_icon_for_channel(self, channel_name, channel_origin, channel_component):
