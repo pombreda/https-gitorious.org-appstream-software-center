@@ -1,4 +1,27 @@
-software-center (2.1.14) UNRELEASED; urgency=low
+software-center (2.1.14.2) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/small-things that cleans
+    up no longer needed code in the carousel after mpts made 
+    the background white
+
+  [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py:
+    - don't crash on encountering broken packages while getting deps
+  * softwarecenter/backend/channel.py:
+    - force first letter of display_name to be upper case
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Aug 2010 09:57:53 +0200
+
+software-center (2.1.14.1) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * make the currency string not translatable, since it will not
+    vary by locale currently (the agent always uses US$)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 21:12:46 +0200
+
+software-center (2.1.14) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarcenter/app.py:
@@ -19,17 +42,11 @@ software-center (2.1.14) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - display currency in software item screen for items for
       purchase (LP: #618821)
-
-  [ Kiwinote ]
-  * softwarecenter/apt/aptcache.py:
-    - don't crash on encountering broken packages while getting deps
-  * softwarecenter/backend/channel.py:
-    - force first letter of display_name to be upper case
   
   [ Mohamed Amine IL Idrissi ]
   * Do not include download size of installed app.
   
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Aug 2010 14:36:13 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 20:52:44 +0200
 
 software-center (2.1.13) maverick; urgency=low
 
