@@ -20,9 +20,11 @@
 import apt
 import glib
 import gettext
+import logging
+import string
 import urlparse
 import xapian
-import logging
+
 from aptsources.sourceslist import SourceEntry, SourcesList
 
 from gettext import gettext as _
@@ -334,7 +336,7 @@ class SoftwareChannel(object):
         """
         return the display name for the corresponding channel for use in the UI
         """
-        return self._channel_display_name[0].upper() + self._channel_display_name[1:]
+        return self._channel_display_name
         
     def get_channel_icon(self):
         """
@@ -370,7 +372,7 @@ class SoftwareChannel(object):
         elif channel_name == "notdownloadable":
             channel_display_name = _("Other")
         else:
-            channel_display_name = channel_name
+            return channel_name
         return channel_display_name
     
     def _get_icon_for_channel(self, channel_name, channel_origin, channel_component):
