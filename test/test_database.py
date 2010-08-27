@@ -99,8 +99,6 @@ class TestDatabase(unittest.TestCase):
         cache = apt.Cache()
         # we test against the real https://sc.ubuntu.com so we need network
         res = update_from_software_center_agent(db, cache)
-        # staging down
-        return
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 1)
         for p in db.postlist(""):

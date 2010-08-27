@@ -196,7 +196,12 @@ class PackageStatusBar(gtk.Alignment):
                 self.set_label(_('Installed'))
             self.set_button_label(_('Remove'))
         elif state == PKG_STATE_NEEDS_PURCHASE:
-            self.set_label(_("Buy for %s") % app_details.price)
+            # FIXME:  need to determine the currency dynamically once we can
+            #         get that info from the software-center-agent/payments service.
+            # NOTE:  the currency string for this label is purposely not translatable
+            #        when hardcoded, since it (currently) won't vary based on locale
+            #        and as such we don't want it translated
+            self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             purchase_date = str(app_details.purchase_date).split()[0]
@@ -805,6 +810,7 @@ class Addon(gtk.HBox):
 
         # name
         self.title = gtk.Label(self.app_details.display_name.capitalize())
+        self.title.set_line_wrap(True)
         hbox.pack_start(self.title, False)
         self.checkbutton.add(hbox)
 
@@ -1709,7 +1715,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 pkgs_to_remove.remove(pkg)
             
         for pkg in pkgs_to_install:
-            if not pkg_downloaded(pkg):
+            if not pkg_downloaded(pkg) and pkg.installed_size == 0:
                 total_download_size += pkg.size
             total_install_size += pkg.installed_size
         for pkg in pkgs_to_remove:

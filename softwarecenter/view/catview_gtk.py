@@ -67,6 +67,11 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
                                gobject.TYPE_NONE, 
                                (gobject.TYPE_PYOBJECT, ),
                               ),
+                              
+        "application-selected" : (gobject.SIGNAL_RUN_LAST,
+                                  gobject.TYPE_NONE,
+                                  (gobject.TYPE_PYOBJECT, ),
+                                 ),
 
         "application-activated" : (gobject.SIGNAL_RUN_LAST,
                                    gobject.TYPE_NONE,
@@ -202,6 +207,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
         popcon = app[AppStore.COL_POPCON]
+        self.emit("application-selected", Application(appname, pkgname, "", popcon))
         self.emit("application-activated", Application(appname, pkgname, "", popcon))
         return False
 
@@ -892,32 +898,6 @@ class CarouselView(mkit.FramedSection):
         r,g,b = mkit.floats_from_gdkcolor(self.style.mid[0])
         rr = mkit.ShapeRoundedRectangle()
 
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=5.5)
-        cr.clip()
-        cr.set_source_rgba(r,g,b,0.5)
-        cr.mask(lin)
-
-        cairo.Context.reset_clip(cr)
-        cr.save()
-        cr.translate(0.5,0.5)
-        cr.set_line_width(1)
-        r,g,b = mkit.floats_from_gdkcolor(self.style.dark[0])
-        rr.layout(cr, a.x, a.y, a.x+a.width-1, a.y+a.height, radius=5)
-        lin = cairo.LinearGradient(a.x, a.y+80, a.x, a.y+a.height)
-        lin.add_color_stop_rgba(0,r,g,b,1)
-        lin.add_color_stop_rgba(1,r,g,b,0)
-        cr.set_source(lin)
-        cr.stroke()
-
-        r,g,b = mkit.floats_from_gdkcolor(self.style.light[0])
-        rr.layout(cr, a.x+1, a.y+1, a.x+a.width-2, a.y+a.height, radius=4.5)
-        lin = cairo.LinearGradient(a.x, a.y+80, a.x, a.y+a.height)
-        lin.add_color_stop_rgba(0,r,g,b,1)
-        lin.add_color_stop_rgba(1,r,g,b,0)
-        cr.set_source(lin)
-        cr.stroke()
-        cr.restore()
-
         cr.restore()
 
         self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
@@ -1032,10 +1012,10 @@ class CarouselPoster(mkit.VLinkButton):
         ia = self.image.allocation
         layout = self.label.get_layout()
 
-        x = ia.x + (ia.width-96)/2
-        y = ia.y + (ia.height-96)/2 + 5
-        cr.set_source_surface(MASK_SURFACE_CACHE['bloom'], x, y)
-        cr.paint_with_alpha(0.7)
+        #x = ia.x + (ia.width-96)/2
+        #y = ia.y + (ia.height-96)/2 + 5
+        #cr.set_source_surface(MASK_SURFACE_CACHE['bloom'], x, y)
+        #cr.paint_with_alpha(0.7)
 
         self.alpha = alpha
         self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))

@@ -158,6 +158,7 @@ class AvailablePane(SoftwarePane):
                                     gtk.Label(self.NAV_BUTTON_ID_LIST))
 
         self.cat_view.connect("category-selected", self.on_category_activated)
+        self.cat_view.connect("application-selected", self.on_application_selected)
         self.cat_view.connect("application-activated", self.on_application_activated)
 
         # details

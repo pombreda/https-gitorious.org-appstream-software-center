@@ -528,10 +528,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         #         view button) are managed centrally:  button text, button sensitivity,
         #         and callback method
         # FIXME:  Add buy support here by implementing the above
-        if self.active_pane.app_details:
-            if self.active_pane.app_details.appdetails:
-                pkg_state = self.active_pane.app_details.appdetails.pkg_state
-                error = self.active_pane.app_details.appdetails.error
+        appdetails = app.get_details(self.db)
+        if appdetails:
+            pkg_state = appdetails.pkg_state
+            error = appdetails.error
         if self.active_pane.app_view.is_action_in_progress_for_selected_app():
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
