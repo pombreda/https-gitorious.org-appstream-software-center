@@ -8,8 +8,6 @@ software-center (2.1.14.2) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
     - don't crash on encountering broken packages while getting deps
-  * softwarecenter/backend/channel.py:
-    - force first letter of display_name to be upper case
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Aug 2010 09:57:53 +0200
 

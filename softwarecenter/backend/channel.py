@@ -372,9 +372,7 @@ class SoftwareChannel(object):
         elif channel_name == "notdownloadable":
             channel_display_name = _("Other")
         else:
-            # we can't use "capitalize() as it will make subsequent words
-            # lowercase
-            return string.capwords(channel_name)
+            return channel_name
         return channel_display_name
     
     def _get_icon_for_channel(self, channel_name, channel_origin, channel_component):
