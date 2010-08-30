@@ -1,3 +1,11 @@
+software-center (2.1.14.3) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * software-center:
+    - fix typo, thanks Jeremy Bicha! (LP: #625729)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 12:45:06 +0200
+
 software-center (2.1.14.2) maverick; urgency=low
 
   [ Michael Vogt ]

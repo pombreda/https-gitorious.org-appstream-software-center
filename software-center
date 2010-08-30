@@ -54,7 +54,7 @@ if __name__ == "__main__":
                       help="enable launchpad integration (for development use)", 
                       default=False)
     parser.add_option("--disable-buy", action="store_true",
-                      help="disable support to buy softwareware",
+                      help="disable support to buy software",
                       default=False)
 
     (options, args) = parser.parse_args()
