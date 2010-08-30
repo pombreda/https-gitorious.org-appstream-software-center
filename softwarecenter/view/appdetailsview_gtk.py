@@ -1042,6 +1042,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
         # app specific data
+        self._same_app = False
         self.app = None
         self.app_details = None
 
@@ -1368,7 +1369,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.share_btn.hide()
 
         # get screenshot urls and configure the ScreenshotView...
-        if app_details.thumbnail and app_details.screenshot:
+        if app_details.thumbnail and app_details.screenshot and not self._same_app:
             self.screenshot.configure(app_details)
 
             # then begin screenshot download and display sequence
@@ -1450,6 +1451,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.get_hadjustment().set_value(0)
 
         # init data
+        self._same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
         self.app = app
         self.app_details = app.get_details(self.db)
         # for compat with the base class
