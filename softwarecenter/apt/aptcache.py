@@ -269,6 +269,8 @@ class AptCache(gobject.GObject):
         return False
     def _read_language_pkgs(self):
         language_packages = set()
+        if not os.path.exists(self.LANGPACK_PKGDEPENDS):
+            return language_packages
         for line in open(self.LANGPACK_PKGDEPENDS):
             line = line.strip()
             if line.startswith('#'):

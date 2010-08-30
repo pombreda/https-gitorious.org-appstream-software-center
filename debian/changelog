@@ -3,6 +3,8 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
   [ Kiwinote ]
   * software-center:
     - fix typo, thanks Jeremy Bicha! (LP: #625729)
+  * softwarecenter/apt/aptcache.py:
+    - don't crash when no LANGPACK_PKGDEPENDS file exists (LP: #625562)
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't use capitalize() on add-on names, much thanks to Severin Heiniger!
       lp:~lantash/ubuntu/maverick/software-center/fixes-626067 (LP: #626067)
