@@ -801,8 +801,9 @@ class Addon(gtk.HBox):
         if not proposed_icon or not icons.has_icon(proposed_icon):
             proposed_icon = MISSING_APP_ICON
         try:
-            pixbuf = icons.load_icon(proposed_icon, 22, ()).scale_simple(22, 22,
-                                     gtk.gdk.INTERP_BILINEAR)
+            pixbuf = icons.load_icon(proposed_icon, 22, ())
+            if pixbuf:
+                pixbuf.scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
             self.icon.set_from_pixbuf(pixbuf)
         except TypeError:
             logging.warning("cant set icon for '%s' " % pkgname)
