@@ -809,7 +809,10 @@ class Addon(gtk.HBox):
         hbox.pack_start(self.icon, False, False)
 
         # name
-        self.title = gtk.Label(self.app_details.display_name.capitalize())
+        title = self.app_details.display_name
+        if len(title) >= 2:
+            title = title[0].upper() + title[1:]
+        self.title = gtk.Label(title)
         self.title.set_line_wrap(True)
         hbox.pack_start(self.title, False)
         self.checkbutton.add(hbox)

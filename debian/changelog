@@ -3,6 +3,9 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
   [ Kiwinote ]
   * software-center:
     - fix typo, thanks Jeremy Bicha! (LP: #625729)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't use capitalize() on add-on names, much thanks to Severin Heiniger!
+      lp:~lantash/ubuntu/maverick/software-center/fixes-626067 (LP: #626067)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 12:45:06 +0200
 
