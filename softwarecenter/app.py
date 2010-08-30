@@ -848,10 +848,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.window_rebuilding.set_title(self.window_main.get_title())
 
         # set a11y text
-        text = self.window_rebuilding.get_children()[0]
-        text.set_property("can-focus", True)
-        text.a11y = text.get_accessible()
-        text.a11y.set_name(text.get_children()[0].get_text())
+        try:
+            text = self.window_rebuilding.get_children()[0]
+            text.set_property("can-focus", True)
+            text.a11y = text.get_accessible()
+            text.a11y.set_name(text.get_children()[0].get_text())
+        except IndexError:
+            pass
 
         self.window_main.set_sensitive(not is_rebuilding)
         # show dialog about the rebuilding status

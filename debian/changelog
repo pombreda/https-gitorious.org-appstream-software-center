@@ -3,6 +3,8 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
   [ Kiwinote ]
   * software-center:
     - fix typo, thanks Jeremy Bicha! (LP: #625729)
+  * softwarecenter/app.py:
+    - always make s-c sensitive again after catalog is rebuilt (LP: #626513)
   * softwarecenter/apt/aptcache.py:
     - don't crash when no LANGPACK_PKGDEPENDS file exists (LP: #625562)
   * softwarecenter/view/appdetailsview_gtk.py:
