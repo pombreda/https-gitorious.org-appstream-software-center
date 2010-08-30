@@ -325,6 +325,26 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                  ord(']'),
                                                  gtk.gdk.CONTROL_MASK,
                                                  gtk.ACCEL_VISIBLE)
+        self.menuitem_go_back.add_accelerator("activate",
+                                              accel_group,
+                                              gtk.gdk.keyval_from_name("Left"),
+                                              gtk.gdk.MOD1_MASK,
+                                              gtk.ACCEL_VISIBLE)
+        self.menuitem_go_forward.add_accelerator("activate",
+                                                 accel_group,
+                                                 gtk.gdk.keyval_from_name("Right"),
+                                                 gtk.gdk.MOD1_MASK,
+                                                 gtk.ACCEL_VISIBLE)
+        self.menuitem_go_back.add_accelerator("activate",
+                                              accel_group,
+                                              gtk.gdk.keyval_from_name("KP_Left"),
+                                              gtk.gdk.MOD1_MASK,
+                                              gtk.ACCEL_VISIBLE)
+        self.menuitem_go_forward.add_accelerator("activate",
+                                                 accel_group,
+                                                 gtk.gdk.keyval_from_name("KP_Right"),
+                                                 gtk.gdk.MOD1_MASK,
+                                                 gtk.ACCEL_VISIBLE)
 
         # default focus
         self.available_pane.searchentry.grab_focus()

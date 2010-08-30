@@ -30,6 +30,11 @@ class TestSCAddons(unittest.TestCase):
     def test_enhances(self):
         res = self.cache.get_addons("gwenview")
         self.assertEqual(res, ([], ["kipi-plugins"]))
+
+    def test_enhances_with_virtual_pkgs(self):
+        res = self.cache.get_addons("bibletime")
+        self.assertTrue("sword-text-tr" in res[1])
+        self.assertTrue(len(res[1]) > 5)
         
 
     def test_lonley_dependency(self):

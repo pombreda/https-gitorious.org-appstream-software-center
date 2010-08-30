@@ -92,10 +92,11 @@ AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
 
 # custom keys for the new-apps repository, correspond
 # control file custom fields:
-#  XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
+#  XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Thumbnail-Url, XB-Category
 CUSTOM_KEY_APPNAME = "AppName"
 CUSTOM_KEY_ICON = "Icon"
 CUSTOM_KEY_SCREENSHOT_URL = "Screenshot-Url"
+CUSTOM_KEY_THUMBNAIL_URL = "Thumbnail-Url"
 CUSTOM_KEY_CATEGORY = "Category"
 
 # pkg action state constants

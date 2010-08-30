@@ -1,15 +1,32 @@
-software-center (2.1.14.2) UNRELEASED; urgency=low
+software-center (2.1.14.2) maverick; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/small-things that cleans
     up no longer needed code in the carousel after mpts made 
     the background white
+  * merged lp:~ilidrissi.amine/software-center/addons-provides and
+    added test
+  * merged lp:~kelemeng/software-center/bug625859, this fixes 
+    UTF-8 character escapes (LP: #625859), many thanks!
+  
+  [ Lucian Adrian Grijincu ]
+  * Alt-Left, Alt-Right work as Back/Forward like in all other GNOME apps
+    (LP: #625745)
 
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
     - don't crash on encountering broken packages while getting deps
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Aug 2010 09:57:53 +0200
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/apt/aptcache.py: Packages that enhance a package that
+    is provided by the main app are now add-ons (LP: #625252)
+
+  [ Gary Lasker ]
+  * softwarecenter/enums.py:
+    - add missing CUSTOM_KEY_THUMBNAIL_URL value for software-center
+      plugin to fix update-apt-xapian-index crash (LP: #626600)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 12:45:06 +0200
 
 software-center (2.1.14.1) maverick; urgency=low
 
