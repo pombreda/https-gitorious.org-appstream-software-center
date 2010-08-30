@@ -48,7 +48,7 @@ from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
-from view.softwarepane import SoftwarePane
+from view.softwarepane import SoftwarePane, SoftwareSection
 from view.historypane import HistoryPane
 from view.viewmanager import ViewManager
 
@@ -203,11 +203,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.navhistory_forward_action)
 
 
-        color = floats_from_string('#0769BC')
-        image = cairo.ImageSurface.create_from_png(
-            os.path.join(datadir, 'images/clouds.png'))
-        self.available_pane.set_section_color(color)
-        self.available_pane.set_section_image(image_id=0, surf=image)
+        available_section = SoftwareSection()
+        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(datadir, 'images/clouds.png'))
+        available_section.set_color('#0769BC')
+        self.available_pane.set_section(available_section)
 
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -230,11 +229,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.distro,
                                         self.icons,
                                         datadir)
-        color = floats_from_string('#aea79f')
-        image = cairo.ImageSurface.create_from_png(
-            os.path.join(datadir, 'images/arrows.png'))
-        self.channel_pane.set_section_color(color)
-        self.channel_pane.set_section_image(image_id=1, surf=image)
+
+        channel_section = SoftwareSection()
+        channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(datadir, 'images/arrows.png'))
+        channel_section.set_color('#aea79f')
+        self.channel_pane.set_section(channel_section)
 
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -258,11 +257,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.icons,
                                             datadir)
         
-        color = floats_from_string('#aea79f')
-        image = cairo.ImageSurface.create_from_png(
-            os.path.join(datadir, 'images/arrows.png'))
-        self.installed_pane.set_section_color(color)
-        self.installed_pane.set_section_image(image_id=2, surf=image)
+        installed_section = SoftwareSection()
+        installed_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(datadir, 'images/arrows.png'))
+        installed_section.set_color('#aea79f')
+        self.installed_pane.set_section(installed_section)
         
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,

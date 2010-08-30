@@ -63,7 +63,7 @@ class PurchaseDialog(gtk.Dialog):
         self.set_size_request(700, 700)
         self.wk = ScrolledWebkitWindow()
         self.wk.webkit.connect("create-web-view", 
-                                   self._on_create_webview_request)
+                               self._on_create_webview_request)
         # a possible way to do IPC (script or title change)
         self.wk.webkit.connect("script-alert", self._on_script_alert)
         self.wk.webkit.connect("title-changed", self._on_title_changed)
@@ -83,9 +83,12 @@ class PurchaseDialog(gtk.Dialog):
         if os.environ.get("SOFTWARE_CENTER_DEBUG_BUY"):
             glib.timeout_add_seconds(1, _generate_events, self)
 
-    def _on_create_webview_request(self, view, frame):
+    def _on_create_webview_request(self, view, frame, parent=None):
         logging.debug("_on_create_webview_request")
         window = gtk.Window()
+        #window.set_transient_for(parent)
+        window.set_size_request(600,400)
+        window.set_title("")
         wk = ScrolledWebkitWindow()
         wk.show()
         window.add(wk)

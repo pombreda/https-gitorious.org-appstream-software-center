@@ -24,8 +24,9 @@ import gtk
 import logging
 import os
 import xapian
+import cairo
 
-from widgets.mkit import floats_from_gdkcolor
+from widgets.mkit import floats_from_gdkcolor, floats_from_string
 from widgets.pathbar_gtk_atk import NavigationBar
 
 from softwarecenter.backend import get_install_backend
@@ -63,6 +64,58 @@ def wait_for_apt_cache_ready(f):
         f(*args, **kwargs)
         return False
     return wrapper
+
+
+MASK_SURFACE_CACHE = {}
+
+
+class SoftwareSection(object):
+
+    def __init__(self):
+        self._image_id = 0
+        self._section_icon = None
+        self._section_color = None
+        return
+
+    def render(self, cr, a):
+        # sky
+        r,g,b = self._section_color
+        lin = cairo.LinearGradient(0,a.y,0,a.y+150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.3)
+        lin.add_color_stop_rgba(1, r,g,b,0)
+        cr.set_source(lin)
+        cr.rectangle(0,0,
+                     a.width, 150)
+        cr.fill()
+
+        # clouds
+        s = MASK_SURFACE_CACHE[self._image_id]
+        cr.set_source_surface(s, a.width-s.get_width(), 0)
+        cr.paint()
+        return
+
+    def set_icon(self, icon):
+        self._section_icon = icon
+        return
+
+    def set_image(self, id, path):
+        image = cairo.ImageSurface.create_from_png(path)
+        self._image_id = id
+        global MASK_SURFACE_CACHE
+        MASK_SURFACE_CACHE[id] = image
+        return
+
+    def set_image_id(self, id):
+        self._image_id = id
+        return
+
+    def set_color(self, color_spec):
+        color = floats_from_string(color_spec)
+        self._section_color = color
+        return
+
+    def get_image(self):
+        return MASK_SURFACE_CACHE[self._image_id]
 
 
 class SoftwarePane(gtk.VBox, BasePane):
@@ -188,12 +241,13 @@ class SoftwarePane(gtk.VBox, BasePane):
             logging.debug("found app: %s at index %s" % (current_app.pkgname, index))
             self.app_view.set_cursor(index)
 
-    def set_section_color(self, color):
-        self.app_details.set_section_color(color)
+    def set_section(self, section):
+        self.section = section
+        self.app_details.set_section(section)
         return
 
-    def set_section_image(self, image_id, surf):
-        self.app_details.set_section_image(image_id, surf)
+    def section_sync(self):
+        self.app_details.set_section(self.section)
         return
 
     def get_status_text(self):
