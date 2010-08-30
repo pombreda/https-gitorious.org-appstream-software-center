@@ -898,7 +898,7 @@ class AddonsStatusBar(gtk.Alignment):
                          mkit.SPACING_SMALL+2,
                          mkit.SPACING_SMALL)
         
-        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.add(self.hbox)
 
 

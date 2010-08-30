@@ -11,6 +11,7 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     - don't use capitalize() on add-on names, much thanks to Severin Heiniger!
       lp:~lantash/ubuntu/maverick/software-center/fixes-626067 (LP: #626067)
     - fix AttributeError while running test_appdetails_view.py
+    - tweak padding between buttons in addons bar (LP: #625230)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 12:45:06 +0200
 
