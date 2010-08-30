@@ -60,7 +60,7 @@
                     <child>
                       <object class="GtkMenuItem" id="menuitem_reinstall_purchases">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Reinstall Previous Purchases&#8230;</property>
+                        <property name="label" translatable="yes">Reinstall Previous Purchases…</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menuitem_reinstall_purchases_activate"/>
                       </object>
@@ -188,7 +188,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_search">
-                        <property name="label" translatable="yes">Search&#8230;</property>
+                        <property name="label" translatable="yes">Search…</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="image">image2</property>
@@ -204,7 +204,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_software_sources">
-                        <property name="label" translatable="yes">_Software Sources&#8230;</property>
+                        <property name="label" translatable="yes">_Software Sources…</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="image">image4</property>
@@ -390,7 +390,7 @@
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <property name="version">0.3.4</property>
-    <property name="copyright" translatable="yes">&#xA9;2009-2010 Canonical</property>
+    <property name="copyright" translatable="yes">©2009-2010 Canonical</property>
     <property name="website">http://launchpad.net/software-center</property>
     <property name="authors">Michael Vogt</property>
     <property name="logo_icon_name">softwarecenter</property>
@@ -455,7 +455,7 @@
         <child>
           <object class="GtkLabel" id="label_rebuilding">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Rebuilding software catalog&#8230;</property>
+            <property name="label" translatable="yes">Rebuilding software catalog…</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>
