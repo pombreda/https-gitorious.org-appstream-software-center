@@ -1,4 +1,11 @@
-software-center (2.1.14.2) UNRELEASED; urgency=low
+software-center (2.1.14.3) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchasedialog.py:
+    - fix size and title for additional webkit windows (LP: #625385)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 18:17:45 +0200
+
+software-center (2.1.14.2) maverick; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/small-things that cleans
@@ -26,7 +33,7 @@ software-center (2.1.14.2) UNRELEASED; urgency=low
     - add missing CUSTOM_KEY_THUMBNAIL_URL value for software-center
       plugin to fix update-apt-xapian-index crash (LP: #626600)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 11:19:38 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 12:45:06 +0200
 
 software-center (2.1.14.1) maverick; urgency=low
 
