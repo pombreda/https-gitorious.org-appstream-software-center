@@ -21,7 +21,7 @@ import xdg.BaseDirectory
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
-BUY_SOMETHING_HOST = "https://sc.staging.ubuntu.com"
+BUY_SOMETHING_HOST = "https://software-center.ubuntu.com"
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"
