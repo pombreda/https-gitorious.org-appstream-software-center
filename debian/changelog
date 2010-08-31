@@ -2,6 +2,12 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
 
   * softwarecenter/view/purchasedialog.py:
     - fix size and title for additional webkit windows (LP: #625385)
+  * softwarecenter/db/update.py:
+    - fix screenshot url and thumbnail url loading
+  * softwarecenter/enums.py:
+    - switch default to buy-host to software-center.ubuntu.com
+    - allow override via the SOFTWARE_CENTER_BUY_HOST environment
+      (useful for testing)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 18:17:45 +0200
 
