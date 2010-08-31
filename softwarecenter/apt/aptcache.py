@@ -339,10 +339,9 @@ class AptCache(gobject.GObject):
             if addon == pkg.name:
                 LOG.debug("circular %s" % addon)
                 return False
-            # this addon would get installed anyway (e.g. via indirect
-            # dependency) so it would be misleading to show it
-            if addon in all_deps_if_installed:
-                LOG.debug("would get installed automatically %s" % addon)
+            # child pkg is addon of parent pkg, not the other way around.
+            if addon == '-'.join(pkgname.split('-')[:-1]):
+                LOG.debug("child > parent %s" % addon)
                 return False
             # get the pkg
             addon_pkg = self._cache[addon]
@@ -366,6 +365,15 @@ class AptCache(gobject.GObject):
                 LOG.debug("already has a installed rdepends %s" % addon)
                 return False
             # looks good
+            return True
+        #----------------------------------------------------------------
+        def _addons_filter_slow(addon):
+            """ helper for get_addons that filters out unneeded ones """
+            # this addon would get installed anyway (e.g. via indirect
+            # dependency) so it would be misleading to show it
+            if addon in all_deps_if_installed:
+                LOG.debug("would get installed automatically %s" % addon)
+                return False
             return True
         #----------------------------------------------------------------
         # deb file, or pkg needing source, etc
@@ -421,14 +429,6 @@ class AptCache(gobject.GObject):
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
 
-        # now get all_deps if the package would be installed
-        try:
-            all_deps_if_installed = self.get_all_deps_installing(pkg)
-        except:
-            # if we have broken packages, then we return no addons
-            LOG.debug("broken packages encountered while getting deps for %s" % pkgname)
-            return ([],[])
-
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))
 
@@ -436,7 +436,19 @@ class AptCache(gobject.GObject):
         addons_rec = filter(_addons_filter, addons_rec)
         addons_sug = filter(_addons_filter, addons_sug)
 
-        
+        # this is not integrated into the filter above, as it is quite expensive
+        # to run this call, so we only run it if we actually have addons
+        if addons_rec or addons_sug:
+            # now get all_deps if the package would be installed
+            try:
+                all_deps_if_installed = self.get_all_deps_installing(pkg)
+            except:
+                # if we have broken packages, then we return no addons
+                LOG.debug("broken packages encountered while getting deps for %s" % pkgname)
+                return ([],[])
+            # filter out stuff we don't want
+            addons_rec = filter(_addons_filter_slow, addons_rec)
+            addons_sug = filter(_addons_filter_slow, addons_sug)
         
         return (addons_rec, addons_sug)
 

@@ -23,7 +23,7 @@ class TestSCAddons(unittest.TestCase):
         # synaptic
         res = self.cache.get_addons("synaptic")
         # FIXME: kdebase?!?!?! that is rather unneeded
-        self.assertEqual(res, (["kdebase-bin"], 
+        self.assertEqual(res, (["kdebase-bin", "apt-xapian-index"], 
                                ["dwww", "deborphan", "menu"]))
 
 

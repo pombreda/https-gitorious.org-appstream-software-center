@@ -7,6 +7,8 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     - always make s-c sensitive again after catalog is rebuilt (LP: #626513)
   * softwarecenter/apt/aptcache.py:
     - don't crash when no LANGPACK_PKGDEPENDS file exists (LP: #625562)
+    - speed improvements for get_addons()
+    - don't allow randompkg-something to list randompkg as an add-on
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't use capitalize() on add-on names, much thanks to Severin Heiniger!
       lp:~lantash/ubuntu/maverick/software-center/fixes-626067 (LP: #626067)
