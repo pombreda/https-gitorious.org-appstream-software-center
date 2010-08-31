@@ -1068,7 +1068,8 @@ class LinkButton(gtk.EventBox):
         return
 
     def _colorise_label_normal(self):
-        if not self._subdued or self.state == gtk.STATE_PRELIGHT:
+        if not self._subdued or self.state == gtk.STATE_PRELIGHT or \
+            self.has_focus():
             c = self.style.text[self.state]
         else:
             c = self.style.dark[self.state]
