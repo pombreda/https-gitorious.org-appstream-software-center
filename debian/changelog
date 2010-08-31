@@ -8,6 +8,9 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     - switch default to buy-host to software-center.ubuntu.com
     - allow override via the SOFTWARE_CENTER_BUY_HOST environment
       (useful for testing)
+  * softwarecenter/backend/aptd.py:
+    - make defaults for addons_{install,remove} empty lists instead
+      of None to prevent crash when called with a empty argument
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 18:17:45 +0200
 

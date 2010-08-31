@@ -128,7 +128,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     # FIXME: upgrade add-ons here
     @inline_callbacks
-    def upgrade(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
+    def upgrade(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ upgrade a single package """
         self.emit("transaction-started")
         try:
@@ -139,7 +139,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
+    def remove(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ remove a single package """
         self.emit("transaction-started")
         try:
@@ -150,7 +150,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove_multiple(self, pkgnames, appnames, iconnames, addons_install=None, addons_remove=None, metadatas=None):
+    def remove_multiple(self, pkgnames, appnames, iconnames, addons_install=[], addons_remove=[], metadatas=None):
         """ queue a list of packages for removal  """
         if metadatas == None:
             metadatas = []
@@ -160,7 +160,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, filename=None, addons_install=None, addons_remove=None, metadata=None):
+    def install(self, pkgname, appname, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None):
         """Install a single package from the archive
            If filename is given a local deb package is installed instead.
         """
@@ -176,7 +176,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def install_multiple(self, pkgnames, appnames, iconnames, addons_install=None, addons_remove=None, metadatas=None):
+    def install_multiple(self, pkgnames, appnames, iconnames, addons_install=[], addons_remove=[], metadatas=None):
         """ queue a list of packages for install  """
         if metadatas == None:
             metadatas = []
@@ -186,7 +186,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.install(pkgname, appname, iconname, metadata=metadata)
             
     @inline_callbacks
-    def apply_changes(self, pkgname, appname, iconname, addons_install=None, addons_remove=None, metadata=None):
+    def apply_changes(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ install and remove add-ons """
         self.emit("transaction-started")
         try:
