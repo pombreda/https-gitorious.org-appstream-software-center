@@ -1103,9 +1103,9 @@ class LinkButton(gtk.EventBox):
             l = self.label.get_label()
             self.label.set_label('<u>%s</u>' % l)
         else:
-            l = self.label.get_label()
-            l.replace('<u>', '').replace('</u>', '')
-            self.label.set_label(l)
+            m = self.label.get_markup()
+            m.replace('<u>', '').replace('</u>', '')
+            self.label.set_markup(m)
         return
 
     def set_subdued(self, is_subdued):
