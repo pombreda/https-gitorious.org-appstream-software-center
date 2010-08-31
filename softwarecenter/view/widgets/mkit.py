@@ -1290,7 +1290,6 @@ class EtchedLabel(gtk.Label):
             if line:
                 i = line.start_index
                 l = gobject.markup_escape_text(l[:i-1] + u"\u2026")
-                print l
                 layout.set_markup(l)
                 layout.set_attributes(attrs)
 
