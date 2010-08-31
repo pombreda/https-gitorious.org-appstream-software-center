@@ -980,16 +980,16 @@ class LinkButton(gtk.EventBox):
 
     def _on_enter(self, cat, event):
         if cat == self._button_press_origin:
-            self._colorise_label_active()
             cat.set_state(gtk.STATE_ACTIVE)
         else:
             cat.set_state(gtk.STATE_PRELIGHT)
+        self._colorise_label_normal()
         self.window.set_cursor(self._cursor)
         return
 
     def _on_leave(self, cat, event):
-        self._colorise_label_normal()
         cat.set_state(gtk.STATE_NORMAL)
+        self._colorise_label_normal()
         self.window.set_cursor(None)
         return
 
@@ -1010,8 +1010,8 @@ class LinkButton(gtk.EventBox):
     def _on_button_press(self, cat, event):
         if event.button != 1: return
         self._button_press_origin = cat
-        self._colorise_label_active()
         cat.set_state(gtk.STATE_ACTIVE)
+        self._colorise_label_active()
         return
 
     def _on_button_release(self, cat, event):
@@ -1023,16 +1023,15 @@ class LinkButton(gtk.EventBox):
             self.queue_draw()
             return
 
-        self._colorise_label_normal()
-
         cat_region = gtk.gdk.region_rectangle(cat.allocation)
         if not cat_region.point_in(*self.window.get_pointer()[:2]):
             self._button_press_origin = None
             cat.set_state(gtk.STATE_NORMAL)
-            return
-
-        self._button_press_origin = None
-        cat.set_state(gtk.STATE_PRELIGHT)
+        else:
+            self._button_press_origin = None
+            cat.set_state(gtk.STATE_PRELIGHT)
+        
+        self._colorise_label_normal()
         gobject.timeout_add(50, emit_clicked)
         return
 
@@ -1056,24 +1055,33 @@ class LinkButton(gtk.EventBox):
         return
 
     def _colorise_label_active(self):
-        return
-        if self._use_underline:
-            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, self.label._disp_label))
-        else:
-            self.label.set_markup('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, self.label._disp_label))
+        c = gtk.gdk.color_parse(LINK_ACTIVE_COLOR)
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
+
+        layout = self.label.get_layout()
+        attrs = layout.get_attributes()
+        attrs.change(attr)
+        layout.set_attributes(attrs)
         return
 
     def _colorise_label_normal(self):
-        return
-        if not self._subdued or self.has_focus():
-            col = self.style.text[gtk.STATE_NORMAL].to_string()
+        if not self._subdued or self.state == gtk.STATE_PRELIGHT:
+            c = self.style.text[self.state]
         else:
-            col = self.style.dark[gtk.STATE_NORMAL].to_string()
+            c = self.style.dark[self.state]
 
-        if self._use_underline:
-            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (col, self.label._disp_label))
-        else:
-            self.label.set_markup('<span color="%s">%s</span>' % (col, self.label._disp_label))
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
+
+        layout = self.label.get_layout()
+        attrs = layout.get_attributes()
+        attrs.change(attr)
+        layout.set_attributes(attrs)
         return
 
     def _cache_image_surface(self, pb):
@@ -1090,10 +1098,14 @@ class LinkButton(gtk.EventBox):
 
     def set_underline(self, use_underline):
         self._use_underline = use_underline
+
         if use_underline:
-            self.label.set_markup('<u>%s</u>' % self.label.get_text())
+            l = self.label.get_label()
+            self.label.set_label('<u>%s</u>' % l)
         else:
-            self.label.set_markup(self.label.get_text())
+            l = self.label.get_label()
+            l.replace('<u>', '').replace('</u>', '')
+            self.label.set_label(l)
         return
 
     def set_subdued(self, is_subdued):
