@@ -1435,7 +1435,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def show_app(self, app):
         LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
-            LOG.info("no app selected")
+            LOG.debug("no app selected")
             return
         
         # set button sensitive again

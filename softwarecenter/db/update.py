@@ -106,6 +106,8 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Purchased-Date' : 'purchase_date',
                 'PPA'        : 'archive_id',
                 'Icon'       : 'icon',
+                'Screenshot-Url' : 'screenshot_url',
+                'Thumbnail-Url' : 'thumbnail_url',
               }
 
     # map from requested key to a static data element
@@ -115,6 +117,11 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
     def __init__(self, sca_entry):
         self.sca_entry = sca_entry
         self.origin = "software-center-agent"
+        # map screenshot to thumbnail
+        if (hasattr(self.sca_entry, "screenshot_url") and 
+            not hasattr(self.sca_entry, "thumbnail_url")):
+            self.sca_entry.thumbnail_url = self.sca_entry.screenshot_url.replace(".png", ".thumb.png")
+            
     def _apply_mapping(self, key):
         # strip away bogus prefixes
         if key.startswith("X-AppInstall-"):
