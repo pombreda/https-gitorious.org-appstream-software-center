@@ -1215,9 +1215,6 @@ class VLinkButton(LinkButton):
     def set_max_width(self, w):
         self._max_w = w
 
-    def set_max_height(self, h):
-        self._max_h = h
-
     def calc_width(self):
         w = 1
         iw = 0
