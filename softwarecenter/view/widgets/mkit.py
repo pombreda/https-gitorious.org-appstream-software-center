@@ -923,13 +923,14 @@ class LinkButton(gtk.EventBox):
         self.label.set_etching_alpha(0.55)
         self.image = gtk.Image()
 
+        self._max_w = -1
+        self._max_h = -1
+
         self._layout = None
         self._button_press_origin = None    # broken?
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
-        self._markup = None
         self._use_underline = False
         self._subdued = False
-        self._xmargin = 3
         self.alpha = 1.0
 
         if markup:
@@ -1072,9 +1073,9 @@ class LinkButton(gtk.EventBox):
 
     def _colorise_label_active(self):
         if self._use_underline:
-            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, self._markup))
+            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (LINK_ACTIVE_COLOR, self.label._disp_label))
         else:
-            self.label.set_markup('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, self._markup))
+            self.label.set_markup('<span color="%s">%s</span>' % (LINK_ACTIVE_COLOR, self.label._disp_label))
         return
 
     def _colorise_label_normal(self):
@@ -1084,9 +1085,9 @@ class LinkButton(gtk.EventBox):
             col = self.style.dark[gtk.STATE_NORMAL].to_string()
 
         if self._use_underline:
-            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (col, self._markup))
+            self.label.set_markup('<span color="%s"><u>%s</u></span>' % (col, self.label._disp_label))
         else:
-            self.label.set_markup('<span color="%s">%s</span>' % (col, self._markup))
+            self.label.set_markup('<span color="%s">%s</span>' % (col, self.label._disp_label))
         return
 
     def _cache_image_surface(self, pb):
@@ -1116,7 +1117,6 @@ class LinkButton(gtk.EventBox):
         return
 
     def set_xmargin(self, xmargin):
-        self._xmargin = xmargin
         return
 
     def set_internal_xalignment(self, xalign):
@@ -1134,7 +1134,6 @@ class LinkButton(gtk.EventBox):
             self.label.set_markup('<u>%s</u>' % label)
         else:
             self.label.set_markup(label)
-        self._markup = label
         w = self.calc_width()
         self.set_size_request(w, self.get_size_request()[1])
         return
@@ -1159,7 +1158,6 @@ class LinkButton(gtk.EventBox):
 
         if self.has_focus() and focus_draw:
             a = self.label.allocation
-            m = self._xmargin
             x, y, w, h = a.x, a.y, a.width, a.height
             self.style.paint_focus(self.window,
                                    self.state,
@@ -1202,20 +1200,16 @@ class HLinkButton(LinkButton):
             w += self.image.allocation.width
             spacing = self.box.get_spacing()
 
-        w += 2*self.get_border_width() + spacing + 2*self._xmargin
+        w += 2*self.get_border_width() + spacing
         return w
 
 
 class VLinkButton(LinkButton):
 
-    MAX_WIDTH  = -1
-    MAX_HEIGHT = -1
     MAX_LINE_COUNT = 2
 
     def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):
         LinkButton.__init__(self, markup, icon_name, icon_size)
-
-        self._xmargin = 6
 
         self.box = gtk.VBox(spacing=SPACING_SMALL)
         self.alignment.add(self.box)
@@ -1223,14 +1217,23 @@ class VLinkButton(LinkButton):
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
-            self.box.pack_start(self.label, False)
+            self.box.pack_start(self.label)
+            self.label.set_max_line_count(2)
             self.label.set_alignment(0.5, 0)
             self.label.set_justify(gtk.JUSTIFY_CENTER)
             self.box.reorder_child(self.label, -1)
 
         self.show_all()
-        #self.connect('expose-event', self._DEBUG_on_expose)
+        self.connect('expose-event', self._DEBUG_on_expose)
         return
+
+    def set_max_width(self, w):
+        self._max_w = w
+        self.set_size_request(w, self.get_size_request()[1])
+
+    def set_max_height(self, h):
+        self._max_h = h
+        self.set_size_request(self.get_size_request()[0], h)
 
     def calc_width(self):
         w  = lw = iw = 0
@@ -1245,21 +1248,10 @@ class VLinkButton(LinkButton):
         w = max(lw, iw) + 2*self.get_border_width()
 
         # if bigger than max allowable width set_line_wrap
-        if self.MAX_WIDTH > 0 and w >= self.MAX_WIDTH:
-            if self.label:
-                self.label.set_line_wrap(True)
-                self.label.set_size_request(self.MAX_WIDTH-2*self.get_border_width(), -1)
-                w = self.MAX_WIDTH
-
-                # check if line_wrap leaves label line count greater than the MAX_LINE_COUNT
-                # if so, ellipsize last allowable line
-                layout = self.label.get_layout()
-                if layout.get_line_count() > self.MAX_LINE_COUNT:
-                    line = layout.get_line(self.MAX_LINE_COUNT)
-                    i = line.start_index
-                    self._disp_label = self.label.get_label()[:i-3] + u"\u2026"
-                    self.label.set_markup(self._disp_label)
+        if self._max_w > 0 and w >= self._max_w:
+            w = self._max_w
         return w
+
 
     def _DEBUG_on_expose(self, widget, event):
         # handy for debugging layouts
@@ -1294,12 +1286,51 @@ class EtchedLabel(gtk.Label):
     def __init__(self, *args, **kwargs):
         gtk.Label.__init__(self, *args, **kwargs)
         self.alpha = 0.55
+
+        self._label = None
+        self._disp_label = None
+        self._max_line_count = -1
+        self._allocation = None
+
         self.connect('expose-event', self._on_expose)
+        self.connect('size-allocate', self._on_allocate)
         return
+
+    def _on_allocate(self, label, allocation):
+ 
+        layout = label.get_layout()
+        layout.set_width(label.allocation.width*pango.SCALE)
+        layout.set_wrap(pango.WRAP_WORD_CHAR)
+
+#        if self._allocation == allocation: return
+#        self._allocation = allocation
+
+        #if self._max_line_count > 0 and layout.get_line_count() > self._max_line_count:
+            #print self._max_line_count, layout.get_line_count()
+            #line = layout.get_line(self._max_line_count)
+            #i = line.start_index
+            #self._disp_label = self._label[:i-3] + u"\u2026"
+            #gtk.Label.set_markup(self, self._disp_label)
+        return
+
+    def set_text(self, t):
+        gtk.Label.set_text(self, t)
+        self._label = self._disp_label = self.get_label()
+
+    def set_markup(self, m):
+        gtk.Label.set_markup(self, m)
+        self._label = self._disp_label = self.get_label()
+
+    def set_label(self, l):
+        gtk.Label.set_label(self, l)
+        self._label = self._disp_label = self.get_label()
 
     def set_etching_alpha(self, a):
         self.alpha = a
         return
+
+    def set_max_line_count(self, n):
+        self._max_line_count = n
 
     def _vis_debug(self):
         cr = self.window.cairo_create()
@@ -1311,7 +1342,6 @@ class EtchedLabel(gtk.Label):
 
     def _on_expose(self, widget, event):
         if not widget.window: return True
-        #self._vis_debug()
 
         l = widget.get_layout()
         e = l.get_pixel_extents()[1]
@@ -1336,7 +1366,7 @@ class EtchedLabel(gtk.Label):
         self.style.paint_layout(widget.parent.window,
                                 self.state,
                                 True,
-                                a,
+                                None,
                                 widget,
                                 None,
                                 x, y,

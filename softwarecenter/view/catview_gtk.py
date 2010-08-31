@@ -968,6 +968,7 @@ class SubcategoryButton(mkit.VLinkButton):
         mkit.VLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
         self.set_size_request(self.get_size_request()[0],
                               self.MAX_HEIGHT)
+        self.set_max_width(self.MAX_WIDTH)
         return
 
 
@@ -981,25 +982,17 @@ class CarouselPoster(mkit.VLinkButton):
 
         self.label.set_justify(gtk.JUSTIFY_CENTER)
         self.image.set_size_request(icon_size, icon_size)
-        self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None
 
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
-        self.connect('size-allocate', self._on_allocate)
 
         # a11y for poster
-#        self.set_property("can-focus", True)
+        self.set_property("can-focus", True)
         self.a11y = self.get_accessible()
         return
 
-    def _on_allocate(self, widget, allocation):
-        ia = self.label.allocation  # label allocation
-        layout = self.label.get_layout()
-        layout.set_width(ia.width*pango.SCALE)
-        layout.set_wrap(pango.WRAP_WORD)
-        return
     def set_application(self, app):
         self.app = app
 
@@ -1018,7 +1011,6 @@ class CarouselPoster(mkit.VLinkButton):
             self.box.pack_start(self.image, False)
             self.box.reorder_child(self.image, 0)
             self.image.show()
-        self.label.connect('size-allocate', self._on_allocate)
         return
 
     def draw(self, cr, a, expose_area, alpha=1.0):
