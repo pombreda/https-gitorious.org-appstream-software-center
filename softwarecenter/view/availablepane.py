@@ -159,6 +159,7 @@ class AvailablePane(SoftwarePane):
                                     gtk.Label(self.NAV_BUTTON_ID_LIST))
 
         self.cat_view.connect("category-selected", self.on_category_activated)
+        self.cat_view.connect("application-selected", self.on_application_selected)
         self.cat_view.connect("application-activated", self.on_application_activated)
 
         # details
@@ -254,7 +255,7 @@ class AvailablePane(SoftwarePane):
         seq_nr = self.refresh_seq_nr
         # special case to disable hide nonapps for the "Featured Applications" category
         if (self.apps_category and 
-            self.apps_category.untranslated_name) == "Featured Applications":
+            self.apps_category.untranslated_name) == "Featured":
             self.nonapps_visible = True
         # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,

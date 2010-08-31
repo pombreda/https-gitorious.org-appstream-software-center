@@ -22,6 +22,7 @@ import apt
 import apt_pkg
 import datetime
 import locale
+import logging
 import gettext
 import gio
 import glib
@@ -33,6 +34,8 @@ import time
 
 from gettext import gettext as _
 from softwarecenter.enums import *
+
+LOG = logging.getLogger(__name__)
 
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
@@ -55,6 +58,8 @@ class AptCache(gobject.GObject):
     # stamp file to monitor (provided by update-notifier via
     # APT::Update::Post-Invoke-Success)
     APT_FINISHED_STAMP = "/var/lib/update-notifier/dpkg-run-stamp"
+
+    LANGPACK_PKGDEPENDS = "/usr/share/language-selector/data/pkg_depends"
 
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
                                      gobject.TYPE_NONE,
@@ -80,6 +85,8 @@ class AptCache(gobject.GObject):
             gio.FILE_MONITOR_NONE)
         self.apt_finished_monitor.connect(
             "changed", self._on_apt_finished_stamp_changed)
+        # this is fast, so ok
+        self._language_packages = self._read_language_pkgs()
     def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
         if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             return 
@@ -170,16 +177,7 @@ class AptCache(gobject.GObject):
                 if item.origin:
                     origins.add(item.origin)
         return origins
-    def get_installed_rdepends(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, True)
-    def get_installed_rrecommends(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, True)
-    def get_installed_rsuggests(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, True)
-    def get_installed_renhances(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, True)
-    def get_installed_rprovides(self, pkg):
-        return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, True)
+
     def component_available(self, distro_codename, component):
         """ check if the given component is enabled """
         # FIXME: test for more properties here?
@@ -209,6 +207,10 @@ class AptCache(gobject.GObject):
                 if not_in_list(deps_str, dep_.name):
                     deps_str.append(dep_.name)
         return deps_str
+
+    # FIXME: there are cleaner ways to do this than below
+
+    # pkg relations
     def get_depends(self, pkg):
         return self._get_depends_by_type_str(pkg, self.DEPENDENCY_TYPES)
     def get_recommends(self, pkg):
@@ -218,8 +220,13 @@ class AptCache(gobject.GObject):
     def get_enhances(self, pkg):
         return self._get_depends_by_type_str(pkg, self.ENHANCES_TYPES)
     def get_provides(self, pkg):
-        return self._get_depends_by_type_str(pkg, self.PROVIDES_TYPES)
-        
+        provides_list = pkg.candidate._cand.provides_list
+        provides = []
+        for provided in provides_list:
+            provides.append(provided[0]) # the package name
+        return provides
+
+    # reverse pkg relations
     def get_rdepends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, False)
     def get_rrecommends(self, pkg):
@@ -228,9 +235,52 @@ class AptCache(gobject.GObject):
         return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, False)
     def get_renhances(self, pkg):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
+    def get_renhances_lowlevel_apt_pkg(self, pkg):
+        """ takes a apt_pkg.Package and returns a list of pkgnames that 
+            enhance this package - this is needed to support enhances
+            for virtual packages
+        """
+        renhances = []
+        for dep in pkg.rev_depends_list:
+            if dep.dep_type_untranslated == "Enhances":
+                renhances.append(dep.parent_pkg.name)
+        return renhances
     def get_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
+
+    # installed reverse pkg relations
+    def get_installed_rdepends(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, True)
+    def get_installed_rrecommends(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, True)
+    def get_installed_rsuggests(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, True)
+    def get_installed_renhances(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, True)
+    def get_installed_rprovides(self, pkg):
+        return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, True)
+
+    # language pack stuff
+    def _is_language_pkg(self, addon):
+        # a simple "addon in self._language_packages" is not enough
+        for template in self._language_packages:
+            if addon.startswith(template):
+                return True
+        return False
+    def _read_language_pkgs(self):
+        language_packages = set()
+        for line in open(self.LANGPACK_PKGDEPENDS):
+            line = line.strip()
+            if line.startswith('#'):
+                continue
+            try:
+                (cat, code, dep_pkg, language_pkg) = line.split(':')
+            except ValueError:
+                continue
+            language_packages.add(language_pkg)
+        return language_packages
         
+    # these are used for calculating the total size
     def _get_changes_without_applying(self, pkg):
         if pkg.installed == None:
             pkg.mark_install()
@@ -272,120 +322,121 @@ class AptCache(gobject.GObject):
                 upgrading_deps.append(change)
         return upgrading_deps
 
-class PackageAddonsManager(object):
-    """ class that abstracts the addons handling """
-
-    LANGPACK_PKGDEPENDS = "/usr/share/language-selector/data/pkg_depends"
-    (RECOMMENDED, SUGGESTED) = range(2)
-    
-    def __init__(self, cache):
-        self.cache = cache
-        self._language_packages = self._read_language_pkgs()
-
-    def _remove_important_or_langpack(self, addon_list, app_pkg):
-        """ remove packages that are essential or important
-            or langpacks
+    # determine the addons for a given package
+    def get_addons(self, pkgname):
+        """ get the list of addons for the given pkgname
+            :return: a tuple of pkgnames (recommends, suggests)
         """
-        for addon in addon_list:
-            try:
-                pkg = self.cache[addon]
-                if pkg.essential or pkg._pkg.important or addon == app_pkg.name:
-                    addon_list.remove(addon)
-                    continue
-                
-                deps = self.cache.get_depends(app_pkg)
-                if addon in deps:
-                    addon_list.remove(addon)
-                    continue
-                
-                rdeps = self.cache.get_installed_rdepends(pkg)
-                if (len(rdeps) > 0 or 
-                    self._is_language_pkg(addon)):
-                    addon_list.remove(addon)
-                    continue
-            except KeyError:
-                addon_list.remove(addon)
-    
-    def _is_language_pkg(self, addon):
-        # a simple "addon in self._language_packages" is not enough
-        for template in self._language_packages:
-            if addon.startswith(template):
-                return True
-        return False
+        def _addons_filter(addon):
+            """ helper for get_addons that filters out unneeded ones """
+            # we don't know about this one (prefectly legal for suggests)
+            if not addon in self._cache:
+                LOG.debug("not in cache %s" % addon)
+                return False
+            # can happen via "lonley" depends
+            if addon == pkg.name:
+                LOG.debug("circular %s" % addon)
+                return False
+            # this addon would get installed anyway (e.g. via indirect
+            # dependency) so it would be misleading to show it
+            if addon in all_deps_if_installed:
+                LOG.debug("would get installed automatically %s" % addon)
+                return False
+            # get the pkg
+            addon_pkg = self._cache[addon]
+            # we don't care for essential or important (or refrences
+            # to ourself)
+            if (addon_pkg.essential or
+                addon_pkg._pkg.important):
+                LOG.debug("essential or important %s" % addon)
+                return False
+            # we have it in our dependencies already
+            if addon in deps:
+                LOG.debug("already a dependency %s" % addon)
+                return False
+            # its a language-pack, language-selector should deal with it
+            if self._is_language_pkg(addon):
+                LOG.debug("part of language pkg rdepends %s" % addon)
+                return False
+            # something on the system depends on it
+            rdeps = self.get_installed_rdepends(addon_pkg)
+            if rdeps:
+                LOG.debug("already has a installed rdepends %s" % addon)
+                return False
+            # looks good
+            return True
+        #----------------------------------------------------------------
+        # deb file, or pkg needing source, etc
+        if (not pkgname in self._cache or
+            not self._cache[pkgname].candidate):
+            return ([],[])
 
-    def _read_language_pkgs(self):
-        language_packages = set()
-        for line in open(self.LANGPACK_PKGDEPENDS):
-            line = line.strip()
-            if line.startswith('#'):
-                continue
-            try:
-                (cat, code, dep_pkg, language_pkg) = line.split(':')
-            except ValueError:
-                continue
-            language_packages.add(language_pkg)
-        return language_packages
-    
-    def _addons_for_pkg(self, pkgname, type):
-        try:
-            pkg = self.cache[pkgname]
-        except KeyError:
-            return []
-        deps = self.cache.get_depends(pkg)
-        addons = []
-        if type == self.RECOMMENDED:
-            recommends = self.cache.get_recommends(pkg)
-            if len(recommends) == 1:
-                addons += recommends
-        elif type == self.SUGGESTED:
-            suggests = self.cache.get_suggests(pkg)
-            if len(suggests) == 1:
-                addons += suggests
-            addons += self.cache.get_renhances(pkg)
-        
+        # initial setup
+        pkg = self._cache[pkgname]
+
+        # recommended addons
+        addons_rec = self.get_recommends(pkg)
+        LOG.debug("recommends: %s" % addons_rec)
+        # suggested addons and renhances
+        addons_sug = self.get_suggests(pkg)
+        LOG.debug("suggests: %s" % addons_sug)
+        renhances = self.get_renhances(pkg)
+        LOG.debug("renhances: %s" % renhances)
+        addons_sug += renhances
+        provides = self.get_provides(pkg)
+        LOG.debug("provides: %s" % provides)
+        for provide in provides:
+            virtual_aptpkg_pkg = self._cache._cache[provide]
+            renhances = self.get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
+            LOG.debug("renhances of %s: %s" % (provide, renhances))
+            addons_sug += renhances
+
+        # get more addons, the idea is that if a package foo-data
+        # just depends on foo we want to get the info about
+        # "recommends, suggests, enhances" for foo-data as well
+        # 
+        # FIXME: find a good package where this is actually the case and
+        #        replace the existing test 
+        #        (arduino-core -> avrdude -> avrdude-doc) with that
+        # FIXME2: if it turns out we don't have good/better examples,
+        #         kill it
+        deps = self.get_depends(pkg)
         for dep in deps:
-            try:
-                pkgdep = self.cache[dep]
-                if len(self.cache.get_rdepends(pkgdep)) == 1:
+            if dep in self._cache:
+                pkgdep = self._cache[dep]
+                if len(self.get_rdepends(pkgdep)) == 1:
                     # pkg is the only known package that depends on pkgdep
-                    if type == self.RECOMMENDED:
-                        addons += self.cache.get_recommends(pkgdep)
-                    elif type == self.SUGGESTED:
-                        addons += self.cache.get_suggests(pkgdep)
-                        addons += self.cache.get_renhances(pkgdep)
-            except KeyError:
-                pass # FIXME: should we handle that differently?
-        self._remove_important_or_langpack(addons, pkg)
-        for addon in addons:
-            try:
-                pkg_ = self.cache[addon]
-            except KeyError:
-                addons.remove(addon)
-            else:
-                can_remove = False
-                for addon_ in addons:
-                    try:
-                        if addon in self.cache.get_provides(self.cache[addon_]) \
-                        or addon in self.cache.get_depends(self.cache[addon_]) \
-                        or addon in self.cache.get_recommends(self.cache[addon_]):
-                            can_remove = True
-                            break
-                    except KeyError:
-                        addons.remove(addon_)
-                        break
-                if can_remove or not pkg_.candidate or addons.count(addon) > 1 \
-                or addon == pkg.name or self._is_language_pkg(addon):
-                    addons.remove(addon)
-        # FIXME: figure out why I have to call this function two times to get rid of important packages
-		self._remove_important_or_langpack(addons, pkg)
-        return addons
-    
-    def recommended_addons(self, pkgname):
-        return self._addons_for_pkg(pkgname, self.RECOMMENDED)
-    
-    def suggested_addons(self, pkgname):
-        return self._addons_for_pkg(pkgname, self.SUGGESTED)
-    
+                    pkgdep_rec =  self.get_recommends(pkgdep)
+                    LOG.debug("recommends from lonley dependency %s: %s" % (
+                            pkgdep, pkgdep_rec))
+                    addons_rec += pkgdep_rec
+                    pkgdep_sug =  self.get_suggests(pkgdep)
+                    LOG.debug("suggests from lonley dependency %s: %s" % (
+                            pkgdep, pkgdep_sug))
+                    addons_sug += pkgdep_sug
+                    pkgdep_enh = self.get_renhances(pkgdep)
+                    LOG.debug("renhances from lonley dependency %s: %s" % (
+                            pkgdep, pkgdep_enh))
+                    addons_sug += pkgdep_enh
+
+        # now get all_deps if the package would be installed
+        try:
+            all_deps_if_installed = self.get_all_deps_installing(pkg)
+        except:
+            # if we have broken packages, then we return no addons
+            LOG.debug("broken packages encountered while getting deps for %s" % pkgname)
+            return ([],[])
+
+        # remove duplicates from suggests (sets are great!)
+        addons_sug = list(set(addons_sug)-set(addons_rec))
+
+        # filter out stuff we don't want
+        addons_rec = filter(_addons_filter, addons_rec)
+        addons_sug = filter(_addons_filter, addons_sug)
+
+        
+        
+        return (addons_rec, addons_sug)
 
 if __name__ == "__main__":
     c = AptCache()

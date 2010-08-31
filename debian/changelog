@@ -1,3 +1,99 @@
+software-center (2.1.14.3) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchasedialog.py:
+    - fix size and title for additional webkit windows (LP: #625385)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 18:17:45 +0200
+
+software-center (2.1.14.2) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/small-things that cleans
+    up no longer needed code in the carousel after mpts made 
+    the background white
+  * merged lp:~ilidrissi.amine/software-center/addons-provides and
+    added test
+  * merged lp:~kelemeng/software-center/bug625859, this fixes 
+    UTF-8 character escapes (LP: #625859), many thanks!
+  
+  [ Lucian Adrian Grijincu ]
+  * Alt-Left, Alt-Right work as Back/Forward like in all other GNOME apps
+    (LP: #625745)
+
+  [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py:
+    - don't crash on encountering broken packages while getting deps
+  
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/apt/aptcache.py: Packages that enhance a package that
+    is provided by the main app are now add-ons (LP: #625252)
+
+  [ Gary Lasker ]
+  * softwarecenter/enums.py:
+    - add missing CUSTOM_KEY_THUMBNAIL_URL value for software-center
+      plugin to fix update-apt-xapian-index crash (LP: #626600)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 12:45:06 +0200
+
+software-center (2.1.14.1) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * make the currency string not translatable, since it will not
+    vary by locale currently (the agent always uses US$)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 21:12:46 +0200
+
+software-center (2.1.14) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarcenter/app.py:
+    - fix incorrect state of install/remove menu items (LP: #624716)
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview_gtk.py:
+    - activate the appropriate install/remove menu item when
+      selecting an app directly from in the Featured or What's
+      New panels (LP: #624732) 
+  * softwarecenter/backend/channel.py:
+    - wire in icons for For Purchase, Independent and Other
+      nodes in the left navigation pane (LP: #614213, LP: #614214,
+      LP: #614215), many thanks to vish for pointers to suitable
+      icons in the theme!
+  * merge lp:~mpt/software-center/featured-and-whats-new-background,
+    removes grey background from "Featured" and "What's New" boxes,
+    thanks mpt!
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - display currency in software item screen for items for
+      purchase (LP: #618821)
+  
+  [ Mohamed Amine IL Idrissi ]
+  * Do not include download size of installed app.
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 20:52:44 +0200
+
+software-center (2.1.13) maverick; urgency=low
+
+  [ Kiwinote ]
+  * refactor addons code
+  * allow ourselves to install/remove via menu/list_view (LP: #624406)
+  * hide action_bar in featured pane
+
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - minor ui changes to the addons view
+
+  [ Michael Vogt ]
+  * merged  lp:~mmcg069/software-center/whereitsit-tweaks to fix
+    icon size in "where-is-it" code (many thanks)
+  * merged  lp:~mpt/software-center/fit-and-finish-2, fixes not
+    precise string and remove the yellow color from the search
+    widget (many thanks)
+  * merged  lp:~mmcg069/software-center/fit-and-finish-22, 
+    many thanks
+  * software-center:
+    - make --enable-buy the default
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Aug 2010 15:58:05 +0200
+
 software-center (2.1.12.1) maverick; urgency=low
 
   * fix plugin loading
