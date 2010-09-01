@@ -1,6 +1,7 @@
 [type: python] software-center
 [type. python] utils/update-software-center
 [type: gettext/glade] data/ui/SoftwareCenter.ui
+[type: gettext/glade] data/ui/dialogs.ui
 [type: gettext/glade] data/ui/login.ui
 data/ubuntu-software-center.desktop.in
 data/unbranded-software-center.desktop.in

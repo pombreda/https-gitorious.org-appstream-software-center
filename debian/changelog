@@ -28,6 +28,8 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
   [ Kiwinote ]
   * data/SoftwareCenter.ui:
     - tweak window properties for the rebuilding window
+  * po/POTFILES.in:
+    - mark data/ui/dialogs.ui for translation
   * software-center:
     - fix typo, thanks Jeremy Bicha! (LP: #625729)
   * softwarecenter/app.py:
