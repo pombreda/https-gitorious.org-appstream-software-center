@@ -52,6 +52,8 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     - add translators comment to clarify underscore behaviour (LP: #626718)
   * softwarecenter/view/historypane.py:
     - tweak string for consistency (LP: #627215)
+  * softwarecenter/view/purchasedialog.py:
+    - don't show as 'untitled window' in taskbar
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 01 Sep 2010 09:50:07 +0200
 
