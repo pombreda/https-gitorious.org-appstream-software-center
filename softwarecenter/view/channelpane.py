@@ -196,8 +196,12 @@ class ChannelPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         
     def on_db_reopen(self, db):
-        self.refresh_apps()
-        self._show_channel_overview()
+        page = self.notebook.get_current_page()
+        if page  == self.PAGE_APPLIST:
+            self.refresh_apps()
+            self._show_channel_overview()
+        elif page == self.PAGE_APPDETAILS:
+            self.app_details.refresh_app()
 
     def on_navigation_search(self, button, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -218,6 +222,9 @@ class ChannelPane(SoftwarePane):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
             return
+        self.display_details()
+    
+    def display_details(self):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()

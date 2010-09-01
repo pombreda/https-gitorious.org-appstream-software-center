@@ -73,6 +73,8 @@ class AppDetailsViewBase(object):
         #print self.appdetails
         self._draw()
         self.emit("selected", self.app)
+    def refresh_app(self):
+        self.show_app(self.app)
     # public interface
     def reload(self):
         """ reload the package cache, this goes straight to the backend """
