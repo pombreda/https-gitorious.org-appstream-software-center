@@ -102,7 +102,7 @@ class HistoryPane(gtk.VBox, BasePane):
         all_button = all_action.create_tool_item()
         self.toolbar.insert(all_button, 0)
 
-        installs_action = gtk.RadioAction('filter_installs', _('All Installations'), None, None, self.INSTALLED)
+        installs_action = gtk.RadioAction('filter_installs', _('Installations'), None, None, self.INSTALLED)
         installs_action.set_group(all_action)
         installs_button = installs_action.create_tool_item()
         self.toolbar.insert(installs_button, 1)

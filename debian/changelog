@@ -42,6 +42,8 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     - fix AttributeError while running test_appdetails_view.py
     - tweak padding between buttons in addons bar (LP: #625230)
     - don't reload screenshot (ie flicker) if we refresh an existing page
+  * softwarecenter/view/historypane.py:
+    - tweak string for consistency (LP: #627215)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 01 Sep 2010 09:50:07 +0200
 
