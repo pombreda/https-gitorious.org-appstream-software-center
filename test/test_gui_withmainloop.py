@@ -79,6 +79,8 @@ class TestGUIWithMainLoop(unittest.TestCase):
             self.app.backend.emit("channels-changed", True)
         elif condition == "db-reopen":
             self.app.db.emit("reopen")
+        elif condition == "cache-ready":
+            self.app.cache.emit("cache-ready")
         else:
             self.assertNotReached("unknown condition")
         self._p()
@@ -95,6 +97,11 @@ class TestGUIWithMainLoop(unittest.TestCase):
 
     def test_channel_view_on_db_reopen(self):
         glib.timeout_add_seconds(1, self._trigger_test_channel_view, "db-reopen")
+        gtk.main()
+        self.assertTrue(self._on_the_right_channel_view_page)
+
+    def test_channel_view_on_cache_ready(self):
+        glib.timeout_add_seconds(1, self._trigger_test_channel_view, "cache-ready")
         gtk.main()
         self.assertTrue(self._on_the_right_channel_view_page)
 
