@@ -89,6 +89,10 @@ class SoftwarecenterDbusController(dbus.service.Object):
         self.parent.window_main.present()
         return True
 
+    @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
+    def triggerDatabaseReopen(self):
+        self.parent.db.emit("reopen")
+
 class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
