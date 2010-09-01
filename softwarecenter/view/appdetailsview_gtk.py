@@ -1711,13 +1711,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 if self.cache[dep].installed != None:
                     version = self.cache[dep].installed
                     pkgs_to_remove.append(version)
-        
-        for pkg in pkgs_to_install:
-            if pkgs_to_install.count(pkg) > 1:
-                pkgs_to_install.remove(pkg)
-        for pkg in pkgs_to_remove:
-            if pkgs_to_remove.count(pkg) > 1:
-                pkgs_to_remove.remove(pkg)
+
+        pkgs_to_install = list(set(pkgs_to_install))
+        pkgs_to_remove = list(set(pkgs_to_remove))
             
         for pkg in pkgs_to_install:
             if not pkg_downloaded(pkg) and pkg.installed_size == 0:
