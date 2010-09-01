@@ -26,6 +26,8 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     many thanks Matthew McGowan!
 
   [ Kiwinote ]
+  * data/SoftwareCenter.ui:
+    - tweak window properties for the rebuilding window
   * software-center:
     - fix typo, thanks Jeremy Bicha! (LP: #625729)
   * softwarecenter/app.py:

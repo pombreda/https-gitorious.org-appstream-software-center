@@ -864,7 +864,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
         self._database_is_rebuilding = is_rebuilding
         self.window_rebuilding.set_transient_for(self.window_main)
-        self.window_rebuilding.set_title(self.window_main.get_title())
 
         # set a11y text
         try:

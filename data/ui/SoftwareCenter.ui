@@ -439,6 +439,9 @@
     <property name="window_position">center-on-parent</property>
     <property name="default_width">440</property>
     <property name="default_height">250</property>
+    <property name="skip-taskbar-hint">True</property>
+    <property name="deletable">False</property>
+    <property name="title"></property>
     <child>
       <object class="GtkAlignment" id="alignment1">
         <property name="visible">True</property>
