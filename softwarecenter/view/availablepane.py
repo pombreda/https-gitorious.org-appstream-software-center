@@ -576,7 +576,7 @@ class AvailablePane(SoftwarePane):
         " called when the database is reopened"
         #print "on_db_open"
         self.refresh_apps()
-        self._show_category_overview()
+        self.app_details.refresh_app()
 
     def display_category(self):
         self._clear_search()

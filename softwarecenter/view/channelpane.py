@@ -204,12 +204,8 @@ class ChannelPane(SoftwarePane):
         
     def on_db_reopen(self, db):
         LOG.debug("got db-reopen signal")
-        page = self.notebook.get_current_page()
-        if page  == self.PAGE_APPLIST:
-            self.refresh_apps()
-            self._show_channel_overview()
-        elif page == self.PAGE_APP_DETAILS:
-            self.app_details.refresh_app()
+        self.refresh_apps()
+        self.app_details.refresh_app()
 
     def on_navigation_search(self, button, part):
         """ callback when the navigation button with id 'search' is clicked"""
