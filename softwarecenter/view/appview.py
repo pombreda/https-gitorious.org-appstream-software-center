@@ -1567,8 +1567,7 @@ class AppView(gtk.TreeView):
         appdetails = Application(appname, pkgname).get_details(db)
         # ...then manually emit "cursor-changed" as an item has
         # just been removed and so everything else needs to update
-        if appdetails.pkg_state == PKG_STATE_UNINSTALLED:
-            self.emit("cursor-changed")
+        self.emit("cursor-changed")
         
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
