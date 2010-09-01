@@ -28,6 +28,9 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     many thanks Matthew McGowan!
 
   [ Kiwinote ]
+  * data/dialogs.ui:
+    - only display vscrollbar if needed for dependency removal alert
+    - tweak window properties for dependency removal alert
   * data/SoftwareCenter.ui:
     - tweak window properties for the rebuilding window
   * po/POTFILES.in:
