@@ -1727,7 +1727,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string += _("%sB to download, " % (download_size))
         if total_install_size > 0:
             install_size = apt_pkg.size_to_str(total_install_size)
-            if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+            if (self.app_details.pkg_state == PKG_STATE_INSTALLED and
+                not self.addons_manager.addons_to_install and
+                not self.addons_manager.addons_to_remove):
                 label_string += _("%sB on disk" % (install_size))
             else:
                 label_string += _("%sB when installed" % (install_size))
