@@ -622,12 +622,12 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_has_child(self, rowref):
         return False
     def on_iter_n_children(self, rowref):
-        self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
+        #self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
         if rowref:
             return 0
         return len(self.apps)
     def on_iter_nth_child(self, parent, n):
-        self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
+        #self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
         if n >= len(self.apps):

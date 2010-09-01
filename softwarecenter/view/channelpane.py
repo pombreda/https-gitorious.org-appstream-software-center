@@ -36,6 +36,8 @@ from appview import AppView, AppStore, AppViewFilter
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
+LOG = logging.getLogger(__name__)
+
 class ChannelPane(SoftwarePane):
     """Widget that represents the channel pane for display of
        individual channels (PPAs, partner repositories, etc.)
@@ -98,7 +100,7 @@ class ChannelPane(SoftwarePane):
                                         "list")
             query = xapian.Query(channel_query)
 
-        logging.debug("channelpane query: %s" % query)
+        LOG.debug("channelpane query: %s" % query)
         # *ugh* deactivate the old model because otherwise it keeps
         # getting progress_changed events and eats CPU time until its
         # garbage collected
@@ -117,10 +119,14 @@ class ChannelPane(SoftwarePane):
             old_model.active = False
             while gtk.events_pending():
                 gtk.main_iteration()
-        gobject.idle_add(self._make_new_model, query, self.refresh_seq_nr)
+        gobject.timeout_add(100, self._make_new_model, query, self.refresh_seq_nr)
         return False
 
     def _make_new_model(self, query, seq_nr):
+        # something changed already
+        if self.refresh_seq_nr != seq_nr:
+            LOG.warn("early discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+            return
         # get a new store and attach it to the view
         if self.scroll_app_list.window:
             self.scroll_app_list.window.set_cursor(self.busy_cursor)
@@ -146,7 +152,7 @@ class ChannelPane(SoftwarePane):
             # discard new_model and just update the previous one
             self.emit("app-list-changed", len(self.app_view.get_model()))
         else:
-            logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+            LOG.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
         return False
 
     def set_channel(self, channel):
@@ -188,7 +194,7 @@ class ChannelPane(SoftwarePane):
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
-        logging.debug("on_search_terms_changed: '%s'" % terms)
+        LOG.debug("on_search_terms_changed: '%s'" % terms)
         self.search_terms = terms
         if not self.search_terms:
             self._clear_search()
@@ -196,11 +202,12 @@ class ChannelPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         
     def on_db_reopen(self, db):
+        LOG.debug("got db-reopen signal")
         page = self.notebook.get_current_page()
         if page  == self.PAGE_APPLIST:
             self.refresh_apps()
             self._show_channel_overview()
-        elif page == self.PAGE_APPDETAILS:
+        elif page == self.PAGE_APP_DETAILS:
             self.app_details.refresh_app()
 
     def on_navigation_search(self, button, part):
@@ -231,7 +238,7 @@ class ChannelPane(SoftwarePane):
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
-        logging.debug("on_application_selected: '%s'" % app)
+        LOG.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
 
     def _on_app_list_changed(self, pane, length):
