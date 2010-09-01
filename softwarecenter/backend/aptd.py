@@ -301,6 +301,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self._reload_signal_id = self.connect(
             "reload-finished", self._on_reload_for_add_repo_and_install_app_finished, self, trans_metadata, app)
             
+    @inline_callbacks
     def _on_reload_for_add_repo_and_install_app_finished(self, trans, result, backend, metadata, app):
         """ 
         callback that is called once after reload was queued
@@ -308,14 +309,26 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         (after that it will automatically de-register)
         """
         #print trans, result, backend
-        if result:
-            self.install(app.pkgname, 
-                         app.appname, 
-                         iconname="", 
-                         metadata=metadata)
+
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
         self._reload_signal_id = None
+
+        # run install action if the repo was added successfully 
+        if result:
+            # we use aptd_client.install_packages() here instead
+            # of just 
+            #  self.install(app.pkgname, app.appname, "", metadata=metadata)
+            # go get less authentication prompts (because of the 03_auth_me_less
+            # patch in aptdaemon)
+            try:
+                trans = yield self.aptd_client.install_packages(
+                    [app.pkgname], defer=True)
+                yield self._run_transaction(trans, app.pkgname, app.appname,
+                                            "", metadata)
+            except Exception, error:
+                self._on_trans_error(error, app.pkgname)
+
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
