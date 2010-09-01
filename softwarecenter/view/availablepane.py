@@ -434,6 +434,8 @@ class AvailablePane(SoftwarePane):
         if (appstore and appstore.active and self.is_applist_view_showing() and
             pkgs != apps and pkgs > 0 and apps > 0):
             if appstore.nonapps_visible:
+                # TRANSLATORS: the text inbetween the underscores acts as a link
+                # In most/all languages you will want the whole string as a link
                 label = gettext.ngettext("_Hide %i technical item_",
                                          "_Hide %i technical items_",
                                          pkgs) % pkgs
