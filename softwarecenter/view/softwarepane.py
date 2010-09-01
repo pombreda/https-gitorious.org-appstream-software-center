@@ -45,6 +45,8 @@ else:
 
 from softwarecenter.db.database import Application
 
+LOG = logging.getLogger(__name__)
+
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that the cache is ready using a
         gtk idle_add - needs a cache as argument
@@ -155,7 +157,7 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
-        logging.debug("on_cache_ready")
+        LOG.debug("on_cache_ready")
         # FIXME: preserve selection too
         # get previous vadjustment and reapply it
         vadj = self.scroll_app_list.get_vadjustment()
@@ -166,7 +168,7 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def on_application_activated(self, appview, app):
         """callback when an app is clicked"""
-        logging.debug("on_application_activated: '%s'" % app)
+        LOG.debug("on_application_activated: '%s'" % app)
         self.navigation_bar.add_with_id(app.name,
                                        self.on_navigation_details,
                                        "details")
@@ -185,7 +187,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         
         if model and current_app in model.app_index_map:
             index =  model.app_index_map.get(current_app)
-            logging.debug("found app: %s at index %s" % (current_app.pkgname, index))
+            LOG.debug("found app: %s at index %s" % (current_app.pkgname, index))
             self.app_view.set_cursor(index)
 
     def set_section_color(self, color):

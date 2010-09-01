@@ -83,6 +83,7 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
+        LOG.debug("refresh_apps")
         if not self.channel:
             return
         self.refresh_seq_nr += 1
@@ -126,7 +127,7 @@ class ChannelPane(SoftwarePane):
         # something changed already
         if self.refresh_seq_nr != seq_nr:
             LOG.warn("early discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
-            return
+            return False
         # get a new store and attach it to the view
         if self.scroll_app_list.window:
             self.scroll_app_list.window.set_cursor(self.busy_cursor)
