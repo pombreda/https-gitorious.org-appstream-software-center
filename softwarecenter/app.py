@@ -410,6 +410,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):
+        self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
             self.db.reopen()
 

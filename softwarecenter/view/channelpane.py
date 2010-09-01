@@ -93,13 +93,13 @@ class ChannelPane(SoftwarePane):
                                                              channel_query)
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
-                                            "search")
+                                            "search", do_callback=False)
         else:
-            self.navigation_bar.remove_all()
+            self.navigation_bar.remove_all(do_callback=False)
             self.navigation_bar.add_with_id(
                 self.channel.get_channel_display_name(),
                 self.on_navigation_list,
-                "list")
+                "list", do_callback=False)
             query = xapian.Query(channel_query)
 
         LOG.debug("channelpane query: %s" % query)
@@ -191,8 +191,8 @@ class ChannelPane(SoftwarePane):
             if self.apps_filter is None:
                 self.apps_filter = AppViewFilter(self.db, self.cache)
             self.apps_filter.set_installed_only(True)
-        # when displaying a new channel, clear any search in progress
-        self.search_terms = ""
+        # switch to applist, this will clear searches too
+        self.display_list()
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
@@ -220,6 +220,9 @@ class ChannelPane(SoftwarePane):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
+        self.display_list()
+    
+    def display_list(self):
         self._clear_search()
         self._show_channel_overview()
         # only emit something if the model is there
