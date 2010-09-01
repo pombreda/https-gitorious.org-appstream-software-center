@@ -27,6 +27,40 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     pathbar no longer shrinking to available width (LP: #625210),
     many thanks Matthew McGowan!
 
+  [ Kiwinote ]
+  * data/dialogs.ui:
+    - only display vscrollbar if needed for dependency removal alert
+    - tweak window properties for dependency removal alert
+  * data/SoftwareCenter.ui:
+    - tweak window properties for the rebuilding window
+  * po/POTFILES.in:
+    - mark data/ui/dialogs.ui for translation
+  * software-center:
+    - fix typo, thanks Jeremy Bicha! (LP: #625729)
+  * softwarecenter/app.py:
+    - always make s-c sensitive again after catalog is rebuilt (LP: #626513)
+  * softwarecenter/apt/aptcache.py:
+    - don't crash when no LANGPACK_PKGDEPENDS file exists (LP: #625562)
+    - speed improvements for get_addons()
+    - don't allow randompkg-something to list randompkg as an add-on
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't use capitalize() on add-on names, much thanks to Severin Heiniger!
+      lp:~lantash/ubuntu/maverick/software-center/fixes-626067 (LP: #626067)
+    - fix AttributeError while running test_appdetails_view.py
+    - tweak padding between buttons in addons bar (LP: #625230)
+    - don't reload screenshot (ie flicker) if we refresh an existing page
+    - fix typo (LP: #622750)
+    - fix some broken logic which gives wrong total size
+    - show "x when installed" when addons are selected for installed pkg
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py:
+    - add translators comment to clarify underscore behaviour (LP: #626718)
+  * softwarecenter/view/historypane.py:
+    - tweak string for consistency (LP: #627215)
+    - hide the architecture (introduced by new apt a little while back)
+  * softwarecenter/view/purchasedialog.py:
+    - don't show as 'untitled window' in taskbar
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 01 Sep 2010 09:50:07 +0200
 
 software-center (2.1.14.2) maverick; urgency=low
