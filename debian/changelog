@@ -1,4 +1,4 @@
-software-center (2.1.14.3) UNRELEASED; urgency=low
+software-center (2.1.15) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/purchasedialog.py:
