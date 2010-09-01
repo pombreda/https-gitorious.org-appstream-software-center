@@ -177,7 +177,7 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Installing...'))
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_INSTALLING_PURCHASED:
-            self.set_label(_('Installing purchased...'))
+            self.set_label(_(u'Installing purchase\u2026'))
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))

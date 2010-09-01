@@ -46,6 +46,7 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     - fix AttributeError while running test_appdetails_view.py
     - tweak padding between buttons in addons bar (LP: #625230)
     - don't reload screenshot (ie flicker) if we refresh an existing page
+    - fix typo (LP: #622750)
   * softwarecenter/view/availablepane.py,
     softwarecenter/view/channelpane.py:
     - add translators comment to clarify underscore behaviour (LP: #626718)
