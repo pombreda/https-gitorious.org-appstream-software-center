@@ -88,8 +88,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                         (bool,)),
                     # cache reload emits this specific signal as well
                     'reload-finished':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (bool,)),
+                                       gobject.TYPE_NONE,
+                                       (gobject.TYPE_PYOBJECT, bool,)),
                     }
 
     def __init__(self):
@@ -299,16 +299,21 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # otherwise the daemon will fail because he does not know
         # the new package name yet
         self._reload_signal_id = self.connect(
-            "reload-finished", self._on_reload_for_add_repo_and_install_app_finished, self, trans_metadata, app)
+            "reload-finished", self._on_reload_for_add_repo_and_install_app_finished, trans_metadata, app)
             
     @inline_callbacks
-    def _on_reload_for_add_repo_and_install_app_finished(self, trans, result, backend, metadata, app):
+    def _on_reload_for_add_repo_and_install_app_finished(self, backend, trans, result, metadata, app):
         """ 
         callback that is called once after reload was queued
         and will trigger the install of the for-pay package itself
         (after that it will automatically de-register)
         """
         #print trans, result, backend
+
+        # check if this is the transaction we waiting for
+        key = "sc_add_repo_and_install_pkgname"
+        if not (key in trans.meta_data and trans.meta_data[key] == app.pkgname):
+            return
 
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
@@ -406,7 +411,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # if it was a cache-reload, trigger a-x-i update
         if trans.role == enums.ROLE_UPDATE_CACHE:
             self.update_xapian_index()
-            self.emit("reload-finished", enum != enums.EXIT_FAILED)
+            self.emit("reload-finished", trans, enum != enums.EXIT_FAILED)
         # send appropriate signals
         self.emit("transactions-changed", self.pending_transactions)
         self.emit("transaction-finished", TransactionFinishedResult(trans, enum))
