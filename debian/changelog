@@ -21,6 +21,11 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     - minor logging improvements
   * merged lp:~mmcg069/software-center/pathbar-clip-fix that ensures
     proper clipping for the pathbar, many thanks!
+  * softwarecenter/view/channelpane.py:
+    - fix flicker in channelspane on db-reopen and add regression
+      test
+  * merged lp:~mvo/software-center/less-flicker that fixes some
+    UI flicker/ghost activity (LP: #626733)
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/misbehaving-pathbar-fix, fixes

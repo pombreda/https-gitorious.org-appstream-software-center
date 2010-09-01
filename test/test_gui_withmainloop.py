@@ -62,7 +62,7 @@ class TestGUIWithMainLoop(unittest.TestCase):
         self.assertTrue(self._on_the_right_page)
         self.assertTrue(self._action_bar_hidden)
 
-    def _trigger_test_channel_view(self):
+    def _trigger_test_channel_view(self, condition):
         # reset
         self.app.available_pane.on_navigation_category(None, None)
         self._p()
@@ -73,19 +73,35 @@ class TestGUIWithMainLoop(unittest.TestCase):
         # activate first app
         column = self.app.channel_pane.app_view.get_column(0)
         self.app.channel_pane.app_view.row_activated((0,), column)
-        # now simulate a channel-change
-        self.app.backend.emit("channels-changed", True)
+        self._p()
+        # now simulate a the condition
+        if condition == "channels-changed":
+            self.app.backend.emit("channels-changed", True)
+        elif condition == "db-reopen":
+            self.app.db.emit("reopen")
+        elif condition == "cache-ready":
+            self.app.cache.emit("cache-ready")
+        else:
+            self.assertNotReached("unknown condition")
         self._p()
         # we just add bools here and do the asserts in the test_ function,
         # make sure we stay on the same page
         self._on_the_right_channel_view_page = (self.app.channel_pane.notebook.get_current_page() == self.app.channel_pane.PAGE_APP_DETAILS)
-        
-
         # done
         self.app.on_menuitem_close_activate(None)
 
     def test_channel_view(self):
-        glib.timeout_add_seconds(1, self._trigger_test_channel_view)
+        glib.timeout_add_seconds(1, self._trigger_test_channel_view, "channels-changed")
+        gtk.main()
+        self.assertTrue(self._on_the_right_channel_view_page)
+
+    def test_channel_view_on_db_reopen(self):
+        glib.timeout_add_seconds(1, self._trigger_test_channel_view, "db-reopen")
+        gtk.main()
+        self.assertTrue(self._on_the_right_channel_view_page)
+
+    def test_channel_view_on_cache_ready(self):
+        glib.timeout_add_seconds(1, self._trigger_test_channel_view, "cache-ready")
         gtk.main()
         self.assertTrue(self._on_the_right_channel_view_page)
 
@@ -104,4 +120,7 @@ class TestGUIWithMainLoop(unittest.TestCase):
             gtk.main_iteration()
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "-v":
+        from softwarecenter.log import root
+        root.setLevel(level=logging.DEBUG)
     unittest.main()

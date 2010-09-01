@@ -89,6 +89,14 @@ class SoftwarecenterDbusController(dbus.service.Object):
         self.parent.window_main.present()
         return True
 
+    @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
+    def triggerDatabaseReopen(self):
+        self.parent.db.emit("reopen")
+
+    @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
+    def triggerCacheReload(self):
+        self.parent.cache.emit("cache-ready")
+
 class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
@@ -406,6 +414,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):
+        self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
             self.db.reopen()
 
