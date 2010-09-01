@@ -19,6 +19,8 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
     - point SERVICE_ROOT for the internal login service to production
   * softwarecenter/view/appdetailsview_gtk.py:
     - minor logging improvements
+  * merged lp:~mmcg069/software-center/pathbar-clip-fix that ensures
+    proper clipping for the pathbar, many thanks!
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/misbehaving-pathbar-fix, fixes

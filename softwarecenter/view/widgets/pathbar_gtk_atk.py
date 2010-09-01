@@ -292,6 +292,7 @@ class PathBar(gtk.HBox):
         return
 
     def _on_expose_event(self, widget, event):
+        
         if self._scroll_xO:
             self._expose_scroll(widget, event)
         else:
@@ -302,7 +303,6 @@ class PathBar(gtk.HBox):
         theme = self.theme
         parts = self.get_children()
         parts.reverse()
-        region = gtk.gdk.region_rectangle(event.area)
 
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
@@ -327,7 +327,7 @@ class PathBar(gtk.HBox):
                                            'expander',
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
-                theme.paint_layout(cr, widget, part, a.x+x, a.y+y)
+                theme.paint_layout(cr, widget, part, a.x+x, a.y+y, clip=event.area)
             else:
                 part.invisible = False
         del cr
@@ -337,7 +337,6 @@ class PathBar(gtk.HBox):
         theme = self.theme
         parts = self.get_children()
         parts.reverse()
-        region = gtk.gdk.region_rectangle(event.area)
 
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
@@ -356,7 +355,7 @@ class PathBar(gtk.HBox):
         w = part.get_draw_width()
         theme.paint_bg(cr, part, x+xo, y, w, h, sxO)
         x, y, w, h = part.get_layout_points()
-        theme.paint_layout(cr, widget, part, a.x+x-int(sxO), a.y+y)
+        theme.paint_layout(cr, widget, part, a.x+x-int(sxO), a.y+y, clip=event.area)
 
         # draw the rest of the parts
         for part in parts[1:]:
@@ -377,7 +376,7 @@ class PathBar(gtk.HBox):
                                            'expander',
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
-                theme.paint_layout(cr, widget, part, a.x+x, a.y+y)
+                theme.paint_layout(cr, widget, part, a.x+x, a.y+y, clip=event.area)
             else:
                 part.invisible = False
         del cr
