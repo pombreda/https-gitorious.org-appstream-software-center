@@ -96,9 +96,10 @@ class ChannelPane(SoftwarePane):
                                             "search")
         else:
             self.navigation_bar.remove_all()
-            self.navigation_bar.add_with_id(self.channel.get_channel_display_name(),
-                                        self.on_navigation_list,
-                                        "list")
+            self.navigation_bar.add_with_id(
+                self.channel.get_channel_display_name(),
+                self.on_navigation_list,
+                "list")
             query = xapian.Query(channel_query)
 
         LOG.debug("channelpane query: %s" % query)
@@ -120,7 +121,7 @@ class ChannelPane(SoftwarePane):
             old_model.active = False
             while gtk.events_pending():
                 gtk.main_iteration()
-        gobject.timeout_add(100, self._make_new_model, query, self.refresh_seq_nr)
+        self._make_new_model(query, self.refresh_seq_nr)
         return False
 
     def _make_new_model(self, query, seq_nr):
