@@ -622,12 +622,12 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_has_child(self, rowref):
         return False
     def on_iter_n_children(self, rowref):
-        self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
+        #self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
         if rowref:
             return 0
         return len(self.apps)
     def on_iter_nth_child(self, parent, n):
-        self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
+        #self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
         if n >= len(self.apps):
@@ -1388,7 +1388,8 @@ class AppView(gtk.TreeView):
         pointer = gtk.gdk.device_get_core_pointer()
         x, y = pointer.get_state(view.window)[0]
         for btn in tr.get_buttons():
-            if btn.point_in(int(x), int(y)): return
+            if btn.point_in(int(x), int(y)): 
+                return
 
         model = view.get_model()
         exists = model[path][AppStore.COL_EXISTS]
@@ -1397,7 +1398,8 @@ class AppView(gtk.TreeView):
             pkgname = model[path][AppStore.COL_PKGNAME]
             request = model[path][AppStore.COL_REQUEST]
             popcon = model[path][AppStore.COL_POPCON]
-            self.emit("application-activated", Application(name, pkgname, request, popcon))
+            self.emit("application-activated", 
+                      Application(name, pkgname, request, popcon))
 
     def _on_button_press_event(self, view, event, tr):
         if event.button != 1:
@@ -1565,8 +1567,7 @@ class AppView(gtk.TreeView):
         appdetails = Application(appname, pkgname).get_details(db)
         # ...then manually emit "cursor-changed" as an item has
         # just been removed and so everything else needs to update
-        if appdetails.pkg_state == PKG_STATE_UNINSTALLED:
-            self.emit("cursor-changed")
+        self.emit("cursor-changed")
         
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)

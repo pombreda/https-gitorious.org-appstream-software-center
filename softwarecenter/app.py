@@ -89,6 +89,14 @@ class SoftwarecenterDbusController(dbus.service.Object):
         self.parent.window_main.present()
         return True
 
+    @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
+    def triggerDatabaseReopen(self):
+        self.parent.db.emit("reopen")
+
+    @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
+    def triggerCacheReload(self):
+        self.parent.cache.emit("cache-ready")
+
 class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
@@ -406,6 +414,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):
+        self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
             self.db.reopen()
 
@@ -864,13 +873,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
         self._database_is_rebuilding = is_rebuilding
         self.window_rebuilding.set_transient_for(self.window_main)
-        self.window_rebuilding.set_title(self.window_main.get_title())
 
         # set a11y text
-        text = self.window_rebuilding.get_children()[0]
-        text.set_property("can-focus", True)
-        text.a11y = text.get_accessible()
-        text.a11y.set_name(text.get_children()[0].get_text())
+        try:
+            text = self.window_rebuilding.get_children()[0]
+            text.set_property("can-focus", True)
+            text.a11y = text.get_accessible()
+            text.a11y.set_name(text.get_children()[0].get_text())
+        except IndexError:
+            pass
 
         self.window_main.set_sensitive(not is_rebuilding)
         # show dialog about the rebuilding status

@@ -60,6 +60,7 @@ class PurchaseDialog(gtk.Dialog):
         gtk.Dialog.__init__(self)
         self.set_title("")
         self.app = app
+        self.set_property('skip-taskbar-hint', True)
         self.set_size_request(700, 700)
         self.wk = ScrolledWebkitWindow()
         self.wk.webkit.connect("create-web-view", 

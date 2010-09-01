@@ -36,6 +36,8 @@ from appview import AppView, AppStore, AppViewFilter
 
 from softwarepane import SoftwarePane, wait_for_apt_cache_ready
 
+LOG = logging.getLogger(__name__)
+
 class ChannelPane(SoftwarePane):
     """Widget that represents the channel pane for display of
        individual channels (PPAs, partner repositories, etc.)
@@ -81,6 +83,7 @@ class ChannelPane(SoftwarePane):
         """refresh the applist after search changes and update the 
            navigation bar
         """
+        LOG.debug("refresh_apps")
         if not self.channel:
             return
         self.refresh_seq_nr += 1
@@ -90,15 +93,15 @@ class ChannelPane(SoftwarePane):
                                                              channel_query)
             self.navigation_bar.add_with_id(_("Search Results"),
                                             self.on_navigation_search, 
-                                            "search")
+                                            "search", do_callback=False)
         else:
-            self.navigation_bar.remove_all()
-            self.navigation_bar.add_with_id(self.channel.get_channel_display_name(),
-                                        self.on_navigation_list,
-                                        "list")
+            self.navigation_bar.add_with_id(
+                self.channel.get_channel_display_name(),
+                self.on_navigation_list,
+                "list", do_callback=False)
             query = xapian.Query(channel_query)
 
-        logging.debug("channelpane query: %s" % query)
+        LOG.debug("channelpane query: %s" % query)
         # *ugh* deactivate the old model because otherwise it keeps
         # getting progress_changed events and eats CPU time until its
         # garbage collected
@@ -117,10 +120,14 @@ class ChannelPane(SoftwarePane):
             old_model.active = False
             while gtk.events_pending():
                 gtk.main_iteration()
-        gobject.idle_add(self._make_new_model, query, self.refresh_seq_nr)
+        self._make_new_model(query, self.refresh_seq_nr)
         return False
 
     def _make_new_model(self, query, seq_nr):
+        # something changed already
+        if self.refresh_seq_nr != seq_nr:
+            LOG.warn("early discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+            return False
         # get a new store and attach it to the view
         if self.scroll_app_list.window:
             self.scroll_app_list.window.set_cursor(self.busy_cursor)
@@ -146,7 +153,7 @@ class ChannelPane(SoftwarePane):
             # discard new_model and just update the previous one
             self.emit("app-list-changed", len(self.app_view.get_model()))
         else:
-            logging.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+            LOG.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
         return False
 
     def set_channel(self, channel):
@@ -183,12 +190,12 @@ class ChannelPane(SoftwarePane):
             if self.apps_filter is None:
                 self.apps_filter = AppViewFilter(self.db, self.cache)
             self.apps_filter.set_installed_only(True)
-        # when displaying a new channel, clear any search in progress
-        self.search_terms = ""
+        # switch to applist, this will clear searches too
+        self.display_list()
         
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
-        logging.debug("on_search_terms_changed: '%s'" % terms)
+        LOG.debug("on_search_terms_changed: '%s'" % terms)
         self.search_terms = terms
         if not self.search_terms:
             self._clear_search()
@@ -196,8 +203,9 @@ class ChannelPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
         
     def on_db_reopen(self, db):
+        LOG.debug("got db-reopen signal")
         self.refresh_apps()
-        self._show_channel_overview()
+        self.app_details.refresh_app()
 
     def on_navigation_search(self, button, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -207,6 +215,9 @@ class ChannelPane(SoftwarePane):
         """callback when the navigation button with id 'list' is clicked"""
         if not button.get_active():
             return
+        self.display_list()
+    
+    def display_list(self):
         self._clear_search()
         self._show_channel_overview()
         # only emit something if the model is there
@@ -218,13 +229,16 @@ class ChannelPane(SoftwarePane):
         """callback when the navigation button with id 'details' is clicked"""
         if not button.get_active():
             return
+        self.display_details()
+    
+    def display_details(self):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
-        logging.debug("on_application_selected: '%s'" % app)
+        LOG.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
 
     def _on_app_list_changed(self, pane, length):
@@ -253,6 +267,8 @@ class ChannelPane(SoftwarePane):
         if (appstore and appstore.active and not self.channel.installed_only and
             pkgs != apps and pkgs > 0 and apps > 0):
             if appstore.nonapps_visible:
+                # TRANSLATORS: the text inbetween the underscores acts as a link
+                # In most/all languages you will want the whole string as a link
                 label = gettext.ngettext("_Hide %i technical item_",
                                          "_Hide %i technical items_",
                                          pkgs) % pkgs

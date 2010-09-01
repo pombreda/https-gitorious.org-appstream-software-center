@@ -55,6 +55,7 @@ def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depe
     # FIXME: make this a generic pkgview widget
     view = PkgNamesView(_("Dependency"), cache, depends)
     view.set_headers_visible(False)
+    # FIXME: work out how not to select?/focus?/activate? first item
     glade_dialog.scrolledwindow_dependencies.add(view)
     glade_dialog.scrolledwindow_dependencies.show_all()
         
