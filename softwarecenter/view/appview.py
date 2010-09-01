@@ -1388,7 +1388,8 @@ class AppView(gtk.TreeView):
         pointer = gtk.gdk.device_get_core_pointer()
         x, y = pointer.get_state(view.window)[0]
         for btn in tr.get_buttons():
-            if btn.point_in(int(x), int(y)): return
+            if btn.point_in(int(x), int(y)): 
+                return
 
         model = view.get_model()
         exists = model[path][AppStore.COL_EXISTS]
@@ -1397,7 +1398,8 @@ class AppView(gtk.TreeView):
             pkgname = model[path][AppStore.COL_PKGNAME]
             request = model[path][AppStore.COL_REQUEST]
             popcon = model[path][AppStore.COL_POPCON]
-            self.emit("application-activated", Application(name, pkgname, request, popcon))
+            self.emit("application-activated", 
+                      Application(name, pkgname, request, popcon))
 
     def _on_button_press_event(self, view, event, tr):
         if event.button != 1:
