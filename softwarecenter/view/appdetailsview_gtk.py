@@ -1716,7 +1716,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         pkgs_to_remove = list(set(pkgs_to_remove))
             
         for pkg in pkgs_to_install:
-            if not pkg_downloaded(pkg) and pkg.installed_size == 0:
+            if not pkg_downloaded(pkg) and not pkg.package.installed:
                 total_download_size += pkg.size
             total_install_size += pkg.installed_size
         for pkg in pkgs_to_remove:
