@@ -69,7 +69,7 @@ COLOR_GREEN_OUTLINE = '#8AE234'
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
 
-LOG = logging.getLogger("softwarecenter.view.appdetails")
+LOG = logging.getLogger("softwarecenter.view.appdetailsview")
 
 class PackageStatusBar(gtk.Alignment):
     
@@ -342,11 +342,11 @@ class AppDescription(gtk.VBox):
 
     def set_description(self, desc, appname):
         """ Attempt to maintain original fixed width layout, while 
-            reconstructing the description into text blocks (either paragraphs or
-            bullets) which are line-wrap friendly.
+            reconstructing the description into text blocks 
+            (either paragraphs or bullets) which are line-wrap friendly.
         """
 
-        #print desc
+        LOG.debug("description: '%s' " % desc)
         self.clear()
         desc = gobject.markup_escape_text(desc)
 
@@ -358,7 +358,6 @@ class AppDescription(gtk.VBox):
 
         for i, part in enumerate(parts):
             part = part.strip()
-
             # if empty, do the void
             if not part:
                 pass
@@ -1440,7 +1439,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def show_app(self, app):
         LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
-            LOG.info("no app selected")
+            LOG.debug("no app selected")
             return
         
         # set button sensitive again
