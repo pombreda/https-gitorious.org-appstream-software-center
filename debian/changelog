@@ -1,9 +1,24 @@
 software-center (2.1.14.3) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/view/purchasedialog.py:
     - fix size and title for additional webkit windows (LP: #625385)
+  * softwarecenter/db/update.py:
+    - fix screenshot url and thumbnail url loading
+  * softwarecenter/enums.py:
+    - switch default to buy-host to software-center.ubuntu.com
+    - allow override via the SOFTWARE_CENTER_BUY_HOST environment
+      (useful for testing)
+  * softwarecenter/backend/aptd.py:
+    - make defaults for addons_{install,remove} empty lists instead
+      of None to prevent crash when called with a empty argument
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 30 Aug 2010 18:17:45 +0200
+  [ Gary Lasker ]
+  * merge lp:~mmcg069/software-center/misbehaving-pathbar-fix, fixes
+    pathbar no longer shrinking to available width (LP: #625210),
+    many thanks Matthew McGowan!
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 31 Aug 2010 15:35:05 -0400
 
 software-center (2.1.14.2) maverick; urgency=low
 
