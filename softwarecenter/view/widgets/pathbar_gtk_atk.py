@@ -20,11 +20,13 @@ import atk
 import cairo
 import gobject
 import gtk
+import logging
 import mkit
 import pango
 
 from gettext import gettext as _
 
+LOG = logging.getLogger("softwarecenter.view.widgets.NavigationBar")
 
 class PathBar(gtk.HBox):
 
@@ -756,6 +758,9 @@ class NavigationBar(PathBar):
         If there is the same id already, replace the existing one
         with the new one
         """
+        LOG.debug("add_with_id label='%s' callback='%s' id='%s' "
+                  "do_callback=%s animate=%s" % (label, callback, id,
+                                                 do_callback, animate))
         # check if we have the button of that id or need a new one
         if id in self.id_to_part:
             part = self.id_to_part[id]
