@@ -61,6 +61,8 @@ software-center (2.1.15) UNRELEASED; urgency=low
     - don't crash when no LANGPACK_PKGDEPENDS file exists (LP: #625562)
     - speed improvements for get_addons()
     - don't allow randompkg-something to list randompkg as an add-on
+  * softwarecenter/db/application.py:
+    - fail nicely if a deb file can't be opened
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't use capitalize() on add-on names, much thanks to Severin Heiniger!
       lp:~lantash/ubuntu/maverick/software-center/fixes-626067 (LP: #626067)
@@ -71,6 +73,7 @@ software-center (2.1.15) UNRELEASED; urgency=low
     - fix some broken logic which gives wrong total size (LP: #624578)
     - show "x when installed" when addons are selected for installed pkg
     - fix a quirk so that the download size is not always 0
+    - hide totalsize info when we have an error
   * softwarecenter/view/availablepane.py,
     softwarecenter/view/channelpane.py:
     - add translators comment to clarify underscore behaviour (LP: #626718)
