@@ -1,4 +1,4 @@
-software-center (2.1.14.3) UNRELEASED; urgency=low
+software-center (2.1.15) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/purchasedialog.py:
@@ -31,6 +31,9 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
   * merge lp:~mmcg069/software-center/misbehaving-pathbar-fix, fixes
     pathbar no longer shrinking to available width (LP: #625210),
     many thanks Matthew McGowan!
+  * softwarecenter/view/viewswitcher.py:
+    - only update the channel list when a model is available
+      (LP: #628394)
 
   [ Kiwinote ]
   * data/dialogs.ui:
@@ -67,7 +70,7 @@ software-center (2.1.14.3) UNRELEASED; urgency=low
   * softwarecenter/view/purchasedialog.py:
     - don't show as 'untitled window' in taskbar
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 01 Sep 2010 09:50:07 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 01 Sep 2010 17:19:42 -0400
 
 software-center (2.1.14.2) maverick; urgency=low
 
