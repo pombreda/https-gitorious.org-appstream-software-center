@@ -58,8 +58,9 @@ software-center (2.1.15) UNRELEASED; urgency=low
     - tweak padding between buttons in addons bar (LP: #625230)
     - don't reload screenshot (ie flicker) if we refresh an existing page
     - fix typo (LP: #622750)
-    - fix some broken logic which gives wrong total size
+    - fix some broken logic which gives wrong total size (LP: #624578)
     - show "x when installed" when addons are selected for installed pkg
+    - fix a quirk so that the download size is not always 0
   * softwarecenter/view/availablepane.py,
     softwarecenter/view/channelpane.py:
     - add translators comment to clarify underscore behaviour (LP: #626718)
