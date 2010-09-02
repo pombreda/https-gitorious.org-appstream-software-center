@@ -2,6 +2,9 @@
   <Menu>
     <_Name>What’s New</_Name>
     <SCIcon>gtk-about</SCIcon>
+    <Flags>
+      <Flag>carousel-only</Flag>
+    </Flags>
     <SCSortMode>3</SCSortMode>
     <SCItemLimit>20</SCItemLimit>
     <Include>
