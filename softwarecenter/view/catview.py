@@ -97,6 +97,7 @@ class CategoriesView(object):
     def parse_applications_menu(self, datadir):
         """ parse a application menu and return a list of Category objects """
         categories = []
+        print datadir
         # we support multiple menu files and menu drop ins
         menu_files = [datadir+"/desktop/software-center.menu"]
         menu_files += glob.glob(datadir+"/menu.d/*.menu")
