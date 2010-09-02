@@ -111,7 +111,8 @@ class ViewSwitcher(gtk.TreeView):
         # does not jump around
         self._block_set_cursor_signals = True
         model = self.get_model()
-        model._update_channel_list()
+        if model:
+            model._update_channel_list()
         self._block_set_cursor_signals = False
 
     def on_treeview_row_expanded(self, widget, iter, path):
