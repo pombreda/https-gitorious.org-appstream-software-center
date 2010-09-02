@@ -63,6 +63,7 @@ software-center (2.1.15) UNRELEASED; urgency=low
     - fix some broken logic which gives wrong total size (LP: #624578)
     - show "x when installed" when addons are selected for installed pkg
     - fix a quirk so that the download size is not always 0
+    - hide totalsize info when we have an error
   * softwarecenter/view/availablepane.py,
     softwarecenter/view/channelpane.py:
     - add translators comment to clarify underscore behaviour (LP: #626718)
