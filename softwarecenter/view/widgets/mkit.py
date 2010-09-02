@@ -974,11 +974,14 @@ class LinkButton(gtk.EventBox):
         cr.set_source_pixbuf(pb, x, y)
         cr.paint_with_alpha(self.alpha)
 
-        if self.state != gtk.STATE_ACTIVE: return
+        if self.state not in (gtk.STATE_PRELIGHT, gtk.STATE_ACTIVE): return
 
         cr.rectangle(a)
         cr.clip_preserve()
-        r,g,b = floats_from_string('#FFFFC1')
+        if self.state == gtk.STATE_PRELIGHT:
+            r,g,b = floats_from_string('#FFFFC1')
+        else:
+            r,g,b = floats_from_gdkcolor(self.style.mid[gtk.STATE_SELECTED])
         cr.set_source_rgba(r,g,b, 0.33*self.alpha)
         cr.mask_surface(self._image_surface, x, y)
         return True
