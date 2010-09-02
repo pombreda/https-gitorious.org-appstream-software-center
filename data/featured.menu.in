@@ -2,6 +2,9 @@
   <Menu>
     <_Name>Featured</_Name>
     <SCIcon>gtk-about</SCIcon>
+    <Flags>
+      <Flag>carousel-only</Flag>
+    </Flags>
     <Include>
       <Or>
 	<SCPkgname>cheese</SCPkgname>
