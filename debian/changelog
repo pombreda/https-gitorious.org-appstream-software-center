@@ -32,6 +32,8 @@ software-center (2.1.15) UNRELEASED; urgency=low
       telling us its available and it becoming availalbe in launchpad.
       In this case, retry up to 5 minutes to get the repo 
       (LP: #627608)
+  * merged  lp:~mmcg069/software-center/prelight-icon-onhover 
+    (many thanks!)
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/misbehaving-pathbar-fix, fixes
