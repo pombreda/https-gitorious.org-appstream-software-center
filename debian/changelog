@@ -1,3 +1,13 @@
+software-center (2.1.15.1) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchasedialog.py:
+    - make the "Terms of Service" popup display correctly in
+      front of the purchase dialog (LP: #625398)
+    - tweak the width of the purchase dialog window to
+      accomodate the current Ubuntu SSO page width
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Sep 2010 16:36:22 -0400
+
 software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]
