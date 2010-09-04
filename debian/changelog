@@ -1,4 +1,14 @@
-software-center (2.1.15) UNRELEASED; urgency=low
+software-center (2.1.15.1) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchasedialog.py:
+    - make the "Terms of Service" popup display correctly in
+      front of the purchase dialog (LP: #625398)
+    - tweak the width of the purchase dialog window to
+      accomodate the current Ubuntu SSO page width
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Sep 2010 16:36:22 -0400
+
+software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/purchasedialog.py:
@@ -26,6 +36,16 @@ software-center (2.1.15) UNRELEASED; urgency=low
       test
   * merged lp:~mvo/software-center/less-flicker that fixes some
     UI flicker/ghost activity (LP: #626733)
+  * softwarecenter/backend/aptd.py:
+    - if reload() fails when adding a commercial PPA that may be
+      because there is a 5 min delay between software-center-agent
+      telling us its available and it becoming availalbe in launchpad.
+      In this case, retry up to 5 minutes to get the repo 
+      (LP: #627608)
+  * merged  lp:~mmcg069/software-center/prelight-icon-onhover 
+    (many thanks!)
+  * merged lp:~mmcg069/software-center/cat-flags to support
+    internal flags in the menu files
 
   [ Gary Lasker ]
   * merge lp:~mmcg069/software-center/misbehaving-pathbar-fix, fixes
@@ -51,6 +71,8 @@ software-center (2.1.15) UNRELEASED; urgency=low
     - don't crash when no LANGPACK_PKGDEPENDS file exists (LP: #625562)
     - speed improvements for get_addons()
     - don't allow randompkg-something to list randompkg as an add-on
+  * softwarecenter/db/application.py:
+    - fail nicely if a deb file can't be opened
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't use capitalize() on add-on names, much thanks to Severin Heiniger!
       lp:~lantash/ubuntu/maverick/software-center/fixes-626067 (LP: #626067)
@@ -61,6 +83,7 @@ software-center (2.1.15) UNRELEASED; urgency=low
     - fix some broken logic which gives wrong total size (LP: #624578)
     - show "x when installed" when addons are selected for installed pkg
     - fix a quirk so that the download size is not always 0
+    - hide totalsize info when we have an error
   * softwarecenter/view/availablepane.py,
     softwarecenter/view/channelpane.py:
     - add translators comment to clarify underscore behaviour (LP: #626718)
@@ -70,7 +93,7 @@ software-center (2.1.15) UNRELEASED; urgency=low
   * softwarecenter/view/purchasedialog.py:
     - don't show as 'untitled window' in taskbar
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 01 Sep 2010 17:19:42 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 02 Sep 2010 16:58:38 +0200
 
 software-center (2.1.14.2) maverick; urgency=low
 
