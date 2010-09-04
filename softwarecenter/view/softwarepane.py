@@ -115,9 +115,17 @@ class SoftwarePane(gtk.VBox, BasePane):
         # table for spinner (otherwise the spinner is massive!)
         self.spinner_table = gtk.Table(3, 3, False)
         self.spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
-        
         self.spinner_table.show()
-        self.scroll_app_list.add(self.spinner_table)
+        
+        self.spinner_view = gtk.Viewport()
+        self.spinner_view.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(1.0, 1.0, 1.0))
+        self.spinner_view.add(self.spinner_table)
+        self.spinner_view.set_shadow_type(gtk.SHADOW_NONE)
+        self.spinner_view.show()
+        self.scroll_app_list.add(self.spinner_view)
+        
+        # make a notebook for show/hide the spinner
+        self.appview_notebook = gtk.Notebook
         
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
@@ -207,14 +215,16 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner.start()
         self.app_view.hide_all()
         self.scroll_app_list.remove(self.app_view)
-        self.spinner_table.show_all()
-        self.scroll_app_list.add(self.spinner_table)
+        self.spinner_view.show_all()
+        self.scroll_app_list.add(self.spinner_view)
+        self.action_bar.clear()
+        self._status_text = ""
         
     def hide_appview_spinner(self):
         print "hide_appview_spinner"
         self.spinner.stop()
-        self.spinner_table.hide_all()
-        self.scroll_app_list.remove(self.spinner_table)
+        self.spinner_view.hide_all()
+        self.scroll_app_list.remove(self.spinner_view)
         self.app_view.show_all()
         self.scroll_app_list.add(self.app_view)
 
