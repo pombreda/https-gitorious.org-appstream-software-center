@@ -112,7 +112,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner.start()
         self.spinner.show()
         
-        # table for spinner (otherwise the spinner is massive!)
+        # use a table for the spinner (otherwise the spinner is massive!)
         self.spinner_table = gtk.Table(3, 3, False)
         self.spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
         self.spinner_table.show()
@@ -123,9 +123,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_view.set_shadow_type(gtk.SHADOW_NONE)
         self.spinner_view.show()
         self.scroll_app_list.add(self.spinner_view)
-        
-        # make a notebook for show/hide the spinner
-        self.appview_notebook = gtk.Notebook
         
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
@@ -211,7 +208,6 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.app_view.set_cursor(index)
             
     def show_appview_spinner(self):
-        print "show_appview_spinner"
         self.spinner.start()
         self.app_view.hide_all()
         self.scroll_app_list.remove(self.app_view)
@@ -221,7 +217,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self._status_text = ""
         
     def hide_appview_spinner(self):
-        print "hide_appview_spinner"
         self.spinner.stop()
         self.spinner_view.hide_all()
         self.scroll_app_list.remove(self.spinner_view)
