@@ -105,8 +105,20 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
+                             
+        # make a spinner to display while the applist is loading           
+        self.spinner = gtk.Spinner()
+        self.spinner.set_size_request(48, 48)
+        self.spinner.start()
+        self.spinner.show()
         
-        self.scroll_app_list.add(self.app_view)
+        # table for spinner (otherwise the spinner is massive!)
+        self.spinner_table = gtk.Table(3, 3, False)
+        self.spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
+        
+        self.spinner_table.show()
+        self.scroll_app_list.add(self.spinner_table)
+        
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         # details
@@ -189,6 +201,22 @@ class SoftwarePane(gtk.VBox, BasePane):
             index =  model.app_index_map.get(current_app)
             LOG.debug("found app: %s at index %s" % (current_app.pkgname, index))
             self.app_view.set_cursor(index)
+            
+    def show_appview_spinner(self):
+        print "show_appview_spinner"
+        self.spinner.start()
+        self.app_view.hide_all()
+        self.scroll_app_list.remove(self.app_view)
+        self.spinner_table.show_all()
+        self.scroll_app_list.add(self.spinner_table)
+        
+    def hide_appview_spinner(self):
+        print "hide_appview_spinner"
+        self.spinner.stop()
+        self.spinner_table.hide_all()
+        self.scroll_app_list.remove(self.spinner_table)
+        self.app_view.show_all()
+        self.scroll_app_list.add(self.app_view)
 
     def set_section_color(self, color):
         self.app_details.set_section_color(color)

@@ -75,6 +75,7 @@ class InstalledPane(SoftwarePane):
            navigation bar
         """
         self.loaded = True
+        self.show_appview_spinner()
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms)
             self.navigation_bar.add_with_id(_("Search Results"),
@@ -99,6 +100,7 @@ class InstalledPane(SoftwarePane):
                              query, 
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        self.hide_appview_spinner()
         self.emit("app-list-changed", len(new_model))
         return False
     def on_search_terms_changed(self, searchentry, terms):

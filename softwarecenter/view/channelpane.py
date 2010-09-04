@@ -84,6 +84,7 @@ class ChannelPane(SoftwarePane):
            navigation bar
         """
         LOG.debug("refresh_apps")
+        self.show_appview_spinner()
         if not self.channel:
             return
         self.refresh_seq_nr += 1
@@ -144,6 +145,7 @@ class ChannelPane(SoftwarePane):
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
         # events may have happend
+        self.hide_appview_spinner()
         if self.scroll_app_list.window:
             self.scroll_app_list.window.set_cursor(None)
         if seq_nr == self.refresh_seq_nr:
