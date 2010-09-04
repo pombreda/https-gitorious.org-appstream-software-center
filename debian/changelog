@@ -5,8 +5,13 @@ software-center (2.1.15.1) UNRELEASED; urgency=low
       front of the purchase dialog (LP: #625398)
     - tweak the width of the purchase dialog window to
       accomodate the current Ubuntu SSO page width
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py
+    softwarecenter/view/installedpane.py: 
+    - display a spinner while loading an applist view
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Sep 2010 16:36:22 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 04 Sep 2010 18:17:49 -0400
 
 software-center (2.1.15) maverick; urgency=low
 
