@@ -52,7 +52,7 @@ class InstalledPane(SoftwarePane):
         self._build_ui()
     def _build_ui(self):
         self.navigation_bar.set_size_request(26, -1)
-        self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
+        self.notebook.append_page(self.appview_notebook, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # initial refresh
@@ -75,6 +75,7 @@ class InstalledPane(SoftwarePane):
            navigation bar
         """
         self.loaded = True
+        self.show_appview_spinner()
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms)
             self.navigation_bar.add_with_id(_("Search Results"),
@@ -99,6 +100,7 @@ class InstalledPane(SoftwarePane):
                              query, 
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        self.hide_appview_spinner()
         self.emit("app-list-changed", len(new_model))
         return False
     def on_search_terms_changed(self, searchentry, terms):
