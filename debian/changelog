@@ -21,8 +21,10 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py: when finishing applying
     changes to add-ons, the screen will not scroll to the top (LP:
     #625232)
+  * softwarecenter/view/availablepane.py: Some translatable strings have
+    now their arguments named (LP: #630955)
 
- -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Sun, 05 Sep 2010 21:54:04 +0000
+ -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Sun, 05 Sep 2010 22:04:28 +0000
 
 software-center (2.1.15) maverick; urgency=low
 

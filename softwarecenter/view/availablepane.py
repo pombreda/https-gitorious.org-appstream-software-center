@@ -397,9 +397,9 @@ class AvailablePane(SoftwarePane):
             self.apps_search_term):
             appstore = self.app_view.get_model()
             installable = appstore.installable_apps
-            button_text = gettext.ngettext("Install %s Item",
-                                           "Install %s Items",
-                                           len(installable)) % len(installable)
+            button_text = gettext.ngettext("Install %(items_nbr)s Item",
+                                           "Install %(items_nbr)s Items",
+                                           len(installable)) % {'items_nbr': len(installable)}
             button = self.action_bar.get_button(self._INSTALL_BTN_ID)
             if button and installable:
                 # Install all already offered. Update offer.
@@ -436,14 +436,14 @@ class AvailablePane(SoftwarePane):
             if appstore.nonapps_visible:
                 # TRANSLATORS: the text inbetween the underscores acts as a link
                 # In most/all languages you will want the whole string as a link
-                label = gettext.ngettext("_Hide %i technical item_",
-                                         "_Hide %i technical items_",
-                                         pkgs) % pkgs
+                label = gettext.ngettext("_Hide %(tech_items_nbr)i technical item_",
+                                         "_Hide %(tech_items_nbr)i technical items_",
+                                         pkgs) % {'tech_items_nbr': pkgs}
                 self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
             elif not appstore.nonapps_visible:
-                label = gettext.ngettext("_Show %i technical item_",
-                                         "_Show %i technical items_",
-                                         pkgs) % pkgs
+                label = gettext.ngettext("_Show %(tech_items_nbr)i technical item_",
+                                         "_Show %(tech_items_nbr)i technical items_",
+                                         pkgs) % {'tech_items_nbr': pkgs}
                 self.action_bar.set_label(label, self._show_nonapp_pkgs)
             
     def _show_nonapp_pkgs(self):
