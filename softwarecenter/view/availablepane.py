@@ -155,7 +155,7 @@ class AvailablePane(SoftwarePane):
                                                  self.navhistory_forward_action)
 
         # app list
-        self.notebook.append_page(self.scroll_app_list,
+        self.notebook.append_page(self.appview_notebook,
                                     gtk.Label(self.NAV_BUTTON_ID_LIST))
 
         self.cat_view.connect("category-selected", self.on_category_activated)

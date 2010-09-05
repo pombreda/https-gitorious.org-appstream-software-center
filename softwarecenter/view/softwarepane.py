@@ -77,6 +77,9 @@ class SoftwarePane(gtk.VBox, BasePane):
                              ),
     }
     PADDING = 6
+    
+    (PAGE_APPVIEW,
+     PAGE_SPINNER) = range(2)
 
     def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
@@ -119,6 +122,12 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_view.add(self.spinner_table)
         self.spinner_view.set_shadow_type(gtk.SHADOW_NONE)
         self.scroll_app_list.add(self.app_view)
+        
+        self.appview_notebook = gtk.Notebook()
+        self.appview_notebook.set_show_tabs(False)
+        self.appview_notebook.set_show_border(False)
+        self.appview_notebook.append_page(self.scroll_app_list)
+        self.appview_notebook.append_page(self.spinner_view)
         
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
@@ -206,20 +215,13 @@ class SoftwarePane(gtk.VBox, BasePane):
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.spinner.start()
-        self.app_view.hide_all()
-        self.scroll_app_list.remove(self.app_view)
-        self.spinner_view.show_all()
-        self.scroll_app_list.add(self.spinner_view)
         self.action_bar.clear()
-        self._status_text = ""
+        self.appview_notebook.set_current_page(self.PAGE_SPINNER)
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
         self.spinner.stop()
-        self.spinner_view.hide_all()
-        self.scroll_app_list.remove(self.spinner_view)
-        self.app_view.show_all()
-        self.scroll_app_list.add(self.app_view)
+        self.appview_notebook.set_current_page(self.PAGE_APPVIEW)
 
     def set_section_color(self, color):
         self.app_details.set_section_color(color)
