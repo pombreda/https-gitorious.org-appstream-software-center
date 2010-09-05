@@ -182,6 +182,7 @@ class ChannelPane(SoftwarePane):
                 backend.reload()
             return
         # normal operation
+        self.nonapps_visible = False
         self.apps_filter = None
         if self.channel.only_packages_without_applications:
             self.apps_filter = AppViewFilter(self.db, self.cache)

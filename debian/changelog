@@ -5,8 +5,12 @@ software-center (2.1.15.1) UNRELEASED; urgency=low
       front of the purchase dialog (LP: #625398)
     - tweak the width of the purchase dialog window to
       accomodate the current Ubuntu SSO page width
+  * softwarecenter/view/channelpane.py:
+    - always default to hiding non-app packages when
+      selecting a new channel item in the left navigation
+      pane (LP: 630631) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Sep 2010 16:36:22 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:21:27 -0400
 
 software-center (2.1.15) maverick; urgency=low
 
