@@ -10,8 +10,9 @@ software-center (2.1.15.1) UNRELEASED; urgency=low
     softwarecenter/view/channelpane.py
     softwarecenter/view/installedpane.py: 
     - display a spinner while loading an applist view
+      (LP: #630641)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 04 Sep 2010 18:17:49 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
 
 software-center (2.1.15) maverick; urgency=low
 
