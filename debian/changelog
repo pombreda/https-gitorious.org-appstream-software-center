@@ -1,5 +1,6 @@
 software-center (2.1.16) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/purchasedialog.py:
     - make the "Terms of Service" popup display correctly in
       front of the purchase dialog (LP: #625398)
@@ -16,8 +17,13 @@ software-center (2.1.16) UNRELEASED; urgency=low
     - display a spinner while loading an applist view
       (LP: #630641)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
- 
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/view/appdetailsview_gtk.py: when finishing applying
+    changes to add-ons, the screen will not scroll to the top (LP:
+    #625232)
+
+ -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Sun, 05 Sep 2010 21:54:04 +0000
+
 software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]
