@@ -1,10 +1,14 @@
-software-center (2.1.15.1) UNRELEASED; urgency=low
+software-center (2.1.16) UNRELEASED; urgency=low
 
   * softwarecenter/view/purchasedialog.py:
     - make the "Terms of Service" popup display correctly in
       front of the purchase dialog (LP: #625398)
     - tweak the width of the purchase dialog window to
       accomodate the current Ubuntu SSO page width
+  * softwarecenter/view/channelpane.py:
+    - always default to hiding non-app packages when
+      selecting a new channel item in the left navigation
+      pane (LP: #630631) 
   * softwarecenter/view/softwarepane.py,
     softwarecenter/view/availablepane.py,
     softwarecenter/view/channelpane.py
@@ -13,7 +17,7 @@ software-center (2.1.15.1) UNRELEASED; urgency=low
       (LP: #630641)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
-
+ 
 software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]
