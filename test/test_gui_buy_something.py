@@ -80,7 +80,7 @@ class SCBuySomething(unittest.TestCase):
         self._p()
         # done with the simulated purchase process, now pretend we install
         # something
-        deb_line = "deb https://mvo:pass@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main"
+        deb_line = "deb https://mvo:nopassyet@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main"
         signing_key_id = "0EB12F05"
         app = Application("Hello X Adventure", "hellox")
         # install only when runnig as root, as we require polkit promtps
@@ -90,6 +90,9 @@ class SCBuySomething(unittest.TestCase):
             backend = get_install_backend()
             backend.connect("transaction-finished", 
                             self._on_transaction_finished)
+            # simulate repos becomes available for the public 40 s later
+            glib.timeout_add_seconds(40, self._add_pw_to_commercial_repo)
+            # run it
             backend.add_repo_add_key_and_install_app(deb_line,
                                                      signing_key_id,
                                                      app)
@@ -101,6 +104,14 @@ class SCBuySomething(unittest.TestCase):
 		time.sleep(0.1)
         #time.sleep(10)
         
+    def _add_pw_to_commercial_repo(self):
+        print "making pw available now"
+        path="/etc/apt/sources.list.d/private-ppa.launchpad.net_mvo_private-test_ubuntu.list"
+        content= open(path).read()
+        passw = os.environ.get("SC_PASS") or "pass"
+        content = content.replace("nopassyet", passw)
+        open(path, "w").write(content)
+
     def _on_transaction_finished(self, backend, result):
         print "_on_transaction_finished", result
         if not result.pkgname:
