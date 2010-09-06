@@ -44,6 +44,8 @@ software-center (2.1.16) UNRELEASED; urgency=low
       (testcase: browse to any appdetails view and then to fluendo dvd player)
     - don't crash if icon for 'where is it' is None (LP: #629845)
     - don't crash if icon for addon can not be opened (LP: #629937)
+    - don't display add-ons when we have an error
+      (testcase: deb file of wrong architecture)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
   * softwarecenter/view/installedpane.py:

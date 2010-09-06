@@ -1381,7 +1381,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # refresh addons interface
         self.addon_view.hide_all()
-        gobject.idle_add(self.addons_manager.configure, self.app_details.pkgname)
+        if not app_details.error:
+            gobject.idle_add(self.addons_manager.configure,
+                             self.app_details.pkgname)
         
         # Update total size label
         gobject.idle_add(self.update_totalsize, True)
