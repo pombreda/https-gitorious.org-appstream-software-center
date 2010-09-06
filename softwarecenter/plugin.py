@@ -106,8 +106,11 @@ class PluginManager(object):
         if self._plugins is None:
             self._plugins = []
             filenames = self.get_plugin_files()
-            for i in range(len(filenames)):
-                module = self._load_module(filenames[i])
+            for filename in filenames:
+                if not os.path.exists(filename):
+                    LOG.warn("plugin '%s' does not exists, dangling symlink?" % filename)
+                    continue
+                module = self._load_module(filename)
                 for plugin in self._find_plugins(module):
                     plugin.app = self._app
                     plugin.init_plugin()
