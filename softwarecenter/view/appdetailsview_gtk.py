@@ -69,7 +69,7 @@ COLOR_GREEN_OUTLINE = '#8AE234'
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
 
-LOG = logging.getLogger("softwarecenter.view.appdetails")
+LOG = logging.getLogger("softwarecenter.view.appdetailsview")
 
 class PackageStatusBar(gtk.Alignment):
     
@@ -177,7 +177,7 @@ class PackageStatusBar(gtk.Alignment):
             self.set_label(_('Installing...'))
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_INSTALLING_PURCHASED:
-            self.set_label(_('Installing purchased...'))
+            self.set_label(_(u'Installing purchase\u2026'))
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
@@ -342,11 +342,11 @@ class AppDescription(gtk.VBox):
 
     def set_description(self, desc, appname):
         """ Attempt to maintain original fixed width layout, while 
-            reconstructing the description into text blocks (either paragraphs or
-            bullets) which are line-wrap friendly.
+            reconstructing the description into text blocks 
+            (either paragraphs or bullets) which are line-wrap friendly.
         """
 
-        #print desc
+        LOG.debug("description: '%s' " % desc)
         self.clear()
         desc = gobject.markup_escape_text(desc)
 
@@ -358,7 +358,6 @@ class AppDescription(gtk.VBox):
 
         for i, part in enumerate(parts):
             part = part.strip()
-
             # if empty, do the void
             if not part:
                 pass
@@ -801,15 +800,19 @@ class Addon(gtk.HBox):
         if not proposed_icon or not icons.has_icon(proposed_icon):
             proposed_icon = MISSING_APP_ICON
         try:
-            pixbuf = icons.load_icon(proposed_icon, 22, ()).scale_simple(22, 22,
-                                     gtk.gdk.INTERP_BILINEAR)
+            pixbuf = icons.load_icon(proposed_icon, 22, ())
+            if pixbuf:
+                pixbuf.scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
             self.icon.set_from_pixbuf(pixbuf)
         except TypeError:
             logging.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
         # name
-        self.title = gtk.Label(self.app_details.display_name.capitalize())
+        title = self.app_details.display_name
+        if len(title) >= 2:
+            title = title[0].upper() + title[1:]
+        self.title = gtk.Label(title)
         self.title.set_line_wrap(True)
         hbox.pack_start(self.title, False)
         self.checkbutton.add(hbox)
@@ -894,7 +897,7 @@ class AddonsStatusBar(gtk.Alignment):
                          mkit.SPACING_SMALL+2,
                          mkit.SPACING_SMALL)
         
-        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.add(self.hbox)
 
 
@@ -1038,6 +1041,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
         # app specific data
+        self._same_app = False
         self.app = None
         self.app_details = None
 
@@ -1329,12 +1333,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.version_info.hide()
             self.license_info.hide()
             self.support_info.hide()
+            self.totalsize_info.hide()
             self.desc_section.hide()
         else:
             self.desc_section.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
+            self.totalsize_info.show()
             self.screenshot.show()
 
         # depending on pkg install state set action labels
@@ -1364,7 +1370,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.share_btn.hide()
 
         # get screenshot urls and configure the ScreenshotView...
-        if app_details.thumbnail and app_details.screenshot:
+        if app_details.thumbnail and app_details.screenshot and not self._same_app:
             self.screenshot.configure(app_details)
 
             # then begin screenshot download and display sequence
@@ -1395,8 +1401,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         gobject.idle_add(self.addons_manager.configure, self.app_details.pkgname)
         
         # Update total size label
-        self.totalsize_info.hide_all()
-        gobject.idle_add(self.update_totalsize)
+        gobject.idle_add(self.update_totalsize, True)
         
         # Update addons state bar
         self.addons_bar.configure()
@@ -1435,7 +1440,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def show_app(self, app):
         LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
-            LOG.info("no app selected")
+            LOG.debug("no app selected")
             return
         
         # set button sensitive again
@@ -1446,6 +1451,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.get_hadjustment().set_value(0)
 
         # init data
+        self._same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
         self.app = app
         self.app_details = app.get_details(self.db)
         # for compat with the base class
@@ -1645,12 +1651,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
-    def update_totalsize(self):
+    def update_totalsize(self, hide=False):
         def pkg_downloaded(pkg_version):
             filename = os.path.basename(pkg_version.filename)
             # FIXME: use relative path here
             return os.path.exists("/var/cache/apt/archives/" + filename)
-        
+
+        if not self.totalsize_info.get_property('visible'):
+            return False
+        elif hide:
+            self.totalsize_info.hide_all()
         while gtk.events_pending():
             gtk.main_iteration()
         
@@ -1678,7 +1688,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 if self.cache[dep].installed != None:
                     dep_version = self.cache[dep].installed
                     pkgs_to_remove.append(dep_version)
-        pkgs_to_install.append(version)
+            pkgs_to_install.append(version)
         
         for addon in self.addons_manager.addons_to_install:
             version = max(self.cache[addon].versions)
@@ -1706,16 +1716,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 if self.cache[dep].installed != None:
                     version = self.cache[dep].installed
                     pkgs_to_remove.append(version)
-        
-        for pkg in pkgs_to_install:
-            if pkgs_to_install.count(pkg) > 1:
-                pkgs_to_install.remove(pkg)
-        for pkg in pkgs_to_remove:
-            if pkgs_to_remove.count(pkg) > 1:
-                pkgs_to_remove.remove(pkg)
+
+        pkgs_to_install = list(set(pkgs_to_install))
+        pkgs_to_remove = list(set(pkgs_to_remove))
             
         for pkg in pkgs_to_install:
-            if not pkg_downloaded(pkg) and pkg.installed_size == 0:
+            if not pkg_downloaded(pkg) and not pkg.package.installed:
                 total_download_size += pkg.size
             total_install_size += pkg.installed_size
         for pkg in pkgs_to_remove:
@@ -1726,10 +1732,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string += _("%sB to download, " % (download_size))
         if total_install_size > 0:
             install_size = apt_pkg.size_to_str(total_install_size)
-            if self.app_details.pkg_state == PKG_STATE_INSTALLED:
-                label_string += _("%sB on disk" % (install_size))
-            else:
-                label_string += _("%sB when installed" % (install_size))
+            label_string += _("%sB when installed" % (install_size))
+        elif (total_install_size == 0 and
+              self.app_details.pkg_state == PKG_STATE_INSTALLED and
+              not self.addons_manager.addons_to_install and
+              not self.addons_manager.addons_to_remove):
+            pkg = self.cache[self.app_details.pkgname].installed
+            install_size = apt_pkg.size_to_str(pkg.installed_size)
+            # FIXME: this is not really a good indication of the size on disk
+            label_string += _("%sB on disk" % (install_size))
         elif total_install_size < 0:
             remove_size = apt_pkg.size_to_str(-total_install_size)
             label_string += _("%sB to be freed" % (remove_size))

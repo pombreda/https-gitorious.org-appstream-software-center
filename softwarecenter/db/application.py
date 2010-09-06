@@ -582,6 +582,10 @@ class AppDetailsDebFile(AppDetails):
                 if mimetype[0] != "application/x-debian-package":
                     self._error =  _("Not Found")
                     self._error_not_found = _("The file \"%s\" is not a software package.") % self._app.request
+                else:
+                    # hm, deb files from launchpad get this error..
+                    self._error =  _("Internal Error")
+                    self._error_not_found = _("The file \"%s\" could not be opened.") % self._app.request
             return
 
         # check deb and set failure state on error

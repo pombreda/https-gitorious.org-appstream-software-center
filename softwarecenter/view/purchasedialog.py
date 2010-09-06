@@ -60,7 +60,8 @@ class PurchaseDialog(gtk.Dialog):
         gtk.Dialog.__init__(self)
         self.set_title("")
         self.app = app
-        self.set_size_request(700, 700)
+        self.set_property('skip-taskbar-hint', True)
+        self.set_size_request(975, 700)
         self.wk = ScrolledWebkitWindow()
         self.wk.webkit.connect("create-web-view", 
                                self._on_create_webview_request)
@@ -86,8 +87,12 @@ class PurchaseDialog(gtk.Dialog):
     def _on_create_webview_request(self, view, frame, parent=None):
         logging.debug("_on_create_webview_request")
         window = gtk.Window()
-        #window.set_transient_for(parent)
-        window.set_size_request(600,400)
+        window.set_transient_for(self)
+        # we need to also set it modal to allow the popup window to be closable;
+        # note that this has the side effect of blocking the purchase dialog until
+        # the popup has been closed (but maybe that's not a bad thing)
+        window.set_modal(True)
+        window.set_size_request(750,400)
         window.set_title("")
         wk = ScrolledWebkitWindow()
         wk.show()

@@ -62,9 +62,9 @@ class SCBuySomething(unittest.TestCase):
 
     def test_buy_something_gui(self):
         # assert we find the right package
-        model = self._run_search("hellox")
+        model = self._run_search("fluendo-dvd")
         treeview = self.app.available_pane.app_view
-        self.assertFirstPkgInModel(model, "hellox")
+        self.assertFirstPkgInModel(model, "fluendo-dvd")
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
         self._p()

@@ -89,6 +89,14 @@ class SoftwarecenterDbusController(dbus.service.Object):
         self.parent.window_main.present()
         return True
 
+    @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
+    def triggerDatabaseReopen(self):
+        self.parent.db.emit("reopen")
+
+    @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
+    def triggerCacheReload(self):
+        self.parent.cache.emit("cache-ready")
+
 class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     WEBLINK_URL = "http://apt.ubuntu.com/p/%s"
@@ -189,6 +197,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._block_menuitem_view = False
         self._available_items_for_page = {}
  
+        # hackery, paint viewport borders around notebook
+        self.notebook_view.set_border_width(1)
+        self.notebook_view.connect('expose-event', self._on_notebook_expose)
+
         # register view manager and create view panes/widgets
         self.view_manager = ViewManager(self.notebook_view)
         
@@ -402,6 +414,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):
+        self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
             self.db.reopen()
 
@@ -723,7 +736,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             return
         if view.dialogs.confirm_repair_broken_cache(self.window_main, self.datadir):
             self.backend.fix_broken_depends()
-        
+
+    def _on_notebook_expose(self, widget, event):
+        # use availabel pane as the Style source so viewport colours are the same
+        # as a real Viewport
+        self.available_pane.style.paint_shadow(widget.window,
+                                    gtk.STATE_NORMAL,
+                                    gtk.SHADOW_IN,
+                                    event.area,
+                                    widget,
+                                    'viewport',
+                                    widget.allocation.x,
+                                    widget.allocation.y,
+                                    widget.allocation.width,
+                                    widget.allocation.height)
+        return
+
     def _on_apt_cache_broken(self, aptcache):
         self._ask_and_repair_broken_cache()
 
@@ -845,13 +873,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
         self._database_is_rebuilding = is_rebuilding
         self.window_rebuilding.set_transient_for(self.window_main)
-        self.window_rebuilding.set_title(self.window_main.get_title())
 
         # set a11y text
-        text = self.window_rebuilding.get_children()[0]
-        text.set_property("can-focus", True)
-        text.a11y = text.get_accessible()
-        text.a11y.set_name(text.get_children()[0].get_text())
+        try:
+            text = self.window_rebuilding.get_children()[0]
+            text.set_property("can-focus", True)
+            text.a11y = text.get_accessible()
+            text.a11y.set_name(text.get_children()[0].get_text())
+        except IndexError:
+            pass
 
         self.window_main.set_sensitive(not is_rebuilding)
         # show dialog about the rebuilding status

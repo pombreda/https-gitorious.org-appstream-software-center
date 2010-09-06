@@ -31,7 +31,7 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
-from softwarecenter.enums import SORT_BY_ALPHABET
+from softwarecenter.enums import SORT_UNSORTED, SORT_BY_ALPHABET, SORT_BY_SEARCH_RANKING, SORT_BY_CATALOGED_TIME
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
@@ -69,7 +69,7 @@ def categories_sorted_by_name(categories):
 class Category(object):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query,
-                 only_unallocated=True, dont_display=False, 
+                 only_unallocated=True, dont_display=False, flags=[], 
                  subcategories=None, sortmode=SORT_BY_ALPHABET,
                  item_limit=0):
         self.name = name
@@ -79,6 +79,7 @@ class Category(object):
         self.only_unallocated = only_unallocated
         self.subcategories = subcategories
         self.dont_display = dont_display
+        self.flags = flags
         self.sortmode = sortmode
         self.item_limit = item_limit
 
@@ -157,6 +158,12 @@ class CategoriesView(object):
             name = gettext.dgettext(gettext_domain, untranslated_name)
         return (untranslated_name, name, gettext_domain, icon)
 
+    def _parse_flags_tag(self, element):
+        flags = []
+        for an_elem in element.getchildren():
+            flags.append(an_elem.text)
+        return flags
+
     def _parse_and_or_not_tag(self, element, query, xapian_op):
         """parse a <And>, <Or>, <Not> tag """
         for and_elem in element.getchildren():
@@ -206,7 +213,7 @@ class CategoriesView(object):
                 q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
                 query = xapian.Query(xapian_op, query, q)
             else: 
-                print "UNHANDLED: ", and_elem.tag, and_elem.text
+                LOG.warn("UNHANDLED: %s %s" % (and_elem.tag, and_elem.text))
         return query
 
     def _parse_include_tag(self, element):
@@ -232,6 +239,7 @@ class CategoriesView(object):
         icon = None
         only_unallocated = False
         dont_display = False
+        flags = []
         subcategories = []
         sortmode = SORT_BY_ALPHABET
         item_limit = 0
@@ -249,6 +257,8 @@ class CategoriesView(object):
                 name = xml_unescape(gettext.gettext(escaped_name))
             elif element.tag == "SCIcon":
                 icon = element.text
+            elif element.tag == 'Flags':
+                flags = self._parse_flags_tag(element)
             elif element.tag == "Directory":
                 (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
             elif element.tag == "Include":
@@ -259,6 +269,8 @@ class CategoriesView(object):
                 dont_display = True
             elif element.tag == "SCSortMode":
                 sortmode = int(element.text)
+                if not self._verify_supported_sort_mode(sortmode):
+                    return None
             elif element.tag == "SCItemLimit":
                 item_limit = int(element.text)
             elif element.tag == "Menu":
@@ -266,13 +278,36 @@ class CategoriesView(object):
                 if subcat:
                     subcategories.append(subcat)
             else:
-                print "UNHANDLED tag in _parse_menu_tag: ", element.tag
+                LOG.warn("UNHANDLED tag in _parse_menu_tag: %s" % element.tag)
                 
         if untranslated_name and query:
-            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, subcategories, sortmode, item_limit)
+            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, flags, subcategories, sortmode, item_limit)
         else:
-            print "UNHANDLED entry: ", name, untranslated_name, icon, query
+            LOG.warn("UNHANDLED entry: %s %s %s %s" % (name, 
+                                                       untranslated_name, 
+                                                       icon, 
+                                                       query))
         return None
+
+    def _verify_supported_sort_mode(self, sortmode):
+        """ verify that we use a sortmode that we know and can handle """
+        # always supported
+        if sortmode in (SORT_UNSORTED, 
+                        SORT_BY_ALPHABET, 
+                        SORT_BY_SEARCH_RANKING):
+            return True
+        # only supported with a apt-xapian-index version that has the
+        # "catalogedtime" value
+        elif sortmode == SORT_BY_CATALOGED_TIME:
+            if self.db._axi_values and "catalogedtime" in self.db._axi_values:
+                return True
+            else:
+                LOG.warn("sort by cataloged time requested but your a-x-i "
+                             "does not seem to support that yet")
+                return False
+        # we don't know this sortmode
+        LOG.error("unknown sort mode '%i'" % sortmode)
+        return False
 
     def _build_unallocated_queries(self, categories):
         for cat_unalloc in categories:
@@ -283,4 +318,3 @@ class CategoriesView(object):
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             #print cat_unalloc.name, cat_unalloc.query
         return
-
