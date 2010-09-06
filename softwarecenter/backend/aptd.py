@@ -47,6 +47,11 @@ from softwarecenter.view import dialogs
 
 from gettext import gettext as _
 
+class FakePurchaseTransaction(object):
+    def __init__(self, pkgname):
+        self.pkgname = pkgname
+        self.progress = 0
+
 # we use this instead of just exposing the aptdaemon Transaction object
 # so that we have a easier time porting it to a different backend
 class TransactionFinishedResult(object):
@@ -392,7 +397,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 # (the key of pending_transactions is never directly
                 #  exposed in the UI)
                 self.pending_transactions[trans.tid] = trans_progress
+        # now add pending purchases too
+        self._inject_fake_transactions_for_pending_purchases(self.pending_purchases, self.pending_transactions)
         self.emit("transactions-changed", self.pending_transactions)
+
+    def _inject_fake_transactions_for_pending_purchases(self, purchases, transactions):
+        """ inject a bunch FakePurchaseTransaction into the transations dict """
+        for pkgname in purchases:
+            transactions[pkgname] = FakePurchaseTransaction(pkgname)
 
     def _on_progress_changed(self, trans, progress):
         """ 
