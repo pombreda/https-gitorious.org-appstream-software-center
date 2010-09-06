@@ -25,7 +25,13 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * verify sortmode when building categories (LP: #618411) and 
     ignore categories with unknown/unsupported ones
 
-  [ Kiwinote ] 
+  [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py:
+    - don't crash on broken dependencies (LP: #630579)
+      (testcase: acl2-books)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - never display the description of a different pkg
+      (testcase: browse to any appdetails view and then to fluendo dvd player)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
 
