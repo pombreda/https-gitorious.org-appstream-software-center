@@ -190,7 +190,7 @@ class AppStore(gtk.GenericTreeModel):
 
             # set sort order
             if self.sortmode == SORT_BY_CATALOGED_TIME:
-                if "catalogedtime" in self.db._axi_values:
+                if self.db._axi_values and ("catalogedtime" in self.db._axi_values):
                     enquire.set_sort_by_value(
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
