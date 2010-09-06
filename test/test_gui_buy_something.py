@@ -29,6 +29,17 @@ class SCBuySomething(unittest.TestCase):
             if os.path.exists(p):
                 os.remove(p)
             subprocess.call(["dpkg", "-r", "hellox", "hello"])
+        # get the software from staging
+        os.environ["SOFTWARE_CENTER_BUY_HOST"]="https://sc.staging.ubuntu.com"
+        os.environ["PYTHONPATH="]=os.path.abspath("..")
+        if os.getuid() == 0:
+            cmd = ["sudo", "-E", "-u", os.environ["SUDO_USER"]]
+        else:
+            cmd = []
+        cmd += ["/usr/share/software-center/update-software-center-agent"]
+        res = subprocess.call(cmd, env=os.environ)
+        print cmd, res
+
         apt.apt_pkg.config.set("Dir::log::history", "/tmp")
         apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
         # mock options
@@ -62,9 +73,9 @@ class SCBuySomething(unittest.TestCase):
 
     def test_buy_something_gui(self):
         # assert we find the right package
-        model = self._run_search("fluendo-dvd")
+        model = self._run_search("hellox")
         treeview = self.app.available_pane.app_view
-        self.assertFirstPkgInModel(model, "fluendo-dvd")
+        self.assertFirstPkgInModel(model, "hellox")
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
         self._p()

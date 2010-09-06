@@ -26,6 +26,9 @@ software-center (2.1.16) UNRELEASED; urgency=low
     ignore categories with unknown/unsupported ones
   * merged lp:~mmcg069/software-center/cleanup-software-section-code
     that fixes LP: #624786 (many thanks)
+  * make sure there is always a toplevel transaction for a pending
+    purchase even if s-c waits for the for-pay repository to become
+    available (LP: #627608)
 
   [ Kiwinote ]
   * data/software-center.menu.in:
