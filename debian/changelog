@@ -50,6 +50,8 @@ software-center (2.1.16) UNRELEASED; urgency=low
       (testcase: deb file of wrong architecture)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
+  * softwarecenter/view/availablepane.py:
+    - set section for subcategory view (this means that we now have a bg)
   * softwarecenter/view/installedpane.py:
     - don't return to installed overview list on reopening db
 
