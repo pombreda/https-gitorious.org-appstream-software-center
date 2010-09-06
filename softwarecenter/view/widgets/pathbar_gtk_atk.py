@@ -379,6 +379,9 @@ class PathBar(gtk.HBox):
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
                 theme.paint_layout(cr, widget, part, a.x+x, a.y+y, clip=event.area)
+                # FIXME: there is probably a cleaner solution than inserting
+                #        this line right here
+                self._part_queue_draw(part)
             else:
                 part.invisible = False
         del cr

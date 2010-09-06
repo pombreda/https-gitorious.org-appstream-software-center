@@ -54,6 +54,9 @@ software-center (2.1.16) UNRELEASED; urgency=low
     - set section for subcategory view (this means that we now have a bg)
   * softwarecenter/view/installedpane.py:
     - don't return to installed overview list on reopening db
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix visual corruption on appending pathbar part
+      (testcase: channelpane > details > different channelpane > details)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
  
