@@ -1052,8 +1052,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
         # switches
-        #self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+        # Bug #628714 check not only that gwibber is installed but that service accounts exist
         self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
+        #self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")        
         self._show_overlay = False
         self._overlay = gtk.gdk.pixbuf_new_from_file(self.INSTALLED_ICON)
 
