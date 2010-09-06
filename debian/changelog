@@ -19,6 +19,9 @@ software-center (2.1.16) UNRELEASED; urgency=low
   
   [ Michael Vogt ]
   * remove debug output
+  * merged lp:~mmcg069/software-center/small-fix (many thanks!)
+    - prevents the exposure of the carousel icons before they have 
+      been allocated.
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
  
