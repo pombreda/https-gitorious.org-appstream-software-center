@@ -31,7 +31,7 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
-from softwarecenter.enums import SORT_BY_ALPHABET
+from softwarecenter.enums import SORT_UNSORTED, SORT_BY_ALPHABET, SORT_BY_SEARCH_RANKING, SORT_BY_CATALOGED_TIME
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
@@ -269,6 +269,8 @@ class CategoriesView(object):
                 dont_display = True
             elif element.tag == "SCSortMode":
                 sortmode = int(element.text)
+                if not self._verify_supported_sort_mode(sortmode):
+                    return None
             elif element.tag == "SCItemLimit":
                 item_limit = int(element.text)
             elif element.tag == "Menu":
@@ -283,6 +285,26 @@ class CategoriesView(object):
         else:
             print "UNHANDLED entry: ", name, untranslated_name, icon, query
         return None
+
+    def _verify_supported_sort_mode(self, sortmode):
+        """ verify that we use a sortmode that we know and can handle """
+        # always supported
+        if sortmode in (SORT_UNSORTED, 
+                        SORT_BY_ALPHABET, 
+                        SORT_BY_SEARCH_RANKING):
+            return True
+        # only supported with a apt-xapian-index version that has the
+        # "catalogedtime" value
+        elif sortmode == SORT_BY_CATALOGED_TIME:
+            if self.db._axi_values and "catalogedtime" in self.db._axi_values:
+                return True
+            else:
+                logging.warn("sort by cataloged time requested but your a-x-i "
+                             "does not seem to support that yet")
+                return False
+        # we don't know this sortmode
+        logging.error("unknown sort mode '%i'" % sortmode)
+        return False
 
     def _build_unallocated_queries(self, categories):
         for cat_unalloc in categories:
