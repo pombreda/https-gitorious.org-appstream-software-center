@@ -357,6 +357,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # download it
             retry = int(trans.meta_data['sc_add_repo_and_install_try'])
             if retry > 10:
+                self._clean_pending_purchases(
+                    trans.meta_data['sc_add_repo_and_install_pkgname'])
                 self._show_transaction_failed_dialog(trans, result)
                 return
             trans.meta_data['sc_add_repo_and_install_try'] = str(retry+1)
@@ -508,7 +510,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # that was purchased finished installing
         if trans.role == enums.ROLE_INSTALL_PACKAGES:
             self._clean_pending_purchases(pkgname)
-
 
     def _clean_pending_purchases(self, pkgname):
         if pkgname and pkgname in self.pending_purchases:
