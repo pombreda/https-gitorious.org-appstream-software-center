@@ -284,10 +284,17 @@ class AptCache(gobject.GObject):
         
     # these are used for calculating the total size
     def _get_changes_without_applying(self, pkg):
-        if pkg.installed == None:
-            pkg.mark_install()
-        else:
-            pkg.mark_delete()
+        try:
+            if pkg.installed == None:
+                pkg.mark_install()
+            else:
+                pkg.mark_delete()
+        except SystemError:
+            # TODO: ideally we now want to display an error message
+            #       and block the install button
+            LOG.warning("broken packages encountered while getting deps for %s"
+                      % pkg.name)
+            return {}
         changes_tmp = self._cache.get_changes()
         changes = {}
         for change in changes_tmp:

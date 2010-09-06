@@ -39,6 +39,7 @@ from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.utils import ImageDownloader, GMenuSearcher
+from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
 
@@ -1051,7 +1052,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
         # switches
-        self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+        #self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+        self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
         self._show_overlay = False
         self._overlay = gtk.gdk.pixbuf_new_from_file(self.INSTALLED_ICON)
 
@@ -1351,10 +1353,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             description = app_details.error
         else:
             description = app_details.description
-        if description:
-            self.app_desc.set_description(description, appname)
-            # a11y for description
-            self.app_desc.body.a11y.set_name("Description: " + description)
+        if not description:
+            description = " "
+        self.app_desc.set_description(description, appname)
+        # a11y for description
+        self.app_desc.body.a11y.set_name("Description: " + description)
 
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website:
