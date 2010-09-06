@@ -87,6 +87,13 @@ class ChannelsManager(object):
         self.extra_channels.append(channel)
         self.backend.emit("channels-changed", True)
 
+        if channel.installed_only:
+            channel._channel_color = '#aea79f'
+            channel._channel_image_id = VIEW_PAGE_INSTALLED
+        else:
+            channel._channel_color = '#0769BC'
+            channel._channel_image_id = VIEW_PAGE_AVAILABLE
+
     # internal
     def _feed_in_private_sources_list_entry(self, source_entry):
         """
@@ -176,6 +183,7 @@ class ChannelsManager(object):
             if len(channel_iter.term) == 3:
                 continue
             channel_name = channel_iter.term[3:]
+            channel_origin = ""
             
             # get origin information for this channel
             m = self.db.xapiandb.postlist_begin(channel_iter.term)
@@ -268,7 +276,14 @@ class ChannelsManager(object):
         channels.extend(self.extra_channels)
         if local_channel is not None:
             channels.append(local_channel)
-        
+
+        for channel in channels:
+            if installed_only:
+                channel._channel_color = '#aea79f'
+                channel._channel_image_id = VIEW_PAGE_INSTALLED
+            else:
+                channel._channel_color = '#0769BC'
+                channel._channel_image_id = VIEW_PAGE_AVAILABLE
         return channels
 
 
@@ -292,6 +307,9 @@ class SoftwareChannel(object):
         self._channel_name = channel_name
         self._channel_origin = channel_origin
         self._channel_component = channel_component
+        self._channel_color = None
+        self._channel_image_id = None
+
         self.only_packages_without_applications = only_packages_without_applications
         self.installed_only = installed_only
         self.icons = icons

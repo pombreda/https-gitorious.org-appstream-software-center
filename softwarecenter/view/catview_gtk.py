@@ -105,6 +105,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.cache = cache
         self.db = db
         self.icons = icons
+        self.section = None
 
         self._surf_id = 0
         self.section_color = mkit.floats_from_string('#0769BC')
@@ -220,16 +221,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
     def _image_path(self,name):
         return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
 
-    def set_section_color(self, color):
-        self.section_color = color
-        return
-
-    def set_section_image(self, image_id, surf):
-        global MASK_SURFACE_CACHE
-        self._surf_id = image_id
-        MASK_SURFACE_CACHE['%s-section-image' % image_id] = surf
-        return
-
+    def set_section(self, section):
+        self.section = section
 
 
 class LobbyViewGtk(CategoriesViewGtk):
@@ -288,20 +281,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
 
-        # sky
-        r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,a.y,0,a.y+150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,
-                     widget.allocation.width, 150)
-        cr.fill()
-
-        # clouds
-        s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
-        cr.set_source_surface(s, a.width-s.get_width(), 0)
-        cr.paint()
+        if self.section:
+            self.section.render(cr, a)
 
         # draw featured carousel
         if self.featured_carousel:
@@ -507,20 +488,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
 
-        # sky
-        r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,0,0,150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,
-                     a.width, 150)
-        cr.fill()
-
-        # clouds
-        s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
-        cr.set_source_surface(s, a.width-s.get_width(), 0)
-        cr.paint()
+        if self.section:
+            self.section.render(cr, a)
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)

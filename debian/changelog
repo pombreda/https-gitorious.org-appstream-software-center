@@ -22,6 +22,10 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/small-fix (many thanks!)
     - prevents the exposure of the carousel icons before they have 
       been allocated.
+  * verify sortmode when building categories (LP: #618411) and 
+    ignore categories with unknown/unsupported ones
+  * merged lp:~mmcg069/software-center/cleanup-software-section-code
+    that fixes LP: #624786 (many thanks)
 
   [ Kiwinote ]
   * data/software-center.menu.in:
