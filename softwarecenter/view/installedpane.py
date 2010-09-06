@@ -50,6 +50,8 @@ class InstalledPane(SoftwarePane):
         self.loaded = False
         # UI
         self._build_ui()
+        self.connect("app-list-changed", self._on_app_list_changed)
+        
     def _build_ui(self):
         self.navigation_bar.set_size_request(26, -1)
         self.notebook.append_page(self.appview_notebook, gtk.Label("installed"))
@@ -97,7 +99,8 @@ class InstalledPane(SoftwarePane):
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
-                             query, 
+                             query,
+                             nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
         self.hide_appview_spinner()
@@ -179,6 +182,10 @@ class InstalledPane(SoftwarePane):
     def is_category_view_showing(self):
         # there is no category view in the installed pane
         return False
+        
+    def is_applist_view_showing(self):
+        """Return True if we are in the applist view """
+        return self.notebook.get_current_page() == self.PAGE_APPLIST
 
     def show_app(self, app):
         """ Display an application in the installed_pane """
