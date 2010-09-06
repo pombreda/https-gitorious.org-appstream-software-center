@@ -1201,7 +1201,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         self.queue_draw()
         if self.adjustment_value is not None \
-        and self.adjustment_value <= self.get_vadjustment().lower \
+        and self.adjustment_value >= self.get_vadjustment().lower \
         and self.adjustment_value <= self.get_vadjustment().upper:
             self.get_vadjustment().set_value(self.adjustment_value)
         gobject.idle_add(self._full_redraw_cb)
