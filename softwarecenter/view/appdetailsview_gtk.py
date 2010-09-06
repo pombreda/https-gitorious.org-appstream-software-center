@@ -1403,7 +1403,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
-                if self.icons.has_icon(iconname) and i > 0:
+                if iconname and self.icons.has_icon(iconname) and i > 0:
                     image = gtk.Image()
                     image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
                     self.desc_installed_where.pack_start(image, False, False)

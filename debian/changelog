@@ -39,6 +39,7 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - never display the description of a different pkg
       (testcase: browse to any appdetails view and then to fluendo dvd player)
+    - don't crash if icon for 'where is it' is None (LP: #629845)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
 
