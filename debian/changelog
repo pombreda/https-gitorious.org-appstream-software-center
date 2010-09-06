@@ -43,6 +43,8 @@ software-center (2.1.16) UNRELEASED; urgency=low
     - don't crash if icon for addon can not be opened (LP: #629937)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
+  * softwarecenter/view/installedpane.py:
+    - don't return to installed overview list on reopening db
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
  
