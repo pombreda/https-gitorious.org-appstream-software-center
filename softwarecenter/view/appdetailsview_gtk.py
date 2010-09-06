@@ -805,8 +805,8 @@ class Addon(gtk.HBox):
             if pixbuf:
                 pixbuf.scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
             self.icon.set_from_pixbuf(pixbuf)
-        except TypeError:
-            logging.warning("cant set icon for '%s' " % pkgname)
+        except:
+            LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
         # name
