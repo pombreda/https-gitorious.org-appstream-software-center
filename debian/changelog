@@ -24,6 +24,9 @@ software-center (2.1.16) UNRELEASED; urgency=low
       been allocated.
 
   [ Kiwinote ] 
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - never display the description of a different pkg
+      (testcase: browse to any appdetails view and then to fluendo dvd player)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
 
