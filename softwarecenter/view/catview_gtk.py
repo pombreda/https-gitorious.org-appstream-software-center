@@ -1018,7 +1018,8 @@ class CarouselPoster(mkit.VLinkButton):
         #cr.paint_with_alpha(0.7)
 
         self.alpha = alpha
-        self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
+        if ia.x > -1:
+            self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
 
         if alpha < 1.0:
             # text colour from gtk.Style

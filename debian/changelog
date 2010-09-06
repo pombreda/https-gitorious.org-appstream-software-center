@@ -1,4 +1,31 @@
-software-center (2.1.15) UNRELEASED; urgency=low
+software-center (2.1.16) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/purchasedialog.py:
+    - make the "Terms of Service" popup display correctly in
+      front of the purchase dialog (LP: #625398)
+    - tweak the width of the purchase dialog window to
+      accomodate the current Ubuntu SSO page width
+  * softwarecenter/view/channelpane.py:
+    - always default to hiding non-app packages when
+      selecting a new channel item in the left navigation
+      pane (LP: #630631) 
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py
+    softwarecenter/view/installedpane.py: 
+    - display a spinner while loading an applist view
+      (LP: #630641)
+  
+  [ Michael Vogt ]
+  * remove debug output
+  * merged lp:~mmcg069/software-center/small-fix (many thanks!)
+    - prevents the exposure of the carousel icons before they have 
+      been allocated.
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
+ 
+software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/view/purchasedialog.py:
@@ -83,7 +110,7 @@ software-center (2.1.15) UNRELEASED; urgency=low
   * softwarecenter/view/purchasedialog.py:
     - don't show as 'untitled window' in taskbar
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 01 Sep 2010 17:19:42 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 02 Sep 2010 16:58:38 +0200
 
 software-center (2.1.14.2) maverick; urgency=low
 
