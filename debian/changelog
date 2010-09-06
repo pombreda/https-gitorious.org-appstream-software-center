@@ -33,6 +33,9 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * softwarecenter/apt/aptcache.py:
     - don't crash on broken dependencies (LP: #630579)
       (testcase: acl2-books)
+  * softwarecenter/db/application.py:
+    - set pkgname for deb files correctly (LP: #628787)
+      (testcase: replace _ with - in filename of an outdated deb file of s-c)
   * softwarecenter/view/appdetailsview_gtk.py:
     - never display the description of a different pkg
       (testcase: browse to any appdetails view and then to fluendo dvd player)

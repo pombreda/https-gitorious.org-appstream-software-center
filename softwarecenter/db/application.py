@@ -609,6 +609,11 @@ class AppDetailsDebFile(AppDetails):
         return None
 
     @property
+    def pkgname(self):
+        if self._deb:
+            return self._deb._sections["Package"]
+
+    @property
     def pkg_state(self):
         if self._error:
             if self._error_not_found:
