@@ -69,7 +69,7 @@ def categories_sorted_by_name(categories):
 class Category(object):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query,
-                 only_unallocated=True, dont_display=False, 
+                 only_unallocated=True, dont_display=False, flags=[], 
                  subcategories=None, sortmode=SORT_BY_ALPHABET,
                  item_limit=0):
         self.name = name
@@ -79,6 +79,7 @@ class Category(object):
         self.only_unallocated = only_unallocated
         self.subcategories = subcategories
         self.dont_display = dont_display
+        self.flags = flags
         self.sortmode = sortmode
         self.item_limit = item_limit
 
@@ -96,6 +97,7 @@ class CategoriesView(object):
     def parse_applications_menu(self, datadir):
         """ parse a application menu and return a list of Category objects """
         categories = []
+        print datadir
         # we support multiple menu files and menu drop ins
         menu_files = [datadir+"/desktop/software-center.menu"]
         menu_files += glob.glob(datadir+"/menu.d/*.menu")
@@ -156,6 +158,12 @@ class CategoriesView(object):
         if gettext_domain:
             name = gettext.dgettext(gettext_domain, untranslated_name)
         return (untranslated_name, name, gettext_domain, icon)
+
+    def _parse_flags_tag(self, element):
+        flags = []
+        for an_elem in element.getchildren():
+            flags.append(an_elem.text)
+        return flags
 
     def _parse_and_or_not_tag(self, element, query, xapian_op):
         """parse a <And>, <Or>, <Not> tag """
@@ -232,6 +240,7 @@ class CategoriesView(object):
         icon = None
         only_unallocated = False
         dont_display = False
+        flags = []
         subcategories = []
         sortmode = SORT_BY_ALPHABET
         item_limit = 0
@@ -249,6 +258,8 @@ class CategoriesView(object):
                 name = xml_unescape(gettext.gettext(escaped_name))
             elif element.tag == "SCIcon":
                 icon = element.text
+            elif element.tag == 'Flags':
+                flags = self._parse_flags_tag(element)
             elif element.tag == "Directory":
                 (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
             elif element.tag == "Include":
@@ -269,7 +280,7 @@ class CategoriesView(object):
                 print "UNHANDLED tag in _parse_menu_tag: ", element.tag
                 
         if untranslated_name and query:
-            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, subcategories, sortmode, item_limit)
+            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, flags, subcategories, sortmode, item_limit)
         else:
             print "UNHANDLED entry: ", name, untranslated_name, icon, query
         return None
@@ -283,4 +294,3 @@ class CategoriesView(object):
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             #print cat_unalloc.name, cat_unalloc.query
         return
-

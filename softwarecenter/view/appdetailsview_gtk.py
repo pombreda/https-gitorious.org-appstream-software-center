@@ -1333,12 +1333,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.version_info.hide()
             self.license_info.hide()
             self.support_info.hide()
+            self.totalsize_info.hide()
             self.desc_section.hide()
         else:
             self.desc_section.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
+            self.totalsize_info.show()
             self.screenshot.show()
 
         # depending on pkg install state set action labels
@@ -1399,8 +1401,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         gobject.idle_add(self.addons_manager.configure, self.app_details.pkgname)
         
         # Update total size label
-        self.totalsize_info.hide_all()
-        gobject.idle_add(self.update_totalsize)
+        gobject.idle_add(self.update_totalsize, True)
         
         # Update addons state bar
         self.addons_bar.configure()
@@ -1650,12 +1651,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
-    def update_totalsize(self):
+    def update_totalsize(self, hide=False):
         def pkg_downloaded(pkg_version):
             filename = os.path.basename(pkg_version.filename)
             # FIXME: use relative path here
             return os.path.exists("/var/cache/apt/archives/" + filename)
-        
+
+        if not self.totalsize_info.get_property('visible'):
+            return False
+        elif hide:
+            self.totalsize_info.hide_all()
         while gtk.events_pending():
             gtk.main_iteration()
         
