@@ -164,6 +164,13 @@ class ChannelPane(SoftwarePane):
         and set up the AppViewFilter if required
         """
         self.channel = channel
+        # check to see if there is any section info that needs to be applied
+        if channel._channel_color:
+            self.section.set_color(channel._channel_color)
+        if channel._channel_image_id:
+            self.section.set_image_id(channel._channel_image_id)
+        self.section_sync()
+
         # check if the channel needs to added
         if channel.needs_adding and channel._source_entry:
             dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,

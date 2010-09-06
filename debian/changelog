@@ -24,6 +24,8 @@ software-center (2.1.16) UNRELEASED; urgency=low
       been allocated.
   * verify sortmode when building categories (LP: #618411) and 
     ignore categories with unknown/unsupported ones
+  * merged lp:~mmcg069/software-center/cleanup-software-section-code
+    that fixes LP: #624786 (many thanks)
 
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:

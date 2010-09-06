@@ -89,9 +89,6 @@ class PackageStatusBar(gtk.Alignment):
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
 
-        self.fill_color = view.section_color
-        self.line_color = view.section_color
-
         self.pkg_state = None
 
         self.hbox.pack_start(self.label, False)
@@ -260,7 +257,11 @@ class PackageStatusBar(gtk.Alignment):
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
-        r,g,b = self.view.section_color
+        if self.view.section:
+            r,g,b = self.view.section._section_color
+        else:
+            r,g,b = 0.5,0.5,0.5
+
         cr.rectangle(a)
         cr.set_source_rgba(r,g,b,0.333)
 #        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
@@ -916,22 +917,23 @@ class AddonsStatusBar(gtk.Alignment):
         self.hbox.pack_end(self.button_apply, False)
         self.hbox.pack_end(self.button_cancel, False)
         #self.hbox.pack_start(self.hbuttonbox, False)
-        
-        self.fill_color = self.view.section_color
-        self.line_color = self.view.section_color
-        
+
     def configure(self):
         # FIXME: addons are not always free, but the old implementation of determining price was buggy
         if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
             self.hide()
         else:
             self.show()
-            
+
     def draw(self, cr, a, expose_area):
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
-        r,g,b = self.view.section_color
+        if self.view.section:
+            r,g,b = self.view.section._section_color
+        else:
+            r,g,b = 0.5,0.5,0.5
+
         cr.rectangle(a)
         cr.set_source_rgba(r,g,b,0.333)
 #        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
@@ -1023,12 +1025,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
 
     def __init__(self, db, distro, icons, cache, history, datadir):
-        gtk.Viewport.__init__(self)
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
+        gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
-        self.section_color = mkit.floats_from_string('#0769BC')
-        self.section_image = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/clouds.png'))
+        self.section = None
 
         # atk
         self.a11y = self.get_accessible()
@@ -1095,27 +1096,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
 
-        # sky
-        r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,0,0,150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,
-                     a.width, 150)
-        cr.fill()
-
-
-        # clouds
-        w = self.section_image.get_width()
-        h = self.section_image.get_height()
-        cr.save()
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
-        cr.translate(a.x+a.width-w, a.y)
-        cr.rectangle(0,0,w,h)
-        cr.clip()
-        cr.mask_surface(self.section_image, 0, 0)
-        cr.restore()
+        if self.section:
+            self.section.render(cr, a)
 
         # if the appicon is not that big draw a rectangle behind it
         # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view
@@ -1753,14 +1735,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.totalsize_info.show_all()
         return False
 
-    def set_section_color(self, color):
-        self.section_color = color
+    def set_section(self, section):
+        self.section = section
         return
-
-    def set_section_image(self, id, surf):
-        self.section_image = surf
-        return
-
 
 
 
