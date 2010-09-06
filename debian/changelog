@@ -31,6 +31,8 @@ software-center (2.1.16) UNRELEASED; urgency=low
     available (LP: #627608)
 
   [ Kiwinote ]
+  * data/featured.menu.in:
+    - fretsonfire instead of fretsonfire-game, due to desktop file changes
   * data/software-center.menu.in:
     - use correct icon for system category, thanks vish!
   * softwarecenter/apt/aptcache.py:
