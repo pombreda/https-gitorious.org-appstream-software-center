@@ -23,6 +23,10 @@ software-center (2.1.16) UNRELEASED; urgency=low
     - prevents the exposure of the carousel icons before they have 
       been allocated.
 
+  [ Kiwinote ] 
+  * softwarecenter/view/appview.py:
+    - fix startup crash (LP: #618411)
+
  -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
  
 software-center (2.1.15) maverick; urgency=low
