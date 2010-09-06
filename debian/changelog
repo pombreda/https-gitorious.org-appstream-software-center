@@ -24,6 +24,8 @@ software-center (2.1.16) UNRELEASED; urgency=low
       been allocated.
 
   [ Kiwinote ]
+  * data/software-center.menu.in:
+    - use correct icon for system category, thanks vish!
   * softwarecenter/apt/aptcache.py:
     - don't crash on broken dependencies (LP: #630579)
       (testcase: acl2-books)
