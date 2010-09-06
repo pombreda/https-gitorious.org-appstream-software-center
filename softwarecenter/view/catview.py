@@ -213,7 +213,7 @@ class CategoriesView(object):
                 q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
                 query = xapian.Query(xapian_op, query, q)
             else: 
-                print "UNHANDLED: ", and_elem.tag, and_elem.text
+                LOG.warn("UNHANDLED: %s %s" % (and_elem.tag, and_elem.text))
         return query
 
     def _parse_include_tag(self, element):
@@ -278,12 +278,15 @@ class CategoriesView(object):
                 if subcat:
                     subcategories.append(subcat)
             else:
-                print "UNHANDLED tag in _parse_menu_tag: ", element.tag
+                LOG.warn("UNHANDLED tag in _parse_menu_tag: %s" % element.tag)
                 
         if untranslated_name and query:
             return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, flags, subcategories, sortmode, item_limit)
         else:
-            print "UNHANDLED entry: ", name, untranslated_name, icon, query
+            LOG.warn("UNHANDLED entry: %s %s %s %s" % (name, 
+                                                       untranslated_name, 
+                                                       icon, 
+                                                       query))
         return None
 
     def _verify_supported_sort_mode(self, sortmode):
@@ -299,11 +302,11 @@ class CategoriesView(object):
             if self.db._axi_values and "catalogedtime" in self.db._axi_values:
                 return True
             else:
-                logging.warn("sort by cataloged time requested but your a-x-i "
+                LOG.warn("sort by cataloged time requested but your a-x-i "
                              "does not seem to support that yet")
                 return False
         # we don't know this sortmode
-        logging.error("unknown sort mode '%i'" % sortmode)
+        LOG.error("unknown sort mode '%i'" % sortmode)
         return False
 
     def _build_unallocated_queries(self, categories):
