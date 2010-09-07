@@ -155,7 +155,7 @@ class AvailablePane(SoftwarePane):
                                                  self.navhistory_forward_action)
 
         # app list
-        self.notebook.append_page(self.scroll_app_list,
+        self.notebook.append_page(self.appview_notebook,
                                     gtk.Label(self.NAV_BUTTON_ID_LIST))
 
         self.cat_view.connect("category-selected", self.on_category_activated)
@@ -220,7 +220,7 @@ class AvailablePane(SoftwarePane):
         logging.debug("refresh_apps")
         self._logger.debug("refresh_apps")
 
-        self.notebook.hide()
+        self.show_appview_spinner()
         if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(self.busy_cursor)
         if self.scroll_app_list.window:
@@ -280,7 +280,7 @@ class AvailablePane(SoftwarePane):
 
         # check if we show subcategory
         self._show_hide_subcategories()
-        self.notebook.show()
+        self.hide_appview_spinner()
         # we can not use "new_model" here, because set_model may actually
         # discard new_model and just update the previous one
         self.emit("app-list-changed", len(self.app_view.get_model()))

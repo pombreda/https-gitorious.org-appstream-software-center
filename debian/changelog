@@ -1,13 +1,42 @@
-software-center (2.1.15.1) UNRELEASED; urgency=low
+software-center (2.1.16) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/purchasedialog.py:
     - make the "Terms of Service" popup display correctly in
       front of the purchase dialog (LP: #625398)
     - tweak the width of the purchase dialog window to
       accomodate the current Ubuntu SSO page width
+  * softwarecenter/view/channelpane.py:
+    - always default to hiding non-app packages when
+      selecting a new channel item in the left navigation
+      pane (LP: #630631) 
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py
+    softwarecenter/view/installedpane.py: 
+    - display a spinner while loading an applist view
+      (LP: #630641)
+  
+  [ Michael Vogt ]
+  * remove debug output
+  * merged lp:~mmcg069/software-center/small-fix (many thanks!)
+    - prevents the exposure of the carousel icons before they have 
+      been allocated.
+  * verify sortmode when building categories (LP: #618411) and 
+    ignore categories with unknown/unsupported ones
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Sep 2010 16:36:22 -0400
+  [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py:
+    - don't crash on broken dependencies (LP: #630579)
+      (testcase: acl2-books)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - never display the description of a different pkg
+      (testcase: browse to any appdetails view and then to fluendo dvd player)
+  * softwarecenter/view/appview.py:
+    - fix startup crash (LP: #618411)
 
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
+ 
 software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]
