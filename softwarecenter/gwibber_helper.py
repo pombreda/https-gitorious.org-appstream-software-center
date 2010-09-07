@@ -18,29 +18,25 @@
 
 
 import json
-import locale
-# Bug #521569, apparently one needs to set the locale to en_US
-locale.setlocale(locale.LC_ALL,'en_US.utf8')
 #from dbus.mainloop.glib import DBusGMainLoop
+
+#DBusGMainLoop(set_as_default=True)
+
 try:
     from gwibber.lib import GwibberPublic
     _gwibber_is_available = True
-    #DBusGMainLoop(set_as_default=True)
     Gwibber = GwibberPublic()
+    Gwibber.service.refresh()
 except:
     _gwibber_is_available = False
 
 
-def gwibber_is_available():
-    return _gwibber_is_available
-
-def gwibber_has_accounts():
+def gwibber_service_available():
     if not _gwibber_is_available:
-        return False
-    return len(json.loads(Gwibber.GetAccounts())) > 0
+        return len(json.loads(Gwibber.GetAccounts())) > 0
 
-
-GWIBBER_SERVICE_AVAILABLE = gwibber_is_available() and gwibber_has_accounts()
+GWIBBER_SERVICE_AVAILABLE = gwibber_service_available()
+#print 'Gwibber Serice Available: %s' % GWIBBER_SERVICE_AVAILABLE 
 
 
 
