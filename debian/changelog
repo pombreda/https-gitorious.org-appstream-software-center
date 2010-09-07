@@ -1,4 +1,4 @@
-software-center (2.1.16) UNRELEASED; urgency=low
+software-center (2.1.16) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/purchasedialog.py:
@@ -29,6 +29,13 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * make sure there is always a toplevel transaction for a pending
     purchase even if s-c waits for the for-pay repository to become
     available (LP: #627608)
+  * softwarecenter/view/purchasedialog.py:
+    - support both "failure_reason" and "failures" as error strings
+      from the agent
+  * merged lp:~mmcg069/software-center/Bug617443 (LP: #617443)
+  * merged lp:~mmcg069/software-center/bug628714 (LP: #628714)
+  * merged lp:~mmcg069/software-center/hover-highlight-tweaks to 
+    use correct prelight color
 
   [ Kiwinote ]
   * data/featured.menu.in:
@@ -58,8 +65,8 @@ software-center (2.1.16) UNRELEASED; urgency=low
     - fix visual corruption on appending pathbar part
       (testcase: channelpane > details > different channelpane > details)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
- 
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 14:57:58 +0200
+
 software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]

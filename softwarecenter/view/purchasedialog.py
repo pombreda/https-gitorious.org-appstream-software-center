@@ -127,10 +127,16 @@ class PurchaseDialog(gtk.Dialog):
                 # no need to show anything, the user did the
                 # cancel
                 pass
+            # this is what the spec says
             elif "failure_reason" in res:
                 dialogs.error(self,
                               _("Failure in the purchase process"),
                               res["failure_reason"])
+            # this is what the agent implements
+            elif "failures" in res:
+                dialogs.error(self,
+                              _("Failure in the purchase process"),
+                              res["failures"])
             else:
                 # hrm, bad - the server did not told us anything
                 dialogs.error(self,
