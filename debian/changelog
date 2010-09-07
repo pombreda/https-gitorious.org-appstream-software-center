@@ -32,6 +32,8 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * softwarecenter/view/purchasedialog.py:
     - support both "failure_reason" and "failures" as error strings
       from the agent
+  * merged lp:~mmcg069/software-center/Bug617443, many thanks
+    (LP: #617443)
 
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
