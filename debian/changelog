@@ -32,10 +32,10 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * softwarecenter/view/purchasedialog.py:
     - support both "failure_reason" and "failures" as error strings
       from the agent
-  * merged lp:~mmcg069/software-center/Bug617443, many thanks
-    (LP: #617443)
-  * merged lp:~mmcg069/software-center/bug628714, many thanks
-    (LP: #628714)
+  * merged lp:~mmcg069/software-center/Bug617443 (LP: #617443)
+  * merged lp:~mmcg069/software-center/bug628714 (LP: #628714)
+  * merged lp:~mmcg069/software-center/hover-highlight-tweaks to 
+    use correct prelight color
 
   [ Kiwinote ]
   * data/featured.menu.in:
