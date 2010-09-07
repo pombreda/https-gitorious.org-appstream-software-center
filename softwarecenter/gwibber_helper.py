@@ -33,7 +33,8 @@ except:
 
 def gwibber_service_available():
     if not _gwibber_is_available:
-        return len(json.loads(Gwibber.GetAccounts())) > 0
+        return False
+    return len(json.loads(Gwibber.GetAccounts())) > 0
 
 GWIBBER_SERVICE_AVAILABLE = gwibber_service_available()
 #print 'Gwibber Serice Available: %s' % GWIBBER_SERVICE_AVAILABLE 
