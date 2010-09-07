@@ -96,14 +96,25 @@ class PackageStatusBar(gtk.Alignment):
         self.hbox.pack_end(self.progress, False)
         self.show_all()
 
-        #self.button.connect('size-allocate', self._on_button_size_allocate)
+        self._height = 1
+
+        self.connect('size-allocate', self._on_size_allocate)
+        self.connect('style-set', self._on_style_set)
         self.button.connect('clicked', self._on_button_clicked)
         return
 
-    def _on_button_size_allocate(self, button, allocation):
-        # make the progress bar the same height as the button
-        self.progress.set_size_request(12*mkit.EM,
-                                       allocation.height)
+    def _on_size_allocate(self, button, allocation):
+        # Bug #617443
+        # Dont allow the package status bar to shrink
+        self._height = max(allocation.height, self._height)
+        if allocation.height < self._height:
+            self.set_size_request(-1, self._height)
+        return
+
+    def _on_style_set(self, widget, old_style):
+        # reset max heights, this is so we can resize properly on, say, a font-size change
+        self._height = 1
+        self.set_size_request(-1, -1)
         return
 
     def _on_button_clicked(self, button):
