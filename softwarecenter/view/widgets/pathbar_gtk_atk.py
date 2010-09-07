@@ -379,9 +379,6 @@ class PathBar(gtk.HBox):
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
                 theme.paint_layout(cr, widget, part, a.x+x, a.y+y, clip=event.area)
-                # FIXME: there is probably a cleaner solution than inserting
-                #        this line right here
-                self._part_queue_draw(part)
             else:
                 part.invisible = False
         del cr
@@ -499,6 +496,11 @@ class PathBar(gtk.HBox):
             self.set_active(part)
         else:
             self.set_active_no_callback(part)
+
+        # redraw the previous parts so we don't get breakage
+        parts = self.get_children()
+        for part in parts[:-1]:
+            self._part_queue_draw(part)
         return
 
     def append_no_callback(self, part):
