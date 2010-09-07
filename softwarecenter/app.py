@@ -535,7 +535,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
                     self.backend.emit("transaction-stopped", app.pkgname)
                     return
-            
+
+        # this allows us to 'upgrade' deb files
+        if action == 'upgrade' and app.request and app.request.endswith(".deb"):
+            action = 'install'
+ 
         # action_func is one of:  "install", "remove", "upgrade", or "apply_changes"
         action_func = getattr(self.backend, action)
         if action == 'install':

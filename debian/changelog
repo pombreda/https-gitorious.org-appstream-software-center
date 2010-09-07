@@ -1,3 +1,16 @@
+software-center (2.1.17) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - allow us to 'upgrade' deb files again
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix visual corruption on appending pathbar part
+      (testcase: channelpane > details > different channelpane > details)
+      this time without causing regressions
+      (testcase: browse to any app with a screenshot)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 14:57:58 +0200
+
 software-center (2.1.16) maverick; urgency=low
 
   [ Gary Lasker ]
