@@ -496,6 +496,11 @@ class PathBar(gtk.HBox):
             self.set_active(part)
         else:
             self.set_active_no_callback(part)
+
+        # redraw the previous parts so we don't get breakage
+        parts = self.get_children()
+        for part in parts[:-1]:
+            self._part_queue_draw(part)
         return
 
     def append_no_callback(self, part):
