@@ -36,17 +36,36 @@ software-center (2.1.16) UNRELEASED; urgency=low
     (LP: #617443)
 
   [ Kiwinote ]
+  * data/featured.menu.in:
+    - fretsonfire instead of fretsonfire-game, due to desktop file changes
+  * data/software-center.menu.in:
+    - use correct icon for system category, thanks vish!
   * softwarecenter/apt/aptcache.py:
     - don't crash on broken dependencies (LP: #630579)
       (testcase: acl2-books)
+  * softwarecenter/db/application.py:
+    - set pkgname for deb files correctly (LP: #628787)
+      (testcase: replace _ with - in filename of an outdated deb file of s-c)
   * softwarecenter/view/appdetailsview_gtk.py:
     - never display the description of a different pkg
       (testcase: browse to any appdetails view and then to fluendo dvd player)
+    - don't crash if icon for 'where is it' is None (LP: #629845)
+    - don't crash if icon for addon can not be opened (LP: #629937)
+    - don't display add-ons when we have an error
+      (testcase: deb file of wrong architecture)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
+  * softwarecenter/view/availablepane.py:
+    - set section for subcategory view (this means that we now have a bg)
+  * softwarecenter/view/installedpane.py:
+    - don't return to installed overview list on reopening db
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix visual corruption on appending pathbar part
+      (testcase: channelpane > details > different channelpane > details)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
- 
+
+
 software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]

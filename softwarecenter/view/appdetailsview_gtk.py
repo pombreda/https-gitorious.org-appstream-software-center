@@ -824,8 +824,8 @@ class Addon(gtk.HBox):
             if pixbuf:
                 pixbuf.scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
             self.icon.set_from_pixbuf(pixbuf)
-        except TypeError:
-            logging.warning("cant set icon for '%s' " % pkgname)
+        except:
+            LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
         # name
@@ -1368,7 +1368,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # refresh addons interface
         self.addon_view.hide_all()
-        gobject.idle_add(self.addons_manager.configure, self.app_details.pkgname)
+        if not app_details.error:
+            gobject.idle_add(self.addons_manager.configure,
+                             self.app_details.pkgname)
         
         # Update total size label
         gobject.idle_add(self.update_totalsize, True)
@@ -1390,7 +1392,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
-                if self.icons.has_icon(iconname) and i > 0:
+                if iconname and self.icons.has_icon(iconname) and i > 0:
                     image = gtk.Image()
                     image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
                     self.desc_installed_where.pack_start(image, False, False)
