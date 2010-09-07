@@ -176,6 +176,7 @@ class ChannelsManager(object):
             if len(channel_iter.term) == 3:
                 continue
             channel_name = channel_iter.term[3:]
+            channel_origin = ""
             
             # get origin information for this channel
             m = self.db.xapiandb.postlist_begin(channel_iter.term)

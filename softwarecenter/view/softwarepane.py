@@ -77,6 +77,9 @@ class SoftwarePane(gtk.VBox, BasePane):
                              ),
     }
     PADDING = 6
+    
+    (PAGE_APPVIEW,
+     PAGE_SPINNER) = range(2)
 
     def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
@@ -105,8 +108,27 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
+                             
+        # make a spinner to display while the applist is loading           
+        self.spinner = gtk.Spinner()
+        self.spinner.set_size_request(48, 48)
         
+        # use a table for the spinner (otherwise the spinner is massive!)
+        self.spinner_table = gtk.Table(3, 3, False)
+        self.spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
+        
+        self.spinner_view = gtk.Viewport()
+        self.spinner_view.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(1.0, 1.0, 1.0))
+        self.spinner_view.add(self.spinner_table)
+        self.spinner_view.set_shadow_type(gtk.SHADOW_NONE)
         self.scroll_app_list.add(self.app_view)
+        
+        self.appview_notebook = gtk.Notebook()
+        self.appview_notebook.set_show_tabs(False)
+        self.appview_notebook.set_show_border(False)
+        self.appview_notebook.append_page(self.scroll_app_list)
+        self.appview_notebook.append_page(self.spinner_view)
+        
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         # details
@@ -189,6 +211,24 @@ class SoftwarePane(gtk.VBox, BasePane):
             index =  model.app_index_map.get(current_app)
             LOG.debug("found app: %s at index %s" % (current_app.pkgname, index))
             self.app_view.set_cursor(index)
+            
+    def show_appview_spinner(self):
+        """ display the spinner in the appview panel """
+        self.action_bar.clear()
+        self.spinner.hide()
+        self.appview_notebook.set_current_page(self.PAGE_SPINNER)
+        # "mask" the spinner momentarily to prevent it from flashing into
+        # view in the case of short delays where it isn't actually needed
+        gobject.timeout_add(100, self._unmask_appview_spinner)
+        
+    def _unmask_appview_spinner(self):
+        self.spinner.start()
+        self.spinner.show()
+        
+    def hide_appview_spinner(self):
+        """ hide the spinner and display the appview in the panel """
+        self.spinner.stop()
+        self.appview_notebook.set_current_page(self.PAGE_APPVIEW)
 
     def set_section_color(self, color):
         self.app_details.set_section_color(color)
