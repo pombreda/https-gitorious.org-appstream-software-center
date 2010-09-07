@@ -1,3 +1,11 @@
+software-center (2.1.17) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - allow us to 'upgrade' deb files again
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 14:57:58 +0200
+
 software-center (2.1.16) maverick; urgency=low
 
   [ Gary Lasker ]
