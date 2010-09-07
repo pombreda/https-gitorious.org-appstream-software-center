@@ -982,7 +982,7 @@ class LinkButton(gtk.EventBox):
             r,g,b = floats_from_string('#FFFFFF')
         else:
             r,g,b = floats_from_string('#000000')
-        cr.set_source_rgba(r,g,b, 0.15*self.alpha)
+        cr.set_source_rgba(r,g,b, 0.125*self.alpha)
         cr.mask_surface(self._image_surface, x, y)
         return True
 
