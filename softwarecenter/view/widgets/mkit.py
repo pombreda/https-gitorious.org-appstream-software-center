@@ -979,10 +979,10 @@ class LinkButton(gtk.EventBox):
         cr.rectangle(a)
         cr.clip_preserve()
         if self.state == gtk.STATE_PRELIGHT:
-            r,g,b = floats_from_string('#FFFFC1')
+            r,g,b = floats_from_string('#FFFFFF')
         else:
-            r,g,b = floats_from_gdkcolor(self.style.mid[gtk.STATE_SELECTED])
-        cr.set_source_rgba(r,g,b, 0.33*self.alpha)
+            r,g,b = floats_from_string('#000000')
+        cr.set_source_rgba(r,g,b, 0.15*self.alpha)
         cr.mask_surface(self._image_surface, x, y)
         return True
 
