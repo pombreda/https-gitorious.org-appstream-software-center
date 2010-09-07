@@ -1,4 +1,4 @@
-software-center (2.1.17) UNRELEASED; urgency=low
+software-center (2.1.16.1) maverick; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -9,7 +9,7 @@ software-center (2.1.17) UNRELEASED; urgency=low
       this time without causing regressions
       (testcase: browse to any app with a screenshot)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 14:57:58 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 17:02:52 +0200
 
 software-center (2.1.16) maverick; urgency=low
 
