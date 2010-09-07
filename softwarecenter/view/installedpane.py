@@ -141,11 +141,18 @@ class InstalledPane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        self.action_bar.clear()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
+        
+    def _on_app_list_changed(self, pane, length):
+        """internal helper that keeps the the action bar up-to-date by
+           keeping track of the app-list-changed signals
+        """
+        self.update_show_hide_nonapps()
 
     def display_search(self):
         self.navigation_bar.remove_id("details")
