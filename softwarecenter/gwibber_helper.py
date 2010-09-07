@@ -18,6 +18,9 @@
 
 
 import json
+import locale
+# Bug #521569, apparently one needs to set the locale to en_US
+locale.setlocale(locale.LC_ALL,'en_US.utf8')
 #from dbus.mainloop.glib import DBusGMainLoop
 try:
     from gwibber.lib import GwibberPublic
