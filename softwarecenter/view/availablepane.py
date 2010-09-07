@@ -674,6 +674,7 @@ class AvailablePane(SoftwarePane):
 
     def set_section(self, section):
         self.cat_view.set_section(section)
+        self.subcategories_view.set_section(section)
         SoftwarePane.set_section(self, section)
         return
 

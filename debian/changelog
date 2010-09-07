@@ -1,4 +1,17 @@
-software-center (2.1.16) UNRELEASED; urgency=low
+software-center (2.1.16.1) maverick; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - allow us to 'upgrade' deb files again
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix visual corruption on appending pathbar part
+      (testcase: channelpane > details > different channelpane > details)
+      this time without causing regressions
+      (testcase: browse to any app with a screenshot)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 17:02:52 +0200
+
+software-center (2.1.16) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/purchasedialog.py:
@@ -29,19 +42,44 @@ software-center (2.1.16) UNRELEASED; urgency=low
   * make sure there is always a toplevel transaction for a pending
     purchase even if s-c waits for the for-pay repository to become
     available (LP: #627608)
+  * softwarecenter/view/purchasedialog.py:
+    - support both "failure_reason" and "failures" as error strings
+      from the agent
+  * merged lp:~mmcg069/software-center/Bug617443 (LP: #617443)
+  * merged lp:~mmcg069/software-center/bug628714 (LP: #628714)
+  * merged lp:~mmcg069/software-center/hover-highlight-tweaks to 
+    use correct prelight color
 
   [ Kiwinote ]
+  * data/featured.menu.in:
+    - fretsonfire instead of fretsonfire-game, due to desktop file changes
+  * data/software-center.menu.in:
+    - use correct icon for system category, thanks vish!
   * softwarecenter/apt/aptcache.py:
     - don't crash on broken dependencies (LP: #630579)
       (testcase: acl2-books)
+  * softwarecenter/db/application.py:
+    - set pkgname for deb files correctly (LP: #628787)
+      (testcase: replace _ with - in filename of an outdated deb file of s-c)
   * softwarecenter/view/appdetailsview_gtk.py:
     - never display the description of a different pkg
       (testcase: browse to any appdetails view and then to fluendo dvd player)
+    - don't crash if icon for 'where is it' is None (LP: #629845)
+    - don't crash if icon for addon can not be opened (LP: #629937)
+    - don't display add-ons when we have an error
+      (testcase: deb file of wrong architecture)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
+  * softwarecenter/view/availablepane.py:
+    - set section for subcategory view (this means that we now have a bg)
+  * softwarecenter/view/installedpane.py:
+    - don't return to installed overview list on reopening db
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix visual corruption on appending pathbar part
+      (testcase: channelpane > details > different channelpane > details)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
- 
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 14:57:58 +0200
+
 software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]

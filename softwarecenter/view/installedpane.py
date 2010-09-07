@@ -116,7 +116,7 @@ class InstalledPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
     def on_db_reopen(self, db):
         self.refresh_apps()
-        self._show_installed_overview()
+        self.app_details.refresh_app()
         
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""

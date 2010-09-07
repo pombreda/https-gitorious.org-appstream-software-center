@@ -522,7 +522,7 @@
  <!-- System -->
   <Menu>
     <_Name>System</_Name>
-    <SCIcon>applications-other</SCIcon>
+    <SCIcon>applications-system</SCIcon>
     <OnlyUnallocated/>
     <Include>
     </Include>

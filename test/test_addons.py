@@ -23,8 +23,9 @@ class TestSCAddons(unittest.TestCase):
         # synaptic
         res = self.cache.get_addons("synaptic")
         # FIXME: kdebase?!?!?! that is rather unneeded
-        self.assertEqual(res, (["kdebase-bin"],
-                               ["dwww", "deborphan", "menu"]))
+        self.assertEqual(res, (
+                ["kdebase-bin", 'libgnome2-perl', 'rarian-compat'],
+                ["dwww", "deborphan", "menu"]))
 
 
     def test_enhances(self):

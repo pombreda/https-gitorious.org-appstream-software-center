@@ -39,6 +39,7 @@ from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.utils import ImageDownloader, GMenuSearcher
+from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
 
@@ -71,7 +72,8 @@ COLOR_BLACK         = '#323232'
 
 LOG = logging.getLogger("softwarecenter.view.appdetailsview")
 
-class PackageStatusBar(gtk.Alignment):
+
+class StatusBar(gtk.Alignment):
     
     def __init__(self, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
@@ -85,6 +87,53 @@ class PackageStatusBar(gtk.Alignment):
         self.add(self.hbox)
 
         self.view = view
+
+        self._height = 1
+
+        self.connect('size-allocate', self._on_size_allocate)
+        self.connect('style-set', self._on_style_set)
+        
+    def _on_size_allocate(self, button, allocation):
+        # Bug #617443
+        # Dont allow the package status bar to shrink
+        self._height = max(allocation.height, self._height)
+        if allocation.height < self._height:
+            self.set_size_request(-1, self._height)
+        return
+
+    def _on_style_set(self, widget, old_style):
+        # reset max heights, this is so we can resize properly on, say, a font-size change
+        self._height = 1
+        self.set_size_request(-1, -1)
+        return
+        
+    def draw(self, cr, a, expose_area):
+        if mkit.not_overlapping(a, expose_area): return
+
+        cr.save()
+        if self.view.section:
+            r,g,b = self.view.section._section_color
+        else:
+            r,g,b = 0.5,0.5,0.5
+
+        cr.rectangle(a)
+        cr.set_source_rgba(r,g,b,0.333)
+#        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
+        cr.fill()
+
+        cr.set_line_width(1)
+        cr.translate(0.5, 0.5)
+        cr.rectangle(a.x, a.y, a.width-1, a.height-1)
+        cr.set_source_rgba(r,g,b,0.5)
+        cr.stroke()
+        cr.restore()
+        return
+
+
+class PackageStatusBar(StatusBar):
+    
+    def __init__(self, view):
+        StatusBar.__init__(self, view)
         self.label = mkit.EtchedLabel()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
@@ -96,14 +145,7 @@ class PackageStatusBar(gtk.Alignment):
         self.hbox.pack_end(self.progress, False)
         self.show_all()
 
-        #self.button.connect('size-allocate', self._on_button_size_allocate)
         self.button.connect('clicked', self._on_button_clicked)
-        return
-
-    def _on_button_size_allocate(self, button, allocation):
-        # make the progress bar the same height as the button
-        self.progress.set_size_request(12*mkit.EM,
-                                       allocation.height)
         return
 
     def _on_button_clicked(self, button):
@@ -251,28 +293,6 @@ class PackageStatusBar(gtk.Alignment):
             self.line_color = COLOR_YELLOW_OUTLINE
         if self.app_details.warning and not self.app_details.error:
             self.set_label(self.app_details.warning)
-        return
-
-    def draw(self, cr, a, expose_area):
-        if mkit.not_overlapping(a, expose_area): return
-
-        cr.save()
-        if self.view.section:
-            r,g,b = self.view.section._section_color
-        else:
-            r,g,b = 0.5,0.5,0.5
-
-        cr.rectangle(a)
-        cr.set_source_rgba(r,g,b,0.333)
-#        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
-        cr.fill()
-
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-        cr.rectangle(a.x, a.y, a.width-1, a.height-1)
-        cr.set_source_rgba(r,g,b,0.5)
-        cr.stroke()
-        cr.restore()
         return
 
 
@@ -805,8 +825,8 @@ class Addon(gtk.HBox):
             if pixbuf:
                 pixbuf.scale_simple(22, 22, gtk.gdk.INTERP_BILINEAR)
             self.icon.set_from_pixbuf(pixbuf)
-        except TypeError:
-            logging.warning("cant set icon for '%s' " % pkgname)
+        except:
+            LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
         # name
@@ -883,29 +903,17 @@ class AddonsTable(gtk.VBox):
         self.show_all()
         return False
 
-class AddonsStatusBar(gtk.Alignment):
+class AddonsStatusBar(StatusBar):
     
     def __init__(self, addons_manager):
-        gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
+        StatusBar.__init__(self, addons_manager.view)
         self.addons_manager = addons_manager
         self.addons_table = self.addons_manager.table
         self.cache = self.addons_manager.view.cache
-        self.view = self.addons_manager.view
-        
-        self.set_redraw_on_allocate(False)
-        self.set_padding(mkit.SPACING_SMALL,
-                         mkit.SPACING_SMALL,
-                         mkit.SPACING_SMALL+2,
-                         mkit.SPACING_SMALL)
-        
-        self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
-        self.add(self.hbox)
-
 
         self.applying = False
         
-        self.label_price = gtk.Label(_("Free"))
-        self.label_price.set_line_wrap(True)
+        self.label_price = mkit.EtchedLabel(_("Free"))
         self.hbox.pack_start(self.label_price, False)
         
         self.hbuttonbox = gtk.HButtonBox()
@@ -924,31 +932,10 @@ class AddonsStatusBar(gtk.Alignment):
             self.hide()
         else:
             self.show()
-
-    def draw(self, cr, a, expose_area):
-        if mkit.not_overlapping(a, expose_area): return
-
-        cr.save()
-        if self.view.section:
-            r,g,b = self.view.section._section_color
-        else:
-            r,g,b = 0.5,0.5,0.5
-
-        cr.rectangle(a)
-        cr.set_source_rgba(r,g,b,0.333)
-#        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
-        cr.fill()
-
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-        cr.rectangle(a.x, a.y, a.width-1, a.height-1)
-        cr.set_source_rgba(r,g,b,0.5)
-        cr.stroke()
-        cr.restore()
-        return
     
     def get_applying(self):
         return self.applying
+
     def set_applying(self, applying):
         self.applying = applying
     
@@ -960,7 +947,8 @@ class AddonsStatusBar(gtk.Alignment):
         self.view.addons_to_install = self.addons_manager.addons_to_install
         self.view.addons_to_remove = self.addons_manager.addons_to_remove
         AppDetailsViewBase.apply_changes(self.view)
-        
+
+
 class AddonsManager():
     def __init__(self, view):
         self.view = view
@@ -1052,7 +1040,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
         # switches
-        self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")
+        # Bug #628714 check not only that gwibber is installed but that service accounts exist
+        self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
+        #self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")        
         self._show_overlay = False
         self._overlay = gtk.gdk.pixbuf_new_from_file(self.INSTALLED_ICON)
 
@@ -1381,7 +1371,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # refresh addons interface
         self.addon_view.hide_all()
-        gobject.idle_add(self.addons_manager.configure, self.app_details.pkgname)
+        if not app_details.error:
+            gobject.idle_add(self.addons_manager.configure,
+                             self.app_details.pkgname)
         
         # Update total size label
         gobject.idle_add(self.update_totalsize, True)
@@ -1403,7 +1395,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
-                if self.icons.has_icon(iconname) and i > 0:
+                if iconname and self.icons.has_icon(iconname) and i > 0:
                     image = gtk.Image()
                     image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
                     self.desc_installed_where.pack_start(image, False, False)
