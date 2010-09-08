@@ -50,6 +50,31 @@ class PurchaseDialog(gtk.Dialog):
 <head>
  <title></title>
 </head>
+<style type="text/css">
+html {
+  background: #fff;
+  color: #000;
+  font: sans-serif;
+  font: caption;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%%;
+  height: 100%%;
+  display: table;
+}
+body {
+  display: table-cell;
+  vertical-align: middle;
+}
+h1 {
+  background: url(file:///usr/share/software-center/images/spinner.gif) top center no-repeat;
+  padding-top: 48px; /* leaves room for the spinner above */
+  font-size: 100%%;
+  font-weight: normal;
+}
+</style>
 <body>
  <h1>%s</h1>
 </body>

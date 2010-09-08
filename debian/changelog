@@ -1,8 +1,13 @@
 software-center (2.1.17) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/purchasedialog.py:
     - make popup window a modal dialog so it works with
       metacity too (LP: #625398)
+  
+  [ Michael Vogt ]
+  * merged lp:~mpt/software-center/basic-css, improves the
+    style of the purchase dialog (thanks!)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Sep 2010 01:35:48 -0400
 
