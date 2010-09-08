@@ -10,6 +10,9 @@ software-center (2.1.17) UNRELEASED; urgency=low
     - set action_bar.pkg_state as well as local state (LP: #629230, LP: #632889)
       this means that the button will always take the right action
       (testcase: click 'install', cancel auth, click 'install', auth)
+    - don't show warning in pkgstatusbar while transaction is in progress,
+      instead show 'installing..', 'updating..', etc
+      (test case: install any deb file and watch the pkgstatusbar)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Sep 2010 01:35:48 -0400
 
