@@ -86,18 +86,14 @@ class PurchaseDialog(gtk.Dialog):
 
     def _on_create_webview_request(self, view, frame, parent=None):
         logging.debug("_on_create_webview_request")
-        window = gtk.Window()
-        window.set_transient_for(self)
-        # we need to also set it modal to allow the popup window to be closable;
-        # note that this has the side effect of blocking the purchase dialog until
-        # the popup has been closed (but maybe that's not a bad thing)
-        window.set_modal(True)
-        window.set_size_request(750,400)
-        window.set_title("")
+        popup = gtk.Dialog()
+        popup.set_size_request(750,400)
+        popup.set_title("")
+        popup.set_modal(True)
         wk = ScrolledWebkitWindow()
         wk.show()
-        window.add(wk)
-        window.show()
+        popup.vbox.pack_start(wk)
+        popup.show()
         return wk.webkit
 
     def run(self):

@@ -1,3 +1,10 @@
+software-center (2.1.17) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchasedialog.py:
+    - make popup window a modal dialog (LP: #625398)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Sep 2010 01:13:29 -0400
+
 software-center (2.1.16.1) maverick; urgency=low
 
   [ Kiwinote ]
