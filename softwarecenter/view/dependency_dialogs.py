@@ -43,6 +43,8 @@ def confirm_install(parent, datadir, app, db, icons):
     for depname in deps_remove:
         if cache[depname].is_installed:
             depends.add(depname)
+    if not depends:
+        return True
     (primary, button_text) = distro.get_install_warning_text(cache, appdetails.pkg, app.name, depends)
     return _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)
 
@@ -56,6 +58,8 @@ def confirm_remove(parent, datadir, app, db, icons):
     #  backend.simulate_remove(app.pkgname)
     # once it works
     depends = db._aptcache.get_installed_rdepends(appdetails.pkg)
+    if not depends:
+        return True
     (primary, button_text) = distro.get_removal_warning_text(
         db._aptcache, appdetails.pkg, app.name, depends)
     return _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)

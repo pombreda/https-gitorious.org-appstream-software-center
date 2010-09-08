@@ -24,7 +24,7 @@ from softwarecenter.db.application import Application
 
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
-MISSING_APP_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
+MISSING_APP_ICON = "applications-other"
 
 LOG = logging.getLogger(__name__)
 
@@ -56,6 +56,8 @@ class PkgNamesView(gtk.TreeView):
             try:
                 pix = icons.load_icon(proposed_icon, ICON_SIZE, ()).scale_simple(ICON_SIZE, 
                                       ICON_SIZE, gtk.gdk.INTERP_BILINEAR)
-                row = model.append([pix, s])
             except:
                 LOG.warning("cant set icon for '%s' " % pkgname)
+                pix = icons.load_icon(MISSING_APP_ICON, ICON_SIZE, ()).scale_simple(ICON_SIZE, 
+                                      ICON_SIZE, gtk.gdk.INTERP_BILINEAR)
+            row = model.append([pix, s])
