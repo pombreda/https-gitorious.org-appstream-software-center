@@ -34,6 +34,8 @@ software-center (2.1.17) UNRELEASED; urgency=low
     - don't show warning in pkgstatusbar while transaction is in progress,
       instead show 'installing..', 'updating..', etc
       (test case: install any deb file and watch the pkgstatusbar)
+  * softwarecenter/view/catview.py:
+    - sort categories alphabetically (LP: #633238)
   * softwarecenter/view/catview_gtk.py:
     - skip the carousel transition if we are hovering above a poster, or if
       the poster is selected (ie hold down mouse, but don't release)
