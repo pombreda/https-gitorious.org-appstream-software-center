@@ -24,6 +24,7 @@ software-center (2.1.17) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/small-fixes that fixes
     minor drawing error with the paging dot drawing outside its 
     allocated area (thanks!)
+  * merged lp:~mpt/software-center/help-3.0 (thanks!)
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:
@@ -39,6 +40,11 @@ software-center (2.1.17) UNRELEASED; urgency=low
   * softwarecenter/view/catview_gtk.py:
     - skip the carousel transition if we are hovering above a poster, or if
       the poster is selected (ie hold down mouse, but don't release)
+
+  [ Mohamed Amine IL Idrissi ]
+  * Fix bug that allowed silent removal of conflicting packages
+    (LP: #554319)
+  * Fix missing icons in the remove alerts
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Sep 2010 14:26:26 +0200
 
