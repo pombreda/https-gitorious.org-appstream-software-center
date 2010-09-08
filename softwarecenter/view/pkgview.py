@@ -18,11 +18,15 @@
 
 
 import gtk
+import logging
 import pango
+from softwarecenter.db.application import Application
 
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
 MISSING_APP_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
+
+LOG = logging.getLogger(__name__)
 
 class PkgNamesView(gtk.TreeView):
     """ show a bunch of pkgnames with description """
@@ -30,7 +34,7 @@ class PkgNamesView(gtk.TreeView):
     (COL_ICON,
      COL_TEXT) = range(2)
 
-    def __init__(self, header, cache, pkgnames):
+    def __init__(self, header, cache, pkgnames, icons, db):
         super(PkgNamesView, self).__init__()
         model = gtk.ListStore(gtk.gdk.Pixbuf, str)
         self.set_model(model)
@@ -44,7 +48,14 @@ class PkgNamesView(gtk.TreeView):
         for pkgname in sorted(pkgnames):
             s = "%s \n<small>%s</small>" % (
                 cache[pkgname].installed.summary.capitalize(), pkgname)
-            # FIXME: use xapian query here to find a matching icon
-            pix = gtk.gdk.pixbuf_new_from_file_at_size(MISSING_APP_ICON, 
-                                                       ICON_SIZE, ICON_SIZE)
-            row = model.append([pix, s])
+            
+            app_details = Application("", pkgname).get_details(db)
+            proposed_icon = app_details.icon
+            if not proposed_icon or not icons.has_icon(proposed_icon):
+                proposed_icon = MISSING_APP_ICON
+            try:
+                pix = icons.load_icon(proposed_icon, ICON_SIZE, ()).scale_simple(ICON_SIZE, 
+                                      ICON_SIZE, gtk.gdk.INTERP_BILINEAR)
+                row = model.append([pix, s])
+            except:
+                LOG.warning("cant set icon for '%s' " % pkgname)

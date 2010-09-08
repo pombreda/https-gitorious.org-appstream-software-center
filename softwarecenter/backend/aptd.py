@@ -33,7 +33,7 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
 from aptsources.sourceslist import SourceEntry
 
 try:
-    from aptdaemon.defer import inline_callbacks
+    from aptdaemon.defer import inline_callbacks, return_value
 except ImportError:
     logging.getLogger("softwarecenter.backend").exception("aptdaemon import failed")
     print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
@@ -143,6 +143,16 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error, pkgname)
 
+# BROKEN currently for unknown reasons
+#    @inline_callbacks
+#    def simulate_remove_multiple(self, pkgnames):
+#        try:
+#            trans = yield self.aptd_client.remove_packages(pkgnames, defer=True#)
+#            yield trans.simulate()
+#        except Exception:
+#            logging.exception("simulate_remove")
+#        return_value(trans.dependencies)
+    
     @inline_callbacks
     def remove(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ remove a single package """
