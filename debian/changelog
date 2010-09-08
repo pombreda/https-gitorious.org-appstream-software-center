@@ -24,6 +24,7 @@ software-center (2.1.17) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/small-fixes that fixes
     minor drawing error with the paging dot drawing outside its 
     allocated area (thanks!)
+  * merged lp:~mpt/software-center/help-3.0 (thanks!)
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:
