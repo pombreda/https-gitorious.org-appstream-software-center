@@ -1654,14 +1654,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         version = pkg.installed
         if version == None:
             version = max(pkg.versions)
-            deps_inst = self.cache.get_all_deps_installing(pkg)
+            deps_inst = self.cache.try_install_and_get_all_deps_installed(pkg)
             for dep in deps_inst:
                 if self.cache[dep].installed == None:
                     dep_version = max(self.cache[dep].versions)
                     pkgs_to_install.append(dep_version)
-            deps_remove = self.cache.get_all_deps_removing(pkg)
+            deps_remove = self.cache.try_install_and_get_all_deps_removed(pkg)
             for dep in deps_remove:
-                if self.cache[dep].installed != None:
+                if self.cache[dep].is_installed:
                     dep_version = self.cache[dep].installed
                     pkgs_to_remove.append(dep_version)
             pkgs_to_install.append(version)
@@ -1669,12 +1669,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         for addon in self.addons_manager.addons_to_install:
             version = max(self.cache[addon].versions)
             pkgs_to_install.append(version)
-            deps_inst = self.cache.get_all_deps_installing(self.cache[addon])
+            deps_inst = self.cache.try_install_and_get_all_deps_installed(self.cache[addon])
             for dep in deps_inst:
                 if self.cache[dep].installed == None:
                     version = max(self.cache[dep].versions)
                     pkgs_to_install.append(version)
-            deps_remove = self.cache.get_all_deps_removing(self.cache[addon])
+            deps_remove = self.cache.try_install_and_get_all_deps_removed(self.cache[addon])
             for dep in deps_remove:
                 if self.cache[dep].installed != None:
                     version = self.cache[dep].installed
@@ -1682,12 +1682,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         for addon in self.addons_manager.addons_to_remove:
             version = self.cache[addon].installed
             pkgs_to_remove.append(version)
-            deps_inst = self.cache.get_all_deps_installing(self.cache[addon])
+            deps_inst = self.cache.try_install_and_get_all_deps_installed(self.cache[addon])
             for dep in deps_inst:
                 if self.cache[dep].installed == None:
                     version = max(self.cache[dep].versions)
                     pkgs_to_install.append(version)
-            deps_remove = self.cache.get_all_deps_removing(self.cache[addon])
+            deps_remove = self.cache.try_install_and_get_all_deps_removed(self.cache[addon])
             for dep in deps_remove:
                 if self.cache[dep].installed != None:
                     version = self.cache[dep].installed

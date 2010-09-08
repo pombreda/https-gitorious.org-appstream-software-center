@@ -308,7 +308,7 @@ class AptCache(gobject.GObject):
                 changes[change.name] = PKG_STATE_UNKNOWN
         self._cache.clear()
         return changes
-    def get_all_deps_installing(self, pkg):
+    def try_install_and_get_all_deps_installed(self, pkg):
         """ Return all dependencies of pkg that will be marked for install """
         changes = self._get_changes_without_applying(pkg)
         installing_deps = []
@@ -316,7 +316,8 @@ class AptCache(gobject.GObject):
             if change != pkg.name and changes[change] == PKG_STATE_INSTALLING:
                 installing_deps.append(change)
         return installing_deps
-    def get_all_deps_removing(self, pkg):
+    def try_install_and_get_all_deps_removed(self, pkg):
+        """ Return all dependencies of pkg that will be marked for remove"""
         changes = self._get_changes_without_applying(pkg)
         removing_deps = []
         for change in changes.keys():
@@ -448,10 +449,10 @@ class AptCache(gobject.GObject):
         if addons_rec or addons_sug:
             # now get all_deps if the package would be installed
             try:
-                all_deps_if_installed = self.get_all_deps_installing(pkg)
+                all_deps_if_installed = self.try_install_and_get_all_deps_installed(pkg)
             except:
                 # if we have broken packages, then we return no addons
-                LOG.debug("broken packages encountered while getting deps for %s" % pkgname)
+                LOG.warn("broken packages encountered while getting deps for %s" % pkgname)
                 return ([],[])
             # filter out stuff we don't want
             addons_rec = filter(_addons_filter_slow, addons_rec)

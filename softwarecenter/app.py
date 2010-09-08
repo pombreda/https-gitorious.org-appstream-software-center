@@ -39,7 +39,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
-import softwarecenter.view.dialogs as dialogs
+import softwarecenter.view.dependency_dialogs as dependency_dialogs
 from softwarecenter.view.widgets.mkit import floats_from_string
 
 import view.dialogs
@@ -513,16 +513,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         logging.debug("on_application_action_requested: '%s' %s" % (app, action))
         appdetails = app.get_details(self.db)
         if action == "remove":
-            if not dialogs.confirm_remove(None, self.datadir, app,
-                                          self.db, self.icons):
+            if not dependency_dialogs.confirm_remove(None, self.datadir, app,
+                                                     self.db, self.icons):
                     self.backend.emit("transaction-stopped", app.pkgname)
                     return
         elif action == "install":
             # If we are installing a package, check for dependencies that will 
             # also be removed and show a dialog for confirmation
             # generic removal text (fixing LP bug #554319)
-            if not dialogs.confirm_install(None, self.datadir, app, 
-                                           self.db, self.icons)
+            if not dependency_dialogs.confirm_install(None, self.datadir, app, 
+                                                      self.db, self.icons):
                     self.backend.emit("transaction-stopped", app.pkgname)
                     return
 

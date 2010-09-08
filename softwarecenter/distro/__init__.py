@@ -83,15 +83,9 @@ class Distro(object):
         import xapian
         return xapian.Query()
 
-    def get_install_warning_text(self, cache, pkg, appname):
+    def get_install_warning_text(self, cache, pkg, appname, depends):
         primary = _("To install %s, these items must be removed:" % appname)
         button_text = _("Install Anyway")
-
-        depends = []
-        deps_remove = cache.get_all_deps_removing(pkg)
-        for dep in deps_remove:
-            if cache[dep].installed != None:
-                depends.append(dep)
 
         # alter it if a meta-package is affected
         for m in depends:
