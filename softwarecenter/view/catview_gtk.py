@@ -802,6 +802,9 @@ class CarouselView(mkit.FramedSection):
         return
 
     def transition(self, loop=True):
+        for poster in self.posters:
+            if poster.state > 0:
+                return loop
         self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
                                           self._fade_out)
         return loop
