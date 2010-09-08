@@ -21,7 +21,7 @@ import gtk
 from gettext import gettext as _
 from pkgview import PkgNamesView
 
-class SimpleGladeDialog(object):
+class SimpleGtkbuilderDialog(object):
     def __init__(self, datadir):
         # setup ui
         self.builder = gtk.Builder()
@@ -37,7 +37,7 @@ class SimpleGladeDialog(object):
 def confirm_remove(parent, datadir, primary, cache, button_text, 
                    icon_path, depends, icons, db):
     """Confirm removing of the given app with the given depends"""
-    glade_dialog = SimpleGladeDialog(datadir)
+    glade_dialog = SimpleGtkbuilderDialog(datadir)
     dialog = glade_dialog.dialog_dependency_alert
     dialog.set_resizable(True)
     dialog.set_transient_for(parent)
@@ -67,7 +67,7 @@ def confirm_remove(parent, datadir, primary, cache, button_text,
     return False
 
 def confirm_repair_broken_cache(parent, datadir):
-    glade_dialog = SimpleGladeDialog(datadir)
+    glade_dialog = SimpleGtkbuilderDialog(datadir)
     dialog = glade_dialog.dialog_broken_cache
     dialog.set_default_size(380, -1)
     dialog.set_transient_for(parent)
