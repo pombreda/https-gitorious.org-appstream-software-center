@@ -90,6 +90,7 @@ class PurchaseDialog(gtk.Dialog):
         popup.set_size_request(750,400)
         popup.set_title("")
         popup.set_modal(True)
+        popup.set_transient_for(self)
         wk = ScrolledWebkitWindow()
         wk.show()
         popup.vbox.pack_start(wk)
