@@ -513,52 +513,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         logging.debug("on_application_action_requested: '%s' %s" % (app, action))
         appdetails = app.get_details(self.db)
         if action == "remove":
-            # if we are removing a package, check for dependencies that will
-            # also be removed and show a dialog for confirmation
-            # generic removal text
-            # FIXME: this text is not accurate, we look at recommends as
-            #        well as part of the rdepends, but those do not need to
-            #        be removed, they just may be limited in functionality
-            (primary, button_text) = self.distro.get_removal_warning_text(
-                self.cache, appdetails.pkg, app.name)
-            # ask for confirmation if we have rdepends
-            depends = self.cache.get_installed_rdepends(appdetails.pkg)
-            if depends:
-                iconpath = self.get_icon_filename(appdetails.icon, self.APP_ICON_SIZE)
-                
-                if not dialogs.confirm_remove(None, self.datadir, primary, 
-                                              self.cache, button_text,
-                                              iconpath, depends, self.icons, 
-                                              self.db):
-                    # for appdetailsview-webkit
-                    # self._set_action_button_sensitive(True)
-
+            if not dialogs.confirm_remove(None, self.datadir, app,
+                                          self.db, self.icons):
                     self.backend.emit("transaction-stopped", app.pkgname)
                     return
         elif action == "install":
             # If we are installing a package, check for dependencies that will 
             # also be removed and show a dialog for confirmation
             # generic removal text (fixing LP bug #554319)
-            (primary, button_text) = self.distro.get_install_warning_text(
-                self.cache, appdetails.pkg, app.name)
-                                                                          
-            # ask for confirmation if we have depends that will be removed
-            depends = []
-            deps_remove = self.cache.get_all_deps_removing(appdetails.pkg)
-            for dep in deps_remove:
-                if self.cache[dep].installed != None:
-                    depends.append(dep)
-            
-            if depends:
-                iconpath = self.get_icon_filename(appdetails.icon, self.APP_ICON_SIZE)
-                
-                if not dialogs.confirm_remove(None, self.datadir, primary, 
-                                              self.cache, button_text, 
-                                              iconpath, depends, self.icons, 
-                                              self.db):
-                    # for appdetailsview-webkit
-                    # self._set_action_button_sensitive(True)
-
+            if not dialogs.confirm_install(None, self.datadir, app, 
+                                           self.db, self.icons)
                     self.backend.emit("transaction-stopped", app.pkgname)
                     return
 
@@ -566,7 +530,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if action == 'upgrade' and app.request and app.request.endswith(".deb"):
             action = 'install'
  
-        # action_func is one of:  "install", "remove", "upgrade", or "apply_changes"
+        # action_func is one of:  "install", "remove", "upgrade", "apply_changes"
         action_func = getattr(self.backend, action)
         if action == 'install':
             # the package.deb path name is in the request
