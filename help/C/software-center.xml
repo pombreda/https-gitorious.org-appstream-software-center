@@ -6,8 +6,8 @@
 <!--<?yelp:chunk-depth 4?>-->
 <!--
       (Do not remove this comment block.)
-  Version: 2.0
-  Last modified: Mar 25, 2010
+  Version: 3.0
+  Last modified: Sep 8, 2010
   Maintainers:
                Michael Vogt <mvo@ubuntu.com>
                
@@ -254,22 +254,36 @@
       Ubuntu Software Center.
     </para>
   </chapter>
-  <chapter id="why-free">
-    <title id="why-free-title">Why are all the programs free?</title>
+  <chapter id="commercial">
+    <title id="commercial-title">Do I need to pay anything?</title>
     <para>
-      Currently, all software in Ubuntu Software Center is free of charge.
+      Most software in Ubuntu Software Center is free of charge.
     </para>
     <para>
-      Most of this software is developed as <firstterm>open source</firstterm>,
-      which means anyone is allowed to alter it and redistribute it for any
-      price.
-      Ubuntu developers, Debian developers, and others
-      package the software available in Ubuntu Software Center,
-      and make it available to you for free.
+      If something costs money,
+      it has a <guilabel>Buy</guilabel> button, and
+      its price is shown in US dollars on the screen for the individual item.
     </para>
     <para>
-      In a future version of Ubuntu, the Center will also allow software
-      purchases.
+      To pay for commercial software, you need an Internet connection,
+      and an Ubuntu Single Sign On account or Launchpad account.
+      If you do not have an account,
+      Ubuntu Software Center will help you register one.
+    </para>
+  </chapter>
+  <chapter id="commercial-reinstalling">
+    <title id="commercial-reinstalling-title">
+      What if I paid for software and then lost it?
+    </title>
+    <para>
+      If you accidentally removed software that you purchased,
+      and you want it back,
+      choose <menuchoice><guimenu>File</guimenu>
+      <guimenuitem>Reinstall Previous Purchases</guimenuitem></menuchoice>.
+    </para>
+    <para>
+      Once you sign in to the account that you used to buy the software,
+      Ubuntu Software Center will display your purchases for reinstalling.
     </para>
   </chapter>
   <chapter id="missing">
