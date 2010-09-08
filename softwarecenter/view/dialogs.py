@@ -34,7 +34,8 @@ class SimpleGladeDialog(object):
             else:
                 print >> sys.stderr, "WARNING: can not get name for '%s'" % o
 
-def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depends):
+def confirm_remove(parent, datadir, primary, cache, button_text, 
+                   icon_path, depends, icons, db):
     """Confirm removing of the given app with the given depends"""
     glade_dialog = SimpleGladeDialog(datadir)
     dialog = glade_dialog.dialog_dependency_alert
@@ -53,7 +54,7 @@ def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depe
     # add the dependencies
     vbox = dialog.get_content_area()
     # FIXME: make this a generic pkgview widget
-    view = PkgNamesView(_("Dependency"), cache, depends)
+    view = PkgNamesView(_("Dependency"), cache, depends, icons, db)
     view.set_headers_visible(False)
     # FIXME: work out how not to select?/focus?/activate? first item
     glade_dialog.scrolledwindow_dependencies.add(view)
@@ -64,7 +65,7 @@ def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depe
     if result == gtk.RESPONSE_ACCEPT:
         return True
     return False
-    
+
 def confirm_repair_broken_cache(parent, datadir):
     glade_dialog = SimpleGladeDialog(datadir)
     dialog = glade_dialog.dialog_broken_cache
