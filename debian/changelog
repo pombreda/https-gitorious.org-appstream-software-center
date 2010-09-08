@@ -1,8 +1,15 @@
 software-center (2.1.17) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/purchasedialog.py:
     - make popup window a modal dialog so it works with
       metacity too (LP: #625398)
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - set action_bar.pkg_state as well as local state (LP: #629230, LP: #632889)
+      this means that the button will always take the right action
+      (testcase: click 'install', cancel auth, click 'install', auth)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Sep 2010 01:35:48 -0400
 

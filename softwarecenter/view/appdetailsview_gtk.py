@@ -204,6 +204,7 @@ class PackageStatusBar(StatusBar):
             self.show()
         else:
             state = app_details.pkg_state
+            self.pkg_state = state
             self.button.set_sensitive(True)
             self.button.show()
             self.show()
