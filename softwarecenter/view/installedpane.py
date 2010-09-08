@@ -50,6 +50,8 @@ class InstalledPane(SoftwarePane):
         self.loaded = False
         # UI
         self._build_ui()
+        self.connect("app-list-changed", self._on_app_list_changed)
+        
     def _build_ui(self):
         self.navigation_bar.set_size_request(26, -1)
         self.notebook.append_page(self.appview_notebook, gtk.Label("installed"))
@@ -97,9 +99,11 @@ class InstalledPane(SoftwarePane):
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
-                             query, 
+                             query,
+                             nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        self.app_view.get_model().active = True
         self.hide_appview_spinner()
         self.emit("app-list-changed", len(new_model))
         return False
@@ -138,11 +142,18 @@ class InstalledPane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        self.action_bar.clear()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
+        
+    def _on_app_list_changed(self, pane, length):
+        """internal helper that keeps the the action bar up-to-date by
+           keeping track of the app-list-changed signals
+        """
+        self.update_show_hide_nonapps()
 
     def display_search(self):
         self.navigation_bar.remove_id("details")
@@ -179,6 +190,10 @@ class InstalledPane(SoftwarePane):
     def is_category_view_showing(self):
         # there is no category view in the installed pane
         return False
+        
+    def is_applist_view_showing(self):
+        """Return True if we are in the applist view """
+        return self.notebook.get_current_page() == self.PAGE_APPLIST
 
     def show_app(self, app):
         """ Display an application in the installed_pane """

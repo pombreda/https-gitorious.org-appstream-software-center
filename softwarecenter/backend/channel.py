@@ -452,7 +452,7 @@ class SoftwareChannel(object):
         details.append("  get_channel_display_name(): %s" % self.get_channel_display_name())
         details.append("  get_channel_icon(): %s" % self.get_channel_icon())
         details.append("  get_channel_query(): %s" % self.get_channel_query())
-        details.append("  get_channel_query(): %s" % self.get_channel_query())
+        details.append("  get_channel_sort_mode(): %s" % self.get_channel_sort_mode())
         details.append("  only_packages_without_applications: %s" % self.only_packages_without_applications)
         details.append("  installed_only: %s" % self.installed_only)
         return '\n'.join(details)
