@@ -292,7 +292,9 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
-        if self.app_details.warning and not self.app_details.error:
+        if (self.app_details.warning and not self.app_details.error and
+           not state in (PKG_STATE_INSTALLING, PKG_STATE_INSTALLING_PURCHASED,
+           PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
             self.set_label(self.app_details.warning)
         return
 
