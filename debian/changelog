@@ -25,6 +25,10 @@ software-center (2.1.17) UNRELEASED; urgency=low
     minor drawing error with the paging dot drawing outside its 
     allocated area (thanks!)
   * merged lp:~mpt/software-center/help-3.0 (thanks!)
+  * softwarecenter/gwibber_helper.py:
+    - to find out if gwibber has accounts setup, poke around in
+      gconf instead of doing a dbus call. The dbus call will trigger
+      a gwibber start on each s-c start
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:
