@@ -8,6 +8,9 @@ software-center (2.1.17) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * merged lp:~mpt/software-center/basic-css, improves the
     style of the purchase dialog (thanks!)
+  * merged lp:~mmcg069/software-center/small-fixes that fixes
+    minor drawing error with the paging dot drawing outside its 
+    allocated area (thanks!)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Sep 2010 01:35:48 -0400
 
