@@ -12,7 +12,14 @@ software-center (2.1.17) UNRELEASED; urgency=low
     minor drawing error with the paging dot drawing outside its 
     allocated area (thanks!)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Sep 2010 01:35:48 -0400
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - set action_bar.pkg_state as well as local state 
+      (LP: #629230, LP: #632889)
+      this means that the button will always take the right action
+      (testcase: click 'install', cancel auth, click 'install', auth)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Sep 2010 14:26:26 +0200
 
 software-center (2.1.16.1) maverick; urgency=low
 
