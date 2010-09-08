@@ -74,8 +74,8 @@
       and you can install an item with the click of a button.
     </para>
     <para>
-      The Center also lets you examine the software installed on the
-      computer already,
+      You can also examine which software is installed on the computer
+      already,
       and remove anything you no longer need.
     </para>
   </chapter>
@@ -320,7 +320,8 @@
       their <guimenu>Help</guimenu> menu.
     </para>
     <para>
-      Otherwise, look through the Center for another program to do what you want.
+      Otherwise, look through Ubuntu Software Center for another program
+      to do what you want.
     </para>
     <itemizedlist>
      <listitem><para><xref linkend="removing" endterm="removing-title"/></para></listitem>
