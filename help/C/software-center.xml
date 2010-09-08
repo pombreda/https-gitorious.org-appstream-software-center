@@ -129,26 +129,24 @@
     <title id="launching-title"
     >Using a program once it&#8217;s installed</title>
     <para>
-      Most installed applications appear
-      in the <guimenu>Applications</guimenu> menu in the corner of the screen,
-      in the same category as they came from in the Software Center.
-    </para>
-    <para>
-      For example, if you installed a program from the
-      <guilabel>Office</guilabel> department, it will appear inside
-      <menuchoice><guimenu>Applications</guimenu>
-      <guisubmenu>Office</guisubmenu></menuchoice>.
-    </para>
-    <para>
-      Utilities for changing settings may appear inside
+      For most programs, once they are installed,
+      you can launch them from the <guimenu>Applications</guimenu> menu.
+      (Utilities for changing settings may appear inside
       <menuchoice><guimenu>System</guimenu>
       <guisubmenu>Preferences</guisubmenu></menuchoice> or
       <menuchoice><guimenu>System</guimenu>
-      <guisubmenu>Administration</guisubmenu></menuchoice>.
+      <guisubmenu>Administration</guisubmenu></menuchoice> instead).
+    </para>
+    <para>
+      To find out where to launch a new program,
+      navigate to the screen for that program in Ubuntu Software Center,
+      if it is not still being displayed.
+      The menu location should be displayed on that screen,
+      below the colored bar.
     </para>
     <para>
       If you are using Ubuntu Netbook Edition,
-      an application appears in its category on the home screen.
+      an application appears in the appropriate category on the home screen.
     </para>
     <para>
       Some items, such as media playback or Web browser plugins,
