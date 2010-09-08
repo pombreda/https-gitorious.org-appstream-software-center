@@ -1,5 +1,13 @@
 software-center (2.1.17) UNRELEASED; urgency=low
 
+  * softwarecenter/view/purchasedialog.py:
+    - make popup window a modal dialog so it works with
+      metacity too (LP: #625398)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Sep 2010 01:35:48 -0400
+
+software-center (2.1.16.1) maverick; urgency=low
+
   [ Kiwinote ]
   * softwarecenter/app.py:
     - allow us to 'upgrade' deb files again
@@ -9,7 +17,7 @@ software-center (2.1.17) UNRELEASED; urgency=low
       this time without causing regressions
       (testcase: browse to any app with a screenshot)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 14:57:58 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 17:02:52 +0200
 
 software-center (2.1.16) maverick; urgency=low
 
