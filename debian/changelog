@@ -4,17 +4,38 @@ software-center (2.1.17) UNRELEASED; urgency=low
   * softwarecenter/view/purchasedialog.py:
     - make popup window a modal dialog so it works with
       metacity too (LP: #625398)
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py
+    softwarecenter/view/installedpane.py,
+    test/test_appview.py:
+    - factor show/hide nonapps functionality up to the
+      SoftwarePane base class, cleanup redundant code
+    - enable show/hide nonapps in the "Provided by Ubuntu"
+      subitem of "Installed Software" per updated spec
+      (LP: #556375) 
+    - add test for show/hide nonapps
+  * softwarecenter/backend/channel.py:
+    - small fix in debug code
+
+  [ Michael Vogt ]
+  * merged lp:~mpt/software-center/basic-css, improves the
+    style of the purchase dialog (thanks!)
+  * merged lp:~mmcg069/software-center/small-fixes that fixes
+    minor drawing error with the paging dot drawing outside its 
+    allocated area (thanks!)
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:
-    - set action_bar.pkg_state as well as local state (LP: #629230, LP: #632889)
+    - set action_bar.pkg_state as well as local state 
+      (LP: #629230, LP: #632889)
       this means that the button will always take the right action
       (testcase: click 'install', cancel auth, click 'install', auth)
     - don't show warning in pkgstatusbar while transaction is in progress,
       instead show 'installing..', 'updating..', etc
       (test case: install any deb file and watch the pkgstatusbar)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Sep 2010 01:35:48 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Sep 2010 14:26:26 +0200
 
 software-center (2.1.16.1) maverick; urgency=low
 
