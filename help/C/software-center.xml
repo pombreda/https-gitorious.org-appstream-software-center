@@ -191,13 +191,13 @@
     >Why is it asking me to remove several programs together?</title>
     <para>
       Sometimes if you try to remove one item,
-      the Software Center will warn you that other items will be removed too.
+      Ubuntu Software Center will warn you that other items will be removed too.
       There are two main reasons this happens.
     </para>
     <itemizedlist>
       <listitem>
         <para>
-          If you remove an application, any add-ons or accessories
+          If you remove an application, any add-ons or plugins
           for that application usually will be removed too.
         </para>
       </listitem>
@@ -231,7 +231,7 @@
   <chapter id="canonical-maintained">
     <title>What is &#8220;Canonical-maintained&#8221;?</title>
     <para>
-      Some of the software available in Ubuntu Software Center is
+      Some of the software available for Ubuntu is
       maintained by Canonical.
       Canonical engineers ensure that security fixes and other critical updates
       are provided for these programs.
@@ -259,8 +259,9 @@
     </para>
     <para>
       If something costs money,
-      it has a <guilabel>Buy</guilabel> button, and
-      its price is shown in US dollars on the screen for the individual item.
+      it has a <guilabel>Buy</guilabel> button instead of an
+      <guilabel>Install</guilabel> button, and
+      its price is shown on the screen for the individual item.
     </para>
     <para>
       To pay for commercial software, you need an Internet connection,
@@ -282,6 +283,9 @@
     <para>
       Once you sign in to the account that you used to buy the software,
       Ubuntu Software Center will display your purchases for reinstalling.
+    </para>
+    <para>
+      This works even if you have reinstalled Ubuntu on the computer.
     </para>
   </chapter>
   <chapter id="missing">
