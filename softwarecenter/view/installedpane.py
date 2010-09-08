@@ -103,6 +103,7 @@ class InstalledPane(SoftwarePane):
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        self.app_view.get_model().active = True
         self.hide_appview_spinner()
         self.emit("app-list-changed", len(new_model))
         return False

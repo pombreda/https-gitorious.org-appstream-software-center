@@ -1,3 +1,19 @@
+software-center (2.1.17) UNRELEASED; urgency=low
+
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py
+    softwarecenter/view/installedpane.py:
+    - factor show/hide nonapps functionality up to the
+      SoftwarePane base class, cleanup redundant code
+    - enable show/hide nonapps in the "Provided by Ubuntu"
+      subitem of "Installed Software" per updated spec
+      (LP: #556375) 
+  * softwarecenter/backend/channel.py:
+    - small fix in debug code
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 07 Sep 2010 21:23:40 -0400
+
 software-center (2.1.16.1) maverick; urgency=low
 
   [ Kiwinote ]

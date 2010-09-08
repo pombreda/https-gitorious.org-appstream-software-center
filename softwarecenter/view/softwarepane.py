@@ -40,7 +40,7 @@ from widgets.searchentry import SearchEntry
 #from widgets.actionbar2 import ActionBar
 from widgets.actionbar import ActionBar
 
-from appview import AppView, AppStore, AppViewFilter
+from appview import AppView, AppStore
 
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
@@ -304,6 +304,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         appstore = self.app_view.get_model()
 
         # calculate the number of apps/pkgs
+        pkgs = 0
+        apps = 0
         if appstore and appstore.active:
             if appstore.nonapps_visible:
                 pkgs = appstore.nonapp_pkgs
@@ -312,17 +314,10 @@ class SoftwarePane(gtk.VBox, BasePane):
                 apps = len(appstore)
                 pkgs = appstore.nonapp_pkgs - apps
             #print 'apps: ' + str(apps)
-            #print 'pkgs: ' + str(pkgs)if appstore and appstore.active:
-            pkgs = appstore.nonapp_pkgs
-            if appstore.nonapps_visible:
-                apps = len(appstore) - pkgs
-            else:
-                apps = len(appstore)
-            #print 'apps: ' + str(apps)
             #print 'pkgs: ' + str(pkgs)
 
         self.action_bar.unset_label()
-
+        
         if (appstore and appstore.active and self.is_applist_view_showing() and
             pkgs != apps and pkgs > 0 and apps > 0):
             if appstore.nonapps_visible:
@@ -332,7 +327,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                          "_Hide %i technical items_",
                                          pkgs) % pkgs
                 self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
-            elif not appstore.nonapps_visible:
+            else:
                 label = gettext.ngettext("_Show %i technical item_",
                                          "_Show %i technical items_",
                                          pkgs) % pkgs
