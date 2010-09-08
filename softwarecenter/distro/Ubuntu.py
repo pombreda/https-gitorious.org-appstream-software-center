@@ -52,12 +52,10 @@ class Ubuntu(Distro):
         """ The description of the main distro channel """
         return _("Provided by Ubuntu")
 
-    def get_removal_warning_text(self, cache, pkg, appname):
+    def get_removal_warning_text(self, cache, pkg, appname, depends):
         primary = _("To remove %s, these items must be removed "
                     "as well:" % appname)
         button_text = _("Remove All")
-
-        depends = list(cache.get_installed_rdepends(pkg))
 
         # alter it if a meta-package is affected
         for m in depends:

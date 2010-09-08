@@ -60,7 +60,6 @@ class ChannelPane(SoftwarePane):
         # UI
         self._build_ui()
         self.connect("app-list-changed", self._on_app_list_changed)
-        self.nonapps_visible = False
 
     def _build_ui(self):
         self.notebook.append_page(self.appview_notebook, gtk.Label("channel"))
@@ -132,9 +131,6 @@ class ChannelPane(SoftwarePane):
         # get a new store and attach it to the view
         if self.scroll_app_list.window:
             self.scroll_app_list.window.set_cursor(self.busy_cursor)
-        # show all items for installed view channels
-        if self.channel.installed_only:
-            self.nonapps_visible = True
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
@@ -255,47 +251,7 @@ class ChannelPane(SoftwarePane):
         """internal helper that keeps the the action bar up-to-date by
            keeping track of the app-list-changed signals
         """
-        self._update_action_bar()
-
-    def _update_action_bar(self):
-        appstore = self.app_view.get_model()
-
-        # calculate the number of apps/pkgs
-        # yes, this is 'strange', but we have to deal with the existing appstore
-        if appstore and appstore.active:
-            if appstore.nonapps_visible:
-                pkgs = appstore.nonapp_pkgs
-                apps = len(appstore) - pkgs
-            else:
-                apps = len(appstore)
-                pkgs = appstore.nonapp_pkgs - apps
-            #print 'apps: ' + str(apps)
-            #print 'pkgs: ' + str(pkgs)
-
-        self.action_bar.unset_label()
-
-        if (appstore and appstore.active and not self.channel.installed_only and
-            pkgs != apps and pkgs > 0 and apps > 0):
-            if appstore.nonapps_visible:
-                # TRANSLATORS: the text inbetween the underscores acts as a link
-                # In most/all languages you will want the whole string as a link
-                label = gettext.ngettext("_Hide %i technical item_",
-                                         "_Hide %i technical items_",
-                                         pkgs) % pkgs
-                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
-            elif not appstore.nonapps_visible:
-                label = gettext.ngettext("_Show %i technical item_",
-                                         "_Show %i technical items_",
-                                         pkgs) % pkgs
-                self.action_bar.set_label(label, self._show_nonapp_pkgs)
-
-    def _show_nonapp_pkgs(self):
-        self.nonapps_visible = True
-        self.refresh_apps()
-
-    def _hide_nonapp_pkgs(self):
-        self.nonapps_visible = False
-        self.refresh_apps()
+        self.update_show_hide_nonapps()
 
     def display_search(self):
         self.navigation_bar.remove_id("details")
@@ -343,6 +299,10 @@ class ChannelPane(SoftwarePane):
     def is_category_view_showing(self):
         # there is no category view in the channel pane
         return False
+        
+    def is_applist_view_showing(self):
+        """Return True if we are in the applist view """
+        return self.notebook.get_current_page() == self.PAGE_APPLIST
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)

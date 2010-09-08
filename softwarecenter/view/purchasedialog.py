@@ -50,6 +50,31 @@ class PurchaseDialog(gtk.Dialog):
 <head>
  <title></title>
 </head>
+<style type="text/css">
+html {
+  background: #fff;
+  color: #000;
+  font: sans-serif;
+  font: caption;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%%;
+  height: 100%%;
+  display: table;
+}
+body {
+  display: table-cell;
+  vertical-align: middle;
+}
+h1 {
+  background: url(file:///usr/share/software-center/images/spinner.gif) top center no-repeat;
+  padding-top: 48px; /* leaves room for the spinner above */
+  font-size: 100%%;
+  font-weight: normal;
+}
+</style>
 <body>
  <h1>%s</h1>
 </body>
@@ -86,18 +111,15 @@ class PurchaseDialog(gtk.Dialog):
 
     def _on_create_webview_request(self, view, frame, parent=None):
         logging.debug("_on_create_webview_request")
-        window = gtk.Window()
-        window.set_transient_for(self)
-        # we need to also set it modal to allow the popup window to be closable;
-        # note that this has the side effect of blocking the purchase dialog until
-        # the popup has been closed (but maybe that's not a bad thing)
-        window.set_modal(True)
-        window.set_size_request(750,400)
-        window.set_title("")
+        popup = gtk.Dialog()
+        popup.set_size_request(750,400)
+        popup.set_title("")
+        popup.set_modal(True)
+        popup.set_transient_for(self)
         wk = ScrolledWebkitWindow()
         wk.show()
-        window.add(wk)
-        window.show()
+        popup.vbox.pack_start(wk)
+        popup.show()
         return wk.webkit
 
     def run(self):

@@ -25,6 +25,9 @@ import logging
 import os
 import xapian
 import cairo
+import gettext
+
+from gettext import gettext as _
 
 from widgets.mkit import floats_from_gdkcolor, floats_from_string
 from widgets.pathbar_gtk_atk import NavigationBar
@@ -37,7 +40,7 @@ from widgets.searchentry import SearchEntry
 #from widgets.actionbar2 import ActionBar
 from widgets.actionbar import ActionBar
 
-from appview import AppView, AppStore, AppViewFilter
+from appview import AppView, AppStore
 
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
@@ -146,6 +149,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
+        self.nonapps_visible = False
         # refreshes can happen out-of-bound so we need to be sure
         # that we only set the new model (when its available) if
         # the refresh_seq_nr of the ready model matches that of the
@@ -291,6 +295,51 @@ class SoftwarePane(gtk.VBox, BasePane):
     def section_sync(self):
         self.app_details.set_section(self.section)
         return
+        
+    def update_show_hide_nonapps(self):
+        """
+        update the state of the show/hide non-applications control
+        in the action_bar
+        """
+        appstore = self.app_view.get_model()
+
+        # calculate the number of apps/pkgs
+        pkgs = 0
+        apps = 0
+        if appstore and appstore.active:
+            if appstore.nonapps_visible:
+                pkgs = appstore.nonapp_pkgs
+                apps = len(appstore) - pkgs
+            else:
+                apps = len(appstore)
+                pkgs = appstore.nonapp_pkgs - apps
+            #print 'apps: ' + str(apps)
+            #print 'pkgs: ' + str(pkgs)
+
+        self.action_bar.unset_label()
+        
+        if (appstore and appstore.active and self.is_applist_view_showing() and
+            pkgs != apps and pkgs > 0 and apps > 0):
+            if appstore.nonapps_visible:
+                # TRANSLATORS: the text inbetween the underscores acts as a link
+                # In most/all languages you will want the whole string as a link
+                label = gettext.ngettext("_Hide %i technical item_",
+                                         "_Hide %i technical items_",
+                                         pkgs) % pkgs
+                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
+            else:
+                label = gettext.ngettext("_Show %i technical item_",
+                                         "_Show %i technical items_",
+                                         pkgs) % pkgs
+                self.action_bar.set_label(label, self._show_nonapp_pkgs)
+            
+    def _show_nonapp_pkgs(self):
+        self.nonapps_visible = True
+        self.refresh_apps()
+
+    def _hide_nonapp_pkgs(self):
+        self.nonapps_visible = False
+        self.refresh_apps()
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -312,6 +361,9 @@ class SoftwarePane(gtk.VBox, BasePane):
     def is_category_view_showing(self):
         " stub implementation "
         pass
+        
+    def is_applist_view_showing(self):
+        " stub implementation "
         
     def get_current_app(self):
         " stub implementation "

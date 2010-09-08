@@ -802,6 +802,9 @@ class CarouselView(mkit.FramedSection):
         return
 
     def transition(self, loop=True):
+        for poster in self.posters:
+            if poster.state > 0:
+                return loop
         self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
                                           self._fade_out)
         return loop
@@ -1177,7 +1180,7 @@ class PagingDot(mkit.LinkButton):
         cr.translate(0.5,0.5)
         cr.set_line_width(1)
         c = mkit.ShapeCircle()
-        c.layout(cr, a.x, a.y, a.width, a.height)
+        c.layout(cr, a.x, a.y, a.width-1, a.height-1)
 
         if self.is_selected:
             if self.state == gtk.STATE_PRELIGHT or self.has_focus():
