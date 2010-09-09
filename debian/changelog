@@ -19,6 +19,8 @@ software-center (2.1.17.1) UNRELEASED; urgency=low
     - use ascii_lower() rather than lower()
       much thanks to M. Vefa Bicakci via bug 581207
       (testcase: LANGUAGE=tr_TR LC_ALL=tr_TR.utf8 ./software-center)
+  * software-center/db/application.py:
+    - reset app.pkgname once we know deb.pkgname
   * softwarecenter/view/dependency_dialogs.py:
     - fail nicely if pkg not in cache (ie all deb files...) (LP: #634060)
 

@@ -588,6 +588,9 @@ class AppDetailsDebFile(AppDetails):
                     self._error_not_found = _("The file \"%s\" could not be opened.") % self._app.request
             return
 
+        if self.pkgname:
+            self._app.pkgname = self.pkgname
+
         # check deb and set failure state on error
         if not self._deb.check():
             self._error = self._deb._failure_string
