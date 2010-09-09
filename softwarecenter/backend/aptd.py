@@ -330,25 +330,18 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
         if purchase:
             # pre-authenticate
-            print "auth"
             try:
                 yield self.authenticate_for_purchase()
             except:
-                print "auth error"
                 return
-            print "/auth done"
             # done
             self.pending_purchases.add(app.pkgname)
         else:
             # FIXME: add authenticate_for_added_repo here
+            pass
 
         # TODO:  add error checking as needed
-        print "add source"
         sourcepart = yield self.add_sources_list_entry(deb_line)
-        print "/add source"
-        #import apt_pkg
-        #sourcepart= "%s.list" % apt_pkg.URItoFileName(SourceEntry(deb_line).uri)
-        print sourcepart
 
         # metadata so that we know those the add-key and reload transactions
         # are part of a group
@@ -357,13 +350,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                           'sc_add_repo_and_install_sources_list' : sourcepart,
                           'sc_add_repo_and_install_try' : "1",
                          }
-        print "key"
         yield self.add_vendor_key_from_keyserver(signing_key_id, 
                                                  metadata=trans_metadata)
-        print "/key"
-        print "reload"
         yield self._reload_for_commercial_repo(app, trans_metadata, sourcepart)
-        print "/reload"
 
     @inline_callbacks
     def _reload_for_commercial_repo(self, app, trans_metadata, sources_list):
