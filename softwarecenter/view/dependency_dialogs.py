@@ -39,6 +39,8 @@ def confirm_install(parent, datadir, app, db, icons):
     appdetails = app.get_details(db)
     # FIXME: use 
     depends = set()
+    if not appdetails.pkg:
+        return True
     deps_remove = cache.try_install_and_get_all_deps_removed(appdetails.pkg)
     for depname in deps_remove:
         if cache[depname].is_installed:
@@ -57,6 +59,8 @@ def confirm_remove(parent, datadir, app, db, icons):
     #  backend = get_install_backend()
     #  backend.simulate_remove(app.pkgname)
     # once it works
+    if not appdetails.pkg:
+        return True
     depends = db._aptcache.get_installed_rdepends(appdetails.pkg)
     if not depends:
         return True
