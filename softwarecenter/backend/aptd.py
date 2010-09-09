@@ -31,6 +31,7 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
 
 from aptsources.sourceslist import SourceEntry
+from aptdaemon import policykit1
 
 try:
     from aptdaemon.defer import inline_callbacks, return_value
@@ -143,15 +144,31 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error, pkgname)
 
-# BROKEN currently for unknown reasons
+# broken
 #    @inline_callbacks
-#    def simulate_remove_multiple(self, pkgnames):
+#    def _simulate_remove_multiple(self, pkgnames):
 #        try:
-#            trans = yield self.aptd_client.remove_packages(pkgnames, defer=True#)
-#            yield trans.simulate()
+#            trans = yield self.aptd_client.remove_packages(pkgnames, 
+#                                                           defer=True)
+#            trans.connect("dependencies-changed", self._on_dependencies_changed)
 #        except Exception:
 #            logging.exception("simulate_remove")
-#        return_value(trans.dependencies)
+#        return_value(trans)
+#
+#   def _on_dependencies_changed(self, *args):
+#        print "_on_dependencies_changed", args
+#        self.have_dependencies = True
+#
+#    @inline_callbacks
+#    def simulate_remove_multiple(self, pkgnames):
+#        self.have_dependencies = False
+#        trans = yield self._simulate_remove_multiple(pkgnames)
+#        print trans
+#        while not self.have_dependencies:
+#            while gtk.events_pending():
+#                gtk.main_iteration()
+#            time.sleep(0.01)
+
     
     @inline_callbacks
     def remove(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
@@ -211,10 +228,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_trans_error(error)
 
     @inline_callbacks
-    def reload(self, metadata=None):
+    def reload(self, sources_list=None, metadata=None):
         """ reload package list """
         try:
-            trans = yield self.aptd_client.update_cache(defer=True)
+            trans = yield self.aptd_client.update_cache(
+                sources_list=sources_list, defer=True)
             yield self._run_transaction(trans, None, None, None, metadata)
         except Exception, error:
             self._on_trans_error(error)
@@ -223,7 +241,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def enable_component(self, component):
         self._logger.debug("enable_component: %s" % component)
         try:
-            yield self.aptd_client.enable_distro_component(component, defer=True)
+            self.aptd_client.enable_distro_component(component, wait=True)
         except Exception, error:
             self._on_trans_error(error, component)
             return
@@ -241,7 +259,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if entry.invalid:
                 continue
             sourcepart = os.path.basename(channelfile)
-            yield self.add_sources_list_entry(entry, sourcepart)
+            self.add_sources_list_entry(entry, sourcepart)
         yield self.reload()
 
     @inline_callbacks
@@ -275,12 +293,27 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         args = (entry.type, entry.uri, entry.dist, entry.comps,
                 "Added by software-center", sourcepart)
         try:
-            yield self.aptd_client.add_repository(*args)
+            trans = yield self.aptd_client.add_repository(*args, defer=True)
+            yield self._run_transaction(trans, None, None, None)
         except dbus.DBusException, err:
             if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 self._logger.error("add_repository: '%s'" % err)
                 return
-                
+        return_value(sourcepart)
+
+         
+    @inline_callbacks
+    def authenticate_for_purchase(self):
+        """ 
+        helper that authenticates with aptdaemon for a purchase operation 
+        """
+        bus = dbus.SystemBus()
+        name = bus.get_unique_name()
+        action = policykit1.PK_ACTION_INSTALL_PURCHASED_PACKAGES
+        flags = policykit1.CHECK_AUTH_ALLOW_USER_INTERACTION
+        yield policykit1.check_authorization_by_name(name, action, flags=flags)
+
+    @inline_callbacks
     def add_repo_add_key_and_install_app(self,
                                          deb_line,
                                          signing_key_id,
@@ -296,21 +329,33 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self.emit("transaction-started")
 
         if purchase:
+            # pre-authenticate
+            try:
+                yield self.authenticate_for_purchase()
+            except:
+                return
+            # done
             self.pending_purchases.add(app.pkgname)
+        else:
+            # FIXME: add authenticate_for_added_repo here
+            pass
+
+        # TODO:  add error checking as needed
+        sourcepart = yield self.add_sources_list_entry(deb_line)
 
         # metadata so that we know those the add-key and reload transactions
         # are part of a group
         trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
                           'sc_add_repo_and_install_pkgname' : app.pkgname,
+                          'sc_add_repo_and_install_sources_list' : sourcepart,
                           'sc_add_repo_and_install_try' : "1",
                          }
-        # TODO:  add error checking as needed
-        self.add_sources_list_entry(deb_line)
-        self.add_vendor_key_from_keyserver(signing_key_id, 
-                                           metadata=trans_metadata)
-        self._reload_for_commercial_repo(app, trans_metadata)
+        yield self.add_vendor_key_from_keyserver(signing_key_id, 
+                                                 metadata=trans_metadata)
+        yield self._reload_for_commercial_repo(app, trans_metadata, sourcepart)
 
-    def _reload_for_commercial_repo(self, app, trans_metadata):
+    @inline_callbacks
+    def _reload_for_commercial_repo(self, app, trans_metadata, sources_list):
         """ 
         helper that reloads and registers a callback for when the reload is
         finished
@@ -324,7 +369,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_reload_for_add_repo_and_install_app_finished, 
             trans_metadata, app)
         # reload to ensure we have the new package data
-        self.reload(metadata=trans_metadata)
+        yield self.reload(sources_list=sources_list, metadata=trans_metadata)
 
     @inline_callbacks
     def _on_reload_for_add_repo_and_install_app_finished(self, backend, trans, 
@@ -377,9 +422,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 self._show_transaction_failed_dialog(trans, result)
                 return
             trans.meta_data['sc_add_repo_and_install_try'] = str(retry+1)
+            sourcepart = trans.meta_data["sc_add_repo_and_install_sources_list"]
             glib.timeout_add_seconds(30, 
                                      self._reload_for_commercial_repo, 
-                                     app, trans.meta_data)
+                                     app, trans.meta_data, sourcepart)
 
     # internal helpers
     def on_transactions_changed(self, current, pending):
@@ -519,10 +565,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # generic metadata
             if metadata:
                 yield trans.set_meta_data(**metadata)
-            # set proxy and run
-            http_proxy = get_http_proxy_string_from_gconf()
-            if http_proxy:
-                trans.set_http_proxy(http_proxy, defer=True)
+            # do not set the http proxy by default
+            if os.environ.get("SOFTWARE_CENTER_USE_GCONF_PROXY"):
+                http_proxy = get_http_proxy_string_from_gconf()
+                if http_proxy:
+                    trans.set_http_proxy(http_proxy, defer=True)
             yield trans.run(defer=True)
         except Exception, error:
             self._on_trans_error(pkgname, error)
@@ -540,7 +587,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def _on_trans_error(self, error, pkgname=None):
         self._logger.warn("_on_trans_error: %s", error)
         # re-enable the action button again if anything went wrong
-        self.emit("transaction-stopped", pkgname)
+        result = TransactionFinishedResult(None, enums.EXIT_FAILED)
+        result.pkgname = pkgname
+        self.emit("transaction-stopped", result)
         if isinstance(error, dbus.DBusException):
             name = error.get_dbus_name()
             if name in ["org.freedesktop.PolicyKit.Error.NotAuthorized",

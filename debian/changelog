@@ -1,4 +1,42 @@
-software-center (2.1.17) UNRELEASED; urgency=low
+software-center (2.1.17.2) maverick; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - use policykit1.PK_ACTION_INSTALL_PURCHASED_PACKAGES priv from
+      aptdaemon (LP: #631619)
+  * debian/control:
+    - depend on the right aptdaemon version
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 19:15:18 +0200
+
+software-center (2.1.17.1) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - use the system-wide proxy instead of the gnome
+      one by default (LP: #628823)
+    - when installing a purchase only update from the just
+      added repository to avoid breaking if other sources.list
+      entries are incorrect
+    - fix signal emite in TransactionStopped
+  * debian/control:
+    - depend on current aptdaemon
+
+  [ Kiwinote ]
+  * software-center:
+    - import Decimal before we need it as a workaround for (LP: #607705)
+      (testcase: LANGUAGE=tr_TR LC_ALL=tr_TR.utf8 ./software-center)
+  * softwarecenter/apt/apthistory.py:
+    - use ascii_lower() rather than lower()
+      much thanks to M. Vefa Bicakci via bug 581207
+      (testcase: LANGUAGE=tr_TR LC_ALL=tr_TR.utf8 ./software-center)
+  * software-center/db/application.py:
+    - reset app.pkgname once we know deb.pkgname
+  * softwarecenter/view/dependency_dialogs.py:
+    - fail nicely if pkg not in cache (ie all deb files...) (LP: #634060)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 17:07:29 +0200
+
+software-center (2.1.17) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/purchasedialog.py:
@@ -50,7 +88,7 @@ software-center (2.1.17) UNRELEASED; urgency=low
     (LP: #554319)
   * Fix missing icons in the remove alerts
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Sep 2010 14:26:26 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 09:11:23 +0200
 
 software-center (2.1.16.1) maverick; urgency=low
 
