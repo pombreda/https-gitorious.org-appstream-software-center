@@ -1511,9 +1511,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
         return
 
-    def _on_transaction_stopped(self, backend, pkgname):
+    def _on_transaction_stopped(self, backend, result):
         self.action_bar.progress.hide()
-        self._update_interface_on_trans_ended(pkgname)
+        self._update_interface_on_trans_ended(result)
         return
 
     def _on_transaction_finished(self, backend, result):
