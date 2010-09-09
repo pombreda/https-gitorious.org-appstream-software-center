@@ -1,4 +1,4 @@
-software-center (2.1.17.1) UNRELEASED; urgency=low
+software-center (2.1.17.1) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
@@ -24,7 +24,7 @@ software-center (2.1.17.1) UNRELEASED; urgency=low
   * softwarecenter/view/dependency_dialogs.py:
     - fail nicely if pkg not in cache (ie all deb files...) (LP: #634060)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 10:03:41 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 17:07:29 +0200
 
 software-center (2.1.17) maverick; urgency=low
 

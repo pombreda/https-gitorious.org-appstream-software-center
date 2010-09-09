@@ -143,29 +143,30 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error, pkgname)
 
-    @inline_callbacks
-    def _simulate_remove_multiple(self, pkgnames):
-        try:
-            trans = yield self.aptd_client.remove_packages(pkgnames, 
-                                                           defer=True)
-            trans.connect("dependencies-changed", self._on_dependencies_changed)
-        except Exception:
-            logging.exception("simulate_remove")
-        return_value(trans)
-
-    def _on_dependencies_changed(self, *args):
-        print "_on_dependencies_changed", args
-        self.have_dependencies = True
-
-    @inline_callbacks
-    def simulate_remove_multiple(self, pkgnames):
-        self.have_dependencies = False
-        trans = yield self._simulate_remove_multiple(pkgnames)
-        print trans
-        while not self.have_dependencies:
-            while gtk.events_pending():
-                gtk.main_iteration()
-            time.sleep(0.01)
+# broken
+#    @inline_callbacks
+#    def _simulate_remove_multiple(self, pkgnames):
+#        try:
+#            trans = yield self.aptd_client.remove_packages(pkgnames, 
+#                                                           defer=True)
+#            trans.connect("dependencies-changed", self._on_dependencies_changed)
+#        except Exception:
+#            logging.exception("simulate_remove")
+#        return_value(trans)
+#
+#   def _on_dependencies_changed(self, *args):
+#        print "_on_dependencies_changed", args
+#        self.have_dependencies = True
+#
+#    @inline_callbacks
+#    def simulate_remove_multiple(self, pkgnames):
+#        self.have_dependencies = False
+#        trans = yield self._simulate_remove_multiple(pkgnames)
+#        print trans
+#        while not self.have_dependencies:
+#            while gtk.events_pending():
+#                gtk.main_iteration()
+#            time.sleep(0.01)
 
     
     @inline_callbacks
