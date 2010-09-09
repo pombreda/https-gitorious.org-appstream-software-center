@@ -3,6 +3,12 @@ software-center (2.1.17.1) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py:
     - use the system-wide proxy instead of the gnome
       one by default (LP: #628823)
+    - when installing a purchase only update from the just
+      added repository to avoid breaking if other sources.list
+      entries are incorrect
+    - fix signal emite in TransactionStopped
+  * debian/control:
+    - depend on current aptdaemon
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 10:03:41 +0200
 
