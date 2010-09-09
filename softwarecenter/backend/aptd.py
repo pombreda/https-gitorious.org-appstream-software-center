@@ -143,15 +143,30 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error, pkgname)
 
-# BROKEN currently for unknown reasons
-#    @inline_callbacks
-#    def simulate_remove_multiple(self, pkgnames):
-#        try:
-#            trans = yield self.aptd_client.remove_packages(pkgnames, defer=True#)
-#            yield trans.simulate()
-#        except Exception:
-#            logging.exception("simulate_remove")
-#        return_value(trans.dependencies)
+    @inline_callbacks
+    def _simulate_remove_multiple(self, pkgnames):
+        try:
+            trans = yield self.aptd_client.remove_packages(pkgnames, 
+                                                           defer=True)
+            trans.connect("dependencies-changed", self._on_dependencies_changed)
+        except Exception:
+            logging.exception("simulate_remove")
+        return_value(trans)
+
+    def _on_dependencies_changed(self, *args):
+        print "_on_dependencies_changed", args
+        self.have_dependencies = True
+
+    @inline_callbacks
+    def simulate_remove_multiple(self, pkgnames):
+        self.have_dependencies = False
+        trans = yield self._simulate_remove_multiple(pkgnames)
+        print trans
+        while not self.have_dependencies:
+            while gtk.events_pending():
+                gtk.main_iteration()
+            time.sleep(0.01)
+
     
     @inline_callbacks
     def remove(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
@@ -519,10 +534,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # generic metadata
             if metadata:
                 yield trans.set_meta_data(**metadata)
-            # set proxy and run
-            http_proxy = get_http_proxy_string_from_gconf()
-            if http_proxy:
-                trans.set_http_proxy(http_proxy, defer=True)
+            # do not set the http proxy by default
+            if os.environ.get("SOFTWARE_CENTER_USE_GCONF_PROXY"):
+                http_proxy = get_http_proxy_string_from_gconf()
+                if http_proxy:
+                    trans.set_http_proxy(http_proxy, defer=True)
             yield trans.run(defer=True)
         except Exception, error:
             self._on_trans_error(pkgname, error)
