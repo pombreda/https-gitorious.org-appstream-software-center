@@ -1,3 +1,13 @@
+software-center (2.1.17.2) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - use policykit1.PK_ACTION_INSTALL_PURCHASED_PACKAGES priv from
+      aptdaemon (LP: #631619)
+  * debian/control:
+    - depend on the right aptdaemon version
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 18:33:54 +0200
+
 software-center (2.1.17.1) maverick; urgency=low
 
   [ Michael Vogt ]

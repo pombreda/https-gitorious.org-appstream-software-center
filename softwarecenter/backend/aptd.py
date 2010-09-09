@@ -31,6 +31,7 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
 
 from aptsources.sourceslist import SourceEntry
+from aptdaemon import policykit1
 
 try:
     from aptdaemon.defer import inline_callbacks, return_value
@@ -277,6 +278,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except Exception, error:
             self._on_trans_error(error)
 
+    @inline_callbacks
     def add_sources_list_entry(self, source_entry, sourcepart=None):
         if isinstance(source_entry, basestring):
             entry = SourceEntry(source_entry)
@@ -291,13 +293,27 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         args = (entry.type, entry.uri, entry.dist, entry.comps,
                 "Added by software-center", sourcepart)
         try:
-            self.aptd_client.add_repository(*args, wait=True)
+            trans = yield self.aptd_client.add_repository(*args, defer=True)
+            yield self._run_transaction(trans, None, None, None)
         except dbus.DBusException, err:
             if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 self._logger.error("add_repository: '%s'" % err)
                 return
-        return sourcepart
-                
+        return_value(sourcepart)
+
+         
+    @inline_callbacks
+    def authenticate_for_purchase(self):
+        """ 
+        helper that authenticates with aptdaemon for a purchase operation 
+        """
+        bus = dbus.SystemBus()
+        name = bus.get_unique_name()
+        action = policykit1.PK_ACTION_INSTALL_PURCHASED_PACKAGES
+        flags = policykit1.CHECK_AUTH_ALLOW_USER_INTERACTION
+        yield policykit1.check_authorization_by_name(name, action, flags=flags)
+
+    @inline_callbacks
     def add_repo_add_key_and_install_app(self,
                                          deb_line,
                                          signing_key_id,
@@ -313,10 +329,26 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self.emit("transaction-started")
 
         if purchase:
+            # pre-authenticate
+            print "auth"
+            try:
+                yield self.authenticate_for_purchase()
+            except:
+                print "auth error"
+                return
+            print "/auth done"
+            # done
             self.pending_purchases.add(app.pkgname)
+        else:
+            # FIXME: add authenticate_for_added_repo here
 
         # TODO:  add error checking as needed
-        sourcepart = self.add_sources_list_entry(deb_line)
+        print "add source"
+        sourcepart = yield self.add_sources_list_entry(deb_line)
+        print "/add source"
+        #import apt_pkg
+        #sourcepart= "%s.list" % apt_pkg.URItoFileName(SourceEntry(deb_line).uri)
+        print sourcepart
 
         # metadata so that we know those the add-key and reload transactions
         # are part of a group
@@ -325,10 +357,15 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                           'sc_add_repo_and_install_sources_list' : sourcepart,
                           'sc_add_repo_and_install_try' : "1",
                          }
-        self.add_vendor_key_from_keyserver(signing_key_id, 
-                                           metadata=trans_metadata)
-        self._reload_for_commercial_repo(app, trans_metadata, sourcepart)
+        print "key"
+        yield self.add_vendor_key_from_keyserver(signing_key_id, 
+                                                 metadata=trans_metadata)
+        print "/key"
+        print "reload"
+        yield self._reload_for_commercial_repo(app, trans_metadata, sourcepart)
+        print "/reload"
 
+    @inline_callbacks
     def _reload_for_commercial_repo(self, app, trans_metadata, sources_list):
         """ 
         helper that reloads and registers a callback for when the reload is
@@ -343,7 +380,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._on_reload_for_add_repo_and_install_app_finished, 
             trans_metadata, app)
         # reload to ensure we have the new package data
-        self.reload(sources_list=sources_list, metadata=trans_metadata)
+        yield self.reload(sources_list=sources_list, metadata=trans_metadata)
 
     @inline_callbacks
     def _on_reload_for_add_repo_and_install_app_finished(self, backend, trans, 
