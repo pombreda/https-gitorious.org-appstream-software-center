@@ -50,10 +50,6 @@ class TestAptdaemon(unittest.TestCase):
         addons_remove = ["gimp-plugin-registry"]
         yield self.aptd.apply_changes(pkgname, appname ,iconname, addons_install, addons_remove)
 
-    def test_simulate(self):
-        print "sim"
-        res = self.aptd.simulate_remove_multiple(["2vcard"])
-        print "lala", res.result
 
 if __name__ == "__main__":
     import logging
