@@ -12,6 +12,11 @@ All non UI code must come with tests in the test/ subdirectoy.
    adding  <limit name="max_match_rules_per_connection">512</limit> 
    and using something bigger than 512 is a good idea
 
+== environment ==
+
+The following environment is suported:
+SOFTWARE_CENTER_USE_GCONF_PROXY
+
 == applications.menu ==
 
 The menu file parser understands:
