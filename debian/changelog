@@ -1,3 +1,11 @@
+software-center (2.1.17.3) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/backend/aptd.py:
+    - don't crash on cancelling policykit auths
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 19:15:18 +0200
+
 software-center (2.1.17.2) maverick; urgency=low
 
   * softwarecenter/backend/aptd.py:
