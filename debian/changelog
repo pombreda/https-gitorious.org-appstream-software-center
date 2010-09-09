@@ -1,5 +1,6 @@
 software-center (2.1.17.1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
     - use the system-wide proxy instead of the gnome
       one by default (LP: #628823)
@@ -9,6 +10,19 @@ software-center (2.1.17.1) UNRELEASED; urgency=low
     - fix signal emite in TransactionStopped
   * debian/control:
     - depend on current aptdaemon
+
+  [ Kiwinote ]
+  * software-center:
+    - import Decimal before we need it as a workaround for (LP: #607705)
+      (testcase: LANGUAGE=tr_TR LC_ALL=tr_TR.utf8 ./software-center)
+  * softwarecenter/apt/apthistory.py:
+    - use ascii_lower() rather than lower()
+      much thanks to M. Vefa Bicakci via bug 581207
+      (testcase: LANGUAGE=tr_TR LC_ALL=tr_TR.utf8 ./software-center)
+  * software-center/db/application.py:
+    - reset app.pkgname once we know deb.pkgname
+  * softwarecenter/view/dependency_dialogs.py:
+    - fail nicely if pkg not in cache (ie all deb files...) (LP: #634060)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 10:03:41 +0200
 
