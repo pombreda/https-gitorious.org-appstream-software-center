@@ -1,8 +1,14 @@
 software-center (2.1.17.1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
     - use the system-wide proxy instead of the gnome
       one by default (LP: #628823)
+
+  [ Kiwinote ]
+  * software-center:
+    - import Decimal before we need it as a workaround for (LP: #607705)
+      (testcase: LANGUAGE=tr_TR LC_ALL=tr_TR.utf8 ./software-center)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 10:03:41 +0200
 
