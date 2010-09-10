@@ -80,8 +80,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             # when we get two on_transaction_changed closely after each
             # other clear() is run before the "_append_transaction" handler
             # is run and we end up with two (or more) _append_transactions
-            trans = aptdaemon.client.get_transaction(tid,
-                                         error_handler=lambda x: True)
+            trans = aptdaemon.client.get_transaction(tid)
             self._append_transaction(trans)
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:

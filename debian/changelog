@@ -5,6 +5,8 @@ software-center (2.1.17.3) UNRELEASED; urgency=low
     to be compatible with xapian 1.2.x (closes: 596079)
   * softwarecenter/view/catview_gtk.py:
     - fix a missing glib.markup_escape_text()
+  * merged  lp:~glatzor/software-center/aptdaemon-polish, many
+    thanks!
 
   [ Kiwinote ]
   * softwarecenter/backend/aptd.py:
