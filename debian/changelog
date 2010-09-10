@@ -2,7 +2,7 @@ software-center (2.1.17.3) UNRELEASED; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/backend/aptd.py:
-    - don't crash on cancelling policykit auths
+    - don't crash on cancelling policykit auths (LP: #634697)
   * softwarecenter/view/appview.py:
     - don't crash on searches containing ", " (LP: #634549)
 
