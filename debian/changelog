@@ -2,8 +2,10 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
 
   * softwarecenter/apt/apthistory.py: History entries are now sorted by
     date (LP: #635198)
+  * softwarecenter/view/historypane.py: Use 'updated' instead of
+    'upgraded' (LP: #635196)
 
- -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Fri, 10 Sep 2010 22:31:07 +0000
+ -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Fri, 10 Sep 2010 22:35:59 +0000
 
 software-center (2.1.18.1) maverick; urgency=low
 
