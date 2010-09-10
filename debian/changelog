@@ -6,6 +6,9 @@ software-center (2.1.18.1) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
     - fix bug in removal (thanks to davmor2)
+  * data/software-center.menu.in:
+    - update icon names for latest additions from humanity (thanks
+      to vish!
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 19:31:46 +0200
 
