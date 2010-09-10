@@ -1,9 +1,18 @@
 software-center (2.1.17.3) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * use "match.document" instead of "match[xapian.MSET_DOCUMENT]"
     to be compatible with xapian 1.2.x (closes: 596079)
+  * softwarecenter/view/catview_gtk.py:
+    - fix a missing glib.markup_escape_text()
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 09:16:36 +0200
+  [ Kiwinote ]
+  * softwarecenter/backend/aptd.py:
+    - don't crash on cancelling policykit auths (LP: #634697)
+  * softwarecenter/view/appview.py:
+    - don't crash on searches containing ", " (LP: #634549)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 19:15:18 +0200
 
 software-center (2.1.17.2) maverick; urgency=low
 
