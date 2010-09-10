@@ -73,6 +73,17 @@ o    Attributes:
         return count
     def __repr__(self):
         return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
+    def __cmp__(self, other):
+        date_this = datetime(self.start_date.year, self.start_date.month,
+        self.start_date.day)
+        date_other = datetime(other.start_date.year, other.start_date.month,
+        other.start_date.day)
+        if date_this < date_other:
+            return -1
+        elif date_this == date_other:
+            return 0
+        else:
+            return 1
                
 class AptHistory(object):
 
@@ -92,6 +103,8 @@ class AptHistory(object):
         for history_gz_file in glob.glob(self.history_file+".*.gz"):
             self._scan(history_gz_file)
         self._scan(self.history_file)
+        self.transactions.sort()
+        self.transactions.reverse()
     
     def _scan(self, history_file, rescan = False):
         try:
