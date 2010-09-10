@@ -27,6 +27,7 @@ from softwarecenter.utils import *
 
 from aptdaemon import client
 from aptdaemon import enums
+from aptdaemon import errors
 from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
                                  AptConfigFileConflictDialog
 
@@ -177,7 +178,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         try:
             trans = yield self.aptd_client.remove_packages([pkgname],
                                                            defer=True)
-            yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
+            yield self._run_transaction(trans, pkgname, appname, iconname, metadata, defer=True)
         except Exception, error:
             self._on_trans_error(error, pkgname)
 
@@ -202,7 +203,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 trans = yield self.aptd_client.install_file(filename,
                                                             defer=True)
             else:
-                trans = yield self.aptd_client.commit_packages([pkgname] + addons_install, [], addons_remove, [], [])
+                trans = yield self.aptd_client.commit_packages([pkgname] + addons_install, [], addons_remove, [], [], defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
             self._on_trans_error(error, pkgname)
@@ -222,7 +223,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """ install and remove add-ons """
         self.emit("transaction-started")
         try:
-            trans = yield self.aptd_client.commit_packages(addons_install, [], addons_remove, [], [])
+            trans = yield self.aptd_client.commit_packages(addons_install, [], addons_remove, [], [], defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
             self._on_trans_error(error)
@@ -244,7 +245,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self.aptd_client.enable_distro_component(component, wait=True)
         except Exception, error:
             self._on_trans_error(error, component)
-            return
+            return_value(None)
         # now update the cache
         yield self.reload()
 
@@ -273,7 +274,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             keyid = "0x%s" % keyid
         try:
             trans = yield self.aptd_client.add_vendor_key_from_keyserver(
-                keyid, keyserver)
+                keyid, keyserver, defer=True)
             yield self._run_transaction(trans, None, None, None, metadata)
         except Exception, error:
             self._on_trans_error(error)
@@ -295,13 +296,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         try:
             trans = yield self.aptd_client.add_repository(*args, defer=True)
             yield self._run_transaction(trans, None, None, None)
-        except dbus.DBusException, err:
-            if err.get_dbus_name() == "org.freedesktop.PolicyKit.Error.NotAuthorized":
-                self._logger.error("add_repository: '%s'" % err)
-                return
+        except errors.NotAuthorizedError, err:
+            self._logger.error("add_repository: '%s'" % err)
+            return_value(None)
         return_value(sourcepart)
 
-         
     @inline_callbacks
     def authenticate_for_purchase(self):
         """ 
@@ -332,7 +331,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # pre-authenticate
             try:
                 yield self.authenticate_for_purchase()
-            except:
+            except Exception:
                 return
             # done
             self.pending_purchases.add(app.pkgname)
@@ -350,7 +349,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                           'sc_add_repo_and_install_sources_list' : sourcepart,
                           'sc_add_repo_and_install_try' : "1",
                          }
-        yield self.add_vendor_key_from_keyserver(signing_key_id, 
+        yield self.add_vendor_key_from_keyserver(signing_key_id,
                                                  metadata=trans_metadata)
         yield self._reload_for_commercial_repo(app, trans_metadata, sourcepart)
 
@@ -384,7 +383,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # check if this is the transaction we waiting for
         key = "sc_add_repo_and_install_pkgname"
         if not (key in trans.meta_data and trans.meta_data[key] == app.pkgname):
-            return
+            return_value(None)
 
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
@@ -420,11 +419,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 self._clean_pending_purchases(
                     trans.meta_data['sc_add_repo_and_install_pkgname'])
                 self._show_transaction_failed_dialog(trans, result)
-                return
-            trans.meta_data['sc_add_repo_and_install_try'] = str(retry+1)
+                return_value(False)
+            retry += str(retry + 1)
+            yield trans.set_meta_data("sc_add_repo_and_install_try"=retry,
+                                      defer=True)
             sourcepart = trans.meta_data["sc_add_repo_and_install_sources_list"]
-            glib.timeout_add_seconds(30, 
-                                     self._reload_for_commercial_repo, 
+            glib.timeout_add_seconds(30, self._reload_for_commercial_repo,
                                      app, trans.meta_data, sourcepart)
 
     # internal helpers
@@ -523,6 +523,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self.emit("transactions-changed", self.pending_transactions)
         self.emit("transaction-finished", TransactionFinishedResult(trans, enum))
 
+    @inline_callbacks
     def _config_file_conflict(self, transaction, old, new):
         dia = AptConfigFileConflictDialog(old, new)
         res = dia.run()
@@ -530,21 +531,25 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         dia.destroy()
         # send result to the daemon
         if res == gtk.RESPONSE_YES:
-            transaction.resolve_config_file_conflict(old, "replace")
+            yield transaction.resolve_config_file_conflict(old, "replace",
+                                                           defer=True)
         else:
-            transaction.resolve_config_file_conflict(old, "keep")
+            yield transaction.resolve_config_file_conflict(old, "keep",
+                                                           defer=True)
 
+    @inline_callbacks
     def _medium_required(self, transaction, medium, drive):
         dialog = AptMediumRequiredDialog(medium, drive)
         res = dialog.run()
         dialog.hide()
         if res == gtk.RESPONSE_OK:
-            transaction.provide_medium(medium)
+            yield transaction.provide_medium(medium, defer=True)
         else:
-            transaction.cancel()
+            yield transaction.cancel(defer=True)
 
     @inline_callbacks
-    def _run_transaction(self, trans, pkgname, appname, iconname, metadata=None):
+    def _run_transaction(self, trans, pkgname, appname, iconname,
+                         metadata=None):
         # connect signals
         trans.connect("config-file-conflict", self._config_file_conflict)
         trans.connect("medium-required", self._medium_required)
@@ -560,11 +565,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 yield trans.set_meta_data(sc_pkgname=pkgname, defer=True)
                 # setup debconf only if we have a pkg
                 yield trans.set_debconf_frontend("gnome", defer=True)
-                # set this once the new aptdaemon 0.2.x API can be used
                 trans.set_remove_obsoleted_depends(True, defer=True)
             # generic metadata
             if metadata:
-                yield trans.set_meta_data(**metadata)
+                yield trans.set_meta_data(**metadata, defer=True)
             # do not set the http proxy by default
             if os.environ.get("SOFTWARE_CENTER_USE_GCONF_PROXY"):
                 http_proxy = get_http_proxy_string_from_gconf()
