@@ -464,7 +464,8 @@ class AppDetails(object):
             source_to_enable = None
             if self.channelname and self._unavailable_channel():
                 source_to_enable = self.channelname
-            elif self.component:
+            elif (self.component and 
+                  self.component not in ("independent", "commercial")):
                 source_to_enable = self.component
             if source_to_enable:
                 sources = source_to_enable.split('&')
