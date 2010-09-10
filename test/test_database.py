@@ -133,6 +133,10 @@ class TestDatabase(unittest.TestCase):
             if doc.get_data() == "Ubuntu Software Center Test":
                 appdetails = AppDetails(db, doc=doc)
                 break
+        # test get_appname and get_pkgname
+        self.assertEqual(db.get_appname(doc), "Ubuntu Software Center Test")
+        self.assertEqual(db.get_pkgname(doc), "software-center")
+        # test appdetails
         self.assertEqual(appdetails.name, "Ubuntu Software Center Test")
         self.assertEqual(appdetails.pkgname, "software-center")
         # FIXME: add a dekstop file with a real channel to test

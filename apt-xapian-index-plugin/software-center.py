@@ -91,8 +91,11 @@ class SoftwareCenterMetadataPlugin:
             name = ver.record[CUSTOM_KEY_APPNAME]
             self.indexer.set_document(document)
             index_name(document, name, self.indexer)
+            document.add_value(XAPIAN_VALUE_APPNAME, name)
             # we pretend to be an application
             document.add_term("AT"+"application")
+            # and we inject a custom component value to indicate "independent"
+            document.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, "independent")
         if CUSTOM_KEY_ICON in ver.record:
             icon = ver.record[CUSTOM_KEY_ICON]
             document.add_value(XAPIAN_VALUE_ICON, icon)
