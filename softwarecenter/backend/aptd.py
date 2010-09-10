@@ -182,7 +182,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         try:
             trans = yield self.aptd_client.remove_packages([pkgname],
                                                            defer=True)
-            yield self._run_transaction(trans, pkgname, appname, iconname, metadata, defer=True)
+            yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
             self._on_trans_error(error, pkgname)
 
