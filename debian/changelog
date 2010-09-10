@@ -1,3 +1,9 @@
+software-center (2.1.19) UNRELEASED; urgency=low
+
+  * Update tests/xapian_query.py for compatibility with Xapian 1.2.x.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 10 Sep 2010 12:21:38 +0100
+
 software-center (2.1.18) maverick; urgency=low
 
   [ Michael Vogt ]
