@@ -421,7 +421,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 self._show_transaction_failed_dialog(trans, result)
                 return_value(False)
             retry += str(retry + 1)
-            yield trans.set_meta_data("sc_add_repo_and_install_try"=retry,
+            yield trans.set_meta_data(sc_add_repo_and_install_try=retry,
                                       defer=True)
             sourcepart = trans.meta_data["sc_add_repo_and_install_sources_list"]
             glib.timeout_add_seconds(30, self._reload_for_commercial_repo,
@@ -568,7 +568,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 trans.set_remove_obsoleted_depends(True, defer=True)
             # generic metadata
             if metadata:
-                yield trans.set_meta_data(**metadata, defer=True)
+                yield trans.set_meta_data(defer=True, **metadata)
             # do not set the http proxy by default
             if os.environ.get("SOFTWARE_CENTER_USE_GCONF_PROXY"):
                 http_proxy = get_http_proxy_string_from_gconf()
