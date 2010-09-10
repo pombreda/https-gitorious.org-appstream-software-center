@@ -214,7 +214,7 @@ class TestDatabase(unittest.TestCase):
         matches = enquire.get_mset(0, 20)
         last_time = 0
         for m in matches:
-            doc = m[xapian.MSET_DOCUMENT]
+            doc = m.document
             doc.get_value(value_time) >= last_time
             last_time = doc.get_value(value_time)
 

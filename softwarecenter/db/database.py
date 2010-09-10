@@ -327,7 +327,7 @@ if __name__ == "__main__":
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
     for m in matches:
-        doc = m[xapian.MSET_DOCUMENT]
+        doc = m.document
         print doc.get_data()
 
     # test origin

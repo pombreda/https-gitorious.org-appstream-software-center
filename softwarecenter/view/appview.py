@@ -212,7 +212,7 @@ class AppStore(gtk.GenericTreeModel):
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
             app_index = 0
             for m in matches:
-                doc = m[xapian.MSET_DOCUMENT]
+                doc = m.document
                 if "APPVIEW_DEBUG_TERMS" in os.environ:
                     print doc.get_value(XAPIAN_VALUE_APPNAME)
                     for t in doc.termlist():
