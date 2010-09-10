@@ -10,6 +10,12 @@ software-center (2.1.18.1) UNRELEASED; urgency=low
     - update icon names for latest additions from humanity (thanks
       to vish!
 
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui:
+    - no more icon for software sources (LP: #634987)
+  * softwarecenter/backend/aptd.py:
+    - allow us to remove pkgs again (LP: #634929)
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 19:31:46 +0200
 
 software-center (2.1.18) maverick; urgency=low
