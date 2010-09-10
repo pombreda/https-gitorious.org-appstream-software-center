@@ -72,6 +72,7 @@ class StoreDatabase(gobject.GObject):
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
+        self.xapian_parser = xapian.QueryParser()
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
         " open the database "
