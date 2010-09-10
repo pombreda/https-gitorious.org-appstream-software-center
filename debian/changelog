@@ -4,6 +4,8 @@ software-center (2.1.19) UNRELEASED; urgency=low
   * Update tests/xapian_query.py for compatibility with Xapian 1.2.x.
 
   [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui:
+    - no more icon for software sources (LP: #634987)
   * softwarecenter/backend/aptd.py:
     - allow us to remove pkgs again (LP: #634929)
 

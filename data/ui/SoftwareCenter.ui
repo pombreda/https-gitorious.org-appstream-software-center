@@ -203,13 +203,10 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menuitem_software_sources">
+                      <object class="GtkMenuItem" id="menuitem_software_sources">
                         <property name="label" translatable="yes">_Software Sources…</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="image">image4</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
                         <signal name="activate" handler="on_menuitem_software_sources_activate"/>
                       </object>
                     </child>
@@ -419,10 +416,6 @@
     <property name="visible">True</property>
     <property name="stock">gtk-find</property>
     <property name="icon-size">1</property>
-  </object>
-  <object class="GtkImage" id="image4">
-    <property name="visible">True</property>
-    <property name="icon_name">software-properties</property>
   </object>
   <object class="GtkImage" id="image5">
     <property name="visible">True</property>
