@@ -563,20 +563,20 @@ class AppStore(gtk.GenericTreeModel):
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
                     
-                    # check if this is a downloadable icon
-                    if not self.db.get_icon_needs_download(doc):
-                        # load the icon from the theme
+                    # look for the icon on the iconpath
+                    if self.icons.has_icon(icon_name):
                         icon = self.icons.load_icon(icon_name, self.icon_size, 0)
-                        self.icon_cache[icon_name] = icon
-                        return icon
-                    else:
+                        if icon:
+                            self.icon_cache[icon_name] = icon
+                            return icon
+                    elif self.db.get_icon_needs_download(doc):
                         self._download_icon_and_show_when_ready(self.cache, 
                                                                 app.pkgname,
                                                                 icon_file_name)
-                        return self._appicon_missing_icon
+                        # display the missing icon while the real one downloads
+                        self.icon_cache[icon_name] = self._appicon_missing_icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)
-                self.icon_cache[icon_name] = self._appicon_missing_icon
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:
             pkgname = app.pkgname
