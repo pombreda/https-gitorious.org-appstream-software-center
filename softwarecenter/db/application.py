@@ -464,7 +464,8 @@ class AppDetails(object):
             source_to_enable = None
             if self.channelname and self._unavailable_channel():
                 source_to_enable = self.channelname
-            elif self.component:
+            elif (self.component and 
+                  self.component not in ("independent", "commercial")):
                 source_to_enable = self.component
             if source_to_enable:
                 sources = source_to_enable.split('&')
@@ -534,6 +535,7 @@ class AppDetails(object):
         details = []
         details.append("* AppDetails")
         details.append("                name: %s" % self.name)
+        details.append("        display_name: %s" % self.display_name)
         details.append("                 pkg: %s" % self.pkg)
         details.append("             pkgname: %s" % self.pkgname)
         details.append("        architecture: %s" % self.architecture)
@@ -543,6 +545,7 @@ class AppDetails(object):
         details.append("           component: %s" % self.component)
         details.append("        desktop_file: %s" % self.desktop_file)
         details.append("         description: %s" % self.description)
+        details.append("               error: %s" % self.error)
         details.append("                icon: %s" % self.icon)
         details.append("      icon_file_name: %s" % self.icon_file_name)
         details.append(" icon_needs_download: %s" % self.icon_needs_download)
@@ -555,6 +558,7 @@ class AppDetails(object):
         details.append("               price: %s" % self.price)
         details.append("          screenshot: %s" % self.screenshot)
         details.append("             summary: %s" % self.summary)
+        details.append("     display_summary: %s" % self.display_summary)
         details.append("           thumbnail: %s" % self.thumbnail)
         details.append("             version: %s" % self.version)
         details.append("             website: %s" % self.website)

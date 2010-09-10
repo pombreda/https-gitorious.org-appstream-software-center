@@ -35,7 +35,7 @@ if __name__ == "__main__":
     matches = enquire.get_mset(0, db.get_doccount())
     print "Matches:"
     for m in matches:
-        doc = m[xapian.MSET_DOCUMENT]
+        doc = m.document
         popcon = doc.get_value(XAPIAN_VALUE_POPCON)
         print doc.get_data(), "popcon:", xapian.sortable_unserialise(popcon)
         #for t in doc.termlist():
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     print "ESet:"
     rset = xapian.RSet()
     for m in matches:
-        rset.add_document(m[xapian.MSET_DID])
+        rset.add_document(m.docid)
     for m in enquire.get_eset(10, rset):
         print m.term
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     matches = enquire.get_mset(0, 10)
     print "\n\nExpanded Matches:"
     for m in matches:
-        doc = m[xapian.MSET_DOCUMENT]
+        doc = m.document
         print doc.get_data()
         appname = doc.get_data()
     
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     enquire.set_query(query)
     matches = enquire.get_mset(0, 10)
     for m in matches:
-        doc = m[xapian.MSET_DOCUMENT]
+        doc = m.document
         print doc.get_data()
         appname = doc.get_data()
     

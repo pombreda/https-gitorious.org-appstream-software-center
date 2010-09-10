@@ -1,3 +1,65 @@
+software-center (2.1.18.2) UNRELEASED; urgency=low
+
+  * softwarecenter/view/widgets/mkit.py:
+    - fix crash during action_bar refresh (LP: #635044)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Sep 2010 17:35:13 -0400
+
+software-center (2.1.18.1) maverick; urgency=low
+
+  [ Colin Watson ]
+  * Update tests/xapian_query.py for compatibility with Xapian 1.2.x.
+  
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - fix bug in removal (thanks to davmor2)
+  * data/software-center.menu.in:
+    - update icon names for latest additions from humanity (thanks
+      to vish!
+
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui:
+    - no more icon for software sources (LP: #634987)
+  * softwarecenter/backend/aptd.py:
+    - allow us to remove pkgs again (LP: #634929)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 20:32:48 +0200
+
+software-center (2.1.18) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * use "match.document" instead of "match[xapian.MSET_DOCUMENT]"
+    to be compatible with xapian 1.2.x (closes: 596079)
+  * softwarecenter/view/catview_gtk.py:
+    - fix a missing glib.markup_escape_text()
+  * merged  lp:~glatzor/software-center/aptdaemon-polish, many
+    thanks!
+
+  [ Kiwinote ]
+  * softwarecenter/backend/aptd.py:
+    - don't crash on cancelling policykit auths (LP: #634697)
+  * softwarecenter/view/appview.py:
+    - don't crash on searches containing ", " (LP: #634549)
+
+  [ Gary Lasker ]
+  * apt-xapian-index-plugin/softwarecenter.py,
+    softwarecenter/db/application.py,
+    softwarecenter/db/database.py,
+    softwarecenter/db/update.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    test/test_database.py:
+   - improved support for the display of metadata in the
+     details view for new-apps and apps for purchase
+     (LP: #625254)
+   - fix incorrect display of the app name and summary
+     text for new-apps in the details view (LP: #634678)
+   - add tests for get_appname, get_pkgname    
+  * softwarecenter/view/appview.py:
+    - fix up downloadable icon handling
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 11:34:50 +0200
+
 software-center (2.1.17.2) maverick; urgency=low
 
   * softwarecenter/backend/aptd.py:
