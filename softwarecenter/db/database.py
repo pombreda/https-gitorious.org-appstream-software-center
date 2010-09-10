@@ -230,12 +230,12 @@ class StoreDatabase(gobject.GObject):
 
     def get_appname(self, doc):
         """ Return a appname from a xapian document """
-        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        appname = doc.get_value(XAPIAN_VALUE_APPNAME)
         # if there is no value it means we use the apt-xapian-index 
         # and that has no appname
-        if not pkgname:
-            return None
-        return doc.get_data()
+        if not appname:
+            appname = doc.get_data()
+        return appname
 
     def get_iconname(self, doc):
         """ Return the iconname from the xapian document """

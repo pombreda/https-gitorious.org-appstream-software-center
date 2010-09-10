@@ -1360,6 +1360,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             version = '%s (%s)' % (app_details.version, app_details.pkgname)
         else:
             version = _("Unknown")
+            # if the version is unknown, just hide the field
+            self.version_info.hide()
         if app_details.license:
             license = app_details.license
         else:
