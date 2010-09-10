@@ -9,14 +9,14 @@ software-center (2.1.17.3) UNRELEASED; urgency=low
     test/test_database.py:
    - improved support for the display of metadata in the
      details view for new-apps and apps for purchase
-     (LP: 625254)
+     (LP: #625254)
    - fix incorrect display of the app name and summary
      text for new-apps in the details view (LP: #634678)
    - add tests for get_appname, get_pkgname    
   * softwarecenter/view/appview.py:
     - fix up downloadable icon handling
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Sep 2010 00:10:28 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Sep 2010 00:57:36 -0400
 
 software-center (2.1.17.2) maverick; urgency=low
 
