@@ -37,6 +37,11 @@ except ImportError:
 
 LOG = logging.getLogger(__name__)
 
+def ascii_lower(key):
+    ascii_trans_table = string.maketrans(string.ascii_uppercase,
+                                        string.ascii_lowercase)
+    return key.translate(ascii_trans_table)
+
 class Transaction(object):
     """ Represents an apt transaction 
 
@@ -54,7 +59,8 @@ o    Attributes:
         # set the object attributes "install", "upgrade", "downgrade",
         #                           "remove", "purge", error
         for k in self.PKGACTIONS+["Error"]:
-            attr = k.lower()
+            # we use ascii_lower for issues described in LP: #581207
+            attr = ascii_lower(k)
             if k in sec:
                 value = map(string.strip, sec[k].split("),"))
             else:

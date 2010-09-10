@@ -29,6 +29,7 @@ import aptdaemon.client
 from aptdaemon.enums import *
 
 from softwarecenter.enums import *
+from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 from softwarecenter.view.basepane import BasePane
 
@@ -57,7 +58,8 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         # data
         self.icons = icons
         # the apt-daemon stuff
-        self.apt_client = aptdaemon.client.AptClient()
+        self.backend = get_install_backend()
+        self.apt_client = self.backend.aptd_client
         self._signals = []
 
     def clear(self):
@@ -78,9 +80,11 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             # when we get two on_transaction_changed closely after each
             # other clear() is run before the "_append_transaction" handler
             # is run and we end up with two (or more) _append_transactions
-            trans = aptdaemon.client.get_transaction(tid,
-                                         error_handler=lambda x: True)
+            trans = aptdaemon.client.get_transaction(tid)
             self._append_transaction(trans)
+        # add pending purchases as pseudo transactions
+        for pkgname in self.backend.pending_purchases:
+            self.append([pkgname, None, pkgname, _(u'Installing purchase\u2026'), 0, None])
 
     def _append_transaction(self, trans):
         """Extract information about the transaction and append it to the

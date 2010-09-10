@@ -151,6 +151,20 @@ class testAppStore(unittest.TestCase):
         for app in store.apps:
             self.assertEqual(store.apps[store.app_index_map[app]], app)
             self.assertEqual(store.apps[store.pkgname_index_map[app.pkgname][0]].pkgname, app.pkgname)
+            
+    def test_show_hide_nonapps(self):
+        """ test if showing/hiding non-applications works """
+        store = AppStore(
+            self.cache, self.db, self.mock_icons,
+            search_query = xapian.Query(""),             
+            nonapps_visible = False)
+        not_visible = store.nonapp_pkgs
+        store = AppStore(
+            self.cache, self.db, self.mock_icons,
+            search_query = xapian.Query(""),
+            nonapps_visible = True)
+        visible = store.nonapp_pkgs
+        self.assertTrue(visible < not_visible)
 
 
 if __name__ == "__main__":

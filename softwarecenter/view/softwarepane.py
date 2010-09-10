@@ -24,8 +24,12 @@ import gtk
 import logging
 import os
 import xapian
+import cairo
+import gettext
 
-from widgets.mkit import floats_from_gdkcolor
+from gettext import gettext as _
+
+from widgets.mkit import floats_from_gdkcolor, floats_from_string
 from widgets.pathbar_gtk_atk import NavigationBar
 
 from softwarecenter.backend import get_install_backend
@@ -36,7 +40,7 @@ from widgets.searchentry import SearchEntry
 #from widgets.actionbar2 import ActionBar
 from widgets.actionbar import ActionBar
 
-from appview import AppView, AppStore, AppViewFilter
+from appview import AppView, AppStore
 
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
@@ -67,6 +71,58 @@ def wait_for_apt_cache_ready(f):
     return wrapper
 
 
+MASK_SURFACE_CACHE = {}
+
+
+class SoftwareSection(object):
+
+    def __init__(self):
+        self._image_id = 0
+        self._section_icon = None
+        self._section_color = None
+        return
+
+    def render(self, cr, a):
+        # sky
+        r,g,b = self._section_color
+        lin = cairo.LinearGradient(0,a.y,0,a.y+150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.3)
+        lin.add_color_stop_rgba(1, r,g,b,0)
+        cr.set_source(lin)
+        cr.rectangle(0,0,
+                     a.width, 150)
+        cr.fill()
+
+        # clouds
+        s = MASK_SURFACE_CACHE[self._image_id]
+        cr.set_source_surface(s, a.width-s.get_width(), 0)
+        cr.paint()
+        return
+
+    def set_icon(self, icon):
+        self._section_icon = icon
+        return
+
+    def set_image(self, id, path):
+        image = cairo.ImageSurface.create_from_png(path)
+        self._image_id = id
+        global MASK_SURFACE_CACHE
+        MASK_SURFACE_CACHE[id] = image
+        return
+
+    def set_image_id(self, id):
+        self._image_id = id
+        return
+
+    def set_color(self, color_spec):
+        color = floats_from_string(color_spec)
+        self._section_color = color
+        return
+
+    def get_image(self):
+        return MASK_SURFACE_CACHE[self._image_id]
+
+
 class SoftwarePane(gtk.VBox, BasePane):
     """ Common base class for InstalledPane and AvailablePane """
 
@@ -93,6 +149,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
+        self.nonapps_visible = False
         # refreshes can happen out-of-bound so we need to be sure
         # that we only set the new model (when its available) if
         # the refresh_seq_nr of the ready model matches that of the
@@ -230,13 +287,59 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner.stop()
         self.appview_notebook.set_current_page(self.PAGE_APPVIEW)
 
-    def set_section_color(self, color):
-        self.app_details.set_section_color(color)
+    def set_section(self, section):
+        self.section = section
+        self.app_details.set_section(section)
         return
 
-    def set_section_image(self, image_id, surf):
-        self.app_details.set_section_image(image_id, surf)
+    def section_sync(self):
+        self.app_details.set_section(self.section)
         return
+        
+    def update_show_hide_nonapps(self):
+        """
+        update the state of the show/hide non-applications control
+        in the action_bar
+        """
+        appstore = self.app_view.get_model()
+
+        # calculate the number of apps/pkgs
+        pkgs = 0
+        apps = 0
+        if appstore and appstore.active:
+            if appstore.nonapps_visible:
+                pkgs = appstore.nonapp_pkgs
+                apps = len(appstore) - pkgs
+            else:
+                apps = len(appstore)
+                pkgs = appstore.nonapp_pkgs - apps
+            #print 'apps: ' + str(apps)
+            #print 'pkgs: ' + str(pkgs)
+
+        self.action_bar.unset_label()
+        
+        if (appstore and appstore.active and self.is_applist_view_showing() and
+            pkgs != apps and pkgs > 0 and apps > 0):
+            if appstore.nonapps_visible:
+                # TRANSLATORS: the text inbetween the underscores acts as a link
+                # In most/all languages you will want the whole string as a link
+                label = gettext.ngettext("_Hide %i technical item_",
+                                         "_Hide %i technical items_",
+                                         pkgs) % pkgs
+                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
+            else:
+                label = gettext.ngettext("_Show %i technical item_",
+                                         "_Show %i technical items_",
+                                         pkgs) % pkgs
+                self.action_bar.set_label(label, self._show_nonapp_pkgs)
+            
+    def _show_nonapp_pkgs(self):
+        self.nonapps_visible = True
+        self.refresh_apps()
+
+    def _hide_nonapp_pkgs(self):
+        self.nonapps_visible = False
+        self.refresh_apps()
 
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -258,6 +361,9 @@ class SoftwarePane(gtk.VBox, BasePane):
     def is_category_view_showing(self):
         " stub implementation "
         pass
+        
+    def is_applist_view_showing(self):
+        " stub implementation "
         
     def get_current_app(self):
         " stub implementation "

@@ -39,7 +39,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
-import softwarecenter.view.dialogs as dialogs
+import softwarecenter.view.dependency_dialogs as dependency_dialogs
 from softwarecenter.view.widgets.mkit import floats_from_string
 
 import view.dialogs
@@ -48,7 +48,7 @@ from view.pendingview import PendingView
 from view.installedpane import InstalledPane
 from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
-from view.softwarepane import SoftwarePane
+from view.softwarepane import SoftwarePane, SoftwareSection
 from view.historypane import HistoryPane
 from view.viewmanager import ViewManager
 
@@ -215,11 +215,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.navhistory_forward_action)
 
 
-        color = floats_from_string('#0769BC')
-        image = cairo.ImageSurface.create_from_png(
-            os.path.join(datadir, 'images/clouds.png'))
-        self.available_pane.set_section_color(color)
-        self.available_pane.set_section_image(image_id=0, surf=image)
+        available_section = SoftwareSection()
+        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(datadir, 'images/clouds.png'))
+        available_section.set_color('#0769BC')
+        self.available_pane.set_section(available_section)
 
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -242,11 +241,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.distro,
                                         self.icons,
                                         datadir)
-        color = floats_from_string('#aea79f')
-        image = cairo.ImageSurface.create_from_png(
-            os.path.join(datadir, 'images/arrows.png'))
-        self.channel_pane.set_section_color(color)
-        self.channel_pane.set_section_image(image_id=1, surf=image)
+
+        channel_section = SoftwareSection()
+        channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(datadir, 'images/arrows.png'))
+        channel_section.set_color('#aea79f')
+        self.channel_pane.set_section(channel_section)
 
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -270,11 +269,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.icons,
                                             datadir)
         
-        color = floats_from_string('#aea79f')
-        image = cairo.ImageSurface.create_from_png(
-            os.path.join(datadir, 'images/arrows.png'))
-        self.installed_pane.set_section_color(color)
-        self.installed_pane.set_section_image(image_id=2, surf=image)
+        installed_section = SoftwareSection()
+        installed_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(datadir, 'images/arrows.png'))
+        installed_section.set_color('#aea79f')
+        self.installed_pane.set_section(installed_section)
         
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
@@ -515,30 +513,24 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         logging.debug("on_application_action_requested: '%s' %s" % (app, action))
         appdetails = app.get_details(self.db)
         if action == "remove":
-            # if we are removing a package, check for dependencies that will
-            # also be removed and show a dialog for confirmation
-            # generic removal text
-            # FIXME: this text is not accurate, we look at recommends as
-            #        well as part of the rdepends, but those do not need to
-            #        be removed, they just may be limited in functionality
-            (primary, button_text) = self.distro.get_removal_warning_text(self.cache,
-                                                                          appdetails.pkg,
-                                                                          app.name)
-
-            # ask for confirmation if we have rdepends
-            depends = self.cache.get_installed_rdepends(appdetails.pkg)
-            if depends:
-                iconpath = self.get_icon_filename(appdetails.icon, self.APP_ICON_SIZE)
-                
-                if not dialogs.confirm_remove(None, self.datadir, primary, self.cache,
-                                            button_text, iconpath, depends):
-                    # for appdetailsview-webkit
-                    # self._set_action_button_sensitive(True)
-
+            if not dependency_dialogs.confirm_remove(None, self.datadir, app,
+                                                     self.db, self.icons):
                     self.backend.emit("transaction-stopped", app.pkgname)
                     return
-            
-        # action_func is one of:  "install", "remove", "upgrade", or "apply_changes"
+        elif action == "install":
+            # If we are installing a package, check for dependencies that will 
+            # also be removed and show a dialog for confirmation
+            # generic removal text (fixing LP bug #554319)
+            if not dependency_dialogs.confirm_install(None, self.datadir, app, 
+                                                      self.db, self.icons):
+                    self.backend.emit("transaction-stopped", app.pkgname)
+                    return
+
+        # this allows us to 'upgrade' deb files
+        if action == 'upgrade' and app.request and app.request.endswith(".deb"):
+            action = 'install'
+ 
+        # action_func is one of:  "install", "remove", "upgrade", "apply_changes"
         action_func = getattr(self.backend, action)
         if action == 'install':
             # the package.deb path name is in the request

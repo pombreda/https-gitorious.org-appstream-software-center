@@ -82,6 +82,6 @@ if __name__ == "__main__":
         mset = enquire.get_mset(0, db.get_doccount())
         print "len mset: ", len(mset)
         for m in mset:
-            doc = m[xapian.MSET_DOCUMENT]
+            doc = m.document
             appname = doc.get_value(XAPIAN_VALUE_APPNAME)
             pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)

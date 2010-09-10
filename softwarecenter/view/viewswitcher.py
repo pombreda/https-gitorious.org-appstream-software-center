@@ -435,7 +435,7 @@ class ViewSwitcherList(gtk.TreeStore):
             if len(matches) < 200:
                 add_channel_item = False
                 for m in matches:
-                    doc = m[xapian.MSET_DOCUMENT]
+                    doc = m.document
                     pkgname = self.db.get_pkgname(doc)
                     if (pkgname in self.cache and
                         self.cache[pkgname].is_installed):

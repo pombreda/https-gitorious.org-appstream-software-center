@@ -52,12 +52,10 @@ class Ubuntu(Distro):
         """ The description of the main distro channel """
         return _("Provided by Ubuntu")
 
-    def get_removal_warning_text(self, cache, pkg, appname):
+    def get_removal_warning_text(self, cache, pkg, appname, depends):
         primary = _("To remove %s, these items must be removed "
                     "as well:" % appname)
         button_text = _("Remove All")
-
-        depends = list(cache.get_installed_rdepends(pkg))
 
         # alter it if a meta-package is affected
         for m in depends:
@@ -89,9 +87,9 @@ class Ubuntu(Distro):
         return self.codename
 
     def get_license_text(self, component):
-        if component in ("main", "universe"):
+        if component in ("main", "universe", "independent"):
             return _("Open source")
-        elif component == "restricted":
+        elif component in ("restricted", "commercial"):
             return _("Proprietary")
 
     def is_supported(self, cache, doc, pkgname):
@@ -186,7 +184,8 @@ class Ubuntu(Distro):
                
         # if we couldn't determine a support date, use a generic maintenance
         # string without the date
-        if channelname or component == "partner":
+        if (channelname or
+            component in ("partner", "independent", "commercial")):
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the third party "
                      "vendor.") % appname

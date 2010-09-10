@@ -31,7 +31,7 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
-from softwarecenter.enums import SORT_BY_ALPHABET
+from softwarecenter.enums import SORT_UNSORTED, SORT_BY_ALPHABET, SORT_BY_SEARCH_RANKING, SORT_BY_CATALOGED_TIME
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
@@ -54,7 +54,7 @@ def categories_sorted_by_name(categories):
     # first pass, sort by translated names
     for cat in categories:
         sorted_catnames.append(cat.name)
-    sorted_catnames.sort()
+    sorted_catnames = sorted(sorted_catnames, cmp=locale.strcoll)
 
     # second pass, assemble cats by sorted their sorted catnames
     sorted_cats = []
@@ -97,7 +97,6 @@ class CategoriesView(object):
     def parse_applications_menu(self, datadir):
         """ parse a application menu and return a list of Category objects """
         categories = []
-        print datadir
         # we support multiple menu files and menu drop ins
         menu_files = [datadir+"/desktop/software-center.menu"]
         menu_files += glob.glob(datadir+"/menu.d/*.menu")
@@ -214,7 +213,7 @@ class CategoriesView(object):
                 q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
                 query = xapian.Query(xapian_op, query, q)
             else: 
-                print "UNHANDLED: ", and_elem.tag, and_elem.text
+                LOG.warn("UNHANDLED: %s %s" % (and_elem.tag, and_elem.text))
         return query
 
     def _parse_include_tag(self, element):
@@ -270,6 +269,8 @@ class CategoriesView(object):
                 dont_display = True
             elif element.tag == "SCSortMode":
                 sortmode = int(element.text)
+                if not self._verify_supported_sort_mode(sortmode):
+                    return None
             elif element.tag == "SCItemLimit":
                 item_limit = int(element.text)
             elif element.tag == "Menu":
@@ -277,13 +278,36 @@ class CategoriesView(object):
                 if subcat:
                     subcategories.append(subcat)
             else:
-                print "UNHANDLED tag in _parse_menu_tag: ", element.tag
+                LOG.warn("UNHANDLED tag in _parse_menu_tag: %s" % element.tag)
                 
         if untranslated_name and query:
             return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, flags, subcategories, sortmode, item_limit)
         else:
-            print "UNHANDLED entry: ", name, untranslated_name, icon, query
+            LOG.warn("UNHANDLED entry: %s %s %s %s" % (name, 
+                                                       untranslated_name, 
+                                                       icon, 
+                                                       query))
         return None
+
+    def _verify_supported_sort_mode(self, sortmode):
+        """ verify that we use a sortmode that we know and can handle """
+        # always supported
+        if sortmode in (SORT_UNSORTED, 
+                        SORT_BY_ALPHABET, 
+                        SORT_BY_SEARCH_RANKING):
+            return True
+        # only supported with a apt-xapian-index version that has the
+        # "catalogedtime" value
+        elif sortmode == SORT_BY_CATALOGED_TIME:
+            if self.db._axi_values and "catalogedtime" in self.db._axi_values:
+                return True
+            else:
+                LOG.warn("sort by cataloged time requested but your a-x-i "
+                             "does not seem to support that yet")
+                return False
+        # we don't know this sortmode
+        LOG.error("unknown sort mode '%i'" % sortmode)
+        return False
 
     def _build_unallocated_queries(self, categories):
         for cat_unalloc in categories:
