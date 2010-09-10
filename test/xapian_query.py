@@ -47,7 +47,7 @@ if __name__ == "__main__":
     print "ESet:"
     rset = xapian.RSet()
     for m in matches:
-        rset.add_document(m[xapian.MSET_DID])
+        rset.add_document(m.docid)
     for m in enquire.get_eset(10, rset):
         print m.term
 
