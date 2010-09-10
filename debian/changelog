@@ -1,4 +1,4 @@
-software-center (2.1.17.3) UNRELEASED; urgency=low
+software-center (2.1.18) maverick; urgency=low
 
   [ Michael Vogt ]
   * use "match.document" instead of "match[xapian.MSET_DOCUMENT]"
@@ -31,7 +31,7 @@ software-center (2.1.17.3) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - fix up downloadable icon handling
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Sep 2010 00:57:36 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 11:34:50 +0200
 
 software-center (2.1.17.2) maverick; urgency=low
 
