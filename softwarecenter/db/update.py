@@ -276,22 +276,6 @@ def update_from_json_string(db, cache, json_string, origin):
         index_app_info_from_parser(parser, db, cache)
     return True
 
-def update_from_apt_cache_for_whats_new_repo(db, cache):
-
-    SPECIAL_ORIGINS_THAT_ARE_CONSIDERED_APPS = (
-        "Application Review Board PPA",
-        )
-
-    for pkg in cache:
-        if not pkg.candidate:
-            continue
-        for origin in pkg.candidate.origins:
-            # FIXME: make this configuration
-            if (origin.label in SPECIAL_ORIGINS_THAT_ARE_CONSIDERED_APPS and
-                origin.trusted):
-                parser = AptCachePkgParser(pkg)
-                index_app_info_from_parser(parser, db, cache)
-
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """
     if not listsdir:
@@ -478,6 +462,8 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Price"):
             price = parser.get_desktop("X-AppInstall-Price")
             doc.add_value(XAPIAN_VALUE_PRICE, price)
+            # since this is a commercial app, indicate it in the component value
+            doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, "commercial")
         # icon
         if parser.has_option_desktop("Icon"):
             icon = parser.get_desktop("Icon")

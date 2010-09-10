@@ -1,4 +1,12 @@
-software-center (2.1.17.3) UNRELEASED; urgency=low
+software-center (2.1.18) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * use "match.document" instead of "match[xapian.MSET_DOCUMENT]"
+    to be compatible with xapian 1.2.x (closes: 596079)
+  * softwarecenter/view/catview_gtk.py:
+    - fix a missing glib.markup_escape_text()
+  * merged  lp:~glatzor/software-center/aptdaemon-polish, many
+    thanks!
 
   [ Kiwinote ]
   * softwarecenter/backend/aptd.py:
@@ -6,7 +14,24 @@ software-center (2.1.17.3) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - don't crash on searches containing ", " (LP: #634549)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 19:15:18 +0200
+  [ Gary Lasker ]
+  * apt-xapian-index-plugin/softwarecenter.py,
+    softwarecenter/db/application.py,
+    softwarecenter/db/database.py,
+    softwarecenter/db/update.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    test/test_database.py:
+   - improved support for the display of metadata in the
+     details view for new-apps and apps for purchase
+     (LP: #625254)
+   - fix incorrect display of the app name and summary
+     text for new-apps in the details view (LP: #634678)
+   - add tests for get_appname, get_pkgname    
+  * softwarecenter/view/appview.py:
+    - fix up downloadable icon handling
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 11:34:50 +0200
 
 software-center (2.1.17.2) maverick; urgency=low
 

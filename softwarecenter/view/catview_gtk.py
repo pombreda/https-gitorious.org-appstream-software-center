@@ -959,7 +959,7 @@ class CarouselPoster(mkit.VLinkButton):
 
         name = app[AppStore.COL_APP_NAME] or app[AppStore.COL_PKGNAME]
 
-        markup = '%s' % (name)
+        markup = '%s' % glib.markup_escape_text(name)
         pb = app[AppStore.COL_ICON]
 
         self.set_label(markup)

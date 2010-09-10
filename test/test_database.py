@@ -133,6 +133,10 @@ class TestDatabase(unittest.TestCase):
             if doc.get_data() == "Ubuntu Software Center Test":
                 appdetails = AppDetails(db, doc=doc)
                 break
+        # test get_appname and get_pkgname
+        self.assertEqual(db.get_appname(doc), "Ubuntu Software Center Test")
+        self.assertEqual(db.get_pkgname(doc), "software-center")
+        # test appdetails
         self.assertEqual(appdetails.name, "Ubuntu Software Center Test")
         self.assertEqual(appdetails.pkgname, "software-center")
         # FIXME: add a dekstop file with a real channel to test
@@ -214,7 +218,7 @@ class TestDatabase(unittest.TestCase):
         matches = enquire.get_mset(0, 20)
         last_time = 0
         for m in matches:
-            doc = m[xapian.MSET_DOCUMENT]
+            doc = m.document
             doc.get_value(value_time) >= last_time
             last_time = doc.get_value(value_time)
 
