@@ -1131,6 +1131,9 @@ class LinkButton(gtk.EventBox):
         w = self.calc_width()
         self.set_size_request(w, self.get_size_request()[1])
         return
+        
+    def get_label(self):
+        return self._markup
 
     def set_image_from_icon_name(self, icon_name, icon_size, icons=None):
         icons = icons or gtk.icon_theme_get_default()

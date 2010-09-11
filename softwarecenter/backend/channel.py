@@ -253,6 +253,15 @@ class ChannelsManager(object):
                                                       channel_origin,
                                                       None,
                                                       installed_only=installed_only))
+
+        # always display the partner channel, even if its source is not enabled                                                       
+        if not partner_channel:
+            partner_channel = SoftwareChannel(self.icons, 
+                                              "Partner archive",
+                                              "Canonical",
+                                              "partner", 
+                                              only_packages_without_applications=True,
+                                              installed_only=installed_only)
         
         # create a "magic" channel to display items available for purchase                                              
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
