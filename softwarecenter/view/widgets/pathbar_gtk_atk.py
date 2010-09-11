@@ -518,6 +518,10 @@ class PathBar(gtk.HBox):
 
         self._width -= part.get_size_request()[0]
 
+        # only animate removal if part is the final part, override animation value
+        if animate:
+            i = parts.index(part)
+            animate = i == len(parts)-1
         if animate and not self._out_of_width:
             self._animate = True, part
             self._animate_mode = self.ANIMATE_REMOVE
