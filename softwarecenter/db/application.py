@@ -575,7 +575,7 @@ class AppDetailsDebFile(AppDetails):
             # for some reason Cache() is much faster than "self._cache._cache"
             # on startup
             self._deb = DebPackage(self._app.request, Cache())
-        except (IOError, SystemError),e:
+        except:
             self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
