@@ -148,7 +148,7 @@
 
     <Menu>
       <_Name>OCaml</_Name>
-      <SCIcon>applications-caml</SCIcon>
+      <SCIcon>applications-ocaml</SCIcon>
       <Include>
         <Or>
           <SCSection>ocaml</SCSection>
