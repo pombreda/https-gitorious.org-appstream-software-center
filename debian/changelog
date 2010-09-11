@@ -2,8 +2,11 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
 
   * softwarecenter/view/widgets/mkit.py:
     - fix crash during action_bar refresh (LP: #635044)
+  * softwarecenter/backend/channel.py:
+    - always display the Canonical Partners channel,
+      even when its source is not enabled (LP: #635003) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Sep 2010 17:35:13 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Sep 2010 21:21:44 -0400
 
 software-center (2.1.18.1) maverick; urgency=low
 
