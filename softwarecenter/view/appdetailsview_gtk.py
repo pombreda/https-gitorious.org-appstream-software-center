@@ -215,16 +215,22 @@ class PackageStatusBar(StatusBar):
         #         and the associated callback.
         if state == PKG_STATE_INSTALLING:
             self.set_label(_('Installing...'))
-            #self.set_button_label(_('Install'))
+            self.button.hide()
+            self.progress.set_fraction(0)
+            self.progress.show()
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
-            #self.set_button_label(_('Remove'))
+            self.button.hide()
+            self.progress.set_fraction(0)
+            self.progress.show()
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
-            #self.set_button_label(_('Upgrade Available'))
+            self.button.hide()
+            self.progress.set_fraction(0)
+            self.progress.show()
         elif state == PKG_STATE_INSTALLED:
             if app_details.purchase_date:
                 purchase_date = str(app_details.purchase_date).split()[0]
@@ -264,6 +270,9 @@ class PackageStatusBar(StatusBar):
             self.set_button_label(_('Upgrade'))
         elif state == APP_ACTION_APPLY:
             self.set_label(_(u'Changing Add-ons\u2026'))
+            self.button.hide()
+            self.progress.set_fraction(0)
+            self.progress.show()
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -1524,9 +1533,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
+        print self.app_details
         if self.app_details and self.app_details.pkgname and self.app_details.pkgname == pkgname:
-            if not self.action_bar.progress.get_property('visible'):
-                gobject.idle_add(self._show_prog_idle_cb)
             if pkgname in backend.pending_transactions:
                 self.action_bar.progress.set_fraction(progress/100.0)
             if progress == 100:
