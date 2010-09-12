@@ -20,6 +20,7 @@ import atk
 import dialogs
 import gio
 import glib
+import gmenu
 import gobject
 import gtk
 import logging
@@ -83,7 +84,7 @@ class StatusBar(gtk.Alignment):
                          mkit.SPACING_SMALL+2,
                          mkit.SPACING_SMALL)
 
-        self.hbox = gtk.HBox(spacing=mkit.SPACING_LARGE)
+        self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
         self.add(self.hbox)
 
         self.view = view
@@ -1406,7 +1407,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()
-                label_name.set_text(item.get_name())
+                if item.get_type() == gmenu.TYPE_ENTRY:
+                    label_name.set_text(item.get_display_name())
+                else:
+                    label_name.set_text(item.get_name())
                 self.desc_installed_where.pack_start(label_name, False, False)
                 if i+1 < len(where):
                     right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
