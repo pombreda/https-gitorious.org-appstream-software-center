@@ -23,6 +23,10 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
     - fix incorrect Category value in the xml for the Debugging
       subcategory of Developer Tools (LP: #538911)
 
+  [ Colin Watson ]
+  * Fix update-apt-xapian-index crashes when the Dir::Cache::pkgcache file
+    doesn't exist (LP: #267330).
+
  -- Gary Lasker <gary.lasker@canonical.com>  Sun, 12 Sep 2010 17:03:44 -0400
 
 software-center (2.1.18.1) maverick; urgency=low
