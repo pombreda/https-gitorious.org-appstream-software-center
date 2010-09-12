@@ -29,6 +29,8 @@ class SoftwareCenterMetadataPlugin:
         long initialisation can just be skipped.
         """
         file = apt.apt_pkg.config.find_file("Dir::Cache::pkgcache")
+        if not os.path.exists(file):
+            return dict(timestamp = 0)
         return dict(timestamp = os.path.getmtime(file))
 
     def init(self, info, progress):
