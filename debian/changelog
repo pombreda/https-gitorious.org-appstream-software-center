@@ -10,6 +10,8 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
   [ Kiwinote ]
   * data/software-center.menu.in:
     - fix typo to now use applications-ocaml icon, thanks mpt (LP: #635732)
+  * softwarecenter/backend/channel.py:
+    - allow 'for purchase' to have an icon in non-English locales (LP: #636242)
   * softwarecenter/db/application/py:
     - try to open deb file, except on any sort of error (LP: #633379)
   * softwarecenter/view/appdetailsview_gtk.py:

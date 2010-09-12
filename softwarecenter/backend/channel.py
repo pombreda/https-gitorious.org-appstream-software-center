@@ -266,7 +266,7 @@ class ChannelsManager(object):
         # create a "magic" channel to display items available for purchase                                              
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
         for_purchase_channel = SoftwareChannel(self.icons, 
-                                               _("For Purchase"), None, None, 
+                                               "For Purchase", None, None, 
                                                channel_icon=None,   # FIXME:  need an icon
                                                channel_query=for_purchase_query)
         
@@ -394,6 +394,8 @@ class SoftwareChannel(object):
             channel_display_name = _("Unknown")
         elif channel_name == self.distro.get_distro_channel_name():
             channel_display_name = self.distro.get_distro_channel_description()
+        elif channel_name == "For Purchase":
+            channel_display_name = _("For Purchase")
         elif channel_name == "Application Review Board PPA":
             channel_display_name = _("Independent")
         elif channel_name == "notdownloadable":
