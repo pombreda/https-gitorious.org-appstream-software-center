@@ -31,8 +31,10 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py:
     - fix "reload()" in enable_channel() and only update the particular
       channel file
+  * softwarecenter/distro/Ubuntu.py:
+    - fix crash for icons loaded from extras.ubuntu.com
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 12 Sep 2010 17:03:44 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 13 Sep 2010 16:18:45 +0200
 
 software-center (2.1.18.1) maverick; urgency=low
 
