@@ -937,6 +937,7 @@ class CarouselPoster(mkit.VLinkButton):
         self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None
+        self._target_icon_size = icon_size
 
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
