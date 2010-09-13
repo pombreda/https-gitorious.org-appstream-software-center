@@ -683,19 +683,20 @@ class AppDetailsDebFile(AppDetails):
 
     @property
     def warning(self):
+        # FIXME: use more concise warnings
         if self._deb:
-            if (not self.pkgname in self._cache) or (self.pkgname in self._cache
-                and not self._cache[self.pkgname].installed):
-                # no warning if pkg is installed (reinstallable or upgradeable)
+            deb_state = self._deb.compare_to_version_in_cache(use_installed=False)
+            if deb_state == DebPackage.VERSION_NONE:
                 return _("Only install this file if you trust the origin.")
-                # return _("Standalone software package") # use this for natty
-
-            # The 'newer/older version available from another source' doesn't
-            # really fit into the totality of things. For maverick I would like
-            # to drop this, as it causes oversized package status bars (and the
-            # current implementation is not quite correct either). (Yes, this
-            # does mean we have a feature regression wrt gdebi.) For natty we
-            # can introduce the second status bar as per the specification.
+            elif (not self._cache[self.pkgname].installed and
+                  self._cache[self.pkgname].candidate and
+                  self._cache[self.pkgname].candidate.downloadable): 
+                if deb_state == DebPackage.VERSION_OUTDATED:
+                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                elif deb_state == DebPackage.VERSION_SAME:
+                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                elif deb_state == DebPackage.VERSION_NEWER:
+                    return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
 
     @property
     def website(self):
