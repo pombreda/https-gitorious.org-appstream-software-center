@@ -51,7 +51,7 @@
       <_Name>Debugging</_Name>
       <SCIcon>applications-debugging</SCIcon>
       <Include>
-	<Category>Debugging</Category>
+	<Category>Debugger</Category>
       </Include>
     </Menu>
 
