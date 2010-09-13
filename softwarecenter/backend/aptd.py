@@ -264,8 +264,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if entry.invalid:
                 continue
             sourcepart = os.path.basename(channelfile)
-            self.add_sources_list_entry(entry, sourcepart)
-        yield self.reload()
+            yield self.add_sources_list_entry(entry, sourcepart)
+        yield self.reload(sourcepart)
 
     @inline_callbacks
     def add_vendor_key_from_keyserver(self, keyid, 
