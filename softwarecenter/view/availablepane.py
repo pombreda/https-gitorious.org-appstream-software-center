@@ -486,7 +486,11 @@ class AvailablePane(SoftwarePane):
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
-        self.navigation_bar.add_with_id(app.name, self.on_navigation_details, "details", animate=True)
+        details = app.get_details(self.db)
+        self.navigation_bar.add_with_id(details.display_name,
+                                        self.on_navigation_details,
+                                        "details",
+                                        animate=True)
         self.app_details.show_app(app)
         self.display_details()
 
