@@ -96,7 +96,7 @@ class DebFileApplication(Application):
         if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
             raise ValueError("Need a deb file, got '%s'" % debfile)
         debname = os.path.splitext(os.path.basename(debfile))[0]
-        self.appname = debname.split('_')[0].capitalize()
+        self.appname = ""
         self.pkgname = debname.split('_')[0].lower()
         self.request = debfile
     def get_details(self, db):
@@ -592,8 +592,23 @@ class AppDetailsDebFile(AppDetails):
                     self._error_not_found = _("The file \"%s\" could not be opened.") % self._app.request
             return
 
-        if self.pkgname:
+        if self.pkgname and self.pkgname != self._app.pkgname:
+            # this happens when the deb file has a quirky file name
             self._app.pkgname = self.pkgname
+
+            # load pkg cache
+            self._pkg = None
+            if (self._app.pkgname in self._cache and 
+                self._cache[self._app.pkgname].candidate):
+                self._pkg = self._cache[self._app.pkgname]
+
+            # load xapian document
+            self._doc = None
+            try:
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
+            except:
+                pass
 
         # check deb and set failure state on error
         if not self._deb.check():
@@ -668,19 +683,19 @@ class AppDetailsDebFile(AppDetails):
 
     @property
     def warning(self):
-        # warnings for deb-files
-        # FIXME: use more concise warnings
         if self._deb:
-            deb_state = self._deb.compare_to_version_in_cache()
-            if deb_state == DebPackage.VERSION_NONE:
+            if (not self.pkgname in self._cache) or (self.pkgname in self._cache
+                and not self._cache[self.pkgname].installed):
+                # no warning if pkg is installed (reinstallable or upgradeable)
                 return _("Only install this file if you trust the origin.")
-            elif deb_state == DebPackage.VERSION_OUTDATED:
-                if not self._cache[self.pkgname].installed:
-                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DebPackage.VERSION_SAME:
-                return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DebPackage.VERSION_NEWER:
-                return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
+                # return _("Standalone software package") # use this for natty
+
+            # The 'newer/older version available from another source' doesn't
+            # really fit into the totality of things. For maverick I would like
+            # to drop this, as it causes oversized package status bars (and the
+            # current implementation is not quite correct either). (Yes, this
+            # does mean we have a feature regression wrt gdebi.) For natty we
+            # can introduce the second status bar as per the specification.
 
     @property
     def website(self):

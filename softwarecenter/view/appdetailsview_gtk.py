@@ -226,7 +226,7 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             #self.set_button_label(_('Upgrade Available'))
-        elif state == PKG_STATE_INSTALLED:
+        elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
             if app_details.purchase_date:
                 purchase_date = str(app_details.purchase_date).split()[0]
                 self.set_label(_('Purchased on %s' % purchase_date))
@@ -235,7 +235,10 @@ class PackageStatusBar(StatusBar):
                 self.set_label(_('Installed on %s' % installation_date))
             else:
                 self.set_label(_('Installed'))
-            self.set_button_label(_('Remove'))
+            if state == PKG_STATE_REINSTALLABLE: # only deb files atm
+                self.set_button_label(_('Reinstall'))
+            elif state == PKG_STATE_INSTALLED:
+                self.set_button_label(_('Remove'))
         elif state == PKG_STATE_NEEDS_PURCHASE:
             # FIXME:  need to determine the currency dynamically once we can
             #         get that info from the software-center-agent/payments service.
@@ -254,12 +257,6 @@ class PackageStatusBar(StatusBar):
             else:
                 self.set_label(_("Free"))
             self.set_button_label(_('Install'))
-        elif state == PKG_STATE_REINSTALLABLE:
-            if app_details.price:
-                self.set_label(app_details.price)
-            else:
-                self.set_label("")
-            self.set_button_label(_('Reinstall'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
