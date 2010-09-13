@@ -234,7 +234,7 @@ class StoreDatabase(gobject.GObject):
         # if there is no value it means we use the apt-xapian-index 
         # and that has no appname
         if not appname:
-            appname = doc.get_data()
+            appname = None
         return appname
 
     def get_iconname(self, doc):

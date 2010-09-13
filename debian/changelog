@@ -12,8 +12,10 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
     - fix typo to now use applications-ocaml icon, thanks mpt (LP: #635732)
   * softwarecenter/backend/channel.py:
     - allow 'for purchase' to have an icon in non-English locales (LP: #636242)
-  * softwarecenter/db/application/py:
+  * softwarecenter/db/application.py:
     - try to open deb file, except on any sort of error (LP: #633379)
+  * softwarecenter/db/database.py:
+    - return None for get_appname() when we don't have an appname
   * softwarecenter/view/appdetailsview_gtk.py:
     - use the display name for app entry in 'where is it' (LP: #635464)
     - restore correct padding in addons status bar (LP: #625230)
