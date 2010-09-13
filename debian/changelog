@@ -6,6 +6,16 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
   * softwarecenter/backend/channel.py:
     - always display the partner channel, even if its
       source is not enabled (LP: #635003) 
+  * softwarecenter/db/application.py,
+    softwarecenter/db/database.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/softwarepane.py:
+    - make StoreDatabase.get_appname return None if the
+      name is not defined in the xapian doc
+    - consolidate code to generate application name and
+      summary for display in the UI to a single place
+    - wire applist, appdetails and the navigation bar
+      to use it (LP: #636004)
 
   [ Kiwinote ]
   * data/software-center.menu.in:
@@ -27,7 +37,7 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
   * Fix update-apt-xapian-index crashes when the Dir::Cache::pkgcache file
     doesn't exist (LP: #267330).
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 12 Sep 2010 17:03:44 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 12 Sep 2010 21:35:23 -0400
 
 software-center (2.1.18.1) maverick; urgency=low
 

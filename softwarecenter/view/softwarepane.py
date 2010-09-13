@@ -248,7 +248,8 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_application_activated(self, appview, app):
         """callback when an app is clicked"""
         LOG.debug("on_application_activated: '%s'" % app)
-        self.navigation_bar.add_with_id(app.name,
+        details = app.get_details(self.db)
+        self.navigation_bar.add_with_id(details.display_name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)

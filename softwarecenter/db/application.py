@@ -69,6 +69,25 @@ class Application(object):
     def get_details(self, db):
         """ return a new AppDetails object for this application """
         return AppDetails(db, application=self)
+    def get_display_name(self, db, doc):
+        """ Return the application name as it should be displayed in the UI
+            If the appname is defined, just return it, else return
+            the summary (per the spec)
+        """
+        if self.appname:
+            return self.appname
+        else:
+            return db.get_summary(doc)
+    def get_display_summary(self, db, doc):
+        """ Return the application summary as it should be displayed in the UI
+            If the appname is defined, return the application summary, else return
+            the application's pkgname (per the spec)
+        """
+        if self.appname:
+            return db.get_summary(doc)
+        else:
+            return db.get_pkgname(doc)
+        
     # special methods
     def __hash__(self):
         return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
@@ -295,39 +314,21 @@ class AppDetails(object):
     
     @property
     def display_name(self):
-        """ Return the name as it should be displayed in the UI
-
-            Note that this may not corespond to the Appname as the
-            spec says the name should be the summary for packages
-            and the summary the pkgname
+        """ Return the application name as it should be displayed in the UI
+            If the appname is defined, just return it, else return
+            the summary (per the spec)
         """
         if self._error_not_found:
             return self._error
-        if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return name
-            else:
-                # by spec..
-                return self._db.get_summary(self._doc)
-        return self.name
+        return self._app.get_display_name(self._db, self._doc)
 
     @property
     def display_summary(self):
-        """ Return the summary as it should be displayed in the UI
-
-            Note that this may not corespond to the summary value as the
-            spec says the name should be the summary for packages
-            and the summary the pkgname
+        """ Return the application summary as it should be displayed in the UI
+            If the appname is defined, return the application summary, else return
+            the application's pkgname (per the spec)
         """
-        if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return self._db.get_summary(self._doc)
-            else:
-                # by spec..
-                return self._db.get_pkgname(self._doc)
-        return ""
+        return self._app.get_display_summary(self._db, self._doc)
 
     @property
     def pkg(self):
