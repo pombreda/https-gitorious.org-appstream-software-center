@@ -74,19 +74,22 @@ class Application(object):
             If the appname is defined, just return it, else return
             the summary (per the spec)
         """
-        if self.appname:
-            return self.appname
-        else:
-            return db.get_summary(doc)
+        if doc:
+            appname = db.get_appname(doc)
+            if appname:
+                return appname
+            else:
+                return db.get_summary(doc)
     def get_display_summary(self, db, doc):
         """ Return the application summary as it should be displayed in the UI
             If the appname is defined, return the application summary, else return
             the application's pkgname (per the spec)
         """
-        if self.appname:
-            return db.get_summary(doc)
-        else:
-            return db.get_pkgname(doc)
+        if doc:
+            if db.get_appname(doc):
+                return db.get_summary(doc)
+            else:
+                return db.get_pkgname(doc)
         
     # special methods
     def __hash__(self):
@@ -115,7 +118,7 @@ class DebFileApplication(Application):
         if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
             raise ValueError("Need a deb file, got '%s'" % debfile)
         debname = os.path.splitext(os.path.basename(debfile))[0]
-        self.appname = debname.split('_')[0].capitalize()
+        self.appname = ""
         self.pkgname = debname.split('_')[0].lower()
         self.request = debfile
     def get_details(self, db):
@@ -320,7 +323,9 @@ class AppDetails(object):
         """
         if self._error_not_found:
             return self._error
-        return self._app.get_display_name(self._db, self._doc)
+        if self._doc:
+            return self._app.get_display_name(self._db, self._doc)
+        return self.name
 
     @property
     def display_summary(self):
@@ -328,7 +333,9 @@ class AppDetails(object):
             If the appname is defined, return the application summary, else return
             the application's pkgname (per the spec)
         """
-        return self._app.get_display_summary(self._db, self._doc)
+        if self._doc:
+            return self._app.get_display_summary(self._db, self._doc)
+        return ""
 
     @property
     def pkg(self):
@@ -593,8 +600,23 @@ class AppDetailsDebFile(AppDetails):
                     self._error_not_found = _("The file \"%s\" could not be opened.") % self._app.request
             return
 
-        if self.pkgname:
+        if self.pkgname and self.pkgname != self._app.pkgname:
+            # this happens when the deb file has a quirky file name
             self._app.pkgname = self.pkgname
+
+            # load pkg cache
+            self._pkg = None
+            if (self._app.pkgname in self._cache and 
+                self._cache[self._app.pkgname].candidate):
+                self._pkg = self._cache[self._app.pkgname]
+ 
+            # load xapian document
+            self._doc = None
+            try:
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
+            except:
+                pass
 
         # check deb and set failure state on error
         if not self._deb.check():
