@@ -144,7 +144,7 @@ class AvailablePane(SoftwarePane):
         self.back_forward = BackForwardButton()
         self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
         self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
-        self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
+        self.top_hbox.pack_start(self.back_forward, expand=False)
         # nav buttons first in the panel
         self.top_hbox.reorder_child(self.back_forward, 0)
         if self.navhistory_back_action and self.navhistory_forward_action:
