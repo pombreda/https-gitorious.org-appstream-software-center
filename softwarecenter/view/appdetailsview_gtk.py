@@ -311,6 +311,9 @@ class PackageStatusBar(StatusBar):
 
 class AppDescription(gtk.VBox):
 
+    # chars that server as bullets in the description
+    BULLETS = ('- ', '* ', 'o ')
+
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
@@ -348,8 +351,8 @@ class AppDescription(gtk.VBox):
         return
 
     def append_bullet_point(self, fragment):
-        fragment = fragment.replace('* ', '')
-        fragment = fragment.replace('- ', '')
+        for bullet in self.BULLETS:
+            fragment = fragment.replace(bullet, '')
 
         bullet = gtk.Label()
         bullet.set_markup(u"  <b>\u2022</b>")
@@ -398,7 +401,7 @@ class AppDescription(gtk.VBox):
 
             else:
                 # frag looks like its a bullet point
-                if part[:2] in ('- ', '* '):
+                if part[:2] in self.BULLETS:
                     # if there's an existing bullet, append it and start anew
                     if in_blist:
                         self.append_bullet_point(processed_frag)
@@ -427,8 +430,9 @@ class AppDescription(gtk.VBox):
                     else:
                         # append newline only if this is not the final
                         # text block and its not followed by a bullet 
-                        if (i+1) < l and len(parts[i+1]) > 1 and not \
-                            parts[i+1][:2] in ('- ', '* '):
+                        if ((i+1) < l and
+                            len(parts[i+1]) > 1
+                            and not parts[i+1][:2] in self.BULLETS):
                             processed_frag += '\n'
 
                         # append a bullet point
@@ -441,7 +445,7 @@ class AppDescription(gtk.VBox):
                     processed_frag += ' '
 
         if processed_frag:
-            if processed_frag[:2] in ('- ', '* '):
+            if processed_frag[:2] in self.BULLETS:
                 self.append_bullet_point(processed_frag)
             else:
                 self.append_paragraph(processed_frag)

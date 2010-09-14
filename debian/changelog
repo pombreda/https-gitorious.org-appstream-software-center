@@ -18,6 +18,11 @@ software-center (2.1.20) UNRELEASED; urgency=low
       country mirrors
   * softwarecenter/view/appdetailsview_gtk.py:
     - show pulse once the install starts (LP: #637377)
+  * softwarecenter/apt/aptcache.py:
+    - add installed_count to the cache
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - support bullets with " o item" in the description 
+      (LP: #584147)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 14:07:00 +0200
 
