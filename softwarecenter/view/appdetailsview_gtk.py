@@ -147,7 +147,13 @@ class PackageStatusBar(StatusBar):
         self.show_all()
 
         self.button.connect('clicked', self._on_button_clicked)
-        return
+        glib.timeout_add(500, self._pulse_helper)
+
+    def _pulse_helper(self):
+        if (self.pkg_state == PKG_STATE_INSTALLING_PURCHASED and
+            self.progress.get_fraction() == 0.0):
+            self.progress.pulse()
+        return True
 
     def _on_button_clicked(self, button):
         button.set_sensitive(False)
@@ -219,11 +225,13 @@ class PackageStatusBar(StatusBar):
             self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
-            #self.set_button_label(_('Install'))
+            self.button.set_sensitive(False)
+            self.progress.set_fraction(0)
+            self.progress.show()
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
+            self.progress.set_fraction(0.0)
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             self.button.set_sensitive(False)

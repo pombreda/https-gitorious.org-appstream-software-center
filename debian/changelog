@@ -16,6 +16,8 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * softwarecenter/distro/Ubuntu.py:
     - fix icon downloading from extras.ubuntu.com and support possible
       country mirrors
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - show pulse once the install starts (LP: #637377)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 14:07:00 +0200
 
