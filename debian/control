@@ -39,7 +39,7 @@ Depends: ${python:Depends},
          python-gmenu,
          aptdaemon (>= 0.31),
 	 python-lazr.restfulclient,
-         ubuntu-sso-client (>= 0.99.2)
+         ubuntu-sso-client (>= 0.99.6)
 Recommends: lsb-release, python-launchpad-integration, 
             apt-xapian-index (>= 0.38ubuntu1), update-notifier,
             software-properties-gtk, sessioninstaller
