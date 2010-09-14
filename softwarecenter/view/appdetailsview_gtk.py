@@ -1212,6 +1212,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # the location of the app (if its installed)
         self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
         self.app_info.body.pack_start(self.desc_installed_where)
+        self.desc_installed_where.a11y = self.desc_installed_where.get_accessible()
 
         # FramedSection which contains the app description
         self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
@@ -1396,6 +1397,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _configure_where_is_it(self):
         # remove old content
         self.desc_installed_where.foreach(lambda c: c.destroy())
+        self.desc_installed_where.set_property("can-focus", False)
+        self.desc_installed_where.a11y.set_name('')
         # see if we have the location if its installed
         if self.app_details.pkg_state == PKG_STATE_INSTALLED:
             searcher = GMenuSearcher()
@@ -1421,6 +1424,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
                     self.desc_installed_where.pack_start(right_arrow, 
                                                          False, False)
+
+            # create our a11y text
+            a11y_text = ""
+            for widget in self.desc_installed_where:
+                if isinstance(widget, gtk.Label):
+                    a11y_text += ' > ' + widget.get_text()
+            self.desc_installed_where.a11y.set_name(a11y_text)
+            self.desc_installed_where.set_property("can-focus", True)
+
             self.desc_installed_where.show_all()
 
     # public API
