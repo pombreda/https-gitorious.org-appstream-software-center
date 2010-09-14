@@ -226,7 +226,8 @@ class GMenuSearcher(object):
                 if os.path.basename(item.get_desktop_file_path()) == needle:
                     self._found = dirlist+[item]
     def get_main_menu_path(self, desktop_file):
-        needle = os.path.basename(desktop_file)
+        if not desktop_file:
+            return None
         for n in ["applications.menu", "settings.menu"]:
             tree = gmenu.lookup_tree(n)
             self._search_gmenu_dir([tree.get_root_directory()], 
