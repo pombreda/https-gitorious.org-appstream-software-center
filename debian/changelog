@@ -1,4 +1,4 @@
-software-center (2.1.18.2) UNRELEASED; urgency=low
+software-center (2.1.19) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/widgets/mkit.py:
@@ -53,6 +53,8 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/Bug635375 (LP: #635375)
   * merged lp:~mmcg069/software-center/tiny-pathbar-tweak
   * merged lp:~mmcg069/software-center/Bug625443 (LP: #625443)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 12:16:47 +0200
 
 software-center (2.1.18.1) maverick; urgency=low
 
