@@ -612,7 +612,6 @@ class AppDetailsDebFile(AppDetails):
             if (self._app.pkgname in self._cache and 
                 self._cache[self._app.pkgname].candidate):
                 self._pkg = self._cache[self._app.pkgname]
- 
             # load xapian document
             self._doc = None
             try:
@@ -694,19 +693,20 @@ class AppDetailsDebFile(AppDetails):
 
     @property
     def warning(self):
-        # warnings for deb-files
         # FIXME: use more concise warnings
         if self._deb:
-            deb_state = self._deb.compare_to_version_in_cache()
+            deb_state = self._deb.compare_to_version_in_cache(use_installed=False)
             if deb_state == DebPackage.VERSION_NONE:
                 return _("Only install this file if you trust the origin.")
-            elif deb_state == DebPackage.VERSION_OUTDATED:
-                if not self._cache[self.pkgname].installed:
+            elif (not self._cache[self.pkgname].installed and
+                  self._cache[self.pkgname].candidate and
+                  self._cache[self.pkgname].candidate.downloadable): 
+                if deb_state == DebPackage.VERSION_OUTDATED:
                     return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DebPackage.VERSION_SAME:
-                return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DebPackage.VERSION_NEWER:
-                return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
+                elif deb_state == DebPackage.VERSION_SAME:
+                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                elif deb_state == DebPackage.VERSION_NEWER:
+                    return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
 
     @property
     def website(self):
