@@ -27,6 +27,8 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
     - simplify when we use which warnings for deb files (LP: #635015)
     - reload pkg cache object and xapian doc if it turns out that the pkgname
       of a deb file is different than what we guessed on basis of the file name
+  * softwarecenter/utils.py:
+    - fix crash when desktop_file is None (LP: #635596)
   * softwarecenter/view/appdetailsview_gtk.py:
     - use the display name for app entry in 'where is it' (LP: #635464)
     - restore correct padding in addons status bar (LP: #625230)
