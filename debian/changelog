@@ -1,9 +1,33 @@
 software-center (2.1.18.2) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/widgets/mkit.py:
     - fix crash during action_bar refresh (LP: #635044)
+  * softwarecenter/backend/channel.py:
+    - always display the partner channel, even if its
+      source is not enabled (LP: #635003) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Sep 2010 17:35:13 -0400
+  [ Kiwinote ]
+  * data/software-center.menu.in:
+    - fix typo to now use applications-ocaml icon, thanks mpt (LP: #635732)
+  * softwarecenter/backend/channel.py:
+    - allow 'for purchase' to have an icon in non-English locales (LP: #636242)
+  * softwarecenter/db/application/py:
+    - try to open deb file, except on any sort of error (LP: #633379)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use the display name for app entry in 'where is it' (LP: #635464)
+    - restore correct padding in addons status bar (LP: #625230)
+
+  [ Matthew Paul Thomas ]
+  * data/software-center.menu.in:
+    - fix incorrect Category value in the xml for the Debugging
+      subcategory of Developer Tools (LP: #538911)
+
+  [ Colin Watson ]
+  * Fix update-apt-xapian-index crashes when the Dir::Cache::pkgcache file
+    doesn't exist (LP: #267330).
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 12 Sep 2010 17:03:44 -0400
 
 software-center (2.1.18.1) maverick; urgency=low
 
