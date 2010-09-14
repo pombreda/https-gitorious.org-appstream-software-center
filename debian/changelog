@@ -10,7 +10,9 @@ software-center (2.1.20) UNRELEASED; urgency=low
       software-center-agent to support long descriptions from
       the agent (LP: #625254)
   * softwarecenter/view/pendingview.py:
-    - add pulse for pending purchases
+    - add pulse for pending purchases (LP: #637377)
+  * softwarecenter/utils.py:
+    - improve logging of the imagedownloader
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 14:07:00 +0200
 

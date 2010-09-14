@@ -175,6 +175,8 @@ def sources_filename_from_ppa_entry(entry):
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
 
+    LOG = logging.getLogger("softwarecenter.imagedownloader")
+
     __gsignals__ = {
         "image-url-reachable"     : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
@@ -186,6 +188,7 @@ class ImageDownloader(gobject.GObject):
         }
 
     def download_image(self, url, dest_file_path):
+        self.LOG.debug("download_image: %s %s" % (url, dest_file_path))
         self.url = url
         self.dest_file_path = dest_file_path
         f = gio.File(url)
@@ -197,13 +200,16 @@ class ImageDownloader(gobject.GObject):
         try:
             result = f.query_info_finish(result)
             self.emit('image-url-reachable', True)
+            self.LOG.debug("image reachablee %s" % self.url)
             # url is reachable, now download the icon file
             f.load_contents_async(self._icon_download_complete_cb)
         except glib.GError, e:
+            self.LOG.debug("image *not* reachable %s" % self.url)
             self.emit('image-url-reachable', False)
         del f
 
     def _icon_download_complete_cb(self, f, result, path=None):
+        self.LOG.debug("icon download completed %s" % self.dest_file_path)
         # The result from the download is actually a tuple with three 
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
