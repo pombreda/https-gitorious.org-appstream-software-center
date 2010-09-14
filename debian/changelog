@@ -6,6 +6,10 @@ software-center (2.1.20) UNRELEASED; urgency=low
       about it (thanks to Naty Bidart) LP: #624097
   * debian/control:
     - tighten dependency of ubuntu-sso-client (for the helptext)
+  * softwarecenter/db/update.py, softwarecenter/db/application.py:
+    - add X-AppInstall-Description support and extract it from
+      software-center-agent to support long descriptions from
+      the agent (LP: #625254)
 
   [ Kiwinote ]
   * softwarecenter/view/appview.py:

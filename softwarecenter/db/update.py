@@ -96,7 +96,6 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
 
     # map from requested key to sca_entry attribute
     MAPPING = { 'Name'       : 'name',
-                'Comment'    : 'description',
                 'Price'      : 'price',
                 'Package'    : 'package_name',
                 'Categories' : 'categories',
@@ -117,11 +116,16 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
     def __init__(self, sca_entry):
         self.sca_entry = sca_entry
         self.origin = "software-center-agent"
+        self._apply_exceptions()
+    def _apply_exceptions(self):
         # map screenshot to thumbnail
         if (hasattr(self.sca_entry, "screenshot_url") and 
             not hasattr(self.sca_entry, "thumbnail_url")):
-            self.sca_entry.thumbnail_url = self.sca_entry.screenshot_url.replace(".png", ".thumb.png")
-            
+            url = self.sca_entry.screenshot_url.replace(".png", ".thumb.png")
+            self.sca_entry.thumbnail_url = url
+        if hasattr(self.sca_entry, "description"):
+            self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
+            self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
     def _apply_mapping(self, key):
         # strip away bogus prefixes
         if key.startswith("X-AppInstall-"):
@@ -483,6 +487,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Architectures"):
             arches = parser.get_desktop("X-AppInstall-Architectures")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
+        # Description (software-center extension)
+        if parser.has_option_desktop("X-AppInstall-Description"):
+            descr = parser.get_desktop("X-AppInstall-Description")
+            doc.add_value(XAPIAN_VALUE_SC_DESCRIPTION, descr)
         # popcon
         # FIXME: popularity not only based on popcon but also
         #        on archive section, third party app etc
@@ -512,13 +520,18 @@ def index_app_info_from_parser(parser, db, cache):
         term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)
 
         # now add search data from the desktop file
-        for key in ["GenericName","Comment"]:
+        for key in ["GenericName","Comment", "X-AppInstall-Description"]:
             if not parser.has_option_desktop(key):
                 continue
             s = parser.get_desktop(key)
             # we need the ascii_upper here for e.g. turkish locales, see
             # bug #581207
-            w = globals()["WEIGHT_DESKTOP_" + ascii_upper(key.replace(" ", ""))]
+            k = "WEIGHT_DESKTOP_" + ascii_upper(key.replace(" ", ""))
+            if k in globals():
+                w = globals()[k]
+            else:
+                logging.debug("WEIGHT %s not found" % k)
+                w = 1
             term_generator.index_text_without_positions(s, w)
         # add data from the apt cache
         if pkgname in cache and cache[pkgname].candidate:
