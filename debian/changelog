@@ -33,8 +33,9 @@ software-center (2.1.18.2) UNRELEASED; urgency=low
       channel file
   * softwarecenter/distro/Ubuntu.py:
     - fix crash for icons loaded from extras.ubuntu.com
-  * merged lp:~mmcg069/software-center/Bug635375
-  * merged  lp:~mmcg069/software-center/tiny-pathbar-tweak
+  * merged lp:~mmcg069/software-center/Bug635375 (LP: #635375)
+  * merged lp:~mmcg069/software-center/tiny-pathbar-tweak
+  * merged lp:~mmcg069/software-center/Bug625443 (LP: #625443)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 13 Sep 2010 16:18:45 +0200
 

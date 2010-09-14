@@ -195,7 +195,6 @@ class PackageStatusBar(StatusBar):
                      PKG_STATE_REMOVING,
                      PKG_STATE_UPGRADING,
                      APP_ACTION_APPLY):
-            self.button.hide()
             self.show()
         elif state == PKG_STATE_NOT_FOUND:
             self.hide()
@@ -216,16 +215,19 @@ class PackageStatusBar(StatusBar):
         #         and the associated callback.
         if state == PKG_STATE_INSTALLING:
             self.set_label(_('Installing...'))
-            #self.set_button_label(_('Install'))
+            self.button.set_sensitive(False)
+            self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             #self.set_button_label(_('Install'))
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
-            #self.set_button_label(_('Remove'))
+            self.button.set_sensitive(False)
+            self.progress.set_fraction(0)
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
-            #self.set_button_label(_('Upgrade Available'))
+            self.button.set_sensitive(False)
+            self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLED:
             if app_details.purchase_date:
                 purchase_date = str(app_details.purchase_date).split()[0]
@@ -265,6 +267,8 @@ class PackageStatusBar(StatusBar):
             self.set_button_label(_('Upgrade'))
         elif state == APP_ACTION_APPLY:
             self.set_label(_(u'Changing Add-ons\u2026'))
+            self.button.set_sensitive(False)
+            self.progress.set_fraction(0)
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -1494,8 +1498,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
 
     def _on_transaction_started(self, backend):
-        self.action_bar.button.hide()
-        
         if self.addons_bar.get_applying():
             self.action_bar.configure(self.app_details, APP_ACTION_APPLY)
             return
@@ -1530,19 +1532,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if self.app_details and self.app_details.pkgname and self.app_details.pkgname == pkgname:
             if not self.action_bar.progress.get_property('visible'):
-                gobject.idle_add(self._show_prog_idle_cb)
+                self.action_bar.button.hide()
+                self.action_bar.progress.show()
             if pkgname in backend.pending_transactions:
                 self.action_bar.progress.set_fraction(progress/100.0)
             if progress == 100:
                 self.action_bar.progress.set_fraction(1)
         return
-
-    def _show_prog_idle_cb(self):
-        # without using an idle callback, the progressbar suffers from
-        # gitter as it gets allocated on show().  This approach either eliminates
-        # the issue or makes it unnoticeable... 
-        self.action_bar.progress.show()
-        return False
 
     #def _draw_icon_inset_frame(self, cr):
         ## draw small or no icon background
