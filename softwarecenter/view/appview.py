@@ -540,13 +540,8 @@ class AppStore(gtk.GenericTreeModel):
             summary = self.db.get_summary(doc)
             return "%s\n%s" % (appname, summary)
         elif column == self.COL_MARKUP:
-            appname = app.appname
-            summary = self.db.get_summary(doc)
-            # SPECIAL CASE: the spec says that when there is no appname, 
-            #               the summary should be displayed as appname
-            if not appname:
-                appname = summary
-                summary = app.pkgname
+            appname = Application.get_display_name(self.db, doc)
+            summary = Application.get_display_summary(self.db, doc)
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname)
             s = "%s\n<small>%s</small>" % (
