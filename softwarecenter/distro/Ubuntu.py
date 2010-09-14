@@ -207,7 +207,9 @@ class Ubuntu(Distro):
         """
         full_archive_url = cache[pkgname].candidate.uri
         split_at_pool = full_archive_url.split("pool")[0]
-        if split_at_pool.endswith("/ppa/ubuntu/"):
+        # support ppas and extras.ubuntu.com
+        if (split_at_pool.endswith("/ppa/ubuntu/") or
+            split_at_pool.startswith("http://extras.ubuntu.com")):
             # it's a ppa, generate the icon_url for a ppa
             split_at_ppa = split_at_pool.split("/ppa/")[0]
             downloadable_icon_url = []

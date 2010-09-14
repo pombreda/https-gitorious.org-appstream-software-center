@@ -35,6 +35,8 @@ from softwarecenter.view.widgets.animatedimage import AnimatedImage
 from softwarecenter.utils import *
 from softwarecenter.enums import *
 
+LOG = logging.getLogger(__name__)
+
 class ChannelsManager(object):
 
     def __init__(self, db, icons):
@@ -49,7 +51,7 @@ class ChannelsManager(object):
         glib.timeout_add(300, self._check_for_channel_updates_timer)
         # extra channels from e.g. external sources
         self.extra_channels = []
-        self._logger = logging.getLogger("softwarecenter.backend")
+        self._logger = LOG
 
     # external API
     @property

@@ -208,10 +208,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        self.top_hbox = gtk.HBox()
-        self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
-        self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
-        self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
+        self.top_hbox = gtk.HBox(spacing=self.PADDING)
+        self.top_hbox.set_border_width(self.PADDING)
+        self.top_hbox.pack_start(self.navigation_bar)
+        self.top_hbox.pack_start(self.searchentry, expand=False)
+        self.pack_start(self.top_hbox, expand=False)
         #self.pack_start(gtk.HSeparator(), expand=False)
         # a notebook below
         self.notebook = gtk.Notebook()
@@ -220,7 +221,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.pack_start(self.notebook)
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
-        self.pack_start(self.action_bar, expand=False, padding=self.PADDING)
+        self.pack_start(self.action_bar, expand=False)
         self.top_hbox.connect('expose-event', self._on_expose)
 
     def _on_expose(self, widget, event):
