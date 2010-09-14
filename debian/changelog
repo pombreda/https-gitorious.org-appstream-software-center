@@ -1,10 +1,15 @@
 software-center (2.1.20) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/backend/login_sso.py:
     - improve help text now that ubuntu-sso-client is more flexible
       about it (thanks to Naty Bidart) LP: #624097
   * debian/control:
     - tighten dependency of ubuntu-sso-client (for the helptext)
+
+  [ Kiwinote ]
+  * softwarecenter/view/appview.py:
+    - set buttons which aren't rendered insensitive (LP: #630521)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 14:07:00 +0200
 

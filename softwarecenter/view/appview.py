@@ -1121,12 +1121,15 @@ class CellRendererAppView2(gtk.CellRendererText):
             btn.render(window, widget, self._layout)
             xs += btn.allocation.width + spacing
 
-        if self.props.available:
-            for btn in self._buttons[end]:
-                xb -= btn.allocation.width
-                btn.set_position(xb, y-btn.allocation.height)
+
+        for btn in self._buttons[end]:
+            xb -= btn.allocation.width
+            btn.set_position(xb, y-btn.allocation.height)
+            if self.props.available:
                 btn.render(window, widget, self._layout)
-                xb -= spacing
+            else:
+                btn.set_sensitive(False)
+            xb -= spacing
         return
 
     def do_get_size(self, widget, cell_area):
