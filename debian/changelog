@@ -12,6 +12,8 @@ software-center (2.1.20) UNRELEASED; urgency=low
       the agent (LP: #625254)
 
   [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - add basic a11y support for addon items
   * softwarecenter/view/appview.py:
     - set buttons which aren't rendered insensitive (LP: #630521)
   * softwarecenter/view/widgets/pathbar_gtk_atk.py:

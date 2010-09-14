@@ -847,6 +847,10 @@ class Addon(gtk.HBox):
         self.pkgname = gtk.Label()
         hbox.pack_start(self.pkgname, False)
 
+        # a11y
+        self.a11y = self.checkbutton.get_accessible()
+        self.a11y.set_name(_("Add-on") + ': ' + title + '(' + pkgname + ')')
+
     def _on_realize(self, widget):
         dark = self.style.dark[self.state].to_string()
         key_markup = '<span color="%s">(%s)</span>'
