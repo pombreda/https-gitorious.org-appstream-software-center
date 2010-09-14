@@ -256,6 +256,8 @@ class AppDetails(object):
     def description(self):
         if self._pkg:
             return self._pkg.candidate.description
+        elif self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION) or ""
         return ""
 
     @property
