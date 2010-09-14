@@ -19,11 +19,13 @@
 import apt
 import apt_pkg
 import dbus
+import glib
 import gtk
 import gobject
 import logging
 import os
 import sys
+import time
 
 import aptdaemon.client
 from aptdaemon.enums import *
@@ -43,7 +45,17 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
      COL_NAME, 
      COL_STATUS, 
      COL_PROGRESS,
-     COL_CANCEL) = range(6)
+     COL_PULSE,
+     COL_CANCEL) = range(7)
+
+    # column types
+    column_types = (str,             # COL_TID
+                    gtk.gdk.Pixbuf,  # COL_ICON
+                    str,             # COL_NAME
+                    str,             # COL_STATUS
+                    float,           # COL_PROGRESS
+                    int,            # COL_PULSE
+                    str)             # COL_CANCEL
 
     # icons
     PENDING_STORE_ICON_CANCEL = gtk.STOCK_CANCEL
@@ -53,7 +65,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
 
     def __init__(self, icons):
         # icon, status, progress
-        gtk.ListStore.__init__(self, str, gtk.gdk.Pixbuf, str, str, float, str)
+        gtk.ListStore.__init__(self, *self.column_types)
         TransactionsWatcher.__init__(self)
         # data
         self.icons = icons
@@ -61,6 +73,8 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         self.backend = get_install_backend()
         self.apt_client = self.backend.aptd_client
         self._signals = []
+        # let the pulse helper run
+        glib.timeout_add(500, self._pulse_purchase_helper)
 
     def clear(self):
         super(PendingStore, self).clear()
@@ -84,7 +98,13 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             self._append_transaction(trans)
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
-            self.append([pkgname, None, pkgname, _(u'Installing purchase\u2026'), 0, None])
+            self.append([pkgname, None, pkgname, _(u'Installing purchase\u2026'), 0, 1, None])
+
+    def _pulse_purchase_helper(self):
+        for item in self:
+            if item[self.COL_PULSE] > 0:
+                self[-1][self.COL_PULSE] += 1
+        return True
 
     def _append_transaction(self, trans):
         """Extract information about the transaction and append it to the
@@ -125,7 +145,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
         self.append([trans.tid, icon, appname, status_text, trans.progress,
-                    cancel_icon])
+                     0, cancel_icon])
 
     def _on_cancellable_changed(self, trans, cancellable):
         #print "_on_allow_cancel: ", trans, allow_cancel
@@ -207,7 +227,8 @@ class PendingView(gtk.TreeView, BasePane):
         tp.set_property("ypad", self.CANCEL_YPAD)
         tp.set_property("text", "")
         column = gtk.TreeViewColumn("Progress", tp, 
-                                    value=PendingStore.COL_PROGRESS)
+                                    value=PendingStore.COL_PROGRESS,
+                                    pulse=PendingStore.COL_PULSE)
         column.set_min_width(200)
         self.append_column(column)
         # cancel icon

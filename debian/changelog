@@ -9,6 +9,8 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - add X-AppInstall-Description support and extract it from
       software-center-agent to support long descriptions from
       the agent (LP: #625254)
+  * softwarecenter/view/pendingview.py:
+    - add pulse for pending purchases
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 14:07:00 +0200
 
