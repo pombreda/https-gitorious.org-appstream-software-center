@@ -3,6 +3,8 @@ software-center (2.1.21) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * fix rendering of the "Installing purchase..." overview transaction,
     it contains a icon and a proper status now (LP: #637394)
+  * fix flickering when a item is purchased
+  * fix incorrect signal emited when a transactiosn returns a error
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py,
