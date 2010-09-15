@@ -28,8 +28,9 @@ import re
 import urllib
 import time
 import xml.sax.saxutils
+import gtk
 
-from enums import USER_AGENT
+from enums import USER_AGENT, IMAGE_LOADING_INSTALLED
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
@@ -241,6 +242,24 @@ class GMenuSearcher(object):
             if self._found:
                 return self._found
         return None
+        
+class AlternaSpinner(gtk.VBox):
+    """
+    an alternative spinner that uses an animated gif for use when
+    gtk.Spinner is not available
+    (see LP: #637422, LP: #624204)
+    """
+    def __init__(self):
+        gtk.VBox.__init__(self)
+        self.image = gtk.Image()
+        self.image.set_from_file(IMAGE_LOADING_INSTALLED)
+        self.image.set_size_request(160, 100)
+        self.add(self.image)
+        
+    def start(self):
+        pass
+    def stop(self):
+        pass
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

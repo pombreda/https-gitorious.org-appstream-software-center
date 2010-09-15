@@ -29,8 +29,15 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * softwarecenter/view/softwarepane.py:
     - show a more reasonable number for hidden technical items
       in the installed view of "Provided by Ubuntu" 
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/widgets/imagedialog.py:
+    - create an alternative spinner widget that uses an animated gif
+      for when gtk.Spinner is not available (LP: #637422) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 14 Sep 2010 21:13:53 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 14 Sep 2010 22:38:34 -0400
 
 software-center (2.1.19) maverick; urgency=low
 
