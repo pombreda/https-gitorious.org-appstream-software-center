@@ -1,5 +1,6 @@
 software-center (2.1.20) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/backend/login_sso.py:
     - improve help text now that ubuntu-sso-client is more flexible
       about it (thanks to Naty Bidart) LP: #624097
@@ -24,7 +25,12 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - support bullets with " o item" in the description 
       (LP: #584147)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 14:07:00 +0200
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py:
+    - show a more reasonable number for hidden technical items
+      in the installed view of "Provided by Ubuntu" 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 14 Sep 2010 21:13:53 -0400
 
 software-center (2.1.19) maverick; urgency=low
 
