@@ -304,19 +304,34 @@ class SoftwarePane(gtk.VBox, BasePane):
         in the action_bar
         """
         appstore = self.app_view.get_model()
+        if not appstore:
+            self.action_bar.unset_label()
+            return
+        
+        # first figure out if we are only showing installed
+        if appstore.filter:
+            showing_installed = appstore.filter.installed_only
+        else:
+            showing_installed = False
 
         # calculate the number of apps/pkgs
         pkgs = 0
         apps = 0
-        if appstore and appstore.active:
+        if appstore.active:
             if appstore.nonapps_visible:
                 pkgs = appstore.nonapp_pkgs
                 apps = len(appstore) - pkgs
             else:
-                apps = len(appstore)
-                pkgs = appstore.nonapp_pkgs - apps
-            #print 'apps: ' + str(apps)
-            #print 'pkgs: ' + str(pkgs)
+                if showing_installed:
+                    # estimate by using the installed apps count when generating
+                    # the pkgs value
+                    # FIXME:  for smaller appstores, we should be able to count the
+                    #         number of installed non-apps for an accurate count
+                    apps = len(appstore)
+                    pkgs = min(self.cache.installed_count, appstore.nonapp_pkgs) - apps
+                else:
+                    apps = len(appstore)
+                    pkgs = appstore.nonapp_pkgs - apps
 
         self.action_bar.unset_label()
         
