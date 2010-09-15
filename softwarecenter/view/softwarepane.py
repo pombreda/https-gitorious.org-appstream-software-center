@@ -185,13 +185,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_view.add(self.spinner_table)
         self.spinner_view.set_shadow_type(gtk.SHADOW_NONE)
         self.scroll_app_list.add(self.app_view)
-        
-        self.appview_notebook = gtk.Notebook()
-        self.appview_notebook.set_show_tabs(False)
-        self.appview_notebook.set_show_border(False)
-        self.appview_notebook.append_page(self.scroll_app_list)
-        self.appview_notebook.append_page(self.spinner_view)
-        
+                
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         # details
@@ -224,7 +218,14 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
-        self.pack_start(self.notebook)
+        
+        self.spinner_notebook = gtk.Notebook()
+        self.spinner_notebook.set_show_tabs(False)
+        self.spinner_notebook.set_show_border(False)
+        self.spinner_notebook.append_page(self.notebook)
+        self.spinner_notebook.append_page(self.spinner_view)
+        
+        self.pack_start(self.spinner_notebook)
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False)
@@ -281,7 +282,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         """ display the spinner in the appview panel """
         self.action_bar.clear()
         self.spinner.hide()
-        self.appview_notebook.set_current_page(self.PAGE_SPINNER)
+        self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
         # "mask" the spinner momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
         gobject.timeout_add(100, self._unmask_appview_spinner)
@@ -293,7 +294,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
         self.spinner.stop()
-        self.appview_notebook.set_current_page(self.PAGE_APPVIEW)
+        self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
 
     def set_section(self, section):
         self.section = section

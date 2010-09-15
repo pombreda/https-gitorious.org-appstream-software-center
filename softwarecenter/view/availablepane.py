@@ -154,7 +154,7 @@ class AvailablePane(SoftwarePane):
                                                  self.navhistory_forward_action)
 
         # app list
-        self.notebook.append_page(self.appview_notebook,
+        self.notebook.append_page(self.scroll_app_list,
                                     gtk.Label(self.NAV_BUTTON_ID_LIST))
 
         self.cat_view.connect("category-selected", self.on_category_activated)
@@ -439,6 +439,7 @@ class AvailablePane(SoftwarePane):
         # remove pathbar stuff
         self.navigation_bar.remove_all(do_callback=False)
         self.notebook.set_current_page(self.PAGE_CATEGORY)
+        self.hide_appview_spinner()
         self.cat_view.start_carousels()
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
