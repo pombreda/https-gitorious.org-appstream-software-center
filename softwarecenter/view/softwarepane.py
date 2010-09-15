@@ -235,10 +235,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         a = widget.allocation
         self.style.paint_shadow(widget.window, self.state,
                                 gtk.SHADOW_IN,
-                                (a.x, a.y+a.height+self.PADDING-1, a.width, 1),
+                                (a.x, a.y+a.height-1, a.width, 1),
                                 widget, "viewport",
-                                a.x, a.y+a.height+self.PADDING-1,
-                                a.width, a.y+a.height+self.PADDING-1)
+                                a.x, a.y+a.height-1,
+                                a.width, a.y+a.height-1)
         return
 
     def on_cache_ready(self, cache):

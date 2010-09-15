@@ -1,4 +1,4 @@
-software-center (2.1.20) UNRELEASED; urgency=low
+software-center (2.1.20) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/login_sso.py:
@@ -36,6 +36,8 @@ software-center (2.1.20) UNRELEASED; urgency=low
       a application
     - hide the "buy" button when installing a purchase, fix uneven
       pulsing
+  * merged lp:~mmcg069/software-center/small-ui-fix:
+    - fix small horizonal line positioning bug.
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py:
@@ -73,7 +75,7 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - remove some entries in 'drawing' and 'painting and editors' which are
       displayed in other subcategories (LP: #532079)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 02:03:10 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Sep 2010 16:14:00 +0200
 
 software-center (2.1.19) maverick; urgency=low
 
