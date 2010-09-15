@@ -14,11 +14,15 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - add pulse for pending purchases (LP: #637377)
   * softwarecenter/utils.py:
     - improve logging of the imagedownloader
+    - fix where-is-it for kde4 apps (LP: #635684)
   * softwarecenter/distro/Ubuntu.py:
     - fix icon downloading from extras.ubuntu.com and support possible
       country mirrors
   * softwarecenter/view/appdetailsview_gtk.py:
     - show pulse once the install starts (LP: #637377)
+    - support "where is it" for non app-install-data if the desktop 
+      file has the same name as the package name (LP: #637452)
+    - fix icon display in "where is it" if Icon=/path/to/file
   * softwarecenter/apt/aptcache.py:
     - add installed_count to the cache
   * softwarecenter/view/appdetailsview_gtk.py:
@@ -27,6 +31,11 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * send version of the package to screenshots.ubuntu.com so that it
     can return the most appropriate image. that is supported by debshoots 
     now thanks to Christoph Haas
+  * softwarecenter/backend/aptd.py:
+    - fix a flickering in the viewswitcher spinenr when purchasing
+      a application
+    - hide the "buy" button when installing a purchase, fix uneven
+      pulsing
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py:
