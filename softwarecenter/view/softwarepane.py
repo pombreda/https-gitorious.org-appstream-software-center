@@ -304,19 +304,40 @@ class SoftwarePane(gtk.VBox, BasePane):
         in the action_bar
         """
         appstore = self.app_view.get_model()
+        if not appstore:
+            self.action_bar.unset_label()
+            return
+        
+        # first figure out if this is a showing_installed view
+        if appstore.filter:
+            showing_installed_apps = appstore.filter.installed_only
+        else:
+            showing_installed_apps = False
 
         # calculate the number of apps/pkgs
         pkgs = 0
         apps = 0
-        if appstore and appstore.active:
+        if appstore.active:
             if appstore.nonapps_visible:
+                # showing non-apps
                 pkgs = appstore.nonapp_pkgs
                 apps = len(appstore) - pkgs
             else:
-                apps = len(appstore)
-                pkgs = appstore.nonapp_pkgs - apps
-            #print 'apps: ' + str(apps)
-            #print 'pkgs: ' + str(pkgs)
+                # hiding non-apps
+                if showing_installed_apps:
+                    apps = len(appstore)
+                    if apps < 100:
+                        # can count installed packages
+                        print "count up the number of installed here"
+                        
+                        pkgs = appstore.nonapp_pkgs - apps
+                        
+                    else:
+                        # counting will be too slow, so we just approximate
+                        pkgs = min(self.cache.installed_count, appstore.nonapp_pkgs) - apps
+                else:
+                    apps = len(appstore)
+                    pkgs = appstore.nonapp_pkgs - apps
 
         self.action_bar.unset_label()
         
