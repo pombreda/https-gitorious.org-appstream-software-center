@@ -30,6 +30,8 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py:
     - fix a flickering in the viewswitcher spinenr when purchasing
       a application
+    - hide the "buy" button when installing a purchase, fix uneven
+      pulsing
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py:

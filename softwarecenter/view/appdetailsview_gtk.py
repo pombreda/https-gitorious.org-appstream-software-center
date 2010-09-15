@@ -225,8 +225,7 @@ class PackageStatusBar(StatusBar):
             self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
-            self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
+            self.button.hide()
             self.progress.show()
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
