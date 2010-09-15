@@ -15,8 +15,14 @@ software-center (2.1.21) UNRELEASED; urgency=low
   [ Mohamed Amine IL Idrissi ]
   * softwarecenter/db/database.py: limit the query size to 1000 matches
     so USC does not freeze, many thanks Michael Vogt (LP: #634449)
+  * softwarecenter/apt/apthistory.py: History entries are now sorted by
+    date (LP: #635198)
+  * debian/control: add python-launchpadlib as Suggests (LP: #634324)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - restore screen scroll position when changing addons
+      (LP: #625232)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 16:45:10 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 18:20:39 -0400
 
 software-center (2.1.20) maverick; urgency=low
 
