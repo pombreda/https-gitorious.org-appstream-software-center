@@ -17,6 +17,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+# NOTE: although Decimal is not used in this file, we need to import it here to
+#       work around bug LP: #607705
+from decimal import Decimal
+
 # thread init is also required otherwise both gst and webkit are unhappy
 import pygtk
 pygtk.require ("2.0")

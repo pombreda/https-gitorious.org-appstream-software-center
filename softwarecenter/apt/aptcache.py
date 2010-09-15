@@ -34,6 +34,7 @@ import time
 
 from gettext import gettext as _
 from softwarecenter.enums import *
+from softwarecenter.utils import ExecutionTime
 
 LOG = logging.getLogger(__name__)
 
@@ -104,6 +105,17 @@ class AptCache(gobject.GObject):
             self._cache = apt.Cache(GtkMainIterationProgress())
         else:
             self._cache.open(GtkMainIterationProgress())
+        # installed_count stats
+        with ExecutionTime("installed_count stats"):
+            self.installed_count = 0
+            # use the low-level cache here to calculcate the stats,
+            # its twice as fast as the highlevel one
+            for lowlevel_pkg in self._cache._cache.packages:
+                if lowlevel_pkg.current_ver:
+                    self.installed_count += 1
+                while gtk.events_pending():
+                    gtk.main_iteration()
+        LOG.debug("installed_count: %s" % self.installed_count)
         self._ready = True
         self.emit("cache-ready")
         if self._cache.broken_count > 0:
@@ -284,10 +296,17 @@ class AptCache(gobject.GObject):
         
     # these are used for calculating the total size
     def _get_changes_without_applying(self, pkg):
-        if pkg.installed == None:
-            pkg.mark_install()
-        else:
-            pkg.mark_delete()
+        try:
+            if pkg.installed == None:
+                pkg.mark_install()
+            else:
+                pkg.mark_delete()
+        except SystemError:
+            # TODO: ideally we now want to display an error message
+            #       and block the install button
+            LOG.warning("broken packages encountered while getting deps for %s"
+                      % pkg.name)
+            return {}
         changes_tmp = self._cache.get_changes()
         changes = {}
         for change in changes_tmp:
@@ -301,7 +320,7 @@ class AptCache(gobject.GObject):
                 changes[change.name] = PKG_STATE_UNKNOWN
         self._cache.clear()
         return changes
-    def get_all_deps_installing(self, pkg):
+    def try_install_and_get_all_deps_installed(self, pkg):
         """ Return all dependencies of pkg that will be marked for install """
         changes = self._get_changes_without_applying(pkg)
         installing_deps = []
@@ -309,7 +328,8 @@ class AptCache(gobject.GObject):
             if change != pkg.name and changes[change] == PKG_STATE_INSTALLING:
                 installing_deps.append(change)
         return installing_deps
-    def get_all_deps_removing(self, pkg):
+    def try_install_and_get_all_deps_removed(self, pkg):
+        """ Return all dependencies of pkg that will be marked for remove"""
         changes = self._get_changes_without_applying(pkg)
         removing_deps = []
         for change in changes.keys():
@@ -441,10 +461,10 @@ class AptCache(gobject.GObject):
         if addons_rec or addons_sug:
             # now get all_deps if the package would be installed
             try:
-                all_deps_if_installed = self.get_all_deps_installing(pkg)
+                all_deps_if_installed = self.try_install_and_get_all_deps_installed(pkg)
             except:
                 # if we have broken packages, then we return no addons
-                LOG.debug("broken packages encountered while getting deps for %s" % pkgname)
+                LOG.warn("broken packages encountered while getting deps for %s" % pkgname)
                 return ([],[])
             # filter out stuff we don't want
             addons_rec = filter(_addons_filter_slow, addons_rec)

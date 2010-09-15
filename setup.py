@@ -49,7 +49,9 @@ setup(name="software-center", version=VERSION,
                   ('../etc/dbus-1/system.d/',
                    ["data/com.ubuntu.SoftwareCenter.conf"]),
                   ('share/software-center/images/',
-                   glob.glob("data/images/*.png")),
+                   glob.glob("data/images/*.png")+
+                   glob.glob("data/images/*.gif")
+                   ),
                   ('share/software-center/icons/',
                    glob.glob("data/emblems/*.png")),
                   ('share/apt-xapian-index/plugins',

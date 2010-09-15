@@ -32,8 +32,8 @@ class Debian(Distro):
     IMPORTANT_METAPACKAGES = ("kde", "gnome", "gnome-desktop-environment")
 
     # screenshot handling
-    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%s"
+    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%(pkgname)s"
+    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%(pkgname)s"
 
     def get_distro_channel_name(self):
         """ The name in the Release file """
@@ -43,12 +43,10 @@ class Debian(Distro):
         """ The description of the main distro channel """
         return _("Provided by Debian")
 
-    def get_removal_warning_text(self, cache, pkg, appname):
+    def get_removal_warning_text(self, cache, pkg, appname, depends):
         primary = _("To remove %s, these items must be removed "
                     "as well:" % appname)
         button_text = _("Remove All")
-
-        depends = list(cache.get_installed_rdepends(pkg))
 
         # alter it if a meta-package is affected
         for m in depends:

@@ -21,7 +21,7 @@ def run_query(parser, search_terms, verbose):
         with ExecutionTime("enquire"):
             mset = enquire.get_mset(0, db.get_doccount())
             for m in mset:
-                doc = m[xapian.MSET_DOCUMENT]
+                doc = m.document
                 print doc, doc.get_data()
                 if verbose:
                     for t in doc.termlist():

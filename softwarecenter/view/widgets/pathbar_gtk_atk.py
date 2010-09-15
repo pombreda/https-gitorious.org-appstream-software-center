@@ -496,6 +496,11 @@ class PathBar(gtk.HBox):
             self.set_active(part)
         else:
             self.set_active_no_callback(part)
+
+        # redraw the previous parts so we don't get breakage
+        parts = self.get_children()
+        for part in parts[:-1]:
+            self._part_queue_draw(part)
         return
 
     def append_no_callback(self, part):
@@ -513,6 +518,10 @@ class PathBar(gtk.HBox):
 
         self._width -= part.get_size_request()[0]
 
+        # only animate removal if part is the final part, override animation value
+        if animate:
+            i = parts.index(part)
+            animate = i == len(parts)-1
         if animate and not self._out_of_width:
             self._animate = True, part
             self._animate_mode = self.ANIMATE_REMOVE

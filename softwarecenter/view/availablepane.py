@@ -86,7 +86,6 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_only_packages_without_applications(True)
-        self.nonapps_visible = False
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
@@ -145,7 +144,7 @@ class AvailablePane(SoftwarePane):
         self.back_forward = BackForwardButton()
         self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
         self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
-        self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
+        self.top_hbox.pack_start(self.back_forward, expand=False)
         # nav buttons first in the panel
         self.top_hbox.reorder_child(self.back_forward, 0)
         if self.navhistory_back_action and self.navhistory_forward_action:
@@ -385,7 +384,7 @@ class AvailablePane(SoftwarePane):
 
     def _update_action_bar(self):
         self._update_action_bar_buttons()
-        self._update_action_bar_label()
+        self.update_show_hide_nonapps()
 
     def _update_action_bar_buttons(self):
         '''
@@ -416,44 +415,6 @@ class AvailablePane(SoftwarePane):
             # Ensure button is removed.
             self.action_bar.remove_button(self._INSTALL_BTN_ID)
             
-    def _update_action_bar_label(self):
-        appstore = self.app_view.get_model()
-
-        # calculate the number of apps/pkgs
-        if appstore and appstore.active:
-            pkgs = appstore.nonapp_pkgs
-            if appstore.nonapps_visible:
-                apps = len(appstore) - pkgs
-            else:
-                apps = len(appstore)
-            #print 'apps: ' + str(apps)
-            #print 'pkgs: ' + str(pkgs)
-
-        self.action_bar.unset_label()
-
-        if (appstore and appstore.active and self.is_applist_view_showing() and
-            pkgs != apps and pkgs > 0 and apps > 0):
-            if appstore.nonapps_visible:
-                # TRANSLATORS: the text inbetween the underscores acts as a link
-                # In most/all languages you will want the whole string as a link
-                label = gettext.ngettext("_Hide %i technical item_",
-                                         "_Hide %i technical items_",
-                                         pkgs) % pkgs
-                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
-            elif not appstore.nonapps_visible:
-                label = gettext.ngettext("_Show %i technical item_",
-                                         "_Show %i technical items_",
-                                         pkgs) % pkgs
-                self.action_bar.set_label(label, self._show_nonapp_pkgs)
-            
-    def _show_nonapp_pkgs(self):
-        self.nonapps_visible = True
-        self.refresh_apps()
-
-    def _hide_nonapp_pkgs(self):
-        self.nonapps_visible = False
-        self.refresh_apps()
-
     def _install_current_appstore(self):
         '''
         Function that installs all applications displayed in the pane.
@@ -525,7 +486,11 @@ class AvailablePane(SoftwarePane):
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
-        self.navigation_bar.add_with_id(app.name, self.on_navigation_details, "details", animate=True)
+        details = app.get_details(self.db)
+        self.navigation_bar.add_with_id(details.display_name,
+                                        self.on_navigation_details,
+                                        "details",
+                                        animate=True)
         self.app_details.show_app(app)
         self.display_details()
 
@@ -711,14 +676,10 @@ class AvailablePane(SoftwarePane):
         """Return True if we are in the applist view """
         return self.notebook.get_current_page() == self.PAGE_APPLIST
 
-    def set_section_color(self, color):
-        self.cat_view.set_section_color(color)
-        SoftwarePane.set_section_color(self, color)
-        return
-
-    def set_section_image(self, image_id, surf):
-        self.cat_view.set_section_image(image_id, surf)
-        SoftwarePane.set_section_image(self, image_id, surf)
+    def set_section(self, section):
+        self.cat_view.set_section(section)
+        self.subcategories_view.set_section(section)
+        SoftwarePane.set_section(self, section)
         return
 
     def set_category(self, category):

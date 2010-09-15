@@ -38,7 +38,7 @@ def parse_query(parser, search_strings, verbose=True):
             print "Found %i documents for search '%s'" % (len(mset), st)
             if verbose:
                 for m in mset:
-                    doc = m[xapian.MSET_DOCUMENT]
+                    doc = m.document
                     appname = doc.get_data()
                     pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
                     print "%s ; %s" % (appname, pkgname)

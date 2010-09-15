@@ -50,6 +50,8 @@ class InstalledPane(SoftwarePane):
         self.loaded = False
         # UI
         self._build_ui()
+        self.connect("app-list-changed", self._on_app_list_changed)
+        
     def _build_ui(self):
         self.navigation_bar.set_size_request(26, -1)
         self.notebook.append_page(self.appview_notebook, gtk.Label("installed"))
@@ -82,6 +84,7 @@ class InstalledPane(SoftwarePane):
                                             self.on_navigation_search, 
                                             "search")
         else:
+            # None will default to match all documents (see AppStore code)
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
                                         self.on_navigation_list,
@@ -97,9 +100,11 @@ class InstalledPane(SoftwarePane):
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
-                             query, 
+                             query,
+                             nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)
+        self.app_view.get_model().active = True
         self.hide_appview_spinner()
         self.emit("app-list-changed", len(new_model))
         return False
@@ -113,7 +118,7 @@ class InstalledPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
     def on_db_reopen(self, db):
         self.refresh_apps()
-        self._show_installed_overview()
+        self.app_details.refresh_app()
         
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -138,11 +143,18 @@ class InstalledPane(SoftwarePane):
             return
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
+        self.action_bar.clear()
         
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
+        
+    def _on_app_list_changed(self, pane, length):
+        """internal helper that keeps the the action bar up-to-date by
+           keeping track of the app-list-changed signals
+        """
+        self.update_show_hide_nonapps()
 
     def display_search(self):
         self.navigation_bar.remove_id("details")
@@ -179,12 +191,20 @@ class InstalledPane(SoftwarePane):
     def is_category_view_showing(self):
         # there is no category view in the installed pane
         return False
+        
+    def is_applist_view_showing(self):
+        """Return True if we are in the applist view """
+        return self.notebook.get_current_page() == self.PAGE_APPLIST
 
     def show_app(self, app):
         """ Display an application in the installed_pane """
         self.navigation_bar.add_with_id(_("Installed Software"), self.on_navigation_list, "list", do_callback=False, animate=False)
         self.navigation_bar.remove_all(do_callback=False, animate=False) # do_callback and animate *must* both be false here
-        self.navigation_bar.add_with_id(app.name, self.on_navigation_details, "details", animate=False)
+        details = app.get_details(self.db)
+        self.navigation_bar.add_with_id(details.display_name,
+                                        self.on_navigation_details,
+                                        "details",
+                                        animate=False)
         self.app_details.show_app(app)
         self.app_view.emit("application-selected", app)
 

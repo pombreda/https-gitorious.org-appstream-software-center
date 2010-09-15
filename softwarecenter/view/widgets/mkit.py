@@ -979,10 +979,10 @@ class LinkButton(gtk.EventBox):
         cr.rectangle(a)
         cr.clip_preserve()
         if self.state == gtk.STATE_PRELIGHT:
-            r,g,b = floats_from_string('#FFFFC1')
+            r,g,b = floats_from_gdkcolor(self.style.mid[gtk.STATE_PRELIGHT])
         else:
             r,g,b = floats_from_gdkcolor(self.style.mid[gtk.STATE_SELECTED])
-        cr.set_source_rgba(r,g,b, 0.33*self.alpha)
+        cr.set_source_rgba(r,g,b, 0.125*self.alpha)
         cr.mask_surface(self._image_surface, x, y)
         return True
 
@@ -1131,6 +1131,9 @@ class LinkButton(gtk.EventBox):
         w = self.calc_width()
         self.set_size_request(w, self.get_size_request()[1])
         return
+        
+    def get_label(self):
+        return self._markup
 
     def set_image_from_icon_name(self, icon_name, icon_size, icons=None):
         icons = icons or gtk.icon_theme_get_default()

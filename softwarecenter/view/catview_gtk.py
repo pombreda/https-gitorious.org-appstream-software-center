@@ -105,6 +105,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.cache = cache
         self.db = db
         self.icons = icons
+        self.section = None
 
         self._surf_id = 0
         self.section_color = mkit.floats_from_string('#0769BC')
@@ -220,16 +221,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
     def _image_path(self,name):
         return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
 
-    def set_section_color(self, color):
-        self.section_color = color
-        return
-
-    def set_section_image(self, image_id, surf):
-        global MASK_SURFACE_CACHE
-        self._surf_id = image_id
-        MASK_SURFACE_CACHE['%s-section-image' % image_id] = surf
-        return
-
+    def set_section(self, section):
+        self.section = section
 
 
 class LobbyViewGtk(CategoriesViewGtk):
@@ -288,20 +281,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
 
-        # sky
-        r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,a.y,0,a.y+150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,
-                     widget.allocation.width, 150)
-        cr.fill()
-
-        # clouds
-        s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
-        cr.set_source_surface(s, a.width-s.get_width(), 0)
-        cr.paint()
+        if self.section:
+            self.section.render(cr, a)
 
         # draw featured carousel
         if self.featured_carousel:
@@ -507,20 +488,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
 
-        # sky
-        r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,0,0,150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,
-                     a.width, 150)
-        cr.fill()
-
-        # clouds
-        s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
-        cr.set_source_surface(s, a.width-s.get_width(), 0)
-        cr.paint()
+        if self.section:
+            self.section.render(cr, a)
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)
@@ -833,6 +802,9 @@ class CarouselView(mkit.FramedSection):
         return
 
     def transition(self, loop=True):
+        for poster in self.posters:
+            if poster.state > 0:
+                return loop
         self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
                                           self._fade_out)
         return loop
@@ -965,6 +937,7 @@ class CarouselPoster(mkit.VLinkButton):
         self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None
+        self._target_icon_size = icon_size
 
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
@@ -987,7 +960,7 @@ class CarouselPoster(mkit.VLinkButton):
 
         name = app[AppStore.COL_APP_NAME] or app[AppStore.COL_PKGNAME]
 
-        markup = '%s' % (name)
+        markup = '%s' % glib.markup_escape_text(name)
         pb = app[AppStore.COL_ICON]
 
         self.set_label(markup)
@@ -1208,7 +1181,7 @@ class PagingDot(mkit.LinkButton):
         cr.translate(0.5,0.5)
         cr.set_line_width(1)
         c = mkit.ShapeCircle()
-        c.layout(cr, a.x, a.y, a.width, a.height)
+        c.layout(cr, a.x, a.y, a.width-1, a.height-1)
 
         if self.is_selected:
             if self.state == gtk.STATE_PRELIGHT or self.has_focus():

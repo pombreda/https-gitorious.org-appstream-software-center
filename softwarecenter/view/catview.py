@@ -54,7 +54,7 @@ def categories_sorted_by_name(categories):
     # first pass, sort by translated names
     for cat in categories:
         sorted_catnames.append(cat.name)
-    sorted_catnames.sort()
+    sorted_catnames = sorted(sorted_catnames, cmp=locale.strcoll)
 
     # second pass, assemble cats by sorted their sorted catnames
     sorted_cats = []

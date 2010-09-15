@@ -156,10 +156,9 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
-        self.filter = filter
         # no search query means "all"
         if not search_query:
-            search_query = xapian.Query("ATapplication")
+            search_query = xapian.Query("")
             self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
 
@@ -212,7 +211,7 @@ class AppStore(gtk.GenericTreeModel):
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
             app_index = 0
             for m in matches:
-                doc = m[xapian.MSET_DOCUMENT]
+                doc = m.document
                 if "APPVIEW_DEBUG_TERMS" in os.environ:
                     print doc.get_value(XAPIAN_VALUE_APPNAME)
                     for t in doc.termlist():
@@ -248,8 +247,9 @@ class AppStore(gtk.GenericTreeModel):
                     if term.startswith("AP"):
                         pkgname = term[2:]
                         break
-                app = Application("", pkgname)
-                self.apps.append(app)
+                if pkgname:
+                    app = Application("", pkgname)
+                    self.apps.append(app)
                 
         # if we only have nonapps to be displayed, don't hide them
         if (not self.nonapps_visible and
@@ -539,13 +539,8 @@ class AppStore(gtk.GenericTreeModel):
             summary = self.db.get_summary(doc)
             return "%s\n%s" % (appname, summary)
         elif column == self.COL_MARKUP:
-            appname = app.appname
-            summary = self.db.get_summary(doc)
-            # SPECIAL CASE: the spec says that when there is no appname, 
-            #               the summary should be displayed as appname
-            if not appname:
-                appname = summary
-                summary = app.pkgname
+            appname = Application.get_display_name(self.db, doc)
+            summary = Application.get_display_summary(self.db, doc)
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname)
             s = "%s\n<small>%s</small>" % (
@@ -563,20 +558,20 @@ class AppStore(gtk.GenericTreeModel):
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
                     
-                    # check if this is a downloadable icon
-                    if not self.db.get_icon_needs_download(doc):
-                        # load the icon from the theme
+                    # look for the icon on the iconpath
+                    if self.icons.has_icon(icon_name):
                         icon = self.icons.load_icon(icon_name, self.icon_size, 0)
-                        self.icon_cache[icon_name] = icon
-                        return icon
-                    else:
+                        if icon:
+                            self.icon_cache[icon_name] = icon
+                            return icon
+                    elif self.db.get_icon_needs_download(doc):
                         self._download_icon_and_show_when_ready(self.cache, 
                                                                 app.pkgname,
                                                                 icon_file_name)
-                        return self._appicon_missing_icon
+                        # display the missing icon while the real one downloads
+                        self.icon_cache[icon_name] = self._appicon_missing_icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)
-                self.icon_cache[icon_name] = self._appicon_missing_icon
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:
             pkgname = app.pkgname
@@ -1557,19 +1552,8 @@ class AppView(gtk.TreeView):
 
     def _on_transaction_finished(self, backend, result, tr):
         """ callback when an application install/remove transaction has finished """
-        
-        # If this item has just been removed...
-        try:
-            pkgname = result.meta_data["sc_pkgname"]
-        except KeyError:
-            return
-        appname = result.meta_data.get("sc_appname", "")
-        db = self.get_model().db
-        appdetails = Application(appname, pkgname).get_details(db)
-        # ...then manually emit "cursor-changed" as an item has
-        # just been removed and so everything else needs to update
+        # need to send a cursor-changed so the row button is properly updated
         self.emit("cursor-changed")
-        
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
 

@@ -69,6 +69,31 @@ class Application(object):
     def get_details(self, db):
         """ return a new AppDetails object for this application """
         return AppDetails(db, application=self)
+
+    @staticmethod
+    def get_display_name(db, doc):
+        """ Return the application name as it should be displayed in the UI
+            If the appname is defined, just return it, else return
+            the summary (per the spec)
+        """
+        if doc:
+            appname = db.get_appname(doc)
+            if appname:
+                return appname
+            else:
+                return db.get_summary(doc)
+    @staticmethod
+    def get_display_summary(db, doc):
+        """ Return the application summary as it should be displayed in the UI
+            If the appname is defined, return the application summary, else return
+            the application's pkgname (per the spec)
+        """
+        if doc:
+            if db.get_appname(doc):
+                return db.get_summary(doc)
+            else:
+                return db.get_pkgname(doc)
+        
     # special methods
     def __hash__(self):
         return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
@@ -96,7 +121,7 @@ class DebFileApplication(Application):
         if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
             raise ValueError("Need a deb file, got '%s'" % debfile)
         debname = os.path.splitext(os.path.basename(debfile))[0]
-        self.appname = debname.split('_')[0].capitalize()
+        self.appname = ""
         self.pkgname = debname.split('_')[0].lower()
         self.request = debfile
     def get_details(self, db):
@@ -231,6 +256,8 @@ class AppDetails(object):
     def description(self):
         if self._pkg:
             return self._pkg.candidate.description
+        elif self._doc:
+            return self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION) or ""
         return ""
 
     @property
@@ -295,38 +322,24 @@ class AppDetails(object):
     
     @property
     def display_name(self):
-        """ Return the name as it should be displayed in the UI
-
-            Note that this may not corespond to the Appname as the
-            spec says the name should be the summary for packages
-            and the summary the pkgname
+        """ Return the application name as it should be displayed in the UI
+            If the appname is defined, just return it, else return
+            the summary (per the spec)
         """
         if self._error_not_found:
             return self._error
         if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return name
-            else:
-                # by spec..
-                return self._db.get_summary(self._doc)
+            return Application.get_display_name(self._db, self._doc)
         return self.name
 
     @property
     def display_summary(self):
-        """ Return the summary as it should be displayed in the UI
-
-            Note that this may not corespond to the summary value as the
-            spec says the name should be the summary for packages
-            and the summary the pkgname
+        """ Return the application summary as it should be displayed in the UI
+            If the appname is defined, return the application summary, else return
+            the application's pkgname (per the spec)
         """
         if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return self._db.get_summary(self._doc)
-            else:
-                # by spec..
-                return self._db.get_pkgname(self._doc)
+            return Application.get_display_summary(self._db, self._doc)
         return ""
 
     @property
@@ -426,7 +439,8 @@ class AppDetails(object):
             if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
                 return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
         # else use the default
-        return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
+        return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname, 
+                                                     'version' : self.version or 0 }
 
     @property
     def summary(self):
@@ -442,7 +456,8 @@ class AppDetails(object):
             if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
                 return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
         # else use the default
-        return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
+        return self._distro.SCREENSHOT_THUMB_URL % { 'pkgname' : self.pkgname, 
+                                                     'version' : self.version or 0}
 
     @property
     def version(self):
@@ -464,7 +479,8 @@ class AppDetails(object):
             source_to_enable = None
             if self.channelname and self._unavailable_channel():
                 source_to_enable = self.channelname
-            elif self.component:
+            elif (self.component and 
+                  self.component not in ("independent", "commercial")):
                 source_to_enable = self.component
             if source_to_enable:
                 sources = source_to_enable.split('&')
@@ -534,6 +550,7 @@ class AppDetails(object):
         details = []
         details.append("* AppDetails")
         details.append("                name: %s" % self.name)
+        details.append("        display_name: %s" % self.display_name)
         details.append("                 pkg: %s" % self.pkg)
         details.append("             pkgname: %s" % self.pkgname)
         details.append("        architecture: %s" % self.architecture)
@@ -543,6 +560,7 @@ class AppDetails(object):
         details.append("           component: %s" % self.component)
         details.append("        desktop_file: %s" % self.desktop_file)
         details.append("         description: %s" % self.description)
+        details.append("               error: %s" % self.error)
         details.append("                icon: %s" % self.icon)
         details.append("      icon_file_name: %s" % self.icon_file_name)
         details.append(" icon_needs_download: %s" % self.icon_needs_download)
@@ -555,6 +573,7 @@ class AppDetails(object):
         details.append("               price: %s" % self.price)
         details.append("          screenshot: %s" % self.screenshot)
         details.append("             summary: %s" % self.summary)
+        details.append("     display_summary: %s" % self.display_summary)
         details.append("           thumbnail: %s" % self.thumbnail)
         details.append("             version: %s" % self.version)
         details.append("             website: %s" % self.website)
@@ -571,7 +590,7 @@ class AppDetailsDebFile(AppDetails):
             # for some reason Cache() is much faster than "self._cache._cache"
             # on startup
             self._deb = DebPackage(self._app.request, Cache())
-        except (IOError, SystemError),e:
+        except:
             self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
@@ -587,6 +606,23 @@ class AppDetailsDebFile(AppDetails):
                     self._error =  _("Internal Error")
                     self._error_not_found = _("The file \"%s\" could not be opened.") % self._app.request
             return
+
+        if self.pkgname and self.pkgname != self._app.pkgname:
+            # this happens when the deb file has a quirky file name
+            self._app.pkgname = self.pkgname
+
+            # load pkg cache
+            self._pkg = None
+            if (self._app.pkgname in self._cache and 
+                self._cache[self._app.pkgname].candidate):
+                self._pkg = self._cache[self._app.pkgname]
+            # load xapian document
+            self._doc = None
+            try:
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
+            except:
+                pass
 
         # check deb and set failure state on error
         if not self._deb.check():
@@ -607,6 +643,11 @@ class AppDetailsDebFile(AppDetails):
     @property
     def maintenance_status(self):
         return None
+
+    @property
+    def pkgname(self):
+        if self._deb:
+            return self._deb._sections["Package"]
 
     @property
     def pkg_state(self):
@@ -656,19 +697,20 @@ class AppDetailsDebFile(AppDetails):
 
     @property
     def warning(self):
-        # warnings for deb-files
         # FIXME: use more concise warnings
         if self._deb:
-            deb_state = self._deb.compare_to_version_in_cache()
+            deb_state = self._deb.compare_to_version_in_cache(use_installed=False)
             if deb_state == DebPackage.VERSION_NONE:
                 return _("Only install this file if you trust the origin.")
-            elif deb_state == DebPackage.VERSION_OUTDATED:
-                if not self._cache[self.pkgname].installed:
+            elif (not self._cache[self.pkgname].installed and
+                  self._cache[self.pkgname].candidate and
+                  self._cache[self.pkgname].candidate.downloadable): 
+                if deb_state == DebPackage.VERSION_OUTDATED:
                     return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DebPackage.VERSION_SAME:
-                return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DebPackage.VERSION_NEWER:
-                return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
+                elif deb_state == DebPackage.VERSION_SAME:
+                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                elif deb_state == DebPackage.VERSION_NEWER:
+                    return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
 
     @property
     def website(self):

@@ -1,4 +1,271 @@
-software-center (2.1.16) UNRELEASED; urgency=low
+software-center (2.1.20) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/login_sso.py:
+    - improve help text now that ubuntu-sso-client is more flexible
+      about it (thanks to Naty Bidart) LP: #624097
+  * debian/control:
+    - tighten dependency of ubuntu-sso-client (for the helptext)
+  * softwarecenter/db/update.py, softwarecenter/db/application.py:
+    - add X-AppInstall-Description support and extract it from
+      software-center-agent to support long descriptions from
+      the agent (LP: #625254)
+  * softwarecenter/view/pendingview.py:
+    - add pulse for pending purchases (LP: #637377)
+  * softwarecenter/utils.py:
+    - improve logging of the imagedownloader
+  * softwarecenter/distro/Ubuntu.py:
+    - fix icon downloading from extras.ubuntu.com and support possible
+      country mirrors
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - show pulse once the install starts (LP: #637377)
+  * softwarecenter/apt/aptcache.py:
+    - add installed_count to the cache
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - support bullets with " o item" in the description 
+      (LP: #584147)
+  * send version of the package to screenshots.ubuntu.com so that it
+    can return the most appropriate image. that is supported by debshoots 
+    now thanks to Christoph Haas
+
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py:
+    - show a more reasonable number for hidden technical items
+      in the installed view of "Provided by Ubuntu" 
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/widgets/imagedialog.py:
+    - create an alternative spinner widget that uses an animated gif
+      for when gtk.Spinner is not available (LP: #637422) 
+  * softwarecenter/view/appview.py:
+    - fix crash in _on_transaction_finished (LP: #631132) 
+    - enable show/hide technical items for "Installed Software"
+  * softwarecenter/app.py:
+    - fix crash in on_menu_edit_activate (LP: #624913) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 02:03:10 -0400
+
+software-center (2.1.19) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/widgets/mkit.py:
+    - fix crash during action_bar refresh (LP: #635044)
+  * softwarecenter/backend/channel.py:
+    - always display the partner channel, even if its
+      source is not enabled (LP: #635003) 
+  * softwarecenter/db/application.py,
+    softwarecenter/db/database.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/softwarepane.py:
+    - make StoreDatabase.get_appname return None if the
+      name is not defined in the xapian doc
+    - consolidate code to generate application name and
+      summary for display in the UI to a single place
+    - wire applist, appdetails and the navigation bar
+      to use it (LP: #636004)
+
+  [ Kiwinote ]
+  * data/software-center.menu.in:
+    - fix typo to now use applications-ocaml icon, thanks mpt (LP: #635732)
+  * softwarecenter/backend/channel.py:
+    - allow 'for purchase' to have an icon in non-English locales (LP: #636242)
+  * softwarecenter/db/application.py:
+    - try to open deb file, except on any sort of error (LP: #633379)
+    - simplify when we use which warnings for deb files (LP: #635015)
+    - reload pkg cache object and xapian doc if it turns out that the pkgname
+      of a deb file is different than what we guessed on basis of the file name
+  * softwarecenter/utils.py:
+    - fix crash when desktop_file is None (LP: #635596)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - use the display name for app entry in 'where is it' (LP: #635464)
+    - restore correct padding in addons status bar (LP: #625230)
+  * minor tweaks to lp:~gary-lasker/software-center/title-summary-fixes
+    - use installed state in status bar for reinstallable debs (LP: #635015)
+
+  [ Matthew Paul Thomas ]
+  * data/software-center.menu.in:
+    - fix incorrect Category value in the xml for the Debugging
+      subcategory of Developer Tools (LP: #538911)
+
+  [ Colin Watson ]
+  * Fix update-apt-xapian-index crashes when the Dir::Cache::pkgcache file
+    doesn't exist (LP: #267330).
+    
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - fix "reload()" in enable_channel() and only update the particular
+      channel file
+  * softwarecenter/distro/Ubuntu.py:
+    - fix crash for icons loaded from extras.ubuntu.com
+  * merged lp:~mmcg069/software-center/Bug635375 (LP: #635375)
+  * merged lp:~mmcg069/software-center/tiny-pathbar-tweak
+  * merged lp:~mmcg069/software-center/Bug625443 (LP: #625443)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 12:16:47 +0200
+
+software-center (2.1.18.1) maverick; urgency=low
+
+  [ Colin Watson ]
+  * Update tests/xapian_query.py for compatibility with Xapian 1.2.x.
+  
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - fix bug in removal (thanks to davmor2)
+  * data/software-center.menu.in:
+    - update icon names for latest additions from humanity (thanks
+      to vish!
+
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui:
+    - no more icon for software sources (LP: #634987)
+  * softwarecenter/backend/aptd.py:
+    - allow us to remove pkgs again (LP: #634929)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 20:32:48 +0200
+
+software-center (2.1.18) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * use "match.document" instead of "match[xapian.MSET_DOCUMENT]"
+    to be compatible with xapian 1.2.x (closes: 596079)
+  * softwarecenter/view/catview_gtk.py:
+    - fix a missing glib.markup_escape_text()
+  * merged  lp:~glatzor/software-center/aptdaemon-polish, many
+    thanks!
+
+  [ Kiwinote ]
+  * softwarecenter/backend/aptd.py:
+    - don't crash on cancelling policykit auths (LP: #634697)
+  * softwarecenter/view/appview.py:
+    - don't crash on searches containing ", " (LP: #634549)
+
+  [ Gary Lasker ]
+  * apt-xapian-index-plugin/softwarecenter.py,
+    softwarecenter/db/application.py,
+    softwarecenter/db/database.py,
+    softwarecenter/db/update.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    test/test_database.py:
+   - improved support for the display of metadata in the
+     details view for new-apps and apps for purchase
+     (LP: #625254)
+   - fix incorrect display of the app name and summary
+     text for new-apps in the details view (LP: #634678)
+   - add tests for get_appname, get_pkgname    
+  * softwarecenter/view/appview.py:
+    - fix up downloadable icon handling
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Sep 2010 11:34:50 +0200
+
+software-center (2.1.17.2) maverick; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - use policykit1.PK_ACTION_INSTALL_PURCHASED_PACKAGES priv from
+      aptdaemon (LP: #631619)
+  * debian/control:
+    - depend on the right aptdaemon version
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 19:15:18 +0200
+
+software-center (2.1.17.1) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - use the system-wide proxy instead of the gnome
+      one by default (LP: #628823)
+    - when installing a purchase only update from the just
+      added repository to avoid breaking if other sources.list
+      entries are incorrect
+    - fix signal emite in TransactionStopped
+  * debian/control:
+    - depend on current aptdaemon
+
+  [ Kiwinote ]
+  * software-center:
+    - import Decimal before we need it as a workaround for (LP: #607705)
+      (testcase: LANGUAGE=tr_TR LC_ALL=tr_TR.utf8 ./software-center)
+  * softwarecenter/apt/apthistory.py:
+    - use ascii_lower() rather than lower()
+      much thanks to M. Vefa Bicakci via bug 581207
+      (testcase: LANGUAGE=tr_TR LC_ALL=tr_TR.utf8 ./software-center)
+  * software-center/db/application.py:
+    - reset app.pkgname once we know deb.pkgname
+  * softwarecenter/view/dependency_dialogs.py:
+    - fail nicely if pkg not in cache (ie all deb files...) (LP: #634060)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 17:07:29 +0200
+
+software-center (2.1.17) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/purchasedialog.py:
+    - make popup window a modal dialog so it works with
+      metacity too (LP: #625398)
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py
+    softwarecenter/view/installedpane.py,
+    test/test_appview.py:
+    - factor show/hide nonapps functionality up to the
+      SoftwarePane base class, cleanup redundant code
+    - enable show/hide nonapps in the "Provided by Ubuntu"
+      subitem of "Installed Software" per updated spec
+      (LP: #556375) 
+    - add test for show/hide nonapps
+  * softwarecenter/backend/channel.py:
+    - small fix in debug code
+
+  [ Michael Vogt ]
+  * merged lp:~mpt/software-center/basic-css, improves the
+    style of the purchase dialog (thanks!)
+  * merged lp:~mmcg069/software-center/small-fixes that fixes
+    minor drawing error with the paging dot drawing outside its 
+    allocated area (thanks!)
+  * merged lp:~mpt/software-center/help-3.0 (thanks!)
+  * softwarecenter/gwibber_helper.py:
+    - to find out if gwibber has accounts setup, poke around in
+      gconf instead of doing a dbus call. The dbus call will trigger
+      a gwibber start on each s-c start
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - set action_bar.pkg_state as well as local state 
+      (LP: #629230, LP: #632889)
+      this means that the button will always take the right action
+      (testcase: click 'install', cancel auth, click 'install', auth)
+    - don't show warning in pkgstatusbar while transaction is in progress,
+      instead show 'installing..', 'updating..', etc
+      (test case: install any deb file and watch the pkgstatusbar)
+  * softwarecenter/view/catview.py:
+    - sort categories alphabetically (LP: #633238)
+  * softwarecenter/view/catview_gtk.py:
+    - skip the carousel transition if we are hovering above a poster, or if
+      the poster is selected (ie hold down mouse, but don't release)
+
+  [ Mohamed Amine IL Idrissi ]
+  * Fix bug that allowed silent removal of conflicting packages
+    (LP: #554319)
+  * Fix missing icons in the remove alerts
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Sep 2010 09:11:23 +0200
+
+software-center (2.1.16.1) maverick; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - allow us to 'upgrade' deb files again
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix visual corruption on appending pathbar part
+      (testcase: channelpane > details > different channelpane > details)
+      this time without causing regressions
+      (testcase: browse to any app with a screenshot)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 17:02:52 +0200
+
+software-center (2.1.16) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/purchasedialog.py:
@@ -24,13 +291,49 @@ software-center (2.1.16) UNRELEASED; urgency=low
       been allocated.
   * verify sortmode when building categories (LP: #618411) and 
     ignore categories with unknown/unsupported ones
+  * merged lp:~mmcg069/software-center/cleanup-software-section-code
+    that fixes LP: #624786 (many thanks)
+  * make sure there is always a toplevel transaction for a pending
+    purchase even if s-c waits for the for-pay repository to become
+    available (LP: #627608)
+  * softwarecenter/view/purchasedialog.py:
+    - support both "failure_reason" and "failures" as error strings
+      from the agent
+  * merged lp:~mmcg069/software-center/Bug617443 (LP: #617443)
+  * merged lp:~mmcg069/software-center/bug628714 (LP: #628714)
+  * merged lp:~mmcg069/software-center/hover-highlight-tweaks to 
+    use correct prelight color
 
-  [ Kiwinote ] 
+  [ Kiwinote ]
+  * data/featured.menu.in:
+    - fretsonfire instead of fretsonfire-game, due to desktop file changes
+  * data/software-center.menu.in:
+    - use correct icon for system category, thanks vish!
+  * softwarecenter/apt/aptcache.py:
+    - don't crash on broken dependencies (LP: #630579)
+      (testcase: acl2-books)
+  * softwarecenter/db/application.py:
+    - set pkgname for deb files correctly (LP: #628787)
+      (testcase: replace _ with - in filename of an outdated deb file of s-c)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - never display the description of a different pkg
+      (testcase: browse to any appdetails view and then to fluendo dvd player)
+    - don't crash if icon for 'where is it' is None (LP: #629845)
+    - don't crash if icon for addon can not be opened (LP: #629937)
+    - don't display add-ons when we have an error
+      (testcase: deb file of wrong architecture)
   * softwarecenter/view/appview.py:
     - fix startup crash (LP: #618411)
+  * softwarecenter/view/availablepane.py:
+    - set section for subcategory view (this means that we now have a bg)
+  * softwarecenter/view/installedpane.py:
+    - don't return to installed overview list on reopening db
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - fix visual corruption on appending pathbar part
+      (testcase: channelpane > details > different channelpane > details)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 05 Sep 2010 00:53:27 -0400
- 
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Sep 2010 14:57:58 +0200
+
 software-center (2.1.15) maverick; urgency=low
 
   [ Michael Vogt ]

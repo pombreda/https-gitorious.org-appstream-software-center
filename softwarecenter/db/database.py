@@ -223,19 +223,16 @@ class StoreDatabase(gobject.GObject):
         """ Return a packagename from a xapian document """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         # if there is no value it means we use the apt-xapian-index 
-        # that store the pkgname in the data field directly
+        # that stores the pkgname in the data field directly
         if not pkgname:
             pkgname = doc.get_data()
         return pkgname
 
     def get_appname(self, doc):
-        """ Return a appname from a xapian document """
-        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-        # if there is no value it means we use the apt-xapian-index 
-        # and that has no appname
-        if not pkgname:
-            return None
-        return doc.get_data()
+        """ Return a appname from a xapian document, or None if
+            a value for appname cannot be found in the document
+         """
+        return doc.get_value(XAPIAN_VALUE_APPNAME)
 
     def get_iconname(self, doc):
         """ Return the iconname from the xapian document """
@@ -327,7 +324,7 @@ if __name__ == "__main__":
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
     for m in matches:
-        doc = m[xapian.MSET_DOCUMENT]
+        doc = m.document
         print doc.get_data()
 
     # test origin

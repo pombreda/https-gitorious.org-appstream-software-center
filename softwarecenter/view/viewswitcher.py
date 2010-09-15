@@ -435,7 +435,7 @@ class ViewSwitcherList(gtk.TreeStore):
             if len(matches) < 200:
                 add_channel_item = False
                 for m in matches:
-                    doc = m[xapian.MSET_DOCUMENT]
+                    doc = m.document
                     pkgname = self.db.get_pkgname(doc)
                     if (pkgname in self.cache and
                         self.cache[pkgname].is_installed):
@@ -471,7 +471,10 @@ if __name__ == "__main__":
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    view = ViewSwitcher(datadir, db, icons)
+    from viewmanager import ViewManager
+    notebook = gtk.Notebook()
+    manager = ViewManager(notebook)
+    view = ViewSwitcher(manager, datadir, db, cache, icons)
 
     box = gtk.VBox()
     box.pack_start(scroll)

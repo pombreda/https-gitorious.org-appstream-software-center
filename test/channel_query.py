@@ -24,7 +24,7 @@ if __name__ == "__main__":
     print "Matches: %s" % len(matches)
     apps = set()
     for m in matches:
-        doc = m[xapian.MSET_DOCUMENT]
+        doc = m.document
         appname = doc.get_data()
         apps.add(appname)
         #for t in doc.termlist():
