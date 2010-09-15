@@ -62,7 +62,7 @@ class ChannelPane(SoftwarePane):
         self.connect("app-list-changed", self._on_app_list_changed)
 
     def _build_ui(self):
-        self.notebook.append_page(self.appview_notebook, gtk.Label("channel"))
+        self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
 
