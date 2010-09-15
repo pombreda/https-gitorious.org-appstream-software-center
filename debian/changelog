@@ -36,6 +36,8 @@ software-center (2.1.20) UNRELEASED; urgency=low
       a application
     - hide the "buy" button when installing a purchase, fix uneven
       pulsing
+  * merged lp:~mmcg069/software-center/small-ui-fix:
+    - fix small horizonal line positioning bug.
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py:
