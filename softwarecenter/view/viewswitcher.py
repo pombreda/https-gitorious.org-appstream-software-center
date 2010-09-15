@@ -471,7 +471,10 @@ if __name__ == "__main__":
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    view = ViewSwitcher(datadir, db, icons)
+    from viewmanager import ViewManager
+    notebook = gtk.Notebook()
+    manager = ViewManager(notebook)
+    view = ViewSwitcher(manager, datadir, db, cache, icons)
 
     box = gtk.VBox()
     box.pack_start(scroll)

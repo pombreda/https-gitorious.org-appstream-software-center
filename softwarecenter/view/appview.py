@@ -156,10 +156,9 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
-        self.filter = filter
         # no search query means "all"
         if not search_query:
-            search_query = xapian.Query("ATapplication")
+            search_query = xapian.Query("")
             self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
 
@@ -1556,19 +1555,8 @@ class AppView(gtk.TreeView):
 
     def _on_transaction_finished(self, backend, result, tr):
         """ callback when an application install/remove transaction has finished """
-        
-        # If this item has just been removed...
-        try:
-            pkgname = result.meta_data["sc_pkgname"]
-        except KeyError:
-            return
-        appname = result.meta_data.get("sc_appname", "")
-        db = self.get_model().db
-        appdetails = Application(appname, pkgname).get_details(db)
-        # ...then manually emit "cursor-changed" as an item has
-        # just been removed and so everything else needs to update
+        # need to send a cursor-changed so the row button is properly updated
         self.emit("cursor-changed")
-        
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
 

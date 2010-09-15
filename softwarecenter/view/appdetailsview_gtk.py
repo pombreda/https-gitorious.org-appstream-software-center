@@ -147,7 +147,13 @@ class PackageStatusBar(StatusBar):
         self.show_all()
 
         self.button.connect('clicked', self._on_button_clicked)
-        return
+        glib.timeout_add(500, self._pulse_helper)
+
+    def _pulse_helper(self):
+        if (self.pkg_state == PKG_STATE_INSTALLING_PURCHASED and
+            self.progress.get_fraction() == 0.0):
+            self.progress.pulse()
+        return True
 
     def _on_button_clicked(self, button):
         button.set_sensitive(False)
@@ -219,11 +225,13 @@ class PackageStatusBar(StatusBar):
             self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
-            #self.set_button_label(_('Install'))
+            self.button.set_sensitive(False)
+            self.progress.set_fraction(0)
+            self.progress.show()
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
+            self.progress.set_fraction(0.0)
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             self.button.set_sensitive(False)
@@ -303,6 +311,9 @@ class PackageStatusBar(StatusBar):
 
 class AppDescription(gtk.VBox):
 
+    # chars that server as bullets in the description
+    BULLETS = ('- ', '* ', 'o ')
+
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
@@ -340,8 +351,8 @@ class AppDescription(gtk.VBox):
         return
 
     def append_bullet_point(self, fragment):
-        fragment = fragment.replace('* ', '')
-        fragment = fragment.replace('- ', '')
+        for bullet in self.BULLETS:
+            fragment = fragment.replace(bullet, '')
 
         bullet = gtk.Label()
         bullet.set_markup(u"  <b>\u2022</b>")
@@ -390,7 +401,7 @@ class AppDescription(gtk.VBox):
 
             else:
                 # frag looks like its a bullet point
-                if part[:2] in ('- ', '* '):
+                if part[:2] in self.BULLETS:
                     # if there's an existing bullet, append it and start anew
                     if in_blist:
                         self.append_bullet_point(processed_frag)
@@ -419,8 +430,9 @@ class AppDescription(gtk.VBox):
                     else:
                         # append newline only if this is not the final
                         # text block and its not followed by a bullet 
-                        if (i+1) < l and len(parts[i+1]) > 1 and not \
-                            parts[i+1][:2] in ('- ', '* '):
+                        if ((i+1) < l and
+                            len(parts[i+1]) > 1
+                            and not parts[i+1][:2] in self.BULLETS):
                             processed_frag += '\n'
 
                         # append a bullet point
@@ -433,7 +445,7 @@ class AppDescription(gtk.VBox):
                     processed_frag += ' '
 
         if processed_frag:
-            if processed_frag[:2] in ('- ', '* '):
+            if processed_frag[:2] in self.BULLETS:
                 self.append_bullet_point(processed_frag)
             else:
                 self.append_paragraph(processed_frag)
@@ -744,7 +756,8 @@ class ScreenshotView(gtk.Alignment):
 
         # set the loading animation (its a .gif so a our GtkImage happily renders the animation
         # without any fuss, NOTE this gif has a white background, i.e. it has no transparency
-        self.image.set_from_file(AppDetailsViewGtk.IMAGE_LOADING_INSTALLED)
+        # TODO: use a generic gtk.Spinner instead of this icon
+        self.image.set_from_file(IMAGE_LOADING_INSTALLED)
         self.image.set_size_request(160, 100)
         return
 
@@ -1004,12 +1017,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     # the size of the icon on the left side
     APP_ICON_SIZE = 48 # gtk.ICON_SIZE_DIALOG ?
 
-    # FIXME: use relative path here
-    INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
-    # TODO: use a generic gtk.Spinner instead of this icon
-    IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
-    IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
-
     # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
@@ -1053,7 +1060,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
         #self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")        
         self._show_overlay = False
-        self._overlay = gtk.gdk.pixbuf_new_from_file(self.INSTALLED_ICON)
+        self._overlay = gtk.gdk.pixbuf_new_from_file(INSTALLED_ICON)
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()

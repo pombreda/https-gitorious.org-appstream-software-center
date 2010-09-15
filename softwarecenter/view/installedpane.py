@@ -84,6 +84,7 @@ class InstalledPane(SoftwarePane):
                                             self.on_navigation_search, 
                                             "search")
         else:
+            # None will default to match all documents (see AppStore code)
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
                                         self.on_navigation_list,

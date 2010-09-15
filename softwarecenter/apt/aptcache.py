@@ -34,6 +34,7 @@ import time
 
 from gettext import gettext as _
 from softwarecenter.enums import *
+from softwarecenter.utils import ExecutionTime
 
 LOG = logging.getLogger(__name__)
 
@@ -104,6 +105,17 @@ class AptCache(gobject.GObject):
             self._cache = apt.Cache(GtkMainIterationProgress())
         else:
             self._cache.open(GtkMainIterationProgress())
+        # installed_count stats
+        with ExecutionTime("installed_count stats"):
+            self.installed_count = 0
+            # use the low-level cache here to calculcate the stats,
+            # its twice as fast as the highlevel one
+            for lowlevel_pkg in self._cache._cache.packages:
+                if lowlevel_pkg.current_ver:
+                    self.installed_count += 1
+                while gtk.events_pending():
+                    gtk.main_iteration()
+        LOG.debug("installed_count: %s" % self.installed_count)
         self._ready = True
         self.emit("cache-ready")
         if self._cache.broken_count > 0:

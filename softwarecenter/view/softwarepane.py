@@ -42,6 +42,8 @@ from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore
 
+from softwarecenter.utils import AlternaSpinner
+
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
 else:
@@ -167,7 +169,11 @@ class SoftwarePane(gtk.VBox, BasePane):
                                         gtk.POLICY_AUTOMATIC)
                              
         # make a spinner to display while the applist is loading           
-        self.spinner = gtk.Spinner()
+        try:
+            self.spinner = gtk.Spinner()
+        except AttributeError:
+            # worarkound for archlinux: see LP: #624204, LP: #637422
+            self.spinner = AlternaSpinner()
         self.spinner.set_size_request(48, 48)
         
         # use a table for the spinner (otherwise the spinner is massive!)
@@ -304,19 +310,34 @@ class SoftwarePane(gtk.VBox, BasePane):
         in the action_bar
         """
         appstore = self.app_view.get_model()
+        if not appstore:
+            self.action_bar.unset_label()
+            return
+        
+        # first figure out if we are only showing installed
+        if appstore.filter:
+            showing_installed = appstore.filter.installed_only
+        else:
+            showing_installed = False
 
         # calculate the number of apps/pkgs
         pkgs = 0
         apps = 0
-        if appstore and appstore.active:
+        if appstore.active:
             if appstore.nonapps_visible:
                 pkgs = appstore.nonapp_pkgs
                 apps = len(appstore) - pkgs
             else:
-                apps = len(appstore)
-                pkgs = appstore.nonapp_pkgs - apps
-            #print 'apps: ' + str(apps)
-            #print 'pkgs: ' + str(pkgs)
+                if showing_installed:
+                    # estimate by using the installed apps count when generating
+                    # the pkgs value
+                    # FIXME:  for smaller appstores, we should be able to count the
+                    #         number of installed non-apps for an accurate count
+                    apps = len(appstore)
+                    pkgs = min(self.cache.installed_count, appstore.nonapp_pkgs) - apps
+                else:
+                    apps = len(appstore)
+                    pkgs = appstore.nonapp_pkgs - apps
 
         self.action_bar.unset_label()
         

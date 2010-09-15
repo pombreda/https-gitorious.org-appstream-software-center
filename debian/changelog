@@ -10,6 +10,40 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - add X-AppInstall-Description support and extract it from
       software-center-agent to support long descriptions from
       the agent (LP: #625254)
+  * softwarecenter/view/pendingview.py:
+    - add pulse for pending purchases (LP: #637377)
+  * softwarecenter/utils.py:
+    - improve logging of the imagedownloader
+  * softwarecenter/distro/Ubuntu.py:
+    - fix icon downloading from extras.ubuntu.com and support possible
+      country mirrors
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - show pulse once the install starts (LP: #637377)
+  * softwarecenter/apt/aptcache.py:
+    - add installed_count to the cache
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - support bullets with " o item" in the description 
+      (LP: #584147)
+  * send version of the package to screenshots.ubuntu.com so that it
+    can return the most appropriate image. that is supported by debshoots 
+    now thanks to Christoph Haas
+
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py:
+    - show a more reasonable number for hidden technical items
+      in the installed view of "Provided by Ubuntu" 
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/widgets/imagedialog.py:
+    - create an alternative spinner widget that uses an animated gif
+      for when gtk.Spinner is not available (LP: #637422) 
+  * softwarecenter/view/appview.py:
+    - fix crash in _on_transaction_finished (LP: #631132) 
+    - enable show/hide technical items for "Installed Software"
+  * softwarecenter/app.py:
+    - fix crash in on_menu_edit_activate (LP: #624913) 
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:
@@ -25,7 +59,7 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - remove some entries in 'drawing' and 'painting and editors' which are
       displayed in other subcategories (LP: #532079)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 14 Sep 2010 14:07:00 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 02:03:10 -0400
 
 software-center (2.1.19) maverick; urgency=low
 

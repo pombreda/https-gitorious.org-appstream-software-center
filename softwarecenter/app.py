@@ -303,6 +303,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # pending view
         self.pending_view = PendingView(self.icons)
         self.view_manager.register(self.pending_view, VIEW_PAGE_PENDING)
+        
+        # keep track of the current active pane
+        self.active_pane = self.available_pane
 
         # view switcher
         self.view_switcher = ViewSwitcher(self.view_manager, datadir, self.db, self.cache, self.icons)
