@@ -14,6 +14,7 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - add pulse for pending purchases (LP: #637377)
   * softwarecenter/utils.py:
     - improve logging of the imagedownloader
+    - fix where-is-it for kde4 apps (LP: #635684)
   * softwarecenter/distro/Ubuntu.py:
     - fix icon downloading from extras.ubuntu.com and support possible
       country mirrors

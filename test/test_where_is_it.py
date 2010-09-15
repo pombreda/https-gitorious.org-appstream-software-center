@@ -50,6 +50,19 @@ class TestWhereIsit(unittest.TestCase):
         self.assertEqual(found[0].get_icon(), "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
         self.assertEqual(found[1].get_icon(), "applications-utilities")
+    
+    def test_where_is_it_kde4(self):
+        app = Application("", "ark")
+        details = app.get_details(self.db)
+        self.assertEqual(details.desktop_file, 
+                         "/usr/share/app-install/desktop/kde4_ark.desktop")
+        # search the settings menu
+        searcher = GMenuSearcher()
+        found = searcher.get_main_menu_path(details.desktop_file)
+        self.assertEqual(found[0].get_name(), "Applications")
+        self.assertEqual(found[0].get_icon(), "applications-other")
+        self.assertEqual(found[1].get_name(), "Accessories")
+        self.assertEqual(found[1].get_icon(), "applications-utilities")
         
 
 if __name__ == "__main__":
