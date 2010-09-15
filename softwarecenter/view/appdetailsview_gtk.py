@@ -1425,9 +1425,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
+                # check icontheme first
                 if iconname and self.icons.has_icon(iconname) and i > 0:
                     image = gtk.Image()
                     image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
+                    self.desc_installed_where.pack_start(image, False, False)
+                # then see if its a path to a file on disk
+                elif os.path.exists(iconname):
+                    image = gtk.Image()
+                    image.set_from_file(iconname)
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()
