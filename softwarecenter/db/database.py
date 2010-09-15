@@ -198,6 +198,12 @@ class StoreDatabase(gobject.GObject):
         fuzzy_query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
+        # if the query size goes out of hand, omit the FLAG_PARTIAL
+        # (LP: #634449)
+        if fuzzy_query.get_length() > 1000:
+            fuzzy_query = self.xapian_parser.parse_query(search_term, 
+                                            xapian.QueryParser.FLAG_BOOLEAN)
+        # now add categories
         fuzzy_query = _add_category_to_query(fuzzy_query)
         return [pkg_query,fuzzy_query]
 
