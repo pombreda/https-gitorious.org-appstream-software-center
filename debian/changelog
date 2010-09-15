@@ -19,6 +19,8 @@ software-center (2.1.20) UNRELEASED; urgency=low
       country mirrors
   * softwarecenter/view/appdetailsview_gtk.py:
     - show pulse once the install starts (LP: #637377)
+    - support "where is it" for non app-install-data if the desktop 
+      file has the same name as the package name (LP: #637452)
   * softwarecenter/apt/aptcache.py:
     - add installed_count to the cache
   * softwarecenter/view/appdetailsview_gtk.py:

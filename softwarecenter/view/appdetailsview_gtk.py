@@ -1407,8 +1407,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.desc_installed_where.a11y.set_name('')
         # see if we have the location if its installed
         if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+            # first try the desktop file from the DB, then see if
+            # there is a local desktop file with the same name as 
+            # the package
             searcher = GMenuSearcher()
-            where = searcher.get_main_menu_path(self.app_details.desktop_file)
+            desktop_file = None
+            pkgname = self.app_details.pkgname
+            for p in [self.app_details.desktop_file,
+                      "/usr/share/applications/%s.desktop" % pkgname]:
+                if os.path.exists(p):
+                    desktop_file = p
+                    break
+            where = searcher.get_main_menu_path(desktop_file)
             if not where:
                 return
             label = gtk.Label(_("Find it in the menu: "))
