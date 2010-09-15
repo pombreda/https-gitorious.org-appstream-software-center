@@ -439,6 +439,7 @@ class AvailablePane(SoftwarePane):
         # remove pathbar stuff
         self.navigation_bar.remove_all(do_callback=False)
         self.notebook.set_current_page(self.PAGE_CATEGORY)
+        self.hide_appview_spinner()
         self.cat_view.start_carousels()
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
