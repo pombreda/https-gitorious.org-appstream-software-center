@@ -36,8 +36,10 @@ software-center (2.1.20) UNRELEASED; urgency=low
     softwarecenter/view/widgets/imagedialog.py:
     - create an alternative spinner widget that uses an animated gif
       for when gtk.Spinner is not available (LP: #637422) 
+  * softwarecenter/view/appview.py:
+    - fix crash in _on_transaction_finished (LP: #631132) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 14 Sep 2010 22:38:34 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 00:04:01 -0400
 
 software-center (2.1.19) maverick; urgency=low
 
