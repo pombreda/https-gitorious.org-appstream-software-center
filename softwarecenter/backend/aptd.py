@@ -88,7 +88,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                             (gobject.TYPE_PYOBJECT, )),
                     'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
-                                            (str,)),                    
+                                            (gobject.TYPE_PYOBJECT,)),
                     'transactions-changed':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             (gobject.TYPE_PYOBJECT, )),
@@ -339,7 +339,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # pre-authenticate
             try:
                 yield self.authenticate_for_purchase()
-            except Exception:
+            except:
+                logging.exception("authenticate_for_purchase failed")
+                self._clean_pending_purchases(app.pkgname)
+                result = TransactionFinishedResult(None, enums.EXIT_FAILED)
+                result.pkgname = app.pkgname
+                self.emit("transaction-stopped", result)
                 return
             # done
             fake_trans = FakePurchaseTransaction(app, iconname)
