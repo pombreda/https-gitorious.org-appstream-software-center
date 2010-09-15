@@ -32,8 +32,8 @@ class Debian(Distro):
     IMPORTANT_METAPACKAGES = ("kde", "gnome", "gnome-desktop-environment")
 
     # screenshot handling
-    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%s"
+    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%(pkgname)s"
+    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%(pkgname)s"
 
     def get_distro_channel_name(self):
         """ The name in the Release file """

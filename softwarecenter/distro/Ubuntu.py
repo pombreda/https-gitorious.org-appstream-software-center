@@ -33,8 +33,8 @@ class Ubuntu(Distro):
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
     # screenshot handling
-    SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
+    SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
+    SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
 
     # purchase subscription
     PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s"

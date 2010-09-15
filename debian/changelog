@@ -24,6 +24,9 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - support bullets with " o item" in the description 
       (LP: #584147)
+  * send version of the package to screenshots.ubuntu.com so that it
+    can return the most appropriate image. that is supported by debshoots 
+    now thanks to Christoph Haas
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py:

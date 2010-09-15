@@ -439,7 +439,8 @@ class AppDetails(object):
             if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
                 return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
         # else use the default
-        return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
+        return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname, 
+                                                     'version' : self.version or 0 }
 
     @property
     def summary(self):
@@ -455,7 +456,8 @@ class AppDetails(object):
             if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
                 return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
         # else use the default
-        return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
+        return self._distro.SCREENSHOT_THUMB_URL % { 'pkgname' : self.pkgname, 
+                                                     'version' : self.version or 0}
 
     @property
     def version(self):
