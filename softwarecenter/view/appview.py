@@ -504,7 +504,7 @@ class AppStore(gtk.GenericTreeModel):
                     gobject.markup_escape_text(app.pkgname))
                 return s
             elif column == self.COL_ICON:
-                return self.icons.load_icon(MISSING_PKG_ICON,
+                return self.icons.load_icon('application-default-icon',
                                             self.icon_size, 0)
             elif column == self.COL_INSTALLED:
                 return False
