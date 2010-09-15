@@ -42,6 +42,8 @@ from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore
 
+from softwarecenter.utils import AlternaSpinner
+
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
 else:
@@ -167,7 +169,11 @@ class SoftwarePane(gtk.VBox, BasePane):
                                         gtk.POLICY_AUTOMATIC)
                              
         # make a spinner to display while the applist is loading           
-        self.spinner = gtk.Spinner()
+        try:
+            self.spinner = gtk.Spinner()
+        except AttributeError:
+            # worarkound for archlinux: see LP: #624204, LP: #637422
+            self.spinner = AlternaSpinner()
         self.spinner.set_size_request(48, 48)
         
         # use a table for the spinner (otherwise the spinner is massive!)

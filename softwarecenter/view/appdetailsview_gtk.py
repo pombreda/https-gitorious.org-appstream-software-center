@@ -756,7 +756,8 @@ class ScreenshotView(gtk.Alignment):
 
         # set the loading animation (its a .gif so a our GtkImage happily renders the animation
         # without any fuss, NOTE this gif has a white background, i.e. it has no transparency
-        self.image.set_from_file(AppDetailsViewGtk.IMAGE_LOADING_INSTALLED)
+        # TODO: use a generic gtk.Spinner instead of this icon
+        self.image.set_from_file(IMAGE_LOADING_INSTALLED)
         self.image.set_size_request(160, 100)
         return
 
@@ -1012,12 +1013,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     # the size of the icon on the left side
     APP_ICON_SIZE = 48 # gtk.ICON_SIZE_DIALOG ?
 
-    # FIXME: use relative path here
-    INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
-    # TODO: use a generic gtk.Spinner instead of this icon
-    IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
-    IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
-
     # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
@@ -1061,7 +1056,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
         #self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")        
         self._show_overlay = False
-        self._overlay = gtk.gdk.pixbuf_new_from_file(self.INSTALLED_ICON)
+        self._overlay = gtk.gdk.pixbuf_new_from_file(INSTALLED_ICON)
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()
