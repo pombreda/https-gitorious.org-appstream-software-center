@@ -594,6 +594,9 @@ class CarouselView(mkit.FramedSection):
         self.more_btn.set_underline(True)
         self.more_btn.set_subdued(True)
 
+        self.more_btn.a11y = self.more_btn.get_accessible()
+        self.more_btn.a11y.set_name(_("%s section: show all") % title )
+
         self.header.pack_end(self.more_btn, False)
 
         if carousel_apps and len(carousel_apps) > 0:

@@ -51,6 +51,9 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - add a11y support for 'where is it'
   * softwarecenter/view/appview.py:
     - set buttons which aren't rendered insensitive (LP: #630521)
+  * softwarecenter/view/cat_view.py:
+    - set verbose a11y name for the 'all' button for carousels, such that we
+      include the section name (LP: #623163)
   * softwarecenter/view/widgets/pathbar_gtk_atk.py:
     - update a11y text when pathbar part gets new label
 
