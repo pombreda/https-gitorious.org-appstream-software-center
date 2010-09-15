@@ -7,6 +7,7 @@ sys.path.insert(0,"../")
 import apt_pkg
 import apt
 import os
+import re
 import unittest
 import xapian
 
@@ -156,10 +157,12 @@ class TestDatabase(unittest.TestCase):
         # crude, crude
         self.assertTrue(len(appdetails.version) > 2)
         # FIXME: screenshots will only work on ubuntu
-        self.assertEqual(appdetails.screenshot,
-                         "http://screenshots.ubuntu.com/screenshot-404/software-center")
-        self.assertEqual(appdetails.thumbnail,
-                         "http://screenshots.ubuntu.com/thumbnail-404/software-center")
+        self.assertTrue(re.match(
+                "http://screenshots.ubuntu.com/screenshot-with-version/software-center/[\d.]+", 
+                appdetails.screenshot))
+        self.assertTrue(re.match(
+                "http://screenshots.ubuntu.com/thumbnail-with-version/software-center/[\d.]+",
+                appdetails.thumbnail))
         # FIXME: add document that has a price
         self.assertEqual(appdetails.price, '')
         self.assertEqual(appdetails.license, "Open source")
