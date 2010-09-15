@@ -52,6 +52,7 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - set buttons which aren't rendered insensitive (LP: #630521)
     - use a greyed out 'question mark' icon for pkg not found (LP: #635081)
+    - for exact pkg not found matches, we don't always have a appname, whoops
   * softwarecenter/view/cat_view.py:
     - set verbose a11y name for the 'all' button for carousels, such that we
       include the section name (LP: #623163)

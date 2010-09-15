@@ -489,14 +489,14 @@ class AppStore(gtk.GenericTreeModel):
             # markup colored gray.
             if column == self.COL_APP_NAME:
                 if app.request:
-                    return app.appname
+                    return app.name
                 return _("Not found")
             elif column == self.COL_TEXT:
                 return "%s\n" % app.pkgname
             elif column == self.COL_MARKUP:
                 if app.request:
                     s = "%s\n<small>%s</small>" % (
-                        gobject.markup_escape_text(app.appname),
+                        gobject.markup_escape_text(app.name),
                         gobject.markup_escape_text(_("Not Found")))
                     return s
                 s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
