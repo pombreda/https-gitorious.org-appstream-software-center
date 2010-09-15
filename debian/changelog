@@ -27,6 +27,9 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * send version of the package to screenshots.ubuntu.com so that it
     can return the most appropriate image. that is supported by debshoots 
     now thanks to Christoph Haas
+  * softwarecenter/backend/aptd.py:
+    - fix a flickering in the viewswitcher spinenr when purchasing
+      a application
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py:
