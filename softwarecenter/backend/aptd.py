@@ -50,8 +50,9 @@ from softwarecenter.view import dialogs
 from gettext import gettext as _
 
 class FakePurchaseTransaction(object):
-    def __init__(self, pkgname, iconname):
-        self.pkgname = pkgname
+    def __init__(self, app, iconname):
+        self.pkgname = app.pkgname
+        self.appname = app.appname
         self.iconname = iconname
         self.progress = 0
 
@@ -109,7 +110,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         TransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
-        # dict of pkgname -> iconname
+        # dict of pkgname -> FakePurchaseTransaction
         self.pending_purchases = {}
         self._progress_signal = None
         self._logger = logging.getLogger("softwarecenter.backend")
@@ -341,7 +342,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             except Exception:
                 return
             # done
-            self.pending_purchases[app.pkgname] = iconname
+            fake_trans = FakePurchaseTransaction(app, iconname)
+            self.pending_purchases[app.pkgname] = fake_trans
         else:
             # FIXME: add authenticate_for_added_repo here
             pass
@@ -482,8 +484,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def _inject_fake_transactions_for_pending_purchases(self, purchases, transactions):
         """ inject a bunch FakePurchaseTransaction into the transations dict """
         for pkgname in purchases:
-            iconname = purchases[pkgname]
-            transactions[pkgname] = FakePurchaseTransaction(pkgname, iconname)
+            transactions[pkgname] = purchases[pkgname]
 
     def _on_progress_changed(self, trans, progress):
         """ 

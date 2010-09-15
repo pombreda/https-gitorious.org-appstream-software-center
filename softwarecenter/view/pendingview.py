@@ -98,10 +98,11 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             self._append_transaction(trans)
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
-            icon = self._get_icon_from_iconname(self.backend.pending_purchases[pkgname])
-            # FIXME: use appname here
+            iconname = self.backend.pending_purchases[pkgname].iconname
+            icon = self._get_icon_from_iconname(iconname)
+            appname = self.backend.pending_purchases[pkgname].appname
             status_text = self._render_status_text(
-                pkgname, _(u'Installing purchase\u2026'))
+                appname or pkgname, _(u'Installing purchase\u2026'))
             self.append([pkgname, icon, pkgname, status_text, 0, 1, None])
 
     def _get_icon_from_iconname(self, iconname=None):
