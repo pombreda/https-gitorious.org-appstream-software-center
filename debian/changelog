@@ -1,3 +1,10 @@
+software-center (2.1.21) UNRELEASED; urgency=low
+
+  * fix rendering of the "Installing purchase..." overview transaction,
+    it contains a icon and a proper status now (LP: #637394)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Sep 2010 22:38:08 +0200
+
 software-center (2.1.20) maverick; urgency=low
 
   [ Michael Vogt ]

@@ -50,8 +50,9 @@ from softwarecenter.view import dialogs
 from gettext import gettext as _
 
 class FakePurchaseTransaction(object):
-    def __init__(self, pkgname):
+    def __init__(self, pkgname, iconname):
         self.pkgname = pkgname
+        self.iconname = iconname
         self.progress = 0
 
 # we use this instead of just exposing the aptdaemon Transaction object
@@ -108,7 +109,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         TransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
-        self.pending_purchases = set()
+        # dict of pkgname -> iconname
+        self.pending_purchases = {}
         self._progress_signal = None
         self._logger = logging.getLogger("softwarecenter.backend")
     
@@ -321,6 +323,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                          deb_line,
                                          signing_key_id,
                                          app,
+                                         iconname,
                                          purchase=True):
         """ 
         a convenience method that combines all of the steps needed
@@ -338,7 +341,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             except Exception:
                 return
             # done
-            self.pending_purchases.add(app.pkgname)
+            self.pending_purchases[app.pkgname] = iconname
         else:
             # FIXME: add authenticate_for_added_repo here
             pass
@@ -347,6 +350,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # too
         trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
                           'sc_add_repo_and_install_pkgname' : app.pkgname,
+                          'sc_iconname' : iconname,
                           'sc_add_repo_and_install_try' : "1",
                          }
         sourcepart = yield self.add_sources_list_entry(deb_line)
@@ -478,7 +482,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def _inject_fake_transactions_for_pending_purchases(self, purchases, transactions):
         """ inject a bunch FakePurchaseTransaction into the transations dict """
         for pkgname in purchases:
-            transactions[pkgname] = FakePurchaseTransaction(pkgname)
+            iconname = purchases[pkgname]
+            transactions[pkgname] = FakePurchaseTransaction(pkgname, iconname)
 
     def _on_progress_changed(self, trans, progress):
         """ 
@@ -604,7 +609,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     def _clean_pending_purchases(self, pkgname):
         if pkgname and pkgname in self.pending_purchases:
-            self.pending_purchases.remove(pkgname)
+            del self.pending_purchases[pkgname]
 
     def _on_trans_error(self, error, pkgname=None):
         self._logger.warn("_on_trans_error: %s", error)

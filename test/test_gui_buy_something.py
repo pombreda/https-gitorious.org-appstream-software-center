@@ -104,9 +104,11 @@ class SCBuySomething(unittest.TestCase):
             # simulate repos becomes available for the public 40 s later
             glib.timeout_add_seconds(40, self._add_pw_to_commercial_repo)
             # run it
+            appdetails = app.get_details(self.app.db)
             backend.add_repo_add_key_and_install_app(deb_line,
                                                      signing_key_id,
-                                                     app)
+                                                     app,
+                                                     appdetails.icon)
             self._p()
             # wait until the pkg is installed
             while not self._finished:

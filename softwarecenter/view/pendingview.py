@@ -98,7 +98,20 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             self._append_transaction(trans)
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
-            self.append([pkgname, None, pkgname, _(u'Installing purchase\u2026'), 0, 1, None])
+            icon = self._get_icon_from_iconname(self.backend.pending_purchases[pkgname])
+            # FIXME: use appname here
+            status_text = self._render_status_text(
+                pkgname, _(u'Installing purchase\u2026'))
+            self.append([pkgname, icon, pkgname, status_text, 0, 1, None])
+
+    def _get_icon_from_iconname(self, iconname=None):
+        if not iconname:
+            iconname = MISSING_APP_ICON
+        try:
+            icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
+        except Exception:
+            icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+        return icon
 
     def _pulse_purchase_helper(self):
         for item in self:
@@ -131,13 +144,9 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         try:
             iconname = trans.meta_data["sc_iconname"]
         except KeyError:
-            icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+            icon = self._get_icon_from_iconname()
         else:
-            try:
-                icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
-            except Exception:
-                icon = self.icons.load_icon(MISSING_APP_ICON,
-                                            self.ICON_SIZE, 0)
+            icon = self._get_icon_from_iconname(iconname)
         if trans.status == STATUS_WAITING_LOCK:
             status = trans.status_details
         else:
