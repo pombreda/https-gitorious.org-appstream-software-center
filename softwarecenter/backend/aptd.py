@@ -459,8 +459,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._progress_signal = None
         # attach progress-changed signal for current transaction
         if current:
-            trans = client.get_transaction(current, 
-                                           error_handler=lambda x: True)
+            trans = client.get_transaction(current)
             self._progress_signal = trans.connect("progress-changed", self._on_progress_changed)
         # now update pending transactions
         self.pending_transactions.clear()
@@ -477,14 +476,19 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 # (the key of pending_transactions is never directly
                 #  exposed in the UI)
                 self.pending_transactions[trans.tid] = trans_progress
-        # now add pending purchases too
-        self._inject_fake_transactions_for_pending_purchases(self.pending_purchases, self.pending_transactions)
-        self.emit("transactions-changed", self.pending_transactions)
+        # emit signal
+        self.inject_fake_transactions_and_emit_changed_signal()
 
-    def _inject_fake_transactions_for_pending_purchases(self, purchases, transactions):
-        """ inject a bunch FakePurchaseTransaction into the transations dict """
-        for pkgname in purchases:
-            transactions[pkgname] = purchases[pkgname]
+    def inject_fake_transactions_and_emit_changed_signal(self):
+        """ 
+        ensures that the fake transactions are considered and emits
+        transactions-changed signal with the right pending transactions
+        """
+        # inject a bunch FakePurchaseTransaction into the transations dict
+        for pkgname in self.pending_purchases:
+            self.pending_transactions[pkgname] = self.pending_purchases[pkgname]
+        # and emit the signal
+        self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
         """ 
@@ -544,7 +548,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 self.update_xapian_index()
             self.emit("reload-finished", trans, enum != enums.EXIT_FAILED)
         # send appropriate signals
-        self.emit("transactions-changed", self.pending_transactions)
+        self.inject_fake_transactions_and_emit_changed_signal()
         self.emit("transaction-finished", TransactionFinishedResult(trans, enum))
 
     @inline_callbacks
