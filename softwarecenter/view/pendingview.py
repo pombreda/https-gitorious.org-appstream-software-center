@@ -155,7 +155,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
         self.append([trans.tid, icon, appname, status_text, trans.progress,
-                     0, cancel_icon])
+                     -1, cancel_icon])
 
     def _on_cancellable_changed(self, trans, cancellable):
         #print "_on_allow_cancel: ", trans, allow_cancel

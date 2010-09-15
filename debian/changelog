@@ -7,6 +7,7 @@ software-center (2.1.21) maverick; urgency=low
   * fix incorrect signal emited when a transactiosn returns a error
   * fix history date ordering (LP: #635198), many thanks to 
     Mohamed Amine IL Idrissi
+  * fix missing progress in pendingview regression
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py,
