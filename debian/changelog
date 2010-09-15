@@ -39,8 +39,10 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - fix crash in _on_transaction_finished (LP: #631132) 
     - enable show/hide technical items for "Installed Software"
+  * softwarecenter/app.py:
+    - fix crash in on_menu_edit_activate (LP: #624913) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 01:16:52 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 02:03:10 -0400
 
 software-center (2.1.19) maverick; urgency=low
 
