@@ -1,10 +1,12 @@
-software-center (2.1.21) UNRELEASED; urgency=low
+software-center (2.1.21) maverick; urgency=low
 
   [ Michael Vogt ]
   * fix rendering of the "Installing purchase..." overview transaction,
     it contains a icon and a proper status now (LP: #637394)
   * fix flickering when a item is purchased
   * fix incorrect signal emited when a transactiosn returns a error
+  * fix history date ordering (LP: #635198), many thanks to 
+    Mohamed Amine IL Idrissi
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py,
@@ -18,7 +20,7 @@ software-center (2.1.21) UNRELEASED; urgency=low
   * softwarecenter/db/database.py: limit the query size to 1000 matches
     so USC does not freeze, many thanks Michael Vogt (LP: #634449)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 16:45:10 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 00:55:40 +0200
 
 software-center (2.1.20) maverick; urgency=low
 

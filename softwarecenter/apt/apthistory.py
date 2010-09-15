@@ -23,6 +23,7 @@ import gio
 import glib
 import glob
 import gzip
+import os.path
 import logging
 import string
 import datetime
@@ -87,9 +88,13 @@ class AptHistory(object):
         self.update_callback = None
         LOG.debug("init history")
 
+    def _mtime_cmp(self, a, b):
+        return cmp(os.path.getmtime(a), os.path.getmtime(b))
+
     def rescan(self):
         self.transactions = []
-        for history_gz_file in glob.glob(self.history_file+".*.gz"):
+        for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
+                                      cmp=self._mtime_cmp):
             self._scan(history_gz_file)
         self._scan(self.history_file)
     
