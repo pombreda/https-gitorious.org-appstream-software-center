@@ -45,6 +45,23 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * softwarecenter/app.py:
     - fix crash in on_menu_edit_activate (LP: #624913) 
 
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - add basic a11y support for addon items
+    - add a11y support for 'where is it'
+  * softwarecenter/view/appview.py:
+    - set buttons which aren't rendered insensitive (LP: #630521)
+  * softwarecenter/view/cat_view.py:
+    - set verbose a11y name for the 'all' button for carousels, such that we
+      include the section name (LP: #623163)
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - update a11y text when pathbar part gets new label
+
+  [ Matthew Paul Thomas ]
+  * data/software-center.menu.in:
+    - remove some entries in 'drawing' and 'painting and editors' which are
+      displayed in other subcategories (LP: #532079)
+
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 02:03:10 -0400
 
 software-center (2.1.19) maverick; urgency=low
