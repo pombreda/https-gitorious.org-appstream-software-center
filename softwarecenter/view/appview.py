@@ -156,10 +156,9 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
-        self.filter = filter
         # no search query means "all"
         if not search_query:
-            search_query = xapian.Query("ATapplication")
+            search_query = xapian.Query("")
             self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
 
