@@ -1,3 +1,10 @@
+software-center (2.1.22.1) UNRELEASED; urgency=low
+
+  * softwarecenter/view/viewswitcher.py:
+    - fix intermittent crash in on_cursor_changed (LP: #625030)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 16 Sep 2010 11:24:12 -0400
+
 software-center (2.1.22) maverick; urgency=low
 
   [ Michael Vogt ]
