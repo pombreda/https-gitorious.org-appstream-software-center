@@ -222,6 +222,7 @@ class ImageDownloader(gobject.GObject):
 
 
 class GMenuSearcher(object):
+
     def __init__(self):
         self._found = None
     def _search_gmenu_dir(self, dirlist, needle):
@@ -230,8 +231,22 @@ class GMenuSearcher(object):
             if mtype == gmenu.TYPE_DIRECTORY:
                 self._search_gmenu_dir(dirlist+[item], needle)
             elif item.get_type() == gmenu.TYPE_ENTRY:
-                if os.path.basename(item.get_desktop_file_path()) == needle:
+                desktop_file_path = item.get_desktop_file_path()
+                # direct match of the desktop file name and the installed
+                # desktop file name
+                if os.path.basename(desktop_file_path) == needle:
                     self._found = dirlist+[item]
+                    return
+                # if there is no direct match, take the part of the path after 
+                # "applications" (e.g. kde4/amarok.desktop) and
+                # change "/" to "_" and do the match again - this is what
+                # the data extractor is doing
+                path_after_applications = desktop_file_path.split("applications/")[1]
+                if needle == path_after_applications.replace("/","_"):
+                    self._found = dirlist+[item]
+                    return
+
+                
     def get_main_menu_path(self, desktop_file):
         if not desktop_file:
             return None

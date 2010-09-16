@@ -1,4 +1,43 @@
-software-center (2.1.20) UNRELEASED; urgency=low
+software-center (2.1.22) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - fix enable_component()
+
+  [ Mohamed Amine IL Idrissi ]
+  * debian/control: add python-launchpadlib as Suggests (LP: #634324)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - restore screen scroll position when changing addons
+      (LP: #625232)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 11:53:12 +0200
+
+software-center (2.1.21) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * fix rendering of the "Installing purchase..." overview transaction,
+    it contains a icon and a proper status now (LP: #637394)
+  * fix flickering when a item is purchased
+  * fix incorrect signal emited when a transactiosn returns a error
+  * fix history date ordering (LP: #635198), many thanks to 
+    Mohamed Amine IL Idrissi
+  * fix missing progress in pendingview regression
+
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - fix visual flash when navigating back to a subcat
+      applist from a details view (LP: #611108)
+
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/db/database.py: limit the query size to 1000 matches
+    so USC does not freeze, many thanks Michael Vogt (LP: #634449)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 01:37:44 +0200
+
+software-center (2.1.20) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/login_sso.py:
@@ -14,11 +53,15 @@ software-center (2.1.20) UNRELEASED; urgency=low
     - add pulse for pending purchases (LP: #637377)
   * softwarecenter/utils.py:
     - improve logging of the imagedownloader
+    - fix where-is-it for kde4 apps (LP: #635684)
   * softwarecenter/distro/Ubuntu.py:
     - fix icon downloading from extras.ubuntu.com and support possible
       country mirrors
   * softwarecenter/view/appdetailsview_gtk.py:
     - show pulse once the install starts (LP: #637377)
+    - support "where is it" for non app-install-data if the desktop 
+      file has the same name as the package name (LP: #637452)
+    - fix icon display in "where is it" if Icon=/path/to/file
   * softwarecenter/apt/aptcache.py:
     - add installed_count to the cache
   * softwarecenter/view/appdetailsview_gtk.py:
@@ -27,6 +70,13 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * send version of the package to screenshots.ubuntu.com so that it
     can return the most appropriate image. that is supported by debshoots 
     now thanks to Christoph Haas
+  * softwarecenter/backend/aptd.py:
+    - fix a flickering in the viewswitcher spinenr when purchasing
+      a application
+    - hide the "buy" button when installing a purchase, fix uneven
+      pulsing
+  * merged lp:~mmcg069/software-center/small-ui-fix:
+    - fix small horizonal line positioning bug.
 
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py:
@@ -45,7 +95,26 @@ software-center (2.1.20) UNRELEASED; urgency=low
   * softwarecenter/app.py:
     - fix crash in on_menu_edit_activate (LP: #624913) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Sep 2010 02:03:10 -0400
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - add basic a11y support for addon items
+    - add a11y support for 'where is it'
+  * softwarecenter/view/appview.py:
+    - set buttons which aren't rendered insensitive (LP: #630521)
+    - use a greyed out 'question mark' icon for pkg not found (LP: #635081)
+    - for exact pkg not found matches, we don't always have a appname, whoops
+  * softwarecenter/view/cat_view.py:
+    - set verbose a11y name for the 'all' button for carousels, such that we
+      include the section name (LP: #623163)
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - update a11y text when pathbar part gets new label
+
+  [ Matthew Paul Thomas ]
+  * data/software-center.menu.in:
+    - remove some entries in 'drawing' and 'painting and editors' which are
+      displayed in other subcategories (LP: #532079)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Sep 2010 16:14:00 +0200
 
 software-center (2.1.19) maverick; urgency=low
 

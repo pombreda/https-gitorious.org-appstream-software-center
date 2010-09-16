@@ -50,8 +50,10 @@ from softwarecenter.view import dialogs
 from gettext import gettext as _
 
 class FakePurchaseTransaction(object):
-    def __init__(self, pkgname):
-        self.pkgname = pkgname
+    def __init__(self, app, iconname):
+        self.pkgname = app.pkgname
+        self.appname = app.appname
+        self.iconname = iconname
         self.progress = 0
 
 # we use this instead of just exposing the aptdaemon Transaction object
@@ -86,7 +88,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                             (gobject.TYPE_PYOBJECT, )),
                     'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
-                                            (str,)),                    
+                                            (gobject.TYPE_PYOBJECT,)),
                     'transactions-changed':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             (gobject.TYPE_PYOBJECT, )),
@@ -108,7 +110,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         TransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
-        self.pending_purchases = set()
+        # dict of pkgname -> FakePurchaseTransaction
+        self.pending_purchases = {}
         self._progress_signal = None
         self._logger = logging.getLogger("softwarecenter.backend")
     
@@ -246,7 +249,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def enable_component(self, component):
         self._logger.debug("enable_component: %s" % component)
         try:
-            self.aptd_client.enable_distro_component(component, wait=True)
+            yield self.aptd_client.enable_distro_component(component, wait=True, defer=True)
         except Exception, error:
             self._on_trans_error(error, component)
             return_value(None)
@@ -321,6 +324,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                                          deb_line,
                                          signing_key_id,
                                          app,
+                                         iconname,
                                          purchase=True):
         """ 
         a convenience method that combines all of the steps needed
@@ -335,24 +339,33 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # pre-authenticate
             try:
                 yield self.authenticate_for_purchase()
-            except Exception:
+            except:
+                logging.exception("authenticate_for_purchase failed")
+                self._clean_pending_purchases(app.pkgname)
+                result = TransactionFinishedResult(None, enums.EXIT_FAILED)
+                result.pkgname = app.pkgname
+                self.emit("transaction-stopped", result)
                 return
             # done
-            self.pending_purchases.add(app.pkgname)
+            fake_trans = FakePurchaseTransaction(app, iconname)
+            self.pending_purchases[app.pkgname] = fake_trans
         else:
             # FIXME: add authenticate_for_added_repo here
             pass
 
-        # TODO:  add error checking as needed
+        # add the metadata early, add_sources_list_entry is a transaction
+        # too
+        trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
+                          'sc_add_repo_and_install_pkgname' : app.pkgname,
+                          'sc_iconname' : iconname,
+                          'sc_add_repo_and_install_try' : "1",
+                         }
         sourcepart = yield self.add_sources_list_entry(deb_line)
+        trans_metadata['sc_add_repo_and_install_sources_list'] = sourcepart
 
         # metadata so that we know those the add-key and reload transactions
         # are part of a group
-        trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
-                          'sc_add_repo_and_install_pkgname' : app.pkgname,
-                          'sc_add_repo_and_install_sources_list' : sourcepart,
-                          'sc_add_repo_and_install_try' : "1",
-                         }
+        
         yield self.add_vendor_key_from_keyserver(signing_key_id,
                                                  metadata=trans_metadata)
         yield self._reload_for_commercial_repo(app, trans_metadata, sourcepart)
@@ -451,8 +464,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             self._progress_signal = None
         # attach progress-changed signal for current transaction
         if current:
-            trans = client.get_transaction(current, 
-                                           error_handler=lambda x: True)
+            trans = client.get_transaction(current)
             self._progress_signal = trans.connect("progress-changed", self._on_progress_changed)
         # now update pending transactions
         self.pending_transactions.clear()
@@ -469,14 +481,19 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 # (the key of pending_transactions is never directly
                 #  exposed in the UI)
                 self.pending_transactions[trans.tid] = trans_progress
-        # now add pending purchases too
-        self._inject_fake_transactions_for_pending_purchases(self.pending_purchases, self.pending_transactions)
-        self.emit("transactions-changed", self.pending_transactions)
+        # emit signal
+        self.inject_fake_transactions_and_emit_changed_signal()
 
-    def _inject_fake_transactions_for_pending_purchases(self, purchases, transactions):
-        """ inject a bunch FakePurchaseTransaction into the transations dict """
-        for pkgname in purchases:
-            transactions[pkgname] = FakePurchaseTransaction(pkgname)
+    def inject_fake_transactions_and_emit_changed_signal(self):
+        """ 
+        ensures that the fake transactions are considered and emits
+        transactions-changed signal with the right pending transactions
+        """
+        # inject a bunch FakePurchaseTransaction into the transations dict
+        for pkgname in self.pending_purchases:
+            self.pending_transactions[pkgname] = self.pending_purchases[pkgname]
+        # and emit the signal
+        self.emit("transactions-changed", self.pending_transactions)
 
     def _on_progress_changed(self, trans, progress):
         """ 
@@ -536,7 +553,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 self.update_xapian_index()
             self.emit("reload-finished", trans, enum != enums.EXIT_FAILED)
         # send appropriate signals
-        self.emit("transactions-changed", self.pending_transactions)
+        self.inject_fake_transactions_and_emit_changed_signal()
         self.emit("transaction-finished", TransactionFinishedResult(trans, enum))
 
     @inline_callbacks
@@ -602,7 +619,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     def _clean_pending_purchases(self, pkgname):
         if pkgname and pkgname in self.pending_purchases:
-            self.pending_purchases.remove(pkgname)
+            del self.pending_purchases[pkgname]
 
     def _on_trans_error(self, error, pkgname=None):
         self._logger.warn("_on_trans_error: %s", error)

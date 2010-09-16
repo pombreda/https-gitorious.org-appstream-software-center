@@ -225,8 +225,7 @@ class PackageStatusBar(StatusBar):
             self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
-            self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
+            self.button.hide()
             self.progress.show()
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
@@ -860,6 +859,10 @@ class Addon(gtk.HBox):
         self.pkgname = gtk.Label()
         hbox.pack_start(self.pkgname, False)
 
+        # a11y
+        self.a11y = self.checkbutton.get_accessible()
+        self.a11y.set_name(_("Add-on") + ': ' + title + '(' + pkgname + ')')
+
     def _on_realize(self, widget):
         dark = self.style.dark[self.state].to_string()
         key_markup = '<span color="%s">(%s)</span>'
@@ -1028,6 +1031,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
+        self.adjustment_value = None
 
         self.section = None
 
@@ -1161,6 +1165,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _full_redraw_cb(self):
         self.queue_draw()
+        if self.adjustment_value is not None \
+        and self.adjustment_value >= self.get_vadjustment().lower \
+        and self.adjustment_value <= self.get_vadjustment().upper:
+            self.get_vadjustment().set_value(self.adjustment_value)
         return False
 
     def _full_redraw(self):
@@ -1179,6 +1187,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # not to notice the temporary visual artefacts.  Peace out.
 
         self.queue_draw()
+        if self.adjustment_value is not None \
+        and self.adjustment_value >= self.get_vadjustment().lower \
+        and self.adjustment_value <= self.get_vadjustment().upper:
+            self.get_vadjustment().set_value(self.adjustment_value)
         gobject.idle_add(self._full_redraw_cb)
         return
 
@@ -1215,6 +1227,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # the location of the app (if its installed)
         self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
         self.app_info.body.pack_start(self.desc_installed_where)
+        self.desc_installed_where.a11y = self.desc_installed_where.get_accessible()
 
         # FramedSection which contains the app description
         self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
@@ -1399,19 +1412,37 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _configure_where_is_it(self):
         # remove old content
         self.desc_installed_where.foreach(lambda c: c.destroy())
+        self.desc_installed_where.set_property("can-focus", False)
+        self.desc_installed_where.a11y.set_name('')
         # see if we have the location if its installed
         if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+            # first try the desktop file from the DB, then see if
+            # there is a local desktop file with the same name as 
+            # the package
             searcher = GMenuSearcher()
-            where = searcher.get_main_menu_path(self.app_details.desktop_file)
+            desktop_file = None
+            pkgname = self.app_details.pkgname
+            for p in [self.app_details.desktop_file,
+                      "/usr/share/applications/%s.desktop" % pkgname]:
+                if os.path.exists(p):
+                    desktop_file = p
+                    break
+            where = searcher.get_main_menu_path(desktop_file)
             if not where:
                 return
             label = gtk.Label(_("Find it in the menu: "))
             self.desc_installed_where.pack_start(label, False, False)
             for (i, item) in enumerate(where):
                 iconname = item.get_icon()
+                # check icontheme first
                 if iconname and self.icons.has_icon(iconname) and i > 0:
                     image = gtk.Image()
                     image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
+                    self.desc_installed_where.pack_start(image, False, False)
+                # then see if its a path to a file on disk
+                elif os.path.exists(iconname):
+                    image = gtk.Image()
+                    image.set_from_file(iconname)
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()
@@ -1424,6 +1455,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
                     self.desc_installed_where.pack_start(right_arrow, 
                                                          False, False)
+
+            # create our a11y text
+            a11y_text = ""
+            for widget in self.desc_installed_where:
+                if isinstance(widget, gtk.Label):
+                    a11y_text += ' > ' + widget.get_text()
+            self.desc_installed_where.a11y.set_name(a11y_text)
+            self.desc_installed_where.set_property("can-focus", True)
+
             self.desc_installed_where.show_all()
 
     # public API
@@ -1469,9 +1509,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.show()
         self.addons_bar.button_apply.set_sensitive(True)
         self.addons_bar.button_cancel.set_sensitive(True)
-
         self.addons_bar.configure()
-
+        self.adjustment_value = None
+        
         if self.addons_bar.applying:
             self.addons_bar.applying = False
             
@@ -1542,6 +1582,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.action_bar.progress.set_fraction(progress/100.0)
             if progress == 100:
                 self.action_bar.progress.set_fraction(1)
+                self.adjustment_value = self.get_vadjustment().get_value()
         return
 
     #def _draw_icon_inset_frame(self, cr):

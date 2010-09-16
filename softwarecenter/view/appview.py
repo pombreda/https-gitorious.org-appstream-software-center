@@ -489,14 +489,14 @@ class AppStore(gtk.GenericTreeModel):
             # markup colored gray.
             if column == self.COL_APP_NAME:
                 if app.request:
-                    return app.appname
+                    return app.name
                 return _("Not found")
             elif column == self.COL_TEXT:
                 return "%s\n" % app.pkgname
             elif column == self.COL_MARKUP:
                 if app.request:
                     s = "%s\n<small>%s</small>" % (
-                        gobject.markup_escape_text(app.appname),
+                        gobject.markup_escape_text(app.name),
                         gobject.markup_escape_text(_("Not Found")))
                     return s
                 s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
@@ -504,7 +504,7 @@ class AppStore(gtk.GenericTreeModel):
                     gobject.markup_escape_text(app.pkgname))
                 return s
             elif column == self.COL_ICON:
-                return self.icons.load_icon(MISSING_PKG_ICON,
+                return self.icons.load_icon('application-default-icon',
                                             self.icon_size, 0)
             elif column == self.COL_INSTALLED:
                 return False
@@ -1120,12 +1120,15 @@ class CellRendererAppView2(gtk.CellRendererText):
             btn.render(window, widget, self._layout)
             xs += btn.allocation.width + spacing
 
-        if self.props.available:
-            for btn in self._buttons[end]:
-                xb -= btn.allocation.width
-                btn.set_position(xb, y-btn.allocation.height)
+
+        for btn in self._buttons[end]:
+            xb -= btn.allocation.width
+            btn.set_position(xb, y-btn.allocation.height)
+            if self.props.available:
                 btn.render(window, widget, self._layout)
-                xb -= spacing
+            else:
+                btn.set_sensitive(False)
+            xb -= spacing
         return
 
     def do_get_size(self, widget, cell_area):

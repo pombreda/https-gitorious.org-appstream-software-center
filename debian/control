@@ -46,6 +46,7 @@ Recommends: lsb-release, python-launchpad-integration,
 Conflicts: software-store, gnome-app-install (<< 1)
 Replaces: software-store, gnome-app-install
 Provides: software-store, gnome-app-install
+Suggests: python-launchpadlib
 XB-Python-Version: ${python:Versions}
 Description: Utility for browsing, installing, and removing applications
  The Ubuntu Software Center lets you browse and install thousands of 

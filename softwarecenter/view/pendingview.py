@@ -98,7 +98,21 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             self._append_transaction(trans)
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
-            self.append([pkgname, None, pkgname, _(u'Installing purchase\u2026'), 0, 1, None])
+            iconname = self.backend.pending_purchases[pkgname].iconname
+            icon = self._get_icon_from_iconname(iconname)
+            appname = self.backend.pending_purchases[pkgname].appname
+            status_text = self._render_status_text(
+                appname or pkgname, _(u'Installing purchase\u2026'))
+            self.append([pkgname, icon, pkgname, status_text, 0, 1, None])
+
+    def _get_icon_from_iconname(self, iconname=None):
+        if not iconname:
+            iconname = MISSING_APP_ICON
+        try:
+            icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
+        except Exception:
+            icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+        return icon
 
     def _pulse_purchase_helper(self):
         for item in self:
@@ -131,13 +145,9 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         try:
             iconname = trans.meta_data["sc_iconname"]
         except KeyError:
-            icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+            icon = self._get_icon_from_iconname()
         else:
-            try:
-                icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
-            except Exception:
-                icon = self.icons.load_icon(MISSING_APP_ICON,
-                                            self.ICON_SIZE, 0)
+            icon = self._get_icon_from_iconname(iconname)
         if trans.status == STATUS_WAITING_LOCK:
             status = trans.status_details
         else:
@@ -145,7 +155,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
         self.append([trans.tid, icon, appname, status_text, trans.progress,
-                     0, cancel_icon])
+                     -1, cancel_icon])
 
     def _on_cancellable_changed(self, trans, cancellable):
         #print "_on_allow_cancel: ", trans, allow_cancel
