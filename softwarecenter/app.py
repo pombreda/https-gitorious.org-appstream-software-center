@@ -578,7 +578,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.scagent = SoftwareCenterAgent()
         self.scagent.connect("available-for-me", self._available_for_me_result)
         # support both buildin or ubuntu-sso-login
-        if "SOFWARE_CENTER_USE_BUILDIN_LOGIN" in os.environ:
+        if "SOFWARE_CENTER_USE_BUILTIN_LOGIN" in os.environ:
             self._login_via_buildin_sso()
         else:
             self._login_via_dbus_sso()
