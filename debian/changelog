@@ -1,4 +1,4 @@
-software-center (2.1.22) UNRELEASED; urgency=low
+software-center (2.1.22) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
@@ -10,7 +10,7 @@ software-center (2.1.22) UNRELEASED; urgency=low
     - restore screen scroll position when changing addons
       (LP: #625232)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 11:49:27 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 11:53:12 +0200
 
 software-center (2.1.21) maverick; urgency=low
 
