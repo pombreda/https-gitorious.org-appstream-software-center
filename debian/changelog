@@ -1,3 +1,16 @@
+software-center (2.1.22.1) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/viewswitcher.py:
+    - fix intermittent crash in on_cursor_changed (LP: #625030)
+  
+  [ Michael Vogt ]
+  * data/featured.menu.in: 
+    - updated to include armagetronad, calibre, pdfmod as discussed
+      on the ubuntu-desktop list
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 17:40:54 +0200
+
 software-center (2.1.22) maverick; urgency=low
 
   [ Michael Vogt ]

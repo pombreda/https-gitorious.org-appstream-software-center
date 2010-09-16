@@ -7,6 +7,8 @@
     </Flags>
     <Include>
       <Or>
+      	<SCPkgname>armagetronad</SCPkgname>
+      	<SCPkgname>calibre</SCPkgname>
 	<SCPkgname>cheese</SCPkgname>
 	<SCPkgname>homebank</SCPkgname>
 	<SCPkgname>stellarium</SCPkgname>
@@ -19,6 +21,7 @@
 	<SCPkgname>gufw</SCPkgname>
 	<SCPkgname>frozen-bubble</SCPkgname>
 	<SCPkgname>fretsonfire</SCPkgname>
+	<SCPkgname>pdfmod</SCPkgname>
 	<SCPkgname>pingus</SCPkgname>
 	<SCPkgname>moovida</SCPkgname>
 	<SCPkgname>liferea</SCPkgname>
