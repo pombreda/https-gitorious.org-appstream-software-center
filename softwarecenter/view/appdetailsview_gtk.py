@@ -1031,6 +1031,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
+        self.adjustment_value = None
 
         self.section = None
 
@@ -1164,6 +1165,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _full_redraw_cb(self):
         self.queue_draw()
+        if self.adjustment_value is not None \
+        and self.adjustment_value >= self.get_vadjustment().lower \
+        and self.adjustment_value <= self.get_vadjustment().upper:
+            self.get_vadjustment().set_value(self.adjustment_value)
         return False
 
     def _full_redraw(self):
@@ -1182,6 +1187,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # not to notice the temporary visual artefacts.  Peace out.
 
         self.queue_draw()
+        if self.adjustment_value is not None \
+        and self.adjustment_value >= self.get_vadjustment().lower \
+        and self.adjustment_value <= self.get_vadjustment().upper:
+            self.get_vadjustment().set_value(self.adjustment_value)
         gobject.idle_add(self._full_redraw_cb)
         return
 
@@ -1500,9 +1509,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.show()
         self.addons_bar.button_apply.set_sensitive(True)
         self.addons_bar.button_cancel.set_sensitive(True)
-
         self.addons_bar.configure()
-
+        self.adjustment_value = None
+        
         if self.addons_bar.applying:
             self.addons_bar.applying = False
             
@@ -1573,6 +1582,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.action_bar.progress.set_fraction(progress/100.0)
             if progress == 100:
                 self.action_bar.progress.set_fraction(1)
+                self.adjustment_value = self.get_vadjustment().get_value()
         return
 
     #def _draw_icon_inset_frame(self, cr):

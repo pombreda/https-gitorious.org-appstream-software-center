@@ -1,9 +1,16 @@
 software-center (2.1.22) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/backend/aptd.py:
     - fix enable_component()
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 10:59:35 +0200
+  [ Mohamed Amine IL Idrissi ]
+  * debian/control: add python-launchpadlib as Suggests (LP: #634324)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - restore screen scroll position when changing addons
+      (LP: #625232)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 11:49:27 +0200
 
 software-center (2.1.21) maverick; urgency=low
 
