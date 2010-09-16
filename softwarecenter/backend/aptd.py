@@ -249,7 +249,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def enable_component(self, component):
         self._logger.debug("enable_component: %s" % component)
         try:
-            self.aptd_client.enable_distro_component(component, wait=True)
+            yield self.aptd_client.enable_distro_component(component, wait=True, defer=True)
         except Exception, error:
             self._on_trans_error(error, component)
             return_value(None)

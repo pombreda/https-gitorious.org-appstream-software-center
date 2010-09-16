@@ -1,3 +1,10 @@
+software-center (2.1.22) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - fix enable_component()
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 10:59:35 +0200
+
 software-center (2.1.21) maverick; urgency=low
 
   [ Michael Vogt ]
