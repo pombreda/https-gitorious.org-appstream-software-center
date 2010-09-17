@@ -81,10 +81,11 @@ h1 {
 </html>
 """ % _("Connecting to payment service...")
 
-    def __init__(self, app, url=None, html=None):
+    def __init__(self, app, iconname, url=None, html=None):
         gtk.Dialog.__init__(self)
         self.set_title("")
         self.app = app
+        self.iconname = iconname
         self.set_property('skip-taskbar-hint', True)
         self.set_size_request(975, 700)
         self.wk = ScrolledWebkitWindow()
@@ -174,7 +175,8 @@ h1 {
         # add repo and key
         get_install_backend().add_repo_add_key_and_install_app(deb_line,
                                                                signing_key_id,
-                                                               self.app)
+                                                               self.app,
+                                                               self.iconname)
 
 # just used for testing --------------------------------------------
 DUMMY_HTML = """

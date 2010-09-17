@@ -1,3 +1,55 @@
+software-center (2.1.22.1) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/viewswitcher.py:
+    - fix intermittent crash in on_cursor_changed (LP: #625030)
+  
+  [ Michael Vogt ]
+  * data/featured.menu.in: 
+    - updated to include armagetronad, calibre, pdfmod as discussed
+      on the ubuntu-desktop list
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 17:41:47 +0200
+
+software-center (2.1.22) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - fix enable_component()
+
+  [ Mohamed Amine IL Idrissi ]
+  * debian/control: add python-launchpadlib as Suggests (LP: #634324)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - restore screen scroll position when changing addons
+      (LP: #625232)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 11:53:12 +0200
+
+software-center (2.1.21) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * fix rendering of the "Installing purchase..." overview transaction,
+    it contains a icon and a proper status now (LP: #637394)
+  * fix flickering when a item is purchased
+  * fix incorrect signal emited when a transactiosn returns a error
+  * fix history date ordering (LP: #635198), many thanks to 
+    Mohamed Amine IL Idrissi
+  * fix missing progress in pendingview regression
+
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - fix visual flash when navigating back to a subcat
+      applist from a details view (LP: #611108)
+
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/db/database.py: limit the query size to 1000 matches
+    so USC does not freeze, many thanks Michael Vogt (LP: #634449)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 01:37:44 +0200
+
 software-center (2.1.20) maverick; urgency=low
 
   [ Michael Vogt ]

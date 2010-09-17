@@ -135,7 +135,11 @@ class ViewSwitcher(gtk.TreeView):
         if self._block_set_cursor_signals:
             return
         (path, column) = self.get_cursor()
+        if not path:
+            return
         model = self.get_model()
+        if not model:
+            return
         action = model[path][ViewSwitcherList.COL_ACTION]
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
         if action in self._permanent_views:

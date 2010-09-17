@@ -98,7 +98,10 @@ class AppDetailsViewBase(object):
                     'archive_id' : self.appdetails.ppaname, 
                     'arch' : get_current_arch() ,
                     }))
-        self.purchase_dialog = PurchaseDialog(url=url, app=self.app)
+        appdetails = self.app.get_details(self.db)
+        self.purchase_dialog = PurchaseDialog(url=url, 
+                                              app=self.app,
+                                              iconname=appdetails.icon)
         res = self.purchase_dialog.run()
         self.purchase_dialog.destroy()
         del self.purchase_dialog
