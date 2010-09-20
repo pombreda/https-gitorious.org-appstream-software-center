@@ -1,4 +1,4 @@
-software-center (2.1.22.2) UNRELEASED; urgency=low
+software-center (2.1.22.2) maverick; urgency=low
 
   [ Gabor Kelemen ]
   * Fix invocation of gksu, use the correct .desktop file. 
@@ -8,7 +8,7 @@ software-center (2.1.22.2) UNRELEASED; urgency=low
   * Correct misplaced parentheses, so that l10n of strings will work. 
     Fixes LP: #640972
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Sep 2010 09:33:18 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Sep 2010 09:59:53 +0200
 
 software-center (2.1.22.1) maverick; urgency=low
 
