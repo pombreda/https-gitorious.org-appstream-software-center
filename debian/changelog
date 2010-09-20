@@ -1,4 +1,4 @@
-software-center (2.1.22.3) UNRELEASED; urgency=low
+software-center (2.1.22.3) maverick; urgency=low
 
   * Merge the right branch for the gksu fix for LP: #640906
 
