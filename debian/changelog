@@ -5,6 +5,8 @@ software-center (2.1.22.2) UNRELEASED; urgency=low
     Fixes LP: #640906
   * Specify the translation domain for gtkbuilder dialog. 
     Fixes LP: #640969
+  * Correct misplaced parentheses, so that l10n of strings will work. 
+    Fixes LP: #640972
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Sep 2010 09:33:18 +0200
 

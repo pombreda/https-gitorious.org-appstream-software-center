@@ -582,7 +582,7 @@ class PathPart(gtk.EventBox):
 
         self.atk = self.get_accessible()
         self.atk.set_name(label)
-        self.atk.set_description(_('Navigates to the %s page.' % label))
+        self.atk.set_description(_('Navigates to the %s page.') % label)
         self.atk.set_role(atk.ROLE_PUSH_BUTTON)
 
         self.invisible = False
@@ -684,7 +684,7 @@ class PathPart(gtk.EventBox):
         if label == self.label: return
         self.label = gobject.markup_escape_text(label.strip())
         self.atk.set_name(label)
-        self.atk.set_description(_('Navigates to the %s page.' % label))
+        self.atk.set_description(_('Navigates to the %s page.') % label)
         if not self.layout:
             self._make_layout()
         else:
