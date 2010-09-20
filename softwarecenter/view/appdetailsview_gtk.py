@@ -238,10 +238,10 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
             if app_details.purchase_date:
                 purchase_date = str(app_details.purchase_date).split()[0]
-                self.set_label(_('Purchased on %s' % purchase_date))
+                self.set_label(_('Purchased on %s') % purchase_date)
             elif app_details.installation_date:
                 installation_date = str(app_details.installation_date).split()[0]
-                self.set_label(_('Installed on %s' % installation_date))
+                self.set_label(_('Installed on %s') % installation_date)
             else:
                 self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm
@@ -258,7 +258,7 @@ class PackageStatusBar(StatusBar):
             self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             purchase_date = str(app_details.purchase_date).split()[0]
-            self.set_label(_('Purchased on %s' % purchase_date))
+            self.set_label(_('Purchased on %s') % purchase_date)
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
             if app_details.price:
@@ -710,14 +710,14 @@ class ScreenshotView(gtk.Alignment):
                 self.unavailable.set_size_request(160, 100)
                 self.unavailable.show_all()
                 acc = self.get_accessible()
-                acc.set_name(_('%s - No screenshot available' % self.appname))
+                acc.set_name(_('%s - No screenshot available') % self.appname)
         else:
             if self.unavailable.parent:
                 self.eventbox.remove(self.unavailable)
                 self.eventbox.add(self.image)
                 self.image.show()
                 acc = self.get_accessible()
-                acc.set_name(_('%s - Screenshot' % self.appname))
+                acc.set_name(_('%s - Screenshot') % self.appname)
 
         self.screenshot_available = available
         return
@@ -1754,10 +1754,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         
         if total_download_size > 0:
             download_size = apt_pkg.size_to_str(total_download_size)
-            label_string += _("%sB to download, " % (download_size))
+            label_string += _("%sB to download, ") % (download_size)
         if total_install_size > 0:
             install_size = apt_pkg.size_to_str(total_install_size)
-            label_string += _("%sB when installed" % (install_size))
+            label_string += _("%sB when installed") % (install_size)
         elif (total_install_size == 0 and
               self.app_details.pkg_state == PKG_STATE_INSTALLED and
               not self.addons_manager.addons_to_install and
@@ -1765,10 +1765,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             pkg = self.cache[self.app_details.pkgname].installed
             install_size = apt_pkg.size_to_str(pkg.installed_size)
             # FIXME: this is not really a good indication of the size on disk
-            label_string += _("%sB on disk" % (install_size))
+            label_string += _("%sB on disk") % (install_size)
         elif total_install_size < 0:
             remove_size = apt_pkg.size_to_str(-total_install_size)
-            label_string += _("%sB to be freed" % (remove_size))
+            label_string += _("%sB to be freed") % (remove_size)
         
         if label_string == "":
             self.totalsize_info.hide_all()
