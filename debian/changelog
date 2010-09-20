@@ -1,3 +1,11 @@
+software-center (2.1.22.4) UNRELEASED; urgency=low
+
+  * softwarecenter/app.py:
+    - expand available node if unexpanded when choosing to reinstall
+      previous purchases (LP: #643566)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 20 Sep 2010 12:51:00 -0400
+
 software-center (2.1.22.3) maverick; urgency=low
 
   * Merge the right branch for the gksu fix for LP: #640906
