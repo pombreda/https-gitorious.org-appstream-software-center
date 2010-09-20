@@ -667,7 +667,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # run software-properties-gtk
         p = subprocess.Popen(
             ["gksu",
-             "--desktop", "/usr/share/applications/software-properties.desktop",
+             "--desktop", "/usr/share/applications/software-properties-gtk.desktop",
              "--",
              "/usr/bin/software-properties-gtk", 
              "-n", 
