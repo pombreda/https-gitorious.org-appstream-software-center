@@ -2,8 +2,9 @@ software-center (2.1.22.2) UNRELEASED; urgency=low
 
   [ Gabor Kelemen ]
   * Fix invocation of gksu, use the correct .desktop file. 
-    Fixes LP: 640906
-
+    Fixes LP: #640906
+  * Specify the translation domain for gtkbuilder dialog. 
+    Fixes LP: #640969
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Sep 2010 09:33:18 +0200
 
