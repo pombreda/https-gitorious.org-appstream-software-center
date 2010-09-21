@@ -53,13 +53,13 @@ class Layout(pango.Layout):
             self.cursor_index = self.char_width
         return
 
-    def point_in(self, px, py):
-        a = self.allocation
-        wa = self.widget.allocation
-        px += wa.x
-        py += wa.y
-        r = gtk.gdk.region_rectangle(a)
-        return r.point_in(px, py)
+    #def point_in(self, px, py):
+        #a = self.allocation
+        #wa = self.widget.allocation
+        #px += wa.x
+        #py += wa.y
+        #r = gtk.gdk.region_rectangle(a)
+        #return r.point_in(px, py)
 
     def index_at(self, px, py):
         wa = self.widget.allocation
@@ -81,7 +81,7 @@ class Layout(pango.Layout):
         y += PS*self.widget.line_spacing
         return self.xy_to_index(x, y)
 
-    def highlight(self, cr, start, end):
+    def highlight_all(self, cr):
         w = self.widget
         a = self.widget.allocation
         xo = self.allocation.x+1
@@ -94,21 +94,56 @@ class Layout(pango.Layout):
         else:
             cr.set_source_rgb(0.7,0.7,0.7)
 
+        self._highlight_all(cr, it, xo, yo)
+
+        while it.next_line():
+            self._highlight_all(cr, it, xo, yo)
+
+    def highlight(self, cr, start, end):
+        w = self.widget
+        a = self.widget.allocation
+        xo = self.allocation.x+1
+        yo = self.allocation.y
+
+        if w.has_focus():
+            cr.set_source_rgb(0,1,0)
+        else:
+            cr.set_source_rgb(0.7,0.7,0.7)
+
+        it = self.get_iter()
         self._highlight(cr, it, start, end, xo, yo)
 
-        while it.next_char():
+        while it.next_line():
             self._highlight(cr, it, start, end, xo, yo)
 
     def _highlight(self, cr, it, start, end, xo, yo):
-        i = it.get_index()
-        if i >= start and i < end:
-            x,y,w,h = it.get_char_extents()
-            cr.rectangle(xo+x/PS-1,
-                         yo+y/PS,
-                         w/PS or 4,
-                         h/PS)
-            cr.fill()
+        l = it.get_line()
+        ls = l.start_index
+        le = ls + l.length
+        #print (start, end), (ls, le)
+        e = it.get_char_extents()
 
+        if end < ls or start > le: return
+
+        if start > ls and start <= le:
+            x0 = l.index_to_x(start, 0)/PS
+        else:
+            x0 = 0
+        if end >= ls and end < le:
+             x1 = l.index_to_x(end, 0)/PS
+        else:
+            x1 = it.get_line_extents()[1][2]/PS
+
+        cr.rectangle(x0+xo, e[1]/PS+yo, x1-x0, e[3]/PS)
+        cr.fill()
+
+    def _highlight_all(self, cr, it, xo, yo):
+        x,y,w,h = map(lambda x: x/PS, it.get_line_extents()[1])
+        cr.rectangle(xo+x,
+                     yo+y,
+                     w or 4,
+                     h)
+        cr.fill()
 
 
 class LabelCursor(object):
@@ -120,12 +155,24 @@ class LabelCursor(object):
     def __repr__(self):
         return 'Cursor: '+str((self.section, self.index))
 
+    def get_rectangle(self, layout, a):
+        x, y, w, h = layout.get_cursor_pos(self.index)[1]
+        x = layout.allocation.x + x/PS - 1
+        y = layout.allocation.y + y/PS
+        return x, y, 1, h/PS
+
     def set_position(self, section, index):
         self.index = index
         self.section = section
 
     def get_position(self):
         return self.section, self.index
+
+    def draw(self, cr, layout, a):
+        cr.set_source_rgb(0,0,0)
+        cr.rectangle(*self.get_rectangle(layout, a))
+        cr.fill()
+        return
 
     def zero(self):
         self.index = 0
@@ -171,9 +218,7 @@ class LabelSelection(object):
 class FormattedLabel(gtk.EventBox):
 
 
-    BULLET_POINT = u'\u2022'
-    INDENT = 20
-    VSPACING = 10
+    BULLET_POINT = u'  \u2022  '
 
 
     def __init__(self):
@@ -193,6 +238,7 @@ class FormattedLabel(gtk.EventBox):
         font_desc.set_weight(pango.WEIGHT_BOLD)
         self._bullet.set_font_description(font_desc)
 
+        self.indent, self.vspacing = self._bullet.get_pixel_extents()[1][2:]
         self.cursor = LabelCursor()
         self.selection = LabelSelection(self.cursor)
         self.order = []
@@ -221,13 +267,14 @@ class FormattedLabel(gtk.EventBox):
                 self.selection.set_position(layout.order_id, index)
                 self.queue_draw()
                 break
-                
 
     def _on_press(self, widget, event):
+        if event.button != 1: return
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
                 self.cursor.set_position(layout.order_id, index)
+                #self.queue_draw_area(*self.cursor.get_rectangle(layout, widget.allocation))
                 break
         return
 
@@ -243,11 +290,11 @@ class FormattedLabel(gtk.EventBox):
         height = 0
         for layout in self.order:
             if layout.format_type == Layout.TYPE_BULLET:
-                layout.set_width(PS*(width-self.INDENT))
+                layout.set_width(PS*(width-self.indent))
             else:
                 layout.set_width(PS*width)
-            height += layout.get_pixel_extents()[1][3] + self.VSPACING
-        return width, height
+            height += layout.get_pixel_extents()[1][3] + self.vspacing
+        return width, height - self.vspacing
 
     def _on_allocate(self, widget, a):
         if not self.order: return
@@ -257,11 +304,11 @@ class FormattedLabel(gtk.EventBox):
         for layout in self.order:
             lx,ly,lw,lh = layout.get_pixel_extents()[1]
             if layout.format_type == Layout.TYPE_BULLET:
-                layout.set_allocation(x+lx+self.INDENT, y+ly, width-self.INDENT, lh)
+                layout.set_allocation(x+lx+self.indent, y+ly, width-self.indent, lh)
             else:
                 layout.set_allocation(x+lx, y+ly, width, lh)
 
-            y += ly + lh + self.VSPACING
+            y += ly + lh + self.vspacing
         return
 
     def _new_layout(self):
@@ -284,7 +331,7 @@ class FormattedLabel(gtk.EventBox):
                 layout.highlight(cr, start[1], end[1])
 
         else:
-            layout.highlight(cr, 0, len(layout))
+            layout.highlight_all(cr)
 
         return
 
@@ -311,9 +358,12 @@ class FormattedLabel(gtk.EventBox):
                                     None,           # clip rectangle
                                     self,           # some gtk widget
                                     '',             # detail hint
-                                    la.x,              # x coord
-                                    la.y,              # y coord
+                                    la.x,           # x coord
+                                    la.y,           # y coord
                                     layout)         # a pango.Layout()
+        # draw the cursor
+        #c = self.cursor
+        #c.draw(cr, self.order[c.section], a)
         return
 
     def _paint_bullet_point(self, x, y):
@@ -324,18 +374,14 @@ class FormattedLabel(gtk.EventBox):
                                 None,           # clip rectangle
                                 self,           # some gtk widget
                                 '',             # detail hint
-                                x+4,              # x coord
-                                y+2,              # y coord
+                                x,              # x coord
+                                y,              # y coord
                                 self._bullet)   # a pango.Layout()
 
     def append_paragraph(self, p):
         l = self._new_layout()
         l.format_type = Layout.TYPE_PARAGRAPH
         l.order_id = len(self.order)
-
-        #processed = ''
-        #for frag in p.split('\n'):
-            #processed += frag.strip() + ' '
 
         l.set_text(p)
         self.order.append(l)

@@ -413,6 +413,7 @@ class AppDescription(gtk.VBox):
         self.show_all()
         return    
 
+
 class PackageInfo(gtk.HBox):
 
     def __init__(self, key, info_keys):
