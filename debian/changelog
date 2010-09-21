@@ -1,4 +1,4 @@
-software-center (2.1.22.4) UNRELEASED; urgency=low
+software-center (2.1.22.4) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/app.py:
@@ -13,7 +13,7 @@ software-center (2.1.22.4) UNRELEASED; urgency=low
     - test for the gwibber-poster binary (that one is called when
       the share button is clicked) as well as gconf
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Sep 2010 13:57:10 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Sep 2010 16:02:24 +0200
 
 software-center (2.1.22.3) maverick; urgency=low
 
