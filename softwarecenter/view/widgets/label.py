@@ -82,34 +82,17 @@ class Layout(pango.Layout):
         return self.xy_to_index(x, y)
 
     def highlight_all(self, cr):
-        w = self.widget
-        a = self.widget.allocation
-        xo = self.allocation.x+1
+        xo = self.allocation.x
         yo = self.allocation.y
-
         it = self.get_iter()
-
-        if w.has_focus():
-            cr.set_source_rgb(0,1,0)
-        else:
-            cr.set_source_rgb(0.7,0.7,0.7)
-
         self._highlight_all(cr, it, xo, yo)
 
         while it.next_line():
             self._highlight_all(cr, it, xo, yo)
 
     def highlight(self, cr, start, end):
-        w = self.widget
-        a = self.widget.allocation
-        xo = self.allocation.x+1
+        xo = self.allocation.x
         yo = self.allocation.y
-
-        if w.has_focus():
-            cr.set_source_rgb(0,1,0)
-        else:
-            cr.set_source_rgb(0.7,0.7,0.7)
-
         it = self.get_iter()
         self._highlight(cr, it, start, end, xo, yo)
 
@@ -139,10 +122,7 @@ class Layout(pango.Layout):
 
     def _highlight_all(self, cr, it, xo, yo):
         x,y,w,h = map(lambda x: x/PS, it.get_line_extents()[1])
-        cr.rectangle(xo+x,
-                     yo+y,
-                     w or 4,
-                     h)
+        cr.rectangle(xo+x, yo+y, w or 4, h)
         cr.fill()
 
 
@@ -274,7 +254,6 @@ class FormattedLabel(gtk.EventBox):
             index = layout.index_at(int(event.x), int(event.y))
             if index:
                 self.cursor.set_position(layout.order_id, index)
-                #self.queue_draw_area(*self.cursor.get_rectangle(layout, widget.allocation))
                 break
         return
 
@@ -318,6 +297,7 @@ class FormattedLabel(gtk.EventBox):
         return layout
 
     def _highlight_selection(self, cr, i, start, end, layout):
+        cr.set_source_rgb(0,1,0)
         if i == start[0]:
             if end[0] > i:
                 layout.highlight(cr, start[1], len(layout))
@@ -337,6 +317,7 @@ class FormattedLabel(gtk.EventBox):
 
     def draw(self, widget, event):
         if not self.order: return
+    
         a = self.allocation
         cr = widget.window.cairo_create()
         start, end = self.selection.get_selection()
