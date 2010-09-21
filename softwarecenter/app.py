@@ -506,6 +506,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         channel_display_name = _("Previous Purchases")
         self.view_switcher.get_model().channel_manager.add_channel(
             channel_display_name, icon=None, query=query)
+        if not self.view_switcher.is_available_node_expanded():
+            self.view_switcher.expand_available_node()
         self.view_switcher.select_channel_node(channel_display_name, False)
             
     def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
