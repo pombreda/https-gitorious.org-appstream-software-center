@@ -206,7 +206,7 @@ class AppDetails(object):
                 return channel
         else:
             # check if we have an apturl request to enable a channel
-            channel_matches = re.findall(r'channel=([a-z,-]*)', self._app.request)
+            channel_matches = re.findall(r'channel=([0-9a-z,-]*)', self._app.request)
             if channel_matches:
                 channel = channel_matches[0]
                 channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
