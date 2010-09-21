@@ -505,14 +505,9 @@ class AppDetails(object):
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """
-        # this is basically just a test to see if canonical-partner is enabled, it won't return true for anything else really..
-        channel = self.channelname
-        if not channel:
-            return False
-        if channel.count('-') != 1:
-            return False
-        available = self._cache.component_available(channel.split('-')[0], channel.split('-')[1])
-        return (not available)
+        p = os.path.join(apt_pkg.config.find_dir("Dir::Etc::sourceparts"),
+                         "%s.list" % self.channelname)
+        return not os.path.exists(p)
 
     def _unavailable_component(self, component_to_check=None):
         """ Check if the given doc refers to a component that is currently not enabled """
