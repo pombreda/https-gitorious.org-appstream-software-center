@@ -220,6 +220,14 @@ class AppDetails(object):
             return APP_INSTALL_CHANNELS_PATH + channel + ".list"
 
     @property
+    def eulafile(self):
+        channel = self.channelname
+        if channel:
+            eulafile =  APP_INSTALL_CHANNELS_PATH + channel + ".eula"
+            if os.path.exists(eulafile):
+                return eulafile
+
+    @property
     def component(self):
         """ 
         get the component (main, universe, ..)
@@ -257,7 +265,12 @@ class AppDetails(object):
         if self._pkg:
             return self._pkg.candidate.description
         elif self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION) or ""
+            if self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION):
+                return self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION)
+        # if its in need-source state and we have a eula, display it
+        # as the description
+        if self.pkg_state == PKG_STATE_NEEDS_SOURCE and self.eulafile:
+            return open(self.eulafile).read()
         return ""
 
     @property

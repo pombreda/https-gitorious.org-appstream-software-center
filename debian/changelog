@@ -8,6 +8,7 @@ software-center (2.1.22.4) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/db/application.py:
     - fix adding channels via apturl (LP: #643571)
+    - allow displaying text only channel eula files (LP: #643571)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Sep 2010 13:57:10 +0200
 
