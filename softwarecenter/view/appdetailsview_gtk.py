@@ -45,6 +45,7 @@ from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
+from widgets.label import FormattedLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 
 if os.path.exists("./softwarecenter/enums.py"):
@@ -316,64 +317,24 @@ class AppDescription(gtk.VBox):
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
-        self.body = gtk.VBox()
+        self.description = FormattedLabel()
         self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
 
-        self.pack_start(self.body, False)
+        self.pack_start(self.description, False)
         self.pack_start(self.footer, False)
         self.show_all()
-
-        self.paragraphs = []
-        self.points = []
         return
 
     def clear(self):
-        for child in self.body.get_children():
-            self.body.remove(child)
-            child.destroy()
-
-        self.paragraphs = []
-        self.points = []
+        self.description.clear()
         return
 
-    def append_paragraph(self, fragment):
-        p = gtk.Label()
-        p.set_markup(fragment)
-        p.set_line_wrap(True)
-        p.set_selectable(True)
-
-        hb = gtk.HBox()
-        hb.pack_start(p, False)
-
-        self.body.pack_start(hb, False)
-        self.paragraphs.append(p)
+    def append_paragraph(self, p):
+        self.description.append_paragraph(p.strip())
         return
 
-    def append_bullet_point(self, fragment):
-        for bullet in self.BULLETS:
-            fragment = fragment.replace(bullet, '')
-
-        bullet = gtk.Label()
-        bullet.set_markup(u"  <b>\u2022</b>")
-
-        a = gtk.Alignment(0.5, 0.0)
-        a.add(bullet)
-
-        point = gtk.Label()
-        point.set_markup(fragment)
-        point.set_line_wrap(True)
-        point.set_selectable(True)
-
-        hb = gtk.HBox(spacing=mkit.EM)
-        hb.pack_start(a, False)
-        hb.pack_start(point, False)
-
-        a = gtk.Alignment(xscale=1.0, yscale=1.0)
-        a.set_padding(4,4,0,0)
-        a.add(hb)
-
-        self.body.pack_start(a, False)
-        self.points.append(point)
+    def append_bullet(self, point):
+        self.description.append_bullet(point[2:].strip())
         return
 
     def set_description(self, desc, appname):
@@ -403,7 +364,7 @@ class AppDescription(gtk.VBox):
                 if part[:2] in self.BULLETS:
                     # if there's an existing bullet, append it and start anew
                     if in_blist:
-                        self.append_bullet_point(processed_frag)
+                        self.append_bullet(processed_frag)
                         processed_frag = ''
 
                     in_blist = True
@@ -435,7 +396,7 @@ class AppDescription(gtk.VBox):
                             processed_frag += '\n'
 
                         # append a bullet point
-                        self.append_bullet_point(processed_frag)
+                        self.append_bullet(processed_frag)
                         # reset
                         processed_frag = ''
                         in_blist = False
@@ -445,7 +406,7 @@ class AppDescription(gtk.VBox):
 
         if processed_frag:
             if processed_frag[:2] in self.BULLETS:
-                self.append_bullet_point(processed_frag)
+                self.append_bullet(processed_frag)
             else:
                 self.append_paragraph(processed_frag)
 
@@ -1077,11 +1038,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.app_info.label.set_size_request(-1, -1)
 
-        for p in self.app_desc.paragraphs:
-            p.set_size_request(w-5*mkit.EM-166, -1)
-            
-        for pt in self.app_desc.points:
-            pt.set_size_request(w-7*mkit.EM-166, -1)
+        desc = self.app_desc.description
+        size = desc.height_from_width(w-5*mkit.EM-166)
+        if size:
+            desc.set_size_request(*size)
 
         self.version_info.set_width(w-6*mkit.EM)
         self.license_info.set_width(w-6*mkit.EM)
@@ -1116,11 +1076,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # draw icon frame as well...
             self._draw_icon_frame(cr)
 
+        self.app_desc.description.draw(widget, event)
+
         if self.action_bar.get_property('visible'):
             self.action_bar.draw(cr,
                                  self.action_bar.allocation,
                                  event.area)
-        
+
         if self.addons_bar.get_property('visible'):
             self.addons_bar.draw(cr,
                                  self.addons_bar.allocation,
@@ -1243,8 +1205,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         app_desc_hb.pack_start(self.app_desc, False)
 
         # a11y for description
-        self.app_desc.body.set_property("can-focus", True)
-        self.app_desc.body.a11y = self.app_desc.body.get_accessible()
+        self.app_desc.description.set_property("can-focus", True)
+        self.app_desc.description.a11y = self.app_desc.description.get_accessible()
 
         # screenshot
         self.screenshot = ScreenshotView(self.distro, self.icons)
@@ -1352,7 +1314,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             description = " "
         self.app_desc.set_description(description, appname)
         # a11y for description
-        self.app_desc.body.a11y.set_name("Description: " + description)
+        #self.app_desc.body.a11y.set_name("Description: " + description)
 
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website:
