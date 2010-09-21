@@ -291,7 +291,6 @@ class PackageStatusBar(StatusBar):
             channelfile = self.app_details.channelfile
             # it has a price and is not available 
             if channelfile:
-                # FIXME: deal with the EULA stuff
                 self.set_button_label(_("Use This Source"))
             # check if it comes from a non-enabled component
             elif self.app_details._unavailable_component():
@@ -1131,7 +1130,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         if self.homepage_btn.get_property('visible'):
             self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
-        if self._gwibber_is_available:
+        if self.share_btn.get_property('visible'):
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
         del cr
         return
@@ -1331,9 +1330,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.license_info.hide()
             self.support_info.hide()
             self.totalsize_info.hide()
-            self.desc_section.hide()
         else:
-            self.desc_section.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
@@ -1362,7 +1359,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self._gwibber_is_available:
+        if (self._gwibber_is_available and 
+            app_details.pkg_state not in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)):
             self.share_btn.show()
         else:
             self.share_btn.hide()

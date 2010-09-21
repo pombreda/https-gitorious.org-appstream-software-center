@@ -206,7 +206,7 @@ class AppDetails(object):
                 return channel
         else:
             # check if we have an apturl request to enable a channel
-            channel_matches = re.findall(r'channel=([a-z,-]*)', self._app.request)
+            channel_matches = re.findall(r'channel=([0-9a-z,-]*)', self._app.request)
             if channel_matches:
                 channel = channel_matches[0]
                 channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
@@ -218,6 +218,14 @@ class AppDetails(object):
         channel = self.channelname
         if channel:
             return APP_INSTALL_CHANNELS_PATH + channel + ".list"
+
+    @property
+    def eulafile(self):
+        channel = self.channelname
+        if channel:
+            eulafile =  APP_INSTALL_CHANNELS_PATH + channel + ".eula"
+            if os.path.exists(eulafile):
+                return eulafile
 
     @property
     def component(self):
@@ -257,7 +265,12 @@ class AppDetails(object):
         if self._pkg:
             return self._pkg.candidate.description
         elif self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION) or ""
+            if self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION):
+                return self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION)
+        # if its in need-source state and we have a eula, display it
+        # as the description
+        if self.pkg_state == PKG_STATE_NEEDS_SOURCE and self.eulafile:
+            return open(self.eulafile).read()
         return ""
 
     @property
@@ -505,14 +518,9 @@ class AppDetails(object):
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """
-        # this is basically just a test to see if canonical-partner is enabled, it won't return true for anything else really..
-        channel = self.channelname
-        if not channel:
-            return False
-        if channel.count('-') != 1:
-            return False
-        available = self._cache.component_available(channel.split('-')[0], channel.split('-')[1])
-        return (not available)
+        p = os.path.join(apt_pkg.config.find_dir("Dir::Etc::sourceparts"),
+                         "%s.list" % self.channelname)
+        return not os.path.exists(p)
 
     def _unavailable_component(self, component_to_check=None):
         """ Check if the given doc refers to a component that is currently not enabled """
