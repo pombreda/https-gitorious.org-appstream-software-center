@@ -1130,7 +1130,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         if self.homepage_btn.get_property('visible'):
             self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
-        if self._gwibber_is_available:
+        if self.share_btn.get_property('visible'):
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
         del cr
         return
