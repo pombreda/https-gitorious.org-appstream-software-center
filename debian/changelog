@@ -3,6 +3,11 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
     - setup cachedir to avoid unneeded wadl downloading
+  * softwarecenter/utils.py:
+    - fix crash if desktop_file_path does not contain "applications"
+      (LP: #641071)
+  * softwarecenter/backend/aptd.py:
+    - add keyfile for whitelisted channel (LP: #645120)
 
   [ Gary Lasker ]
   * softwarecenter/app.py,
@@ -10,7 +15,7 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
     - fix multiple instances of the "Previous Purchases"
       item in the left navigation pane (LP: #645439)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Sep 2010 18:38:03 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Sep 2010 18:44:25 -0400
 
 software-center (2.1.22.4) maverick; urgency=low
 
