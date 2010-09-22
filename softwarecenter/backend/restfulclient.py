@@ -293,13 +293,17 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
                    (str,),
                   ),
         }
-
+    
     def __init__(self):
         gobject.GObject.__init__(self)
         self.distro = get_distro()
+        self.latest_etag = "invalid-etag"
+        self.log = logging.getLogger("softwarecenter.backend.scagent")
     def _download_complete_cb(self, f, result):
         try:
-            content = f.load_contents_finish(result)[0]
+            (content, length, etag) = f.load_contents_finish(result)
+            # store the etag so that we can send it to the server
+            self.latest_etag = etag
         except glib.GError, e:
             self.emit("error", str(e))
             return
@@ -319,6 +323,20 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
                 setattr(o, key, value)
             items.append(o)
         self.emit("available", items)
+    def _query_info_complete_cb(self, f, result):
+        try:
+            result = f.query_info_finish(result)
+            etag = result.get_etag()
+        except glib.GError, e:
+            self.log.warn("error in query_info '%s'" % e)
+            self.emit("error", str(e))
+            return
+        # something changed, go for it
+        if etag != self.latest_etag:
+            self.log.debug("etag '%s' != '%s' redownloading" % (etag, self.latest_etag))
+            f.load_contents_async(self._download_complete_cb)
+        else:
+            self.log.debug("etags match (%s == %s), doing nothing" % (etag, self.latest_etag))
     def query_available(self):
         series_name = self.distro.get_codename()
         arch_tag = get_current_arch()
@@ -328,7 +346,8 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             'series' : series_name,
             'arch' : arch_tag, }
         f = gio.File(url)
-        f.load_contents_async(self._download_complete_cb)
+        f.query_info_async(gio.FILE_ATTRIBUTE_ETAG_VALUE,
+                           self._query_info_complete_cb)
 
 # test code
 def _login_success(lp, token):
