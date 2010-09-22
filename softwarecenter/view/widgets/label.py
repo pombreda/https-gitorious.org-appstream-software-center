@@ -4,16 +4,6 @@ import gobject
 
 from pango import SCALE as PS
 
-p = """p7zip is the Unix port of 7-Zip, a file archiver that archives with very high compression ratios.
-
-p7zip-full provides:"""
-
-
-bullet = """- /usr/bin/7za
-   a standalone version of the 7-zip tool that handles 7z archives
-   (implementation of the LZMA compression algorithm) and some other
-   formats."""
-
 
 class Layout(pango.Layout):
 
@@ -199,6 +189,12 @@ class FormattedLabel(gtk.EventBox):
 
     BULLET_POINT = u'  \u2022  '
 
+    
+    SELECT_LINE = 1
+    SELECT_PARA = 2
+    SELECT_ALL  = 3
+    SELECT_FREE = 4
+
 
     def __init__(self):
         gtk.EventBox.__init__(self)
@@ -222,13 +218,14 @@ class FormattedLabel(gtk.EventBox):
         self.selection = LabelSelection(self.cursor)
         self.order = []
 
+        self._sel_mode = self.SELECT_FREE
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
         self._highlight_rgb = (0,1,0)
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press)
-        self.connect('enter-notify-event', self._on_enter)
-        self.connect('leave-notify-event', self._on_leave)
+        #self.connect('enter-notify-event', self._on_enter)
+        #self.connect('leave-notify-event', self._on_leave)
         #self.connect('button-release-event', self._on_release)
         self.connect('motion-notify-event', self._on_motion)
         self.connect('style-set', self._on_style_set)
@@ -247,6 +244,7 @@ class FormattedLabel(gtk.EventBox):
 
     def _on_motion(self, widget, event):
         if not (event.state & gtk.gdk.BUTTON1_MASK): return
+        self._sel_mode = self.SELECT_FREE
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
@@ -257,18 +255,75 @@ class FormattedLabel(gtk.EventBox):
     def _on_press(self, widget, event):
         self.grab_focus()
         if event.button != 1: return
+        index = layout = None
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
                 self.cursor.set_position(layout.order_id, index)
+                if (event.type == gtk.gdk._2BUTTON_PRESS):
+                    self._2click_select(self._sel_mode, layout, index)
                 break
         return
 
     def _on_release(self, widget, event):
-        for layout in self.order:
-            index = layout.index_at(int(event.x), int(event.y))
-            if index:
-                pass
+        print event.state, event.button
+        return
+
+    def _get_line_index_range(self, layout, i):
+        keep_going = True
+        it = layout.get_iter()
+        while keep_going:
+            l = it.get_line()
+            ls = l.start_index
+            le = ls + l.length
+            if i >= ls and i <= le:
+                return ls, le
+            keep_going = it.next_line()
+        return None
+
+    def _2click_select(self, mode, layout, index):
+        if mode == self.SELECT_FREE:
+            print 'sel line'
+            self._select_line(layout, index)
+        elif mode == self.SELECT_LINE:
+            print 'sel para'
+            self._select_para(layout, index)
+        elif mode == self.SELECT_PARA:
+            print 'sel all'
+            self._select_all(layout, index)
+        else:
+            # select none
+            self._sel_mode = self.SELECT_FREE
+            self.selection.clear()
+            self.queue_draw()
+        return
+
+    def _select_line(self, layout, i):
+        self._sel_mode = self.SELECT_LINE
+        r = self._get_line_index_range(layout, i)
+        if r:
+            self.cursor.index = r[0]
+            self.selection.index = r[1]
+            self.selection.order_id = layout.order_id
+            self.queue_draw()
+        return
+
+    def _select_para(self, layout, i):
+        self._sel_mode = self.SELECT_PARA
+        self.cursor.index = 0
+        self.selection.index = len(layout)
+        self.selection.order_id = layout.order_id
+        self.queue_draw()
+        return
+
+    def _select_all(self, layout, index):
+        self._sel_mode = self.SELECT_ALL
+        layout1 = self.order[-1]
+        self.cursor.index = 0
+        self.cursor.section = 0
+        self.selection.index = len(layout1)
+        self.selection.section = layout1.order_id
+        self.queue_draw()
         return
 
     def height_from_width(self, width):
@@ -392,26 +447,3 @@ class FormattedLabel(gtk.EventBox):
         self.selection.clear()
         self.order = []
         return
-
-
-if __name__ == '__main__':
-
-    w = gtk.Window()
-    w.set_size_request(300,300)
-    w.set_border_width(3)
-    vbox = gtk.VBox()
-    w.add(vbox)
-
-    label = FormattedLabel()
-    label.append_paragraph(p)
-    label.append_bullet(bullet)
-    label.append_paragraph(p)
-    vbox.pack_start(label, False)
-
-    vbox.pack_end(gtk.Statusbar(), False)
-
-    w.show_all()
-    vbox.connect('expose-event', label.draw)
-    w.connect('destroy', gtk.main_quit)
-
-    gtk.main()
