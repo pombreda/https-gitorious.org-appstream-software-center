@@ -370,8 +370,8 @@ def update_from_software_center_agent(db, cache):
     sca = SoftwareCenterAgentAnonymous()
     sca.connect("available", _available_cb)
     sca.connect("error", _error_cb)
-    sca.query_available()
     sca.available = None
+    sca.query_available()
     context = glib.main_context_default()
     while sca.available is None:
         while context.pending():

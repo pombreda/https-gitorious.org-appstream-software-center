@@ -74,7 +74,7 @@ if __name__ == "__main__":
     # the following requires a http connection, so we do it in a 
     # seperate database
     if not update_from_software_center_agent(db, cache):
-        logging.warn("update_from_software_center_agent_failed")
+        logging.debug("no updates from update-software-center-agent")
         sys.exit(1)
 
     # flush ...

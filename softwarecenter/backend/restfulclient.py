@@ -362,6 +362,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             f.load_contents_async(self._download_complete_cb)
         else:
             self.log.debug("etags match (%s == %s), doing nothing" % (etag, self.latest_etag))
+            self.emit("available", [])
     def query_available(self):
         """ query what software is available for the current codename/arch 
             Note that this function is async and emits "available" or "error"
