@@ -76,6 +76,8 @@ class RestfulClientWorker(threading.Thread):
         self.daemon = True
         self.error = None
         self._logger = logging.getLogger("softwarecenter.backend")
+        self._cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
+                                      "restfulclient")
 
     def run(self):
         """
@@ -83,7 +85,9 @@ class RestfulClientWorker(threading.Thread):
         """
         self._logger.debug("lp worker thread run")
         try:
-            self.service = ServiceRoot(self._authorizer, self._service_root_url)
+            self.service = ServiceRoot(self._authorizer, 
+                                       self._service_root_url,
+                                       self._cachedir)
         except:
             logging.exception("worker thread can not connect to service root")
             self.error = "ERROR_SERVICE_ROOT"

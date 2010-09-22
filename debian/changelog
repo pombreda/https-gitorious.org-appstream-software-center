@@ -1,3 +1,10 @@
+software-center (2.1.22.5) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/restfulclient.py:
+    - setup cachedir to avoid unneeded wadl downloading
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 22 Sep 2010 18:03:24 +0200
+
 software-center (2.1.22.4) maverick; urgency=low
 
   [ Gary Lasker ]
