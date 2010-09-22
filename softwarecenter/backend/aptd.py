@@ -268,6 +268,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 continue
             sourcepart = os.path.basename(channelfile)
             yield self.add_sources_list_entry(entry, sourcepart)
+            keyfile = channelfile.replace(".list",".key")
+            if os.path.exists(keyfile):
+                yield self.aptd_client.add_vendor_key_from_file(keyfile, wait=True)
         yield self.reload(sourcepart)
 
     @inline_callbacks

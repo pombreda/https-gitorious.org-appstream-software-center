@@ -5,6 +5,8 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - fix crash if desktop_file_path does not contain "applications"
       (LP: #641071)
+  * softwarecenter/backend/aptd.py:
+    - add keyfile for whitelisted channel (LP: #645120)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 22 Sep 2010 18:03:24 +0200
 
