@@ -366,8 +366,8 @@ def update_from_software_center_agent(db, cache):
     def _error_cb(sca, error):
         logging.warn("error: %s" % error)
         sca.available = []
-    from softwarecenter.backend.restfulclient import SoftwareCenterAgent
-    sca = SoftwareCenterAgent()
+    from softwarecenter.backend.restfulclient import SoftwareCenterAgentAnonymous
+    sca = SoftwareCenterAgentAnonymous()
     sca.connect("available", _available_cb)
     sca.connect("error", _error_cb)
     sca.query_available()
