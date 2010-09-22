@@ -72,11 +72,11 @@ class Layout(pango.Layout):
         return self.xy_to_index(x, y)
 
     def highlight_all(self, cr):
+
         xo = self.allocation.x
         yo = self.allocation.y
         it = self.get_iter()
         self._highlight_all(cr, it, xo, yo)
-
         while it.next_line():
             self._highlight_all(cr, it, xo, yo)
 
@@ -85,7 +85,6 @@ class Layout(pango.Layout):
         yo = self.allocation.y
         it = self.get_iter()
         self._highlight(cr, it, start, end, xo, yo)
-
         while it.next_line():
             self._highlight(cr, it, start, end, xo, yo)
 
@@ -221,13 +220,20 @@ class FormattedLabel(gtk.EventBox):
 
         self._sel_mode = self.SELECT_FREE
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
+        self._highlight_rgb = (0,1,0)
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press)
         #self.connect('enter-notify-event', self._on_enter)
         #self.connect('leave-notify-event', self._on_leave)
-        #self.connect('button-release-event', self._on_release)
+        self.connect('button-release-event', self._on_release)
         self.connect('motion-notify-event', self._on_motion)
+        self.connect('style-set', self._on_style_set)
+        return
+
+    def _on_style_set(self, widget, old_style):
+        c = self.style.base[gtk.STATE_SELECTED]
+        self._highlight_rgb = c.red_float, c.green_float, c.blue_float
         return
 
     def _on_enter(self, widget, event):
@@ -247,6 +253,7 @@ class FormattedLabel(gtk.EventBox):
                 break
 
     def _on_press(self, widget, event):
+        self.grab_focus()
         if event.button != 1: return
         index = layout = None
         for layout in self.order:
@@ -260,10 +267,7 @@ class FormattedLabel(gtk.EventBox):
         return
 
     def _on_release(self, widget, event):
-        for layout in self.order:
-            index = layout.index_at(int(event.x), int(event.y))
-            if index:
-                pass
+        print event.state
         return
 
     def _get_line_index_range(self, layout, i):
@@ -335,7 +339,6 @@ class FormattedLabel(gtk.EventBox):
         return layout
 
     def _highlight_selection(self, cr, i, start, end, layout):
-        cr.set_source_rgb(0,1,0)
         if i == start[0]:
             if end[0] > i:
                 layout.highlight(cr, start[1], len(layout))
@@ -355,10 +358,14 @@ class FormattedLabel(gtk.EventBox):
 
     def draw(self, widget, event):
         if not self.order: return
-    
-        a = self.allocation
-        cr = widget.window.cairo_create()
+
         start, end = self.selection.get_selection()
+
+        cr = widget.window.cairo_create()
+        if self.has_focus():
+            cr.set_source_rgb(*self._highlight_rgb)
+        else:
+            cr.set_source_rgb(0.8, 0.8, 0.8)
 
         for layout in self.order:
             la = layout.allocation
@@ -368,7 +375,7 @@ class FormattedLabel(gtk.EventBox):
                 self._highlight_selection(cr, i, start, end, layout)
 
             if layout.format_type == Layout.TYPE_BULLET:
-                self._paint_bullet_point(a.x, la.y)
+                self._paint_bullet_point(self.allocation.x, la.y)
 
             # draw the layout
             self.style.paint_layout(self.window,    # gdk window
