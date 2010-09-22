@@ -22,8 +22,10 @@
 import os
 import gobject
 gobject.threads_init()
+import gio
 import glib
 import logging
+import simplejson
 import time
 import threading
 
@@ -279,6 +281,55 @@ class UbuntuSSOlogin(LoginBackend):
         if self.worker_thread:
             self.worker_thread.shutdown()
 
+class SoftwareCenterAgentAnonymous(gobject.GObject):
+
+    __gsignals__ = {
+        "available" : (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_NONE, 
+                              (gobject.TYPE_PYOBJECT,),
+                             ),
+        "error" : (gobject.SIGNAL_RUN_LAST,
+                   gobject.TYPE_NONE, 
+                   (str,),
+                  ),
+        }
+
+    def __init__(self):
+        gobject.GObject.__init__(self)
+        self.distro = get_distro()
+    def _download_complete_cb(self, f, result):
+        try:
+            content = f.load_contents_finish(result)[0]
+        except glib.GError, e:
+            self.emit("error", str(e))
+            return
+        self._decode_result(content)
+    def _decode_result(self, content):
+        # decode and check if its valid
+        try:
+            json_list =  simplejson.loads(content)
+        except simplejson.JSONDecodeError, e:
+            self.emit("error", str(e))
+            return
+        # all good, convert and emit available items
+        items = []
+        for item_dict in json_list:
+            o = EmptyObject()
+            for (key, value) in item_dict.iteritems():
+                setattr(o, key, value)
+            items.append(o)
+        self.emit("available", items)
+    def query_available(self):
+        series_name = self.distro.get_codename()
+        arch_tag = get_current_arch()
+        lang = "en"
+        url = BUY_SOMETHING_HOST + "/apps/%(lang)s/ubuntu/%(series)s/%(arch)s" % {
+            'lang' : lang,
+            'series' : series_name,
+            'arch' : arch_tag, }
+        f = gio.File(url)
+        f.load_contents_async(self._download_complete_cb)
+
 # test code
 def _login_success(lp, token):
     print "success", lp, token
@@ -297,15 +348,17 @@ def _login_need_user_and_password(sso):
 def _available_for_me_result(scagent, result):
     print "_available_for_me: ", [x.package_name for x in result]
 
-def _available( scagent, result):
+def _available(scagent, result):
     print "_available: ", [x.name for x in result]
+def _error(scaagent, errormsg):
+    print "_error:", errormsg
 
 if __name__ == "__main__":
     import sys
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) < 2:
-        print "need an argument, one of:  'agent' or 'sso'"
+        print "need an argument, one of:  'agent','agent-anon' or 'sso'"
         sys.exit(1)
 
     if sys.argv[1] == "agent":
@@ -322,6 +375,12 @@ if __name__ == "__main__":
         sso.connect("login-failed", _login_failed)
         sso.connect("need-username-password", _login_need_user_and_password)
         sso.login()
+        
+    elif sys.argv[1] == "agent-anon":
+        anon_agent = SoftwareCenterAgentAnonymous()
+        anon_agent.connect("available", _available)
+        anon_agent.connect("error", _error)
+        anon_agent.query_available()
         
     else:
         print "unknown option"
