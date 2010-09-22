@@ -17,7 +17,7 @@ All non UI code must come with tests in the test/ subdirectoy.
 The following environment is suported:
 
 SOFTWARE_CENTER_USE_GCONF_PROXY - set user proxy instead of using system-wide
-SOFWARE_CENTER_USE_BUILTIN_LOGIN - use builin login instead of ubuntu-sso-client
+SOFTWARE_CENTER_USE_BUILTIN_LOGIN - use builin login instead of ubuntu-sso-client
 SOFTWARE_CENTER_APPDETAILS_WEBKIT - use the webkit appdetails instead of gtk
 APPVIEW_DEBUG_TERMS - show debug output for the terms in a search
 SOFTWARE_CENTER_BUY_HOST - use a alternative hosts to query for pay software
