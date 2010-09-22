@@ -1206,7 +1206,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         app_desc_hb.pack_start(self.app_desc, False)
 
         # a11y for description
-        #self.app_desc.description.set_property("can-focus", True)
+        self.app_desc.description.set_property("can-focus", True)
         self.app_desc.description.a11y = self.app_desc.description.get_accessible()
 
         # screenshot
