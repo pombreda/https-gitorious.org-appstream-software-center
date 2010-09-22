@@ -5,11 +5,12 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
     - setup cachedir to avoid unneeded wadl downloading
 
   [ Gary Lasker ]
-  * softwarecenter/app.py:
+  * softwarecenter/app.py,
+    softwarecenter/backend/channel.py:
     - fix multiple instances of the "Previous Purchases"
       item in the left navigation pane (LP: #645439)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Sep 2010 14:12:24 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Sep 2010 18:38:03 -0400
 
 software-center (2.1.22.4) maverick; urgency=low
 
