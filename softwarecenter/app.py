@@ -500,12 +500,19 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _available_for_me_result(self, scagent, result_list):
         #print "available_for_me_result", result_list
         from db.update import add_from_purchased_but_needs_reinstall_data
-        query = add_from_purchased_but_needs_reinstall_data(result_list, 
+        channel_manager = self.view_switcher.get_model().channel_manager
+        channel_display_name = _("Previous Purchases")
+        # first check if the Previous Purchases channel is already displayed
+        needs_add_channel = True
+        for channel in channel_manager.channels:
+            if channel.get_channel_name() == channel_display_name:
+                needs_add_channel = False
+                break
+        if needs_add_channel:
+            query = add_from_purchased_but_needs_reinstall_data(result_list, 
                                                            self.db,
                                                            self.cache)
-        channel_display_name = _("Previous Purchases")
-        self.view_switcher.get_model().channel_manager.add_channel(
-            channel_display_name, icon=None, query=query)
+            channel_manager.add_channel(channel_display_name, icon=None, query=query)
         if not self.view_switcher.is_available_node_expanded():
             self.view_switcher.expand_available_node()
         self.view_switcher.select_channel_node(channel_display_name, False)
