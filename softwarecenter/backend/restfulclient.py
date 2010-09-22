@@ -29,9 +29,9 @@ import simplejson
 import time
 import threading
 
-from softwarecenter.enums import BUY_SOMETHING_HOST
 from softwarecenter.distro import get_distro
-from softwarecenter.utils import get_current_arch
+from softwarecenter.enums import BUY_SOMETHING_HOST
+from softwarecenter.utils import get_current_arch, uri_to_filename
 
 # possible workaround for bug #599332 is to try to import lazr.restful
 # import lazr.restful
@@ -282,6 +282,11 @@ class UbuntuSSOlogin(LoginBackend):
             self.worker_thread.shutdown()
 
 class SoftwareCenterAgentAnonymous(gobject.GObject):
+    """ Worker object that does the anonymous communication 
+        with the software-center-agent. Fully async and supports
+        etags to ensure we don't re-download data we already 
+        have
+    """
 
     __gsignals__ = {
         "available" : (gobject.SIGNAL_RUN_LAST,
@@ -297,18 +302,37 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
     def __init__(self):
         gobject.GObject.__init__(self)
         self.distro = get_distro()
-        self.latest_etag = "invalid-etag"
         self.log = logging.getLogger("softwarecenter.backend.scagent")
+        # make sure we have the cachdir
+        if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
+            os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
+    def _load_etag(self, etagfile, uri):
+        """ take a etagfile path and uri and load the latest etag value
+            for that host. If there is none, return a invalid etag (no
+            quote) that will never match
+        """
+        if os.path.exists(etagfile):
+            return open(etagfile).read()
+        else:
+            return "invalid-etag"
+    def _save_etag(self, etagfile, etag):
+        """ save the given etag in the path provided as etagfile """
+        open(etagfile, "w").write(etag)        
     def _download_complete_cb(self, f, result):
+        """ callback when gio finished the download """
         try:
             (content, length, etag) = f.load_contents_finish(result)
             # store the etag so that we can send it to the server
             self.latest_etag = etag
+            self._save_etag(self.etagfile, etag)
         except glib.GError, e:
             self.emit("error", str(e))
             return
-        self._decode_result(content)
-    def _decode_result(self, content):
+        self._decode_result_and_emit_signal(content)
+    def _decode_result_and_emit_signal(self, content):
+        """ helper that decodes a json string to to python objects
+            and emits the result via a gobject signal
+        """
         # decode and check if its valid
         try:
             json_list =  simplejson.loads(content)
@@ -324,6 +348,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             items.append(o)
         self.emit("available", items)
     def _query_info_complete_cb(self, f, result):
+        """ callback when the query for the etag value is finished """
         try:
             result = f.query_info_finish(result)
             etag = result.get_etag()
@@ -338,6 +363,10 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
         else:
             self.log.debug("etags match (%s == %s), doing nothing" % (etag, self.latest_etag))
     def query_available(self):
+        """ query what software is available for the current codename/arch 
+            Note that this function is async and emits "available" or "error"
+            signals when done
+        """
         series_name = self.distro.get_codename()
         arch_tag = get_current_arch()
         lang = "en"
@@ -345,6 +374,10 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             'lang' : lang,
             'series' : series_name,
             'arch' : arch_tag, }
+        # load latest etag if available
+        self.etagfile = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
+                                     uri_to_filename(url))
+        self.latest_etag = self._load_etag(self.etagfile, url)
         f = gio.File(url)
         f.query_info_async(gio.FILE_ATTRIBUTE_ETAG_VALUE,
                            self._query_info_complete_cb)

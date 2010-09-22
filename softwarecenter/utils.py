@@ -276,6 +276,9 @@ class AlternaSpinner(gtk.VBox):
     def stop(self):
         pass
 
+def uri_to_filename(uri):
+    return apt_pkg.uri_to_filename(uri)
+
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print s
