@@ -506,6 +506,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         channel_display_name = _("Previous Purchases")
         self.view_switcher.get_model().channel_manager.add_channel(
             channel_display_name, icon=None, query=query)
+        if not self.view_switcher.is_available_node_expanded():
+            self.view_switcher.expand_available_node()
         self.view_switcher.select_channel_node(channel_display_name, False)
             
     def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
@@ -578,7 +580,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.scagent = SoftwareCenterAgent()
         self.scagent.connect("available-for-me", self._available_for_me_result)
         # support both buildin or ubuntu-sso-login
-        if "SOFWARE_CENTER_USE_BUILDIN_LOGIN" in os.environ:
+        if "SOFWARE_CENTER_USE_BUILTIN_LOGIN" in os.environ:
             self._login_via_buildin_sso()
         else:
             self._login_via_dbus_sso()
@@ -667,7 +669,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # run software-properties-gtk
         p = subprocess.Popen(
             ["gksu",
-             "--desktop", "/usr/share/applications/software-properties.desktop",
+             "--desktop", "/usr/share/applications/software-properties-gtk.desktop",
              "--",
              "/usr/bin/software-properties-gtk", 
              "-n", 

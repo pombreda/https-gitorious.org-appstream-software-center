@@ -69,7 +69,7 @@ def confirm_remove(parent, datadir, app, db, icons):
     return _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)
 
 def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache):
-    glade_dialog = SimpleGtkbuilderDialog(datadir)
+    glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
     dialog = glade_dialog.dialog_dependency_alert
     dialog.set_resizable(True)
     dialog.set_transient_for(parent)

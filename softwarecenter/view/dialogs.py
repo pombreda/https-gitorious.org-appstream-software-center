@@ -21,9 +21,10 @@ import gtk
 from gettext import gettext as _
 
 class SimpleGtkbuilderDialog(object):
-    def __init__(self, datadir):
+    def __init__(self, datadir, domain):
         # setup ui
         self.builder = gtk.Builder()
+        self.builder.set_translation_domain(domain)
         self.builder.add_from_file(datadir+"/ui/dialogs.ui")
         self.builder.connect_signals(self)
         for o in self.builder.get_objects():
@@ -35,7 +36,7 @@ class SimpleGtkbuilderDialog(object):
 
 
 def confirm_repair_broken_cache(parent, datadir):
-    glade_dialog = SimpleGtkbuilderDialog(datadir)
+    glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
     dialog = glade_dialog.dialog_broken_cache
     dialog.set_default_size(380, -1)
     dialog.set_transient_for(parent)

@@ -1,3 +1,51 @@
+software-center (2.1.22.4) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py:
+    - expand available node if unexpanded when choosing to reinstall
+      previous purchases (LP: #643566)
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/application.py:
+    - fix adding channels via apturl (LP: #643571)
+    - allow displaying text only channel eula files (LP: #643571)
+  * softwarecenter/gwibber_helper.py:
+    - test for the gwibber-poster binary (that one is called when
+      the share button is clicked) as well as gconf
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Sep 2010 16:02:24 +0200
+
+software-center (2.1.22.3) maverick; urgency=low
+
+  * Merge the right branch for the gksu fix for LP: #640906
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Sep 2010 10:50:34 +0200
+
+software-center (2.1.22.2) maverick; urgency=low
+
+  [ Gabor Kelemen ]
+  * Fix invocation of gksu, use the correct .desktop file. 
+    Fixes LP: #640906
+  * Specify the translation domain for gtkbuilder dialog. 
+    Fixes LP: #640969
+  * Correct misplaced parentheses, so that l10n of strings will work. 
+    Fixes LP: #640972
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Sep 2010 09:59:53 +0200
+
+software-center (2.1.22.1) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/viewswitcher.py:
+    - fix intermittent crash in on_cursor_changed (LP: #625030)
+  
+  [ Michael Vogt ]
+  * data/featured.menu.in: 
+    - updated to include armagetronad, calibre, pdfmod as discussed
+      on the ubuntu-desktop list
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 16 Sep 2010 17:41:47 +0200
+
 software-center (2.1.22) maverick; urgency=low
 
   [ Michael Vogt ]
