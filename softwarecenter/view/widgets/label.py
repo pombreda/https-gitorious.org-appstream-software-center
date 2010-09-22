@@ -226,7 +226,7 @@ class FormattedLabel(gtk.EventBox):
         self.connect('button-press-event', self._on_press)
         #self.connect('enter-notify-event', self._on_enter)
         #self.connect('leave-notify-event', self._on_leave)
-        self.connect('button-release-event', self._on_release)
+        #self.connect('button-release-event', self._on_release)
         self.connect('motion-notify-event', self._on_motion)
         self.connect('style-set', self._on_style_set)
         return
@@ -260,14 +260,13 @@ class FormattedLabel(gtk.EventBox):
             index = layout.index_at(int(event.x), int(event.y))
             if index:
                 self.cursor.set_position(layout.order_id, index)
-                print event.state
-                if (event.state & gtk.gdk._2BUTTON_PRESS):
+                if (event.type == gtk.gdk._2BUTTON_PRESS):
                     self._2click_select(self._sel_mode, layout, index)
                 break
         return
 
     def _on_release(self, widget, event):
-        print event.state
+        print event.state, event.button
         return
 
     def _get_line_index_range(self, layout, i):
@@ -283,27 +282,48 @@ class FormattedLabel(gtk.EventBox):
         return None
 
     def _2click_select(self, mode, layout, index):
-        print '2click'
         if mode == self.SELECT_FREE:
+            print 'sel line'
             self._select_line(layout, index)
         elif mode == self.SELECT_LINE:
+            print 'sel para'
             self._select_para(layout, index)
         elif mode == self.SELECT_PARA:
+            print 'sel all'
             self._select_all(layout, index)
+        else:
+            # select none
+            self._sel_mode = self.SELECT_FREE
+            self.selection.clear()
+            self.queue_draw()
         return
 
-    def _select_line(self, cursor):
+    def _select_line(self, layout, i):
         self._sel_mode = self.SELECT_LINE
-        layout = self.order[cursor.section]
-        self._highlight(*self._get_line_index_range(layout, cursor.index))
+        r = self._get_line_index_range(layout, i)
+        if r:
+            self.cursor.index = r[0]
+            self.selection.index = r[1]
+            self.selection.order_id = layout.order_id
+            self.queue_draw()
         return
 
-    def _select_para(self):
+    def _select_para(self, layout, i):
         self._sel_mode = self.SELECT_PARA
+        self.cursor.index = 0
+        self.selection.index = len(layout)
+        self.selection.order_id = layout.order_id
+        self.queue_draw()
         return
 
-    def _select_all(self):
+    def _select_all(self, layout, index):
         self._sel_mode = self.SELECT_ALL
+        layout1 = self.order[-1]
+        self.cursor.index = 0
+        self.cursor.section = 0
+        self.selection.index = len(layout1)
+        self.selection.section = layout1.order_id
+        self.queue_draw()
         return
 
     def height_from_width(self, width):
