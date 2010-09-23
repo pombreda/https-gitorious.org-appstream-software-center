@@ -2,6 +2,7 @@ import gtk
 import pango
 import gobject
 
+from gtk import keysyms
 from pango import SCALE as PS
 
 
@@ -51,6 +52,18 @@ class Layout(pango.Layout):
         #r = gtk.gdk.region_rectangle(a)
         #return r.point_in(px, py)
 
+    def cursor_up(self, cursor):
+        layout = self.widget.order[cursor.section]
+        x, y = layout.index_to_pos(cursor.index)[:2]
+        y -= PS*self.widget.line_height
+        return sum(layout.xy_to_index(x, y)), (x, y)
+
+    def cursor_down(self, cursor):
+        layout = self.widget.order[cursor.section]
+        x, y = layout.index_to_pos(cursor.index)[:2]
+        y += PS*self.widget.line_height
+        return sum(layout.xy_to_index(x, y)), (x, y)
+
     def index_at(self, px, py):
         wa = self.widget.allocation
         px += wa.x
@@ -60,16 +73,6 @@ class Layout(pango.Layout):
         if gtk.gdk.region_rectangle(a).point_in(px, py):
             return sum(self.xy_to_index((px-a.x)*PS, (py-a.y)*PS))
         return None
-
-    def cursor_up(self, index):
-        x, y = self.index_to_pos(index)[:2]
-        y -= PS*self.widget.line_spacing
-        return self.xy_to_index(x, y)
-
-    def cursor_down(self, index):
-        x, y = self.index_to_pos(index)[:2]
-        y += PS*self.widget.line_spacing
-        return self.xy_to_index(x, y)
 
     def highlight_all(self, cr):
 
@@ -115,14 +118,34 @@ class Layout(pango.Layout):
         cr.fill()
 
 
-class LabelCursor(object):
+class Cursor(object):
 
-    def __init__(self):
+    def __init__(self, parent):
+        self.parent = parent
         self.index = 0
         self.section = 0
+        self.previous_position = 0,0
 
     def __repr__(self):
         return 'Cursor: '+str((self.section, self.index))
+
+    def set_order(self, order):
+        self.order = order
+        return
+
+    def get_current_line(self):
+        keep_going = True
+        i, it = self.index, self.parent.order[self.section].get_iter()
+        ln = 0 
+        while keep_going:
+            l = it.get_line()
+            ls = l.start_index
+            le = ls + l.length
+            if i >= ls and i <= le:
+                return (self.section, ln), (ls, le), l
+            ln += 1
+            keep_going = it.next_line()
+        return None, None, None
 
     def get_rectangle(self, layout, a):
         x, y, w, h = layout.get_cursor_pos(self.index)[1]
@@ -131,6 +154,7 @@ class LabelCursor(object):
         return x, y, 1, h/PS
 
     def set_position(self, section, index):
+        self.previous_position = self.section, self.index
         self.index = index
         self.section = section
 
@@ -148,15 +172,16 @@ class LabelCursor(object):
         self.section = 0
 
 
-class LabelSelection(object):
+class Selection(object):
 
     def __init__(self, cursor):
         self.cursor = cursor
         self.index = 0
         self.section = 0
+        self.previous_position = 0,0
 
     def __repr__(self):
-        return 'Selection: '+str(self.get_selection_range())
+        return 'Selection: '+str(self.get_range())
 
     def __nonzero__(self):
         c = self.cursor
@@ -177,10 +202,11 @@ class LabelSelection(object):
         self.section = self.cursor.section
 
     def set_position(self, section, index):
+        self.previous_position = self.section, self.index
         self.index = index
         self.section = section
 
-    def get_selection(self):
+    def get_range(self):
         return self.min, self.max
 
 
@@ -189,11 +215,12 @@ class FormattedLabel(gtk.EventBox):
 
     BULLET_POINT = u'  \u2022  '
 
-    
     SELECT_LINE = 1
     SELECT_PARA = 2
     SELECT_ALL  = 3
-    SELECT_FREE = 4
+    SELECT_NORMAL = 4
+
+    SELECT_MODE_RESET_TIMEOUT = 2000
 
 
     def __init__(self):
@@ -213,12 +240,14 @@ class FormattedLabel(gtk.EventBox):
         font_desc.set_weight(pango.WEIGHT_BOLD)
         self._bullet.set_font_description(font_desc)
 
-        self.indent, self.vspacing = self._bullet.get_pixel_extents()[1][2:]
-        self.cursor = LabelCursor()
-        self.selection = LabelSelection(self.cursor)
+        self.indent, self.line_height = self._bullet.get_pixel_extents()[1][2:]
         self.order = []
+        self.cursor = Cursor(self)
+        self.selection = Selection(self.cursor)
 
-        self._sel_mode = self.SELECT_FREE
+        self._selmode = self.SELECT_NORMAL
+        self._selreset = 0
+
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
         self._highlight_rgb = (0,1,0)
 
@@ -227,6 +256,7 @@ class FormattedLabel(gtk.EventBox):
         #self.connect('enter-notify-event', self._on_enter)
         #self.connect('leave-notify-event', self._on_leave)
         #self.connect('button-release-event', self._on_release)
+        self.connect('key-press-event', self._on_key_press)
         self.connect('motion-notify-event', self._on_motion)
         self.connect('style-set', self._on_style_set)
         return
@@ -244,7 +274,7 @@ class FormattedLabel(gtk.EventBox):
 
     def _on_motion(self, widget, event):
         if not (event.state & gtk.gdk.BUTTON1_MASK): return
-        self._sel_mode = self.SELECT_FREE
+        self._sel_mode = self.SELECT_NORMAL
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
@@ -255,13 +285,16 @@ class FormattedLabel(gtk.EventBox):
     def _on_press(self, widget, event):
         self.grab_focus()
         if event.button != 1: return
-        index = layout = None
+
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
                 self.cursor.set_position(layout.order_id, index)
+                self.selection.clear()
+
                 if (event.type == gtk.gdk._2BUTTON_PRESS):
-                    self._2click_select(self._sel_mode, layout, index)
+                    self._2click_select(self._selmode, layout, index)
+                self.queue_draw()
                 break
         return
 
@@ -269,61 +302,186 @@ class FormattedLabel(gtk.EventBox):
         print event.state, event.button
         return
 
-    def _get_line_index_range(self, layout, i):
-        keep_going = True
-        it = layout.get_iter()
-        while keep_going:
-            l = it.get_line()
-            ls = l.start_index
-            le = ls + l.length
-            if i >= ls and i <= le:
-                return ls, le
-            keep_going = it.next_line()
-        return None
+    def _on_key_press(self, widget, event):
+        kv = event.keyval
+        return_v = True
+
+        if event.state & gtk.gdk.SHIFT_MASK:
+            mover = self.selection
+        else:
+            mover = self.cursor
+        s, i = mover.section, mover.index
+
+        if kv == keysyms.Left:
+            if i > 0:
+                mover.set_position(s, i-1)
+            elif s > 0:
+                mover.set_position(s-1, len(self._get_layout(mover)))
+
+        elif kv == keysyms.Right: 
+            if i < len(self._get_layout(mover)):
+                mover.set_position(s, i+1)
+            elif s < len(self.order)-1:
+                mover.set_position(s+1, 0)
+
+        elif kv == keysyms.Up:
+            if not self._key_up(mover, s):
+                return_v = False
+
+        elif kv == keysyms.Down:
+            if not self._key_down(mover, s):
+                return_v = False
+
+        elif kv == keysyms.Home:
+            if event.state & gtk.gdk.SHIFT_MASK:
+                self._home_select(self._selmode, self.order[s], i)
+            else:
+                mover.index = 0
+
+        elif kv == keysyms.End:
+            if event.state & gtk.gdk.SHIFT_MASK:
+                self._end_select(self._selmode, self.order[s], i)
+            else:
+                self.cursor_index = len(old_text)
+
+        self.queue_draw()
+        return return_v
+
+    def _key_up(self, mover, s):
+        layout = self._get_layout(mover)
+        j, xy = layout.cursor_up(mover)
+        if (s, j) != self.cursor.get_position():
+            mover.set_position(s, j)
+        else:
+            x = xy[0]
+            prev_indent = layout.format_type == Layout.TYPE_BULLET
+
+            if s > 0:
+                mover.section -= 1
+            else:
+                return False
+
+            layout = self._get_layout(mover)
+            cur_indent = layout.format_type == Layout.TYPE_BULLET
+
+            if prev_indent:
+                x += self.indent*PS
+            if cur_indent:
+                x -= self.indent*PS
+
+            y = layout.get_extents()[1][3]
+            j = sum(layout.xy_to_index(x, y))
+            self.cursor.set_position(s-1, j)
+        return True
+
+    def _key_down(self, mover, s):
+        layout = self._get_layout(mover)
+        j, xy = layout.cursor_down(mover)
+        if (s, j) != self.cursor.get_position():
+            mover.set_position(s, j)
+        else:
+            x = xy[0]
+            prev_indent = layout.format_type == Layout.TYPE_BULLET
+
+            if s+1 < len(self.order):
+                mover.section += 1
+            else:
+                return False
+
+            layout = self._get_layout(mover)
+            cur_indent = layout.format_type == Layout.TYPE_BULLET
+
+            if prev_indent:
+                x += self.indent*PS
+            if cur_indent:
+                x -= self.indent*PS
+
+            j = sum(layout.xy_to_index(x, 0))
+            self.cursor.set_position(s+1, j)
+        return True
+
+    def _home_select(self, mode, layout, index):
+        if mode == self.SELECT_NORMAL or mode == self.SELECT_ALL:
+            self._selmode = self.SELECT_LINE
+            n, _range, line = self.cursor.get_current_line()
+            self.selection.set_position(n[0], _range[0])
+        elif mode == self.SELECT_LINE:
+            if len(self.order) > 1:
+                self._selmode = self.SELECT_PARA
+            else:
+                self._selmode = self.SELECT_ALL
+            self.selection.set_position(layout.order_id, 0)
+        elif mode == self.SELECT_PARA:
+            self._selmode = self.SELECT_ALL
+            self.selection.set_position(0, 0)
+        self.queue_draw()
+
+    def _end_select(self, mode, layout, index):
+        if mode == self.SELECT_NORMAL or mode == self.SELECT_ALL:
+            self._selmode = self.SELECT_LINE
+            n, _range, line = self.cursor.get_current_line()
+            self.selection.set_position(n[0], _range[1])
+        elif mode == self.SELECT_LINE:
+            if len(self.order) > 1:
+                self._selmode = self.SELECT_PARA
+            else:
+                self._selmode = self.SELECT_ALL
+            self.selection.set_position(layout.order_id, len(layout))
+        elif mode == self.SELECT_PARA:
+            self._selmode = self.SELECT_ALL
+            layout = self.order[-1]
+            self.selection.set_position(layout.order_id, len(layout))
+        self.queue_draw()
 
     def _2click_select(self, mode, layout, index):
-        if mode == self.SELECT_FREE:
-            print 'sel line'
+        if mode == self.SELECT_NORMAL:
             self._select_line(layout, index)
         elif mode == self.SELECT_LINE:
-            print 'sel para'
             self._select_para(layout, index)
         elif mode == self.SELECT_PARA:
-            print 'sel all'
             self._select_all(layout, index)
         else:
             # select none
-            self._sel_mode = self.SELECT_FREE
+            self._selmode = self.SELECT_NORMAL
             self.selection.clear()
-            self.queue_draw()
+
+        if self._selreset: gobject.source_remove(self._selreset)
+        self._selreset = gobject.timeout_add(
+                                    self.SELECT_MODE_RESET_TIMEOUT,
+                                    self._2click_mode_reset_cb)
+        return
+
+    def _2click_mode_reset_cb(self):
+        self._sel_mode = self.SELECT_NORMAL
         return
 
     def _select_line(self, layout, i):
-        self._sel_mode = self.SELECT_LINE
-        r = self._get_line_index_range(layout, i)
-        if r:
-            self.cursor.index = r[0]
-            self.selection.index = r[1]
-            self.selection.order_id = layout.order_id
-            self.queue_draw()
+        n, _range, line = self.cursor.get_current_line()
+        self._selmode = self.SELECT_LINE
+        self._selprevline = n
+        self.cursor.index = _range[0]
+        self.selection.index = _range[1]
+        self.selection.order_id = layout.order_id
         return
 
     def _select_para(self, layout, i):
-        self._sel_mode = self.SELECT_PARA
+        if len(self.order) > 1:
+            self._selmode = self.SELECT_PARA
+        else:
+            self._selmode = self.SELECT_ALL
+
         self.cursor.index = 0
         self.selection.index = len(layout)
         self.selection.order_id = layout.order_id
-        self.queue_draw()
         return
 
     def _select_all(self, layout, index):
-        self._sel_mode = self.SELECT_ALL
+        self._selmode = self.SELECT_ALL
         layout1 = self.order[-1]
         self.cursor.index = 0
         self.cursor.section = 0
         self.selection.index = len(layout1)
         self.selection.section = layout1.order_id
-        self.queue_draw()
         return
 
     def height_from_width(self, width):
@@ -334,8 +492,8 @@ class FormattedLabel(gtk.EventBox):
                 layout.set_width(PS*(width-self.indent))
             else:
                 layout.set_width(PS*width)
-            height += layout.get_pixel_extents()[1][3] + self.vspacing
-        return width, height - self.vspacing
+            height += layout.get_pixel_extents()[1][3] + self.line_height
+        return width, height - self.line_height
 
     def _on_allocate(self, widget, a):
         if not self.order: return
@@ -349,7 +507,7 @@ class FormattedLabel(gtk.EventBox):
             else:
                 layout.set_allocation(x+lx, y+ly, width, lh)
 
-            y += ly + lh + self.vspacing
+            y += ly + lh + self.line_height
         return
 
     def _new_layout(self):
@@ -379,7 +537,7 @@ class FormattedLabel(gtk.EventBox):
     def draw(self, widget, event):
         if not self.order: return
 
-        start, end = self.selection.get_selection()
+        start, end = self.selection.get_range()
 
         cr = widget.window.cairo_create()
         if self.has_focus():
@@ -423,6 +581,15 @@ class FormattedLabel(gtk.EventBox):
                                 x,              # x coord
                                 y,              # y coord
                                 self._bullet)   # a pango.Layout()
+
+    def _get_layout(self, cursor):
+        return self.order[cursor.section]
+
+    def _get_cursor_layout(self):
+        return self.order[self.cursor.section]
+
+    def _get_selection_layout(self):
+        return self.order[self.selection.section]
 
     def append_paragraph(self, p):
         l = self._new_layout()
