@@ -117,7 +117,6 @@ class PrimaryCursor(object):
         self.parent = parent
         self.index = 0
         self.section = 0
-        self.previous_position = 0,0
 
     def __repr__(self):
         return 'Cursor: '+str((self.section, self.index))
@@ -134,6 +133,7 @@ class PrimaryCursor(object):
             l = it.get_line()
             ls = l.start_index
             le = ls + l.length
+
             if i >= ls and i <= le:
                 return (self.section, ln), (ls, le), l
             ln += 1
@@ -150,7 +150,6 @@ class PrimaryCursor(object):
         return x, y, 1, h/PS
 
     def set_position(self, section, index):
-        self.previous_position = self.section, self.index
         self.index = index
         self.section = section
 
@@ -174,7 +173,6 @@ class SelectionCursor(object):
         self.cursor = cursor
         self.index = 0
         self.section = 0
-        self.previous_position = 0,0
 
     def __repr__(self):
         return 'Selection: '+str(self.get_range())
@@ -198,7 +196,6 @@ class SelectionCursor(object):
         self.section = self.cursor.section
 
     def set_position(self, section, index):
-        self.previous_position = self.section, self.index
         self.index = index
         self.section = section
 
@@ -342,13 +339,14 @@ class IndentLabel(gtk.EventBox):
             if shift:
                 self._home_select(self._selmode, self.order[s], i)
             else:
-                mover.index = 0
+                self.cursor.set_position(0, 0)
 
         elif kv == keysyms.End:
             if shift:
                 self._end_select(self._selmode, self.order[s], i)
             else:
-                self.cursor_index = len(old_text)
+                self.cursor.section = len(self.order)-1
+                self.cursor.index = len(self._get_layout(self.cursor))
 
         if not shift: self.selection.clear()
         self.queue_draw()
