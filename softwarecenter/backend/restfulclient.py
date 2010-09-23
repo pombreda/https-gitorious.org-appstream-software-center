@@ -31,7 +31,7 @@ import threading
 
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import BUY_SOMETHING_HOST
-from softwarecenter.utils import get_current_arch, uri_to_filename
+from softwarecenter.utils import get_current_arch
 
 # possible workaround for bug #599332 is to try to import lazr.restful
 # import lazr.restful
@@ -306,6 +306,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
         # make sure we have the cachdir
         if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
             os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
+        self.etagfile = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "agent.etag")
     def _load_etag(self, etagfile, uri):
         """ take a etagfile path and uri and load the latest etag value
             for that host. If there is none, return a invalid etag (no
@@ -380,8 +381,6 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             'series' : series_name,
             'arch' : arch_tag, }
         # load latest etag if available
-        self.etagfile = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
-                                     uri_to_filename(url))
         self.latest_etag = self._load_etag(self.etagfile, url)
         f = gio.File(url)
         f.query_info_async(gio.FILE_ATTRIBUTE_ETAG_VALUE,
