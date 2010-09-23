@@ -10,11 +10,14 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
     - add keyfile for whitelisted channel (LP: #645120)
 
   [ Gary Lasker ]
-  * softwarecenter/view/channelpane.py,
-    softwarecenter/view/softwarepane.py:
-    - show all packages in the partner repository (LP: #641028)
+  * softwarecenter/app.py,
+    softwarecenter/backend/channel.py:
+    - fix multiple instances of the "Previous Purchases"
+      item in the left navigation pane (LP: #645439)
+  * README: 
+    - fix typo
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Sep 2010 21:21:46 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Sep 2010 18:44:25 -0400
 
 software-center (2.1.22.4) maverick; urgency=low
 
