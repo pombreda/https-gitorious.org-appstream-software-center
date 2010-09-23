@@ -292,6 +292,8 @@ class IndentLabel(gtk.EventBox):
 
                 if (event.type == gtk.gdk._2BUTTON_PRESS):
                     self._2click_select(self._selmode, layout, index)
+                elif (event.type == gtk.gdk._3BUTTON_PRESS):
+                    self._3click_select(self._selmode, layout, index)
                 self.queue_draw()
                 break
         return
@@ -441,25 +443,11 @@ class IndentLabel(gtk.EventBox):
         self.queue_draw()
 
     def _2click_select(self, mode, layout, index):
-        if mode == self.SELECT_NORMAL:
-            self._select_line(layout, index)
-        elif mode == self.SELECT_LINE:
-            self._select_para(layout, index)
-        elif mode == self.SELECT_PARA:
-            self._select_all(layout, index)
-        else:
-            # select none
-            self._selmode = self.SELECT_NORMAL
-            self.selection.clear()
-
-        if self._selreset: gobject.source_remove(self._selreset)
-        self._selreset = gobject.timeout_add(
-                                    self.SELECT_MODE_RESET_TIMEOUT,
-                                    self._2click_mode_reset_cb)
+        self._select_para(layout, index)
         return
 
-    def _2click_mode_reset_cb(self):
-        self._sel_mode = self.SELECT_NORMAL
+    def _3click_select(self, mode, layout, index):
+        self._select_all(layout, index)
         return
 
     def _select_line(self, layout, i):
