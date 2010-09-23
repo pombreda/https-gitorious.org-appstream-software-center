@@ -70,47 +70,31 @@ class Layout(pango.Layout):
             return sum(self.xy_to_index((px-a.x)*PS, (py-a.y)*PS))
         return None
 
-    def highlight_all(self, cr):
-        xo = self.allocation.x
-        yo = self.allocation.y
-        it = self.get_iter()
-        self._highlight_all(cr, it, xo, yo)
-        while it.next_line():
-            self._highlight_all(cr, it, xo, yo)
+    def reset_attrs(self, fg, bg):
+        attrs = self.get_attributes()
+        fgattr = pango.AttrForeground(fg.red, fg.green, fg.blue, 0, self.length)
+        bgattr = pango.AttrBackground(bg.red, bg.green, bg.blue, 0, self.length)
+        attrs.change(fgattr)
+        attrs.change(bgattr)
+        self.set_attributes(attrs)
+        return
 
-    def highlight(self, cr, start, end):
-        xo = self.allocation.x
-        yo = self.allocation.y
-        it = self.get_iter()
-        self._highlight(cr, it, start, end, xo, yo)
-        while it.next_line():
-            self._highlight(cr, it, start, end, xo, yo)
+    def highlight(self, start, end, colours):
+        attrs = self.get_attributes()
+        fg, bg = colours[:2]
+        fgattr = pango.AttrForeground(fg.red, fg.green, fg.blue, 0, self.length)
+        bgattr = pango.AttrBackground(bg.red, bg.green, bg.blue, 0, self.length)
+        attrs.change(fgattr)
+        attrs.change(bgattr)
 
-    def _highlight(self, cr, it, start, end, xo, yo):
-        l = it.get_line()
-        ls = l.start_index
-        le = ls + l.length
-        #print (start, end), (ls, le)
-        e = it.get_char_extents()
+        fg, bg = colours[2:]
+        fgattr = pango.AttrForeground(fg.red, fg.green, fg.blue, start, end)
+        bgattr = pango.AttrBackground(bg.red, bg.green, bg.blue, start, end)
+        attrs.change(fgattr)
+        attrs.change(bgattr)
 
-        if end < ls or start > le: return
-
-        if start > ls and start <= le:
-            x0 = l.index_to_x(start, 0)/PS
-        else:
-            x0 = 0
-        if end >= ls and end < le:
-             x1 = l.index_to_x(end, 0)/PS
-        else:
-            x1 = it.get_line_extents()[1][2]/PS
-
-        cr.rectangle(x0+xo, e[1]/PS+yo, x1-x0, e[3]/PS)
-        cr.fill()
-
-    def _highlight_all(self, cr, it, xo, yo):
-        x,y,w,h = map(lambda x: x/PS, it.get_line_extents()[1])
-        cr.rectangle(xo+x, yo+y, w or 4, h)
-        cr.fill()
+        self.set_attributes(attrs)
+        return
 
 
 class PrimaryCursor(object):
@@ -250,7 +234,8 @@ class IndentLabel(gtk.EventBox):
         self._selreset = 0
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
-        self._highlight_rgb = (0,1,0)
+        self._bg = None
+        self._fg = None
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press)
@@ -263,8 +248,10 @@ class IndentLabel(gtk.EventBox):
         return
 
     def _on_style_set(self, widget, old_style):
-        c = self.style.base[gtk.STATE_SELECTED]
-        self._highlight_rgb = c.red_float, c.green_float, c.blue_float
+        self._bg_norm = self.style.base[gtk.STATE_NORMAL]
+        self._fg_norm = self.style.text[gtk.STATE_NORMAL]
+        self._bg_sel = self.style.base[gtk.STATE_SELECTED]
+        self._fg_sel = self.style.text[gtk.STATE_SELECTED]
         return
 
     def _on_enter(self, widget, event):
@@ -495,41 +482,39 @@ class IndentLabel(gtk.EventBox):
         layout.set_markup(self.BULLET_POINT)
         return layout
 
-    def _highlight_selection(self, cr, i, start, end, layout):
+    def _highlight_selection(self, i, start, end, layout, colours):
         if i == start[0]:
             if end[0] > i:
-                layout.highlight(cr, start[1], len(layout))
+                layout.highlight(start[1], len(layout), colours)
             else:
-                layout.highlight(cr, start[1], end[1])
+                layout.highlight(start[1], end[1], colours)
 
         elif i == end[0]:
             if start[0] < i:
-                layout.highlight(cr, 0, end[1])
+                layout.highlight(0, end[1], colours)
             else:
-                layout.highlight(cr, start[1], end[1])
+                layout.highlight(start[1], end[1], colours)
 
         else:
-            layout.highlight_all(cr)
-
+            layout.highlight(0, len(layout), colours)
         return
 
     def draw(self, widget, event):
         if not self.order: return
 
         start, end = self.selection.get_range()
-
         cr = widget.window.cairo_create()
-        if self.has_focus():
-            cr.set_source_rgb(*self._highlight_rgb)
-        else:
-            cr.set_source_rgb(0.8, 0.8, 0.8)
+        colours = (self._fg_norm, self._bg_norm,
+                   self._fg_sel, self._bg_sel)
 
         for layout in self.order:
             la = layout.allocation
             i = layout.order_id
 
             if self.selection and i >= start[0] and i <= end[0]:
-                self._highlight_selection(cr, i, start, end, layout)
+                self._highlight_selection(i, start, end, layout, colours)
+            else:
+                layout.reset_attrs(*colours[:2])
 
             if layout.is_bullet:
                 self._paint_bullet_point(self.allocation.x, la.y)
