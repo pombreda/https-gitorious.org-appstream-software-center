@@ -1,3 +1,11 @@
+software-center (3.0.1) UNRELEASED; urgency=low
+
+  * softwarecenter/db/update.py:
+    - index the file even if "catalogedtime" is not yet written
+      to /var/lib/apt-xapian-index/values (LP: #646018)
+
+ -- Michael Vogt <egon@bod>  Thu, 23 Sep 2010 15:31:10 +0200
+
 software-center (3.0) maverick; urgency=low
 
   [ Michael Vogt ]
