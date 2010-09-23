@@ -389,15 +389,18 @@ class IndentLabel(gtk.EventBox):
 
     def _home_select(self, mode, layout, index):
         n, _range, line = self.cursor.get_current_line()
+
         if mode == self.SELECT_NORMAL or mode == self.SELECT_ALL:
             self._selmode = self.SELECT_LINE
             self.selection.set_position(n[0], _range[0])
+
         elif mode == self.SELECT_LINE and n[1] != 0:
-            if len(self.order) > 1:
+            if len(self.order) > 1 and layout.order_id != 0:
                 self._selmode = self.SELECT_PARA
             else:
                 self._selmode = self.SELECT_ALL
             self.selection.set_position(layout.order_id, 0)
+
         elif mode == self.SELECT_PARA or n[1] == 0:
             self._selmode = self.SELECT_ALL
             self.selection.set_position(0, 0)
@@ -405,15 +408,18 @@ class IndentLabel(gtk.EventBox):
 
     def _end_select(self, mode, layout, index):
         n, _range, line = self.cursor.get_current_line()
+
         if mode == self.SELECT_NORMAL or mode == self.SELECT_ALL:
             self._selmode = self.SELECT_LINE
             self.selection.set_position(n[0], _range[1])
+
         elif mode == self.SELECT_LINE and n[1] != layout.get_line_count()-1:
-            if len(self.order) > 1:
+            if len(self.order) > 1 and layout.order_id != len(self.order)-1:
                 self._selmode = self.SELECT_PARA
             else:
                 self._selmode = self.SELECT_ALL
             self.selection.set_position(layout.order_id, len(layout))
+
         elif mode == self.SELECT_PARA or n[1] == layout.get_line_count()-1:
             self._selmode = self.SELECT_ALL
             layout = self.order[-1]
