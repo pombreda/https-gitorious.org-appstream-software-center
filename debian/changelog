@@ -1,4 +1,4 @@
-software-center (2.1.22.5) UNRELEASED; urgency=low
+software-center (3.0) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
@@ -17,6 +17,8 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
       bandwidth usage and load on the server (LP: #645837)
   * utils/update-software-center-agent:
     - trivial logging fix to make --debug fully work
+  * debian/changelog:
+    - its 3.0!
   
   [ Gary Lasker ]
   * softwarecenter/app.py,
@@ -26,7 +28,7 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
   * README: 
     - fix typo
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Sep 2010 18:44:25 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 23 Sep 2010 11:16:44 +0200
 
 software-center (2.1.22.4) maverick; urgency=low
 
