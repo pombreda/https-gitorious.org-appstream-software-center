@@ -187,7 +187,14 @@ class ChannelPane(SoftwarePane):
                 backend.reload()
             return
         # normal operation
-        self.nonapps_visible = False
+        # always show all packages in the partner repository
+        # FIXME:  remove this special case code in favor of a more general solution
+        if channel.get_channel_component() == "partner":
+            self.nonapps_visible = True
+            self.disable_show_hide_nonapps = True
+        else:
+            self.nonapps_visible = False
+            self.disable_show_hide_nonapps = False
         self.apps_filter = None
         if self.channel.only_packages_without_applications:
             self.apps_filter = AppViewFilter(self.db, self.cache)

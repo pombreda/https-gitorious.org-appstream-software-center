@@ -1,5 +1,6 @@
 software-center (2.1.22.5) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
     - setup cachedir to avoid unneeded wadl downloading
   * softwarecenter/utils.py:
@@ -8,7 +9,12 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py:
     - add keyfile for whitelisted channel (LP: #645120)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 22 Sep 2010 18:03:24 +0200
+  [ Gary Lasker ]
+  * softwarecenter/view/channelpane.py,
+    softwarecenter/view/softwarepane.py:
+    - show all packages in the partner repository (LP: #641028)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Sep 2010 21:21:46 -0400
 
 software-center (2.1.22.4) maverick; urgency=low
 
