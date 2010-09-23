@@ -2,7 +2,7 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
-    - setup cachedir to avoid unneeded wadl downloading
+    - setup cachedir to avoid unneeded wadl downloading (LP: #645837)
   * softwarecenter/utils.py:
     - fix crash if desktop_file_path does not contain "applications"
       (LP: #641071)
@@ -11,7 +11,13 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py:
     - fix crash when reinstalling previous purchase 
       (LP: #645843)
-
+  * softwarecenter/backend/restfulclient.py, softwarecenter/db/update.py,
+    - use gio instead of restfulclient to get the available purchase
+      items and properly use the etag values provided to avoid uneeded
+      bandwidth usage and load on the server (LP: #645837)
+  * utils/update-software-center-agent:
+    - trivial logging fix to make --debug fully work
+  
   [ Gary Lasker ]
   * softwarecenter/app.py,
     softwarecenter/backend/channel.py:
