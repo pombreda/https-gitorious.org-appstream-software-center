@@ -96,6 +96,16 @@ class Layout(pango.Layout):
         self.set_attributes(attrs)
         return
 
+    def highlight_all(self, colours):
+        attrs = self.get_attributes()
+        fg, bg = colours[2:]
+        fgattr = pango.AttrForeground(fg.red, fg.green, fg.blue, 0, self.length)
+        bgattr = pango.AttrBackground(bg.red, bg.green, bg.blue, 0, self.length)
+        attrs.change(fgattr)
+        attrs.change(bgattr)
+        self.set_attributes(attrs)
+        return
+
 
 class PrimaryCursor(object):
 
@@ -234,8 +244,7 @@ class IndentLabel(gtk.EventBox):
         self._selreset = 0
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
-        self._bg = None
-        self._fg = None
+        self._grey = gtk.gdk.Color(red=0.8, green=0.8, blue=0.8)
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press)
@@ -300,7 +309,10 @@ class IndentLabel(gtk.EventBox):
             mover = self.cursor
         s, i = mover.section, mover.index
 
-        if kv == keysyms.Left:
+        if kv == keysyms.Tab:
+            return_v = False
+
+        elif kv == keysyms.Left:
             if i > 0:
                 mover.set_position(s, i-1)
             elif s > 0:
@@ -496,7 +508,7 @@ class IndentLabel(gtk.EventBox):
                 layout.highlight(start[1], end[1], colours)
 
         else:
-            layout.highlight(0, len(layout), colours)
+            layout.highlight_all(colours)
         return
 
     def draw(self, widget, event):
@@ -504,8 +516,15 @@ class IndentLabel(gtk.EventBox):
 
         start, end = self.selection.get_range()
         cr = widget.window.cairo_create()
+        if self.has_focus():
+            bg_sel = self._bg_sel
+            fg_sel = self._fg_sel
+        else:
+            bg_sel = self._grey
+            fg_sel = self._fg_norm
+
         colours = (self._fg_norm, self._bg_norm,
-                   self._fg_sel, self._bg_sel)
+                   fg_sel, bg_sel)
 
         for layout in self.order:
             la = layout.allocation
