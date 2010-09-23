@@ -145,7 +145,7 @@ class PrimaryCursor(object):
             x, y, w, h = layout.get_cursor_pos(self.index)[1]
         else:
             x, y, w, h = layout.get_cursor_pos(len(layout))[1]
-        x = layout.allocation.x + x/PS - 1
+        x = layout.allocation.x + x/PS
         y = layout.allocation.y + y/PS
         return x, y, 1, h/PS
 
@@ -303,8 +303,8 @@ class IndentLabel(gtk.EventBox):
     def _on_key_press(self, widget, event):
         kv = event.keyval
         return_v = True
-
         shift = event.state & gtk.gdk.SHIFT_MASK
+
         if shift:
             mover = self.selection
         else:
@@ -315,14 +315,20 @@ class IndentLabel(gtk.EventBox):
             return_v = False
 
         elif kv == keysyms.Left:
-            if i > 0:
+            if self.selection and not shift:
+                mover.set_position(self.selection.section,
+                                   self.selection.index)
+            elif i > 0:
                 mover.set_position(s, i-1)
             elif s > 0:
                 mover.section -= 1
                 mover.set_position(s-1, len(self._get_layout(mover)))
 
         elif kv == keysyms.Right: 
-            if i < len(self._get_layout(mover)):
+            if self.selection and not shift:
+                mover.set_position(self.selection.section,
+                                   self.selection.index)
+            elif i < len(self._get_layout(mover)):
                 mover.set_position(s, i+1)
             elif s < len(self.order)-1:
                 mover.set_position(s+1, 0)
