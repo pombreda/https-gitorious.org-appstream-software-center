@@ -18,6 +18,7 @@ class Layout(pango.Layout):
         self.is_bullet = False
         self.order_id = 0
         self.allocation = gtk.gdk.Rectangle(0,0,1,1)
+        self._default_attrs = True
 
         self.set_text(text)
         return
@@ -77,6 +78,7 @@ class Layout(pango.Layout):
         attrs.change(fgattr)
         attrs.change(bgattr)
         self.set_attributes(attrs)
+        self._default_attrs = True
         return
 
     def highlight(self, start, end, colours):
@@ -94,6 +96,7 @@ class Layout(pango.Layout):
         attrs.change(bgattr)
 
         self.set_attributes(attrs)
+        self._default_attrs = False
         return
 
     def highlight_all(self, colours):
@@ -104,6 +107,7 @@ class Layout(pango.Layout):
         attrs.change(fgattr)
         attrs.change(bgattr)
         self.set_attributes(attrs)
+        self._default_attrs = False
         return
 
 
@@ -303,7 +307,8 @@ class IndentLabel(gtk.EventBox):
         kv = event.keyval
         return_v = True
 
-        if event.state & gtk.gdk.SHIFT_MASK:
+        shift = event.state & gtk.gdk.SHIFT_MASK
+        if shift:
             mover = self.selection
         else:
             mover = self.cursor
@@ -334,17 +339,18 @@ class IndentLabel(gtk.EventBox):
                 return_v = False
 
         elif kv == keysyms.Home:
-            if event.state & gtk.gdk.SHIFT_MASK:
+            if shift:
                 self._home_select(self._selmode, self.order[s], i)
             else:
                 mover.index = 0
 
         elif kv == keysyms.End:
-            if event.state & gtk.gdk.SHIFT_MASK:
+            if shift:
                 self._end_select(self._selmode, self.order[s], i)
             else:
                 self.cursor_index = len(old_text)
 
+        if not shift: self.selection.clear()
         self.queue_draw()
         return return_v
 
@@ -532,7 +538,7 @@ class IndentLabel(gtk.EventBox):
 
             if self.selection and i >= start[0] and i <= end[0]:
                 self._highlight_selection(i, start, end, layout, colours)
-            else:
+            elif not layout._default_attrs:
                 layout.reset_attrs(*colours[:2])
 
             if layout.is_bullet:
