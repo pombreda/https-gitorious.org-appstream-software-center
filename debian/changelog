@@ -8,6 +8,9 @@ software-center (2.1.22.5) UNRELEASED; urgency=low
       (LP: #641071)
   * softwarecenter/backend/aptd.py:
     - add keyfile for whitelisted channel (LP: #645120)
+  * softwarecenter/view/appdetailsview.py:
+    - fix crash when reinstalling previous purchase 
+      (LP: #645843)
 
   [ Gary Lasker ]
   * softwarecenter/app.py,
