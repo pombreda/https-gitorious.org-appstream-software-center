@@ -326,6 +326,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             self.latest_etag = etag
             self._save_etag(self.etagfile, etag)
         except glib.GError, e:
+            self.log.warn("error in load_contents '%s'" % e)
             self.emit("error", str(e))
             return
         self._decode_result_and_emit_signal(content)
@@ -358,10 +359,12 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             return
         # something changed, go for it
         if etag != self.latest_etag:
-            self.log.debug("etag '%s' != '%s' redownloading" % (etag, self.latest_etag))
+            self.log.debug("etag '%s' != '%s' redownloading" % (
+                    etag, self.latest_etag))
             f.load_contents_async(self._download_complete_cb)
         else:
-            self.log.debug("etags match (%s == %s), doing nothing" % (etag, self.latest_etag))
+            self.log.debug("etags match (%s == %s), doing nothing" % (
+                    etag, self.latest_etag))
             self.emit("available", [])
     def query_available(self):
         """ query what software is available for the current codename/arch 
@@ -370,6 +373,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
         """
         series_name = self.distro.get_codename()
         arch_tag = get_current_arch()
+        # the server supports only english for now
         lang = "en"
         url = BUY_SOMETHING_HOST + "/apps/%(lang)s/ubuntu/%(series)s/%(arch)s" % {
             'lang' : lang,
