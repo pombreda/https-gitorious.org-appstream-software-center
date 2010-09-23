@@ -45,7 +45,7 @@ from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
-from widgets.label import FormattedLabel
+from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 
 if os.path.exists("./softwarecenter/enums.py"):
@@ -317,7 +317,7 @@ class AppDescription(gtk.VBox):
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
-        self.description = FormattedLabel()
+        self.description = IndentLabel()
         self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
 
         self.pack_start(self.description, False)
