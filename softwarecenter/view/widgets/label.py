@@ -8,18 +8,14 @@ from pango import SCALE as PS
 
 class Layout(pango.Layout):
 
-
-    TYPE_PARAGRAPH = 0
-    TYPE_BULLET = 1
-
-
     def __init__(self, widget, text=''):
         pango.Layout.__init__(self, widget.get_pango_context())
 
         self.widget = widget
         self.length = 0
         self.char_width = -1
-        self.format_type = self.TYPE_PARAGRAPH
+        self.indent = 0
+        self.is_bullet = False
         self.order_id = 0
         self.allocation = gtk.gdk.Rectangle(0,0,1,1)
 
@@ -37,12 +33,12 @@ class Layout(pango.Layout):
         self.allocation = gtk.gdk.Rectangle(x, y, w, h)
         return
 
-    def set_width_chars(self, char_width):
-        self.char_width = char_width
-        if len(self.get_text()) > self.char_width:
-            self.set_text(self.get_text()[:self.char_width])
-            self.cursor_index = self.char_width
-        return
+    #def set_width_chars(self, char_width):
+        #self.char_width = char_width
+        #if len(self.get_text()) > self.char_width:
+            #self.set_text(self.get_text()[:self.char_width])
+            #self.cursor_index = self.char_width
+        #return
 
     #def point_in(self, px, py):
         #a = self.allocation
@@ -75,7 +71,6 @@ class Layout(pango.Layout):
         return None
 
     def highlight_all(self, cr):
-
         xo = self.allocation.x
         yo = self.allocation.y
         it = self.get_iter()
@@ -118,7 +113,7 @@ class Layout(pango.Layout):
         cr.fill()
 
 
-class Cursor(object):
+class PrimaryCursor(object):
 
     def __init__(self, parent):
         self.parent = parent
@@ -148,7 +143,10 @@ class Cursor(object):
         return None, None, None
 
     def get_rectangle(self, layout, a):
-        x, y, w, h = layout.get_cursor_pos(self.index)[1]
+        if self.index < len(layout):
+            x, y, w, h = layout.get_cursor_pos(self.index)[1]
+        else:
+            x, y, w, h = layout.get_cursor_pos(len(layout))[1]
         x = layout.allocation.x + x/PS - 1
         y = layout.allocation.y + y/PS
         return x, y, 1, h/PS
@@ -172,7 +170,7 @@ class Cursor(object):
         self.section = 0
 
 
-class Selection(object):
+class SelectionCursor(object):
 
     def __init__(self, cursor):
         self.cursor = cursor
@@ -206,11 +204,14 @@ class Selection(object):
         self.index = index
         self.section = section
 
+    def get_position(self):
+        return self.section, self.index
+
     def get_range(self):
         return self.min, self.max
 
 
-class FormattedLabel(gtk.EventBox):
+class IndentLabel(gtk.EventBox):
 
 
     BULLET_POINT = u'  \u2022  '
@@ -242,8 +243,8 @@ class FormattedLabel(gtk.EventBox):
 
         self.indent, self.line_height = self._bullet.get_pixel_extents()[1][2:]
         self.order = []
-        self.cursor = Cursor(self)
-        self.selection = Selection(self.cursor)
+        self.cursor = PrimaryCursor(self)
+        self.selection = SelectionCursor(self.cursor)
 
         self._selmode = self.SELECT_NORMAL
         self._selreset = 0
@@ -316,6 +317,7 @@ class FormattedLabel(gtk.EventBox):
             if i > 0:
                 mover.set_position(s, i-1)
             elif s > 0:
+                mover.section -= 1
                 mover.set_position(s-1, len(self._get_layout(mover)))
 
         elif kv == keysyms.Right: 
@@ -350,84 +352,66 @@ class FormattedLabel(gtk.EventBox):
     def _key_up(self, mover, s):
         layout = self._get_layout(mover)
         j, xy = layout.cursor_up(mover)
-        if (s, j) != self.cursor.get_position():
+        if (s, j) != mover.get_position():
             mover.set_position(s, j)
         else:
-            x = xy[0]
-            prev_indent = layout.format_type == Layout.TYPE_BULLET
-
             if s > 0:
                 mover.section -= 1
             else:
                 return False
 
-            layout = self._get_layout(mover)
-            cur_indent = layout.format_type == Layout.TYPE_BULLET
-
-            if prev_indent:
-                x += self.indent*PS
-            if cur_indent:
-                x -= self.indent*PS
-
-            y = layout.get_extents()[1][3]
-            j = sum(layout.xy_to_index(x, y))
-            self.cursor.set_position(s-1, j)
+            layout1 = self._get_layout(mover)
+            x = xy[0] + (layout.indent - layout1.indent)*PS
+            y = layout1.get_extents()[1][3]
+            j = sum(layout1.xy_to_index(x, y))
+            mover.set_position(s-1, j)
         return True
 
     def _key_down(self, mover, s):
         layout = self._get_layout(mover)
         j, xy = layout.cursor_down(mover)
-        if (s, j) != self.cursor.get_position():
+        if (s, j) != mover.get_position():
             mover.set_position(s, j)
         else:
-            x = xy[0]
-            prev_indent = layout.format_type == Layout.TYPE_BULLET
-
             if s+1 < len(self.order):
                 mover.section += 1
             else:
                 return False
 
-            layout = self._get_layout(mover)
-            cur_indent = layout.format_type == Layout.TYPE_BULLET
-
-            if prev_indent:
-                x += self.indent*PS
-            if cur_indent:
-                x -= self.indent*PS
-
-            j = sum(layout.xy_to_index(x, 0))
-            self.cursor.set_position(s+1, j)
+            layout1 = self._get_layout(mover)
+            x = xy[0] + (layout.indent - layout1.indent)*PS
+            j = sum(layout1.xy_to_index(x, 0))
+            mover.set_position(s+1, j)
         return True
 
     def _home_select(self, mode, layout, index):
+        n, _range, line = self.cursor.get_current_line()
         if mode == self.SELECT_NORMAL or mode == self.SELECT_ALL:
             self._selmode = self.SELECT_LINE
-            n, _range, line = self.cursor.get_current_line()
             self.selection.set_position(n[0], _range[0])
-        elif mode == self.SELECT_LINE:
+        elif mode == self.SELECT_LINE and n[1] != 0:
             if len(self.order) > 1:
                 self._selmode = self.SELECT_PARA
             else:
                 self._selmode = self.SELECT_ALL
             self.selection.set_position(layout.order_id, 0)
-        elif mode == self.SELECT_PARA:
+        elif mode == self.SELECT_PARA or n[1] == 0:
             self._selmode = self.SELECT_ALL
             self.selection.set_position(0, 0)
         self.queue_draw()
 
     def _end_select(self, mode, layout, index):
+        n, _range, line = self.cursor.get_current_line()
         if mode == self.SELECT_NORMAL or mode == self.SELECT_ALL:
             self._selmode = self.SELECT_LINE
-            n, _range, line = self.cursor.get_current_line()
             self.selection.set_position(n[0], _range[1])
-        elif mode == self.SELECT_LINE:
+        elif mode == self.SELECT_LINE and n[1] != layout.get_line_count()-1:
             if len(self.order) > 1:
                 self._selmode = self.SELECT_PARA
             else:
                 self._selmode = self.SELECT_ALL
             self.selection.set_position(layout.order_id, len(layout))
-        elif mode == self.SELECT_PARA:
+        elif mode == self.SELECT_PARA or n[1] == layout.get_line_count()-1:
             self._selmode = self.SELECT_ALL
             layout = self.order[-1]
             self.selection.set_position(layout.order_id, len(layout))
@@ -488,10 +472,7 @@ class FormattedLabel(gtk.EventBox):
         if not self.order: return
         height = 0
         for layout in self.order:
-            if layout.format_type == Layout.TYPE_BULLET:
-                layout.set_width(PS*(width-self.indent))
-            else:
-                layout.set_width(PS*width)
+            layout.set_width(PS*(width-layout.indent))
             height += layout.get_pixel_extents()[1][3] + self.line_height
         return width, height - self.line_height
 
@@ -502,10 +483,8 @@ class FormattedLabel(gtk.EventBox):
         width = a.width
         for layout in self.order:
             lx,ly,lw,lh = layout.get_pixel_extents()[1]
-            if layout.format_type == Layout.TYPE_BULLET:
-                layout.set_allocation(x+lx+self.indent, y+ly, width-self.indent, lh)
-            else:
-                layout.set_allocation(x+lx, y+ly, width, lh)
+            layout.set_allocation(x+lx+layout.indent, y+ly,
+                                  width-layout.indent, lh)
 
             y += ly + lh + self.line_height
         return
@@ -552,7 +531,7 @@ class FormattedLabel(gtk.EventBox):
             if self.selection and i >= start[0] and i <= end[0]:
                 self._highlight_selection(cr, i, start, end, layout)
 
-            if layout.format_type == Layout.TYPE_BULLET:
+            if layout.is_bullet:
                 self._paint_bullet_point(self.allocation.x, la.y)
 
             # draw the layout
@@ -566,8 +545,8 @@ class FormattedLabel(gtk.EventBox):
                                     la.y,           # y coord
                                     layout)         # a pango.Layout()
         # draw the cursor
-        #c = self.cursor
-        #c.draw(cr, self.order[c.section], a)
+        if self.has_focus():
+            self.cursor.draw(cr, self._get_layout(self.cursor), self.allocation)
         return
 
     def _paint_bullet_point(self, x, y):
@@ -593,7 +572,6 @@ class FormattedLabel(gtk.EventBox):
 
     def append_paragraph(self, p):
         l = self._new_layout()
-        l.format_type = Layout.TYPE_PARAGRAPH
         l.order_id = len(self.order)
 
         l.set_text(p)
@@ -602,8 +580,9 @@ class FormattedLabel(gtk.EventBox):
 
     def append_bullet(self, point):
         l = self._new_layout()
-        l.format_type = Layout.TYPE_BULLET
         l.order_id = len(self.order)
+        l.indent = self.indent
+        l.is_bullet = True
 
         l.set_text(point)
         self.order.append(l)
