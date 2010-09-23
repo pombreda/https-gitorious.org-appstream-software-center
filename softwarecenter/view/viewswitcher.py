@@ -154,6 +154,8 @@ class ViewSwitcher(gtk.TreeView):
     def on_key_release_event(self, widget, event):
         # Get the toplevel node of the currently selected row
         toplevel = self.get_toplevel_node(self.get_cursor())
+        if toplevel is None:
+            return
         toplevel_path = (toplevel,)
 
         # Expand the toplevel node if the right arrow key is clicked
@@ -185,6 +187,8 @@ class ViewSwitcher(gtk.TreeView):
     def get_toplevel_node(self, cursor):
         """Returns the toplevel node of a selected row"""
         (path, column) = cursor
+        if not path:
+            return None
         return path[0]
 
     def set_view(self, view_page):
