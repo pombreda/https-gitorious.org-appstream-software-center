@@ -241,10 +241,11 @@ class GMenuSearcher(object):
                 # "applications" (e.g. kde4/amarok.desktop) and
                 # change "/" to "_" and do the match again - this is what
                 # the data extractor is doing
-                path_after_applications = desktop_file_path.split("applications/")[1]
-                if needle == path_after_applications.replace("/","_"):
-                    self._found = dirlist+[item]
-                    return
+                if "applications/" in desktop_file_path:
+                    path_after_applications = desktop_file_path.split("applications/")[1]
+                    if needle == path_after_applications.replace("/","_"):
+                        self._found = dirlist+[item]
+                        return
 
                 
     def get_main_menu_path(self, desktop_file):

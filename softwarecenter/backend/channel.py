@@ -82,6 +82,11 @@ class ChannelsManager(object):
             self.backend.emit("channels-changed", True)
 
     def add_channel(self, name, icon, query):
+        """
+        create a channel with the name, icon and query specified and append
+        it to the set of channels
+        return the new channel object
+        """
         # print name, icon, query
         channel = SoftwareChannel(self.icons, name, None, None, 
                                   channel_icon=icon,
@@ -95,6 +100,7 @@ class ChannelsManager(object):
         else:
             channel._channel_color = '#0769BC'
             channel._channel_image_id = VIEW_PAGE_AVAILABLE
+        return channel
 
     # internal
     def _feed_in_private_sources_list_entry(self, source_entry):

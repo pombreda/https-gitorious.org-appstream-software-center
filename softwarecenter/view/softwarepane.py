@@ -152,6 +152,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.datadir = datadir
         self.backend = get_install_backend()
         self.nonapps_visible = False
+        self.disable_show_hide_nonapps = False
         # refreshes can happen out-of-bound so we need to be sure
         # that we only set the new model (when its available) if
         # the refresh_seq_nr of the ready model matches that of the
@@ -342,8 +343,13 @@ class SoftwarePane(gtk.VBox, BasePane):
 
         self.action_bar.unset_label()
         
-        if (appstore and appstore.active and self.is_applist_view_showing() and
-            pkgs != apps and pkgs > 0 and apps > 0):
+        if (appstore and 
+            appstore.active and
+            self.is_applist_view_showing() and
+            pkgs != apps and 
+            pkgs > 0 and 
+            apps > 0 and
+            not self.disable_show_hide_nonapps):
             if appstore.nonapps_visible:
                 # TRANSLATORS: the text inbetween the underscores acts as a link
                 # In most/all languages you will want the whole string as a link

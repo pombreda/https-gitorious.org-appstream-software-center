@@ -35,6 +35,7 @@ from optparse import OptionParser
 
 from softwarecenter.enums import *
 from softwarecenter.db.update import update_from_software_center_agent
+import softwarecenter.log
 
 if __name__ == "__main__":
     try:
@@ -51,6 +52,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)
+        softwarecenter.log.root.setLevel(level=logging.DEBUG)
 
     # get a cache
     cache = apt.Cache(memonly=True)
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     # the following requires a http connection, so we do it in a 
     # seperate database
     if not update_from_software_center_agent(db, cache):
-        logging.warn("update_from_software_center_agent_failed")
+        logging.debug("no updates from update-software-center-agent")
         sys.exit(1)
 
     # flush ...
