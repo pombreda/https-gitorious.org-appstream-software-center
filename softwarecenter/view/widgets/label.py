@@ -334,11 +334,19 @@ class IndentLabel(gtk.EventBox):
                 mover.set_position(s+1, 0)
 
         elif kv == keysyms.Up:
-            if not self._key_up(mover, s):
+            if self.selection and not shift:
+                mover.set_position(self.selection.section,
+                                   self.selection.index)
+
+            elif not self._key_up(mover, s):
                 return_v = False
 
         elif kv == keysyms.Down:
-            if not self._key_down(mover, s):
+            if self.selection and not shift:
+                mover.set_position(self.selection.section,
+                                   self.selection.index)
+
+            elif not self._key_down(mover, s):
                 return_v = False
 
         elif kv == keysyms.Home:
