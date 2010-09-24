@@ -121,6 +121,8 @@ class Layout(pango.Layout):
 
 class PrimaryCursor(object):
 
+    WORD_TERMINATORS = (' ', ',', '.', ':', ';', '!', '?', '(', ')', '[', ']', '{', '}')
+
     def __init__(self, parent):
         self.parent = parent
         self.index = 0
@@ -147,6 +149,23 @@ class PrimaryCursor(object):
             ln += 1
             keep_going = it.next_line()
         return None, None, None
+
+    def get_current_word(self):
+        keep_going = True
+        layout = self.parent.order[self.section]
+        text = layout.get_text()
+        i, it = self.index, layout.get_iter()
+        start = 0
+        while keep_going:
+            j = it.get_index()
+            if j >= i and text[j] in self.WORD_TERMINATORS:
+                return self.section, (start, j)
+
+            elif text[j] in self.WORD_TERMINATORS:
+                start = j+1
+
+            keep_going = it.next_char()
+        return None, None
 
     def get_rectangle(self, layout, a):
         if self.index < len(layout):
@@ -471,11 +490,19 @@ class IndentLabel(gtk.EventBox):
         self.queue_draw()
 
     def _2click_select(self, mode, layout, index):
-        self._select_para(layout, index)
+        self._select_word(layout, index)
         return
 
     def _3click_select(self, mode, layout, index):
-        self._select_all(layout, index)
+        self._select_line(layout, index)
+        return
+
+    def _select_word(self, layout, i):
+        section, word = self.cursor.get_current_word()
+        print section, word
+        if word:
+            self.cursor.set_position(section, word[0])
+            self.selection.set_position(section, word[1])
         return
 
     def _select_line(self, layout, i):
@@ -589,8 +616,8 @@ class IndentLabel(gtk.EventBox):
                                     la.y,           # y coord
                                     layout)         # a pango.Layout()
         # draw the cursor
-        if self.has_focus():
-            self.cursor.draw(cr, self._get_layout(self.cursor), self.allocation)
+#        if self.has_focus():
+#            self.cursor.draw(cr, self._get_layout(self.cursor), self.allocation)
         return
 
     def _paint_bullet_point(self, x, y):
