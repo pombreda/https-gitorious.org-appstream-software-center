@@ -499,10 +499,10 @@ class IndentLabel(gtk.EventBox):
 
     def _select_word(self, layout, i):
         section, word = self.cursor.get_current_word()
-        print section, word
         if word:
             self.cursor.set_position(section, word[0])
             self.selection.set_position(section, word[1])
+            self.selection.state = SelectionCursor.SELECT_WORD
         return
 
     def _select_line(self, layout, i):
