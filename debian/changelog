@@ -12,6 +12,11 @@ software-center (3.0.1) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py:
     - do not emit "channels-changed" while installing a purchase,
       this emited already by the update()
+  * softwarecenter/db/application.py:
+    - if appdetails finds its pkgname in the pending transactions
+      but does not have a apt pkg object yet, this means it got
+      installed from a newly enabled source, return the right state
+      in this case
 
   [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
