@@ -2,8 +2,8 @@ import gtk
 import pango
 import gobject
 
-from gtk import keysyms
 from pango import SCALE as PS
+from gtk import keysyms as keys
 
 
 class Layout(pango.Layout):
@@ -49,15 +49,23 @@ class Layout(pango.Layout):
         #r = gtk.gdk.region_rectangle(a)
         #return r.point_in(px, py)
 
-    def cursor_up(self, cursor):
+    def cursor_up(self, cursor, target_x=-1):
         layout = self.widget.order[cursor.section]
         x, y = layout.index_to_pos(cursor.index)[:2]
+
+        if target_x >= 0:
+            x = target_x
+
         y -= PS*self.widget.line_height
         return sum(layout.xy_to_index(x, y)), (x, y)
 
-    def cursor_down(self, cursor):
+    def cursor_down(self, cursor, target_x=-1):
         layout = self.widget.order[cursor.section]
         x, y = layout.index_to_pos(cursor.index)[:2]
+
+        if target_x >= 0:
+            x = target_x
+
         y += PS*self.widget.line_height
         return sum(layout.xy_to_index(x, y)), (x, y)
 
@@ -169,10 +177,19 @@ class PrimaryCursor(object):
 
 class SelectionCursor(object):
 
+    SELECT_WORD   = 0
+    SELECT_LINE   = 1
+    SELECT_PARA   = 2
+    SELECT_ALL    = 3
+    SELECT_NORMAL = 4
+
     def __init__(self, cursor):
         self.cursor = cursor
         self.index = 0
         self.section = 0
+        self.state = self.SELECT_NORMAL
+        self.target_x = None
+        self.target_x_indent = 0
 
     def __repr__(self):
         return 'Selection: '+str(self.get_range())
@@ -194,10 +211,16 @@ class SelectionCursor(object):
     def clear(self):
         self.index = self.cursor.index
         self.section = self.cursor.section
+        self.target_x = None
 
     def set_position(self, section, index):
         self.index = index
         self.section = section
+
+    def set_target_x(self, x, indent):
+        self.target_x = x
+        self.target_x_indent = indent
+        return
 
     def get_position(self):
         return self.section, self.index
@@ -210,13 +233,6 @@ class IndentLabel(gtk.EventBox):
 
 
     BULLET_POINT = u'  \u2022  '
-
-    SELECT_LINE = 1
-    SELECT_PARA = 2
-    SELECT_ALL  = 3
-    SELECT_NORMAL = 4
-
-    SELECT_MODE_RESET_TIMEOUT = 2000
 
 
     def __init__(self):
@@ -240,9 +256,6 @@ class IndentLabel(gtk.EventBox):
         self.order = []
         self.cursor = PrimaryCursor(self)
         self.selection = SelectionCursor(self.cursor)
-
-        self._selmode = self.SELECT_NORMAL
-        self._selreset = 0
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
 
@@ -272,7 +285,7 @@ class IndentLabel(gtk.EventBox):
 
     def _on_motion(self, widget, event):
         if not (event.state & gtk.gdk.BUTTON1_MASK): return
-        self._sel_mode = self.SELECT_NORMAL
+        self.selection.state = SelectionCursor.SELECT_NORMAL
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
@@ -291,18 +304,21 @@ class IndentLabel(gtk.EventBox):
                 self.selection.clear()
 
                 if (event.type == gtk.gdk._2BUTTON_PRESS):
-                    self._2click_select(self._selmode, layout, index)
+                    self._2click_select(self.selection.state, layout, index)
+                elif (event.type == gtk.gdk._3BUTTON_PRESS):
+                    self._3click_select(self.selection.state, layout, index)
                 self.queue_draw()
                 break
         return
 
     def _on_release(self, widget, event):
-        print event.state, event.button
         return
 
     def _on_key_press(self, widget, event):
         kv = event.keyval
-        return_v = True
+        sel = self.selection
+
+        handled_keys = True
         shift = event.state & gtk.gdk.SHIFT_MASK
 
         if shift:
@@ -311,64 +327,75 @@ class IndentLabel(gtk.EventBox):
             mover = self.cursor
         s, i = mover.section, mover.index
 
-        if kv == keysyms.Tab:
-            return_v = False
+        if kv == keys.Tab:
+            handled_keys = False
 
-        elif kv == keysyms.Left:
-            if self.selection and not shift:
-                mover.set_position(self.selection.section,
-                                   self.selection.index)
+        elif kv == keys.Left:
+            if sel and not shift:
+                self.cursor.set_position(*sel.min)
             elif i > 0:
                 mover.set_position(s, i-1)
             elif s > 0:
                 mover.section -= 1
                 mover.set_position(s-1, len(self._get_layout(mover)))
 
-        elif kv == keysyms.Right: 
-            if self.selection and not shift:
-                mover.set_position(self.selection.section,
-                                   self.selection.index)
+        elif kv == keys.Right: 
+            if sel and not shift:
+                self.cursor.set_position(*sel.max)
             elif i < len(self._get_layout(mover)):
                 mover.set_position(s, i+1)
             elif s < len(self.order)-1:
                 mover.set_position(s+1, 0)
 
-        elif kv == keysyms.Up:
+        elif kv == keys.Up:
+
+            if sel and not shift:
+                mover.set_position(sel.section,
+                                   sel.index)
+
+            else:
+                self._key_up(sel, self.cursor, self.cursor.section)
+
+        elif kv == keys.Down:
             if self.selection and not shift:
                 mover.set_position(self.selection.section,
                                    self.selection.index)
 
-            elif not self._key_up(mover, s):
-                return_v = False
+            else:
+                self._key_down(sel, self.cursor, self.cursor.section)
 
-        elif kv == keysyms.Down:
-            if self.selection and not shift:
-                mover.set_position(self.selection.section,
-                                   self.selection.index)
-
-            elif not self._key_down(mover, s):
-                return_v = False
-
-        elif kv == keysyms.Home:
+        elif kv == keys.Home:
             if shift:
-                self._home_select(self._selmode, self.order[s], i)
+                self._home_select(self.selection.state, self.order[s], i)
             else:
                 self.cursor.set_position(0, 0)
 
-        elif kv == keysyms.End:
+        elif kv == keys.End:
             if shift:
-                self._end_select(self._selmode, self.order[s], i)
+                self._end_select(self.selection.state, self.order[s], i)
             else:
                 self.cursor.section = len(self.order)-1
                 self.cursor.index = len(self._get_layout(self.cursor))
 
-        if not shift: self.selection.clear()
-        self.queue_draw()
-        return return_v
+        else:
+            handled_keys = False
 
-    def _key_up(self, mover, s):
+        if not shift and handled_keys:
+            self.selection.clear()
+
+        self.queue_draw()
+        return handled_keys
+
+    def _key_up(self, sel, mover, s):
         layout = self._get_layout(mover)
-        j, xy = layout.cursor_up(mover)
+
+        if sel.target_x:
+            x = sel.target_x + (sel.target_x_indent - layout.indent)*PS
+            j, xy = layout.cursor_up(mover, x)
+        else:
+            j, xy = layout.cursor_up(mover)
+            sel.set_target_x(xy[0], layout.indent)
+
         if (s, j) != mover.get_position():
             mover.set_position(s, j)
         else:
@@ -378,15 +405,22 @@ class IndentLabel(gtk.EventBox):
                 return False
 
             layout1 = self._get_layout(mover)
-            x = xy[0] + (layout.indent - layout1.indent)*PS
+            x = sel.target_x + (sel.target_x_indent - layout1.indent)*PS
             y = layout1.get_extents()[1][3]
             j = sum(layout1.xy_to_index(x, y))
             mover.set_position(s-1, j)
         return True
 
-    def _key_down(self, mover, s):
+    def _key_down(self, sel, mover, s):
         layout = self._get_layout(mover)
-        j, xy = layout.cursor_down(mover)
+
+        if sel.target_x:
+            x = sel.target_x + (sel.target_x_indent - layout.indent)*PS
+            j, xy = layout.cursor_down(mover, x)
+        else:
+            j, xy = layout.cursor_down(mover)
+            sel.set_target_x(xy[0], layout.indent)
+
         if (s, j) != mover.get_position():
             mover.set_position(s, j)
         else:
@@ -395,76 +429,62 @@ class IndentLabel(gtk.EventBox):
             else:
                 return False
 
-            layout1 = self._get_layout(mover)
-            x = xy[0] + (layout.indent - layout1.indent)*PS
-            j = sum(layout1.xy_to_index(x, 0))
+            layout = self._get_layout(mover)
+            x = sel.target_x + (sel.target_x_indent - layout.indent)*PS
+            j = sum(layout.xy_to_index(x, 0))
             mover.set_position(s+1, j)
         return True
 
     def _home_select(self, mode, layout, index):
         n, _range, line = self.cursor.get_current_line()
 
-        if mode == self.SELECT_NORMAL or mode == self.SELECT_ALL:
-            self._selmode = self.SELECT_LINE
+        if mode == SelectionCursor.SELECT_NORMAL or mode == SelectionCursor.SELECT_ALL:
+            self.selection.state = SelectionCursor.SELECT_LINE
             self.selection.set_position(n[0], _range[0])
 
-        elif mode == self.SELECT_LINE and n[1] != 0:
+        elif mode == SelectionCursor.SELECT_LINE and n[1] != 0:
             if len(self.order) > 1 and layout.order_id != 0:
-                self._selmode = self.SELECT_PARA
+                self.selection.state = SelectionCursor.SELECT_PARA
             else:
-                self._selmode = self.SELECT_ALL
+                self.selection.state = SelectionCursor.SELECT_ALL
             self.selection.set_position(layout.order_id, 0)
 
-        elif mode == self.SELECT_PARA or n[1] == 0:
-            self._selmode = self.SELECT_ALL
+        elif mode == SelectionCursor.SELECT_PARA or n[1] == 0:
+            self.selection.state = SelectionCursor.SELECT_ALL
             self.selection.set_position(0, 0)
         self.queue_draw()
 
     def _end_select(self, mode, layout, index):
         n, _range, line = self.cursor.get_current_line()
 
-        if mode == self.SELECT_NORMAL or mode == self.SELECT_ALL:
-            self._selmode = self.SELECT_LINE
+        if mode == SelectionCursor.SELECT_NORMAL or mode == SelectionCursor.SELECT_ALL:
+            self.selection.state = SelectionCursor.SELECT_LINE
             self.selection.set_position(n[0], _range[1])
 
-        elif mode == self.SELECT_LINE and n[1] != layout.get_line_count()-1:
+        elif mode == SelectionCursor.SELECT_LINE and n[1] != layout.get_line_count()-1:
             if len(self.order) > 1 and layout.order_id != len(self.order)-1:
-                self._selmode = self.SELECT_PARA
+                self.selection.state = SelectionCursor.SELECT_PARA
             else:
-                self._selmode = self.SELECT_ALL
+                self.selection.state = SelectionCursor.SELECT_ALL
             self.selection.set_position(layout.order_id, len(layout))
 
-        elif mode == self.SELECT_PARA or n[1] == layout.get_line_count()-1:
-            self._selmode = self.SELECT_ALL
+        elif mode == SelectionCursor.SELECT_PARA or n[1] == layout.get_line_count()-1:
+            self.selection.state = SelectionCursor.SELECT_ALL
             layout = self.order[-1]
             self.selection.set_position(layout.order_id, len(layout))
         self.queue_draw()
 
     def _2click_select(self, mode, layout, index):
-        if mode == self.SELECT_NORMAL:
-            self._select_line(layout, index)
-        elif mode == self.SELECT_LINE:
-            self._select_para(layout, index)
-        elif mode == self.SELECT_PARA:
-            self._select_all(layout, index)
-        else:
-            # select none
-            self._selmode = self.SELECT_NORMAL
-            self.selection.clear()
-
-        if self._selreset: gobject.source_remove(self._selreset)
-        self._selreset = gobject.timeout_add(
-                                    self.SELECT_MODE_RESET_TIMEOUT,
-                                    self._2click_mode_reset_cb)
+        self._select_para(layout, index)
         return
 
-    def _2click_mode_reset_cb(self):
-        self._sel_mode = self.SELECT_NORMAL
+    def _3click_select(self, mode, layout, index):
+        self._select_all(layout, index)
         return
 
     def _select_line(self, layout, i):
         n, _range, line = self.cursor.get_current_line()
-        self._selmode = self.SELECT_LINE
+        self.selection.state = SelectionCursor.SELECT_LINE
         self._selprevline = n
         self.cursor.index = _range[0]
         self.selection.index = _range[1]
@@ -473,9 +493,9 @@ class IndentLabel(gtk.EventBox):
 
     def _select_para(self, layout, i):
         if len(self.order) > 1:
-            self._selmode = self.SELECT_PARA
+            self.selection.state = SelectionCursor.SELECT_PARA
         else:
-            self._selmode = self.SELECT_ALL
+            self.selection.state = SelectionCursor.SELECT_ALL
 
         self.cursor.index = 0
         self.selection.index = len(layout)
@@ -483,7 +503,7 @@ class IndentLabel(gtk.EventBox):
         return
 
     def _select_all(self, layout, index):
-        self._selmode = self.SELECT_ALL
+        self.selection.state = SelectionCursor.SELECT_ALL
         layout1 = self.order[-1]
         self.cursor.index = 0
         self.cursor.section = 0
