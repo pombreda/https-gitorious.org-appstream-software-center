@@ -17,6 +17,11 @@ software-center (3.0.1) UNRELEASED; urgency=low
       but does not have a apt pkg object yet, this means it got
       installed from a newly enabled source, return the right state
       in this case
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - remove explicit "progress.set_fraction()" in configure() because
+      its not needed (gtk.ProgressBar will DTRT) and also we may get
+      "xapian reopen" signals in the middle of a transaction, in this
+      case we don't want to reset the progress. 
 
   [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
