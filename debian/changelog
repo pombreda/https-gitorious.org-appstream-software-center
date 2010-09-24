@@ -9,6 +9,9 @@ software-center (3.0.1) UNRELEASED; urgency=low
       callback to ensure that the various views get the right
       signal. This partly fixes #507836, the exceptions will
       stil be there, but the UI will fully recover
+  * softwarecenter/backend/aptd.py:
+    - do not emit "channels-changed" while installing a purchase,
+      this emited already by the update()
 
   [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
