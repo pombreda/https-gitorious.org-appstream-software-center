@@ -4,6 +4,11 @@ software-center (3.0.1) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - index the file even if "catalogedtime" is not yet written
       to /var/lib/apt-xapian-index/values (LP: #646018)
+  * softwarecenter/app.py:
+    - use "reopen" instead of "open" in the channels-changed 
+      callback to ensure that the various views get the right
+      signal. This partly fixes #507836, the exceptions will
+      stil be there, but the UI will fully recover
 
   [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
