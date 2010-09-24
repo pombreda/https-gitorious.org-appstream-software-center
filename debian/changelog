@@ -4,7 +4,9 @@ software-center (3.0.1) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - index the file even if "catalogedtime" is not yet written
       to /var/lib/apt-xapian-index/values (LP: #646018)
-
+  * softwarecenter/view/purchasedialog.py:
+    - set default window size to 640x400 (LP: #635215)
+  
   [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - fix crash if iconname has no value (LP: #639934) 
