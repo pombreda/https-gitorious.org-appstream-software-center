@@ -274,7 +274,7 @@ class IndentLabel(gtk.EventBox):
         self._fg_norm = self.style.text[gtk.STATE_NORMAL]
         self._bg_sel = self.style.base[gtk.STATE_SELECTED]
         self._fg_sel = self.style.text[gtk.STATE_SELECTED]
-        self._grey = self.style.bg[gtk.STATE_NORMAL]
+        self._grey = self.style.mid[gtk.STATE_NORMAL]
         return
 
     def _on_enter(self, widget, event):
@@ -350,17 +350,13 @@ class IndentLabel(gtk.EventBox):
         elif kv == keys.Up:
 
             if sel and not shift:
-                mover.set_position(sel.section,
-                                   sel.index)
-
+                self.cursor.set_position(*sel.min)
             else:
                 self._key_up(sel, self.cursor, self.cursor.section)
 
         elif kv == keys.Down:
             if self.selection and not shift:
-                mover.set_position(self.selection.section,
-                                   self.selection.index)
-
+                self.cursor.set_position(*sel.max)
             else:
                 self._key_down(sel, self.cursor, self.cursor.section)
 
