@@ -323,9 +323,9 @@ class IndentLabel(gtk.EventBox):
                 self.selection.clear()
 
                 if (event.type == gtk.gdk._2BUTTON_PRESS):
-                    self._2click_select(self.selection.state, layout, index)
+                    self._2click_select(self.cursor, self.selection)
                 elif (event.type == gtk.gdk._3BUTTON_PRESS):
-                    self._3click_select(self.selection.state, layout, index)
+                    self._3click_select(self.cursor, self.selection)
                 self.queue_draw()
                 break
         return
@@ -489,49 +489,48 @@ class IndentLabel(gtk.EventBox):
             self.selection.set_position(layout.order_id, len(layout))
         self.queue_draw()
 
-    def _2click_select(self, mode, layout, index):
-        self._select_word(layout, index)
+    def _2click_select(self, cursor, sel):
+        self._select_word(cursor, sel)
         return
 
-    def _3click_select(self, mode, layout, index):
-        self._select_line(layout, index)
+    def _3click_select(self, cursor, sel):
+        self._select_line(cursor, sel)
         return
 
-    def _select_word(self, layout, i):
-        section, word = self.cursor.get_current_word()
+    def _select_word(self, cursor, sel):
+        section, word = cursor.get_current_word()
         if word:
-            self.cursor.set_position(section, word[0])
-            self.selection.set_position(section, word[1])
-            self.selection.state = SelectionCursor.SELECT_WORD
+            cursor.set_position(section, word[0])
+            sel.set_position(section, word[1])
+            sel.state = SelectionCursor.SELECT_WORD
         return
 
-    def _select_line(self, layout, i):
+    def _select_line(self, cursor, sel):
         n, _range, line = self.cursor.get_current_line()
-        self.selection.state = SelectionCursor.SELECT_LINE
-        self._selprevline = n
-        self.cursor.index = _range[0]
-        self.selection.index = _range[1]
-        self.selection.order_id = layout.order_id
+        sel.state = SelectionCursor.SELECT_LINE
+        cursor.index = _range[0]
+        sel.index = _range[1]
+        sel.order_id = n[0]
         return
 
-    def _select_para(self, layout, i):
+    def _select_para(self, cursor, sel):
         if len(self.order) > 1:
-            self.selection.state = SelectionCursor.SELECT_PARA
+            sel.state = SelectionCursor.SELECT_PARA
         else:
-            self.selection.state = SelectionCursor.SELECT_ALL
+            sel.state = SelectionCursor.SELECT_ALL
 
-        self.cursor.index = 0
-        self.selection.index = len(layout)
-        self.selection.order_id = layout.order_id
+        cursor.index = 0
+        sel.index = len(layout)
+        sel.order_id = layout.order_id
         return
 
-    def _select_all(self, layout, index):
+    def _select_all(self, cursor, sel):
         self.selection.state = SelectionCursor.SELECT_ALL
-        layout1 = self.order[-1]
-        self.cursor.index = 0
-        self.cursor.section = 0
-        self.selection.index = len(layout1)
-        self.selection.section = layout1.order_id
+        layout = self.order[-1]
+        cursor.index = 0
+        cursor.section = 0
+        sel.index = len(layout)
+        sel.section = layout.order_id
         return
 
     def height_from_width(self, width):
