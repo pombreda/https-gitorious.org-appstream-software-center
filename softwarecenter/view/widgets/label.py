@@ -245,7 +245,6 @@ class IndentLabel(gtk.EventBox):
         self._selreset = 0
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
-        self._grey = gtk.gdk.Color(red=0.8, green=0.8, blue=0.8)
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press)
@@ -262,6 +261,7 @@ class IndentLabel(gtk.EventBox):
         self._fg_norm = self.style.text[gtk.STATE_NORMAL]
         self._bg_sel = self.style.base[gtk.STATE_SELECTED]
         self._fg_sel = self.style.text[gtk.STATE_SELECTED]
+        self._grey = self.style.bg[gtk.STATE_NORMAL]
         return
 
     def _on_enter(self, widget, event):
