@@ -1,4 +1,4 @@
-software-center (3.0.1) UNRELEASED; urgency=low
+software-center (3.0.1) maverick; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/db/update.py:
@@ -14,7 +14,7 @@ software-center (3.0.1) UNRELEASED; urgency=low
     - fix intermittent crash when using arrow keys to
       expand/collapse nodes in the left nav pane (LP: #644176) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 24 Sep 2010 22:35:42 +0200
 
 software-center (3.0) maverick; urgency=low
 
