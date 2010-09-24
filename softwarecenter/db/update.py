@@ -366,12 +366,14 @@ def update_from_software_center_agent(db, cache):
     def _error_cb(sca, error):
         logging.warn("error: %s" % error)
         sca.available = []
-    from softwarecenter.backend.restfulclient import SoftwareCenterAgent
-    sca = SoftwareCenterAgent()
+    # use the anonymous interface to s-c-agent, scales much better and is
+    # much cache friendlier
+    from softwarecenter.backend.restfulclient import SoftwareCenterAgentAnonymous
+    sca = SoftwareCenterAgentAnonymous()
     sca.connect("available", _available_cb)
     sca.connect("error", _error_cb)
-    sca.query_available()
     sca.available = None
+    sca.query_available()
     context = glib.main_context_default()
     while sca.available is None:
         while context.pending():
@@ -421,7 +423,7 @@ def index_app_info_from_parser(parser, db, cache):
         doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
         doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, parser.desktopf)
         # cataloged_times
-        if pkgname in cataloged_times:
+        if pkgname in cataloged_times and "catalogedtime" in axi_values:
             doc.add_value(axi_values["catalogedtime"], 
                           xapian.sortable_serialise(cataloged_times[pkgname]))
         # pocket (main, restricted, ...)

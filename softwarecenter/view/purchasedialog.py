@@ -87,7 +87,7 @@ h1 {
         self.app = app
         self.iconname = iconname
         self.set_property('skip-taskbar-hint', True)
-        self.set_size_request(975, 700)
+        self.set_size_request(640, 400)
         self.wk = ScrolledWebkitWindow()
         self.wk.webkit.connect("create-web-view", 
                                self._on_create_webview_request)
@@ -133,7 +133,7 @@ h1 {
         return True
 
     def _on_title_changed(self, view, frame, title):
-        print "on_title_changed", view, frame, title
+        #print "on_title_changed", view, frame, title
         # see wkwidget.py _on_title_changed() for a code example
         self._process_json(title)
 
@@ -142,7 +142,7 @@ h1 {
             res = simplejson.loads(json_string)
             #print res
         except:
-            logging.warn("error processing json: '%s'" % json_string)
+            logging.debug("error processing json: '%s'" % json_string)
             return
         if res["successful"] == False:
             self.hide()

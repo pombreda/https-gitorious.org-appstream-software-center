@@ -196,6 +196,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # misc state
         self._block_menuitem_view = False
         self._available_items_for_page = {}
+        
+        # for use when viewing previous purchases
+        self.scagent = None
+        self.sso = None
+        self.previous_purchases_channel = None
  
         # hackery, paint viewport borders around notebook
         self.notebook_view.set_border_width(1)
@@ -500,12 +505,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _available_for_me_result(self, scagent, result_list):
         #print "available_for_me_result", result_list
         from db.update import add_from_purchased_but_needs_reinstall_data
-        query = add_from_purchased_but_needs_reinstall_data(result_list, 
+        channel_display_name = _("Previous Purchases")
+        # first check if the Previous Purchases channel is already created
+        if not self.previous_purchases_channel:
+            query = add_from_purchased_but_needs_reinstall_data(result_list, 
                                                            self.db,
                                                            self.cache)
-        channel_display_name = _("Previous Purchases")
-        self.view_switcher.get_model().channel_manager.add_channel(
-            channel_display_name, icon=None, query=query)
+            channel_manager = self.view_switcher.get_model().channel_manager
+            self.previous_purchases_channel = channel_manager.add_channel(channel_display_name, 
+                                                                          icon=None,
+                                                                          query=query)
         if not self.view_switcher.is_available_node_expanded():
             self.view_switcher.expand_available_node()
         self.view_switcher.select_channel_node(channel_display_name, False)
@@ -563,8 +572,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         d.login()
 
     def _login_via_buildin_sso(self):
-        self.sso = UbuntuSSOlogin()
-        self.sso.connect("login-successful", self._on_sso_login)
+        if not self.sso:
+            self.sso = UbuntuSSOlogin()
+            self.sso.connect("login-successful", self._on_sso_login)
         if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
             self.scagent.query_available_for_me("dummy", "mvo")
         else:
@@ -572,15 +582,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             d.login()
 
     def _login_via_dbus_sso(self):
-        self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
-        self.sso.connect("login-successful", self._on_sso_login)
+        if not self.sso:
+            self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
+            self.sso.connect("login-successful", self._on_sso_login)
         self.sso.login()
 
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
-        self.scagent = SoftwareCenterAgent()
-        self.scagent.connect("available-for-me", self._available_for_me_result)
+        if not self.scagent:
+            self.scagent = SoftwareCenterAgent()
+            self.scagent.connect("available-for-me", self._available_for_me_result)
         # support both buildin or ubuntu-sso-login
-        if "SOFWARE_CENTER_USE_BUILTIN_LOGIN" in os.environ:
+        if "SOFTWARE_CENTER_USE_BUILTIN_LOGIN" in os.environ:
             self._login_via_buildin_sso()
         else:
             self._login_via_dbus_sso()
@@ -771,10 +783,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """ callback when the set of software channels has changed """
         self._logger.debug("on_channels_changed %s" % res)
         if res:
-            self.db.open()
-            # refresh the available_pane views to reflect any changes
-            self.available_pane.refresh_apps()
-            self.available_pane.update_app_view()
+            # reopen the database, this will ensure that the right signals
+            # are send and triggers "refresh_apps", "update_app_view"
+            # and refresh the displayed app in the details as well
+            self.db.reopen()
+            # refresh the menu/status_bar
             self.update_app_status_menu()
             self.update_status_bar()
 
