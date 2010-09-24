@@ -423,7 +423,7 @@ def index_app_info_from_parser(parser, db, cache):
         doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
         doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, parser.desktopf)
         # cataloged_times
-        if pkgname in cataloged_times:
+        if pkgname in cataloged_times and "catalogedtime" in axi_values:
             doc.add_value(axi_values["catalogedtime"], 
                           xapian.sortable_serialise(cataloged_times[pkgname]))
         # pocket (main, restricted, ...)
