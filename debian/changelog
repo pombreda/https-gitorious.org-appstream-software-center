@@ -1,10 +1,18 @@
 software-center (3.0.1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/db/update.py:
     - index the file even if "catalogedtime" is not yet written
       to /var/lib/apt-xapian-index/values (LP: #646018)
 
- -- Michael Vogt <egon@bod>  Thu, 23 Sep 2010 15:31:10 +0200
+  [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash if iconname has no value (LP: #639934) 
+  * softwarecenter/view/viewswitcher.py:
+    - fix intermittent crash when using arrow keys to
+      expand/collapse nodes in the left nav pane (LP: #644176) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
 
 software-center (3.0) maverick; urgency=low
 
