@@ -127,6 +127,19 @@ class Cursor(object):
         self.index = 0
         self.section = 0
 
+    def is_min(self, cursor):
+        return self.get_position() <= cursor.get_position()
+
+    def is_max(self, cursor):
+        return self.get_position() >= cursor.get_position()
+
+    def switch(self, cursor):
+        this_pos = self.get_position()
+        other_pos = cursor.get_position()
+        self.set_position(*other_pos)
+        cursor.set_position(*this_pos)
+        return
+
     def get_current_line(self):
         keep_going = True
         i, it = self.index, self.parent.order[self.section].get_iter()
@@ -229,6 +242,9 @@ class SelectionCursor(Cursor):
         return max((self.section, self.index), (c.section, c.index))
 
     def get_cursors_by_order(self):
+        if self.cursor.get_position() >= self.get_position():
+            return self.cursor, self
+        return self, self.cursor
 
     def clear(self, key=None):
         self.index = self.cursor.index
@@ -488,37 +504,54 @@ class IndentLabel(gtk.EventBox):
         return
 
     def _select_end(self, cur, sel, layout, mode):
+        if not cur.is_max(sel):
+            cur.switch(sel)
+
         n, r, line = cur.get_current_line()
         cur_pos = cur.get_position()
+
         if cur_pos == (len(self.order)-1, len(self.order[-1])):   # absolute end
-            # reinstate restore point
-            cur.set_position(*sel.restore_point)
-        elif cur_pos[1] == len(self.order[n[0]]):               # para end
+            if sel.restore_point:
+                # reinstate restore point
+                cur.set_position(*sel.restore_point)
+            else:
+                n, r, line = sel.get_current_line()
+                cur.set_position(n[0], r[1])
+        elif cur_pos[1] == len(self.order[n[0]]):   # para end
             # select abs end
             cur.set_position(len(self.order)-1, len(self.order[-1]))
-        elif cur_pos == (n[0], r[1]):                           # line end
+
+        elif cur_pos == (n[0], r[1]):   # line end
             # select para end
             cur.set_position(n[0], len(self.order[n[0]]))
-        else:                                                   # not at any end, within line somewhere
+
+        else:   # not at any end, within line somewhere
             # select line end
-            sel.restore_point = cur_pos
+            if sel:
+                sel.restore_point = cur_pos
             cur.set_position(n[0], r[1])
         return
 
     def _select_home(self, cur, sel, layout, mode):
-        
+        if not cur.is_min(sel):
+            cur.switch(sel)
+
         n, r, line = cur.get_current_line()
         cur_pos = cur.get_position()
+
         if cur_pos == (0, 0):   # absolute home
             if sel.restore_point:
                 cur.set_position(*sel.restore_point)
             else:
                 n, r, line = sel.get_current_line()
                 cur.set_position(n[0], r[0])
+
         elif cur_pos[1] == 0:   # para home
             cur.set_position(0,0)
+
         elif cur_pos == (n[0], r[1]):      # line home
             cur.set_position(n[0], 0)
+
         else:                   # not at any home, within line somewhere
             if sel:
                 sel.restore_point = cur_pos
