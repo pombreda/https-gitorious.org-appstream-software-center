@@ -4,6 +4,7 @@ import gobject
 
 from pango import SCALE as PS
 from gtk import keysyms as keys
+from mkit import ShapeRoundedRectangle
 
 
 class Layout(pango.Layout):
@@ -140,6 +141,9 @@ class Cursor(object):
         cursor.set_position(*this_pos)
         return
 
+    def same_line(self, cursor):
+        return self.get_current_line()[0] == cursor.get_current_line()[0]
+
     def get_current_line(self):
         keep_going = True
         i, it = self.index, self.parent.order[self.section].get_iter()
@@ -216,6 +220,12 @@ class SelectionCursor(Cursor):
     SELECT_ALL    = 3
     SELECT_NORMAL = 4
 
+    HMOVEMENT_KEYS = (keys.Left, keys.Right)
+    VMOVEMENT_KEYS = (keys.Up, keys.Down)
+
+    KEY_HMOVEMENT = 0
+    KEY_VMOVEMENT = 1
+
     def __init__(self, cursor):
         Cursor.__init__(self, cursor.parent)
         self.cursor = cursor
@@ -223,6 +233,7 @@ class SelectionCursor(Cursor):
         self.target_x = None
         self.target_x_indent = 0
         self.restore_point = None
+        self.movement = None
 
     def __repr__(self):
         return 'Selection: '+str(self.get_range())
@@ -240,11 +251,6 @@ class SelectionCursor(Cursor):
     def max(self):
         c = self.cursor
         return max((self.section, self.index), (c.section, c.index))
-
-    def get_cursors_by_order(self):
-        if self.cursor.get_position() >= self.get_position():
-            return self.cursor, self
-        return self, self.cursor
 
     def clear(self, key=None):
         self.index = self.cursor.index
@@ -299,7 +305,7 @@ class SelectionCursor(Cursor):
 
 class IndentLabel(gtk.EventBox):
 
-
+    PAINT_PRIMARY_CURSOR = True
     BULLET_POINT = u'  \u2022  '
 
 
@@ -326,6 +332,9 @@ class IndentLabel(gtk.EventBox):
         self.selection = SelectionCursor(self.cursor)
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
+        self._pulser = None
+        self._focus_pulse_step = 0.1
+        self._focus_pulse_alpha = 0
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press, self.cursor, self.selection)
@@ -359,9 +368,11 @@ class IndentLabel(gtk.EventBox):
                 break
 
     def _on_press(self, widget, event, cur, sel):
-        if not self.has_focus():
+        if sel and not self.has_focus():
             self.grab_focus()
             return
+        elif not self.has_focus():
+            self.grab_focus()
 
         if event.button == 2:
             self._button2_action()
@@ -369,6 +380,7 @@ class IndentLabel(gtk.EventBox):
         elif event.button != 1:
             return
 
+        sel.movement = None
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
@@ -389,20 +401,29 @@ class IndentLabel(gtk.EventBox):
     def _on_release(self, widget, event):
         return
 
+    def _movement_type(self, kv):
+        if kv in SelectionCursor.HMOVEMENT_KEYS:
+            return SelectionCursor.KEY_HMOVEMENT
+        elif kv in SelectionCursor.VMOVEMENT_KEYS:
+            return SelectionCursor.KEY_VMOVEMENT
+        return None
+
     def _on_key_press(self, widget, event, cur, sel):
         kv = event.keyval
         s, i = cur.section, cur.index
 
         handled_keys = True
         shift = event.state & gtk.gdk.SHIFT_MASK
-
+        same_movement = sel.movement == self._movement_type(kv)
+        sel.movement = self._movement_type(kv)
         if kv == keys.Tab:
             handled_keys = False
 
         elif kv == keys.Left:
-            if sel and not shift:
-                cur.set_position(*sel.min)
-            elif i > 0:
+            if sel and not same_movement and not cur.is_min(sel):
+                cur.switch(sel)
+                s, i = cur.get_position()
+            if i > 0:
                 cur.set_position(s, i-1)
             elif cur.section > 0:
                 cur.section -= 1
@@ -411,9 +432,10 @@ class IndentLabel(gtk.EventBox):
                 sel.restore_point = cur.get_position()
 
         elif kv == keys.Right: 
-            if sel and not shift:
-                cur.set_position(*sel.max)
-            elif i < len(self._get_layout(cur)):
+            if sel and not same_movement and not cur.is_max(sel):
+                cur.switch(sel)
+                s, i = cur.get_position()
+            if i < len(self._get_layout(cur)):
                 cur.set_position(s, i+1)
             elif s < len(self.order)-1:
                 cur.set_position(s+1, 0)
@@ -424,13 +446,13 @@ class IndentLabel(gtk.EventBox):
             if sel and not shift:
                 cur.set_position(*sel.min)
             else:
-                self._key_up(sel, cur, s)
+                self._key_up(cur, sel)
 
         elif kv == keys.Down:
             if sel and not shift:
                 cur.set_position(*sel.max)
             else:
-                self._key_down(sel, cur, s)
+                self._key_down(cur, sel)
 
         elif kv == keys.Home:
             if shift:
@@ -456,55 +478,78 @@ class IndentLabel(gtk.EventBox):
         self.queue_draw()
         return handled_keys
 
-    def _key_up(self, sel, mover, s):
-        layout = self._get_layout(mover)
+    def _key_up(self, cur, sel):
+        if sel and not cur.is_min(sel) and cur.same_line(sel):
+            cur.switch(sel)
+        s = cur.section
+
+        layout = self._get_layout(cur)
 
         if sel.target_x:
             x = sel.target_x + (sel.target_x_indent - layout.indent)*PS
-            j, xy = layout.cursor_up(mover, x)
+            # special case for when we sel all of bottom line after 
+            # hitting bottom line extent
+            if cur.get_position() == (len(self.order)-1, len(layout)) and x != layout.get_extents()[1][2]:
+                y = layout.get_extents()[1][3]
+                j = sum(layout.xy_to_index(x, y))
+                xy = (x,y)
+            else:
+                j, xy = layout.cursor_up(cur, x)
         else:
-            j, xy = layout.cursor_up(mover)
+            j, xy = layout.cursor_up(cur)
             sel.set_target_x(xy[0], layout.indent)
 
-        if (s, j) != mover.get_position():
-            mover.set_position(s, j)
+        if (s, j) != cur.get_position():
+            cur.set_position(s, j)
         else:
             if s > 0:
-                mover.section -= 1
+                cur.section -= 1
             else:
-                mover.set_position(0, 0)
+                if sel:
+                    cur.set_position(0, 0)
                 return False
 
-            layout1 = self._get_layout(mover)
+            layout1 = self._get_layout(cur)
             x = sel.target_x + (sel.target_x_indent - layout1.indent)*PS
             y = layout1.get_extents()[1][3]
             j = sum(layout1.xy_to_index(x, y))
-            mover.set_position(s-1, j)
-        return True
+            cur.set_position(s-1, j)
+        return
 
-    def _key_down(self, sel, mover, s):
-        layout = self._get_layout(mover)
+    def _key_down(self, cur, sel):
+        if sel and not cur.is_max(sel) and cur.same_line(sel):
+            cur.switch(sel)
+        s = cur.section
+
+        layout = self._get_layout(cur)
 
         if sel.target_x:
             x = sel.target_x + (sel.target_x_indent - layout.indent)*PS
-            j, xy = layout.cursor_down(mover, x)
+            # special case for when we sel all of top line after hitting
+            # top line extent
+            if cur.get_position() == (0, 0) and x != 0:
+                j = sum(layout.xy_to_index(x, 0))
+                xy = (x,0)
+            else:
+                j, xy = layout.cursor_down(cur, x)
         else:
-            j, xy = layout.cursor_down(mover)
+            j, xy = layout.cursor_down(cur)
             sel.set_target_x(xy[0], layout.indent)
 
-        if (s, j) != mover.get_position():
-            mover.set_position(s, j)
+        if (s, j) != cur.get_position():
+            cur.set_position(s, j)
         else:
             if s+1 < len(self.order):
-                mover.section += 1
+                cur.section += 1
             else:
-                mover.set_position(s, len(layout))
+                if sel:
+                    cur.set_position(s, len(layout))
                 return False
 
-            layout = self._get_layout(mover)
+            layout = self._get_layout(cur)
             x = sel.target_x + (sel.target_x_indent - layout.indent)*PS
             j = sum(layout.xy_to_index(x, 0))
-            mover.set_position(s+1, j)
+            cur.set_position(s+1, j)
         return True
 
     def _2click_select(self, cursor, sel):
@@ -658,6 +703,7 @@ class IndentLabel(gtk.EventBox):
 
         start, end = self.selection.get_range()
         cr = widget.window.cairo_create()
+
         if self.has_focus():
             bg_sel = self._bg_sel
             fg_sel = self._fg_sel
@@ -691,7 +737,7 @@ class IndentLabel(gtk.EventBox):
                                     la.y,           # y coord
                                     layout)         # a pango.Layout()
         # draw the cursor
-        if self.has_focus():
+        if self.PAINT_PRIMARY_CURSOR and self.has_focus():
             self.cursor.draw(cr, self._get_layout(self.cursor), self.allocation)
         return
 
