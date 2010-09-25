@@ -359,8 +359,15 @@ class IndentLabel(gtk.EventBox):
                 break
 
     def _on_press(self, widget, event, cur, sel):
-        self.grab_focus()
-        if event.button != 1: return
+        if not self.has_focus():
+            self.grab_focus()
+            return
+
+        if event.button == 2:
+            self._button2_action()
+            return
+        elif event.button != 1:
+            return
 
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
@@ -374,6 +381,9 @@ class IndentLabel(gtk.EventBox):
                     self._3click_select(cur, sel)
                 self.queue_draw()
                 break
+        return
+
+    def _button2_action(self):
         return
 
     def _on_release(self, widget, event):
@@ -462,6 +472,7 @@ class IndentLabel(gtk.EventBox):
             if s > 0:
                 mover.section -= 1
             else:
+                mover.set_position(0, 0)
                 return False
 
             layout1 = self._get_layout(mover)
@@ -487,6 +498,7 @@ class IndentLabel(gtk.EventBox):
             if s+1 < len(self.order):
                 mover.section += 1
             else:
+                mover.set_position(s, len(layout))
                 return False
 
             layout = self._get_layout(mover)
@@ -515,8 +527,10 @@ class IndentLabel(gtk.EventBox):
                 # reinstate restore point
                 cur.set_position(*sel.restore_point)
             else:
+                # reselect the line end
                 n, r, line = sel.get_current_line()
                 cur.set_position(n[0], r[1])
+
         elif cur_pos[1] == len(self.order[n[0]]):   # para end
             # select abs end
             cur.set_position(len(self.order)-1, len(self.order[-1]))
