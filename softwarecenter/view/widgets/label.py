@@ -420,39 +420,22 @@ class IndentLabel(gtk.EventBox):
             handled_keys = False
 
         elif kv == keys.Left:
-            if sel and not same_movement and not cur.is_min(sel):
-                cur.switch(sel)
-                s, i = cur.get_position()
-            if i > 0:
-                cur.set_position(s, i-1)
-            elif cur.section > 0:
-                cur.section -= 1
-                cur.set_position(s-1, len(self._get_layout(cur)))
-            if shift:
-                sel.restore_point = cur.get_position()
+            self._select_left(shift, cur, sel, s, i, same_movement)
 
         elif kv == keys.Right: 
-            if sel and not same_movement and not cur.is_max(sel):
-                cur.switch(sel)
-                s, i = cur.get_position()
-            if i < len(self._get_layout(cur)):
-                cur.set_position(s, i+1)
-            elif s < len(self.order)-1:
-                cur.set_position(s+1, 0)
-            if shift:
-                sel.restore_point = cur.get_position()
+            self._select_right(shift, cur, sel, s, i, same_movement)
 
         elif kv == keys.Up:
             if sel and not shift:
                 cur.set_position(*sel.min)
             else:
-                self._key_up(cur, sel)
+                self._select_up(cur, sel)
 
         elif kv == keys.Down:
             if sel and not shift:
                 cur.set_position(*sel.max)
             else:
-                self._key_down(cur, sel)
+                self._select_down(cur, sel)
 
         elif kv == keys.Home:
             if shift:
@@ -478,7 +461,7 @@ class IndentLabel(gtk.EventBox):
         self.queue_draw()
         return handled_keys
 
-    def _key_up(self, cur, sel):
+    def _select_up(self, cur, sel):
         if sel and not cur.is_min(sel) and cur.same_line(sel):
             cur.switch(sel)
         s = cur.section
@@ -516,7 +499,7 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(s-1, j)
         return
 
-    def _key_down(self, cur, sel):
+    def _select_down(self, cur, sel):
         if sel and not cur.is_max(sel) and cur.same_line(sel):
             cur.switch(sel)
         s = cur.section
@@ -615,6 +598,31 @@ class IndentLabel(gtk.EventBox):
             if sel:
                 sel.restore_point = cur_pos
             cur.set_position(n[0], r[0])
+        return
+
+    def _select_left(self, shift, cur, sel, s, i, same_movement):
+        if sel and not same_movement and not cur.is_min(sel):
+            cur.switch(sel)
+            s, i = cur.get_position()
+        if i > 0:
+            cur.set_position(s, i-1)
+        elif cur.section > 0:
+            cur.section -= 1
+            cur.set_position(s-1, len(self._get_layout(cur)))
+        if shift:
+            sel.restore_point = cur.get_position()
+        return
+
+    def _select_right(self, shift, cur, sel, s, i, same_movement):
+        if sel and not same_movement and not cur.is_max(sel):
+            cur.switch(sel)
+            s, i = cur.get_position()
+        if i < len(self._get_layout(cur)):
+            cur.set_position(s, i+1)
+        elif s < len(self.order)-1:
+            cur.set_position(s+1, 0)
+        if shift:
+            sel.restore_point = cur.get_position()
         return
 
     def _select_word(self, cursor, sel):
