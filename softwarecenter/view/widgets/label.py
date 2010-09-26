@@ -413,19 +413,38 @@ class IndentLabel(gtk.EventBox):
         s, i = cur.section, cur.index
 
         handled_keys = True
+        ctrl = event.state & gtk.gdk.CONTROL_MASK
         shift = event.state & gtk.gdk.SHIFT_MASK
+
         same_movement = sel.movement == self._movement_type(kv)
         sel.movement = self._movement_type(kv)
         if kv == keys.Tab:
             handled_keys = False
 
         elif kv == keys.Left:
-            self._select_left(cur, sel, s, i, same_movement)
+            if ctrl:
+                if i > 0:
+                    cur.index -= 1
+                elif s > 0:
+                    cur.section -= 1
+                    cur.index = len(self._get_layout(cur))
+                self._select_word(cur, sel)
+            else:
+                self._select_left(cur, sel, s, i, same_movement)
+
             if shift:
                 sel.restore_point = cur.get_position()
 
         elif kv == keys.Right: 
-            self._select_right(cur, sel, s, i, same_movement)
+            if ctrl:
+                if i < len(self._get_layout(cur)):
+                    cur.index += 1
+                elif s < len(self.order)-1:
+                    cur.section += 1
+                    cur.index = 0
+                self._select_word(cur, sel, kv)
+            else:
+                self._select_right(cur, sel, s, i, same_movement)
             if shift:
                 sel.restore_point = cur.get_position()
 
@@ -623,11 +642,15 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(s+1, 0)
         return
 
-    def _select_word(self, cursor, sel):
+    def _select_word(self, cursor, sel, direction=None):
         section, word = cursor.get_current_word()
         if word:
-            cursor.set_position(section, word[0])
-            sel.set_position(section, word[1])
+            if direction == keys.Right:
+                cursor.set_position(section, word[1])
+                sel.set_position(section, word[0])
+            else:
+                cursor.set_position(section, word[0])
+                sel.set_position(section, word[1])
             sel.state = SelectionCursor.SELECT_WORD
         return
 
