@@ -439,7 +439,7 @@ class IndentLabel(gtk.EventBox):
             if ctrl:
                 if i < len(self._get_layout(cur)):
                     cur.index += 1
-                elif s < len(self.order)-1:
+                elif s+1 < len(self.order):
                     cur.section += 1
                     cur.index = 0
                 self._select_word(cur, sel, kv)
