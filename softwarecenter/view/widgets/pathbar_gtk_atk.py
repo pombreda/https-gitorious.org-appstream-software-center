@@ -518,6 +518,10 @@ class PathBar(gtk.HBox):
 
         self._width -= part.get_size_request()[0]
 
+        # only animate removal if part is the final part, override animation value
+        if animate:
+            i = parts.index(part)
+            animate = i == len(parts)-1
         if animate and not self._out_of_width:
             self._animate = True, part
             self._animate_mode = self.ANIMATE_REMOVE
@@ -576,10 +580,10 @@ class PathPart(gtk.EventBox):
         self.set_redraw_on_allocate(False)
         self.set_visible_window(False)
 
-        part_atk = self.get_accessible()
-        part_atk.set_name(label)
-        part_atk.set_description(_('Navigates to the %s page.' % label))
-        part_atk.set_role(atk.ROLE_PUSH_BUTTON)
+        self.atk = self.get_accessible()
+        self.atk.set_name(label)
+        self.atk.set_description(_('Navigates to the %s page.') % label)
+        self.atk.set_role(atk.ROLE_PUSH_BUTTON)
 
         self.invisible = False
         self._parent = parent
@@ -679,6 +683,8 @@ class PathPart(gtk.EventBox):
     def set_label(self, label):
         if label == self.label: return
         self.label = gobject.markup_escape_text(label.strip())
+        self.atk.set_name(label)
+        self.atk.set_description(_('Navigates to the %s page.') % label)
         if not self.layout:
             self._make_layout()
         else:

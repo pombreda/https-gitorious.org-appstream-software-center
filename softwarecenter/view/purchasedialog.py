@@ -81,12 +81,13 @@ h1 {
 </html>
 """ % _("Connecting to payment service...")
 
-    def __init__(self, app, url=None, html=None):
+    def __init__(self, app, iconname, url=None, html=None):
         gtk.Dialog.__init__(self)
         self.set_title("")
         self.app = app
+        self.iconname = iconname
         self.set_property('skip-taskbar-hint', True)
-        self.set_size_request(975, 700)
+        self.set_size_request(640, 400)
         self.wk = ScrolledWebkitWindow()
         self.wk.webkit.connect("create-web-view", 
                                self._on_create_webview_request)
@@ -132,7 +133,7 @@ h1 {
         return True
 
     def _on_title_changed(self, view, frame, title):
-        print "on_title_changed", view, frame, title
+        #print "on_title_changed", view, frame, title
         # see wkwidget.py _on_title_changed() for a code example
         self._process_json(title)
 
@@ -141,7 +142,7 @@ h1 {
             res = simplejson.loads(json_string)
             #print res
         except:
-            logging.warn("error processing json: '%s'" % json_string)
+            logging.debug("error processing json: '%s'" % json_string)
             return
         if res["successful"] == False:
             self.hide()
@@ -174,7 +175,8 @@ h1 {
         # add repo and key
         get_install_backend().add_repo_add_key_and_install_app(deb_line,
                                                                signing_key_id,
-                                                               self.app)
+                                                               self.app,
+                                                               self.iconname)
 
 # just used for testing --------------------------------------------
 DUMMY_HTML = """

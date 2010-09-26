@@ -42,6 +42,8 @@ from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore
 
+from softwarecenter.utils import AlternaSpinner
+
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
 else:
@@ -150,6 +152,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.datadir = datadir
         self.backend = get_install_backend()
         self.nonapps_visible = False
+        self.disable_show_hide_nonapps = False
         # refreshes can happen out-of-bound so we need to be sure
         # that we only set the new model (when its available) if
         # the refresh_seq_nr of the ready model matches that of the
@@ -167,7 +170,11 @@ class SoftwarePane(gtk.VBox, BasePane):
                                         gtk.POLICY_AUTOMATIC)
                              
         # make a spinner to display while the applist is loading           
-        self.spinner = gtk.Spinner()
+        try:
+            self.spinner = gtk.Spinner()
+        except AttributeError:
+            # worarkound for archlinux: see LP: #624204, LP: #637422
+            self.spinner = AlternaSpinner()
         self.spinner.set_size_request(48, 48)
         
         # use a table for the spinner (otherwise the spinner is massive!)
@@ -179,13 +186,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_view.add(self.spinner_table)
         self.spinner_view.set_shadow_type(gtk.SHADOW_NONE)
         self.scroll_app_list.add(self.app_view)
-        
-        self.appview_notebook = gtk.Notebook()
-        self.appview_notebook.set_show_tabs(False)
-        self.appview_notebook.set_show_border(False)
-        self.appview_notebook.append_page(self.scroll_app_list)
-        self.appview_notebook.append_page(self.spinner_view)
-        
+                
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
         # details
@@ -208,19 +209,27 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        self.top_hbox = gtk.HBox()
-        self.top_hbox.pack_start(self.navigation_bar, padding=self.PADDING)
-        self.top_hbox.pack_start(self.searchentry, expand=False, padding=self.PADDING)
-        self.pack_start(self.top_hbox, expand=False, padding=self.PADDING)
+        self.top_hbox = gtk.HBox(spacing=self.PADDING)
+        self.top_hbox.set_border_width(self.PADDING)
+        self.top_hbox.pack_start(self.navigation_bar)
+        self.top_hbox.pack_start(self.searchentry, expand=False)
+        self.pack_start(self.top_hbox, expand=False)
         #self.pack_start(gtk.HSeparator(), expand=False)
         # a notebook below
         self.notebook = gtk.Notebook()
         self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
-        self.pack_start(self.notebook)
+        
+        self.spinner_notebook = gtk.Notebook()
+        self.spinner_notebook.set_show_tabs(False)
+        self.spinner_notebook.set_show_border(False)
+        self.spinner_notebook.append_page(self.notebook)
+        self.spinner_notebook.append_page(self.spinner_view)
+        
+        self.pack_start(self.spinner_notebook)
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
-        self.pack_start(self.action_bar, expand=False, padding=self.PADDING)
+        self.pack_start(self.action_bar, expand=False)
         self.top_hbox.connect('expose-event', self._on_expose)
 
     def _on_expose(self, widget, event):
@@ -228,10 +237,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         a = widget.allocation
         self.style.paint_shadow(widget.window, self.state,
                                 gtk.SHADOW_IN,
-                                (a.x, a.y+a.height+self.PADDING-1, a.width, 1),
+                                (a.x, a.y+a.height-1, a.width, 1),
                                 widget, "viewport",
-                                a.x, a.y+a.height+self.PADDING-1,
-                                a.width, a.y+a.height+self.PADDING-1)
+                                a.x, a.y+a.height-1,
+                                a.width, a.y+a.height-1)
         return
 
     def on_cache_ready(self, cache):
@@ -248,7 +257,8 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_application_activated(self, appview, app):
         """callback when an app is clicked"""
         LOG.debug("on_application_activated: '%s'" % app)
-        self.navigation_bar.add_with_id(app.name,
+        details = app.get_details(self.db)
+        self.navigation_bar.add_with_id(details.display_name,
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
@@ -273,7 +283,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         """ display the spinner in the appview panel """
         self.action_bar.clear()
         self.spinner.hide()
-        self.appview_notebook.set_current_page(self.PAGE_SPINNER)
+        self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
         # "mask" the spinner momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
         gobject.timeout_add(100, self._unmask_appview_spinner)
@@ -285,7 +295,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
         self.spinner.stop()
-        self.appview_notebook.set_current_page(self.PAGE_APPVIEW)
+        self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
 
     def set_section(self, section):
         self.section = section
@@ -302,24 +312,44 @@ class SoftwarePane(gtk.VBox, BasePane):
         in the action_bar
         """
         appstore = self.app_view.get_model()
+        if not appstore:
+            self.action_bar.unset_label()
+            return
+        
+        # first figure out if we are only showing installed
+        if appstore.filter:
+            showing_installed = appstore.filter.installed_only
+        else:
+            showing_installed = False
 
         # calculate the number of apps/pkgs
         pkgs = 0
         apps = 0
-        if appstore and appstore.active:
+        if appstore.active:
             if appstore.nonapps_visible:
                 pkgs = appstore.nonapp_pkgs
                 apps = len(appstore) - pkgs
             else:
-                apps = len(appstore)
-                pkgs = appstore.nonapp_pkgs - apps
-            #print 'apps: ' + str(apps)
-            #print 'pkgs: ' + str(pkgs)
+                if showing_installed:
+                    # estimate by using the installed apps count when generating
+                    # the pkgs value
+                    # FIXME:  for smaller appstores, we should be able to count the
+                    #         number of installed non-apps for an accurate count
+                    apps = len(appstore)
+                    pkgs = min(self.cache.installed_count, appstore.nonapp_pkgs) - apps
+                else:
+                    apps = len(appstore)
+                    pkgs = appstore.nonapp_pkgs - apps
 
         self.action_bar.unset_label()
         
-        if (appstore and appstore.active and self.is_applist_view_showing() and
-            pkgs != apps and pkgs > 0 and apps > 0):
+        if (appstore and 
+            appstore.active and
+            self.is_applist_view_showing() and
+            pkgs != apps and 
+            pkgs > 0 and 
+            apps > 0 and
+            not self.disable_show_hide_nonapps):
             if appstore.nonapps_visible:
                 # TRANSLATORS: the text inbetween the underscores acts as a link
                 # In most/all languages you will want the whole string as a link

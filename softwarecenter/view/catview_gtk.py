@@ -594,6 +594,9 @@ class CarouselView(mkit.FramedSection):
         self.more_btn.set_underline(True)
         self.more_btn.set_subdued(True)
 
+        self.more_btn.a11y = self.more_btn.get_accessible()
+        self.more_btn.a11y.set_name(_("%s section: show all") % title )
+
         self.header.pack_end(self.more_btn, False)
 
         if carousel_apps and len(carousel_apps) > 0:
@@ -937,6 +940,7 @@ class CarouselPoster(mkit.VLinkButton):
         self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None
+        self._target_icon_size = icon_size
 
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)

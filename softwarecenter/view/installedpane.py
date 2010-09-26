@@ -54,7 +54,7 @@ class InstalledPane(SoftwarePane):
         
     def _build_ui(self):
         self.navigation_bar.set_size_request(26, -1)
-        self.notebook.append_page(self.appview_notebook, gtk.Label("installed"))
+        self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # initial refresh
@@ -84,6 +84,7 @@ class InstalledPane(SoftwarePane):
                                             self.on_navigation_search, 
                                             "search")
         else:
+            # None will default to match all documents (see AppStore code)
             query = None
         self.navigation_bar.add_with_id(_("Installed Software"), 
                                         self.on_navigation_list,
@@ -199,7 +200,11 @@ class InstalledPane(SoftwarePane):
         """ Display an application in the installed_pane """
         self.navigation_bar.add_with_id(_("Installed Software"), self.on_navigation_list, "list", do_callback=False, animate=False)
         self.navigation_bar.remove_all(do_callback=False, animate=False) # do_callback and animate *must* both be false here
-        self.navigation_bar.add_with_id(app.name, self.on_navigation_details, "details", animate=False)
+        details = app.get_details(self.db)
+        self.navigation_bar.add_with_id(details.display_name,
+                                        self.on_navigation_details,
+                                        "details",
+                                        animate=False)
         self.app_details.show_app(app)
         self.app_view.emit("application-selected", app)
 

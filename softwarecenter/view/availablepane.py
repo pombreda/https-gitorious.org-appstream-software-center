@@ -144,7 +144,7 @@ class AvailablePane(SoftwarePane):
         self.back_forward = BackForwardButton()
         self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
         self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
-        self.top_hbox.pack_start(self.back_forward, expand=False, padding=self.PADDING)
+        self.top_hbox.pack_start(self.back_forward, expand=False)
         # nav buttons first in the panel
         self.top_hbox.reorder_child(self.back_forward, 0)
         if self.navhistory_back_action and self.navhistory_forward_action:
@@ -154,7 +154,7 @@ class AvailablePane(SoftwarePane):
                                                  self.navhistory_forward_action)
 
         # app list
-        self.notebook.append_page(self.appview_notebook,
+        self.notebook.append_page(self.scroll_app_list,
                                     gtk.Label(self.NAV_BUTTON_ID_LIST))
 
         self.cat_view.connect("category-selected", self.on_category_activated)
@@ -396,9 +396,9 @@ class AvailablePane(SoftwarePane):
             self.apps_search_term):
             appstore = self.app_view.get_model()
             installable = appstore.installable_apps
-            button_text = gettext.ngettext("Install %(items_nbr)s Item",
-                                           "Install %(items_nbr)s Items",
-                                           len(installable)) % {'items_nbr': len(installable)}
+            button_text = gettext.ngettext("Install %s Item",
+                                           "Install %s Items",
+                                           len(installable)) % len(installable)
             button = self.action_bar.get_button(self._INSTALL_BTN_ID)
             if button and installable:
                 # Install all already offered. Update offer.
@@ -439,6 +439,7 @@ class AvailablePane(SoftwarePane):
         # remove pathbar stuff
         self.navigation_bar.remove_all(do_callback=False)
         self.notebook.set_current_page(self.PAGE_CATEGORY)
+        self.hide_appview_spinner()
         self.cat_view.start_carousels()
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
@@ -486,7 +487,11 @@ class AvailablePane(SoftwarePane):
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
-        self.navigation_bar.add_with_id(app.name, self.on_navigation_details, "details", animate=True)
+        details = app.get_details(self.db)
+        self.navigation_bar.add_with_id(details.display_name,
+                                        self.on_navigation_details,
+                                        "details",
+                                        animate=True)
         self.app_details.show_app(app)
         self.display_details()
 

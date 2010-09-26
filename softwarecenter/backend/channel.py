@@ -35,6 +35,8 @@ from softwarecenter.view.widgets.animatedimage import AnimatedImage
 from softwarecenter.utils import *
 from softwarecenter.enums import *
 
+LOG = logging.getLogger(__name__)
+
 class ChannelsManager(object):
 
     def __init__(self, db, icons):
@@ -49,7 +51,7 @@ class ChannelsManager(object):
         glib.timeout_add(300, self._check_for_channel_updates_timer)
         # extra channels from e.g. external sources
         self.extra_channels = []
-        self._logger = logging.getLogger("softwarecenter.backend")
+        self._logger = LOG
 
     # external API
     @property
@@ -80,6 +82,11 @@ class ChannelsManager(object):
             self.backend.emit("channels-changed", True)
 
     def add_channel(self, name, icon, query):
+        """
+        create a channel with the name, icon and query specified and append
+        it to the set of channels
+        return the new channel object
+        """
         # print name, icon, query
         channel = SoftwareChannel(self.icons, name, None, None, 
                                   channel_icon=icon,
@@ -93,6 +100,7 @@ class ChannelsManager(object):
         else:
             channel._channel_color = '#0769BC'
             channel._channel_image_id = VIEW_PAGE_AVAILABLE
+        return channel
 
     # internal
     def _feed_in_private_sources_list_entry(self, source_entry):
@@ -266,7 +274,7 @@ class ChannelsManager(object):
         # create a "magic" channel to display items available for purchase                                              
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
         for_purchase_channel = SoftwareChannel(self.icons, 
-                                               _("For Purchase"), None, None, 
+                                               "For Purchase", None, None, 
                                                channel_icon=None,   # FIXME:  need an icon
                                                channel_query=for_purchase_query)
         
@@ -394,6 +402,8 @@ class SoftwareChannel(object):
             channel_display_name = _("Unknown")
         elif channel_name == self.distro.get_distro_channel_name():
             channel_display_name = self.distro.get_distro_channel_description()
+        elif channel_name == "For Purchase":
+            channel_display_name = _("For Purchase")
         elif channel_name == "Application Review Board PPA":
             channel_display_name = _("Independent")
         elif channel_name == "notdownloadable":

@@ -156,10 +156,9 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
-        self.filter = filter
         # no search query means "all"
         if not search_query:
-            search_query = xapian.Query("ATapplication")
+            search_query = xapian.Query("")
             self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
 
@@ -490,14 +489,14 @@ class AppStore(gtk.GenericTreeModel):
             # markup colored gray.
             if column == self.COL_APP_NAME:
                 if app.request:
-                    return app.appname
+                    return app.name
                 return _("Not found")
             elif column == self.COL_TEXT:
                 return "%s\n" % app.pkgname
             elif column == self.COL_MARKUP:
                 if app.request:
                     s = "%s\n<small>%s</small>" % (
-                        gobject.markup_escape_text(app.appname),
+                        gobject.markup_escape_text(app.name),
                         gobject.markup_escape_text(_("Not Found")))
                     return s
                 s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
@@ -505,7 +504,7 @@ class AppStore(gtk.GenericTreeModel):
                     gobject.markup_escape_text(app.pkgname))
                 return s
             elif column == self.COL_ICON:
-                return self.icons.load_icon(MISSING_PKG_ICON,
+                return self.icons.load_icon('application-default-icon',
                                             self.icon_size, 0)
             elif column == self.COL_INSTALLED:
                 return False
@@ -540,13 +539,8 @@ class AppStore(gtk.GenericTreeModel):
             summary = self.db.get_summary(doc)
             return "%s\n%s" % (appname, summary)
         elif column == self.COL_MARKUP:
-            appname = app.appname
-            summary = self.db.get_summary(doc)
-            # SPECIAL CASE: the spec says that when there is no appname, 
-            #               the summary should be displayed as appname
-            if not appname:
-                appname = summary
-                summary = app.pkgname
+            appname = Application.get_display_name(self.db, doc)
+            summary = Application.get_display_summary(self.db, doc)
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname)
             s = "%s\n<small>%s</small>" % (
@@ -1126,12 +1120,15 @@ class CellRendererAppView2(gtk.CellRendererText):
             btn.render(window, widget, self._layout)
             xs += btn.allocation.width + spacing
 
-        if self.props.available:
-            for btn in self._buttons[end]:
-                xb -= btn.allocation.width
-                btn.set_position(xb, y-btn.allocation.height)
+
+        for btn in self._buttons[end]:
+            xb -= btn.allocation.width
+            btn.set_position(xb, y-btn.allocation.height)
+            if self.props.available:
                 btn.render(window, widget, self._layout)
-                xb -= spacing
+            else:
+                btn.set_sensitive(False)
+            xb -= spacing
         return
 
     def do_get_size(self, widget, cell_area):
@@ -1558,19 +1555,8 @@ class AppView(gtk.TreeView):
 
     def _on_transaction_finished(self, backend, result, tr):
         """ callback when an application install/remove transaction has finished """
-        
-        # If this item has just been removed...
-        try:
-            pkgname = result.meta_data["sc_pkgname"]
-        except KeyError:
-            return
-        appname = result.meta_data.get("sc_appname", "")
-        db = self.get_model().db
-        appdetails = Application(appname, pkgname).get_details(db)
-        # ...then manually emit "cursor-changed" as an item has
-        # just been removed and so everything else needs to update
+        # need to send a cursor-changed so the row button is properly updated
         self.emit("cursor-changed")
-        
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
 

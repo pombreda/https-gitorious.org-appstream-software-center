@@ -135,7 +135,11 @@ class ViewSwitcher(gtk.TreeView):
         if self._block_set_cursor_signals:
             return
         (path, column) = self.get_cursor()
+        if not path:
+            return
         model = self.get_model()
+        if not model:
+            return
         action = model[path][ViewSwitcherList.COL_ACTION]
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
         if action in self._permanent_views:
@@ -150,6 +154,8 @@ class ViewSwitcher(gtk.TreeView):
     def on_key_release_event(self, widget, event):
         # Get the toplevel node of the currently selected row
         toplevel = self.get_toplevel_node(self.get_cursor())
+        if toplevel is None:
+            return
         toplevel_path = (toplevel,)
 
         # Expand the toplevel node if the right arrow key is clicked
@@ -181,6 +187,8 @@ class ViewSwitcher(gtk.TreeView):
     def get_toplevel_node(self, cursor):
         """Returns the toplevel node of a selected row"""
         (path, column) = cursor
+        if not path:
+            return None
         return path[0]
 
     def set_view(self, view_page):
@@ -471,7 +479,10 @@ if __name__ == "__main__":
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    view = ViewSwitcher(datadir, db, icons)
+    from viewmanager import ViewManager
+    notebook = gtk.Notebook()
+    manager = ViewManager(notebook)
+    view = ViewSwitcher(manager, datadir, db, cache, icons)
 
     box = gtk.VBox()
     box.pack_start(scroll)

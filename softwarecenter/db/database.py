@@ -198,6 +198,12 @@ class StoreDatabase(gobject.GObject):
         fuzzy_query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
+        # if the query size goes out of hand, omit the FLAG_PARTIAL
+        # (LP: #634449)
+        if fuzzy_query.get_length() > 1000:
+            fuzzy_query = self.xapian_parser.parse_query(search_term, 
+                                            xapian.QueryParser.FLAG_BOOLEAN)
+        # now add categories
         fuzzy_query = _add_category_to_query(fuzzy_query)
         return [pkg_query,fuzzy_query]
 
@@ -223,19 +229,16 @@ class StoreDatabase(gobject.GObject):
         """ Return a packagename from a xapian document """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         # if there is no value it means we use the apt-xapian-index 
-        # that store the pkgname in the data field directly
+        # that stores the pkgname in the data field directly
         if not pkgname:
             pkgname = doc.get_data()
         return pkgname
 
     def get_appname(self, doc):
-        """ Return a appname from a xapian document """
-        appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-        # if there is no value it means we use the apt-xapian-index 
-        # and that has no appname
-        if not appname:
-            appname = doc.get_data()
-        return appname
+        """ Return a appname from a xapian document, or None if
+            a value for appname cannot be found in the document
+         """
+        return doc.get_value(XAPIAN_VALUE_APPNAME)
 
     def get_iconname(self, doc):
         """ Return the iconname from the xapian document """

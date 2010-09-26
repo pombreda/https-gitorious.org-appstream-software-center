@@ -69,6 +69,31 @@ class Application(object):
     def get_details(self, db):
         """ return a new AppDetails object for this application """
         return AppDetails(db, application=self)
+
+    @staticmethod
+    def get_display_name(db, doc):
+        """ Return the application name as it should be displayed in the UI
+            If the appname is defined, just return it, else return
+            the summary (per the spec)
+        """
+        if doc:
+            appname = db.get_appname(doc)
+            if appname:
+                return appname
+            else:
+                return db.get_summary(doc)
+    @staticmethod
+    def get_display_summary(db, doc):
+        """ Return the application summary as it should be displayed in the UI
+            If the appname is defined, return the application summary, else return
+            the application's pkgname (per the spec)
+        """
+        if doc:
+            if db.get_appname(doc):
+                return db.get_summary(doc)
+            else:
+                return db.get_pkgname(doc)
+        
     # special methods
     def __hash__(self):
         return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
@@ -96,7 +121,7 @@ class DebFileApplication(Application):
         if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
             raise ValueError("Need a deb file, got '%s'" % debfile)
         debname = os.path.splitext(os.path.basename(debfile))[0]
-        self.appname = debname.split('_')[0].capitalize()
+        self.appname = ""
         self.pkgname = debname.split('_')[0].lower()
         self.request = debfile
     def get_details(self, db):
@@ -181,7 +206,7 @@ class AppDetails(object):
                 return channel
         else:
             # check if we have an apturl request to enable a channel
-            channel_matches = re.findall(r'channel=([a-z,-]*)', self._app.request)
+            channel_matches = re.findall(r'channel=([0-9a-z,-]*)', self._app.request)
             if channel_matches:
                 channel = channel_matches[0]
                 channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
@@ -193,6 +218,14 @@ class AppDetails(object):
         channel = self.channelname
         if channel:
             return APP_INSTALL_CHANNELS_PATH + channel + ".list"
+
+    @property
+    def eulafile(self):
+        channel = self.channelname
+        if channel:
+            eulafile =  APP_INSTALL_CHANNELS_PATH + channel + ".eula"
+            if os.path.exists(eulafile):
+                return eulafile
 
     @property
     def component(self):
@@ -231,6 +264,13 @@ class AppDetails(object):
     def description(self):
         if self._pkg:
             return self._pkg.candidate.description
+        elif self._doc:
+            if self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION):
+                return self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION)
+        # if its in need-source state and we have a eula, display it
+        # as the description
+        if self.pkg_state == PKG_STATE_NEEDS_SOURCE and self.eulafile:
+            return open(self.eulafile).read()
         return ""
 
     @property
@@ -295,38 +335,24 @@ class AppDetails(object):
     
     @property
     def display_name(self):
-        """ Return the name as it should be displayed in the UI
-
-            Note that this may not corespond to the Appname as the
-            spec says the name should be the summary for packages
-            and the summary the pkgname
+        """ Return the application name as it should be displayed in the UI
+            If the appname is defined, just return it, else return
+            the summary (per the spec)
         """
         if self._error_not_found:
             return self._error
         if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return name
-            else:
-                # by spec..
-                return self._db.get_summary(self._doc)
+            return Application.get_display_name(self._db, self._doc)
         return self.name
 
     @property
     def display_summary(self):
-        """ Return the summary as it should be displayed in the UI
-
-            Note that this may not corespond to the summary value as the
-            spec says the name should be the summary for packages
-            and the summary the pkgname
+        """ Return the application summary as it should be displayed in the UI
+            If the appname is defined, return the application summary, else return
+            the application's pkgname (per the spec)
         """
         if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return self._db.get_summary(self._doc)
-            else:
-                # by spec..
-                return self._db.get_pkgname(self._doc)
+            return Application.get_display_summary(self._db, self._doc)
         return ""
 
     @property
@@ -345,9 +371,11 @@ class AppDetails(object):
             return PKG_STATE_INSTALLING_PURCHASED
 
         # via the pending transactions dict
-        if self._pkg and self.pkgname in self._backend.pending_transactions:
+        if self.pkgname in self._backend.pending_transactions:
             # FIXME: we don't handle upgrades yet
-            if self._pkg.installed:
+            # if there is no self._pkg yet, that means this is a INSTALL
+            # from a previously not-enabled source (like a purchase)
+            if self._pkg and self._pkg.installed:
                 return PKG_STATE_REMOVING
             else:
                 return PKG_STATE_INSTALLING
@@ -426,7 +454,8 @@ class AppDetails(object):
             if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
                 return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
         # else use the default
-        return self._distro.SCREENSHOT_LARGE_URL % self.pkgname
+        return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname, 
+                                                     'version' : self.version or 0 }
 
     @property
     def summary(self):
@@ -442,7 +471,8 @@ class AppDetails(object):
             if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
                 return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
         # else use the default
-        return self._distro.SCREENSHOT_THUMB_URL % self.pkgname
+        return self._distro.SCREENSHOT_THUMB_URL % { 'pkgname' : self.pkgname, 
+                                                     'version' : self.version or 0}
 
     @property
     def version(self):
@@ -490,14 +520,9 @@ class AppDetails(object):
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """
-        # this is basically just a test to see if canonical-partner is enabled, it won't return true for anything else really..
-        channel = self.channelname
-        if not channel:
-            return False
-        if channel.count('-') != 1:
-            return False
-        available = self._cache.component_available(channel.split('-')[0], channel.split('-')[1])
-        return (not available)
+        p = os.path.join(apt_pkg.config.find_dir("Dir::Etc::sourceparts"),
+                         "%s.list" % self.channelname)
+        return not os.path.exists(p)
 
     def _unavailable_component(self, component_to_check=None):
         """ Check if the given doc refers to a component that is currently not enabled """
@@ -575,7 +600,7 @@ class AppDetailsDebFile(AppDetails):
             # for some reason Cache() is much faster than "self._cache._cache"
             # on startup
             self._deb = DebPackage(self._app.request, Cache())
-        except (IOError, SystemError),e:
+        except:
             self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
@@ -592,8 +617,22 @@ class AppDetailsDebFile(AppDetails):
                     self._error_not_found = _("The file \"%s\" could not be opened.") % self._app.request
             return
 
-        if self.pkgname:
+        if self.pkgname and self.pkgname != self._app.pkgname:
+            # this happens when the deb file has a quirky file name
             self._app.pkgname = self.pkgname
+
+            # load pkg cache
+            self._pkg = None
+            if (self._app.pkgname in self._cache and 
+                self._cache[self._app.pkgname].candidate):
+                self._pkg = self._cache[self._app.pkgname]
+            # load xapian document
+            self._doc = None
+            try:
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
+            except:
+                pass
 
         # check deb and set failure state on error
         if not self._deb.check():
@@ -668,19 +707,20 @@ class AppDetailsDebFile(AppDetails):
 
     @property
     def warning(self):
-        # warnings for deb-files
         # FIXME: use more concise warnings
         if self._deb:
-            deb_state = self._deb.compare_to_version_in_cache()
+            deb_state = self._deb.compare_to_version_in_cache(use_installed=False)
             if deb_state == DebPackage.VERSION_NONE:
                 return _("Only install this file if you trust the origin.")
-            elif deb_state == DebPackage.VERSION_OUTDATED:
-                if not self._cache[self.pkgname].installed:
+            elif (not self._cache[self.pkgname].installed and
+                  self._cache[self.pkgname].candidate and
+                  self._cache[self.pkgname].candidate.downloadable): 
+                if deb_state == DebPackage.VERSION_OUTDATED:
                     return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DebPackage.VERSION_SAME:
-                return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-            elif deb_state == DebPackage.VERSION_NEWER:
-                return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
+                elif deb_state == DebPackage.VERSION_SAME:
+                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                elif deb_state == DebPackage.VERSION_NEWER:
+                    return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
 
     @property
     def website(self):

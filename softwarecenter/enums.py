@@ -85,6 +85,7 @@ XAPIAN_VALUE_PURCHASED_DATE = 184
 XAPIAN_VALUE_SCREENSHOT_URL = 185
 XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 186
 XAPIAN_VALUE_THUMBNAIL_URL = 187
+XAPIAN_VALUE_SC_DESCRIPTION = 188
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
@@ -134,4 +135,9 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    DISTRO, 
                                                    RELEASE,
                                                    CODENAME)
+                                                   
+# FIXME: use relative paths here
+INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
+IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
+IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 

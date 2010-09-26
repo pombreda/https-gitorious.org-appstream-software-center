@@ -51,7 +51,7 @@
       <_Name>Debugging</_Name>
       <SCIcon>applications-debugging</SCIcon>
       <Include>
-	<Category>Debugging</Category>
+	<Category>Debugger</Category>
       </Include>
     </Menu>
 
@@ -148,7 +148,7 @@
 
     <Menu>
       <_Name>OCaml</_Name>
-      <SCIcon>applications-caml</SCIcon>
+      <SCIcon>applications-ocaml</SCIcon>
       <Include>
         <Or>
           <SCSection>ocaml</SCSection>
@@ -426,12 +426,23 @@
     <Menu>
       <_Name>Drawing</_Name>
       <SCIcon>applications-drawing</SCIcon>
-      <Include><And><Category>VectorGraphics</Category></And></Include>
+      <Include>
+        <And>
+          <Category>VectorGraphics</Category>
+          <Not><Category>Viewer</Category></Not>
+        </And>
+      </Include>
     </Menu>
     <Menu>
       <_Name>Painting &amp; Editing</_Name>
       <SCIcon>applications-painting</SCIcon>
-      <Include><And><Category>RasterGraphics</Category></And></Include>
+      <Include>
+        <And>
+          <Category>RasterGraphics</Category>
+          <Not><Category>Viewer</Category></Not>
+          <Not><Category>Scanning</Category></Not>
+        </And>
+      </Include>
     </Menu>
     <Menu>
       <_Name>Photography</_Name>

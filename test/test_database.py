@@ -7,6 +7,7 @@ sys.path.insert(0,"../")
 import apt_pkg
 import apt
 import os
+import re
 import unittest
 import xapian
 
@@ -120,8 +121,8 @@ class TestDatabase(unittest.TestCase):
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
         db = StoreDatabase("./data/test.db", self.cache)
-        db.open(use_axi=False)
-        self.assertEqual(len(db), 6)
+        db.open(use_axi=False, use_agent=False)
+        self.assertEqual(len(db), 5)
         # test details
         app = Application("Ubuntu Software Center Test", "software-center")
         details = app.get_details(db)
@@ -156,10 +157,12 @@ class TestDatabase(unittest.TestCase):
         # crude, crude
         self.assertTrue(len(appdetails.version) > 2)
         # FIXME: screenshots will only work on ubuntu
-        self.assertEqual(appdetails.screenshot,
-                         "http://screenshots.ubuntu.com/screenshot-404/software-center")
-        self.assertEqual(appdetails.thumbnail,
-                         "http://screenshots.ubuntu.com/thumbnail-404/software-center")
+        self.assertTrue(re.match(
+                "http://screenshots.ubuntu.com/screenshot-with-version/software-center/[\d.]+", 
+                appdetails.screenshot))
+        self.assertTrue(re.match(
+                "http://screenshots.ubuntu.com/thumbnail-with-version/software-center/[\d.]+",
+                appdetails.thumbnail))
         # FIXME: add document that has a price
         self.assertEqual(appdetails.price, '')
         self.assertEqual(appdetails.license, "Open source")

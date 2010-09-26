@@ -39,14 +39,14 @@ Depends: ${python:Depends},
          python-gmenu,
          aptdaemon (>= 0.31),
 	 python-lazr.restfulclient,
-         ubuntu-sso-client (>= 0.99.2),
-         python-launchpadlib
+         ubuntu-sso-client (>= 0.99.6)
 Recommends: lsb-release, python-launchpad-integration, 
             apt-xapian-index (>= 0.38ubuntu1), update-notifier,
             software-properties-gtk, sessioninstaller
 Conflicts: software-store, gnome-app-install (<< 1)
 Replaces: software-store, gnome-app-install
 Provides: software-store, gnome-app-install
+Suggests: python-launchpadlib
 XB-Python-Version: ${python:Versions}
 Description: Utility for browsing, installing, and removing applications
  The Ubuntu Software Center lets you browse and install thousands of 
