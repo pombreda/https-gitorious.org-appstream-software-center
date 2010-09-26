@@ -289,7 +289,7 @@ class SelectionCursor(Cursor):
 
 class IndentLabel(gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = True
+    PAINT_PRIMARY_CURSOR = False
     BULLET_POINT = u'  \u2022  '
 
 
@@ -316,9 +316,6 @@ class IndentLabel(gtk.EventBox):
         self.selection = SelectionCursor(self.cursor)
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
-        self._pulser = None
-        self._focus_pulse_step = 0.1
-        self._focus_pulse_alpha = 0
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press, self.cursor, self.selection)
