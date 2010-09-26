@@ -433,7 +433,8 @@ class IndentLabel(gtk.EventBox):
                 self._select_left(cur, sel, s, i, same_movement)
 
             if shift:
-                sel.restore_point = cur.get_position()
+                layout = self._get_cursor_layout()
+                sel.set_target_x(layout.index_to_pos(cur.index)[0], layout.indent)
 
         elif kv == keys.Right: 
             if ctrl:
@@ -445,8 +446,10 @@ class IndentLabel(gtk.EventBox):
                 self._select_word(cur, sel, kv)
             else:
                 self._select_right(cur, sel, s, i, same_movement)
+
             if shift:
-                sel.restore_point = cur.get_position()
+                layout = self._get_cursor_layout()
+                sel.set_target_x(layout.index_to_pos(cur.index)[0], layout.indent)
 
         elif kv == keys.Up:
             if ctrl:
@@ -664,10 +667,8 @@ class IndentLabel(gtk.EventBox):
         if word:
             if direction == keys.Right:
                 cursor.set_position(section, word[1])
-                sel.set_position(section, word[0])
             else:
                 cursor.set_position(section, word[0])
-                sel.set_position(section, word[1])
             sel.state = SelectionCursor.SELECT_WORD
         return
 
