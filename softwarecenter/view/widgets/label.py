@@ -664,8 +664,8 @@ class IndentLabel(gtk.EventBox):
             elif direction == keys.Left:
                 cursor.set_position(section, word[0])
             else:
-                cursor.set_position(section, word[0])
-                sel.set_position(section, word[1])
+                cursor.set_position(section, word[1])
+                sel.set_position(section, word[0])
             sel.state = SelectionCursor.SELECT_WORD
         return
 
