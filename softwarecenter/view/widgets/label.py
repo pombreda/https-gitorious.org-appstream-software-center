@@ -409,12 +409,7 @@ class IndentLabel(gtk.EventBox):
 
         elif kv == keys.Left:
             if ctrl:
-                if i > 0:
-                    cur.index -= 1
-                elif s > 0:
-                    cur.section -= 1
-                    cur.index = len(self._get_layout(cur))
-                self._select_word(cur, sel, kv)
+                self._select_left_word(cur, sel, s, i, kv)
             else:
                 self._select_left(cur, sel, s, i, shift)
 
@@ -424,12 +419,7 @@ class IndentLabel(gtk.EventBox):
 
         elif kv == keys.Right: 
             if ctrl:
-                if i < len(self._get_layout(cur)):
-                    cur.index += 1
-                elif s+1 < len(self.order):
-                    cur.section += 1
-                    cur.index = 0
-                self._select_word(cur, sel, kv)
+                self._select_right_word(cur, sel, s, i, kv)
             else:
                 self._select_right(cur, sel, s, i, shift)
 
@@ -646,6 +636,24 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(s, i+1)
         elif s < len(self.order)-1:
             cur.set_position(s+1, 0)
+        return
+
+    def _select_left_word(self, cur, sel, s, i, kv):
+        if i > 0:
+            cur.index -= 1
+        elif s > 0:
+            cur.section -= 1
+            cur.index = len(self._get_layout(cur))
+        self._select_word(cur, sel, kv)
+        return
+
+    def _select_right_word(self, cur, sel, s, i, kv):
+        if i < len(self._get_layout(cur)):
+            cur.index += 1
+        elif s+1 < len(self.order):
+            cur.section += 1
+            cur.index = 0
+        self._select_word(cur, sel, kv)
         return
 
     def _select_word(self, cursor, sel, direction=None):
