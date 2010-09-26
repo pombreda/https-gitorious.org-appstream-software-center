@@ -4,7 +4,6 @@ import gobject
 
 from pango import SCALE as PS
 from gtk import keysyms as keys
-from mkit import ShapeRoundedRectangle
 
 
 class Layout(pango.Layout):
@@ -223,11 +222,9 @@ class SelectionCursor(Cursor):
     def __init__(self, cursor):
         Cursor.__init__(self, cursor.parent)
         self.cursor = cursor
-        self.state = self.SELECT_NORMAL
         self.target_x = None
         self.target_x_indent = 0
         self.restore_point = None
-        self.movement = None
 
     def __repr__(self):
         return 'Selection: '+str(self.get_range())
@@ -249,7 +246,6 @@ class SelectionCursor(Cursor):
     def clear(self, key=None):
         self.index = self.cursor.index
         self.section = self.cursor.section
-        self.state = self.SELECT_NORMAL
         self.restore_point = None
 
         if key not in (keys.Up, keys.Down):
@@ -354,7 +350,6 @@ class IndentLabel(gtk.EventBox):
 
     def _on_motion(self, widget, event, cur, sel):
         if not (event.state & gtk.gdk.BUTTON1_MASK): return
-        sel.state = SelectionCursor.SELECT_NORMAL
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
@@ -375,7 +370,6 @@ class IndentLabel(gtk.EventBox):
         elif event.button != 1:
             return
 
-        sel.movement = None
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
             if index:
@@ -452,15 +446,13 @@ class IndentLabel(gtk.EventBox):
 
         elif kv == keys.Home:
             if shift:
-                self._select_home(cur, sel,
-                                  self.order[cur.section], sel.state)
+                self._select_home(cur, sel, self.order[cur.section])
             else:
                 cur.set_position(0, 0)
 
         elif kv == keys.End:
             if shift:
-                self._select_end(cur, sel,
-                                 self.order[cur.section], sel.state)
+                self._select_end(cur, sel, self.order[cur.section])
             else:
                 cur.section = len(self.order)-1
                 cur.index = len(self._get_layout(cur))
@@ -560,7 +552,7 @@ class IndentLabel(gtk.EventBox):
         self._select_line(cursor, sel)
         return
 
-    def _select_end(self, cur, sel, layout, mode):
+    def _select_end(self, cur, sel, layout):
         if not cur.is_max(sel):
             cur.switch(sel)
 
@@ -591,7 +583,7 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(n[0], r[1])
         return
 
-    def _select_home(self, cur, sel, layout, mode):
+    def _select_home(self, cur, sel, layout):
         if not cur.is_min(sel):
             cur.switch(sel)
 
@@ -666,23 +658,16 @@ class IndentLabel(gtk.EventBox):
             else:
                 cursor.set_position(section, word[1])
                 sel.set_position(section, word[0])
-            sel.state = SelectionCursor.SELECT_WORD
         return
 
     def _select_line(self, cursor, sel):
         n, _range, line = self.cursor.get_current_line()
-        sel.state = SelectionCursor.SELECT_LINE
         cursor.index = _range[0]
         sel.index = _range[1]
         sel.order_id = n[0]
         return
 
     def _select_para(self, cursor, sel):
-        if len(self.order) > 1:
-            sel.state = SelectionCursor.SELECT_PARA
-        else:
-            sel.state = SelectionCursor.SELECT_ALL
-
         layout = self._get_layout(cursor)
         cursor.index = 0
         sel.index = len(layout)
@@ -690,7 +675,6 @@ class IndentLabel(gtk.EventBox):
         return
 
     def _select_all(self, cursor, sel):
-        self.selection.state = SelectionCursor.SELECT_ALL
         layout = self.order[-1]
         cursor.index = 0
         cursor.section = 0
