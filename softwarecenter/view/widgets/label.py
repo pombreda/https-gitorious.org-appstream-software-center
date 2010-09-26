@@ -213,12 +213,6 @@ class PrimaryCursor(Cursor):
 
 class SelectionCursor(Cursor):
 
-    SELECT_WORD   = 0
-    SELECT_LINE   = 1
-    SELECT_PARA   = 2
-    SELECT_ALL    = 3
-    SELECT_NORMAL = 4
-
     def __init__(self, cursor):
         Cursor.__init__(self, cursor.parent)
         self.cursor = cursor
