@@ -428,9 +428,9 @@ class IndentLabel(gtk.EventBox):
                 elif s > 0:
                     cur.section -= 1
                     cur.index = len(self._get_layout(cur))
-                self._select_word(cur, sel)
+                self._select_word(cur, sel, kv)
             else:
-                self._select_left(cur, sel, s, i, same_movement)
+                self._select_left(cur, sel, s, i, shift)
 
             if shift:
                 layout = self._get_cursor_layout()
@@ -445,7 +445,7 @@ class IndentLabel(gtk.EventBox):
                     cur.index = 0
                 self._select_word(cur, sel, kv)
             else:
-                self._select_right(cur, sel, s, i, same_movement)
+                self._select_right(cur, sel, s, i, shift)
 
             if shift:
                 layout = self._get_cursor_layout()
@@ -641,10 +641,10 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(n[0], r[0])
         return
 
-    def _select_left(self, cur, sel, s, i, same_movement):
-        if sel and not same_movement and not cur.is_min(sel):
+    def _select_left(self, cur, sel, s, i, shift):
+        if not shift and not cur.is_min(sel):
             cur.switch(sel)
-            s, i = cur.get_position()
+            return
         if i > 0:
             cur.set_position(s, i-1)
         elif cur.section > 0:
@@ -652,10 +652,10 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(s-1, len(self._get_layout(cur)))
         return
 
-    def _select_right(self, cur, sel, s, i, same_movement):
-        if sel and not same_movement and not cur.is_max(sel):
+    def _select_right(self, cur, sel, s, i, shift):
+        if not shift and not cur.is_max(sel):
             cur.switch(sel)
-            s, i = cur.get_position()
+            return
         if i < len(self._get_layout(cur)):
             cur.set_position(s, i+1)
         elif s < len(self.order)-1:
@@ -667,8 +667,11 @@ class IndentLabel(gtk.EventBox):
         if word:
             if direction == keys.Right:
                 cursor.set_position(section, word[1])
+            elif direction == keys.Left:
+                cursor.set_position(section, word[0])
             else:
                 cursor.set_position(section, word[0])
+                sel.set_position(section, word[1])
             sel.state = SelectionCursor.SELECT_WORD
         return
 
