@@ -220,12 +220,6 @@ class SelectionCursor(Cursor):
     SELECT_ALL    = 3
     SELECT_NORMAL = 4
 
-    HMOVEMENT_KEYS = (keys.Left, keys.Right)
-    VMOVEMENT_KEYS = (keys.Up, keys.Down)
-
-    KEY_HMOVEMENT = 0
-    KEY_VMOVEMENT = 1
-
     def __init__(self, cursor):
         Cursor.__init__(self, cursor.parent)
         self.cursor = cursor
@@ -402,13 +396,6 @@ class IndentLabel(gtk.EventBox):
     def _on_release(self, widget, event):
         return
 
-    def _movement_type(self, kv):
-        if kv in SelectionCursor.HMOVEMENT_KEYS:
-            return SelectionCursor.KEY_HMOVEMENT
-        elif kv in SelectionCursor.VMOVEMENT_KEYS:
-            return SelectionCursor.KEY_VMOVEMENT
-        return None
-
     def _on_key_press(self, widget, event, cur, sel):
         kv = event.keyval
         s, i = cur.section, cur.index
@@ -416,8 +403,7 @@ class IndentLabel(gtk.EventBox):
         handled_keys = True
         ctrl = event.state & gtk.gdk.CONTROL_MASK
         shift = event.state & gtk.gdk.SHIFT_MASK
-        same_movement = sel.movement == self._movement_type(kv)
-        sel.movement = self._movement_type(kv)
+
         if kv == keys.Tab:
             handled_keys = False
 
