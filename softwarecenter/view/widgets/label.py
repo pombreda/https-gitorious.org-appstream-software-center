@@ -339,6 +339,7 @@ class IndentLabel(gtk.EventBox):
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press, self.cursor, self.selection)
         self.connect('key-press-event', self._on_key_press, self.cursor, self.selection)
+        self.connect('key-release-event', self._on_key_release, self.cursor, self.selection)
         self.connect('motion-notify-event', self._on_motion, self.cursor, self.selection)
         self.connect('style-set', self._on_style_set)
         return
@@ -415,7 +416,6 @@ class IndentLabel(gtk.EventBox):
         handled_keys = True
         ctrl = event.state & gtk.gdk.CONTROL_MASK
         shift = event.state & gtk.gdk.SHIFT_MASK
-
         same_movement = sel.movement == self._movement_type(kv)
         sel.movement = self._movement_type(kv)
         if kv == keys.Tab:
@@ -449,13 +449,24 @@ class IndentLabel(gtk.EventBox):
                 sel.restore_point = cur.get_position()
 
         elif kv == keys.Up:
-            if sel and not shift:
+            if ctrl:
+                if i == 0:
+                    if s > 0:
+                        cur.section -= 1
+                cur.set_position(cur.section, 0)
+            elif sel and not shift:
                 cur.set_position(*sel.min)
             else:
                 self._select_up(cur, sel)
 
         elif kv == keys.Down:
-            if sel and not shift:
+            if ctrl:
+                if i == len(self._get_layout(cur)):
+                    if s+1 < len(self.order):
+                        cur.section += 1
+                i = len(self._get_layout(cur))
+                cur.set_position(cur.section, i)
+            elif sel and not shift:
                 cur.set_position(*sel.max)
             else:
                 self._select_down(cur, sel)
@@ -483,6 +494,12 @@ class IndentLabel(gtk.EventBox):
 
         self.queue_draw()
         return handled_keys
+
+    def _on_key_release(self, widget, event, cur, sel):
+        if event.keyval == keys.a and event.state & gtk.gdk.CONTROL_MASK:
+            self._select_all(cur, sel)
+            self.queue_draw()
+        return
 
     def _select_up(self, cur, sel):
         if sel and not cur.is_min(sel) and cur.same_line(sel):
