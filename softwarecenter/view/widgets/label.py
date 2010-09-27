@@ -19,14 +19,14 @@ class Layout(pango.Layout):
         self.order_id = 0
         self.allocation = gtk.gdk.Rectangle(0,0,1,1)
         self._default_attrs = True
-        self.set_text(text)
+        self.set_markup(text)
         return
 
     def __len__(self):
         return self.length
 
     def set_text(self, text):
-        pango.Layout.set_text(self, text)
+        pango.Layout.set_markup(self, text)
         self.length = len(self.get_text())
 
     def set_allocation(self, x, y, w, h):
@@ -79,40 +79,26 @@ class Layout(pango.Layout):
         return None
 
     def reset_attrs(self, fg, bg):
-        attrs = self.get_attributes()
-        fgattr = pango.AttrForeground(fg.red, fg.green, fg.blue, 0, self.length)
-        bgattr = pango.AttrBackground(bg.red, bg.green, bg.blue, 0, self.length)
-        attrs.change(fgattr)
-        attrs.change(bgattr)
-        self.set_attributes(attrs)
+        self.set_attributes(pango.AttrList())
         self._default_attrs = True
         return
 
     def highlight(self, start, end, colours):
-        attrs = self.get_attributes()
-        fg, bg = colours[:2]
-        fgattr = pango.AttrForeground(fg.red, fg.green, fg.blue, 0, self.length)
-        bgattr = pango.AttrBackground(bg.red, bg.green, bg.blue, 0, self.length)
-        attrs.change(fgattr)
-        attrs.change(bgattr)
+        attrs = pango.AttrList()
 
         fg, bg = colours[2:]
-        fgattr = pango.AttrForeground(fg.red, fg.green, fg.blue, start, end)
-        bgattr = pango.AttrBackground(bg.red, bg.green, bg.blue, start, end)
-        attrs.change(fgattr)
-        attrs.change(bgattr)
+        attrs.insert(pango.AttrForeground(fg.red, fg.green, fg.blue, start, end))
+        attrs.insert(pango.AttrBackground(bg.red, bg.green, bg.blue, start, end))
 
         self.set_attributes(attrs)
         self._default_attrs = False
         return
 
     def highlight_all(self, colours):
-        attrs = self.get_attributes()
+        attrs = pango.AttrList()
         fg, bg = colours[2:]
-        fgattr = pango.AttrForeground(fg.red, fg.green, fg.blue, 0, self.length)
-        bgattr = pango.AttrBackground(bg.red, bg.green, bg.blue, 0, self.length)
-        attrs.change(fgattr)
-        attrs.change(bgattr)
+        attrs.insert(pango.AttrBackground(bg.red, bg.green, bg.blue, 0, self.length))
+        attrs.insert(pango.AttrForeground(fg.red, fg.green, fg.blue, 0, self.length))
         self.set_attributes(attrs)
         self._default_attrs = False
         return
@@ -314,6 +300,7 @@ class IndentLabel(gtk.EventBox):
         self.order = []
         self.cursor = PrimaryCursor(self)
         self.selection = SelectionCursor(self.cursor)
+        self.clipboard = gtk.clipboard_get()
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
 
@@ -330,7 +317,7 @@ class IndentLabel(gtk.EventBox):
         self._fg_norm = self.style.text[gtk.STATE_NORMAL]
         self._bg_sel = self.style.base[gtk.STATE_SELECTED]
         self._fg_sel = self.style.text[gtk.STATE_SELECTED]
-        self._grey = self.style.mid[gtk.STATE_NORMAL]
+        self._grey = gtk.gdk.color_parse('#E5E3E1')
         return
 
     def _on_enter(self, widget, event):
@@ -622,7 +609,6 @@ class IndentLabel(gtk.EventBox):
         return
 
     def _select_left_word(self, cur, sel, s, i):
-        is_sel = sel.__nonzero__() == True
         if i > 0:
             cur.index -= 1
         elif s > 0:
@@ -631,14 +617,12 @@ class IndentLabel(gtk.EventBox):
 
         section, word = cur.get_current_word()
         if not word: return
-        if not is_sel:
-            sel.set_position(section, word[1]+1)
-        cur.set_position(section, word[0])
+        cur.set_position(section, max(0, word[0]-1))
         return
 
     def _select_right_word(self, cur, sel, s, i):
-        is_sel = sel.__nonzero__() == True
-        if i < len(self._get_layout(cur)):
+        ll = len(self._get_layout(cur))
+        if i < ll:
             cur.index += 1
         elif s+1 < len(self.order):
             cur.section += 1
@@ -646,15 +630,13 @@ class IndentLabel(gtk.EventBox):
 
         section, word = cur.get_current_word()
         if not word: return
-        if not is_sel:
-            sel.set_position(section, word[0])
-        cur.set_position(section, word[1]+1)
+        cur.set_position(section, min(word[1]+1, ll))
         return
 
     def _select_word(self, cursor, sel):
         section, word = cursor.get_current_word()
         if word:
-            cursor.set_position(section, word[1])
+            cursor.set_position(section, word[1]+1)
             sel.set_position(section, word[0])
         return
 
@@ -705,10 +687,9 @@ class IndentLabel(gtk.EventBox):
             y += ly + lh
         return
 
-    def _new_layout(self):
-        layout = Layout(self, '')
+    def _new_layout(self, text=''):
+        layout = Layout(self, text)
         layout.set_wrap(pango.WRAP_WORD_CHAR)
-        layout.set_markup(self.BULLET_POINT)
         return layout
 
     def _highlight_selection(self, i, start, end, layout, colours):

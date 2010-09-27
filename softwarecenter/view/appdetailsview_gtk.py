@@ -1446,13 +1446,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if app is None:
             LOG.debug("no app selected")
             return
-        
-        # set button sensitive again
-        self.action_bar.button.set_sensitive(True)
 
         # reset view to top left
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
+
+        if (self.app and self.app.pkgname and self.app.pkgname == app.pkgname):
+            return
+
+        # set button sensitive again
+        self.action_bar.button.set_sensitive(True)
 
         # init data
         self._same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
