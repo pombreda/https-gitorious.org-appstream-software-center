@@ -13,8 +13,8 @@ class Layout(pango.Layout):
 
         self.widget = widget
         self.length = 0
-        self.char_width = -1
         self.indent = 0
+        self.vspacing = None
         self.is_bullet = False
         self.order_id = 0
         self.allocation = gtk.gdk.Rectangle(0,0,1,1)
@@ -213,12 +213,6 @@ class PrimaryCursor(Cursor):
 
 class SelectionCursor(Cursor):
 
-    SELECT_WORD   = 0
-    SELECT_LINE   = 1
-    SELECT_PARA   = 2
-    SELECT_ALL    = 3
-    SELECT_NORMAL = 4
-
     def __init__(self, cursor):
         Cursor.__init__(self, cursor.parent)
         self.cursor = cursor
@@ -295,7 +289,7 @@ class SelectionCursor(Cursor):
 
 class IndentLabel(gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = True
+    PAINT_PRIMARY_CURSOR = False
     BULLET_POINT = u'  \u2022  '
 
 
@@ -322,9 +316,6 @@ class IndentLabel(gtk.EventBox):
         self.selection = SelectionCursor(self.cursor)
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
-        self._pulser = None
-        self._focus_pulse_step = 0.1
-        self._focus_pulse_alpha = 0
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press, self.cursor, self.selection)
@@ -687,7 +678,8 @@ class IndentLabel(gtk.EventBox):
         height = 0
         for layout in self.order:
             layout.set_width(PS*(width-layout.indent))
-            height += layout.get_pixel_extents()[1][3] + self.line_height
+            height += layout.get_pixel_extents()[1][3] + (layout.vspacing or self.line_height)
+
         return width, height - self.line_height
 
     def _on_allocate(self, widget, a):
@@ -696,11 +688,14 @@ class IndentLabel(gtk.EventBox):
         y = a.y
         width = a.width
         for layout in self.order:
+            if layout.order_id > 0:
+                y += (layout.vspacing or self.line_height)
+
             lx,ly,lw,lh = layout.get_pixel_extents()[1]
             layout.set_allocation(x+lx+layout.indent, y+ly,
                                   width-layout.indent, lh)
 
-            y += ly + lh + self.line_height
+            y += ly + lh
         return
 
     def _new_layout(self):
@@ -790,18 +785,19 @@ class IndentLabel(gtk.EventBox):
     def _get_selection_layout(self):
         return self.order[self.selection.section]
 
-    def append_paragraph(self, p):
+    def append_paragraph(self, p, vspacing=None):
         l = self._new_layout()
         l.order_id = len(self.order)
-
+        l.vspacing = vspacing
         l.set_text(p)
         self.order.append(l)
         return
 
-    def append_bullet(self, point):
+    def append_bullet(self, point, vspacing=None):
         l = self._new_layout()
         l.order_id = len(self.order)
         l.indent = self.indent
+        l.vspacing = vspacing
         l.is_bullet = True
 
         l.set_text(point)

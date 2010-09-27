@@ -313,6 +313,8 @@ class AppDescription(gtk.VBox):
 
     # chars that server as bullets in the description
     BULLETS = ('- ', '* ', 'o ')
+    TYPE_PARAGRAPH = 0
+    TYPE_BULLET    = 1
 
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
@@ -323,6 +325,8 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.description, False)
         self.pack_start(self.footer, False)
         self.show_all()
+
+        self._prev_type = None
         return
 
     def clear(self):
@@ -331,10 +335,15 @@ class AppDescription(gtk.VBox):
 
     def append_paragraph(self, p):
         self.description.append_paragraph(p.strip())
+        self._prev_type = self.TYPE_PARAGRAPH
         return
 
     def append_bullet(self, point):
-        self.description.append_bullet(point[2:].strip())
+        vspacing=None
+        if self._prev_type == self.TYPE_BULLET:
+            vspacing = 5
+        self.description.append_bullet(point[2:].strip(), vspacing=vspacing)
+        self._prev_type = self.TYPE_BULLET
         return
 
     def set_description(self, desc, appname):
