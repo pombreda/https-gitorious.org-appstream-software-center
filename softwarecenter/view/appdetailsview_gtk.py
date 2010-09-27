@@ -1437,7 +1437,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 # then see if its a path to a file on disk
                 elif iconname and os.path.exists(iconname):
                     image = gtk.Image()
-                    image.set_from_file(iconname)
+                    pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
+                    if pb:
+                        image.set_from_pixbuf(pb)
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()

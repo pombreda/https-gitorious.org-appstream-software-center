@@ -24,6 +24,8 @@ software-center (3.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't eat 'o ' character combinations within bullet points (LP: #646822)
       (test case: software-center deja-dup)
+    - scale icon down when setting 'where is it' icon from path (LP: #645062)
+      (test case: software-center briquolo (once installed))
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
 
