@@ -394,7 +394,7 @@ class IndentLabel(gtk.EventBox):
 
         elif kv == keys.Left:
             if ctrl:
-                self._select_left_word(cur, sel, s, i, kv)
+                self._select_left_word(cur, sel, s, i)
             else:
                 self._select_left(cur, sel, s, i, shift)
 
@@ -404,7 +404,7 @@ class IndentLabel(gtk.EventBox):
 
         elif kv == keys.Right: 
             if ctrl:
-                self._select_right_word(cur, sel, s, i, kv)
+                self._select_right_word(cur, sel, s, i)
             else:
                 self._select_right(cur, sel, s, i, shift)
 
@@ -621,34 +621,41 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(s+1, 0)
         return
 
-    def _select_left_word(self, cur, sel, s, i, kv):
+    def _select_left_word(self, cur, sel, s, i):
+        is_sel = sel.__nonzero__() == True
         if i > 0:
             cur.index -= 1
         elif s > 0:
             cur.section -= 1
             cur.index = len(self._get_layout(cur))
-        self._select_word(cur, sel, kv)
+
+        section, word = cur.get_current_word()
+        if not word: return
+        if not is_sel:
+            sel.set_position(section, word[1]+1)
+        cur.set_position(section, word[0])
         return
 
-    def _select_right_word(self, cur, sel, s, i, kv):
+    def _select_right_word(self, cur, sel, s, i):
+        is_sel = sel.__nonzero__() == True
         if i < len(self._get_layout(cur)):
             cur.index += 1
         elif s+1 < len(self.order):
             cur.section += 1
             cur.index = 0
-        self._select_word(cur, sel, kv)
+
+        section, word = cur.get_current_word()
+        if not word: return
+        if not is_sel:
+            sel.set_position(section, word[0])
+        cur.set_position(section, word[1]+1)
         return
 
-    def _select_word(self, cursor, sel, direction=None):
+    def _select_word(self, cursor, sel):
         section, word = cursor.get_current_word()
         if word:
-            if direction == keys.Right:
-                cursor.set_position(section, word[1])
-            elif direction == keys.Left:
-                cursor.set_position(section, word[0])
-            else:
-                cursor.set_position(section, word[1])
-                sel.set_position(section, word[0])
+            cursor.set_position(section, word[1])
+            sel.set_position(section, word[0])
         return
 
     def _select_line(self, cursor, sel):
