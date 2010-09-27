@@ -192,6 +192,12 @@ class ImageDownloader(gobject.GObject):
         self.LOG.debug("download_image: %s %s" % (url, dest_file_path))
         self.url = url
         self.dest_file_path = dest_file_path
+        
+        if os.path.exists(self.dest_file_path):
+            self.emit('image-url-reachable', True)
+            self.emit("image-download-complete", self.dest_file_path)
+            return
+        
         f = gio.File(url)
         # first check if the url is reachable
         f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,

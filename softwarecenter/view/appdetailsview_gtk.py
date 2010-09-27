@@ -580,6 +580,10 @@ class ScreenshotView(gtk.Alignment):
         self.loader = ImageDownloader()
         self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
         self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
+        
+        self.tempdir = tempfile.gettempdir() + "/software-center"
+        if not os.path.exists(self.tempdir):
+            os.mkdir(self.tempdir)
         return
 
     # signal handlers
@@ -658,7 +662,8 @@ class ScreenshotView(gtk.Alignment):
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(
             title, url,
-            self.distro.IMAGE_FULL_MISSING)
+            self.distro.IMAGE_FULL_MISSING, 
+            self.tempdir + "/sc-screenshot-" + self.pkgname + "-big")
 
         d.run()
         d.destroy()
@@ -729,6 +734,7 @@ class ScreenshotView(gtk.Alignment):
 
         self.clear()
         self.appname = app_details.display_name
+        self.pkgname = app_details.pkgname
         self.thumbnail_url = app_details.thumbnail
         self.large_url = app_details.screenshot
         return
@@ -761,9 +767,9 @@ class ScreenshotView(gtk.Alignment):
             reachable, if so it downloads the thumbnail.
             If not, it emits "image-url-reachable" False, then exits.
         """
-
+        
         self.loader.download_image(self.thumbnail_url,
-                                   tempfile.NamedTemporaryFile(prefix="s-c-screenshot").name)
+                            self.tempdir + "/sc-screenshot-" + self.pkgname)
         return
 
     def draw(self, cr, a, expose_area):

@@ -20,7 +20,11 @@ software-center (3.1.0) UNRELEASED; urgency=low
       "xapian reopen" signals in the middle of a transaction, in this
       case we don't want to reset the progress. 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
+  [ Mohamed Amine IL Idrissi ]
+  * Screenshots are now stored in /tmp/software-center (LP: #648284)
+  * Thumbnails and screenshots are now reused (LP: #648279, #648278)
+
+ -- Mohamed Amine IL Idrissi <ilidrissiamine@gmail.com>  Mon, 27 Sep 2010 17:59:22 +0000
 
 software-center (3.0.1) maverick; urgency=low
 

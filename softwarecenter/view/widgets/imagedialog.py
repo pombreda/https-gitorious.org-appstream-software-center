@@ -41,7 +41,7 @@ class Url403Error(IOError):
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """
 
-    def __init__(self, title, url, missing_img, parent=None):
+    def __init__(self, title, url, missing_img, path=None, parent=None):
         gtk.Dialog.__init__(self)
         self.set_has_separator(False)
         # find parent window for the dialog
@@ -92,6 +92,7 @@ class ShowImageDialog(gtk.Dialog):
         urllib._urlopener = GnomeProxyURLopener()
         # data
         self.url = url
+        self.path = path
             
     def _response(self, dialog, reponse_id):
         self._finished = True
@@ -140,16 +141,21 @@ class ShowImageDialog(gtk.Dialog):
     def _fetch(self):
         "fetcher thread"
         logging.debug("_fetch: %s" % self.url)
-        self.location = tempfile.NamedTemporaryFile()
-        try:
-            (screenshot, info) = urllib.urlretrieve(self.url, 
-                                                    self.location.name, 
-                                                    self._progress)
-            self.image_filename = self.location.name
-        except (Url403Error, Url404Error), e:
-            self.image_filename = self._missing_img
-        except Exception, e:
-            logging.exception("urlopen error")
+        if os.path.exists(self.path):
+            self.image_filename = self.path
+        else:
+            self.location = open(self.path, 'w')
+            try:
+                (screenshot, info) = urllib.urlretrieve(self.url, 
+                                                        self.location.name, 
+                                                        self._progress)
+                self.image_filename = self.location.name
+            except (Url403Error, Url404Error), e:
+                self.image_filename = self._missing_img
+                self.location.close()
+                os.remove(self.location.name)
+            except Exception, e:
+                logging.exception("urlopen error")
         self._finished = True
 
     def _progress(self, count, block, total):
