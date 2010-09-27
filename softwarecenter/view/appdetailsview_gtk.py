@@ -306,7 +306,7 @@ class PackageStatusBar(StatusBar):
 class AppDescription(gtk.VBox):
 
     # chars that server as bullets in the description
-    BULLETS = ('- ', '* ', 'o ')
+    BULLETS = ('o ', '* ', '- ')
 
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
@@ -346,7 +346,8 @@ class AppDescription(gtk.VBox):
 
     def append_bullet_point(self, fragment):
         for bullet in self.BULLETS:
-            fragment = fragment.replace(bullet, '')
+            if fragment.startswith(bullet):
+                fragment = fragment.replace(bullet, '', 1)
 
         bullet = gtk.Label()
         bullet.set_markup(u"  <b>\u2022</b>")
