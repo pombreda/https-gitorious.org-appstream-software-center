@@ -74,7 +74,7 @@ def add_filters_from_string(long_filter_str):
 
 # setup global software-center logging
 root = logging.getLogger()
-fmt = logging.Formatter(logging.BASIC_FORMAT, None)
+fmt = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s", None)
 handler = logging.StreamHandler()
 handler.setFormatter(fmt)
 root.addHandler(handler)
