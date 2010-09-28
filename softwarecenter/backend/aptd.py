@@ -21,6 +21,7 @@ import dbus
 import gobject
 import logging
 import os
+import re
 import subprocess
 import sys
 from softwarecenter.utils import *
@@ -337,6 +338,11 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         package list reload has completed.
         """
         self.emit("transaction-started")
+        self._logger.info("add_repo_add_key_and_install_app() '%s' '%s' '%s'"% (
+                # re.sub() out the password from the log
+                re.sub("deb https://.*@", "", deb_line),
+                signing_key_id, 
+                app))
 
         if purchase:
             # pre-authenticate
@@ -364,14 +370,17 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                           'sc_iconname' : iconname,
                           'sc_add_repo_and_install_try' : "1",
                          }
+
+        self._logger.info("add_sources_list_entry()")
         sourcepart = yield self.add_sources_list_entry(deb_line)
         trans_metadata['sc_add_repo_and_install_sources_list'] = sourcepart
 
         # metadata so that we know those the add-key and reload transactions
         # are part of a group
-        
+        self._logger.info("add_vendor_key_from_keyserver()")
         yield self.add_vendor_key_from_keyserver(signing_key_id,
                                                  metadata=trans_metadata)
+        self._logger.info("reload_for_commercial_repo()")
         yield self._reload_for_commercial_repo(app, trans_metadata, sourcepart)
 
     @inline_callbacks
@@ -396,6 +405,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             See _reload_for_commercial_repo_inline() for the actual work
             that is done
         """
+        self._logger.info("_reload_for_commercial_repo() %s" % app)
         # trigger inline_callbacked function
         self._reload_for_commercial_repo_defer(
             app, trans_metadata, sources_list)
@@ -411,6 +421,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         (after that it will automatically de-register)
         """
         #print "_on_reload_for_add_repo_and_install_app_finished", trans, result, backend, self._reload_signal_id
+        self._logger.info("_on_reload_for_add_repo_and_install_app_finished() %s %s %s" % (trans, result, app))
 
         # check if this is the transaction we waiting for
         key = "sc_add_repo_and_install_pkgname"
@@ -422,7 +433,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         release_filename = release_filename_in_lists_from_deb_line(deb_line)
         lists_dir = apt_pkg.config.find_dir("Dir::State::lists")
         release_signature = os.path.join(lists_dir, release_filename)+".gpg"
-        self._logger.debug("looking at '%s'" % release_signature)
+        self._logger.info("looking for '%s'" % release_signature)
         # no Release.gpg in the newly added repository, try again,
         # this can happen e.g. on odd network proxies
         if not os.path.exists(release_signature):
@@ -446,8 +457,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # go get less authentication prompts (because of the 03_auth_me_less
             # patch in aptdaemon)
             try:
+                self._logger.info("install_package()")
                 trans = yield self.aptd_client.install_packages(
                     [app.pkgname], defer=True)
+                self._logger.info("run_transaction()")
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
             except Exception, error:
@@ -460,6 +473,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # download it
             retry = int(trans.meta_data['sc_add_repo_and_install_try'])
             if retry > 10:
+                self._logger.error("failed to add repo after 10 tries")
                 self._clean_pending_purchases(
                     trans.meta_data['sc_add_repo_and_install_pkgname'])
                 self._show_transaction_failed_dialog(trans, result)
@@ -467,6 +481,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # this just sets the meta_data locally, but that is ok, the
             # whole re-try machinery will not survive anyway if the local
             # s-c instance is closed
+            self._logger.info("queuing reload in 30s")
             trans.meta_data["sc_add_repo_and_install_try"]= str(retry+1)
             sourcepart = trans.meta_data["sc_add_repo_and_install_sources_list"]
             glib.timeout_add_seconds(30, self._reload_for_commercial_repo,

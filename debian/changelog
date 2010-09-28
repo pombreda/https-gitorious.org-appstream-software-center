@@ -11,6 +11,7 @@ software-center (3.0.3) UNRELEASED; urgency=low
       "unauthenticated" errors for the ricks-wallpapers purchase
   * softwarecenter/backend/aptd.py:
     - fix crash when the aptdaemon dies
+    - improve logging for purchase processing
   * softwarecenter/log.py:
     - improve logging format
     - keep log in ~/.cache/software-center/software-center.log
