@@ -97,8 +97,8 @@ class Layout(pango.Layout):
     def highlight_all(self, colours):
         attrs = pango.AttrList()
         fg, bg = colours[2:]
-        attrs.insert(pango.AttrBackground(bg.red, bg.green, bg.blue, 0, self.length))
-        attrs.insert(pango.AttrForeground(fg.red, fg.green, fg.blue, 0, self.length))
+        attrs.insert(pango.AttrBackground(bg.red, bg.green, bg.blue, 0, -1))
+        attrs.insert(pango.AttrForeground(fg.red, fg.green, fg.blue, 0, -1))
         self.set_attributes(attrs)
         self._default_attrs = False
         return
@@ -275,7 +275,7 @@ class SelectionCursor(Cursor):
 
 class IndentLabel(gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = False
+    PAINT_PRIMARY_CURSOR = True
     BULLET_POINT = u'  \u2022  '
 
 
@@ -303,12 +303,18 @@ class IndentLabel(gtk.EventBox):
         self.clipboard = gtk.clipboard_get()
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
+        self._ppoller = 0
 
         self.connect('size-allocate', self._on_allocate)
         self.connect('button-press-event', self._on_press, self.cursor, self.selection)
         self.connect('key-press-event', self._on_key_press, self.cursor, self.selection)
         self.connect('key-release-event', self._on_key_release, self.cursor, self.selection)
         self.connect('motion-notify-event', self._on_motion, self.cursor, self.selection)
+        #self.connect('enter-notify-event', self._on_enter)
+        #self.connect('leave-notify-event', self._on_leave, self.cursor, self.selection)
+        
+
+        #self.drag_source_set(gtk.gdk.BUTTON1_MASK, [("text/plain", 0, 80),], gtk.gdk.ACTION_COPY)
         self.connect('style-set', self._on_style_set)
         return
 
@@ -321,16 +327,32 @@ class IndentLabel(gtk.EventBox):
         return
 
     def _on_enter(self, widget, event):
-        self.window.set_cursor(self._xterm)
+        if self._ppoller:
+            gobject.source_remove(self._ppoller)
 
-    def _on_leave(self, widget, event):
-        self.window.set_cursor(None)
+    def _poll_mouse_pos_cb(self, window, cur, sel):
+        x, y, mods = window.get_pointer()
+        if not (mods & gtk.gdk.BUTTON1_MASK):
+            print 'End polling'
+            return False
+
+        print 'Poll', x, y, self.allocation
+        return True
+
+    def _on_leave(self, widget, event, cur, sel):
+        x, y, mods = window.get_pointer()
+        if not (mods & gtk.gdk.BUTTON1_MASK): return
+        
+        self._ppoller = gobject.timeout_add(100,
+                                            self._poll_mouse_pos_cb,
+                                            self.window,
+                                            cur, sel)
 
     def _on_motion(self, widget, event, cur, sel):
         if not (event.state & gtk.gdk.BUTTON1_MASK): return
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
-            if index:
+            if index != None:
                 cur.set_position(layout.order_id, index)
                 self.queue_draw()
                 break
@@ -350,7 +372,8 @@ class IndentLabel(gtk.EventBox):
 
         for layout in self.order:
             index = layout.index_at(int(event.x), int(event.y))
-            if index:
+            if index != None:
+                print index
                 cur.set_position(layout.order_id, index)
                 sel.clear()
 
@@ -445,8 +468,13 @@ class IndentLabel(gtk.EventBox):
         return handled_keys
 
     def _on_key_release(self, widget, event, cur, sel):
-        if event.keyval == keys.a and event.state & gtk.gdk.CONTROL_MASK:
-            self._select_all(cur, sel)
+        ctrl = event.state & gtk.gdk.CONTROL_MASK
+        if ctrl:
+            if event.keyval == keys.a:
+                self._select_all(cur, sel)
+            elif event.keyval == keys.c:
+                self._copy_range(cur, sel)
+
             self.queue_draw()
         return
 
@@ -641,25 +669,19 @@ class IndentLabel(gtk.EventBox):
         return
 
     def _select_line(self, cursor, sel):
-        n, _range, line = self.cursor.get_current_line()
-        cursor.index = _range[0]
-        sel.index = _range[1]
-        sel.order_id = n[0]
-        return
-
-    def _select_para(self, cursor, sel):
-        layout = self._get_layout(cursor)
-        cursor.index = 0
-        sel.index = len(layout)
-        sel.order_id = layout.order_id
+        n, r, line = self.cursor.get_current_line()
+        sel.set_position(n[0], r[0])
+        cursor.set_position(n[0], r[1]-1)
         return
 
     def _select_all(self, cursor, sel):
         layout = self.order[-1]
-        cursor.index = 0
-        cursor.section = 0
-        sel.index = len(layout)
-        sel.section = layout.order_id
+        cursor.set_position(0, 0)
+        sel.set_position(layout.order_id, len(layout))
+        return
+
+    def _copy_range(self, sel):
+        print 'Copy range: %s' % sel
         return
 
     def height_from_width(self, width):
