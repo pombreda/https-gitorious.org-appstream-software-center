@@ -41,7 +41,7 @@ class SCBuySomething(unittest.TestCase):
         print cmd, res
 
         apt.apt_pkg.config.set("Dir::log::history", "/tmp")
-        apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
+        #apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
         # mock options
         mock_options = Mock()
         mock_options.enable_lp = False

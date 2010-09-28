@@ -426,7 +426,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # no Release.gpg in the newly added repository, try again,
         # this can happen e.g. on odd network proxies
         if not os.path.exists(release_signature):
-            self._logger.warn("no %s found, re-trying" % release_filename)
+            self._logger.warn("no %s found, re-trying" % release_signature)
             result = False
 
         # disconnect again, this is only a one-time operation
