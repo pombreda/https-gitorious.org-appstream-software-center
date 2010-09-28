@@ -9,6 +9,8 @@ software-center (3.0.3) UNRELEASED; urgency=low
       yet if a signed repo should be expected. If the Release.gpg file
       is missing, re-try the operation. This should fix the 
       "unauthenticated" errors for the ricks-wallpapers purchase
+  * softwarecenter/backend/aptd.py:
+    - fix crash when the aptdaemon dies
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 13:21:48 +0200
 

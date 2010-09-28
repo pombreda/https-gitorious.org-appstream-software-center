@@ -528,7 +528,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # cancel handling in aptdaemon (LP: #440941)
         # FIXME: this is not a proper fix, just a workaround
         if trans.error_code == enums.ERROR_DAEMON_DIED:
-            self._logger.warn("daemon dies, ignoring: %s" % excep)
+            self._logger.warn("daemon dies, ignoring: %s %s" % (trans, enum))
             return
         msg = "%s: %s\n%s\n\n%s" % (
             _("Error"),
