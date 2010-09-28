@@ -1,4 +1,4 @@
-software-center (3.0.3) UNRELEASED; urgency=low
+software-center (3.0.3) maverick; urgency=low
 
   * softwarecenter/view/softwarepane.py:
     - Fix incorrect hide of the technical items search bar 
@@ -16,7 +16,7 @@ software-center (3.0.3) UNRELEASED; urgency=low
     - improve logging format
     - keep log in ~/.cache/software-center/software-center.log
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 13:21:48 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 21:36:36 +0200
 
 software-center (3.0.2) maverick; urgency=low
 
