@@ -1790,15 +1790,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         
     def get_usage_counter(self):
         def callback(counter):
-            counter = str(counter)
             if counter == 0:
-                label_string = "Used: " + counter + " never"
+                label_string = "Used: never"
             elif counter == 1:
                 label_string = "Used: Once"
             elif counter == 2:
                 label_string = "Used: Twice"
             else:
-                label_string = "Used: " + counter + " times"
+                label_string = "Used: " + str(counter) + " times"
             self.counter_label.set_text(label_string)
                 
         zeitgeist.get_usage_counter(self.app_details.desktop_file, callback)

@@ -14,7 +14,8 @@ class ZeitgeistWrapper():
             callback(len(event_ids))
         e = Event()
         e.actor = application
-        CLIENT.find_event_ids_for_templates([e], _callback, num_events = sys.maxint)
+        CLIENT.find_event_ids_for_templates([e], _callback, 
+                                                num_events = 0)
         
 zeitgeist = ZeitgeistWrapper()
 
