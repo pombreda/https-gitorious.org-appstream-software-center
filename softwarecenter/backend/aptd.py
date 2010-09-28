@@ -360,7 +360,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # too
         trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
                           'sc_add_repo_and_install_pkgname' : app.pkgname,
-                          'sc_add_repo_and_install_debline' : deb_line,
+                          'sc_add_repo_and_install_deb_line' : deb_line,
                           'sc_iconname' : iconname,
                           'sc_add_repo_and_install_try' : "1",
                          }

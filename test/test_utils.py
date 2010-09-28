@@ -17,7 +17,7 @@ class TestSCUtils(unittest.TestCase):
         #self.assertEqual(encode_for_xml(python), xml)
 
     def test_lists_filename(self):
-        debline = "deb http://security.ubuntu.com/ubuntu maverick-security main restricted"
+        debline = "deb http://foo:pass@security.ubuntu.com/ubuntu maverick-security main restricted"
         self.assertEqual(release_filename_in_lists_from_deb_line(debline),
                          "security.ubuntu.com_ubuntu_dists_maverick-security_Release")
 
