@@ -349,7 +349,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         if (appstore and 
             appstore.active and
             self.is_applist_view_showing() and
-            pkgs != apps and 
             pkgs > 0 and 
             apps > 0 and
             not self.disable_show_hide_nonapps):
