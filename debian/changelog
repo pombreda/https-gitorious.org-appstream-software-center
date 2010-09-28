@@ -1,3 +1,11 @@
+software-center (3.0.3) UNRELEASED; urgency=low
+
+  * softwarecenter/view/softwarepane.py:
+    - fix incorrect hide of the technical items search bar 
+      (LP: #646584)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 13:21:48 +0200
+
 software-center (3.0.2) maverick; urgency=low
 
   [ Kiwinote ]
