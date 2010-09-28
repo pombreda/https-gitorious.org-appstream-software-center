@@ -1,8 +1,14 @@
 software-center (3.0.3) UNRELEASED; urgency=low
 
   * softwarecenter/view/softwarepane.py:
-    - fix incorrect hide of the technical items search bar 
+    - Fix incorrect hide of the technical items search bar 
       (LP: #646584)
+  * softwarecenter/backend/aptd.py, softwarecenter/utils.py:
+    - Test if we have a Release.gpg file after a new for-pay repository 
+      was added. In the initial update() the backend/libapt does not know
+      yet if a signed repo should be expected. If the Release.gpg file
+      is missing, re-try the operation. This should fix the 
+      "unauthenticated" errors for the ricks-wallpapers purchase
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 13:21:48 +0200
 

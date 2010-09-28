@@ -16,6 +16,11 @@ class TestSCUtils(unittest.TestCase):
         # fails currently 
         #self.assertEqual(encode_for_xml(python), xml)
 
+    def test_lists_filename(self):
+        debline = "deb http://foo:pass@security.ubuntu.com/ubuntu maverick-security main restricted"
+        self.assertEqual(release_filename_in_lists_from_deb_line(debline),
+                         "security.ubuntu.com_ubuntu_dists_maverick-security_Release")
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)

@@ -343,7 +343,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             try:
                 yield self.authenticate_for_purchase()
             except:
-                logging.exception("authenticate_for_purchase failed")
+                self._logger.exception("authenticate_for_purchase failed")
                 self._clean_pending_purchases(app.pkgname)
                 result = TransactionFinishedResult(None, enums.EXIT_FAILED)
                 result.pkgname = app.pkgname
@@ -360,6 +360,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # too
         trans_metadata = {'sc_add_repo_and_install_appname' : app.appname, 
                           'sc_add_repo_and_install_pkgname' : app.pkgname,
+                          'sc_add_repo_and_install_deb_line' : deb_line,
                           'sc_iconname' : iconname,
                           'sc_add_repo_and_install_try' : "1",
                          }
@@ -415,6 +416,18 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         key = "sc_add_repo_and_install_pkgname"
         if not (key in trans.meta_data and trans.meta_data[key] == app.pkgname):
             return_value(None)
+
+        # get the debline and check if we have a release.gpg file
+        deb_line = trans.meta_data["sc_add_repo_and_install_deb_line"]
+        release_filename = release_filename_in_lists_from_deb_line(deb_line)
+        lists_dir = apt_pkg.config.find_dir("Dir::State::lists")
+        release_signature = os.path.join(lists_dir, release_filename)+".gpg"
+        self._logger.debug("looking at '%s'" % release_signature)
+        # no Release.gpg in the newly added repository, try again,
+        # this can happen e.g. on odd network proxies
+        if not os.path.exists(release_signature):
+            self._logger.warn("no %s found, re-trying" % release_signature)
+            result = False
 
         # disconnect again, this is only a one-time operation
         self.handler_disconnect(self._reload_signal_id)
@@ -636,7 +649,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                         "org.freedesktop.DBus.Error.NoReply"]:
                 pass
         else:
-            logging.exception("_on_trans_error")
+            self._logger.exception("_on_trans_error")
             #raise error
 
 if __name__ == "__main__":
