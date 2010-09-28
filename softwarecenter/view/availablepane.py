@@ -256,6 +256,9 @@ class AvailablePane(SoftwarePane):
         if (self.apps_category and 
             self.apps_category.untranslated_name) == "Featured":
             self.nonapps_visible = True
+            self.disable_show_hide_nonapps = True
+        else:
+            self.disable_show_hide_nonapps = False
         # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
                              self.db,
