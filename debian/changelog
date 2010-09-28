@@ -29,6 +29,9 @@ software-center (3.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/availablepane.py:
     - don't show 'hide 1 technical item' in featured category (LP: #???)
       (test case: browse to featured category (by clicking 'all'))
+    - don't show 'hide technical items' in system category, as we don't
+      have any apps to show (LP: #???)
+      (test case: browse to 'System' category)
   * softwarecenter/view/softwarepane.py:
     - don't offer to 'show 9k items' in searches, as we limit searches to 200
       items (LP: #648988)
