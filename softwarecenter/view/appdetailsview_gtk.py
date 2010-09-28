@@ -306,7 +306,7 @@ class PackageStatusBar(StatusBar):
 class AppDescription(gtk.VBox):
 
     # chars that server as bullets in the description
-    BULLETS = ('- ', '* ', 'o ')
+    BULLETS = ('o ', '* ', '- ')
 
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
@@ -346,7 +346,8 @@ class AppDescription(gtk.VBox):
 
     def append_bullet_point(self, fragment):
         for bullet in self.BULLETS:
-            fragment = fragment.replace(bullet, '')
+            if fragment.startswith(bullet):
+                fragment = fragment.replace(bullet, '', 1)
 
         bullet = gtk.Label()
         bullet.set_markup(u"  <b>\u2022</b>")
@@ -1436,7 +1437,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 # then see if its a path to a file on disk
                 elif iconname and os.path.exists(iconname):
                     image = gtk.Image()
-                    image.set_from_file(iconname)
+                    pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
+                    if pb:
+                        image.set_from_pixbuf(pb)
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()

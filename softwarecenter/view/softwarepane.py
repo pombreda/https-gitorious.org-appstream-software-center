@@ -339,7 +339,10 @@ class SoftwarePane(gtk.VBox, BasePane):
                     pkgs = min(self.cache.installed_count, appstore.nonapp_pkgs) - apps
                 else:
                     apps = len(appstore)
-                    pkgs = appstore.nonapp_pkgs - apps
+                    if appstore.limit and appstore.limit < appstore.nonapp_pkgs:
+                        pkgs = appstore.limit - apps
+                    else:
+                        pkgs = appstore.nonapp_pkgs - apps
 
         self.action_bar.unset_label()
         

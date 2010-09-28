@@ -20,6 +20,17 @@ software-center (3.1.0) UNRELEASED; urgency=low
       "xapian reopen" signals in the middle of a transaction, in this
       case we don't want to reset the progress. 
 
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't eat 'o ' character combinations within bullet points (LP: #646822)
+      (test case: software-center deja-dup)
+    - scale icon down when setting 'where is it' icon from path (LP: #645062)
+      (test case: software-center briquolo (once installed))
+  * softwarecenter/view/softwarepane.py:
+    - don't offer to 'show 9k items' in searches, as we limit searches to 200
+      items (LP: #648988)
+      (test case: software-center search:library)
+
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
 
 software-center (3.0.1) maverick; urgency=low
