@@ -36,6 +36,7 @@ import cairo
 from gettext import gettext as _
 import apt_pkg
 from softwarecenter.backend import get_install_backend
+from softwarecenter.backend.zeitgeist_simple import zeitgeist
 from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -1063,6 +1064,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         #self.app_info.image.connect_after('expose-event', self._on_icon_expose)
+        
         return
 
     def _on_allocate(self, widget, allocation):
@@ -1219,6 +1221,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # controls which are displayed if the app is installed
         self.action_bar = PackageStatusBar(self)
         self.app_info.body.pack_start(self.action_bar, False)
+
+        # the amount of times it was used
+        self.counter_label = gtk.Label("Used: ")
+        self.counter_label.set_alignment(0.0, 0.5)
+        self.app_info.body.pack_start(self.counter_label)
 
         # the location of the app (if its installed)
         self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1489,6 +1496,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #print self.appdetails
         self._update_page(self.app_details)
         self.emit("selected", self.app)
+        
+        self.get_usage_counter()
+        
         return
 
     # public interface
@@ -1777,7 +1787,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def set_section(self, section):
         self.section = section
         return
-
+        
+    def get_usage_counter(self):
+        def callback(counter):
+            counter = str(counter)
+            if counter == 0:
+                label_string = "Used: " + counter + " never"
+            elif counter == 1:
+                label_string = "Used: Once"
+            elif counter == 2:
+                label_string = "Used: Twice"
+            else:
+                label_string = "Used: " + counter + " times"
+            self.counter_label.set_text(label_string)
+                
+        zeitgeist.get_usage_counter(self.app_details.desktop_file, callback)
 
 
 if __name__ == "__main__":
