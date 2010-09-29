@@ -34,7 +34,11 @@ software-center (3.1.0) UNRELEASED; urgency=low
       items (LP: #648988)
       (test case: software-center search:library)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
+  [ Gary Lasker ]
+  * softwarecenter/view/appview.py:
+    - fix intermittent crash in _set_cursor (LP: #617004) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Sep 2010 13:29:43 -0400
 
 software-center (3.0.1) maverick; urgency=low
 
