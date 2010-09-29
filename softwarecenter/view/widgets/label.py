@@ -73,10 +73,8 @@ class Layout(pango.Layout):
         px += wa.x
         py += wa.y
 
-        a = self.allocation
-        if gtk.gdk.region_rectangle(a).point_in(px, py):
-            return sum(self.xy_to_index((px-a.x)*PS, (py-a.y)*PS))
-        return None
+        a = self.allocation # layout allocation
+        return gtk.gdk.region_rectangle(a).point_in(px, py), sum(self.xy_to_index((px-a.x)*PS, (py-a.y)*PS))
 
     def reset_attrs(self, fg, bg):
         self.set_attributes(pango.AttrList())
@@ -310,8 +308,8 @@ class IndentLabel(gtk.EventBox):
         self.connect('key-press-event', self._on_key_press, self.cursor, self.selection)
         self.connect('key-release-event', self._on_key_release, self.cursor, self.selection)
         self.connect('motion-notify-event', self._on_motion, self.cursor, self.selection)
-        #self.connect('enter-notify-event', self._on_enter)
-        #self.connect('leave-notify-event', self._on_leave, self.cursor, self.selection)
+        self.connect('enter-notify-event', self._on_enter)
+        self.connect('leave-notify-event', self._on_leave, self.cursor, self.selection)
         
 
         #self.drag_source_set(gtk.gdk.BUTTON1_MASK, [("text/plain", 0, 80),], gtk.gdk.ACTION_COPY)
@@ -336,13 +334,23 @@ class IndentLabel(gtk.EventBox):
             print 'End polling'
             return False
 
-        print 'Poll', x, y, self.allocation
+        a = self.allocation
+        x = min(a.width-3, max(1, x-a.x))
+        y = min(a.height-3, max(1, y-a.y))
+        print a, x, y
+
+        for layout in self.order:
+            point_in, index = layout.index_at(x, y)
+            if point_in:
+                cur.set_position(layout.order_id, index)
+                self.queue_draw()
+                break
         return True
 
     def _on_leave(self, widget, event, cur, sel):
-        x, y, mods = window.get_pointer()
+        x, y, mods = self.window.get_pointer()
         if not (mods & gtk.gdk.BUTTON1_MASK): return
-        
+
         self._ppoller = gobject.timeout_add(100,
                                             self._poll_mouse_pos_cb,
                                             self.window,
@@ -351,8 +359,8 @@ class IndentLabel(gtk.EventBox):
     def _on_motion(self, widget, event, cur, sel):
         if not (event.state & gtk.gdk.BUTTON1_MASK): return
         for layout in self.order:
-            index = layout.index_at(int(event.x), int(event.y))
-            if index != None:
+            point_in, index = layout.index_at(int(event.x), int(event.y))
+            if point_in:
                 cur.set_position(layout.order_id, index)
                 self.queue_draw()
                 break
@@ -370,10 +378,11 @@ class IndentLabel(gtk.EventBox):
         elif event.button != 1:
             return
 
+        print event.x, event.y, self.allocation
+
         for layout in self.order:
-            index = layout.index_at(int(event.x), int(event.y))
-            if index != None:
-                print index
+            point_in, index = layout.index_at(int(event.x), int(event.y))
+            if point_in:
                 cur.set_position(layout.order_id, index)
                 sel.clear()
 
