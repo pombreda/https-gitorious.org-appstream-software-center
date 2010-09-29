@@ -5,6 +5,8 @@ import gobject
 from pango import SCALE as PS
 from gtk import keysyms as keys
 
+from gettext import gettext as _
+
 
 class Layout(pango.Layout):
 
@@ -16,7 +18,7 @@ class Layout(pango.Layout):
         self.indent = 0
         self.vspacing = None
         self.is_bullet = False
-        self.yindex = 0
+        self.index = 0
         self.allocation = gtk.gdk.Rectangle(0,0,1,1)
         self._default_attrs = True
         self.set_markup(text)
@@ -296,7 +298,7 @@ class IndentLabel(gtk.EventBox):
         self.order = []
         self.cursor = PrimaryCursor(self)
         self.selection = SelectionCursor(self.cursor)
-        self.clipboard = gtk.clipboard_get()
+        self.clipboard = None
 
         self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
         self._ppoller = 0
@@ -340,7 +342,7 @@ class IndentLabel(gtk.EventBox):
         for layout in self.order:
             point_in, index = layout.index_at(int(event.x), int(event.y))
             if point_in:
-                cur.set_position(layout.yindex, index)
+                cur.set_position(layout.index, index)
                 self.queue_draw()
                 break
 
@@ -351,8 +353,9 @@ class IndentLabel(gtk.EventBox):
         elif not self.has_focus():
             self.grab_focus()
 
-        if event.button == 2:
-            self._button2_action()
+        print event.button
+        if event.button == 3:
+            self._button3_action(cur, sel, event)
             return
         elif event.button != 1:
             return
@@ -360,7 +363,7 @@ class IndentLabel(gtk.EventBox):
         for layout in self.order:
             point_in, index = layout.index_at(int(event.x), int(event.y))
             if point_in:
-                cur.set_position(layout.yindex, index)
+                cur.set_position(layout.index, index)
                 sel.clear()
 
                 if (event.type == gtk.gdk._2BUTTON_PRESS):
@@ -371,7 +374,34 @@ class IndentLabel(gtk.EventBox):
                 break
         return
 
-    def _button2_action(self):
+    def _menu_do_copy(self, item, sel):
+        self._copy_text(sel)
+
+    def _menu_do_select_all(self, item, cur, sel):
+        self._select_all(cur, sel)
+
+    def _button3_action(self, cur, sel, event):
+        copy = gtk.ImageMenuItem(stock_id=gtk.STOCK_COPY, accel_group=None)
+        sel_all = gtk.ImageMenuItem(stock_id=gtk.STOCK_SELECT_ALL, accel_group=None)
+
+        menu = gtk.Menu()
+        menu.append(copy)
+        menu.append(sel_all)
+        menu.show_all()
+
+        start, end = sel.get_range()
+        if not sel:
+            copy.set_sensitive(False)
+        elif start == (0, 0) and \
+            end == (len(self.order), len(self.order[-1])):
+            sel_all.set_sensitive(False)
+
+        copy.connect('select', self._menu_do_copy, sel)
+        sel_all.connect('select', self._menu_do_select_all, cur, sel)
+
+        menu.popup(None, None, None,
+                   event.button, event.time,
+                   data=None)
         return
 
     def _on_release(self, widget, event):
@@ -458,8 +488,9 @@ class IndentLabel(gtk.EventBox):
         if ctrl:
             if event.keyval == keys.a:
                 self._select_all(cur, sel)
+
             elif event.keyval == keys.c:
-                self._copy_range(cur, sel)
+                self._copy_text(sel)
 
             self.queue_draw()
         return
@@ -542,6 +573,18 @@ class IndentLabel(gtk.EventBox):
 
     def _3click_select(self, cursor, sel):
         self._select_line(cursor, sel)
+        return
+
+    def _copy_text(self, sel):
+        text = ''
+        for layout in self.order:
+            text += self._selection_copy(layout, sel, (layout.index > 0))
+
+        if not self.clipboard:
+            self.clipboard = self.get_clipboard(gtk.gdk.SELECTION_CLIPBOARD)
+
+        self.clipboard.clear()
+        self.clipboard.set_text(text, -1)
         return
 
     def _select_end(self, cur, sel, layout):
@@ -662,22 +705,36 @@ class IndentLabel(gtk.EventBox):
 
     def _select_all(self, cursor, sel):
         layout = self.order[-1]
-        cursor.set_position(0, 0)
-        sel.set_position(layout.yindex, len(layout))
+        sel.set_position(0, 0)
+        cursor.set_position(layout.index, len(layout))
         return
 
-    def _copy_range(self, sel):
-        print 'Copy range: %s' % sel
-        return
+    def _selection_copy(self, layout, sel, new_para=True):
+        i = layout.index
+        start, end = sel.get_range()
 
-    def height_from_width(self, width):
-        if not self.order: return
-        height = 0
-        for layout in self.order:
-            layout.set_width(PS*(width-layout.indent))
-            height += layout.get_pixel_extents()[1][3] + (layout.vspacing or self.line_height)
+        if new_para:
+            text = '\n\n'
+        else:
+            text = ''
 
-        return width, height - self.line_height
+        if sel and i >= start[0] and i <= end[0]:
+
+            if i == start[0]:
+                if end[0] > i:
+                    return text+layout.get_text()[start[1]: len(layout)]
+                else:
+                    return text+layout.get_text()[start[1]: end[1]]
+
+            elif i == end[0]:
+                if start[0] < i:
+                    return text+layout.get_text()[0: end[1]]
+                else:
+                    return text+layout.get_text()[start[1]: end[1]]
+
+            else:
+                return text+layout.get_text()
+        return ''
 
     def _on_allocate(self, widget, a):
         if not self.order: return
@@ -685,7 +742,7 @@ class IndentLabel(gtk.EventBox):
         y = a.y
         width = a.width
         for layout in self.order:
-            if layout.yindex > 0:
+            if layout.index > 0:
                 y += (layout.vspacing or self.line_height)
 
             lx,ly,lw,lh = layout.get_pixel_extents()[1]
@@ -700,25 +757,25 @@ class IndentLabel(gtk.EventBox):
         layout.set_wrap(pango.WRAP_WORD_CHAR)
         return layout
 
-    def _highlight_selection(self, layout, sel, bg_sel, fg_sel):
-        i = layout.yindex
+    def _selection_highlight(self, layout, sel, bg, fg):
+        i = layout.index
         start, end = sel.get_range()
-        if self.selection and i >= start[0] and i <= end[0]:
+        if sel and i >= start[0] and i <= end[0]:
 
             if i == start[0]:
                 if end[0] > i:
-                    layout.highlight(start[1], len(layout), bg_sel, fg_sel)
+                    layout.highlight(start[1], len(layout), bg, fg)
                 else:
-                    layout.highlight(start[1], end[1], bg_sel, fg_sel)
+                    layout.highlight(start[1], end[1], bg, fg)
 
             elif i == end[0]:
                 if start[0] < i:
-                    layout.highlight(0, end[1], bg_sel, fg_sel)
+                    layout.highlight(0, end[1], bg, fg)
                 else:
-                    layout.highlight(start[1], end[1], bg_sel, fg_sel)
+                    layout.highlight(start[1], end[1], bg, fg)
 
             else:
-                layout.highlight_all(bg_sel, fg_sel)
+                layout.highlight_all(bg, fg)
 
         elif not layout._default_attrs:
             layout.reset_attrs()
@@ -732,7 +789,7 @@ class IndentLabel(gtk.EventBox):
         for layout in self.order:
             la = layout.allocation
 
-            self._highlight_selection(layout,
+            self._selection_highlight(layout,
                                       self.selection,
                                       self._bg, self._fg)
 
@@ -776,9 +833,18 @@ class IndentLabel(gtk.EventBox):
     def _get_selection_layout(self):
         return self.order[self.selection.section]
 
+    def height_from_width(self, width):
+        if not self.order: return
+        height = 0
+        for layout in self.order:
+            layout.set_width(PS*(width-layout.indent))
+            height += layout.get_pixel_extents()[1][3] + (layout.vspacing or self.line_height)
+
+        return width, height - self.line_height
+
     def append_paragraph(self, p, vspacing=None):
         l = self._new_layout()
-        l.yindex = len(self.order)
+        l.index = len(self.order)
         l.vspacing = vspacing
         l.set_text(p)
         self.order.append(l)
@@ -786,7 +852,7 @@ class IndentLabel(gtk.EventBox):
 
     def append_bullet(self, point, vspacing=None):
         l = self._new_layout()
-        l.yindex = len(self.order)
+        l.index = len(self.order)
         l.indent = self.indent
         l.vspacing = vspacing
         l.is_bullet = True
