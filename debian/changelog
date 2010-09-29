@@ -1,34 +1,9 @@
-software-center (3.1.0) UNRELEASED; urgency=low
-
-  [ Michael Vogt ]
-  * softwarecenter/app.py:
-    - use "reopen" instead of "open" in the channels-changed 
-      callback to ensure that the various views get the right
-      signal. This partly fixes #507836, the exceptions will
-      stil be there, but the UI will fully recover
-  * softwarecenter/backend/aptd.py:
-    - do not emit "channels-changed" while installing a purchase,
-      this emited already by the update()
-  * softwarecenter/db/application.py:
-    - if appdetails finds its pkgname in the pending transactions
-      but does not have a apt pkg object yet, this means it got
-      installed from a newly enabled source, return the right state
-      in this case
-  * softwarecenter/view/appdetailsview_gtk.py:
-    - remove explicit "progress.set_fraction()" in configure() because
-      its not needed (gtk.ProgressBar will DTRT) and also we may get
-      "xapian reopen" signals in the middle of a transaction, in this
-      case we don't want to reset the progress. 
+software-center (3.0.4) UNRELEASED; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/db/update.py:
     - use 'X-GNOME-FullName' rather than 'Name', when available (LP: #???)
       (test case: software-center cheese empathy evolution gwibber)
-  * softwarecenter/view/appdetailsview_gtk.py:
-    - don't eat 'o ' character combinations within bullet points (LP: #646822)
-      (test case: software-center deja-dup)
-    - scale icon down when setting 'where is it' icon from path (LP: #645062)
-      (test case: software-center briquolo (once installed))
   * softwarecenter/view/availablepane.py:
     - don't show 'hide 1 technical item' in featured category (LP: #???)
       (test case: browse to featured category (by clicking 'all'))
@@ -39,12 +14,8 @@ software-center (3.1.0) UNRELEASED; urgency=low
     - correctly split pkgnames for pkg transactions dated before 28-ish July
       (LP: #???)
       (test case: view transaction in history pane dated pre 28 July)
-  * softwarecenter/view/softwarepane.py:
-    - don't offer to 'show 9k items' in searches, as we limit searches to 200
-      items (LP: #648988)
-      (test case: software-center search:library)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 21:36:36 +0200
 
 software-center (3.0.3) maverick; urgency=low
 

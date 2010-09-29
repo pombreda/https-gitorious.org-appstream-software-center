@@ -783,11 +783,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """ callback when the set of software channels has changed """
         self._logger.debug("on_channels_changed %s" % res)
         if res:
-            # reopen the database, this will ensure that the right signals
-            # are send and triggers "refresh_apps", "update_app_view"
-            # and refresh the displayed app in the details as well
-            self.db.reopen()
-            # refresh the menu/status_bar
+            self.db.open()
+            # refresh the available_pane views to reflect any changes
+            self.available_pane.refresh_apps()
+            self.available_pane.update_app_view()
             self.update_app_status_menu()
             self.update_status_bar()
 

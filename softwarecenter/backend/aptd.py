@@ -449,6 +449,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
         # run install action if the repo was added successfully 
         if result:
+            self.emit("channels-changed", True)
+
             # we use aptd_client.install_packages() here instead
             # of just 
             #  self.install(app.pkgname, app.appname, "", metadata=metadata)
