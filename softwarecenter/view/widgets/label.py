@@ -353,7 +353,6 @@ class IndentLabel(gtk.EventBox):
         elif not self.has_focus():
             self.grab_focus()
 
-        print event.button
         if event.button == 3:
             self._button3_action(cur, sel, event)
             return
@@ -393,7 +392,7 @@ class IndentLabel(gtk.EventBox):
         if not sel:
             copy.set_sensitive(False)
         elif start == (0, 0) and \
-            end == (len(self.order), len(self.order[-1])):
+            end == (len(self.order)-1, len(self.order[-1])):
             sel_all.set_sensitive(False)
 
         copy.connect('select', self._menu_do_copy, sel)
