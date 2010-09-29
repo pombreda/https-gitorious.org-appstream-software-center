@@ -19,6 +19,9 @@ software-center (3.1.0) UNRELEASED; urgency=low
       its not needed (gtk.ProgressBar will DTRT) and also we may get
       "xapian reopen" signals in the middle of a transaction, in this
       case we don't want to reset the progress. 
+  * merged lp:~mvo/software-center/zeitgeist-magic-seif that brings
+    basic zeitgeist integration. Many thanks to Seif Lotfy for the
+    work on this!
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:

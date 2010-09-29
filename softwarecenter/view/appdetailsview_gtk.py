@@ -18,6 +18,7 @@
 
 import atk
 import dialogs
+import gettext
 import gio
 import glib
 import gmenu
@@ -36,6 +37,7 @@ import cairo
 from gettext import gettext as _
 import apt_pkg
 from softwarecenter.backend import get_install_backend
+from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -1033,6 +1035,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         #self.app_info.image.connect_after('expose-event', self._on_icon_expose)
+        
         return
 
     def _on_allocate(self, widget, allocation):
@@ -1195,6 +1198,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
         self.app_info.body.pack_start(self.desc_installed_where)
         self.desc_installed_where.a11y = self.desc_installed_where.get_accessible()
+
+        # the amount of times it was used
+        self.usage_counter_label = gtk.Label("")
+        self.usage_counter_label.hide()
+        self.usage_counter_label.set_alignment(0.0, 0.5)
+        self.app_info.body.pack_start(self.usage_counter_label)
 
         # FramedSection which contains the app description
         self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
@@ -1463,6 +1472,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #print self.appdetails
         self._update_page(self.app_details)
         self.emit("selected", self.app)
+        
+        self.get_usage_counter()
+        
         return
 
     # public interface
@@ -1751,7 +1763,25 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def set_section(self, section):
         self.section = section
         return
-
+        
+    def get_usage_counter(self):
+        """ try to get the usage counter from zeitgeist """
+        def _zeitgeist_callback(counter):
+            LOG.debug("zeitgeist usage: %s" % counter)
+            if counter == 0:
+                # this probably means we just have no idea about it,
+                # so instead of saying "Used: never" we jusr return 
+                # this can go away when zeitgeist captures more events
+                self.usage_counter_label.hide()
+                return
+            label_string = gettext.ngettext("Used: one time",
+                                            "Used: %(amount)s times",
+                                            counter) % { 'amount' : counter, }
+            self.usage_counter_label.set_text(label_string)
+            self.usage_counter_label.show()
+        # try to get it
+        zeitgeist_singleton.get_usage_counter(
+            self.app_details.desktop_file, _zeitgeist_callback)
 
 
 if __name__ == "__main__":
