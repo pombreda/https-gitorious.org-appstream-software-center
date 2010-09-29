@@ -21,6 +21,9 @@ software-center (3.1.0) UNRELEASED; urgency=low
       case we don't want to reset the progress. 
 
   [ Kiwinote ]
+  * softwarecenter/db/update.py:
+    - use 'X-GNOME-FullName' rather than 'Name', when available (LP: #???)
+      (test case: software-center cheese empathy evolution gwibber)
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't eat 'o ' character combinations within bullet points (LP: #646822)
       (test case: software-center deja-dup)
