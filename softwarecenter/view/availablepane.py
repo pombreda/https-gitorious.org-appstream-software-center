@@ -253,7 +253,7 @@ class AvailablePane(SoftwarePane):
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
         # special case to disable show/hide nonapps for the "Featured" category
-        # we do the same for the "System" category (LP: #???)
+        # we do the same for the "System" category (LP: #636854)
         if (self.apps_category and 
            (self.apps_category.untranslated_name == "Featured" or
             self.apps_category.untranslated_name == "System")):

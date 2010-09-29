@@ -2,17 +2,17 @@ software-center (3.0.4) UNRELEASED; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/db/update.py:
-    - use 'X-GNOME-FullName' rather than 'Name', when available (LP: #???)
+    - use 'X-GNOME-FullName' rather than 'Name', when available (LP: #651260)
       (test case: software-center cheese empathy evolution gwibber)
   * softwarecenter/view/availablepane.py:
-    - don't show 'hide 1 technical item' in featured category (LP: #???)
+    - don't show 'hide 1 technical item' in featured category (LP: #651236)
       (test case: browse to featured category (by clicking 'all'))
     - don't show 'hide technical items' in system category, as we don't
-      have any apps to show (LP: #???)
+      have any apps to show (LP: #636854)
       (test case: browse to 'System' category)
   * softwarecenter/view/historypane.py:
     - correctly split pkgnames for pkg transactions dated before 28-ish July
-      (LP: #???)
+      (LP: #651241)
       (test case: view transaction in history pane dated pre 28 July)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 21:36:36 +0200
