@@ -1,3 +1,105 @@
+software-center (3.1.0) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/app.py:
+    - use "reopen" instead of "open" in the channels-changed 
+      callback to ensure that the various views get the right
+      signal. This partly fixes #507836, the exceptions will
+      stil be there, but the UI will fully recover
+  * softwarecenter/backend/aptd.py:
+    - do not emit "channels-changed" while installing a purchase,
+      this emited already by the update()
+  * softwarecenter/db/application.py:
+    - if appdetails finds its pkgname in the pending transactions
+      but does not have a apt pkg object yet, this means it got
+      installed from a newly enabled source, return the right state
+      in this case
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - remove explicit "progress.set_fraction()" in configure() because
+      its not needed (gtk.ProgressBar will DTRT) and also we may get
+      "xapian reopen" signals in the middle of a transaction, in this
+      case we don't want to reset the progress. 
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't eat 'o ' character combinations within bullet points (LP: #646822)
+      (test case: software-center deja-dup)
+    - scale icon down when setting 'where is it' icon from path (LP: #645062)
+      (test case: software-center briquolo (once installed))
+  * softwarecenter/view/softwarepane.py:
+    - don't offer to 'show 9k items' in searches, as we limit searches to 200
+      items (LP: #648988)
+      (test case: software-center search:library)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
+
+software-center (3.0.1) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/db/update.py:
+    - index the file even if "catalogedtime" is not yet written
+      to /var/lib/apt-xapian-index/values (LP: #646018)
+  * softwarecenter/view/purchasedialog.py:
+    - set default window size to 640x400 (LP: #635215)
+  
+  [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash if iconname has no value (LP: #639934) 
+  * softwarecenter/view/viewswitcher.py:
+    - fix intermittent crash when using arrow keys to
+      expand/collapse nodes in the left nav pane (LP: #644176) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 24 Sep 2010 22:35:42 +0200
+
+software-center (3.0) maverick; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/restfulclient.py:
+    - setup cachedir to avoid unneeded wadl downloading (LP: #645837)
+  * softwarecenter/utils.py:
+    - fix crash if desktop_file_path does not contain "applications"
+      (LP: #641071)
+  * softwarecenter/backend/aptd.py:
+    - add keyfile for whitelisted channel (LP: #645120)
+  * softwarecenter/view/appdetailsview.py:
+    - fix crash when reinstalling previous purchase 
+      (LP: #645843)
+  * softwarecenter/backend/restfulclient.py, softwarecenter/db/update.py,
+    - use gio instead of restfulclient to get the available purchase
+      items and properly use the etag values provided to avoid uneeded
+      bandwidth usage and load on the server (LP: #645837)
+  * utils/update-software-center-agent:
+    - trivial logging fix to make --debug fully work
+  * debian/changelog:
+    - its 3.0!
+  
+  [ Gary Lasker ]
+  * softwarecenter/app.py,
+    softwarecenter/backend/channel.py:
+    - fix multiple instances of the "Previous Purchases"
+      item in the left navigation pane (LP: #645439)
+  * README: 
+    - fix typo
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 23 Sep 2010 11:16:44 +0200
+
+software-center (2.1.22.4) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py:
+    - expand available node if unexpanded when choosing to reinstall
+      previous purchases (LP: #643566)
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/application.py:
+    - fix adding channels via apturl (LP: #643571)
+    - allow displaying text only channel eula files (LP: #643571)
+  * softwarecenter/gwibber_helper.py:
+    - test for the gwibber-poster binary (that one is called when
+      the share button is clicked) as well as gconf
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Sep 2010 16:02:24 +0200
+
 software-center (2.1.22.3) maverick; urgency=low
 
   * Merge the right branch for the gksu fix for LP: #640906

@@ -121,8 +121,8 @@ class TestDatabase(unittest.TestCase):
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
         db = StoreDatabase("./data/test.db", self.cache)
-        db.open(use_axi=False)
-        self.assertEqual(len(db), 6)
+        db.open(use_axi=False, use_agent=False)
+        self.assertEqual(len(db), 5)
         # test details
         app = Application("Ubuntu Software Center Test", "software-center")
         details = app.get_details(db)

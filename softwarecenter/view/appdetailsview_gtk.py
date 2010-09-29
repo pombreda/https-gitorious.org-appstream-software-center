@@ -192,7 +192,6 @@ class PackageStatusBar(StatusBar):
                 app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = state
         self.app_details = app_details
-        self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
@@ -215,6 +214,7 @@ class PackageStatusBar(StatusBar):
             self.button.set_sensitive(True)
             self.button.show()
             self.show()
+            self.progress.hide()
 
         # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
@@ -223,7 +223,6 @@ class PackageStatusBar(StatusBar):
         if state == PKG_STATE_INSTALLING:
             self.set_label(_('Installing...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             self.button.hide()
@@ -231,11 +230,9 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0.0)
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
             if app_details.purchase_date:
                 purchase_date = str(app_details.purchase_date).split()[0]
@@ -273,7 +270,6 @@ class PackageStatusBar(StatusBar):
         elif state == APP_ACTION_APPLY:
             self.set_label(_(u'Changing Add-ons\u2026'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -292,7 +288,6 @@ class PackageStatusBar(StatusBar):
             channelfile = self.app_details.channelfile
             # it has a price and is not available 
             if channelfile:
-                # FIXME: deal with the EULA stuff
                 self.set_button_label(_("Use This Source"))
             # check if it comes from a non-enabled component
             elif self.app_details._unavailable_component():
@@ -1103,7 +1098,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         if self.homepage_btn.get_property('visible'):
             self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
-        if self._gwibber_is_available:
+        if self.share_btn.get_property('visible'):
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
         del cr
         return
@@ -1303,9 +1298,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.license_info.hide()
             self.support_info.hide()
             self.totalsize_info.hide()
-            self.desc_section.hide()
         else:
-            self.desc_section.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
@@ -1334,7 +1327,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self._gwibber_is_available:
+        if (self._gwibber_is_available and 
+            app_details.pkg_state not in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)):
             self.share_btn.show()
         else:
             self.share_btn.hide()
@@ -1412,9 +1406,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
                     self.desc_installed_where.pack_start(image, False, False)
                 # then see if its a path to a file on disk
-                elif os.path.exists(iconname):
+                elif iconname and os.path.exists(iconname):
                     image = gtk.Image()
-                    image.set_from_file(iconname)
+                    pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
+                    if pb:
+                        image.set_from_pixbuf(pb)
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()
@@ -1555,7 +1551,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.action_bar.progress.show()
             if pkgname in backend.pending_transactions:
                 self.action_bar.progress.set_fraction(progress/100.0)
-            if progress == 100:
+            if progress >= 100:
                 self.action_bar.progress.set_fraction(1)
                 self.adjustment_value = self.get_vadjustment().get_value()
         return
