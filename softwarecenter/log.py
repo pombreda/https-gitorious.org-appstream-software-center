@@ -3,6 +3,7 @@
 #
 # Authors:
 #  Geliy Sokolov
+#  Michael Vogt
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -18,6 +19,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import logging
+import logging.handlers
+import os.path
+
+from paths import SOFTWARE_CENTER_CACHE_DIR
 
 """ setup global logging for software-center """
 
@@ -74,8 +79,17 @@ def add_filters_from_string(long_filter_str):
 
 # setup global software-center logging
 root = logging.getLogger()
-fmt = logging.Formatter(logging.BASIC_FORMAT, None)
+fmt = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s", None)
 handler = logging.StreamHandler()
 handler.setFormatter(fmt)
 root.addHandler(handler)
 handler.addFilter(NullFilterThatWarnsAboutRootLoggerUsage())
+
+# create log file
+logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "software-center.log")
+logfile_handler = logging.handlers.RotatingFileHandler(logfile_path,
+                                                       maxBytes=100*1000,
+                                                       backupCount=5)
+logfile_handler.setLevel(logging.INFO)
+logfile_handler.setFormatter(fmt)
+root.addHandler(logfile_handler)

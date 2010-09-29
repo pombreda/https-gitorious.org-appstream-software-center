@@ -172,6 +172,17 @@ def sources_filename_from_ppa_entry(entry):
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
+
+def release_filename_in_lists_from_deb_line(debline):
+    """
+    takes a debline and returns the filename of the Release file
+    in /var/lib/apt/lists
+    """
+    import aptsources.sourceslist
+    entry = aptsources.sourceslist.SourceEntry(debline)
+    name = "%s_dists_%s_Release" % (apt_pkg.uri_to_filename(entry.uri),
+                                    entry.dist)
+    return name
     
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):

@@ -46,6 +46,41 @@ software-center (3.1.0) UNRELEASED; urgency=low
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 23 Sep 2010 16:38:35 -0400
 
+software-center (3.0.3) maverick; urgency=low
+
+  * softwarecenter/view/softwarepane.py:
+    - Fix incorrect hide of the technical items search bar 
+      (LP: #646584)
+  * softwarecenter/backend/aptd.py, softwarecenter/utils.py:
+    - Test if we have a Release.gpg file after a new for-pay repository 
+      was added. In the initial update() the backend/libapt does not know
+      yet if a signed repo should be expected. If the Release.gpg file
+      is missing, re-try the operation. This should fix the 
+      "unauthenticated" errors for the ricks-wallpapers purchase
+  * softwarecenter/backend/aptd.py:
+    - fix crash when the aptdaemon dies
+    - improve logging for purchase processing
+  * softwarecenter/log.py:
+    - improve logging format
+    - keep log in ~/.cache/software-center/software-center.log
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 21:36:36 +0200
+
+software-center (3.0.2) maverick; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't eat 'o ' character combinations within bullet points (LP: #646822)
+      (test case: software-center deja-dup)
+    - scale icon down when setting 'where is it' icon from path (LP: #645062)
+      (test case: software-center briquolo (once installed))
+  * softwarecenter/view/softwarepane.py:
+    - don't offer to 'show 9k items' in searches, as we limit searches to 200
+      items (LP: #648988)
+      (test case: software-center search:library)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 27 Sep 2010 22:43:18 +0200
+
 software-center (3.0.1) maverick; urgency=low
 
   [ Michael Vogt ]
