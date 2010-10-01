@@ -1,4 +1,4 @@
-software-center (3.0.4) UNRELEASED; urgency=low
+software-center (3.0.4) maverick; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/appview.py:
@@ -15,7 +15,7 @@ software-center (3.0.4) UNRELEASED; urgency=low
       so that it gets re-created later with the right permissions.
       That will undo the damage in bug LP: #652151
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 09:39:56 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 10:40:08 +0200
 
 software-center (3.0.3) maverick; urgency=low
 
