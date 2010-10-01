@@ -7,6 +7,10 @@ software-center (3.0.5) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - use 'X-GNOME-FullName' rather than 'Name', when available (LP: #651260)
       (test case: software-center cheese empathy evolution gwibber)
+  * softwarecenter/view/appview.py:
+    - unblock pkg if transaction is cancelled (LP: #652903)
+      (test case: launch s-c with a list view, choose a pkg, click install,
+       cancel auth, click install again, install should work as normal)
   * softwarecenter/view/availablepane.py:
     - don't show 'hide 1 technical item' in featured category (LP: #651236)
       (test case: browse to featured category (by clicking 'all'))

@@ -1571,10 +1571,10 @@ class AppView(gtk.TreeView):
             action_btn.set_sensitive(True)
             self._set_cursor(action_btn, self._cursor_hand)
 
-    def _on_transaction_stopped(self, backend, pkgname, tr):
+    def _on_transaction_stopped(self, backend, result, tr):
         """ callback when an application install/remove transaction has stopped """
         # remove pkg from the block list
-        self._check_remove_pkg_from_blocklist(pkgname)
+        self._check_remove_pkg_from_blocklist(result.pkgname)
 
         action_btn = tr.get_button_by_name('action0')
         if action_btn:
