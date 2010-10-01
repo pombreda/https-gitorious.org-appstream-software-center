@@ -1069,7 +1069,11 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # important! ensures correct text rendering, esp. when using hicolor theme
         if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
-            state = gtk.STATE_SELECTED
+            # this follows the behaviour that gtk+ uses for states in treeviews
+            if widget.has_focus():
+                state = gtk.STATE_SELECTED
+            else:
+                state = gtk.STATE_ACTIVE
         else:
             state = gtk.STATE_NORMAL
 
