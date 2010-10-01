@@ -20,6 +20,10 @@ import os
 
 from xdg import BaseDirectory as xdg
 
+# ensure we don't create directories in /home/$user
+if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
+    del os.environ["HOME"]
+
 SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "software-center")
 SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "software-center")
 SOFTWARE_CENTER_CONFIG_FILE = os.path.join(SOFTWARE_CENTER_CONFIG_DIR, "softwarecenter.cfg") 
