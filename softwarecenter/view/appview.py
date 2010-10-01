@@ -1069,7 +1069,11 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # important! ensures correct text rendering, esp. when using hicolor theme
         if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
-            state = gtk.STATE_SELECTED
+            # this follows the behaviour that gtk+ uses for states in treeviews
+            if widget.has_focus():
+                state = gtk.STATE_SELECTED
+            else:
+                state = gtk.STATE_ACTIVE
         else:
             state = gtk.STATE_NORMAL
 
@@ -1541,10 +1545,12 @@ class AppView(gtk.TreeView):
         return False
 
     def _set_cursor(self, btn, cursor):
-        pointer = gtk.gdk.device_get_core_pointer()
-        x, y = pointer.get_state(self.window)[0]
-        if btn.point_in(int(x), int(y)):
-            self.window.set_cursor(cursor)
+        # make sure we have a window instance (LP: #617004)
+        if isinstance(self.window, gtk.gdk.Window):
+            pointer = gtk.gdk.device_get_core_pointer()
+            x, y = pointer.get_state(self.window)[0]
+            if btn.point_in(int(x), int(y)):
+                self.window.set_cursor(cursor)
 
     def _on_transaction_started(self, backend, tr):
         """ callback when an application install/remove transaction has started """

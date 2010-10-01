@@ -1,4 +1,7 @@
-software-center (3.0.4) UNRELEASED; urgency=low
+software-center (3.0.5) UNRELEASED; urgency=low
+
+  [ Andrea Cimitan ]
+  * fix rendering with Ambiance theme (LP: #635208)
 
   [ Kiwinote ]
   * softwarecenter/db/update.py:
@@ -15,7 +18,26 @@ software-center (3.0.4) UNRELEASED; urgency=low
       (LP: #651241)
       (test case: view transaction in history pane dated pre 28 July)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 21:36:36 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
+
+software-center (3.0.4) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appview.py:
+    - fix intermittent crash in _set_cursor (LP: #617004)
+  
+  [ Michael Vogt ]
+  * Create the log directory not on the import paths.py. Otherwise
+    if the user upgrades using a sudo based tool (like apt-get) he
+    may end up with a root owned log (LP: #652151)
+  * softwarecenter/paths.py
+    - ensure we don't create directories in /home when running as
+      root
+    - When detecting a not writable cache dir, try to remove it
+      so that it gets re-created later with the right permissions.
+      That will undo the damage in bug LP: #652151
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 10:40:08 +0200
 
 software-center (3.0.3) maverick; urgency=low
 

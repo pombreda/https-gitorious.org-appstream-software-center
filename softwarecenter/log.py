@@ -86,6 +86,8 @@ root.addHandler(handler)
 handler.addFilter(NullFilterThatWarnsAboutRootLoggerUsage())
 
 # create log file
+if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
+    os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
 logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "software-center.log")
 logfile_handler = logging.handlers.RotatingFileHandler(logfile_path,
                                                        maxBytes=100*1000,
