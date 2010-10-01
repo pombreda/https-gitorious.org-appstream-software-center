@@ -1,3 +1,11 @@
+software-center (3.0.5) UNRELEASED; urgency=low
+
+  [ Andrea Cimitan ]
+  * fix rendering with Ambiance theme (LP: #635208)
+ 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
+
 software-center (3.0.4) maverick; urgency=low
 
   [ Gary Lasker ]
