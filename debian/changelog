@@ -8,8 +8,12 @@ software-center (3.0.4) UNRELEASED; urgency=low
   * Create the log directory not on the import paths.py. Otherwise
     if the user upgrades using a sudo based tool (like apt-get) he
     may end up with a root owned log (LP: #652151)
-  * ensure we don't create directories in /home when running as
-    root
+  * softwarecenter/paths.py
+    - ensure we don't create directories in /home when running as
+      root
+    - When detecting a not writable cache dir, try to remove it
+      so that it gets re-created later with the right permissions.
+      That will undo the damage in bug LP: #652151
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 09:39:56 +0200
 
