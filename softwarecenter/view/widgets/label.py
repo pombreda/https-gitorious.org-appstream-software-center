@@ -131,9 +131,11 @@ class Cursor(object):
         while keep_going:
             l = it.get_line()
             ls = l.start_index
-            le = ls + l.length
+            le = ls + l.length - 1
 
             if i >= ls and i <= le:
+                if it.at_last_line():
+                    le += 1
                 return (self.section, ln), (ls, le), l
             ln += 1
             keep_going = it.next_line()
@@ -234,38 +236,6 @@ class SelectionCursor(Cursor):
 
     def get_range(self):
         return self.min, self.max
-
-    def get_current_line(self):
-        keep_going = True
-        i, it = self.index, self.parent.order[self.section].get_iter()
-        ln = 0 
-        while keep_going:
-            l = it.get_line()
-            ls = l.start_index
-            le = ls + l.length
-
-            if i >= ls and i <= le:
-                return (self.section, ln), (ls, le), l
-            ln += 1
-            keep_going = it.next_line()
-        return None, None, None
-
-    def get_current_word(self):
-        keep_going = True
-        layout = self.parent.order[self.section]
-        text = layout.get_text()
-        i, it = self.index, layout.get_iter()
-        start = 0
-        while keep_going:
-            j = it.get_index()
-            if j >= i and text[j] in self.WORD_TERMINATORS:
-                return self.section, (start, j)
-
-            elif text[j] in self.WORD_TERMINATORS:
-                start = j+1
-
-            keep_going = it.next_char()
-        return None, None
 
 
 class IndentLabel(gtk.EventBox):
@@ -699,7 +669,7 @@ class IndentLabel(gtk.EventBox):
     def _select_line(self, cursor, sel):
         n, r, line = self.cursor.get_current_line()
         sel.set_position(n[0], r[0])
-        cursor.set_position(n[0], r[1]-1)
+        cursor.set_position(n[0], r[1])
         return
 
     def _select_all(self, cursor, sel):
