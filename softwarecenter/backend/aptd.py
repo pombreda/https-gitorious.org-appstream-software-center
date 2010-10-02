@@ -268,6 +268,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 continue
             sourcepart = os.path.basename(channelfile)
             yield self.add_sources_list_entry(entry, sourcepart)
+            keyfile = channelfile.replace(".list",".key")
+            if os.path.exists(keyfile):
+                yield self.aptd_client.add_vendor_key_from_file(keyfile, wait=True)
         yield self.reload(sourcepart)
 
     @inline_callbacks
@@ -422,8 +425,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
         # run install action if the repo was added successfully 
         if result:
-            self.emit("channels-changed", True)
-
             # we use aptd_client.install_packages() here instead
             # of just 
             #  self.install(app.pkgname, app.appname, "", metadata=metadata)

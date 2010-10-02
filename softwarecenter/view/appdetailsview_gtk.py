@@ -18,6 +18,7 @@
 
 import atk
 import dialogs
+import gettext
 import gio
 import glib
 import gmenu
@@ -37,6 +38,7 @@ from gettext import gettext as _
 import apt_pkg
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.application import AppDetails, Application, NoneTypeApplication
+from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.utils import ImageDownloader, GMenuSearcher
@@ -192,7 +194,6 @@ class PackageStatusBar(StatusBar):
                 app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = state
         self.app_details = app_details
-        self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
@@ -215,6 +216,7 @@ class PackageStatusBar(StatusBar):
             self.button.set_sensitive(True)
             self.button.show()
             self.show()
+            self.progress.hide()
 
         # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
@@ -223,7 +225,6 @@ class PackageStatusBar(StatusBar):
         if state == PKG_STATE_INSTALLING:
             self.set_label(_('Installing...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             self.button.hide()
@@ -231,11 +232,9 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0.0)
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
             if app_details.purchase_date:
                 purchase_date = str(app_details.purchase_date).split()[0]
@@ -273,7 +272,6 @@ class PackageStatusBar(StatusBar):
         elif state == APP_ACTION_APPLY:
             self.set_label(_(u'Changing Add-ons\u2026'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -292,7 +290,6 @@ class PackageStatusBar(StatusBar):
             channelfile = self.app_details.channelfile
             # it has a price and is not available 
             if channelfile:
-                # FIXME: deal with the EULA stuff
                 self.set_button_label(_("Use This Source"))
             # check if it comes from a non-enabled component
             elif self.app_details._unavailable_component():
@@ -1038,6 +1035,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         #self.app_info.image.connect_after('expose-event', self._on_icon_expose)
+        
         return
 
     def _on_allocate(self, widget, allocation):
@@ -1103,7 +1101,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         if self.homepage_btn.get_property('visible'):
             self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
-        if self._gwibber_is_available:
+        if self.share_btn.get_property('visible'):
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
         del cr
         return
@@ -1200,6 +1198,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
         self.app_info.body.pack_start(self.desc_installed_where)
         self.desc_installed_where.a11y = self.desc_installed_where.get_accessible()
+
+        # the amount of times it was used
+        self.usage_counter_label = gtk.Label("")
+        self.usage_counter_label.hide()
+        self.usage_counter_label.set_alignment(0.0, 0.5)
+        self.app_info.body.pack_start(self.usage_counter_label)
 
         # FramedSection which contains the app description
         self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
@@ -1298,9 +1302,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.license_info.hide()
             self.support_info.hide()
             self.totalsize_info.hide()
-            self.desc_section.hide()
         else:
-            self.desc_section.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
@@ -1330,7 +1332,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.homepage_btn.hide()
 
         # check if gwibber-poster is available, if so display Share... btn
-        if self._gwibber_is_available:
+        if (self._gwibber_is_available and 
+            app_details.pkg_state not in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)):
             self.share_btn.show()
         else:
             self.share_btn.hide()
@@ -1454,9 +1457,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
                     self.desc_installed_where.pack_start(image, False, False)
                 # then see if its a path to a file on disk
-                elif os.path.exists(iconname):
+                elif iconname and os.path.exists(iconname):
                     image = gtk.Image()
-                    image.set_from_file(iconname)
+                    pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
+                    if pb:
+                        image.set_from_pixbuf(pb)
                     self.desc_installed_where.pack_start(image, False, False)
 
                 label_name = gtk.Label()
@@ -1516,6 +1521,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self._update_all(self.app_details)
 
         self.emit("selected", self.app)
+        
+        self.get_usage_counter()
+        
         return
 
     # public interface
@@ -1604,7 +1612,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.action_bar.progress.show()
             if pkgname in backend.pending_transactions:
                 self.action_bar.progress.set_fraction(progress/100.0)
-            if progress == 100:
+            if progress >= 100:
                 self.action_bar.progress.set_fraction(1)
                 self.adjustment_value = self.get_vadjustment().get_value()
         return
@@ -1804,7 +1812,25 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def set_section(self, section):
         self.section = section
         return
-
+        
+    def get_usage_counter(self):
+        """ try to get the usage counter from zeitgeist """
+        def _zeitgeist_callback(counter):
+            LOG.debug("zeitgeist usage: %s" % counter)
+            if counter == 0:
+                # this probably means we just have no idea about it,
+                # so instead of saying "Used: never" we jusr return 
+                # this can go away when zeitgeist captures more events
+                self.usage_counter_label.hide()
+                return
+            label_string = gettext.ngettext("Used: one time",
+                                            "Used: %(amount)s times",
+                                            counter) % { 'amount' : counter, }
+            self.usage_counter_label.set_text(label_string)
+            self.usage_counter_label.show()
+        # try to get it
+        zeitgeist_singleton.get_usage_counter(
+            self.app_details.desktop_file, _zeitgeist_callback)
 
 
 if __name__ == "__main__":

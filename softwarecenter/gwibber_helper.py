@@ -40,6 +40,8 @@
 #GWIBBER_SERVICE_AVAILABLE = gwibber_service_available()
 #print 'Gwibber Serice Available: %s' % GWIBBER_SERVICE_AVAILABLE 
 
+import os.path
+
 def gwibber_has_accounts_in_gconf():
     import gconf
     client = gconf.client_get_default()
@@ -48,6 +50,6 @@ def gwibber_has_accounts_in_gconf():
         return True
     return False
 
-GWIBBER_SERVICE_AVAILABLE = gwibber_has_accounts_in_gconf()
+GWIBBER_SERVICE_AVAILABLE = gwibber_has_accounts_in_gconf() and os.path.exists("/usr/bin/gwibber-poster")
 
 
