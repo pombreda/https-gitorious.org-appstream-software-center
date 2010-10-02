@@ -715,8 +715,13 @@ class IndentLabel(gtk.EventBox):
                 y += (layout.vspacing or self.line_height)
 
             lx,ly,lw,lh = layout.get_pixel_extents()[1]
-            layout.set_allocation(x+lx+layout.indent, y+ly,
-                                  width-layout.indent, lh)
+
+            if self.get_direction() != gtk.TEXT_DIR_RTL:
+                layout.set_allocation(x+lx+layout.indent, y+ly,
+                                      width-layout.indent, lh)
+            else:
+                layout.set_allocation(x+width-lx-lw-layout.indent, y+ly,
+                                      lw-layout.indent, lh)
 
             y += ly + lh
         return
@@ -763,7 +768,10 @@ class IndentLabel(gtk.EventBox):
                                       self._bg, self._fg)
 
             if layout.is_bullet:
-                self._paint_bullet_point(self.allocation.x, la.y)
+                if self.get_direction() != gtk.TEXT_DIR_RTL:
+                    self._paint_bullet_point(self.allocation.x, la.y)
+                else:
+                    self._paint_bullet_point(self.allocation.x+self.allocation.width-layout.indent, la.y)
 
             # draw the layout
             self.style.paint_layout(self.window,    # gdk window

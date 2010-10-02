@@ -1047,7 +1047,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.app_info.label.set_size_request(-1, -1)
 
         desc = self.app_desc.description
-        size = desc.height_from_width(w-5*mkit.EM-166)
+        size = desc.height_from_width(w-6*mkit.EM-166)
         if size:
             desc.set_size_request(*size)
 
