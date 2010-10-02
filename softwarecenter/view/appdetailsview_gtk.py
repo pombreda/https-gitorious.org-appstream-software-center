@@ -36,7 +36,7 @@ import cairo
 from gettext import gettext as _
 import apt_pkg
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.application import AppDetails, Application
+from softwarecenter.db.application import AppDetails, Application, NoneTypeApplication
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.utils import ImageDownloader, GMenuSearcher
@@ -1018,8 +1018,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # app specific data
         self._same_app = False
-        self.app = None
-        self.app_details = None
+        self.app = NoneTypeApplication()
+        self.app_details = self.app.get_details(self.db)
 
         # addons manager
         self.addons_manager = AddonsManager(self)
@@ -1266,21 +1266,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.show_all()
         return
 
-    def _update_page(self, app_details):
-
+    def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        appname = gobject.markup_escape_text(app_details.display_name)
-
         markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
-        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
-            summary = app_details._error_not_found
-        else:
-            summary = app_details.display_summary
-        if not summary:
-            summary = ""
         markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
 
         # set app- icon, name and summary in the header
@@ -1290,14 +1281,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_info.header.a11y.set_name("Application: " + appname + ". Summary: " + summary)
         self.app_info.header.a11y.set_role(atk.ROLE_PANEL)
         self.app_info.header.grab_focus()
+        return
 
+    def _update_app_icon(self, app_details):
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
         self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
         self.app_info.set_icon_from_pixbuf(pb)
+        return
 
+    def _update_layout_error_status(self, pkg_error):
         # if we have an error or if we need to enable a source, then hide everything else
-        if app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE):
+        if pkg_error:
             self.screenshot.hide()
             self.version_info.hide()
             self.license_info.hide()
@@ -1311,10 +1306,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.support_info.show()
             self.totalsize_info.show()
             self.screenshot.show()
+        return
 
-        # depending on pkg install state set action labels
-        self.action_bar.configure(app_details, app_details.pkg_state)
-
+    def _update_app_description(self, app_details, appname):
         # format new app description
         if app_details.pkg_state == PKG_STATE_ERROR:
             description = app_details.error
@@ -1325,7 +1319,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_desc.set_description(description, appname)
         # a11y for description
         #self.app_desc.body.a11y.set_name("Description: " + description)
+        return
 
+    def _update_description_footer_links(self, app_details):        
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website:
             self.homepage_btn.show()
@@ -1338,17 +1334,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.share_btn.show()
         else:
             self.share_btn.hide()
+        return
 
+    def _update_app_screenshot(self, app_details):
         # get screenshot urls and configure the ScreenshotView...
         if app_details.thumbnail and app_details.screenshot and not self._same_app:
             self.screenshot.configure(app_details)
 
             # then begin screenshot download and display sequence
             self.screenshot.download_and_display()
+        return
 
-        # show where it is
-        self._configure_where_is_it()
-
+    def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
             version = '%s (%s)' % (app_details.version, app_details.pkgname)
@@ -1367,7 +1364,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
+        return
 
+    def _update_addons(self, app_details):
         # refresh addons interface
         self.addon_view.hide_all()
         if not app_details.error:
@@ -1375,10 +1374,53 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                              self.app_details.pkgname)
         
         # Update total size label
-        gobject.idle_add(self.update_totalsize, True)
+        gobject.timeout_add(500, self.update_totalsize, True)
         
         # Update addons state bar
         self.addons_bar.configure()
+        return
+
+    def _update_all(self, app_details):
+        appname = gobject.markup_escape_text(app_details.display_name)
+
+        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
+            summary = app_details._error_not_found
+        else:
+            summary = app_details.display_summary
+        if not summary:
+            summary = ""
+
+        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
+
+        self._update_title_markup(appname, summary)
+        self._update_app_icon(app_details)
+        self._update_layout_error_status(pkg_ambiguous_error)
+        self._update_app_description(app_details, appname)
+        self._update_description_footer_links(app_details)
+        self._update_app_screenshot(app_details)
+        self._update_pkg_info_table(app_details)
+        self._update_addons(app_details)
+
+        # depending on pkg install state set action labels
+        self.action_bar.configure(app_details, app_details.pkg_state)
+
+        # show where it is
+        self._configure_where_is_it()
+        return
+
+    def _update_minimal(self, app_details, old_details):
+        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
+
+        self._update_app_icon(app_details)
+        self._update_layout_error_status(pkg_ambiguous_error)
+        self._update_pkg_info_table(app_details)
+        self._update_addons(app_details)
+
+        # depending on pkg install state set action labels
+        self.action_bar.configure(app_details, app_details.pkg_state)
+
+        # show where it is
+        self._configure_where_is_it()
         return
 
     def _configure_where_is_it(self):
@@ -1458,14 +1500,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.button.set_sensitive(True)
 
         # init data
-        self._same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
+        old_details = self.app_details
         self.app = app
         self.app_details = app.get_details(self.db)
+        self._same_app = self.app_details.same_app(old_details)
+
         # for compat with the base class
         self.appdetails = self.app_details
         #print "AppDetailsViewGtk:"
         #print self.appdetails
-        self._update_page(self.app_details)
+
+        if self._same_app:
+            self._update_minimal(self.app_details)
+        else:
+            self._update_all(self.app_details)
+
         self.emit("selected", self.app)
         return
 
