@@ -101,7 +101,7 @@ class Layout(pango.Layout):
 
 class Cursor(object):
 
-    WORD_TERMINATORS = (' ', ',', '.', ':', ';', '!', '?', '(', ')', '[', ']', '{', '}')
+    WORD_TERMINATORS = (' ',)
 
     def __init__(self, parent):
         self.parent = parent
@@ -156,7 +156,7 @@ class Cursor(object):
                 start = j+1
 
             keep_going = it.next_char()
-        return None, None
+        return self.section, (start, len(layout))
 
     def set_position(self, section, index):
         self.index = index
