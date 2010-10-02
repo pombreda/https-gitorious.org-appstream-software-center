@@ -346,7 +346,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      filter=self.apps_filter,
                                      icon_size=best_stock_size,
                                      global_icon_cache=False,
-                                     nonapps_visible=False)
+                                     nonapps_visible=AppStore.NONAPPS_MAYBE_VISIBLE)
 
             self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
             self.featured_carousel.more_btn.connect('clicked',
@@ -368,7 +368,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                 self.apps_filter,
                                 icon_size=best_stock_size,
                                 global_icon_cache=False,
-                                nonapps_visible=False)
+                                nonapps_visible=AppStore.NONAPPS_MAYBE_VISIBLE)
             self.newapps_carousel = CarouselView(
                 new_apps, _(u"What\u2019s New"), self.icons,
                 start_random=False)
