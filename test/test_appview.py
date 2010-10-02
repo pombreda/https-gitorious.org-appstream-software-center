@@ -96,7 +96,7 @@ class testAppStore(unittest.TestCase):
         store = AppStore(self.cache, self.db, self.mock_icons, 
                          sortmode=SORT_BY_CATALOGED_TIME,
                          limit=20, search_query=query,
-                         nonapps_visible="always")
+                         nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
         for item in store:
             sorted_by_appstore.append(item[AppStore.COL_PKGNAME])
         self.assertEqual(sorted_by_axi, sorted_by_appstore)
