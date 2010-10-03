@@ -133,6 +133,32 @@ class StatusBar(gtk.Alignment):
         cr.restore()
         return
 
+class PackageUsageCounter(gtk.Label):
+
+    def __init__(self, view):
+        gtk.Label.__init__(self)
+        self.set_alignment(0,0)
+        self.set_padding(3, 0)
+        self.view = view
+        self.shape = mkit.ShapeRoundedRectangle()
+        return
+
+    def set_text(self, text):
+        m = '<span color="white"><b><small>%s</small></b></span>' % text
+        gtk.Label.set_markup(self, m)
+        return
+
+    def draw(self, cr, a):
+        cr.save()
+        ax, ay = self.get_alignment()
+        lx, ly, lw, lh = self.get_layout().get_pixel_extents()[1]
+        x = int(a.x + (a.width-lw)*ax)
+        y = int(a.y + (a.height-lh)*ay)
+        self.shape.layout(cr, x, y, x+lw+6, y+lh, radius=3)
+        cr.set_source_rgba(0, 0, 0, 0.6)
+        cr.fill()
+        cr.restore()
+        return
 
 class PackageStatusBar(StatusBar):
     
@@ -1103,6 +1129,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
         if self.share_btn.get_property('visible'):
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
+
+        if self.usage.get_property('visible'):
+            self.usage.draw(cr, self.usage.allocation)
+
         del cr
         return
 
@@ -1175,13 +1205,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.vbox.set_redraw_on_allocate(False)
 
         # framed section that contains all app details
-        self.app_info = mkit.FramedSection()
+        self.app_info = mkit.FramedSectionAlt()
         self.app_info.image.set_size_request(84, 84)
         self.app_info.set_spacing(mkit.SPACING_LARGE)
         self.app_info.header.set_spacing(mkit.SPACING_XLARGE)
         self.app_info.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
+
+        # if zeitgeist is installed,
+        # the amount of times it was used
+        self.usage = PackageUsageCounter(self)
+        self.app_info.header_vbox.pack_start(self.usage, False)
 
         self.app_info.body.set_spacing(mkit.SPACING_MED)
         self.vbox.pack_start(self.app_info, False)
@@ -1198,12 +1233,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
         self.app_info.body.pack_start(self.desc_installed_where)
         self.desc_installed_where.a11y = self.desc_installed_where.get_accessible()
-
-        # the amount of times it was used
-        self.usage_counter_label = gtk.Label("")
-        self.usage_counter_label.hide()
-        self.usage_counter_label.set_alignment(0.0, 0.5)
-        self.app_info.body.pack_start(self.usage_counter_label)
 
         # FramedSection which contains the app description
         self.desc_section = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
@@ -1772,13 +1801,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 # this probably means we just have no idea about it,
                 # so instead of saying "Used: never" we jusr return 
                 # this can go away when zeitgeist captures more events
-                self.usage_counter_label.hide()
+                self.usage.hide()
                 return
             label_string = gettext.ngettext("Used: one time",
                                             "Used: %(amount)s times",
                                             counter) % { 'amount' : counter, }
-            self.usage_counter_label.set_text(label_string)
-            self.usage_counter_label.show()
+            self.usage.set_text(label_string)
+            self.usage.show()
+
         # try to get it
         zeitgeist_singleton.get_usage_counter(
             self.app_details.desktop_file, _zeitgeist_callback)
