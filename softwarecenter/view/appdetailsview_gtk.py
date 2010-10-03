@@ -138,7 +138,7 @@ class PackageUsageCounter(gtk.Label):
     def __init__(self, view):
         gtk.Label.__init__(self)
         self.set_alignment(0,0)
-        self.set_padding(3, 0)
+        self.set_padding(4, 0)
         self.view = view
         self.shape = mkit.ShapeRoundedRectangle()
         return
@@ -154,8 +154,8 @@ class PackageUsageCounter(gtk.Label):
         lx, ly, lw, lh = self.get_layout().get_pixel_extents()[1]
         x = int(a.x + (a.width-lw)*ax)
         y = int(a.y + (a.height-lh)*ay)
-        self.shape.layout(cr, x, y, x+lw+6, y+lh, radius=3)
-        cr.set_source_rgba(0, 0, 0, 0.6)
+        self.shape.layout(cr, x, y, x+lw+8, y+lh, radius=3)
+        cr.set_source_rgba(0, 0, 0, 0.55)
         cr.fill()
         cr.restore()
         return
