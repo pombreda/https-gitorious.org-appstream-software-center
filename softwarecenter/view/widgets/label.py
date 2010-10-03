@@ -721,7 +721,7 @@ class IndentLabel(gtk.EventBox):
                                       width-layout.indent, lh)
             else:
                 layout.set_allocation(x+width-lx-lw-layout.indent, y+ly,
-                                      lw-layout.indent, lh)
+                                      width-layout.indent, lh)
 
             y += ly + lh
         return
