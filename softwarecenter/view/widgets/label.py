@@ -131,11 +131,11 @@ class Cursor(object):
         while keep_going:
             l = it.get_line()
             ls = l.start_index
-            le = ls + l.length - 1
+            le = ls + l.length
 
             if i >= ls and i <= le:
-                if it.at_last_line():
-                    le += 1
+                if not it.at_last_line():
+                    le -= 1
                 return (self.paragraph, ln), (ls, le), l
             ln += 1
             keep_going = it.next_line()
@@ -604,7 +604,7 @@ class IndentLabel(gtk.EventBox):
         elif cur_pos[1] == 0:   # para home
             cur.set_position(0,0)
 
-        elif cur_pos == (n[0], r[1]):      # line home
+        elif cur_pos == (n[0], r[0]):      # line home
             cur.set_position(n[0], 0)
 
         else:                   # not at any home, within line somewhere
@@ -664,18 +664,24 @@ class IndentLabel(gtk.EventBox):
         if word:
             cursor.set_position(paragraph, word[1]+1)
             sel.set_position(paragraph, word[0])
+            if self.get_direction() == gtk.TEXT_DIR_RTL:
+                cursor.switch(sel)
         return
 
     def _select_line(self, cursor, sel):
         n, r, line = self.cursor.get_current_line()
         sel.set_position(n[0], r[0])
         cursor.set_position(n[0], r[1])
+        if self.get_direction() == gtk.TEXT_DIR_RTL:
+            cursor.switch(sel)
         return
 
     def _select_all(self, cursor, sel):
         layout = self.order[-1]
         sel.set_position(0, 0)
         cursor.set_position(layout.index, len(layout))
+        if self.get_direction() == gtk.TEXT_DIR_RTL:
+            cursor.switch(sel)
         return
 
     def _selection_copy(self, layout, sel, new_para=True):
@@ -720,7 +726,7 @@ class IndentLabel(gtk.EventBox):
                 layout.set_allocation(x+lx+layout.indent, y+ly,
                                       width-layout.indent, lh)
             else:
-                layout.set_allocation(x+width-lx-lw-layout.indent, y+ly,
+                layout.set_allocation(x+width-lx-lw-layout.indent-1, y+ly,
                                       width-layout.indent, lh)
 
             y += ly + lh

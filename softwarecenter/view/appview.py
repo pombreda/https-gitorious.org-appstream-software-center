@@ -1062,7 +1062,6 @@ class CellRendererAppView2(gtk.CellRendererText):
 
     def do_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
-
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
         direction = widget.get_direction()
