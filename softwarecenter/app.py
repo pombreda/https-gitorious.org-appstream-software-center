@@ -959,7 +959,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             otherwise turn it into a comma seperated search
         """
         # strip away the apt: prefix
-        if packages and packages[0].startswith("apt://"):
+        if packages and packages[0].startswith("apt:///"):
+            # this is for 'apt:pkgname' in alt+F2 in gnome
+            packages[0] = packages[0].partition("apt:///")[2]
+        elif packages and packages[0].startswith("apt://"):
             packages[0] = packages[0].partition("apt://")[2]
         elif packages and packages[0].startswith("apt:"):
             packages[0] = packages[0].partition("apt:")[2]

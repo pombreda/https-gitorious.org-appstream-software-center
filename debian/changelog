@@ -4,6 +4,8 @@ software-center (3.0.5) UNRELEASED; urgency=low
   * fix rendering with Ambiance theme (LP: #635208)
 
   [ Kiwinote ]
+  * softwarecenter/app.py:
+    - support launching apturls via alt+F2 in gnome (LP: #653889)
   * softwarecenter/db/update.py:
     - use 'X-GNOME-FullName' rather than 'Name', when available (LP: #651260)
       (test case: software-center cheese empathy evolution gwibber)
