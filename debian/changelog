@@ -24,6 +24,8 @@ software-center (3.1.0) UNRELEASED; urgency=low
     work on this!
   * merged lp:~mmcg069/software-center/usage-bubble, that makes the 
     usage counter look so much nicer :)
+  * merged lp:~didrocks/software-center/smarter-app-filtering-level,
+    many thanks
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:

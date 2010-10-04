@@ -96,7 +96,7 @@ class testAppStore(unittest.TestCase):
         store = AppStore(self.cache, self.db, self.mock_icons, 
                          sortmode=SORT_BY_CATALOGED_TIME,
                          limit=20, search_query=query,
-                         nonapps_visible=True)
+                         nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
         for item in store:
             sorted_by_appstore.append(item[AppStore.COL_PKGNAME])
         self.assertEqual(sorted_by_axi, sorted_by_appstore)
@@ -157,12 +157,12 @@ class testAppStore(unittest.TestCase):
         store = AppStore(
             self.cache, self.db, self.mock_icons,
             search_query = xapian.Query(""),             
-            nonapps_visible = False)
+            nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE)
         not_visible = store.nonapp_pkgs
         store = AppStore(
             self.cache, self.db, self.mock_icons,
             search_query = xapian.Query(""),
-            nonapps_visible = True)
+            nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE)
         visible = store.nonapp_pkgs
         self.assertTrue(visible < not_visible)
 

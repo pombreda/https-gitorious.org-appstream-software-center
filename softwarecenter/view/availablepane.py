@@ -255,9 +255,11 @@ class AvailablePane(SoftwarePane):
         # special case to disable show/hide nonapps for the "Featured" category
         # we do the same for the "System" category (LP: #636854)
         if (self.apps_category and 
+            # FIXME: this should be a property of the category, not
+            #        something we hardcode here
            (self.apps_category.untranslated_name == "Featured" or
             self.apps_category.untranslated_name == "System")):
-            self.nonapps_visible = True
+            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
             self.disable_show_hide_nonapps = True
         else:
             self.disable_show_hide_nonapps = False
