@@ -39,6 +39,11 @@ ICON_PATH = APP_INSTALL_PATH+"/icons/"
 SOFTWARE_CENTER_BASE = "/usr/share/software-center"
 SOFTWARE_CENTER_PLUGIN_DIR = os.path.join(SOFTWARE_CENTER_BASE, "plugins")
 
+# ratings&review
+# relative to datadir
+SUBMIT_REVIEW_APP = "submit_review.py"
+REPORT_REVIEW_APP = "report_review.py"
+
 # the various "views" that the app has
 VIEW_PAGE_AVAILABLE = "view-page-available"
 VIEW_PAGE_INSTALLED = "view-page-installed"
@@ -55,10 +60,6 @@ PERMANENT_VIEWS = [VIEW_PAGE_AVAILABLE,
                    VIEW_PAGE_CHANNEL,
                    VIEW_PAGE_HISTORY,
                   ]
-
-# icons
-SUBMIT_REVIEW_APP = SOFTWARE_CENTER_BASE+"/submit_review.py"
-REPORT_REVIEW_APP = SOFTWARE_CENTER_BASE+"/report_review.py"
 
 # icon
 MISSING_APP_ICON = "applications-other"

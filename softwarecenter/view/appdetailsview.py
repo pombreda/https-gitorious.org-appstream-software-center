@@ -24,6 +24,7 @@ import json
 import logging
 import os
 import re
+import glib
 import socket
 import string
 import subprocess
@@ -107,7 +108,7 @@ class AppDetailsViewBase(object):
         version = pkg.candidate.version
         if pkg.installed:
             version = pkg.installed.version
-        cmd = [SUBMIT_REVIEW_APP, 
+        cmd = [os.path.join(self.datadir, SUBMIT_REVIEW_APP), 
                "--pkgname", self.app.pkgname,
                "--iconname", self.appdetails.icon,
                "--parent-xid", "%s" % get_parent_xid(self),
@@ -118,7 +119,7 @@ class AppDetailsViewBase(object):
         glib.child_watch_add(p.pid, self.on_submit_finished)
                          
     def _review_report_abuse(self, review_id):
-        cmd = [REPORT_REVIEW_APP, 
+        cmd = [os.path.join(self.datadir, REPORT_REVIEW_APP), 
                "--review-id", review_id,
                "--parent-xid", "%s" % get_parent_xid(self)
               ]

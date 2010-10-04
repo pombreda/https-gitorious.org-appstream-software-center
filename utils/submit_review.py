@@ -48,7 +48,7 @@ from urlparse import urljoin
 
 import softwarecenter.view.dialogs
 
-from softwarecenter.backend.paths import *
+from softwarecenter.paths import *
 from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
@@ -631,10 +631,16 @@ lp_worker_thread = LaunchpadlibWorker()
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
 
+    if os.path.exists("./data/ui/reviews.ui"):
+        default_datadir = "./data"
+    else:
+        default_datadir = "/usr/share/software-center/"
+
     # common options for optparse go here
     parser = OptionParser()
-    parser.add_option("", "--datadir", 
-                      default="/usr/share/software-center/")
+    parser.add_option("", "--datadir", default=default_datadir)
+
+
 
     # run review personality
     if "submit_review" in sys.argv[0]:
