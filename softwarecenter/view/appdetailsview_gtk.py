@@ -41,7 +41,7 @@ from softwarecenter.db.application import AppDetails, Application, NoneTypeAppli
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.utils import ImageDownloader, GMenuSearcher
+from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -583,7 +583,6 @@ class ScreenshotView(gtk.Alignment):
         self.loader = ImageDownloader()
         self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
         self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
-        return
 
     # signal handlers
     def _on_enter(self, widget, event):
@@ -661,8 +660,8 @@ class ScreenshotView(gtk.Alignment):
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(
             title, url,
-            self.distro.IMAGE_FULL_MISSING)
-
+            self.distro.IMAGE_FULL_MISSING,
+            os.path.join(self.loader.tmpdir, uri_to_filename(url)))
         d.run()
         d.destroy()
         return
@@ -732,6 +731,7 @@ class ScreenshotView(gtk.Alignment):
 
         self.clear()
         self.appname = app_details.display_name
+        self.pkgname = app_details.pkgname
         self.thumbnail_url = app_details.thumbnail
         self.large_url = app_details.screenshot
         return
@@ -764,9 +764,8 @@ class ScreenshotView(gtk.Alignment):
             reachable, if so it downloads the thumbnail.
             If not, it emits "image-url-reachable" False, then exits.
         """
-
-        self.loader.download_image(self.thumbnail_url,
-                                   tempfile.NamedTemporaryFile(prefix="s-c-screenshot").name)
+        
+        self.loader.download_image(self.thumbnail_url)
         return
 
     def draw(self, cr, a, expose_area):

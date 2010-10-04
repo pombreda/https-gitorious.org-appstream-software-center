@@ -26,6 +26,7 @@ import logging
 import os
 import re
 import urllib
+import tempfile
 import time
 import xml.sax.saxutils
 import gtk
@@ -156,6 +157,9 @@ def unescape(text):
 def get_current_arch():
     return apt_pkg.config.find("Apt::Architecture")
 
+def uri_to_filename(uri):
+    return apt_pkg.uri_to_filename(uri)
+
 def human_readable_name_from_ppa_uri(ppa_uri):
     """ takes a PPA uri and returns a human readable name for it """
     from urlparse import urlsplit
@@ -180,8 +184,7 @@ def release_filename_in_lists_from_deb_line(debline):
     """
     import aptsources.sourceslist
     entry = aptsources.sourceslist.SourceEntry(debline)
-    name = "%s_dists_%s_Release" % (apt_pkg.uri_to_filename(entry.uri),
-                                    entry.dist)
+    name = "%s_dists_%s_Release" % (uri_to_filename(entry.uri), entry.dist)
     return name
     
 # FIXME: why not call it a generic downloader?
@@ -199,10 +202,25 @@ class ImageDownloader(gobject.GObject):
                                      (str,),),
         }
 
-    def download_image(self, url, dest_file_path):
+    def __init__(self):
+        gobject.GObject.__init__(self)
+        self.tmpdir = None
+
+    def download_image(self, url, dest_file_path=None):
         self.LOG.debug("download_image: %s %s" % (url, dest_file_path))
+        if dest_file_path is None:
+            if self.tmpdir is None:
+                self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
+                dest_file_path = os.path.join(self.tmpdir,
+                                              uri_to_filename(url))
         self.url = url
         self.dest_file_path = dest_file_path
+        
+        if os.path.exists(self.dest_file_path):
+            self.emit('image-url-reachable', True)
+            self.emit("image-download-complete", self.dest_file_path)
+            return
+        
         f = gio.File(url)
         # first check if the url is reachable
         f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
