@@ -328,6 +328,10 @@ class ViewSwitcherList(gtk.TreeStore):
         
         # the progress pane is build on demand
 
+        # emit a transactions-changed signal to ensure that we display any
+        # pending transactions
+        self.backend.emit("transactions-changed", self.backend.pending_transactions)
+
     def on_transactions_changed(self, backend, total_transactions):
         LOG.debug("on_transactions_changed '%s'" % total_transactions)
         pending = len(total_transactions)

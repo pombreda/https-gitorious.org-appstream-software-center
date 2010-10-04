@@ -2,7 +2,31 @@ software-center (3.0.5) UNRELEASED; urgency=low
 
   [ Andrea Cimitan ]
   * fix rendering with Ambiance theme (LP: #635208)
- 
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - support launching apturls via alt+F2 in gnome (LP: #653889)
+  * softwarecenter/db/update.py:
+    - use 'X-GNOME-FullName' rather than 'Name', when available (LP: #651260)
+      (test case: software-center cheese empathy evolution gwibber)
+  * softwarecenter/view/appview.py:
+    - unblock pkg if transaction is cancelled (LP: #652903)
+      (test case: launch s-c with a list view, choose a pkg, click install,
+       cancel auth, click install again, install should work as normal)
+  * softwarecenter/view/availablepane.py:
+    - don't show 'hide 1 technical item' in featured category (LP: #651236)
+      (test case: browse to featured category (by clicking 'all'))
+    - don't show 'hide technical items' in system category, as we don't
+      have any apps to show (LP: #636854)
+      (test case: browse to 'System' category)
+  * softwarecenter/view/historypane.py:
+    - correctly split pkgnames for pkg transactions dated before 28-ish July
+      (LP: #651241)
+      (test case: view transaction in history pane dated pre 28 July)
+  * softwarecenter/view/viewswitcher.py:
+    - emit 'transactions-changed' signal after connecting to the backend so
+      that we display any pending transactions (LP: #652927)
+      (see bug report for test case)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
 
