@@ -921,6 +921,30 @@ class AddonsTable(gtk.VBox):
         self.show_all()
         return False
 
+class Reviews(gtk.VBox):
+
+    def __init__(self):
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_XLARGE)
+        label = gtk.Label()
+        label.set_markup("<big><b>%s</b></big>" % _("Reviews:"))
+        label.set_alignment(0, 0.5)
+        self.pack_start(label, False, False)
+    
+    def add_review(self, review):
+        box = gtk.HBox()
+        s = "Rating: %s %s %s <b>%s</b>" % (review.rating, 
+                                    glib.markup_escape_text(review.person), 
+                                    glib.markup_escape_text(review.date),
+                                    glib.markup_escape_text(review.summary))
+        label_summary = gtk.Label()
+        label_summary.set_markup(s)
+        label_summary.set_alignment(0, 0.5)
+        label_summary.show()
+        label_summary.set_tooltip_text(review.text)
+        box.pack_start(label_summary, False, False)
+        box.show()
+        self.pack_start(box)
+
 class AddonsStatusBar(StatusBar):
     
     def __init__(self, addons_manager):
@@ -1006,6 +1030,7 @@ class AddonsManager():
         self.configure(self.view.app.pkgname)
         gobject.idle_add(self.view.update_totalsize)
 
+
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     """ The view that shows the application details """
@@ -1087,10 +1112,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         for review in reviews:
             # use json.dumps() here to let it deal with all the escaping
             # of ", \, \n etc
-            self._add_review(review)
-
-    def _add_review(self, review):
-        print "_add_review", review
+            self.reviews.add_review(review)
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
@@ -1323,6 +1345,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         self.support_info = PackageInfo(_("Updates:"), self.info_keys)
         self.app_info.body.pack_start(self.support_info, False)
+
+        # reviews
+        self.reviews = Reviews()
+        self.app_info.body.pack_start(self.reviews)
 
         self.show_all()
         return
