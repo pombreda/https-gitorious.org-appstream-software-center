@@ -923,27 +923,58 @@ class AddonsTable(gtk.VBox):
 
 class Reviews(gtk.VBox):
 
+    __gsignals__ = {
+        'new-review':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    ()),
+        'report-abuse':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT,)),
+    }
+
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_XLARGE)
+        # stuff
+        box = gtk.HBox(spacing=mkit.SPACING_XLARGE)
         label = gtk.Label()
         label.set_markup("<big><b>%s</b></big>" % _("Reviews:"))
         label.set_alignment(0, 0.5)
-        self.pack_start(label, False, False)
-    
+        box.pack_start(label, False, False)
+        button_new = gtk.Button(_("Write new review"))
+        button_new.connect("clicked", self._on_button_new_clicked)
+        button_new.show()
+        box.pack_start(button_new, False, False)
+        self.pack_start(box, False, False)
+        
+    def _on_button_new_clicked(self, button):
+        self.emit("new-review")
+    def _on_button_report_abuse_clicked(self, button, review_id):
+        self.emit("report-abuse", review_id)
+
     def add_review(self, review):
         box = gtk.HBox()
-        s = "Rating: %s %s %s <b>%s</b>" % (review.rating, 
-                                    glib.markup_escape_text(review.person), 
-                                    glib.markup_escape_text(review.date),
-                                    glib.markup_escape_text(review.summary))
+        # FIXME: make me *nice* :p
+        s = "Rated %s by %s: <b>%s</b> (on %s)" % (
+            review.rating, 
+            glib.markup_escape_text(review.person), 
+            glib.markup_escape_text(review.summary),
+            glib.markup_escape_text(review.date))
+
         label_summary = gtk.Label()
         label_summary.set_markup(s)
         label_summary.set_alignment(0, 0.5)
         label_summary.show()
+        # ugly, ugly, ugly
         label_summary.set_tooltip_text(review.text)
         box.pack_start(label_summary, False, False)
+        # report button
+        button = gtk.Button(_("Report abuse"))
+        button.connect("clicked", self._on_button_report_abuse_clicked, review.id)
+        button.show()
+        box.pack_start(button, False, False)
         box.show()
         self.pack_start(box)
+
 
 class AddonsStatusBar(StatusBar):
     
@@ -1348,10 +1379,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # reviews
         self.reviews = Reviews()
+        self.reviews.connect("new-review", self._on_review_new)
+        self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.app_info.body.pack_start(self.reviews)
 
         self.show_all()
         return
+
+    def _on_review_new(self, button):
+        self._review_write_new()
+
+    def _on_review_report_abuse(self, button, review_id):
+        self._review_report_abuse(str(review_id))
 
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 

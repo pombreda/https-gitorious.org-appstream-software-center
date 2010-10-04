@@ -284,40 +284,10 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
     # callbacks
     def on_write_new_review_clicked(self):
-        if not (self.pkg and self.pkg.candidate):
-            dialogs.error(None, 
-                          _("Version unknown"),
-                          _("The version of the application can not "
-                            "be detected. Entering a review is not "
-                            "possible."))
-            return
-        # call out
-        version = self.pkg.candidate.version
-        if self.pkg.installed:
-            version = self.pkg.installed.version
-        cmd = [SUBMIT_REVIEW_APP, 
-               "--pkgname", self.app.pkgname,
-               "--iconname", self.iconname,
-               "--parent-xid", "%s" % get_parent_xid(self),
-               "--version", version]
-        if self.app.appname:
-            cmd += ["--appname", self.app.appname]
-        p = subprocess.Popen(cmd)
-        glib.child_watch_add(p.pid, self.on_submit_finished)
+        self._review_write_new()
                          
     def on_report_abuse_clicked(self, review_id):
-        cmd = [REPORT_REVIEW_APP, 
-               "--review-id", review_id,
-               "--parent-xid", "%s" % get_parent_xid(self)
-              ]
-        p = subprocess.Popen(cmd)
-        glib.child_watch_add(p.pid, self.on_submit_finished)
-
-    def on_submit_finished(self, pid, status):
-        """ called when submit_review or report_review finished """
-        print pid, os.WEXITSTATUS(status)
-        if os.WEXITSTATUS(status) == 0:
-            self.show_app(self.app)
+        self._review_report_abuse(review_id)
 
     def on_button_buy_app_clicked(self):
         logging.debug("on_button_buy_app_clicked")

@@ -37,7 +37,7 @@ from softwarecenter.db.application import AppDetails
 from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
-from softwarecenter.utils import get_current_arch
+from softwarecenter.utils import get_current_arch, get_parent_xid
 
 from purchasedialog import PurchaseDialog
 
@@ -90,6 +90,47 @@ class AppDetailsViewBase(object):
         self.emit("selected", self.app)
     def refresh_app(self):
         self.show_app(self.app)
+
+    # common code
+    def _review_write_new(self):
+        if (not self.app or
+            not self.app.pkgname in self.cache or
+            not self.cache[self.app.pkgname].candidate):
+            dialogs.error(None, 
+                          _("Version unknown"),
+                          _("The version of the application can not "
+                            "be detected. Entering a review is not "
+                            "possible."))
+            return
+        # call out
+        pkg = self.cache[self.app.pkgname]
+        version = pkg.candidate.version
+        if pkg.installed:
+            version = pkg.installed.version
+        cmd = [SUBMIT_REVIEW_APP, 
+               "--pkgname", self.app.pkgname,
+               "--iconname", self.appdetails.icon,
+               "--parent-xid", "%s" % get_parent_xid(self),
+               "--version", version]
+        if self.app.appname:
+            cmd += ["--appname", self.app.appname]
+        p = subprocess.Popen(cmd)
+        glib.child_watch_add(p.pid, self.on_submit_finished)
+                         
+    def _review_report_abuse(self, review_id):
+        cmd = [REPORT_REVIEW_APP, 
+               "--review-id", review_id,
+               "--parent-xid", "%s" % get_parent_xid(self)
+              ]
+        p = subprocess.Popen(cmd)
+        glib.child_watch_add(p.pid, self.on_submit_finished)
+
+    def on_submit_finished(self, pid, status):
+        """ called when submit_review or report_review finished """
+        print pid, os.WEXITSTATUS(status)
+        if os.WEXITSTATUS(status) == 0:
+            self.refresh_app()
+
     # public interface
     def reload(self):
         """ reload the package cache, this goes straight to the backend """
