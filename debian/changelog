@@ -40,6 +40,11 @@ software-center (3.1.0) UNRELEASED; urgency=low
       items (LP: #648988)
       (test case: software-center search:library)
 
+  [ Mohamed Amine IL Idrissi ]
+  * Screenshots are now stored all in a single software-center
+    directory (LP: #648284)
+  * Thumbnails and screenshots are now reused (LP: #648279, #648278)
+
   [ Gary Lasker ]
   * softwarecenter/view/appview.py:
     - fix intermittent crash in _set_cursor (LP: #617004) 

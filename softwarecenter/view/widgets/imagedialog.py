@@ -38,10 +38,11 @@ class Url404Error(IOError):
 class Url403Error(IOError):
     pass
 
+# FIXME: use the utils.py:ImageDownloader here instead of a thread
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """
 
-    def __init__(self, title, url, missing_img, parent=None):
+    def __init__(self, title, url, missing_img, path=None, parent=None):
         gtk.Dialog.__init__(self)
         self.set_has_separator(False)
         # find parent window for the dialog
@@ -90,6 +91,10 @@ class ShowImageDialog(gtk.Dialog):
         self.connect("response", self._response)
         # install urlopener
         urllib._urlopener = GnomeProxyURLopener()
+        # destination
+        if not path:
+            tmpfile.mkdtemp(prefix="sc-screenshot")
+        self.path = path
         # data
         self.url = url
             
@@ -140,16 +145,21 @@ class ShowImageDialog(gtk.Dialog):
     def _fetch(self):
         "fetcher thread"
         logging.debug("_fetch: %s" % self.url)
-        self.location = tempfile.NamedTemporaryFile()
-        try:
-            (screenshot, info) = urllib.urlretrieve(self.url, 
-                                                    self.location.name, 
-                                                    self._progress)
-            self.image_filename = self.location.name
-        except (Url403Error, Url404Error), e:
-            self.image_filename = self._missing_img
-        except Exception, e:
-            logging.exception("urlopen error")
+        if os.path.exists(self.path):
+            self.image_filename = self.path
+        else:
+            self.location = open(self.path, 'w')
+            try:
+                (screenshot, info) = urllib.urlretrieve(self.url, 
+                                                        self.location.name, 
+                                                        self._progress)
+                self.image_filename = self.location.name
+            except (Url403Error, Url404Error), e:
+                self.image_filename = self._missing_img
+                self.location.close()
+                os.remove(self.location.name)
+            except Exception, e:
+                logging.exception("urlopen error")
         self._finished = True
 
     def _progress(self, count, block, total):
