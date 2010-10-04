@@ -22,6 +22,8 @@ software-center (3.1.0) UNRELEASED; urgency=low
   * merged lp:~mvo/software-center/zeitgeist-magic-seif that brings
     basic zeitgeist integration. Many thanks to Seif Lotfy for the
     work on this!
+  * merged lp:~mmcg069/software-center/usage-bubble, that makes the 
+    usage counter look so much nicer :)
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:
