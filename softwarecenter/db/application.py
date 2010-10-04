@@ -128,6 +128,13 @@ class DebFileApplication(Application):
         return AppDetailsDebFile(db, application=self)
 
 
+class NoneTypeApplication(Application):
+    
+    def __init__(self):
+        Application.__init__(self, pkgname='_NoneTypeApp_')
+        return
+
+
 # the details
 class AppDetails(object):
     """ The details for a Application. This contains all the information
@@ -191,6 +198,9 @@ class AppDetails(object):
                     not section_matches):
                     self._error = _("Not Found")
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+
+    def same_app(self, other):
+        return self.pkgname == other.pkgname
 
     @property
     def architecture(self):

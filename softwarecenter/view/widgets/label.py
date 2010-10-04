@@ -51,7 +51,7 @@ class Layout(pango.Layout):
         #return r.point_in(px, py)
 
     def cursor_up(self, cursor, target_x=-1):
-        layout = self.widget.order[cursor.section]
+        layout = self.widget.order[cursor.paragraph]
         x, y = layout.index_to_pos(cursor.index)[:2]
 
         if target_x >= 0:
@@ -61,7 +61,7 @@ class Layout(pango.Layout):
         return sum(layout.xy_to_index(x, y)), (x, y)
 
     def cursor_down(self, cursor, target_x=-1):
-        layout = self.widget.order[cursor.section]
+        layout = self.widget.order[cursor.paragraph]
         x, y = layout.index_to_pos(cursor.index)[:2]
 
         if target_x >= 0:
@@ -101,12 +101,12 @@ class Layout(pango.Layout):
 
 class Cursor(object):
 
-    WORD_TERMINATORS = (' ', ',', '.', ':', ';', '!', '?', '(', ')', '[', ']', '{', '}')
+    WORD_TERMINATORS = (' ',)
 
     def __init__(self, parent):
         self.parent = parent
         self.index = 0
-        self.section = 0
+        self.paragraph = 0
 
     def is_min(self, cursor):
         return self.get_position() <= cursor.get_position()
@@ -126,7 +126,7 @@ class Cursor(object):
 
     def get_current_line(self):
         keep_going = True
-        i, it = self.index, self.parent.order[self.section].get_iter()
+        i, it = self.index, self.parent.order[self.paragraph].get_iter()
         ln = 0 
         while keep_going:
             l = it.get_line()
@@ -134,34 +134,36 @@ class Cursor(object):
             le = ls + l.length
 
             if i >= ls and i <= le:
-                return (self.section, ln), (ls, le), l
+                if not it.at_last_line():
+                    le -= 1
+                return (self.paragraph, ln), (ls, le), l
             ln += 1
             keep_going = it.next_line()
         return None, None, None
 
     def get_current_word(self):
         keep_going = True
-        layout = self.parent.order[self.section]
+        layout = self.parent.order[self.paragraph]
         text = layout.get_text()
         i, it = self.index, layout.get_iter()
         start = 0
         while keep_going:
             j = it.get_index()
             if j >= i and text[j] in self.WORD_TERMINATORS:
-                return self.section, (start, j)
+                return self.paragraph, (start, j)
 
             elif text[j] in self.WORD_TERMINATORS:
                 start = j+1
 
             keep_going = it.next_char()
-        return None, None
+        return self.paragraph, (start, len(layout))
 
-    def set_position(self, section, index):
+    def set_position(self, paragraph, index):
         self.index = index
-        self.section = section
+        self.paragraph = paragraph
 
     def get_position(self):
-        return self.section, self.index
+        return self.paragraph, self.index
 
 
 class PrimaryCursor(Cursor):
@@ -170,7 +172,7 @@ class PrimaryCursor(Cursor):
         Cursor.__init__(self, parent)
 
     def __repr__(self):
-        return 'Cursor: '+str((self.section, self.index))
+        return 'Cursor: '+str((self.paragraph, self.index))
 
     def get_rectangle(self, layout, a):
         if self.index < len(layout):
@@ -189,7 +191,7 @@ class PrimaryCursor(Cursor):
 
     def zero(self):
         self.index = 0
-        self.section = 0
+        self.paragraph = 0
 
 
 class SelectionCursor(Cursor):
@@ -206,21 +208,21 @@ class SelectionCursor(Cursor):
 
     def __nonzero__(self):
         c = self.cursor
-        return (self.section, self.index) != (c.section, c.index)
+        return (self.paragraph, self.index) != (c.paragraph, c.index)
 
     @property
     def min(self):
         c = self.cursor
-        return min((self.section, self.index), (c.section, c.index))
+        return min((self.paragraph, self.index), (c.paragraph, c.index))
 
     @property
     def max(self):
         c = self.cursor
-        return max((self.section, self.index), (c.section, c.index))
+        return max((self.paragraph, self.index), (c.paragraph, c.index))
 
     def clear(self, key=None):
         self.index = self.cursor.index
-        self.section = self.cursor.section
+        self.paragraph = self.cursor.paragraph
         self.restore_point = None
 
         if key not in (keys.Up, keys.Down):
@@ -234,38 +236,6 @@ class SelectionCursor(Cursor):
 
     def get_range(self):
         return self.min, self.max
-
-    def get_current_line(self):
-        keep_going = True
-        i, it = self.index, self.parent.order[self.section].get_iter()
-        ln = 0 
-        while keep_going:
-            l = it.get_line()
-            ls = l.start_index
-            le = ls + l.length
-
-            if i >= ls and i <= le:
-                return (self.section, ln), (ls, le), l
-            ln += 1
-            keep_going = it.next_line()
-        return None, None, None
-
-    def get_current_word(self):
-        keep_going = True
-        layout = self.parent.order[self.section]
-        text = layout.get_text()
-        i, it = self.index, layout.get_iter()
-        start = 0
-        while keep_going:
-            j = it.get_index()
-            if j >= i and text[j] in self.WORD_TERMINATORS:
-                return self.section, (start, j)
-
-            elif text[j] in self.WORD_TERMINATORS:
-                start = j+1
-
-            keep_going = it.next_char()
-        return None, None
 
 
 class IndentLabel(gtk.EventBox):
@@ -408,7 +378,7 @@ class IndentLabel(gtk.EventBox):
 
     def _on_key_press(self, widget, event, cur, sel):
         kv = event.keyval
-        s, i = cur.section, cur.index
+        s, i = cur.paragraph, cur.index
 
         handled_keys = True
         ctrl = event.state & gtk.gdk.CONTROL_MASK
@@ -441,8 +411,8 @@ class IndentLabel(gtk.EventBox):
             if ctrl:
                 if i == 0:
                     if s > 0:
-                        cur.section -= 1
-                cur.set_position(cur.section, 0)
+                        cur.paragraph -= 1
+                cur.set_position(cur.paragraph, 0)
             elif sel and not shift:
                 cur.set_position(*sel.min)
             else:
@@ -452,9 +422,9 @@ class IndentLabel(gtk.EventBox):
             if ctrl:
                 if i == len(self._get_layout(cur)):
                     if s+1 < len(self.order):
-                        cur.section += 1
+                        cur.paragraph += 1
                 i = len(self._get_layout(cur))
-                cur.set_position(cur.section, i)
+                cur.set_position(cur.paragraph, i)
             elif sel and not shift:
                 cur.set_position(*sel.max)
             else:
@@ -462,15 +432,15 @@ class IndentLabel(gtk.EventBox):
 
         elif kv == keys.Home:
             if shift:
-                self._select_home(cur, sel, self.order[cur.section])
+                self._select_home(cur, sel, self.order[cur.paragraph])
             else:
                 cur.set_position(0, 0)
 
         elif kv == keys.End:
             if shift:
-                self._select_end(cur, sel, self.order[cur.section])
+                self._select_end(cur, sel, self.order[cur.paragraph])
             else:
-                cur.section = len(self.order)-1
+                cur.paragraph = len(self.order)-1
                 cur.index = len(self._get_layout(cur))
 
         else:
@@ -497,7 +467,7 @@ class IndentLabel(gtk.EventBox):
     def _select_up(self, cur, sel):
         if sel and not cur.is_min(sel) and cur.same_line(sel):
             cur.switch(sel)
-        s = cur.section
+        s = cur.paragraph
 
         layout = self._get_layout(cur)
 
@@ -519,7 +489,7 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(s, j)
         else:
             if s > 0:
-                cur.section -= 1
+                cur.paragraph -= 1
             else:
                 cur.set_position(0, 0)
                 return False
@@ -534,7 +504,7 @@ class IndentLabel(gtk.EventBox):
     def _select_down(self, cur, sel):
         if sel and not cur.is_max(sel) and cur.same_line(sel):
             cur.switch(sel)
-        s = cur.section
+        s = cur.paragraph
 
         layout = self._get_layout(cur)
 
@@ -555,7 +525,7 @@ class IndentLabel(gtk.EventBox):
             cur.set_position(s, j)
         else:
             if s+1 < len(self.order):
-                cur.section += 1
+                cur.paragraph += 1
             else:
                 cur.set_position(s, len(layout))
                 return False
@@ -634,7 +604,7 @@ class IndentLabel(gtk.EventBox):
         elif cur_pos[1] == 0:   # para home
             cur.set_position(0,0)
 
-        elif cur_pos == (n[0], r[1]):      # line home
+        elif cur_pos == (n[0], r[0]):      # line home
             cur.set_position(n[0], 0)
 
         else:                   # not at any home, within line somewhere
@@ -649,8 +619,8 @@ class IndentLabel(gtk.EventBox):
             return
         if i > 0:
             cur.set_position(s, i-1)
-        elif cur.section > 0:
-            cur.section -= 1
+        elif cur.paragraph > 0:
+            cur.paragraph -= 1
             cur.set_position(s-1, len(self._get_layout(cur)))
         return
 
@@ -668,12 +638,12 @@ class IndentLabel(gtk.EventBox):
         if i > 0:
             cur.index -= 1
         elif s > 0:
-            cur.section -= 1
+            cur.paragraph -= 1
             cur.index = len(self._get_layout(cur))
 
-        section, word = cur.get_current_word()
+        paragraph, word = cur.get_current_word()
         if not word: return
-        cur.set_position(section, max(0, word[0]-1))
+        cur.set_position(paragraph, max(0, word[0]-1))
         return
 
     def _select_right_word(self, cur, sel, s, i):
@@ -681,31 +651,37 @@ class IndentLabel(gtk.EventBox):
         if i < ll:
             cur.index += 1
         elif s+1 < len(self.order):
-            cur.section += 1
+            cur.paragraph += 1
             cur.index = 0
 
-        section, word = cur.get_current_word()
+        paragraph, word = cur.get_current_word()
         if not word: return
-        cur.set_position(section, min(word[1]+1, ll))
+        cur.set_position(paragraph, min(word[1]+1, ll))
         return
 
     def _select_word(self, cursor, sel):
-        section, word = cursor.get_current_word()
+        paragraph, word = cursor.get_current_word()
         if word:
-            cursor.set_position(section, word[1]+1)
-            sel.set_position(section, word[0])
+            cursor.set_position(paragraph, word[1]+1)
+            sel.set_position(paragraph, word[0])
+            if self.get_direction() == gtk.TEXT_DIR_RTL:
+                cursor.switch(sel)
         return
 
     def _select_line(self, cursor, sel):
         n, r, line = self.cursor.get_current_line()
         sel.set_position(n[0], r[0])
-        cursor.set_position(n[0], r[1]-1)
+        cursor.set_position(n[0], r[1])
+        if self.get_direction() == gtk.TEXT_DIR_RTL:
+            cursor.switch(sel)
         return
 
     def _select_all(self, cursor, sel):
         layout = self.order[-1]
         sel.set_position(0, 0)
         cursor.set_position(layout.index, len(layout))
+        if self.get_direction() == gtk.TEXT_DIR_RTL:
+            cursor.switch(sel)
         return
 
     def _selection_copy(self, layout, sel, new_para=True):
@@ -745,8 +721,13 @@ class IndentLabel(gtk.EventBox):
                 y += (layout.vspacing or self.line_height)
 
             lx,ly,lw,lh = layout.get_pixel_extents()[1]
-            layout.set_allocation(x+lx+layout.indent, y+ly,
-                                  width-layout.indent, lh)
+
+            if self.get_direction() != gtk.TEXT_DIR_RTL:
+                layout.set_allocation(x+lx+layout.indent, y+ly,
+                                      width-layout.indent, lh)
+            else:
+                layout.set_allocation(x+width-lx-lw-layout.indent-1, y+ly,
+                                      width-layout.indent, lh)
 
             y += ly + lh
         return
@@ -793,7 +774,10 @@ class IndentLabel(gtk.EventBox):
                                       self._bg, self._fg)
 
             if layout.is_bullet:
-                self._paint_bullet_point(self.allocation.x, la.y)
+                if self.get_direction() != gtk.TEXT_DIR_RTL:
+                    self._paint_bullet_point(self.allocation.x, la.y)
+                else:
+                    self._paint_bullet_point(self.allocation.x+self.allocation.width-layout.indent, la.y)
 
             # draw the layout
             self.style.paint_layout(self.window,    # gdk window
@@ -824,13 +808,13 @@ class IndentLabel(gtk.EventBox):
                                 self._bullet)   # a pango.Layout()
 
     def _get_layout(self, cursor):
-        return self.order[cursor.section]
+        return self.order[cursor.paragraph]
 
     def _get_cursor_layout(self):
-        return self.order[self.cursor.section]
+        return self.order[self.cursor.paragraph]
 
     def _get_selection_layout(self):
-        return self.order[self.selection.section]
+        return self.order[self.selection.paragraph]
 
     def height_from_width(self, width):
         if not self.order: return
