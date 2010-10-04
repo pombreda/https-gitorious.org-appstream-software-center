@@ -405,7 +405,10 @@ def index_app_info_from_parser(parser, db, cache):
         doc = xapian.Document()
         term_generator.set_document(doc)
         # app name is the data
-        name = parser.get_desktop("Name")
+        if parser.has_option_desktop("X-GNOME-FullName"):
+            name = parser.get_desktop("X-GNOME-FullName")
+        else:
+            name = parser.get_desktop("Name")
         if name in seen:
             LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
         seen.add(name)

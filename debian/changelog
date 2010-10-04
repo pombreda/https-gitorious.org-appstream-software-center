@@ -42,6 +42,92 @@ software-center (3.1.0) UNRELEASED; urgency=low
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Sep 2010 13:29:43 -0400
 
+software-center (3.0.5) UNRELEASED; urgency=low
+
+  [ Andrea Cimitan ]
+  * fix rendering with Ambiance theme (LP: #635208)
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - support launching apturls via alt+F2 in gnome (LP: #653889)
+  * softwarecenter/db/update.py:
+    - use 'X-GNOME-FullName' rather than 'Name', when available (LP: #651260)
+      (test case: software-center cheese empathy evolution gwibber)
+  * softwarecenter/view/appview.py:
+    - unblock pkg if transaction is cancelled (LP: #652903)
+      (test case: launch s-c with a list view, choose a pkg, click install,
+       cancel auth, click install again, install should work as normal)
+  * softwarecenter/view/availablepane.py:
+    - don't show 'hide 1 technical item' in featured category (LP: #651236)
+      (test case: browse to featured category (by clicking 'all'))
+    - don't show 'hide technical items' in system category, as we don't
+      have any apps to show (LP: #636854)
+      (test case: browse to 'System' category)
+  * softwarecenter/view/historypane.py:
+    - correctly split pkgnames for pkg transactions dated before 28-ish July
+      (LP: #651241)
+      (test case: view transaction in history pane dated pre 28 July)
+  * softwarecenter/view/viewswitcher.py:
+    - emit 'transactions-changed' signal after connecting to the backend so
+      that we display any pending transactions (LP: #652927)
+      (see bug report for test case)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
+
+software-center (3.0.4) maverick; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appview.py:
+    - fix intermittent crash in _set_cursor (LP: #617004)
+  
+  [ Michael Vogt ]
+  * Create the log directory not on the import paths.py. Otherwise
+    if the user upgrades using a sudo based tool (like apt-get) he
+    may end up with a root owned log (LP: #652151)
+  * softwarecenter/paths.py
+    - ensure we don't create directories in /home when running as
+      root
+    - When detecting a not writable cache dir, try to remove it
+      so that it gets re-created later with the right permissions.
+      That will undo the damage in bug LP: #652151
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 10:40:08 +0200
+
+software-center (3.0.3) maverick; urgency=low
+
+  * softwarecenter/view/softwarepane.py:
+    - Fix incorrect hide of the technical items search bar 
+      (LP: #646584)
+  * softwarecenter/backend/aptd.py, softwarecenter/utils.py:
+    - Test if we have a Release.gpg file after a new for-pay repository 
+      was added. In the initial update() the backend/libapt does not know
+      yet if a signed repo should be expected. If the Release.gpg file
+      is missing, re-try the operation. This should fix the 
+      "unauthenticated" errors for the ricks-wallpapers purchase
+  * softwarecenter/backend/aptd.py:
+    - fix crash when the aptdaemon dies
+    - improve logging for purchase processing
+  * softwarecenter/log.py:
+    - improve logging format
+    - keep log in ~/.cache/software-center/software-center.log
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 28 Sep 2010 21:36:36 +0200
+
+software-center (3.0.2) maverick; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't eat 'o ' character combinations within bullet points (LP: #646822)
+      (test case: software-center deja-dup)
+    - scale icon down when setting 'where is it' icon from path (LP: #645062)
+      (test case: software-center briquolo (once installed))
+  * softwarecenter/view/softwarepane.py:
+    - don't offer to 'show 9k items' in searches, as we limit searches to 200
+      items (LP: #648988)
+      (test case: software-center search:library)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 27 Sep 2010 22:43:18 +0200
+
 software-center (3.0.1) maverick; urgency=low
 
   [ Michael Vogt ]

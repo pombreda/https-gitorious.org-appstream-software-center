@@ -783,11 +783,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """ callback when the set of software channels has changed """
         self._logger.debug("on_channels_changed %s" % res)
         if res:
-            # reopen the database, this will ensure that the right signals
-            # are send and triggers "refresh_apps", "update_app_view"
-            # and refresh the displayed app in the details as well
-            self.db.reopen()
-            # refresh the menu/status_bar
+            self.db.open()
+            # refresh the available_pane views to reflect any changes
+            self.available_pane.refresh_apps()
+            self.available_pane.update_app_view()
             self.update_app_status_menu()
             self.update_status_bar()
 
@@ -960,7 +959,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             otherwise turn it into a comma seperated search
         """
         # strip away the apt: prefix
-        if packages and packages[0].startswith("apt://"):
+        if packages and packages[0].startswith("apt:///"):
+            # this is for 'apt:pkgname' in alt+F2 in gnome
+            packages[0] = packages[0].partition("apt:///")[2]
+        elif packages and packages[0].startswith("apt://"):
             packages[0] = packages[0].partition("apt://")[2]
         elif packages and packages[0].startswith("apt:"):
             packages[0] = packages[0].partition("apt:")[2]

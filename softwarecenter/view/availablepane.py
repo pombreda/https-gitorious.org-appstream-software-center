@@ -252,10 +252,15 @@ class AvailablePane(SoftwarePane):
         self._logger.debug("availablepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
-        # special case to disable hide nonapps for the "Featured Applications" category
+        # special case to disable show/hide nonapps for the "Featured" category
+        # we do the same for the "System" category (LP: #636854)
         if (self.apps_category and 
-            self.apps_category.untranslated_name) == "Featured":
+           (self.apps_category.untranslated_name == "Featured" or
+            self.apps_category.untranslated_name == "System")):
             self.nonapps_visible = True
+            self.disable_show_hide_nonapps = True
+        else:
+            self.disable_show_hide_nonapps = False
         # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
                              self.db,
