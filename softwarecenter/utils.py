@@ -38,6 +38,7 @@ from enums import USER_AGENT, IMAGE_LOADING_INSTALLED
 ESCAPE_ENTITIES = {"&apos;":"'",
                    '&quot;':'"'}
 
+
 class ExecutionTime(object):
     """
     Helper that can be used in with statements to have a simple
@@ -111,6 +112,24 @@ def htmlize_package_desc(desc):
         yield "</li>"
     if inside_p:
         yield "</p>"
+
+def get_parent_xid(widget):
+    while widget.get_parent():
+        widget = widget.get_parent()
+    return widget.window.xid
+
+def get_language():
+    """Helper that returns the current language
+    """
+    import locale
+    # those languages need the full language-code, the other ones
+    # can be abbreved
+    FULL = ["pt_BR", 
+            "zh_CN", "zh_TW"]
+    (language, encoding) = locale.getlocale()
+    if language in FULL:
+        return language
+    return language.split("_")[0]
 
 def get_http_proxy_string_from_gconf():
     """Helper that gets the http proxy from gconf
@@ -305,6 +324,15 @@ class AlternaSpinner(gtk.VBox):
         pass
     def stop(self):
         pass
+
+def hash_pkgname_for_changelogs(pkgname):
+    """ hash pkgname for changelogs.ubuntu.com 
+        returns  "a" for "abcd"
+                 "liba" for "libabcd"
+    """
+    if pkgname.startswith("lib"):
+        return pkgname[0:4]
+    return pkgname[0:1]
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

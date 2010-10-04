@@ -1781,6 +1781,20 @@ software-center (1.1.18) lucid; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Mar 2010 10:13:26 +0100
 
+software-center (1.1.18~reviews2) lucid; urgency=low
+
+  * updated to track latest changes in rnr-server
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 16 Mar 2010 14:31:45 +0100
+
+software-center (1.1.18~reviews1) lucid; urgency=low
+
+  * data/templates/AppDetailsView.html:
+    - cherry pick progress nice bar improvements from 
+      Michael Forrest (many thanks)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Mar 2010 16:33:32 +0100
+
 software-center (1.1.17) lucid; urgency=low
 
   [ Gary Lasker ]

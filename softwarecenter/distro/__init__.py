@@ -32,6 +32,9 @@ class Distro(object):
     IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
     IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
 
+    # base path for the review summary, the JS will append %i.png (with i={1,5})
+    REVIEW_SUMMARY_STARS_BASE_PATH = "/usr/share/software-center/images/review-summary"
+
     def get_app_name(self):
         """ 
         The name of the application (as displayed in the main window and 

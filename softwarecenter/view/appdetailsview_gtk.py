@@ -1064,8 +1064,33 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         #self.app_info.image.connect_after('expose-event', self._on_icon_expose)
-        
         return
+    
+    def _check_for_reviews(self):
+        print "check for reviews"
+        reviews = self.review_loader.get_reviews(self.app,
+                                                 self._reviews_ready_callback)
+
+
+    def _reviews_ready_callback(self, app, reviews):
+        # avoid possible race if we already moved to a new app when
+        # the reviews become ready 
+        # (we only check for pkgname currently to avoid breaking on
+        #  software-center totem)
+        logging.info("_review_ready_callback: %s" % app)
+        if self.app.pkgname != app.pkgname:
+            return
+        if not reviews:
+            no_review = _("This software item has no reviews yet.")
+            s='document.getElementById("reviews").innerHTML="%s"' % no_review
+            print s
+        for review in reviews:
+            # use json.dumps() here to let it deal with all the escaping
+            # of ", \, \n etc
+            self._add_review(review)
+
+    def _add_review(self, review):
+        print "_add_review", review
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
@@ -1555,7 +1580,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.emit("selected", self.app)
         
         self.get_usage_counter()
-        
+        self._check_for_reviews()
+
         return
 
     # public interface

@@ -19,10 +19,22 @@
 
 import logging
 import gtk
+
+import json
+import logging
+import os
+import re
+import socket
+import string
+import subprocess
+import sys
+import tempfile
+
 import urllib
 import gobject
 
 from softwarecenter.db.application import AppDetails
+from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.utils import get_current_arch
@@ -53,6 +65,8 @@ class AppDetailsViewBase(object):
         self.appdetails = None
         self.addons_to_install = []
         self.addons_to_remove = []
+        # reviews
+        self.review_loader = get_review_loader()
         # aptdaemon
         self.backend = get_install_backend()
         self._logger = logging.getLogger(__name__)
@@ -72,6 +86,7 @@ class AppDetailsViewBase(object):
         #print "AppDetailsViewWebkit:"
         #print self.appdetails
         self._draw()
+        self._check_for_reviews()
         self.emit("selected", self.app)
     def refresh_app(self):
         self.show_app(self.app)
@@ -128,3 +143,5 @@ class AppDetailsViewBase(object):
         # current application
         self._logger.debug("on_cache_ready")
         self.show_app(self.app)
+
+

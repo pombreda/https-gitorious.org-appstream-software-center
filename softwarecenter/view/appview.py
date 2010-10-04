@@ -43,11 +43,15 @@ if os.path.exists("./softwarecenter/enums.py"):
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import StoreDatabase, Application
+from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
 from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha
 from gtk import gdk
+
+
+
 
 from gettext import gettext as _
 
@@ -70,12 +74,13 @@ class AppStore(gtk.GenericTreeModel):
      COL_INSTALLED,
      COL_AVAILABLE,
      COL_PKGNAME,
-     COL_POPCON,
+     COL_RATING,
+     COL_REVIEWS,
      COL_IS_ACTIVE,
      COL_ACTION_IN_PROGRESS,
      COL_EXISTS,
      COL_ACCESSIBLE,
-     COL_REQUEST) = range(13)
+     COL_REQUEST) = range(14)
 
     column_type = (str,
                    str,
@@ -84,6 +89,7 @@ class AppStore(gtk.GenericTreeModel):
                    bool,
                    bool,
                    str,
+                   float,
                    int,
                    bool,
                    int,
@@ -156,6 +162,8 @@ class AppStore(gtk.GenericTreeModel):
         self.nonapps_visible = nonapps_visible
         self.nonapp_pkgs = 0
         self._explicit_nonapp_visibility = False
+        # reviews
+        self.review_loader = get_review_loader()
         # backend stuff
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
@@ -522,7 +530,7 @@ class AppStore(gtk.GenericTreeModel):
                 return False
             elif column == self.COL_PKGNAME:
                 return app.pkgname
-            elif column == self.COL_POPCON:
+            elif column == self.COL_RATING:
                 return 0
             elif column == self.COL_IS_ACTIVE:
                 if app.request:
@@ -594,8 +602,16 @@ class AppStore(gtk.GenericTreeModel):
         elif column == self.COL_PKGNAME:
             pkgname = app.pkgname
             return pkgname
-        elif column == self.COL_POPCON:
-            return self._calc_normalized_rating(self.apps[rowref].popcon)
+        elif column == self.COL_RATING:
+            stats = self.review_loader.get_review_stats(self.apps[rowref])
+            if stats:
+                return stats.avg_rating
+            return 0
+        elif column == self.COL_REVIEWS:
+            stats = self.review_loader.get_review_stats(self.apps[rowref])
+            if stats:
+                return stats.nr_reviews
+            return 0
         elif column == self.COL_IS_ACTIVE:
             return (rowref == self.active_app)
         elif column == self.COL_ACTION_IN_PROGRESS:
@@ -849,7 +865,10 @@ class CellRendererAppView2(gtk.CellRendererText):
                     "Application icon pixbuf image", gobject.PARAM_READWRITE),
 
         # numbers mean: min: 0, max: 5, default: 0
-        'rating': (gobject.TYPE_INT, 'Rating', 'Popcon rating', 0, 5, 0,
+        'rating': (gobject.TYPE_FLOAT, 'Rating', 'Avg rating', 0.0, 5.0, 0.0,
+            gobject.PARAM_READWRITE),
+
+        'reviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
             gobject.PARAM_READWRITE),
 
         'isactive': (bool, 'IsActive', 'Is active?', False,
@@ -1227,7 +1246,8 @@ class AppView(gtk.TreeView):
                                     overlay=AppStore.COL_INSTALLED,
                                     text=AppStore.COL_ACCESSIBLE,
                                     markup=AppStore.COL_MARKUP,
-                                    rating=AppStore.COL_POPCON,
+                                    rating=AppStore.COL_RATING,
+                                    reviews=AppStore.COL_REVIEWS,
                                     isactive=AppStore.COL_IS_ACTIVE,
                                     installed=AppStore.COL_INSTALLED, 
                                     available=AppStore.COL_AVAILABLE,
@@ -1392,8 +1412,7 @@ class AppView(gtk.TreeView):
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
         request = model[row][AppStore.COL_REQUEST]
-        popcon = model[row][AppStore.COL_POPCON]
-        self.emit("application-selected", Application(name, pkgname, request, popcon))
+        self.emit("application-selected", Application(name, pkgname, request))
         return False
 
     def _on_row_activated(self, view, path, column, tr):
@@ -1409,9 +1428,7 @@ class AppView(gtk.TreeView):
             name = model[path][AppStore.COL_APP_NAME]
             pkgname = model[path][AppStore.COL_PKGNAME]
             request = model[path][AppStore.COL_REQUEST]
-            popcon = model[path][AppStore.COL_POPCON]
-            self.emit("application-activated", 
-                      Application(name, pkgname, request, popcon))
+            self.emit("application-activated", Application(name, pkgname, request))
 
     def _on_button_press_event(self, view, event, tr):
         if event.button != 1:
@@ -1519,7 +1536,6 @@ class AppView(gtk.TreeView):
         pkgname = model[path][AppStore.COL_PKGNAME]
         request = model[path][AppStore.COL_REQUEST]
         installed = model[path][AppStore.COL_INSTALLED]
-        popcon = model[path][AppStore.COL_POPCON]
 
         s = gtk.settings_get_default()
         gobject.timeout_add(s.get_property("gtk-timeout-initial"),
@@ -1529,15 +1545,14 @@ class AppView(gtk.TreeView):
                             appname,
                             pkgname,
                             request,
-                            popcon,
                             installed,
                             model,
                             path)
         return
 
-    def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, popcon, installed, store, path):
+    def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, installed, store, path):
         if btn_id == 'info':
-            self.emit("application-activated", Application(appname, pkgname, request, popcon))
+            self.emit("application-activated", Application(appname, pkgname, request))
         elif btn_id == 'action0':
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
@@ -1550,7 +1565,7 @@ class AppView(gtk.TreeView):
                 perform_action = APP_ACTION_REMOVE
             else:
                 perform_action = APP_ACTION_INSTALL
-            self.emit("application-request-action", Application(appname, pkgname, request, popcon), [], [], perform_action)
+            self.emit("application-request-action", Application(appname, pkgname, request), [], [], perform_action)
         return False
 
     def _set_cursor(self, btn, cursor):
@@ -1707,11 +1722,11 @@ if __name__ == "__main__":
     filter = AppViewFilter(db, cache)
     filter.set_supported_only(False)
     filter.set_installed_only(False)
-    store = AppStore(cache, db, icons, sort=True, filter=filter)
+    store = AppStore(cache, db, icons, filter=filter)
 
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppView(store)
+    view = AppView(store=store, show_ratings=True)
 
     entry = gtk.Entry()
     entry.connect("changed", on_entry_changed, (cache, db, view))

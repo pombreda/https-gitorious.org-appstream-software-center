@@ -39,6 +39,12 @@ class Ubuntu(Distro):
     # purchase subscription
     PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s"
 
+    # reviews
+    REVIEWS_SERVER = "http://127.0.0.1:8000"
+    #REVIEWS_SERVER = "http://ec2-75-101-220-128.compute-1.amazonaws.com"
+    REVIEWS_URL = REVIEWS_SERVER+"/reviews/en/ubuntu/lucid/+binary/%s"
+    REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/en/ubuntu/lucid/+review-stats"
+
     def get_app_name(self):
         return _("Ubuntu Software Center")
 
