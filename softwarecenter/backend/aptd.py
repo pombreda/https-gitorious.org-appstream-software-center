@@ -276,7 +276,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     @inline_callbacks
     def add_vendor_key_from_keyserver(self, keyid, 
-                                      keyserver="keyserver.ubuntu.com",
+                                      keyserver="hkp://keyserver.ubuntu.com:80/",
                                       metadata=None):
         # strip the keysize
         if "/" in keyid:
