@@ -102,6 +102,7 @@ class StoreDatabase(gobject.GObject):
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.xapian_parser.add_boolean_prefix("mime", "AM")
         self.xapian_parser.add_prefix("pkg_wildcard", "XP")
         self.xapian_parser.add_prefix("pkg_wildcard", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
@@ -169,12 +170,17 @@ class StoreDatabase(gobject.GObject):
         if len(search_term) < 2:
             return _add_category_to_query(xapian.Query(""))
 
-        # filter query by greylist (to avoid overly generic search terms)
-        orig_search_term = search_term
-        for item in self.SEARCH_GREYLIST_STR.split(";"):
-            (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
-            if n: 
-                self._logger.debug("greylist changed search term: '%s'" % search_term)
+        # check if there is a ":" in the search, if so, it means the user
+        # is using a xapian prefix like "pkg:" or "mime:" and in this case
+        # we do not want to alter the search term (as application is in the
+        # greylist but a common mime-type prefix)
+        if not ":" in search_term:
+            # filter query by greylist (to avoid overly generic search terms)
+            orig_search_term = search_term
+            for item in self.SEARCH_GREYLIST_STR.split(";"):
+                (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
+                if n: 
+                    self._logger.debug("greylist changed search term: '%s'" % search_term)
         # restore query if it was just greylist words
         if search_term == '':
             self._logger.debug("grey-list replaced all terms, restoring")
