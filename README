@@ -46,6 +46,7 @@ AP - package name (abiword)
 AS - archive pocket (main)
 AE - archive section (mail, base, ...)
 AC - category (AudioVideo)
+AM - MimeType (application/x-ogg) 
 AT - type (Application)
 AH - channel 
 

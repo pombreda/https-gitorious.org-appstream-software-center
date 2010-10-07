@@ -28,7 +28,9 @@ software-center (3.1.0) UNRELEASED; urgency=low
     many thanks
   * merged lp:~mmcg069/software-center/selectable-AppDescription,
     many thanks
-
+  * softwarecenter/db/update.py:
+    - add mimetypes to the xapian database
+  
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't eat 'o ' character combinations within bullet points (LP: #646822)
