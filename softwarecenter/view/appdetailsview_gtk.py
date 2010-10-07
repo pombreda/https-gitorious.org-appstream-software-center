@@ -37,7 +37,7 @@ import cairo
 from gettext import gettext as _
 import apt_pkg
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.application import AppDetails, Application, NoneTypeApplication
+from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -1044,8 +1044,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # app specific data
         self._same_app = False
-        self.app = NoneTypeApplication()
-        self.app_details = self.app.get_details(self.db)
+        self.app = None
+        self.app_details = None
 
         # addons manager
         self.addons_manager = AddonsManager(self)
@@ -1540,7 +1540,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         old_details = self.app_details
         self.app = app
         self.app_details = app.get_details(self.db)
-        self._same_app = self.app_details.same_app(old_details)
+        self._same_app = old_details and self.app_details.same_app(old_details)
 
         # for compat with the base class
         self.appdetails = self.app_details
