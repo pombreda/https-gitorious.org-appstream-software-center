@@ -194,8 +194,9 @@ class BaseApp(SimpleGtkbuilderApp):
     def __init__(self, datadir):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/reviews.ui", "software-center")
         self.token = None
+        self.display_name = None
 
-    def login_successful(self, sso, oauth_result):
+    def login_successful(self, display_name):
         """ callback when the login was successful """
         pass
 
@@ -204,8 +205,9 @@ class BaseApp(SimpleGtkbuilderApp):
         self.token = oauth_result
         # now get the user name
         token = OAuthToken(self.token["token"], self.token["token_secret"])
-        consumer = OAuthConsumer(self.token["consumer_key"], "")
-        authorizer = OAuthAuthorizer(consumer.key, access_token=token)
+        authorizer = OAuthAuthorizer(self.token["consumer_key"],
+                                     self.token["consumer_secret"],
+                                     access_token=token)
         self.restful_worker_thread = RestfulClientWorker(authorizer, UBUNTU_SSO_SERVICE)
         self.restful_worker_thread.start()
         # now get "me"
@@ -215,11 +217,11 @@ class BaseApp(SimpleGtkbuilderApp):
 
 
     def _thread_whoami_done(self, result):
-        print "result: ", result
+        self.display_name = result["displayname"]
+        self.login_successful(self.display_name)
 
     def _thread_whoami_error(self, e):
         print "error: ", e
-
 
     def login(self):
         self.sso = LoginBackendDbusSSO(self.dialog_main.window.xid)
@@ -354,9 +356,8 @@ class SubmitReviewsApp(BaseApp):
         # now run the loop
         res = self.run_loop()
 
-    def login_successful(self, sso, oauth_result):
-        BaseApp.login_successful(self, sso, oauth_result)
-        self.label_reviewer.set_text(worker_thread.display_name)
+    def login_successful(self, display_name):
+        self.label_reviewer.set_text(display_name)
         self.enter_review()
 
 class ReportReviewApp(BaseApp):
@@ -440,9 +441,8 @@ class ReportReviewApp(BaseApp):
         # start the async loop
         self.run_loop()
 
-    def login_successful(self, sso, oauth_result):
-        BaseApp.login_successful(self, sso, oauth_result)
-        self.label_reporter.set_text(worker_thread.display_name)
+    def login_successful(self, display_name):
+        self.label_reporter.set_text(display_name)
         self.report_abuse()
 
     
