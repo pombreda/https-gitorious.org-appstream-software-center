@@ -55,9 +55,9 @@ class SoftwareCenterZeitgeist():
             mimetypes = [(v, k) for k, v in mimetypes.iteritems()]
             mimetypes.sort(reverse = True)
             callback(mimetypes)
-                
+        # FIXME: investigate how result_type 0 or 2 would affect the results
         self.zg_client.find_events_for_template(
-            [], _callback, num_events=1000, result_type=0)
+            [], _callback, num_events=1000, result_type=2)
 
 class SoftwareCenterZeitgeistDummy():
     def get_usage_counter(self, application, callback):
@@ -76,7 +76,9 @@ if __name__ == "__main__":
     zeitgeist_singleton.get_usage_counter("gedit.desktop", _callback)
     
     def _callback2(mimetypes):
-        print "test _callback: ", mimetypes
+        print "test _callback: "
+        for tuple in mimetypes:
+        	print tuple
     zeitgeist_singleton.get_popular_mimetypes(_callback2)
 
     import gtk
