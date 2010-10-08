@@ -26,7 +26,10 @@ from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.utils import *
+from softwarecenter.enums import *
 from softwarecenter.distro import get_distro
+
+from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 
 from catview import *
 
@@ -244,6 +247,8 @@ class LobbyViewGtk(CategoriesViewGtk):
                  apps_filter,
                  apps_limit=0)
 
+        self.enquire = xapian.Enquire(self.db.xapiandb)
+
         # sections
         self.featured_carousel = None
         self.newapps_carousel = None
@@ -318,9 +323,60 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _build_homepage_view(self):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
+        self._append_recommendations()
         self._append_departments()
         self._append_featured_and_new()
         return
+
+    def _append_recommendations(self):
+        def _set_recommendations(mimetypes):
+            def _find_applications(mimetypes):
+                apps = {}
+                for mimetype in mimetypes:
+                    mimetype = mimetype[1]
+                    query = xapian.Query("AM%s"%mimetype)
+                    self.enquire.set_query(query)
+                    matches = self.enquire.get_mset(0, 100)
+                    pkgs = set()
+                    for match in matches:
+                        doc = match.get_document()
+                        app = doc.get_value(XAPIAN_VALUE_PKGNAME)
+                        if not apps.has_key(app):
+                            apps[app] = 0
+                        apps[app] += 1
+                app_tuples = []
+                for k, v in apps.iteritems():
+                    if v > 1:
+                        app_tuples.append((v, k))
+                app_tuples.sort(reverse=True)
+                results = []
+                for app in app_tuples:
+                    app = Application(pkgname = app[1])
+                    if app.get_details(self.db).pkg_state == PKG_STATE_UNINSTALLED:
+                        results.append(app)
+                return results
+                                    
+            r_apps =_find_applications(mimetypes) #Recommended Applications
+            if len(r_apps) > 0:
+                for app in r_apps:
+                    print "*** Recommended app ", app.name
+                self.hbox = gtk.HBox()
+                if len(r_apps) == 1:
+                    self.hbox.pack_start(gtk.Label("Welcome back! There is "), False, False)
+                    linkbutton = gtk.Label()
+                    linkbutton.set_markup("<span><b>%i new recommendation</b></span>"%len(r_apps))
+                else:
+                    self.hbox.pack_start(gtk.Label("Welcome back! There are "), False, False)
+                    linkbutton = gtk.Label()
+                    linkbutton.set_markup("<span><b>%i new recommendations</b></span>"%len(r_apps))
+                self.hbox.pack_start(linkbutton, False, False)
+                self.hbox.pack_start(gtk.Label(" for you."), False, False)
+                self.vbox.pack_start(self.hbox, False, False)
+                self.vbox.reorder_child(self.hbox, 0)
+                self.show_all()
+        
+        zeitgeist_singleton.get_popular_mimetypes(_set_recommendations) 
+       
 
     def _append_featured_and_new(self):
         # carousel hbox
@@ -390,8 +446,6 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
-
-#        enquirer = xapian.Enquire(self.db.xapiandb)
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)

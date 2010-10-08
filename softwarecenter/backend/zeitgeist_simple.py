@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import logging
+import time
 LOG = logging.getLogger("sofwarecenter.zeitgeist")
 
 try:
@@ -39,12 +40,13 @@ class SoftwareCenterZeitgeist():
         application = "application://"+application.split("/")[-1]
         def _callback(event_ids):
             callback(len(event_ids))
+        end = time.time()*1000
         e1 = Event.new_for_values(actor=application, interpretation=Interpretation.MODIFY_EVENT.uri)
         e2 = Event.new_for_values(actor=application, interpretation=Interpretation.CREATE_EVENT.uri)
-        self.zg_client.find_event_ids_for_templates(
-            [e1, e2], _callback, num_events=0)
+        start = end - 30*86400000
+        self.zg_client.find_event_ids_for_templates([e1, e2], _callback, [start, end], num_events=0)
        
-    def get_popular_mimetypes(self, callback):
+    def get_popular_mimetypes(self, callback, num = 3):
         def _callback(events):
             mimetypes = {}
             for event in events:
@@ -52,9 +54,14 @@ class SoftwareCenterZeitgeist():
                 if not mimetypes.has_key(mimetype):
                     mimetypes[mimetype] = 0
                 mimetypes[mimetype] += 1
-            mimetypes = [(v, k) for k, v in mimetypes.iteritems()]
-            mimetypes.sort(reverse = True)
-            callback(mimetypes)
+            results = []
+            if len(mimetypes) == 0:
+                callback([])
+            for k, v in mimetypes.iteritems():
+                    results.append([v, k])
+            results.sort(reverse = True)
+            print results[:num]
+            callback(results[:num])
         # FIXME: investigate how result_type 0 or 2 would affect the results
         self.zg_client.find_events_for_template(
             [], _callback, num_events=1000, result_type=2)
@@ -62,6 +69,8 @@ class SoftwareCenterZeitgeist():
 class SoftwareCenterZeitgeistDummy():
     def get_usage_counter(self, application, callback):
         callback(0)
+    def get_popular_mimetypes(self, callback):
+        callback([])
 
 # singleton
 if ZEITGEIST_AVAILABLE:
