@@ -224,9 +224,13 @@ class BaseApp(SimpleGtkbuilderApp):
         print "error: ", e
 
     def login(self):
-        self.sso = LoginBackendDbusSSO(self.dialog_main.window.xid)
+        appname = _("Ubuntu Software Center")
+        login_text = _("To review software or to report abuse you need to "
+                       "sign in to a Ubuntu Single Sign-On account.")
+        self.sso = LoginBackendDbusSSO(self.dialog_main.window.xid, appname,
+                                       login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
-        self.sso.login()
+        self.sso.login_or_register()
 
     def run_loop(self):
         # do the io stuff async
