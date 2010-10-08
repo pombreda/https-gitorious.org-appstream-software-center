@@ -22,7 +22,7 @@ LOG = logging.getLogger("sofwarecenter.zeitgeist")
 
 try:
     from zeitgeist.client import ZeitgeistClient
-    from zeitgeist.datamodel import Event
+    from zeitgeist.datamodel import Event, Interpretation
 except ImportError:
     LOG.exception("zeitgeist import failed")
     ZEITGEIST_AVAILABLE = False
@@ -39,10 +39,25 @@ class SoftwareCenterZeitgeist():
         application = "application://"+application.split("/")[-1]
         def _callback(event_ids):
             callback(len(event_ids))
-        e = Event()
-        e.actor = application
+        e1 = Event.new_for_values(actor=application, interpretation=Interpretation.MODIFY_EVENT.uri)
+        e2 = Event.new_for_values(actor=application, interpretation=Interpretation.CREATE_EVENT.uri)
         self.zg_client.find_event_ids_for_templates(
-            [e], _callback, num_events=0)
+            [e1, e2], _callback, num_events=0)
+       
+    def get_popular_mimetypes(self, callback):
+        def _callback(events):
+            mimetypes = {}
+            for event in events:
+                mimetype = event.subjects[0].mimetype
+                if not mimetypes.has_key(mimetype):
+                    mimetypes[mimetype] = 0
+                mimetypes[mimetype] += 1
+            mimetypes = [(v, k) for k, v in mimetypes.iteritems()]
+            mimetypes.sort(reverse = True)
+            callback(mimetypes)
+                
+        self.zg_client.find_events_for_template(
+            [], _callback, num_events=1000, result_type=0)
 
 class SoftwareCenterZeitgeistDummy():
     def get_usage_counter(self, application, callback):
@@ -52,13 +67,17 @@ class SoftwareCenterZeitgeistDummy():
 if ZEITGEIST_AVAILABLE:
     zeitgeist_singleton = SoftwareCenterZeitgeist()
 else:
-     zeitgeist_singleton = SoftwareCenterZeitgeistDummy()
+    zeitgeist_singleton = SoftwareCenterZeitgeistDummy()
 
 if __name__ == "__main__":
 
     def _callback(events):
         print "test _callback: ", events
     zeitgeist_singleton.get_usage_counter("gedit.desktop", _callback)
+    
+    def _callback2(mimetypes):
+        print "test _callback: ", mimetypes
+    zeitgeist_singleton.get_popular_mimetypes(_callback2)
 
     import gtk
     gtk.main()
