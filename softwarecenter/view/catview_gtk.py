@@ -338,16 +338,20 @@ class LobbyViewGtk(CategoriesViewGtk):
                     self.enquire.set_query(query)
                     matches = self.enquire.get_mset(0, 100)
                     pkgs = set()
+                    i = 0
                     for match in matches:
                         doc = match.get_document()
                         app = doc.get_value(XAPIAN_VALUE_PKGNAME)
-                        if not apps.has_key(app):
-                            apps[app] = 0
-                        apps[app] += 1
-                app_tuples = []
-                for k, v in apps.iteritems():
-                    if v > 1:
-                        app_tuples.append((v, k))
+                        temp = Application(pkgname = app)
+                        if temp.get_details(self.db).pkg_state == PKG_STATE_UNINSTALLED:
+	                        if not apps.has_key(app):
+	                            apps[app] = 0
+                                i += 1
+	                        apps[app] += 1
+                        if i > 3:
+                            break
+                        
+                app_tuples = [(v,k) for k, v in apps.iteritems()]
                 app_tuples.sort(reverse=True)
                 results = []
                 for app in app_tuples:
