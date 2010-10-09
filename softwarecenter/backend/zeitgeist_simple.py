@@ -60,7 +60,12 @@ class SoftwareCenterZeitgeist():
             for k, v in mimetypes.iteritems():
                     results.append([v, k])
             results.sort(reverse = True)
-            print results[:num]
+            print "###########"
+            print "MOST USED"
+            print "----------"
+            for i in results[:num]:
+                print i
+            print "###########"
             callback(results[:num])
         # FIXME: investigate how result_type 0 or 2 would affect the results
         self.zg_client.find_events_for_template(

@@ -323,12 +323,39 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _build_homepage_view(self):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        self._append_recommendations()
         self._append_departments()
         self._append_featured_and_new()
+        self._append_recommendations()
         return
 
     def _append_recommendations(self):
+        
+        def _init_widget(query, r_apps): 
+            self.hbox = gtk.HBox()
+            if len(r_apps) == 1:
+                self.hbox.pack_start(gtk.Label("Welcome back! There is"), False, False)
+                linkbutton = mkit.HLinkButton("%i new recommendation"%len(r_apps))
+            else:
+                self.hbox.pack_start(gtk.Label("Welcome back! There are"), False, False)
+                linkbutton = mkit.HLinkButton("%i new recommendations"%len(r_apps))
+            
+            linkbutton.set_underline(True)
+            linkbutton.set_subdued(True)
+            self.hbox.pack_start(linkbutton, False, False)
+            self.hbox.pack_start(gtk.Label("for you."), False, False)
+            self.vbox.pack_start(self.hbox, False, False)
+            self.vbox.reorder_child(self.hbox, 0)
+            
+            name = gobject.markup_escape_text(_("Recommendations"))
+            rec_btn = CategoryButton(name, "category-recommendations", self.icons)
+            rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query)
+            rec_btn.connect('clicked', self._on_category_clicked, rec_cat)
+            self.departments.append(rec_btn)
+            
+            linkbutton.connect('clicked', self._on_category_clicked, rec_cat)
+
+            self.show_all() 
+              
         def _set_recommendations(mimetypes):
             def _find_applications(mimetypes):
                 apps = {}
@@ -348,39 +375,31 @@ class LobbyViewGtk(CategoriesViewGtk):
 	                            apps[app] = 0
                                 i += 1
 	                        apps[app] += 1
-                        if i > 3:
+                        if i == 3:
                             break
                         
                 app_tuples = [(v,k) for k, v in apps.iteritems()]
                 app_tuples.sort(reverse=True)
                 results = []
                 for app in app_tuples:
-                    app = Application(pkgname = app[1])
-                    if app.get_details(self.db).pkg_state == PKG_STATE_UNINSTALLED:
-                        results.append(app)
+                    temp_app = Application(pkgname = app[1])
+                    if temp_app.get_details(self.db).pkg_state == PKG_STATE_UNINSTALLED:
+                        results.append("AP"+app[1])
                 return results
-                                    
+
+            def _make_query(r_apps):
+                if len(r_apps) > 0:
+                    return xapian.Query(xapian.Query.OP_OR, r_apps)
+                return None
+                    
             r_apps =_find_applications(mimetypes) #Recommended Applications
-            if len(r_apps) > 0:
-                for app in r_apps:
-                    print "*** Recommended app ", app.name
-                self.hbox = gtk.HBox()
-                if len(r_apps) == 1:
-                    self.hbox.pack_start(gtk.Label("Welcome back! There is "), False, False)
-                    linkbutton = gtk.Label()
-                    linkbutton.set_markup("<span><b>%i new recommendation</b></span>"%len(r_apps))
-                else:
-                    self.hbox.pack_start(gtk.Label("Welcome back! There are "), False, False)
-                    linkbutton = gtk.Label()
-                    linkbutton.set_markup("<span><b>%i new recommendations</b></span>"%len(r_apps))
-                self.hbox.pack_start(linkbutton, False, False)
-                self.hbox.pack_start(gtk.Label(" for you."), False, False)
-                self.vbox.pack_start(self.hbox, False, False)
-                self.vbox.reorder_child(self.hbox, 0)
-                self.show_all()
+            
+            _init_widget(_make_query(r_apps), r_apps)
+            
+            
         
-        zeitgeist_singleton.get_popular_mimetypes(_set_recommendations) 
-       
+        zeitgeist_singleton.get_popular_mimetypes(_set_recommendations)
+        
 
     def _append_featured_and_new(self):
         # carousel hbox
