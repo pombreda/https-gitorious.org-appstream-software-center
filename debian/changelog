@@ -39,15 +39,8 @@ software-center (3.1.0) UNRELEASED; urgency=low
     software from the software center (LP: #656800)
 
   [ Kiwinote ]
-  * softwarecenter/view/appdetailsview_gtk.py:
-    - don't eat 'o ' character combinations within bullet points (LP: #646822)
-      (test case: software-center deja-dup)
-    - scale icon down when setting 'where is it' icon from path (LP: #645062)
-      (test case: software-center briquolo (once installed))
-  * softwarecenter/view/softwarepane.py:
-    - don't offer to 'show 9k items' in searches, as we limit searches to 200
-      items (LP: #648988)
-      (test case: software-center search:library)
+  * softwarecenter/db/update.py:
+    - never translate X-AppInstall-Package (fixes eg lp: #658326)
 
   [ Mohamed Amine IL Idrissi ]
   * Screenshots are now stored all in a single software-center
