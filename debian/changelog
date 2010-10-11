@@ -27,6 +27,13 @@ software-center (3.0.5) UNRELEASED; urgency=low
     - emit 'transactions-changed' signal after connecting to the backend so
       that we display any pending transactions (LP: #652927)
       (see bug report for test case)
+  
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - use keyserver.ubuntu.com on port 80 by default to avoid problems
+      on machines that filter the port 11371
+  * softwarecenter/backend/restfulclient.py, softwarecenter/enums.py:
+    - use plain http for the "what-is-available" API call
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
 
