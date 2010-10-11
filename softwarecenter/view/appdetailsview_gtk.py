@@ -1851,8 +1851,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("zeitgeist usage: %s" % counter)
             if counter == 0:
                 # this probably means we just have no idea about it,
-                # so instead of saying "Used: never" we jusr return 
+                # so instead of saying "Used: never" we just return 
                 # this can go away when zeitgeist captures more events
+                # --there are still cases when we really do want to hide this
                 self.usage.hide()
                 return
             label_string = gettext.ngettext("Used: one time",

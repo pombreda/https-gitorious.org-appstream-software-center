@@ -36,6 +36,9 @@ class SoftwareCenterZeitgeist():
         self.zg_client = ZeitgeistClient()
         
     def get_usage_counter(self, application, callback):
+        if application == None:
+            callback(0)
+            return
         application = "application://"+application.split("/")[-1]
         def _callback(event_ids):
             callback(len(event_ids))
