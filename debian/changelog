@@ -33,7 +33,11 @@ software-center (3.1.0) UNRELEASED; urgency=low
   * softwarecenter/db/database.py:
     - support mime search via "mime" search prefix, e.g. 
       "mime:audio/ogg" or "softwarecenter search:mime:application/x-cue"
-  
+
+  [ Delan Azabani ]
+  * removed "free" from desktop file description as users can buy
+    software from the software center (LP: #656800)
+
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't eat 'o ' character combinations within bullet points (LP: #646822)
