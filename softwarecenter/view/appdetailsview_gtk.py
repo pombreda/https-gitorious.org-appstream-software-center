@@ -77,6 +77,32 @@ COLOR_BLACK         = '#323232'
 LOG = logging.getLogger("softwarecenter.view.appdetailsview")
 
 
+class Subsection(gtk.VBox):
+
+    def __init__(self):
+        gtk.VBox.__init__(self, False, spacing=mkit.SPACING_LARGE)
+        self.set_border_width(6)
+        self.header = gtk.VBox(spacing=mkit.SPACING_MED)
+        self.body = gtk.VBox(spacing=mkit.SPACING_MED)
+        self.pack_start(self.header, False)
+        self.pack_start(self.body, False)
+        return
+
+    def draw(self, cr, a):
+        if a.width <= 1: return
+        cr.save()
+        rr= mkit.ShapeRoundedRectangle()
+        rr.layout(cr, a.x,a.y, a.x+a.width, a.y+a.height, radius=4)
+        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.mid[0], 0.2))
+        cr.fill()
+        cr.set_line_width(1)
+        rr.layout(cr, a.x+0.5,a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=4)
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.dark[0]))
+        cr.stroke()
+        cr.restore()
+        return
+
+
 class StatusBar(gtk.Alignment):
     
     def __init__(self, view):
@@ -508,8 +534,9 @@ class PackageInfo(gtk.HBox):
         return
 
     def set_value(self, value):
-        self.value_label.set_text(value)
-        self.a11y.set_name(self.key + ' ' + value)
+        self.value_label.set_markup(value)
+        self.a11y.set_name(self.key + ' ' + self.value_label.get_text())
+
 
 class ScreenshotView(gtk.Alignment):
 
@@ -871,38 +898,34 @@ class Addon(gtk.HBox):
     def set_active(self, is_active):
         self.checkbutton.set_active(is_active)    
 
-class AddonsTable(gtk.VBox):
+
+class AddonsTable(gtk.Expander):
     """ Widget to display a table of addons. """
     
     def __init__(self, addons_manager):
-        gtk.VBox.__init__(self, False, mkit.SPACING_MED)
-        self.header = gtk.VBox()
-        self.body = gtk.VBox()
-        self.pack_start(self.header, False)
-        self.pack_start(self.body, False)
-
+        gtk.Expander.__init__(self)
         self.addons_manager = addons_manager
         self.cache = self.addons_manager.view.cache
         self.db = self.addons_manager.view.db
         self.icons = self.addons_manager.view.icons
         self.recommended_addons = None
         self.suggested_addons = None
-        self.connect("realize", self._on_realize)
 
-        self.label = gtk.Label()
-        self.label.set_use_markup(True)
-        self.label.set_alignment(0, 0.5)
-        self.header.pack_start(self.label, False, False)
+        label = gtk.Label()
+        label.set_use_markup(True)
+        label.set_alignment(0, 0.5)
+        markup = _('<b><big>Add-ons</big></b>')
+        label.set_markup(markup)
+        #self.header.pack_start(label, False, False)
 
-        self.status_bar = AddonsStatusBar(addons_manager)
-        self.header.pack_start(self.status_bar, False)
+        self.set_label_widget(label)
+
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.vbox.set_border_width(6)
+        self.add(self.vbox)
+        #reviews_expander.connect('notify::expanded', _construct_on_expand)
         return
 
-    def _on_realize(self, widget):
-        markup = _('<b><span color="%s"><big>Add-ons</big></span></b>')
-        color = self.label.style.dark[self.label.state].to_string()
-        self.label.set_markup(markup % color)
-    
     def set_addons(self, addons):
         # FIXME: sort the addons in alphabetical order
         self.recommended_addons = addons[0]
@@ -912,8 +935,8 @@ class AddonsTable(gtk.VBox):
             return
 
         # clear any existing addons
-        for widget in self.body:
-            self.remove(widget)
+        for addon in self.vbox:
+            self.remove(addon)
 
         # set the new addons
         for addon_name in self.recommended_addons + self.suggested_addons:
@@ -925,11 +948,12 @@ class AddonsTable(gtk.VBox):
             #addon.pkgname.connect("clicked", not yet suitable for use)
             addon.set_active(pkg.installed != None)
             addon.checkbutton.connect("toggled", self.addons_manager.mark_changes)
-            self.body.pack_start(addon, False)
+            self.vbox.pack_start(addon, False)
         self.show_all()
         return False
 
-class Reviews(gtk.VBox):
+
+class Reviews(Subsection):
 
     __gsignals__ = {
         'new-review':(gobject.SIGNAL_RUN_FIRST,
@@ -941,18 +965,16 @@ class Reviews(gtk.VBox):
     }
 
     def __init__(self):
-        gtk.VBox.__init__(self, spacing=mkit.SPACING_XLARGE)
+        Subsection.__init__(self)
         # stuff
-        box = gtk.HBox(spacing=mkit.SPACING_XLARGE)
         label = gtk.Label()
-        label.set_markup("<big><b>%s</b></big>" % _("Reviews:"))
+        label.set_markup("<b>%s</b>" % _("Reviews"))
         label.set_alignment(0, 0.5)
-        box.pack_start(label, False, False)
-        button_new = gtk.Button(_("Write new review"))
+        self.header.pack_start(label, False, False)
+        button_new = gtk.Button(_("Have your say"))
         button_new.connect("clicked", self._on_button_new_clicked)
         button_new.show()
-        box.pack_start(button_new, False, False)
-        self.pack_start(box, False, False)
+        self.header.pack_end(button_new, False, False)
         
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
@@ -1035,7 +1057,7 @@ class AddonsManager():
 
         # add-on handling
         self.table = AddonsTable(self)
-        self.status_bar = self.table.status_bar
+        self.status_bar = AddonsStatusBar(self)
         self.addons_to_install = []
         self.addons_to_remove = []
 
@@ -1094,6 +1116,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.adjustment_value = None
 
         self.section = None
+        self.addons_manager = AddonsManager(self)
 
         # atk
         self.a11y = self.get_accessible()
@@ -1106,7 +1129,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
         # app specific data
-        self._same_app = False
         self.app = NoneTypeApplication()
         self.app_details = self.app.get_details(self.db)
 
@@ -1156,7 +1178,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.main_frame.label.set_size_request(-1, -1)
 
         desc = self.app_desc.description
-        size = desc.height_from_width(w-6*mkit.EM-166)
+        size = desc.height_from_width(w-4*mkit.EM-166)
         if size:
             desc.set_size_request(*size)
 
@@ -1215,6 +1237,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         if self.usage.get_property('visible'):
             self.usage.draw(cr, self.usage.allocation)
+
+        #self.addon_view.draw(cr, self.addon_view.allocation)
+        self.reviews.draw(cr, self.reviews.allocation)
 
         del cr
         return
@@ -1293,7 +1318,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.main_frame.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
-        self.main_frame.body.set_spacing(mkit.SPACING_MED)
+        self.main_frame.body.set_spacing(mkit.SPACING_XLARGE)
         self.vbox.pack_start(self.main_frame, False)
 
         # a11y for name/summary
@@ -1362,26 +1387,30 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # package info
         self.info_keys = []
 
+        info_table_vbox = gtk.VBox(spacing=mkit.SPACING_MED)
+        self.main_frame.body.pack_start(info_table_vbox, False)
+
         self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
-        self.main_frame.body.pack_start(self.totalsize_info, False)
+        info_table_vbox.pack_start(self.totalsize_info, False)
+
+        self.addons_statusbar = self.addons_manager.status_bar
+        info_table_vbox.pack_start(self.addons_statusbar, False, padding=3)
 
         self.version_info = PackageInfo(_("Version:"), self.info_keys)
-        self.main_frame.body.pack_start(self.version_info, False)
+        info_table_vbox.pack_start(self.version_info, False)
 
         self.license_info = PackageInfo(_("License:"), self.info_keys)
-        self.main_frame.body.pack_start(self.license_info, False)
+        info_table_vbox.pack_start(self.license_info, False)
 
         self.support_info = PackageInfo(_("Updates:"), self.info_keys)
-        self.main_frame.body.pack_start(self.support_info, False)
+        info_table_vbox.pack_start(self.support_info, False)
         return
 
     def _layout_pkg_addons_actions(self):
         # addons manager
-        self.addons_manager = AddonsManager(self)
         self.addons_to_install = self.addons_manager.addons_to_install
         self.addons_to_remove = self.addons_manager.addons_to_remove
         self.addon_view = self.addons_manager.table
-        self.addons_statusbar = self.addon_view.status_bar
         self.main_frame.body.pack_start(self.addon_view, False)
         return
 
@@ -1482,7 +1511,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_app_screenshot(self, app_details):
         # get screenshot urls and configure the ScreenshotView...
-        if app_details.thumbnail and app_details.screenshot and not self._same_app:
+        if app_details.thumbnail and app_details.screenshot:
             self.screenshot.configure(app_details)
 
             # then begin screenshot download and display sequence
@@ -1492,7 +1521,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
-            version = '%s (%s)' % (app_details.version, app_details.pkgname)
+            if self.style:
+                subdued = self.style.dark[0].to_string()
+            else:
+                subdued = '#7F7F7F'
+            version = '%s <span color="%s">(%s)</span>' % (app_details.version, subdued, app_details.pkgname)
         else:
             version = _("Unknown")
             # if the version is unknown, just hide the field
@@ -1649,14 +1682,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         old_details = self.app_details
         self.app = app
         self.app_details = app.get_details(self.db)
-        self._same_app = self.app_details.same_app(old_details)
 
         # for compat with the base class
         self.appdetails = self.app_details
         #print "AppDetailsViewGtk:"
         #print self.appdetails
 
-        if self._same_app:
+        if self.app_details.same_app(old_details):
             self._update_minimal(self.app_details)
         else:
             self._update_all(self.app_details)
