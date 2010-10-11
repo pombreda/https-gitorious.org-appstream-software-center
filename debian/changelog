@@ -1,3 +1,65 @@
+software-center (3.1.0) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/app.py:
+    - use "reopen" instead of "open" in the channels-changed 
+      callback to ensure that the various views get the right
+      signal. This partly fixes #507836, the exceptions will
+      stil be there, but the UI will fully recover
+  * softwarecenter/backend/aptd.py:
+    - do not emit "channels-changed" while installing a purchase,
+      this emited already by the update()
+  * softwarecenter/db/application.py:
+    - if appdetails finds its pkgname in the pending transactions
+      but does not have a apt pkg object yet, this means it got
+      installed from a newly enabled source, return the right state
+      in this case
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - remove explicit "progress.set_fraction()" in configure() because
+      its not needed (gtk.ProgressBar will DTRT) and also we may get
+      "xapian reopen" signals in the middle of a transaction, in this
+      case we don't want to reset the progress. 
+  * merged lp:~mvo/software-center/zeitgeist-magic-seif that brings
+    basic zeitgeist integration. Many thanks to Seif Lotfy for the
+    work on this!
+  * merged lp:~mmcg069/software-center/usage-bubble, that makes the 
+    usage counter look so much nicer :)
+  * merged lp:~didrocks/software-center/smarter-app-filtering-level,
+    many thanks
+  * merged lp:~mmcg069/software-center/selectable-AppDescription,
+    many thanks
+  * softwarecenter/db/update.py:
+    - add mimetypes to the xapian database
+  * softwarecenter/db/database.py:
+    - support mime search via "mime" search prefix, e.g. 
+      "mime:audio/ogg" or "softwarecenter search:mime:application/x-cue"
+
+  [ Delan Azabani ]
+  * removed "free" from desktop file description as users can buy
+    software from the software center (LP: #656800)
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't eat 'o ' character combinations within bullet points (LP: #646822)
+      (test case: software-center deja-dup)
+    - scale icon down when setting 'where is it' icon from path (LP: #645062)
+      (test case: software-center briquolo (once installed))
+  * softwarecenter/view/softwarepane.py:
+    - don't offer to 'show 9k items' in searches, as we limit searches to 200
+      items (LP: #648988)
+      (test case: software-center search:library)
+
+  [ Mohamed Amine IL Idrissi ]
+  * Screenshots are now stored all in a single software-center
+    directory (LP: #648284)
+  * Thumbnails and screenshots are now reused (LP: #648279, #648278)
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appview.py:
+    - fix intermittent crash in _set_cursor (LP: #617004) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Sep 2010 13:29:43 -0400
+
 software-center (3.0.5) UNRELEASED; urgency=low
 
   [ Andrea Cimitan ]

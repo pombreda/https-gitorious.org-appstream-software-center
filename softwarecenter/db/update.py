@@ -77,16 +77,20 @@ class AppInfoParserBase(object):
         """ get a AppInfo entry for the given key """
     def has_option_desktop(self, key):
         """ return True if there is a given AppInfo info """
-    def get_desktop_categories(self):
-        categories = []
+    def _get_desktop_list(self, key, split_str=";"):
+        result = []
         try:
-            categories_str = self.get_desktop("Categories")
-            for item in categories_str.split(";"):
+            list_str = self.get_desktop(key)
+            for item in list_str.split(split_str):
                 if item:
-                    categories.append(item)
+                    result.append(item)
         except (NoOptionError, KeyError):
             pass
-        return categories
+        return result
+    def get_desktop_categories(self):
+        return self._get_desktop_list("Categories")
+    def get_desktop_mimetypes(self):
+        return self._get_desktop_list("MimeType")
     @property
     def desktopf(self):
         """ return the file that the AppInfo comes from """
@@ -480,6 +484,8 @@ def index_app_info_from_parser(parser, db, cache):
         # write out categories
         for cat in parser.get_desktop_categories():
             doc.add_term("AC"+cat.lower())
+        for mime in parser.get_desktop_mimetypes():
+            doc.add_term("AM"+mime.lower())
         # get type (to distinguish between apps and packages
         if parser.has_option_desktop("Type"):
             type = parser.get_desktop("Type")

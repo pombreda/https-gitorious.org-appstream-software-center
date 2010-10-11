@@ -42,6 +42,17 @@ class testXapian(unittest.TestCase):
         matches = self.enquire.get_mset(0, 100)
         self.assertTrue(len(matches) > 5)
 
+    def test_mime_query(self):
+        query = xapian.Query("AMtext/html")
+        self.enquire.set_query(query)
+        matches = self.enquire.get_mset(0, 100)
+        self.assertTrue(len(matches) > 5)
+        pkgs = set()
+        for match in matches:
+            doc = match.get_document()
+            pkgs.add(doc.get_value(XAPIAN_VALUE_PKGNAME))
+        self.assertTrue("firefox" in pkgs)
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)

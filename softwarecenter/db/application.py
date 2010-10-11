@@ -192,6 +192,9 @@ class AppDetails(object):
                     self._error = _("Not Found")
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
 
+    def same_app(self, other):
+        return self.pkgname == other.pkgname
+
     @property
     def architecture(self):
         if self._doc:

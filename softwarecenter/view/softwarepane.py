@@ -151,7 +151,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.icons = icons
         self.datadir = datadir
         self.backend = get_install_backend()
-        self.nonapps_visible = False
+        self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
         self.disable_show_hide_nonapps = False
         # refreshes can happen out-of-bound so we need to be sure
         # that we only set the new model (when its available) if
@@ -326,7 +326,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         pkgs = 0
         apps = 0
         if appstore.active:
-            if appstore.nonapps_visible:
+            if appstore.nonapps_visible == AppStore.NONAPPS_ALWAYS_VISIBLE:
                 pkgs = appstore.nonapp_pkgs
                 apps = len(appstore) - pkgs
             else:
@@ -352,7 +352,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             pkgs > 0 and 
             apps > 0 and
             not self.disable_show_hide_nonapps):
-            if appstore.nonapps_visible:
+            if appstore.nonapps_visible == AppStore.NONAPPS_ALWAYS_VISIBLE:
                 # TRANSLATORS: the text inbetween the underscores acts as a link
                 # In most/all languages you will want the whole string as a link
                 label = gettext.ngettext("_Hide %i technical item_",
@@ -366,11 +366,11 @@ class SoftwarePane(gtk.VBox, BasePane):
                 self.action_bar.set_label(label, self._show_nonapp_pkgs)
             
     def _show_nonapp_pkgs(self):
-        self.nonapps_visible = True
+        self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
         self.refresh_apps()
 
     def _hide_nonapp_pkgs(self):
-        self.nonapps_visible = False
+        self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
         self.refresh_apps()
 
     def get_status_text(self):

@@ -97,11 +97,15 @@ class AppStore(gtk.GenericTreeModel):
     # the default result size for a search
     DEFAULT_SEARCH_LIMIT = 200
 
+    (NONAPPS_ALWAYS_VISIBLE,
+     NONAPPS_MAYBE_VISIBLE,
+     NONAPPS_NEVER_VISIBLE) = range (3)
+
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
                  sortmode=SORT_UNSORTED, filter=None, exact=False,
                  icon_size=ICON_SIZE, global_icon_cache=True, 
-                 nonapps_visible=False):
+                 nonapps_visible=NONAPPS_MAYBE_VISIBLE):
         """
         Initalize a AppStore.
 
@@ -117,6 +121,11 @@ class AppStore(gtk.GenericTreeModel):
         - `exact`: If true, indexes of queries without matches will be
                     maintained in the store (useful to show e.g. a row
                     with "??? not found")
+        - `nonapps_visible`: decide whether adding non apps in the model or not.
+                             Can be NONAPPS_ALWAYS_VISIBLE/NONAPPS_MAYBE_VISIBLE
+                             /NONAPPS_NEVER_VISIBLE
+                             (NONAPPS_MAYBE_VISIBLE will return non apps result
+                              if no matching apps is found)
         """
         gtk.GenericTreeModel.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appstore")
@@ -176,7 +185,7 @@ class AppStore(gtk.GenericTreeModel):
         for q in self.search_query:
             self._logger.debug("using query: '%s'" % q)
             enquire = xapian.Enquire(self.db.xapiandb)
-            if not self.nonapps_visible:
+            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
                 enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                  q, xapian.Query("ATapplication")))
 
@@ -228,7 +237,7 @@ class AppStore(gtk.GenericTreeModel):
                 # FIXME: falsely assuming that apps come before nonapps
                 if not appname:
                     added = pkgname in already_added
-                    if self.nonapps_visible and not added:
+                    if self.nonapps_visible == self.NONAPPS_ALWAYS_VISIBLE and not added:
                         self.nonapp_pkgs += 1
                 if appname or not added:
                     if self.sortmode == SORT_BY_ALPHABET:
@@ -251,11 +260,12 @@ class AppStore(gtk.GenericTreeModel):
                     app = Application("", pkgname)
                     self.apps.append(app)
                 
-        # if we only have nonapps to be displayed, don't hide them
-        if (not self.nonapps_visible and
+        # if we only have nonapps to be displayed, and nonapps is set as
+        # NONAPPS_MAYBE_VISIBLE don't hide them
+        if (self.nonapps_visible == self.NONAPPS_MAYBE_VISIBLE and
             self.nonapp_pkgs > 0 and
             len(self.apps) == 0):
-            self.nonapps_visible = True
+            self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
             self._perform_search()
             
         # in the case where the app list is sorted, we must rebuild
@@ -1062,7 +1072,6 @@ class CellRendererAppView2(gtk.CellRendererText):
 
     def do_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
-
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
         direction = widget.get_direction()
