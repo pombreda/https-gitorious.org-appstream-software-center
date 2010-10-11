@@ -34,6 +34,8 @@ software-center (3.0.5) UNRELEASED; urgency=low
       on machines that filter the port 11371
   * softwarecenter/backend/restfulclient.py, softwarecenter/enums.py:
     - use plain http for the "what-is-available" API call
+  * send user default language for "/apps" and "/subscription" requests
+    now that the server is ready for this
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
 

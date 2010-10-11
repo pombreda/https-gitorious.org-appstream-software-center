@@ -31,7 +31,7 @@ import threading
 
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import BUY_SOMETHING_HOST, BUY_SOMETHING_HOST_ANONYMOUS
-from softwarecenter.utils import get_current_arch
+from softwarecenter.utils import get_current_arch, get_default_language
 
 # possible workaround for bug #599332 is to try to import lazr.restful
 # import lazr.restful
@@ -380,7 +380,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
         series_name = self.distro.get_codename()
         arch_tag = get_current_arch()
         # the server supports only english for now
-        lang = "en"
+        lang = get_default_language()
         url = BUY_SOMETHING_HOST_ANONYMOUS + "/apps/%(lang)s/ubuntu/%(series)s/%(arch)s" % {
             'lang' : lang,
             'series' : series_name,

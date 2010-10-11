@@ -184,6 +184,15 @@ def release_filename_in_lists_from_deb_line(debline):
                                     entry.dist)
     return name
     
+def get_default_language():
+    import locale
+    locale = locale.getdefaultlocale()
+    if not locale:
+        return "en"
+    if locale[1] == "C":
+        return "en"
+    return locale[1]
+
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
 
