@@ -329,8 +329,10 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _append_recommendations(self):
-        
-        def _init_widget(query, r_apps): 
+        """ get recommendations from zeitgeist and add to the view """
+
+        def _show_recommended_apps_widget(query, r_apps): 
+            # build UI
             self.hbox = gtk.HBox()
             welcome = gettext.ngettext("Welcome back! There is",
                                       "Welcome back! There are",
@@ -346,10 +348,10 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.hbox.pack_start(gtk.Label("for you."), False, False)
             self.vbox.pack_start(self.hbox, False, False)
             self.vbox.reorder_child(self.hbox, 0)
-            
+            # build fake category
             name = gobject.markup_escape_text(_("Recommendations"))
             rec_btn = CategoryButton(name, "category-recommendations", self.icons)
-            rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query)
+            rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query, sortmode=SORT_BY_SEARCH_RANKING)
             rec_btn.connect('clicked', self._on_category_clicked, rec_cat)
             self.departments.append(rec_btn)
             
@@ -379,9 +381,10 @@ class LobbyViewGtk(CategoriesViewGtk):
                 if len(r_apps) > 0:
                     return xapian.Query(xapian.Query.OP_OR, r_apps)
                 return None
-                    
-            r_apps =_find_applications(mimetypes) #Recommended Applications
-            _init_widget(_make_query(r_apps), r_apps)
+            # get the recommended apps     
+            r_apps =_find_applications(mimetypes) 
+            # build the widget
+            _show_recommended_apps_widget(_make_query(r_apps), r_apps)
         
         zeitgeist_singleton.get_popular_mimetypes(_popular_mimetypes_callback)
         
