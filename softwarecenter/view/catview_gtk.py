@@ -383,8 +383,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                 return None
             # get the recommended apps     
             r_apps =_find_applications(mimetypes) 
-            # build the widget
-            _show_recommended_apps_widget(_make_query(r_apps), r_apps)
+            if r_apps:
+                # build the widget
+                _show_recommended_apps_widget(_make_query(r_apps), r_apps)
         
         zeitgeist_singleton.get_popular_mimetypes(_popular_mimetypes_callback)
         
