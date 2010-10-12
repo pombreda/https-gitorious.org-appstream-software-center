@@ -189,9 +189,9 @@ def get_default_language():
     locale = locale.getdefaultlocale()
     if not locale:
         return "en"
-    if locale[1] == "C":
+    if locale[0] == "C":
         return "en"
-    return locale[1]
+    return locale[0]
 
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
