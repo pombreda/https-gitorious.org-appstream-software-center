@@ -222,6 +222,9 @@ class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
     DE = "Desktop Entry"
     def get_desktop(self, key):
         " get generic option under 'Desktop Entry'"
+        # never translate the pkgname
+        if key == "X-AppInstall-Package":
+            return self.get(self.DE, key)
         # first try dgettext
         if self.has_option_desktop("X-Ubuntu-Gettext-Domain"):
             value = self.get(self.DE, key)

@@ -43,7 +43,7 @@ class Ubuntu(Distro):
         return _("Ubuntu Software Center")
 
     def get_app_description(self):
-        return _("Lets you choose from thousands of free applications available for Ubuntu.")
+        return _("Lets you choose from thousands of applications available for Ubuntu.")
     
     def get_distro_channel_name(self):
         """ The name in the Release file """

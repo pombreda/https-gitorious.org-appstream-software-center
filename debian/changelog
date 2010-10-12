@@ -51,6 +51,8 @@ software-center (3.1.0) UNRELEASED; urgency=low
     - don't offer to 'show 9k items' in searches, as we limit searches to 200
       items (LP: #648988)
       (test case: software-center search:library)
+  * softwarecenter/db/update.py:
+    - never translate X-AppInstall-Package (fixes eg lp: #658326)
 
   [ Mohamed Amine IL Idrissi ]
   * Screenshots are now stored all in a single software-center
@@ -61,7 +63,7 @@ software-center (3.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - fix intermittent crash in _set_cursor (LP: #617004) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Sep 2010 13:29:43 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 12 Oct 2010 10:55:15 +0200
 
 software-center (3.0.5) UNRELEASED; urgency=low
 
@@ -92,6 +94,13 @@ software-center (3.0.5) UNRELEASED; urgency=low
     - emit 'transactions-changed' signal after connecting to the backend so
       that we display any pending transactions (LP: #652927)
       (see bug report for test case)
+  
+  [ Michael Vogt ]
+  * softwarecenter/backend/aptd.py:
+    - use keyserver.ubuntu.com on port 80 by default to avoid problems
+      on machines that filter the port 11371
+  * softwarecenter/backend/restfulclient.py, softwarecenter/enums.py:
+    - use plain http for the "what-is-available" API call
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
 
