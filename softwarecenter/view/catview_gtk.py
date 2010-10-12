@@ -357,35 +357,22 @@ class LobbyViewGtk(CategoriesViewGtk):
 
             self.show_all() 
               
-        def _set_recommendations(mimetypes):
+        def _popular_mimetypes_callback(mimetypes):
             def _find_applications(mimetypes):
                 apps = {}
-                for mimetype in mimetypes:
-                    mimetype = mimetype[1]
-                    query = xapian.Query("AM%s"%mimetype)
-                    self.enquire.set_query(query)
-                    matches = self.enquire.get_mset(0, 100)
-                    pkgs = set()
-                    i = 0
-                    for match in matches:
-                        doc = match.get_document()
-                        app = doc.get_value(XAPIAN_VALUE_PKGNAME)
-                        temp = Application(pkgname = app)
-                        if temp.get_details(self.db).pkg_state == PKG_STATE_UNINSTALLED:
-	                        if not apps.has_key(app):
-	                            apps[app] = 0
-                                i += 1
-	                        apps[app] += 1
-                        if i == 3:
-                            break
-                        
+                for count, mimetype in mimetypes:
+                    result = self.db.get_most_popular_applications_for_mimetype(mimetype)
+                    for app in result:
+                        if not app in apps:
+                            apps[app] = 0
+                        apps[app] += 1
+                # this is "sort-by-amount-of-matching-mimetypes", so that
+                # e.g. gimp with image/gif, image/png gets sorted higher
                 app_tuples = [(v,k) for k, v in apps.iteritems()]
                 app_tuples.sort(reverse=True)
                 results = []
-                for app in app_tuples:
-                    temp_app = Application(pkgname = app[1])
-                    if temp_app.get_details(self.db).pkg_state == PKG_STATE_UNINSTALLED:
-                        results.append("AP"+app[1])
+                for count, app in app_tuples:
+                    results.append("AP"+app.pkgname)
                 return results
 
             def _make_query(r_apps):
@@ -394,12 +381,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                 return None
                     
             r_apps =_find_applications(mimetypes) #Recommended Applications
-            
             _init_widget(_make_query(r_apps), r_apps)
-            
-            
         
-        zeitgeist_singleton.get_popular_mimetypes(_set_recommendations)
+        zeitgeist_singleton.get_popular_mimetypes(_popular_mimetypes_callback)
         
 
     def _append_featured_and_new(self):

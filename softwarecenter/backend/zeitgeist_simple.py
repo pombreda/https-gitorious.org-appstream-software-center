@@ -44,6 +44,10 @@ class SoftwareCenterZeitgeist():
         """
         def _callback(event_ids):
             callback(len(event_ids))
+        # empty query, empty result
+        if not application:
+            callback(0)
+            return
         # the app we are looking for
         application = "application://"+application.split("/")[-1]
         # the event_templates

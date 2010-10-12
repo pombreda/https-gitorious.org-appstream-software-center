@@ -213,6 +213,33 @@ class StoreDatabase(gobject.GObject):
         fuzzy_query = _add_category_to_query(fuzzy_query)
         return [pkg_query,fuzzy_query]
 
+    def get_most_popular_applications_for_mimetype(self, mimetype, 
+                                                  only_uninstalled=True, num=3):
+        """ return a list of the most popular applications for the given
+            mimetype 
+        """
+        # sort by popularity by default
+        enquire = xapian.Enquire(self.xapiandb)
+        enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+        # query mimetype
+        query = xapian.Query("AM%s"%mimetype)
+        enquire.set_query(query)
+        # mset just needs to be "big enough""
+        matches = enquire.get_mset(0, 100)
+        apps = []
+        for match in matches:
+            doc = match.get_document()
+            app = Application(self.get_appname(doc),self.get_pkgname(doc),
+                              popcon=self.get_popcon(doc))
+            if only_uninstalled:
+                if app.get_details(self).pkg_state == PKG_STATE_UNINSTALLED:
+                    apps.append(app)
+            else:
+                apps.append(app)
+            if len(apps) == num:
+                break
+        return apps
+
     def get_summary(self, doc):
         """ get human readable summary of the given document """
         summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
@@ -319,6 +346,7 @@ class StoreDatabase(gobject.GObject):
         for it in self.xapiandb.postlist(""):
             doc = self.xapiandb.get_document(it.docid)
             yield doc
+
 
 if __name__ == "__main__":
     import apt
