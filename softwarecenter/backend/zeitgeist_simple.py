@@ -23,7 +23,7 @@ LOG = logging.getLogger("sofwarecenter.zeitgeist")
 
 try:
     from zeitgeist.client import ZeitgeistClient
-    from zeitgeist.datamodel import Event, Interpretation
+    from zeitgeist.datamodel import Event, Interpretation, ResultType
 except ImportError:
     LOG.exception("zeitgeist import failed")
     ZEITGEIST_AVAILABLE = False
@@ -55,33 +55,39 @@ class SoftwareCenterZeitgeist():
         self.zg_client.find_event_ids_for_templates(
             [e1, e2], _callback, timerange=timerange, num_events=0)
        
-    def get_popular_mimetypes(self, callback, num = 3):
+    def get_popular_mimetypes(self, callback, num=3):
+        """ get the "num" (default to 3) most popular mimetypes based
+            on the last 1000 events that zeitgeist recorded and
+            call "callback" with [(count1, "mime1"), (count2, "mime2"), ...] 
+            as arguement
+        """
         def _callback(events):
+            # gather
             mimetypes = {}
             for event in events:
                 mimetype = event.subjects[0].mimetype
-                if not mimetypes.has_key(mimetype):
+                if not mimetype in mimetypes:
                     mimetypes[mimetype] = 0
                 mimetypes[mimetype] += 1
+            # return early if empty
             results = []
-            if len(mimetypes) == 0:
+            if not mimetypes:
                 callback([])
+            # convert to result and sort
             for k, v in mimetypes.iteritems():
-                    results.append([v, k])
+                results.append([v, k])
             results.sort(reverse = True)
-            print "###########"
-            print "MOST USED"
-            print "----------"
-            for i in results[:num]:
-                print i
-            print "###########"
+            # tell the client about it
             callback(results[:num])
-        # FIXME: investigate how result_type 0 or 2 would affect the results
+        # trigger event (actual processing is done in _callback)
+        # FIXME: investigate how result_type MostRecentEvents or
+        #        MostRecentSubjects would affect the results
         self.zg_client.find_events_for_template(
-            [], _callback, num_events=1000, result_type=2)
+            [], _callback, num_events=1000, 
+            result_type=ResultType.MostRecentEvents)
 
 class SoftwareCenterZeitgeistDummy():
-    def get_usage_counter(self, application, callback):
+    def get_usage_counter(self, application, callback, timerange=None):
         callback(0)
     def get_popular_mimetypes(self, callback):
         callback([])
