@@ -246,11 +246,11 @@ packagesize	3	# package size
 app-popcon	4	# app-install .desktop popcon rank
 """
         open("axi-test-values","w").write(s)
-        db = StoreDatabase("/var/cache/software-center/xapian", 
-                           self.cache)
+        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
         axi_values = parse_axi_values_file("axi-test-values")
         self.assertNotEqual(axi_values, {})
         print axi_values
+
 
 if __name__ == "__main__":
     import logging

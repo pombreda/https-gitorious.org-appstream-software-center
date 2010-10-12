@@ -26,7 +26,10 @@ from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.utils import *
+from softwarecenter.enums import *
 from softwarecenter.distro import get_distro
+
+from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 
 from catview import *
 
@@ -244,6 +247,8 @@ class LobbyViewGtk(CategoriesViewGtk):
                  apps_filter,
                  apps_limit=0)
 
+        self.enquire = xapian.Enquire(self.db.xapiandb)
+
         # sections
         self.featured_carousel = None
         self.newapps_carousel = None
@@ -320,7 +325,69 @@ class LobbyViewGtk(CategoriesViewGtk):
         # changing order of methods changes order that they appear in the page
         self._append_departments()
         self._append_featured_and_new()
+        self._append_recommendations()
         return
+
+    def _append_recommendations(self):
+        """ get recommendations from zeitgeist and add to the view """
+
+        def _show_recommended_apps_widget(query, r_apps): 
+            # build UI
+            self.hbox = gtk.HBox()
+            welcome = gettext.ngettext("Welcome back! There is",
+                                      "Welcome back! There are",
+                                      len(r_apps))
+            self.hbox.pack_start(gtk.Label(welcome), False, False)
+            label = gettext.ngettext("%(len)i new recommendation",
+                                     "%(len)i new recommendations",
+                                     len(r_apps)) % { 'len' : len(r_apps) }
+            linkbutton = mkit.HLinkButton(label)
+            linkbutton.set_underline(True)
+            linkbutton.set_subdued(True)
+            self.hbox.pack_start(linkbutton, False, False)
+            self.hbox.pack_start(gtk.Label("for you."), False, False)
+            self.vbox.pack_start(self.hbox, False, False)
+            self.vbox.reorder_child(self.hbox, 0)
+            # build fake category
+            name = gobject.markup_escape_text(_("Recommendations"))
+            rec_btn = CategoryButton(name, "category-recommendations", self.icons)
+            rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query, sortmode=SORT_BY_SEARCH_RANKING)
+            rec_btn.connect('clicked', self._on_category_clicked, rec_cat)
+            self.departments.append(rec_btn)
+            
+            linkbutton.connect('clicked', self._on_category_clicked, rec_cat)
+
+            self.show_all() 
+              
+        def _popular_mimetypes_callback(mimetypes):
+            def _find_applications(mimetypes):
+                apps = {}
+                for count, mimetype in mimetypes:
+                    result = self.db.get_most_popular_applications_for_mimetype(mimetype)
+                    for app in result:
+                        if not app in apps:
+                            apps[app] = 0
+                        apps[app] += 1
+                # this is "sort-by-amount-of-matching-mimetypes", so that
+                # e.g. gimp with image/gif, image/png gets sorted higher
+                app_tuples = [(v,k) for k, v in apps.iteritems()]
+                app_tuples.sort(reverse=True)
+                results = []
+                for count, app in app_tuples:
+                    results.append("AP"+app.pkgname)
+                return results
+
+            def _make_query(r_apps):
+                if len(r_apps) > 0:
+                    return xapian.Query(xapian.Query.OP_OR, r_apps)
+                return None
+            # get the recommended apps     
+            r_apps =_find_applications(mimetypes) 
+            # build the widget
+            _show_recommended_apps_widget(_make_query(r_apps), r_apps)
+        
+        zeitgeist_singleton.get_popular_mimetypes(_popular_mimetypes_callback)
+        
 
     def _append_featured_and_new(self):
         # carousel hbox
@@ -390,8 +457,6 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
-
-#        enquirer = xapian.Enquire(self.db.xapiandb)
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
