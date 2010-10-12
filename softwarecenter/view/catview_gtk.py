@@ -332,13 +332,14 @@ class LobbyViewGtk(CategoriesViewGtk):
         
         def _init_widget(query, r_apps): 
             self.hbox = gtk.HBox()
-            if len(r_apps) == 1:
-                self.hbox.pack_start(gtk.Label("Welcome back! There is"), False, False)
-                linkbutton = mkit.HLinkButton("%i new recommendation"%len(r_apps))
-            else:
-                self.hbox.pack_start(gtk.Label("Welcome back! There are"), False, False)
-                linkbutton = mkit.HLinkButton("%i new recommendations"%len(r_apps))
-            
+            welcome = gettext.ngettext("Welcome back! There is",
+                                      "Welcome back! There are",
+                                      len(r_apps))
+            self.hbox.pack_start(gtk.Label(welcome), False, False)
+            label = gettext.ngettext("%(len)i new recommendation",
+                                     "%(len)i new recommendations",
+                                     len(r_apps)) % { 'len' : len(r_apps) }
+            linkbutton = mkit.HLinkButton(label)
             linkbutton.set_underline(True)
             linkbutton.set_subdued(True)
             self.hbox.pack_start(linkbutton, False, False)
