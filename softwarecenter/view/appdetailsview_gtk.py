@@ -869,9 +869,10 @@ class Addon(gtk.HBox):
             LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
-        more = mkit.VLinkButton(u"More Info")
+        more = mkit.VLinkButton("More Info")
         more.set_underline(True)
         self.pack_end(more, False)
+        more.connect("clicked", self._on_more_clicked)
 
         # name
         title = self.app_details.display_name
@@ -894,6 +895,12 @@ class Addon(gtk.HBox):
         dark = self.style.dark[self.state].to_string()
         key_markup = '<span color="%s">(%s)</span>'
         self.pkgname.set_markup(key_markup  % (dark, self.checkbutton.pkgname))
+
+    def _on_more_clicked(self, more_btn):
+        a = self.get_ancestor(AppDetailsViewGtk)
+        if not a: return
+        a.show_app(self.app)
+        return
 
     def get_active(self):
         return self.checkbutton.get_active()
@@ -1167,6 +1174,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
+                    "application-selected" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE,
+                                   (gobject.TYPE_PYOBJECT, )),
                     'application-request-action' : (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
                                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
@@ -1587,11 +1597,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
-            if self.style:
-                subdued = self.style.dark[0].to_string()
-            else:
-                subdued = '#7F7F7F'
-            version = '%s <span color="%s">(%s)</span>' % (app_details.version, subdued, app_details.pkgname)
+            version = '%s (%s)' % (app_details.version, app_details.pkgname)
         else:
             version = _("Unknown")
             # if the version is unknown, just hide the field
@@ -1758,11 +1764,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self._update_all(self.app_details)
 
-        self.emit("selected", self.app)
-        
         self.get_usage_counter()
         self._check_for_reviews()
 
+        self.emit("selected", self.app)
         return
 
     # public interface
