@@ -37,7 +37,7 @@ import cairo
 from gettext import gettext as _
 import apt_pkg
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.application import AppDetails, Application
+from softwarecenter.db.application import AppDetails, Application, NoneTypeApplication
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
