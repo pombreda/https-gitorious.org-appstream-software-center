@@ -19,6 +19,7 @@
 
 import apt
 import apt_pkg
+import cPickle
 import gio
 import glib
 import glob
@@ -28,7 +29,6 @@ import logging
 import string
 import datetime
 
-
 from datetime import datetime
 
 try:
@@ -37,6 +37,8 @@ except ImportError:
     from debian_bundle import deb822
 
 LOG = logging.getLogger(__name__)
+
+from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 
 def ascii_lower(key):
     ascii_trans_table = string.maketrans(string.ascii_uppercase,
@@ -93,11 +95,21 @@ class AptHistory(object):
 
     def rescan(self):
         self.transactions = []
+        p = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "apthistory.p")
+        cachetime = 0
+        if os.path.exists(p):
+            print "loading cache: ", p
+            self.transactions = cPickle.load(open(p))
+            cachetime = os.path.getmtime(p)
         for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
                                       cmp=self._mtime_cmp):
+            if os.path.getmtime(history_gz_file) < cachetime:
+                print "skipping already cached", history_gz_file
+                continue
             self._scan(history_gz_file)
         self._scan(self.history_file)
-    
+        cPickle.dump(self.transactions, open(p, "w"))
+
     def _scan(self, history_file, rescan = False):
         try:
             if history_file.endswith(".gz"):
@@ -122,7 +134,10 @@ class AptHistory(object):
                 trans.start_date < self.transactions[0].start_date):
                 break
             # add it
-            self.transactions.insert(0, trans)
+            # FIXME: this is a list, so potentially slow, but its sorted
+            #        so we could (and should) do a binary search
+            if not trans in self.transactions:
+                self.transactions.insert(0, trans)
             
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
         if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
