@@ -1,4 +1,4 @@
-software-center (3.0.5) UNRELEASED; urgency=low
+software-center (3.0.5) maverick-proposed; urgency=low
 
   [ Andrea Cimitan ]
   * fix rendering with Ambiance theme (LP: #635208)
@@ -37,7 +37,7 @@ software-center (3.0.5) UNRELEASED; urgency=low
   * send user default language for "/apps" and "/subscription" requests
     now that the server is ready for this
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Oct 2010 16:13:10 +0200
 
 software-center (3.0.4) maverick; urgency=low
 
