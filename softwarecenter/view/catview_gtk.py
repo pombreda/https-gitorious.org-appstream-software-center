@@ -397,8 +397,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            if cat.untranslated_name not in ('Featured',
-                                             u"What\u2019s New"):
+            if 'carousel-only' not in cat.flags:
                 #enquirer.set_query(cat.query)
                 ## limiting the size here does not make it faster
                 #matches = enquirer.get_mset(0, len(self.db))
