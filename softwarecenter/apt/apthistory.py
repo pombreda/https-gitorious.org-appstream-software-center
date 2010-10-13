@@ -39,6 +39,7 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
+from softwarecenter.utils import ExecutionTime
 
 def ascii_lower(key):
     ascii_trans_table = string.maketrans(string.ascii_uppercase,
@@ -82,7 +83,8 @@ class AptHistory(object):
     def __init__(self):
         self.main_context = glib.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
-        self.rescan()
+        with ExecutionTime("apt history rescan"):
+            self.rescan()
         #Copy monitoring of history file changes from historypane.py
         self.logfile = gio.File(self.history_file)
         self.monitor = self.logfile.monitor_file()
