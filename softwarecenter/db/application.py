@@ -128,13 +128,6 @@ class DebFileApplication(Application):
         return AppDetailsDebFile(db, application=self)
 
 
-class NoneTypeApplication(Application):
-    
-    def __init__(self):
-        Application.__init__(self, pkgname='_NoneTypeApp_')
-        return
-
-
 # the details
 class AppDetails(object):
     """ The details for a Application. This contains all the information

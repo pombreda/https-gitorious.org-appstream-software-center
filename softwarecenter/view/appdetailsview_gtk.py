@@ -37,7 +37,7 @@ import cairo
 from gettext import gettext as _
 import apt_pkg
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.application import AppDetails, Application, NoneTypeApplication
+from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -2082,8 +2082,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("zeitgeist usage: %s" % counter)
             if counter == 0:
                 # this probably means we just have no idea about it,
-                # so instead of saying "Used: never" we jusr return 
+                # so instead of saying "Used: never" we just return 
                 # this can go away when zeitgeist captures more events
+                # --there are still cases when we really do want to hide this
                 self.usage.hide()
                 return
             label_string = gettext.ngettext("Used: one time",

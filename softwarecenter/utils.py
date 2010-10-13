@@ -230,8 +230,8 @@ class ImageDownloader(gobject.GObject):
         if dest_file_path is None:
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
-            dest_file_path = os.path.join(self.tmpdir,
-                                          uri_to_filename(url))
+            dest_file_path = os.path.join(self.tmpdir, uri_to_filename(url))
+
         self.url = url
         self.dest_file_path = dest_file_path
         
