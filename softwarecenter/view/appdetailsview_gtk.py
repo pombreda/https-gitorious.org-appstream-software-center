@@ -1162,6 +1162,7 @@ class Review(gtk.VBox):
 
         text = gtk.Label(self.text)
         text.set_line_wrap(True)
+        text.set_selectable(True)
         text.set_alignment(0, 0)
 
         self.header.pack_start(rating, False)
