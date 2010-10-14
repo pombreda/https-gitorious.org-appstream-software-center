@@ -1154,6 +1154,9 @@ class Review(gtk.VBox):
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
 
+        rating = ReviewStatsContainer()
+        rating.set_avg_rating(self.rating)
+
         summary = gtk.Label('<b>%s</b>' % self.summary)        
         summary.set_use_markup(True)
 
@@ -1161,6 +1164,7 @@ class Review(gtk.VBox):
         text.set_line_wrap(True)
         text.set_alignment(0, 0)
 
+        self.header.pack_start(rating, False)
         self.header.pack_start(summary, False)
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)

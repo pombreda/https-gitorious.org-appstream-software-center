@@ -32,10 +32,10 @@ class ReviewStatsContainer(gtk.HBox):
 
     ICON_SIZE = gtk.ICON_SIZE_MENU
 
-    def __init__(self, avg_rating=0, nr_reviews=0, icon_cache=None):
+    def __init__(self, icon_cache=None):
         gtk.HBox.__init__(self)
-        self.avg_rating = avg_rating
-        self.nr_reviews = nr_reviews
+        self.avg_rating = None
+        self.nr_reviews = None
         if not icon_cache:
             icons = gtk.icon_theme_get_default()
             icons.append_search_path("/usr/share/software-center/images/")
@@ -47,8 +47,6 @@ class ReviewStatsContainer(gtk.HBox):
             self.pack_start(getattr(self, name), False, False)
         self.label = gtk.Label("")
         self.pack_start(self.label, False, False)
-        self._update_nr_reviews()
-        self._update_rating()
     def set_avg_rating(self, avg_rating):
         self.avg_rating = avg_rating
         self._update_rating()
@@ -57,7 +55,8 @@ class ReviewStatsContainer(gtk.HBox):
         self._update_nr_reviews()
     # internal stuff
     def _update_nr_reviews(self):
-        self.label.set_markup("<small>(%s)</small>" % self.nr_reviews)
+        self.label.set_markup("<small>(%s)</small>" %  
+                              _("%i Ratings") % self.nr_reviews)
     def _update_rating(self):
         for i in range(1, self.avg_rating+1):
             img = getattr(self, "image_review_star%i" % i)
@@ -71,7 +70,9 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/software-center/images/")
     if os.path.exists("data/images/"):
         icons.append_search_path("data/images")
-    w = ReviewStatsContainer(3.5, 101, icon_cache=icons)
+    w = ReviewStatsContainer(icon_cache=icons)
+    w.set_avg_rating(3.5)
+    w.set_nr_reviews(101)
     w.show_all()
     win = gtk.Window()
     win.add(w)
