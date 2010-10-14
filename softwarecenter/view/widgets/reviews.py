@@ -28,6 +28,24 @@ import os
 from mkit import EM, ShapeStar, floats_from_string
 
 
+def paint_star(self, cr, x, y, w, h):
+    cr.save()
+    cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+    self.shape.layout(cr, x, y, w, h)
+    cr.set_source_rgb(*self.fg_fill)
+    cr.stroke_preserve()
+    cr.fill_preserve()
+
+    lin = cairo.LinearGradient(0, y, 0, y+h)
+    lin.add_color_stop_rgba(0, 1,1,1, 0.3)
+    lin.add_color_stop_rgba(1, 0,0,0, 0.2)
+    cr.set_source(lin)
+    cr.fill()
+
+    cr.restore()
+    return
+
 
 class Star(gtk.EventBox):
 
@@ -36,7 +54,6 @@ class Star(gtk.EventBox):
         self.set_visible_window(False)
         self.set_size_request(*size)
 
-        self.size_request = size
         self.shape = ShapeStar()
         self.fraction = 1.0
 
@@ -56,25 +73,11 @@ class Star(gtk.EventBox):
         return
 
     def draw(self, cr, a):
-        cr.save()
-        cr.set_line_join(cairo.LINE_CAP_ROUND)
-
-        w, h = self.size_request
+        w, h = self.get_size_request()
         x = a.x + (a.width-self.size_request[0])/2
         y = a.y + (a.height-self.size_request[1])/2
 
-        self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgb(*self.fg_fill)
-        cr.stroke_preserve()
-        cr.fill_preserve()
-
-        lin = cairo.LinearGradient(0, y, 0, y+h)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.3)
-        lin.add_color_stop_rgba(1, 0,0,0, 0.2)
-        cr.set_source(lin)
-        cr.fill()
-
-        cr.restore()
+        paint_star(cr, x, y, w, h)
         return
 
 
