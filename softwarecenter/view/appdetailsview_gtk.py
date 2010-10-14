@@ -1010,9 +1010,12 @@ class Reviews(gtk.VBox):
         self.new_review = mkit.VLinkButton('placeholder')
         self.new_review.set_underline(True)
 
+        self.review_stats_label = gtk.Label("")
+
         expander_hb = gtk.HBox()
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
+        expander_hb.pack_start(self.review_stats_label, False)
         expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
@@ -1062,6 +1065,13 @@ class Reviews(gtk.VBox):
         label = _('Review %s')
         self.new_review.set_label(label % appname)
         return
+
+    def set_review_stats(self, stats):
+        self.stats = stats
+        if not stats:
+            return
+        s = _("Rated %s (%s ratings)") % (stats.avg_rating, stats.nr_reviews)
+        self.review_stats_label.set_text(s)
 
     def set_width(self, w):
         for r in self.vbox:
@@ -1317,6 +1327,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     
     def _check_for_reviews(self):
         print "check for reviews"
+        # review stats is fast and syncronous
+        stats = self.review_loader.get_review_stats(self.app)
+        self.reviews.set_review_stats(stats)
+        # individual reviews is slow and async
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
 

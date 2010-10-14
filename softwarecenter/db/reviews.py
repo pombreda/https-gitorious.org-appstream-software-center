@@ -324,6 +324,11 @@ ipsum dolor sit amet"""
             review.text = self._random_text().replace("\n","")
             reviews.append(review)
         callback(application, reviews)
+    def get_review_stats(self, application):
+        stat = ReviewStats(application)
+        stat.avg_rating = random.randint(1,5)
+        stat.nr_reviews = random.randint(1,20)
+        return stat
     def refresh_review_stats(self, callback):
         review_stats = []
         callback(review_stats)
