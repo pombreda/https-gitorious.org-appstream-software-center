@@ -49,7 +49,7 @@ from appdetailsview import AppDetailsViewBase
 from widgets import mkit
 from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
-from widgets.reviews import ReviewStatsContainer, StarRatingWidget
+from widgets.reviews import ReviewStatsContainer, StarRating
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -1170,7 +1170,7 @@ class Review(gtk.VBox):
         text.set_alignment(0, 0)
 
         self.header.pack_start(summary, False)
-        self.header.pack_start(StarRatingWidget(rating), False)
+        self.header.pack_start(StarRating(rating), False)
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)

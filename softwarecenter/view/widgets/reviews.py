@@ -31,7 +31,7 @@ from mkit import ShapeStar, floats_from_string
 
 class Star(gtk.EventBox):
 
-    def __init__(self, size=(11,11)):
+    def __init__(self, size):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_size_request(*size)
@@ -78,12 +78,12 @@ class Star(gtk.EventBox):
         return
 
 
-class StarRatingWidget(gtk.HBox):
+class StarRating(gtk.HBox):
 
-    def __init__(self, n_stars, spacing=3):
+    def __init__(self, n_stars, spacing=3, star_size=(11,11)):
         gtk.HBox.__init__(self, spacing=spacing)
         for i in range(n_stars):
-            self.pack_start(Star(), False)
+            self.pack_start(Star(star_size), False)
         self.show_all()
         return
 
