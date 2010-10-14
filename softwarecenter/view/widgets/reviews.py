@@ -28,40 +28,46 @@ import os
 from mkit import EM, ShapeStar, floats_from_string
 
 
-def paint_star(self, cr, x, y, w, h):
-    cr.save()
-    cr.set_line_join(cairo.LINE_CAP_ROUND)
 
-    self.shape.layout(cr, x, y, w, h)
-    cr.set_source_rgb(*self.fg_fill)
-    cr.stroke_preserve()
-    cr.fill_preserve()
+class StarPainter(object):
 
-    lin = cairo.LinearGradient(0, y, 0, y+h)
-    lin.add_color_stop_rgba(0, 1,1,1, 0.3)
-    lin.add_color_stop_rgba(1, 0,0,0, 0.2)
-    cr.set_source(lin)
-    cr.fill()
-
-    cr.restore()
-    return
-
-
-class Star(gtk.EventBox):
-
-    def __init__(self, size):
-        gtk.EventBox.__init__(self)
-        self.set_visible_window(False)
-        self.set_size_request(*size)
-
+    def __init__(self):
         self.shape = ShapeStar()
-        self.fraction = 1.0
-
-        self.fg_fill = floats_from_string('#DC3300')
-        self.fg_line = floats_from_string('#912000')
+        #self.fraction = 1.0    # maybe we could have partially filled stars for like 3.5/5 scenarios
 
         #self.bg_fill = floats_from_string('#949494')
         #self.bg_line = floats_from_string('#484848')
+
+        self.fg_fill = floats_from_string('#DC3300')
+        self.fg_line = floats_from_string('#912000')
+        return
+
+    def paint_star(self, cr, x, y, w, h):
+        cr.save()
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+        self.shape.layout(cr, x, y, w, h)
+        cr.set_source_rgb(*self.fg_fill)
+        cr.stroke_preserve()
+        cr.fill_preserve()
+
+        lin = cairo.LinearGradient(0, y, 0, y+h)
+        lin.add_color_stop_rgba(0, 1,1,1, 0.3)
+        lin.add_color_stop_rgba(1, 0,0,0, 0.2)
+        cr.set_source(lin)
+        cr.fill()
+
+        cr.restore()
+        return
+
+
+class StarWidget(gtk.EventBox, StarPainter):
+
+    def __init__(self, size):
+        gtk.EventBox.__init__(self)
+        StarPainter.__init__(self)
+        self.set_visible_window(False)
+        self.set_size_request(*size)
 
         self.connect('expose-event', self._on_expose)
         return
@@ -77,7 +83,7 @@ class Star(gtk.EventBox):
         x = a.x + (a.width-w)/2
         y = a.y + (a.height-h)/2
 
-        paint_star(cr, x, y, w, h)
+        self.paint_star(cr, x, y, w, h)
         return
 
 
@@ -86,7 +92,7 @@ class StarRating(gtk.HBox):
     def __init__(self, n_stars, spacing=3, star_size=(EM,EM)):
         gtk.HBox.__init__(self, spacing=spacing)
         for i in range(n_stars):
-            self.pack_start(Star(star_size), False)
+            self.pack_start(StarWidget(star_size), False)
         self.show_all()
         return
 
