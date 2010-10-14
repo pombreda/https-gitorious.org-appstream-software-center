@@ -1103,7 +1103,7 @@ class Reviews(gtk.VBox):
         cr.save()
         r, g, b = mkit.floats_from_string('#FFE879')
         cr.rectangle(0, a.y, a.width+32, a.height+30)
-        cr.set_source_rgba(r,g,b,0.5)
+        cr.set_source_rgba(r,g,b,0.333)
         cr.fill_preserve()
 
         lin = cairo.LinearGradient(0, a.y, 0, a.y+150)
@@ -1135,7 +1135,6 @@ class Review(gtk.VBox):
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
         self.footer = gtk.HBox()
-        #self.footer.set_size_request(-1, mkit.SPACING_LARGE)
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
@@ -1184,11 +1183,11 @@ class Review(gtk.VBox):
     def draw(self, cr, a):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr, a.x-4, a.y-4, a.x+a.width+4, a.y+a.height+4, radius=3)
+        rr.layout(cr, a.x-6, a.y-5, a.x+a.width+6, a.y+a.height+5, radius=3)
         cr.set_source_rgba(1,1,1,0.7)
         cr.fill()
         cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
-        rr.layout(cr, a.x-3.5, a.y-3.5, a.x+a.width+4.5, a.y+a.height+4.5, radius=3)
+        rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=3)
         cr.set_line_width(1)
         cr.stroke()
         cr.restore()
