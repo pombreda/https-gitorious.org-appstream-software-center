@@ -49,6 +49,7 @@ from appdetailsview import AppDetailsViewBase
 from widgets import mkit
 from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
+from widgets.reviews import ReviewStatsContainer, StarRatingWidget
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -1010,9 +1011,12 @@ class Reviews(gtk.VBox):
         self.new_review = mkit.VLinkButton('placeholder')
         self.new_review.set_underline(True)
 
+        self.review_stats_widget = ReviewStatsContainer()
+
         expander_hb = gtk.HBox()
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
+        expander_hb.pack_start(self.review_stats_widget, False)
         expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
@@ -1028,8 +1032,6 @@ class Reviews(gtk.VBox):
         if not self.expander.get_expanded():
             self.vbox.hide_all()
         else:
-            self._was_expanded = True
-
             if self.vbox.get_no_show_all():
                 self.vbox.set_no_show_all(False)
 
@@ -1072,6 +1074,15 @@ class Reviews(gtk.VBox):
         label = _('Review %s')
         self.new_review.set_label(label % appname)
         return
+
+    def set_review_stats(self, stats):
+        self.stats = stats
+        if not stats:
+            return
+
+        self.review_stats_widget.set_avg_rating(stats.avg_rating)
+        self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
+        self.review_stats_widget.show()
 
     def set_width(self, w):
         for r in self.vbox:
@@ -1121,7 +1132,7 @@ class Review(gtk.VBox):
     def __init__(self, review_data):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
-        self.header = gtk.HBox()
+        self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
         self.footer = gtk.HBox()
         #self.footer.set_size_request(-1, mkit.SPACING_LARGE)
@@ -1131,13 +1142,13 @@ class Review(gtk.VBox):
         self.pack_start(self.footer, False)
 
         self.id = review_data.id
-        self.rating = review_data.rating 
-        self.person = glib.markup_escape_text(review_data.person)
-        self.summary = glib.markup_escape_text(review_data.summary)
-        self.text = glib.markup_escape_text(review_data.text)
-        self.date = glib.markup_escape_text(review_data.date)
+        rating = review_data.rating 
+        person = glib.markup_escape_text(review_data.person)
+        summary = glib.markup_escape_text(review_data.summary)
+        text = glib.markup_escape_text(review_data.text)
+        date = glib.markup_escape_text(review_data.date)
 
-        self._build()
+        self._build(rating, person, summary, text, date)
 
         self.body.connect('size-allocate', self._on_allocate)
         return
@@ -1147,19 +1158,20 @@ class Review(gtk.VBox):
             child.set_size_request(allocation.width, -1)
         return
 
-    def _build(self):
-        m = "<b>%s</b>, %s" % (self.person.capitalize(), self.date)
+    def _build(self, rating, person, summary, text, date):
+        m = "<b>%s</b>, %s" % (person.capitalize(), date)
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
 
-        summary = gtk.Label('<b>%s</b>' % self.summary)        
+        summary = gtk.Label('<b>%s</b>' % summary)        
         summary.set_use_markup(True)
 
-        text = gtk.Label(self.text)
+        text = gtk.Label(text)
         text.set_line_wrap(True)
         text.set_alignment(0, 0)
 
         self.header.pack_start(summary, False)
+        self.header.pack_start(StarRatingWidget(rating), False)
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
@@ -1327,6 +1339,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     
     def _check_for_reviews(self):
         print "check for reviews"
+        # review stats is fast and syncronous
+        stats = self.review_loader.get_review_stats(self.app)
+        self.reviews.set_review_stats(stats)
+        # individual reviews is slow and async
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
 

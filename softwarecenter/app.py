@@ -592,7 +592,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _login_via_dbus_sso(self):
         if not self.sso:
-            self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
+            appname = _("Ubuntu Software Center Store")
+            login_text = _("To reinstall previous purchases, sign in to the "
+                           "Ubuntu Single Sign-On account you used to pay for them."),
+            self.sso = LoginBackendDbusSSO(self.window_main.window.xid,
+                                           appname, login_text)
             self.sso.connect("login-successful", self._on_sso_login)
         self.sso.login()
 

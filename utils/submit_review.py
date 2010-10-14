@@ -46,24 +46,22 @@ from Queue import Queue
 from optparse import OptionParser
 from urlparse import urljoin
 
+from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
+from oauth.oauth import OAuthConsumer, OAuthToken
+
 import softwarecenter.view.dialogs
 
 from softwarecenter.paths import *
+from softwarecenter.backend.login_sso import LoginBackendDbusSSO
+from softwarecenter.backend.restfulclient import RestfulClientWorker, UBUNTU_SSO_SERVICE
 from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
 
-# the various states that the login can be in
-LOGIN_STATE_UNKNOWN = "unkown"
-LOGIN_STATE_ASK_USER_AND_PASS = "ask-user-and-pass"
-LOGIN_STATE_HAS_USER_AND_PASS = "has-user-pass"
-LOGIN_STATE_SUCCESS = "success"
-LOGIN_STATE_AUTH_FAILURE = "auth-fail"
-LOGIN_STATE_USER_CANCEL = "user-cancel"
-# the submit server is not ready
-LOGIN_STATE_SERVER_NOT_READY = "server-not-ready"
+#import httplib2
+#httplib2.debuglevel = 1
 
 # get current distro and set default server root
 distro = get_distro()
@@ -76,52 +74,25 @@ REPORT_POST_URL = SERVER_ROOT+"/reviews/%s/+report-review"
 # server status URL
 SERVER_STATUS_URL = SERVER_ROOT+"/reviews/+server-status"
 
-# urls for login/forgotten passwords, launchpad for now, ubuntu SSO
-# ones we have a API
-# create new 
-NEW_ACCOUNT_URL = "https://login.launchpad.net/+standalone-login"
-#NEW_ACCOUNT_URL = "https://login.ubuntu.com/+new_account"
-# forgotten PW 
-FORGOT_PASSWORD_URL =  "https://login.launchpad.net/+standalone-login"
-#FORGOT_PASSWORD_URL = "https://login.ubuntu.com/+forgot_password"
-
-# LP to use
-SERVICE_ROOT = EDGE_SERVICE_ROOT
-
 class UserCancelException(Exception):
     """ user pressed cancel """
     pass
 
-class LaunchpadlibWorker(threading.Thread):
-    """The launchpadlib worker thread - it does not touch the UI
-       and only communicates via the following:
-
-       "login_state" - the current LOGIN_STATE_* value
-       
-       To input reviews call "queue_review()"
-       When no longer needed, call "shutdown()"
-    """
+class Worker(threading.Thread):
     
     def __init__(self):
         # init parent
         threading.Thread.__init__(self)
-        # the current login state, this is used accross multiple threads
-        self.login_state = LOGIN_STATE_UNKNOWN
-        # the username/pw to use
-        self.login_username = ""
-        self.login_password = ""
-        self._launchpad = None
         self.pending_reviews = Queue()
         self.pending_reports = Queue()
         self._shutdown = False
+        self.display_name = "No display namee"
 
     def run(self):
         """Main thread run interface, logs into launchpad and waits
            for commands
         """
-        logging.debug("lp worker thread run")
-        # login
-        self._lp_login()
+        logging.debug("worker thread run")
         # loop
         self._wait_for_commands()
 
@@ -132,12 +103,12 @@ class LaunchpadlibWorker(threading.Thread):
     def queue_review(self, review):
         """ queue a new review for sending to LP """
         logging.debug("queue_review %s" % review)
-        self.pending_reviews.put(review)
+        self.pending_reviews.put(review, token)
 
     def queue_report(self, report):
         """ queue a new report for sending to LP """
         logging.debug("queue_report")
-        self.pending_reports.put(report)
+        self.pending_reports.put(report, token)
 
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
@@ -158,11 +129,11 @@ class LaunchpadlibWorker(threading.Thread):
     def _submit_report_POST(self):
         while not self.pending_reports.empty():
             logging.debug("POST report")
-            (review_id, summary, text) = self.pending_reports.get()
+            (review_id, summary, text, token) = self.pending_reports.get()
             data = { 'reason' : summary,
                      'text' : text,
-                     'token' : self.launchpad.credentials.access_token.key,
-                     'token-secret' : self.launchpad.credentials.access_token.secret,
+                     'token' : self.token.key,
+                     'token-secret' : token.secret,
                      }
             url = REPORT_POST_URL % review_id
             f = urllib.urlopen(url, urllib.urlencode(data))
@@ -174,14 +145,12 @@ class LaunchpadlibWorker(threading.Thread):
     def _submit_reviews(self):
         """ the actual submit function """
         self._submit_reviews_POST()
-        #self._submit_reviews_LP()
             
     def _submit_reviews_POST(self):
         """ http POST based submit """
         while not self.pending_reviews.empty():
             logging.debug("_submit_review")
-            review = self.pending_reviews.get()
-            review.person = self.launchpad.me.name
+            review, token = self.pending_reviews.get()
             data = { 'package_name' : review.app.pkgname,
                      'app_name' : review.app.appname,
                      'summary' : review.summary,
@@ -195,8 +164,8 @@ class LaunchpadlibWorker(threading.Thread):
                      # that uses  "3.4.2.  HMAC-SHA1" - but it
                      # seems that LP does not support that at this
                      # point 
-                     'token' : self.launchpad.credentials.access_token.key,
-                     'token-secret' : self.launchpad.credentials.access_token.secret,
+                     'token' : token.key,
+                     'token-secret' : token.secret,
                      }
             f = urllib.urlopen(SUBMIT_POST_URL, urllib.urlencode(data))
             res = f.read()
@@ -204,46 +173,6 @@ class LaunchpadlibWorker(threading.Thread):
             f.close()
             self.pending_reviews.task_done()
         
-
-    def _submit_reviews_LP(self):
-        """ launchpadlib based submit """
-        while not self.pending_reviews.empty():
-            logging.debug("_submit_review")
-            review = self.pending_reviews.get()
-            review.person = self.launchpad.me.name
-            logging.debug("sending review %s" % review.to_xml())
-            # FIXME: this needs to be replaced with the actual API
-            test_bug = self.launchpad.bugs[505983]
-            msg = test_bug.newMessage(subject=review.summary, 
-                                      content=review.to_xml())
-            self.pending_reviews.task_done()
-
-    def _lp_login(self, access_level=['READ_PUBLIC']):
-        """ internal LP login code """
-        logging.debug("lp_login")
-        # use cachedir
-        cachedir = SOFTWARE_CENTER_CACHE_DIR
-        if not os.path.exists(cachedir):
-            os.makedirs(cachedir)
-        # login into LP with GUI
-        try:
-            self.launchpad = Launchpad.login_with(
-                'software-center', SERVICE_ROOT, cachedir,
-                allow_access_levels = access_level,
-                authorizer_class=AuthorizeRequestTokenFromThread)
-            self.display_name = self.launchpad.me.display_name
-        except Exception, e:
-            if type(e) != UserCancelException:
-                logging.exception("Launchpad.login_with()")
-            self.login_state = LOGIN_STATE_AUTH_FAILURE
-            self._shutdown = True
-            return
-        # check server status
-        if self.verify_server_status():
-            self.login_state = LOGIN_STATE_SUCCESS
-        else:
-            self.login_state = LOGIN_STATE_SERVER_NOT_READY
-        logging.debug("/done %s" % self.launchpad)
 
     def verify_server_status(self):
         """ verify that the server we want to talk to can be reached
@@ -259,168 +188,66 @@ class LaunchpadlibWorker(threading.Thread):
             return False
         return True
 
-class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
-    """ Internal helper that updates the login_state of
-        the modul global lp_worker_thread object
-    """
 
-    # we need this to give the engine a place to store the state
-    # for the UI
-    def __new__(cls, *args, **kwargs):
-        o = object.__new__(cls)
-        # keep the state here (the lp_worker_thead global to this module)
-        o.lp_worker = lp_worker_thread
-        return o
-
-    def input_username(self, cached_username, suggested_message):
-        logging.debug( "input_username: %s" %self.lp_worker.login_state)
-        # otherwise go into ASK state
-        if not self.lp_worker.login_state in (LOGIN_STATE_ASK_USER_AND_PASS,
-                                              LOGIN_STATE_AUTH_FAILURE,
-                                              LOGIN_STATE_USER_CANCEL):
-            self.lp_worker.login_state = LOGIN_STATE_ASK_USER_AND_PASS
-        # check if user canceled and if so just return ""
-        if self.lp_worker.login_state == LOGIN_STATE_USER_CANCEL:
-            raise UserCancelException
-        # wait for username to become available
-        while not self.lp_worker.login_state in (LOGIN_STATE_HAS_USER_AND_PASS,
-                                                 LOGIN_STATE_USER_CANCEL):
-            time.sleep(0.2)
-        # note: returning None here make lplib open a registration page
-        #       in the browser
-        return self.lp_worker.login_username
-
-    def input_password(self, suggested_message):
-        logging.debug( "Input password size %s" % len(self.lp_worker.login_password))
-        return self.lp_worker.login_password
-
-    def input_access_level(self, available_levels, suggested_message,
-                           only_one_option=None):
-        """Collect the desired level of access from the end-user."""
-        logging.debug("input_access_level")
-        return "WRITE_PUBLIC"
-
-    def startup(self, suggested_messages):
-        logging.debug("startup")
-
-    def authentication_failure(self, suggested_message):
-        """The user entered invalid credentials."""
-        logging.debug("auth failure")
-        # ignore auth failures if the user canceled
-        if self.lp_worker.login_state == LOGIN_STATE_USER_CANCEL:
-            return
-        self.lp_worker.login_state = LOGIN_STATE_AUTH_FAILURE
-
-    def success(self, suggested_message):
-        """The token was successfully authorized."""
-        logging.debug("success")
-        self.lp_worker.login_state = LOGIN_STATE_SUCCESS
-
-
-# GUI STUFF
-class LoginGUI(SimpleGtkbuilderApp):
-    """ Base class that implements password login to LP when
-        run_loop() is called and then transfers the control the parent
-        via the "login_successful" callback
-    """
+class BaseApp(SimpleGtkbuilderApp):
 
     def __init__(self, datadir):
-        SimpleGtkbuilderApp.__init__(self, 
-                                     datadir+"/ui/reviews.ui",
-                                     "software-center")
-        gettext.bindtextdomain("software-center", "/usr/share/locale")
-        gettext.textdomain("software-center")
-    
-    def _enter_user_name_password_finished(self):
-        """ run when the user finished with the login dialog box
-            this checks the users choices and sets the appropriate state
-        """
-        has_account = self.radiobutton_review_login_have_account.get_active()
-        new_account = self.radiobutton_review_login_register_new_account.get_active()
-        forgotten_pw = self.radiobutton_review_login_forgot_password.get_active()
-        if has_account:
-            username = self.entry_review_login_email.get_text()
-            lp_worker_thread.login_username = username
-            password = self.entry_review_login_password.get_text()
-            lp_worker_thread.login_password = password
-            lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
-            self.hbox_status.show()
-        elif new_account:
-            #print "new_account"
-            subprocess.call(["xdg-open", NEW_ACCOUNT_URL])
-            self.enter_username_password()
-        elif forgotten_pw:
-            #print "forgotten passowrd"
-            subprocess.call(["xdg-open", FORGOT_PASSWORD_URL])
-            self.enter_username_password()
+        SimpleGtkbuilderApp.__init__(self, datadir+"/ui/reviews.ui", "software-center")
+        self.token = None
+        self.display_name = None
 
-    def enter_username_password(self):
-        self.hbox_status.hide()
-        res = self.dialog_review_login.run()
-        self.dialog_review_login.hide()
-        if res != gtk.RESPONSE_OK:
-            self.on_button_cancel_clicked()
-            return self.quit(exitcode=1)
-        self._enter_user_name_password_finished()
-
-    def quit(self, exitcode=0):
-        lp_worker_thread.join()
-        gtk.main_quit()
-
-    def run_loop(self):
-        # do the launchpad stuff async
-        lp_worker_thread.start()
-        # wait for  state change 
-        glib.timeout_add(200, self._wait_for_login)
-        # parent
-        res = SimpleGtkbuilderApp.run(self)
-    
-    def login_successful(self):
+    def login_successful(self, display_name):
         """ callback when the login was successful """
         pass
 
-    def server_not_ready(self):
-        """ callback when the server is not ready (down, read-only etc) """
-        self.hbox_status.hide()
-        self.label_error.set_text(_("Couldn't connect to the reviews service. "
-                                    "Please try again later."))
-        self.hbox_error.show()
+    def _maybe_login_successful(self, sso, oauth_result):
+        """ called after we have the token, then we go and figure out our name """
+        self.token = oauth_result
+        # now get the user name
+        token = OAuthToken(self.token["token"], self.token["token_secret"])
+        authorizer = OAuthAuthorizer(self.token["consumer_key"],
+                                     self.token["consumer_secret"],
+                                     access_token=token)
+        self.restful_worker_thread = RestfulClientWorker(authorizer, UBUNTU_SSO_SERVICE)
+        self.restful_worker_thread.start()
+        # now get "me"
+        self.restful_worker_thread.queue_request("accounts.me", (), {},
+                                                 self._thread_whoami_done,
+                                                 self._thread_whoami_error)
 
-    def login_failure(self):
-        """ callback when the login failed """
-        softwarecenter.view.dialogs.error(self.dialog_review_app,
-                                          _("Authentication failure"),
-                                          _("Sorry, please try again"))
+
+    def _thread_whoami_done(self, result):
+        self.display_name = result["displayname"]
+        self.login_successful(self.display_name)
+
+    def _thread_whoami_error(self, e):
+        print "error: ", e
+
+    def login(self):
+        appname = _("Ubuntu Software Center")
+        login_text = _("To review software or to report abuse you need to "
+                       "sign in to a Ubuntu Single Sign-On account.")
+        self.sso = LoginBackendDbusSSO(self.dialog_main.window.xid, appname,
+                                       login_text)
+        self.sso.connect("login-successful", self._maybe_login_successful)
+        self.sso.login_or_register()
+
+    def run_loop(self):
+        # do the io stuff async
+        #worker_thread.start()
+        # login and run
+        self.login()
+        res = SimpleGtkbuilderApp.run(self)
 
     def on_button_cancel_clicked(self, button=None):
         # bring it down gracefully
-        lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
-        lp_worker_thread.shutdown()
+        worker_thread.shutdown()
         self.dialog_main.hide()
         while gtk.events_pending():
             gtk.main_iteration()
         gtk.main_quit()
 
-    def _wait_for_login(self):
-        state = lp_worker_thread.login_state
-        # hide progress once we got a reply
-        # check state
-        if state == LOGIN_STATE_AUTH_FAILURE:
-            self.login_failure()
-            self.enter_username_password()
-        elif state == LOGIN_STATE_ASK_USER_AND_PASS:
-            self.enter_username_password()
-        elif state == LOGIN_STATE_SUCCESS:
-            self.login_successful()
-            return False
-        elif state == LOGIN_STATE_USER_CANCEL:
-            return False
-        elif state == LOGIN_STATE_SERVER_NOT_READY:
-            self.server_not_ready()                  
-            return False
-        return True
-
-class SubmitReviewsApp(LoginGUI):
+class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
 
     LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
@@ -430,7 +257,7 @@ class SubmitReviewsApp(LoginGUI):
     APP_ICON_SIZE = 48
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
-        LoginGUI.__init__(self, datadir)
+        BaseApp.__init__(self, datadir)
         
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
@@ -519,9 +346,9 @@ class SubmitReviewsApp(LoginGUI):
             review.language = get_language()
             review.rating = self.rating
             review.package_version = self.version
-            lp_worker_thread.queue_review(review)
+            worker_thread.queue_review(review)
         # signal thread to finish
-        lp_worker_thread.shutdown()
+        worker_thread.shutdown()
         self.quit()
 
     def run(self):
@@ -533,11 +360,11 @@ class SubmitReviewsApp(LoginGUI):
         # now run the loop
         res = self.run_loop()
 
-    def login_successful(self):
-        self.label_reviewer.set_text(lp_worker_thread.display_name)
+    def login_successful(self, display_name):
+        self.label_reviewer.set_text(display_name)
         self.enter_review()
 
-class ReportReviewApp(LoginGUI):
+class ReportReviewApp(BaseApp):
     """ report a given application or package """
 
     LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
@@ -545,7 +372,7 @@ class ReportReviewApp(LoginGUI):
     APP_ICON_SIZE = 48
 
     def __init__(self, review_id, parent_xid, datadir):
-        LoginGUI.__init__(self, datadir)
+        BaseApp.__init__(self, datadir)
         self.dialog_main = self.dialog_report_app
         
         # spinner & error label
@@ -602,11 +429,11 @@ class ReportReviewApp(LoginGUI):
             text_buffer = self.textview_report_text.get_buffer()
             report_text = text_buffer.get_text(text_buffer.get_start_iter(),
                                                text_buffer.get_end_iter())
-            lp_worker_thread.queue_report((self.review_id,
+            worker_thread.queue_report((self.review_id,
                                            report_summary, 
                                            report_text))
         # signal thread to finish
-        lp_worker_thread.shutdown()
+        worker_thread.shutdown()
         self.quit()
         
     def run(self):
@@ -618,13 +445,13 @@ class ReportReviewApp(LoginGUI):
         # start the async loop
         self.run_loop()
 
-    def login_successful(self):
-        self.label_reporter.set_text(lp_worker_thread.display_name)
+    def login_successful(self, display_name):
+        self.label_reporter.set_text(display_name)
         self.report_abuse()
 
     
 # IMPORTANT: create one (module) global LP worker thread here
-lp_worker_thread = LaunchpadlibWorker()
+worker_thread = Worker()
 # daemon threads make it crash on cancel
 #lp_worker_thread.daemon = True
 
