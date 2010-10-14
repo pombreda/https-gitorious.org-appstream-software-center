@@ -1028,6 +1028,8 @@ class Reviews(gtk.VBox):
         if not self.expander.get_expanded():
             self.vbox.hide_all()
         else:
+            self._was_expanded = True
+
             if self.vbox.get_no_show_all():
                 self.vbox.set_no_show_all(False)
 
@@ -1052,10 +1054,18 @@ class Reviews(gtk.VBox):
             self.vbox.pack_start(review)
         return
 
+    def _be_the_first_to_review(self):
+        return
+
     def finished(self):
-        print 'Finished', len(self.reviews)
-        if self.expander.get_expanded():
-            self._fill()
+        print 'Review count: %s' % len(self.reviews)
+
+        if not self.reviews:
+            self._be_the_first_to_review()
+        else:
+            if self.expander.get_expanded():
+                self._fill()
+                self.vbox.show_all()
         return
 
     def set_appname(self, appname):
