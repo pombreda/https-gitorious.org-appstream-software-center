@@ -25,7 +25,7 @@ import gobject
 import cairo
 import gtk
 import os
-from mkit import ShapeStar, floats_from_string
+from mkit import EM, ShapeStar, floats_from_string
 
 
 
@@ -80,7 +80,7 @@ class Star(gtk.EventBox):
 
 class StarRating(gtk.HBox):
 
-    def __init__(self, n_stars, spacing=3, star_size=(11,11)):
+    def __init__(self, n_stars, spacing=3, star_size=(EM,EM)):
         gtk.HBox.__init__(self, spacing=spacing)
         for i in range(n_stars):
             self.pack_start(Star(star_size), False)
