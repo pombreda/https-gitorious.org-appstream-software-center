@@ -937,6 +937,7 @@ class AddonsTable(gtk.VBox):
         self.vbox.set_border_width(6)
         self.pack_start(self.vbox)
 
+        self._reload = True
         self.expander.connect('notify::expanded', self._on_expand)
         return
 
@@ -951,6 +952,10 @@ class AddonsTable(gtk.VBox):
 
     def _fill(self):
         if not self.recommended_addons and not self.suggested_addons:
+            return
+
+        if not self._reload:
+            self.vbox.show_all()
             return
 
         # clear any existing addons
@@ -969,6 +974,7 @@ class AddonsTable(gtk.VBox):
             addon.checkbutton.connect("toggled", self.addons_manager.mark_changes)
             self.vbox.pack_start(addon, False)
 
+        self._reload = False
         self.vbox.show_all()
         return
 
@@ -976,6 +982,7 @@ class AddonsTable(gtk.VBox):
         # FIXME: sort the addons in alphabetical order
         self.recommended_addons = addons[0]
         self.suggested_addons = addons[1]
+        self._reload = True
 
         if not self.recommended_addons and not self.suggested_addons:
             self.hide()
@@ -1023,17 +1030,21 @@ class Reviews(gtk.VBox):
 
         self.expander = gtk.Expander()
         self.expander.set_label_widget(label)
-        self.pack_start(self.expander, False)
+
+        self.new_review = mkit.VLinkButton('Review this application')
+        self.new_review.set_underline(True)
+
+        expander_hb = gtk.HBox()
+        self.pack_start(expander_hb, False)
+        expander_hb.pack_start(self.expander, False)
+        expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
         self.vbox.set_no_show_all(True)
         self.vbox.set_border_width(6)
         self.pack_start(self.vbox)
 
-        button_new = gtk.Button('Have your say')
-
         self.expander.connect('notify::expanded', self._on_expand)
-        button_new.connect("clicked", self._on_button_new_clicked)
         return
 
     def _on_expand(self, expander, param):
@@ -1050,6 +1061,11 @@ class Reviews(gtk.VBox):
 
     def _on_button_report_abuse_clicked(self, button, review_id):
         self.emit("report-abuse", review_id)
+
+    def set_appname(self, appname):
+        label = _('Have your say! Review %s')
+        self.new_review.set_label(label % appname)
+        return
 
     def add_review(self, review):
         box = gtk.HBox()
@@ -1628,6 +1644,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_statusbar.configure()
         return
 
+    def _update_reviews(self, app_details):
+        self.reviews.set_appname(app_details.name)
+
     def _update_all(self, app_details):
         appname = gobject.markup_escape_text(app_details.display_name)
 
@@ -1648,6 +1667,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
+        self._update_reviews(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
@@ -2062,8 +2082,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("zeitgeist usage: %s" % counter)
             if counter == 0:
                 # this probably means we just have no idea about it,
-                # so instead of saying "Used: never" we jusr return 
+                # so instead of saying "Used: never" we just return 
                 # this can go away when zeitgeist captures more events
+                # --there are still cases when we really do want to hide this
                 self.usage.hide()
                 return
             label_string = gettext.ngettext("Used: one time",

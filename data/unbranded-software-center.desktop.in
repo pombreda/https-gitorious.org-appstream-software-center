@@ -1,7 +1,7 @@
 [Desktop Entry]
 _Name=Software Center
 _GenericName=Software Center
-_Comment=Lets you choose from thousands of free applications available for your system 
+_Comment=Lets you choose from thousands of applications available for your system 
 Exec=/usr/bin/software-center
 Icon=softwarecenter
 Terminal=false

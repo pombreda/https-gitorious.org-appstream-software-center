@@ -32,6 +32,7 @@ from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 
+
 # this is a very lean class as its used in the main listview
 # and there are a lot of application objects in memory
 class Application(object):
@@ -115,6 +116,14 @@ class Application(object):
         else:
             return cmp(x.pkgname, y.pkgname)
 
+
+class NoneTypeApplication(Application):
+
+    def __init__(self):
+        Application.__init__(self, pkgname='_NoneTypeApplication_')
+        return
+
+
 class DebFileApplication(Application):
     def __init__(self, debfile):
         # deb overrides this
@@ -126,13 +135,6 @@ class DebFileApplication(Application):
         self.request = debfile
     def get_details(self, db):
         return AppDetailsDebFile(db, application=self)
-
-
-class NoneTypeApplication(Application):
-    
-    def __init__(self):
-        Application.__init__(self, pkgname='_NoneTypeApp_')
-        return
 
 
 # the details
