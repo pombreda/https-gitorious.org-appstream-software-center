@@ -46,7 +46,7 @@ class Distro(object):
         """ 
         The description of the application displayed in the about dialog
         """
-        return _("Lets you choose from thousands of free applications available for your system.")
+        return _("Lets you choose from thousands of applications available for your system.")
 
 
     def get_distro_channel_name(self):

@@ -230,8 +230,8 @@ class ImageDownloader(gobject.GObject):
         if dest_file_path is None:
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
-                dest_file_path = os.path.join(self.tmpdir,
-                                              uri_to_filename(url))
+            dest_file_path = os.path.join(self.tmpdir, uri_to_filename(url))
+
         self.url = url
         self.dest_file_path = dest_file_path
         
@@ -249,7 +249,7 @@ class ImageDownloader(gobject.GObject):
         try:
             result = f.query_info_finish(result)
             self.emit('image-url-reachable', True)
-            self.LOG.debug("image reachablee %s" % self.url)
+            self.LOG.debug("image reachable %s" % self.url)
             # url is reachable, now download the icon file
             f.load_contents_async(self._icon_download_complete_cb)
         except glib.GError, e:

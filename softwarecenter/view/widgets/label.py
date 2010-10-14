@@ -270,8 +270,7 @@ class IndentLabel(gtk.EventBox):
         self.selection = SelectionCursor(self.cursor)
         self.clipboard = None
 
-        self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
-        self._ppoller = 0
+        #self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
 
         # TODO: drag n drop
         #self.drag_source_set(gtk.gdk.BUTTON1_MASK, [("text/plain", 0, 80),], gtk.gdk.ACTION_COPY)

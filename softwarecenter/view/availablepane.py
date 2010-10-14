@@ -254,11 +254,7 @@ class AvailablePane(SoftwarePane):
         seq_nr = self.refresh_seq_nr
         # special case to disable show/hide nonapps for the "Featured" category
         # we do the same for the "System" category (LP: #636854)
-        if (self.apps_category and 
-            # FIXME: this should be a property of the category, not
-            #        something we hardcode here
-           (self.apps_category.untranslated_name == "Featured" or
-            self.apps_category.untranslated_name == "System")):
+        if (self.apps_category and 'carousel-only' not in self.apps_category.flags):
             self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
             self.disable_show_hide_nonapps = True
         else:
@@ -656,6 +652,7 @@ class AvailablePane(SoftwarePane):
         self.update_navigation_button()
 
     def on_application_selected(self, appview, app):
+        print 'app selected'
         """callback when an app is selected"""
         self._logger.debug("on_application_selected: '%s'" % app)
 

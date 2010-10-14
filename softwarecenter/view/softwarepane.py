@@ -135,7 +135,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                              ),
     }
     PADDING = 6
-    
+
     (PAGE_APPVIEW,
      PAGE_SPINNER) = range(2)
 
@@ -199,6 +199,8 @@ class SoftwarePane(gtk.VBox, BasePane):
                                           self.cache, 
                                           self.history,
                                           self.datadir)
+        self.app_details.connect("application-selected", 
+                                 self.on_application_selected)
         self.scroll_details.add(self.app_details)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)

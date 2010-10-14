@@ -508,8 +508,9 @@ class PackageInfo(gtk.HBox):
         return
 
     def set_value(self, value):
-        self.value_label.set_text(value)
-        self.a11y.set_name(self.key + ' ' + value)
+        self.value_label.set_markup(value)
+        self.a11y.set_name(self.key + ' ' + self.value_label.get_text())
+
 
 class ScreenshotView(gtk.Alignment):
 
@@ -813,10 +814,9 @@ class ScreenshotView(gtk.Alignment):
 
 class Addon(gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
-    
-    def __init__(self, db, icons, pkgname):
-        gtk.HBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
+    def __init__(self, db, icons, pkgname):
+        gtk.HBox.__init__(self, spacing=mkit.SPACING_SMALL)
         self.connect("realize", self._on_realize)
 
         # data
@@ -843,6 +843,11 @@ class Addon(gtk.HBox):
             LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
+        more = mkit.VLinkButton("More Info")
+        more.set_underline(True)
+        self.pack_end(more, False)
+        more.connect("clicked", self._on_more_clicked)
+
         # name
         title = self.app_details.display_name
         if len(title) >= 2:
@@ -858,12 +863,18 @@ class Addon(gtk.HBox):
 
         # a11y
         self.a11y = self.checkbutton.get_accessible()
-        self.a11y.set_name(_("Add-on") + ': ' + title + '(' + pkgname + ')')
+        self.a11y.set_name(_("Add-on") + ':' + title + '(' + pkgname + ')')
 
     def _on_realize(self, widget):
         dark = self.style.dark[self.state].to_string()
         key_markup = '<span color="%s">(%s)</span>'
         self.pkgname.set_markup(key_markup  % (dark, self.checkbutton.pkgname))
+
+    def _on_more_clicked(self, more_btn):
+        a = self.get_ancestor(AppDetailsViewGtk)
+        if not a: return
+        a.show_app(self.app)
+        return
 
     def get_active(self):
         return self.checkbutton.get_active()
@@ -871,49 +882,59 @@ class Addon(gtk.HBox):
     def set_active(self, is_active):
         self.checkbutton.set_active(is_active)    
 
+
 class AddonsTable(gtk.VBox):
     """ Widget to display a table of addons. """
     
     def __init__(self, addons_manager):
-        gtk.VBox.__init__(self, False, mkit.SPACING_MED)
-        self.header = gtk.VBox()
-        self.body = gtk.VBox()
-        self.pack_start(self.header, False)
-        self.pack_start(self.body, False)
-
+        gtk.VBox.__init__(self)
+        self.set_border_width(6)
         self.addons_manager = addons_manager
         self.cache = self.addons_manager.view.cache
         self.db = self.addons_manager.view.db
         self.icons = self.addons_manager.view.icons
         self.recommended_addons = None
         self.suggested_addons = None
-        self.connect("realize", self._on_realize)
 
-        self.label = gtk.Label()
-        self.label.set_use_markup(True)
-        self.label.set_alignment(0, 0.5)
-        self.header.pack_start(self.label, False, False)
+        label = gtk.Label()
+        label.set_use_markup(True)
+        label.set_alignment(0, 0.5)
+        markup = _('<b><big>Add-ons</big></b>')
+        label.set_markup(markup)
 
-        self.status_bar = AddonsStatusBar(addons_manager)
-        self.header.pack_start(self.status_bar, False)
+        self.expander = gtk.Expander()
+        self.expander.set_label_widget(label)
+        self.pack_start(self.expander, False)
+
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.vbox.set_no_show_all(True)
+        self.vbox.set_border_width(6)
+        self.pack_start(self.vbox)
+
+        self._reload = True
+        self.expander.connect('notify::expanded', self._on_expand)
         return
 
-    def _on_realize(self, widget):
-        markup = _('<b><span color="%s"><big>Add-ons</big></span></b>')
-        color = self.label.style.dark[self.label.state].to_string()
-        self.label.set_markup(markup % color)
-    
-    def set_addons(self, addons):
-        # FIXME: sort the addons in alphabetical order
-        self.recommended_addons = addons[0]
-        self.suggested_addons = addons[1]
+    def _on_expand(self, expander, param):
+        if not self.expander.get_expanded():
+            self.vbox.hide_all()
+        else:
+            if self.vbox.get_no_show_all():
+                self.vbox.set_no_show_all(False)
+            self._fill()
+        return
 
+    def _fill(self):
         if not self.recommended_addons and not self.suggested_addons:
             return
 
+        if not self._reload:
+            self.vbox.show_all()
+            return
+
         # clear any existing addons
-        for widget in self.body:
-            self.remove(widget)
+        for addon in self.vbox:
+            self.vbox.remove(addon)
 
         # set the new addons
         for addon_name in self.recommended_addons + self.suggested_addons:
@@ -925,9 +946,40 @@ class AddonsTable(gtk.VBox):
             #addon.pkgname.connect("clicked", not yet suitable for use)
             addon.set_active(pkg.installed != None)
             addon.checkbutton.connect("toggled", self.addons_manager.mark_changes)
-            self.body.pack_start(addon, False)
-        self.show_all()
+            self.vbox.pack_start(addon, False)
+
+        self._reload = False
+        self.vbox.show_all()
+        return
+
+    def set_addons(self, addons):
+        # FIXME: sort the addons in alphabetical order
+        self.recommended_addons = addons[0]
+        self.suggested_addons = addons[1]
+        self._reload = True
+
+        if not self.recommended_addons and not self.suggested_addons:
+            self.hide()
+        else:
+            self.show()
+            if self.expander.get_expanded():
+                self._fill()
         return False
+
+    def draw(self, cr, a):
+        if a.width <= 0: return
+        cr.save()
+        rr= mkit.ShapeRoundedRectangle()
+        rr.layout(cr, a.x,a.y, a.x+a.width, a.y+a.height, radius=4)
+        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.mid[0], 0.175))
+        cr.fill()
+        cr.set_line_width(1)
+        rr.layout(cr, a.x+0.5,a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=4)
+        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.dark[0]))
+        cr.stroke()
+        cr.restore()
+        return
+
 
 class Reviews(gtk.VBox):
 
@@ -941,47 +993,183 @@ class Reviews(gtk.VBox):
     }
 
     def __init__(self):
-        gtk.VBox.__init__(self, spacing=mkit.SPACING_XLARGE)
-        # stuff
-        box = gtk.HBox(spacing=mkit.SPACING_XLARGE)
-        label = gtk.Label()
-        label.set_markup("<big><b>%s</b></big>" % _("Reviews:"))
+        gtk.VBox.__init__(self)
+        self.set_border_width(6)
+
+        self.reviews = []
+
+        label = mkit.EtchedLabel()
+        label.set_use_markup(True)
         label.set_alignment(0, 0.5)
-        box.pack_start(label, False, False)
-        button_new = gtk.Button(_("Write new review"))
-        button_new.connect("clicked", self._on_button_new_clicked)
-        button_new.show()
-        box.pack_start(button_new, False, False)
-        self.pack_start(box, False, False)
-        
+        markup = "<b><big>%s</big></b>" % _("Reviews")
+        label.set_markup(markup)
+
+        self.expander = gtk.Expander()
+        self.expander.set_label_widget(label)
+
+        self.new_review = mkit.VLinkButton('placeholder')
+        self.new_review.set_underline(True)
+
+        expander_hb = gtk.HBox()
+        self.pack_start(expander_hb, False)
+        expander_hb.pack_start(self.expander, False)
+        expander_hb.pack_end(self.new_review, False)
+
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
+        self.vbox.set_no_show_all(True)
+        self.vbox.set_border_width(6)
+        self.pack_start(self.vbox, padding=6)
+
+        self._update = True
+        self.expander.connect('notify::expanded', self._on_expand)
+        return
+
+    def _on_expand(self, expander, param):
+        if not self.expander.get_expanded():
+            self.vbox.hide_all()
+        else:
+            if self.vbox.get_no_show_all():
+                self.vbox.set_no_show_all(False)
+
+            if self._update:
+                self._fill()
+                self.vbox.show_all()
+                self._update = False
+                return
+            else:
+                self.vbox.show_all()
+        return
+
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
+
     def _on_button_report_abuse_clicked(self, button, review_id):
         self.emit("report-abuse", review_id)
 
-    def add_review(self, review):
-        box = gtk.HBox()
-        # FIXME: make me *nice* :p
-        s = "Rated %s by %s: <b>%s</b> (on %s)" % (
-            review.rating, 
-            glib.markup_escape_text(review.person), 
-            glib.markup_escape_text(review.summary),
-            glib.markup_escape_text(review.date))
+    def _fill(self):
+        for r in self.reviews:
+            review = Review(r)
+            self.vbox.pack_start(review)
+        return
 
-        label_summary = gtk.Label()
-        label_summary.set_markup(s)
-        label_summary.set_alignment(0, 0.5)
-        label_summary.show()
-        # ugly, ugly, ugly
-        label_summary.set_tooltip_text(review.text)
-        box.pack_start(label_summary, False, False)
-        # report button
-        button = gtk.Button(_("Report abuse"))
-        button.connect("clicked", self._on_button_report_abuse_clicked, review.id)
-        button.show()
-        box.pack_start(button, False, False)
-        box.show()
-        self.pack_start(box)
+    def finished(self):
+        print 'Finished', len(self.reviews)
+        if self.expander.get_expanded():
+            self._fill()
+        return
+
+    def set_appname(self, appname):
+        label = _('Review %s')
+        self.new_review.set_label(label % appname)
+        return
+
+    def set_width(self, w):
+        for r in self.vbox:
+            r.body.set_size_request(w, -1)
+        return
+
+    def add_review(self, review):
+        self.reviews.append(review)
+        self._update = True
+        return
+
+    def clear(self):
+        self.reviews = []
+        for review in self.vbox:
+            review.destroy()
+
+    def draw(self, cr, a):
+        cr.save()
+        r, g, b = mkit.floats_from_string('#FFE879')
+        cr.rectangle(0, a.y, a.width+32, a.height+30)
+        cr.set_source_rgba(r,g,b,0.5)
+        cr.fill_preserve()
+
+        lin = cairo.LinearGradient(0, a.y, 0, a.y+150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.6)
+        lin.add_color_stop_rgba(1, r,g,b, 0.0)
+        
+        cr.set_source(lin)
+        cr.fill()
+
+        cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
+        cr.move_to(0, a.y+0.5)
+        cr.rel_line_to(a.width+32, 0)
+        cr.set_line_width(1)
+        cr.stroke()
+        cr.restore()
+
+        if not self.expander.get_expanded(): return
+
+        for r in self.vbox:
+            r.draw(cr, r.allocation)
+        return
+
+
+class Review(gtk.VBox):
+    
+    def __init__(self, review_data):
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+
+        self.header = gtk.HBox()
+        self.body = gtk.VBox()
+        self.footer = gtk.HBox()
+        #self.footer.set_size_request(-1, mkit.SPACING_LARGE)
+
+        self.pack_start(self.header, False)
+        self.pack_start(self.body, False)
+        self.pack_start(self.footer, False)
+
+        self.id = review_data.id
+        self.rating = review_data.rating 
+        self.person = glib.markup_escape_text(review_data.person)
+        self.summary = glib.markup_escape_text(review_data.summary)
+        self.text = glib.markup_escape_text(review_data.text)
+        self.date = glib.markup_escape_text(review_data.date)
+
+        self._build()
+
+        self.body.connect('size-allocate', self._on_allocate)
+        return
+
+    def _on_allocate(self, widget, allocation):
+        for child in self.body:
+            child.set_size_request(allocation.width, -1)
+        return
+
+    def _build(self):
+        m = "<b>%s</b>, %s" % (self.person.capitalize(), self.date)
+        who_what_when = gtk.Label(m)
+        who_what_when.set_use_markup(True)
+
+        summary = gtk.Label('<b>%s</b>' % self.summary)        
+        summary.set_use_markup(True)
+
+        text = gtk.Label(self.text)
+        text.set_line_wrap(True)
+        text.set_alignment(0, 0)
+
+        self.header.pack_start(summary, False)
+        self.header.pack_end(who_what_when, False)
+        #self.header.pack_end(gtk.Label(self.rating), False)
+        self.body.pack_start(text, False)
+        
+        complain = mkit.VLinkButton(_('Report as inapropriate'))
+        complain.set_underline(True)
+        self.footer.pack_end(complain, False)
+        return
+
+    def draw(self, cr, a):
+        cr.save()
+        rr = mkit.ShapeRoundedRectangle()
+        rr.layout(cr, a.x-4, a.y-4, a.x+a.width+4, a.y+a.height+4, radius=3)
+        cr.set_source_rgba(1,1,1,0.7)
+        cr.fill()
+        cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
+        rr.layout(cr, a.x-3.5, a.y-3.5, a.x+a.width+4.5, a.y+a.height+4.5, radius=3)
+        cr.set_line_width(1)
+        cr.stroke()
+        cr.restore()
 
 
 class AddonsStatusBar(StatusBar):
@@ -1035,7 +1223,7 @@ class AddonsManager():
 
         # add-on handling
         self.table = AddonsTable(self)
-        self.status_bar = self.table.status_bar
+        self.status_bar = AddonsStatusBar(self)
         self.addons_to_install = []
         self.addons_to_remove = []
 
@@ -1080,6 +1268,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
+                    "application-selected" : (gobject.SIGNAL_RUN_LAST,
+                                   gobject.TYPE_NONE,
+                                   (gobject.TYPE_PYOBJECT, )),
                     'application-request-action' : (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
                                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
@@ -1094,6 +1285,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.adjustment_value = None
 
         self.section = None
+        self.addons_manager = AddonsManager(self)
 
         # atk
         self.a11y = self.get_accessible()
@@ -1106,7 +1298,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
         # app specific data
-        self._same_app = False
         self.app = NoneTypeApplication()
         self.app_details = self.app.get_details(self.db)
 
@@ -1129,7 +1320,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
 
-
     def _reviews_ready_callback(self, app, reviews):
         # avoid possible race if we already moved to a new app when
         # the reviews become ready 
@@ -1147,6 +1337,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # of ", \, \n etc
             self.reviews.add_review(review)
 
+        self.reviews.finished()
+
     def _on_allocate(self, widget, allocation):
         w = allocation.width
         l = self.main_frame.label.get_layout()
@@ -1156,13 +1348,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.main_frame.label.set_size_request(-1, -1)
 
         desc = self.app_desc.description
-        size = desc.height_from_width(w-6*mkit.EM-166)
+        size = desc.height_from_width(w-4*mkit.EM-166)
         if size:
             desc.set_size_request(*size)
 
-        self.version_info.set_width(w-6*mkit.EM)
-        self.license_info.set_width(w-6*mkit.EM)
-        self.support_info.set_width(w-6*mkit.EM)
+        self.version_info.set_width(w-4*mkit.EM)
+        self.license_info.set_width(w-4*mkit.EM)
+        self.support_info.set_width(w-4*mkit.EM)
+
+        self.reviews.set_width(w-5*mkit.EM)
 
         self._full_redraw()   #  ewww
         return
@@ -1215,6 +1409,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         if self.usage.get_property('visible'):
             self.usage.draw(cr, self.usage.allocation)
+
+        if self.addon_view.get_property('visible'):
+            self.addon_view.draw(cr, self.addon_view.allocation)
+
+        self.reviews.draw(cr, self.reviews.allocation)
 
         del cr
         return
@@ -1293,7 +1492,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.main_frame.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
-        self.main_frame.body.set_spacing(mkit.SPACING_MED)
+        self.main_frame.body.set_spacing(mkit.SPACING_XLARGE)
         self.vbox.pack_start(self.main_frame, False)
 
         # a11y for name/summary
@@ -1362,26 +1561,30 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # package info
         self.info_keys = []
 
+        info_table_vbox = gtk.VBox(spacing=mkit.SPACING_MED)
+        self.main_frame.body.pack_start(info_table_vbox, False)
+
         self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
-        self.main_frame.body.pack_start(self.totalsize_info, False)
+        info_table_vbox.pack_start(self.totalsize_info, False)
+
+        self.addons_statusbar = self.addons_manager.status_bar
+        info_table_vbox.pack_start(self.addons_statusbar, False, padding=3)
 
         self.version_info = PackageInfo(_("Version:"), self.info_keys)
-        self.main_frame.body.pack_start(self.version_info, False)
+        info_table_vbox.pack_start(self.version_info, False)
 
         self.license_info = PackageInfo(_("License:"), self.info_keys)
-        self.main_frame.body.pack_start(self.license_info, False)
+        info_table_vbox.pack_start(self.license_info, False)
 
         self.support_info = PackageInfo(_("Updates:"), self.info_keys)
-        self.main_frame.body.pack_start(self.support_info, False)
+        info_table_vbox.pack_start(self.support_info, False)
         return
 
     def _layout_pkg_addons_actions(self):
         # addons manager
-        self.addons_manager = AddonsManager(self)
         self.addons_to_install = self.addons_manager.addons_to_install
         self.addons_to_remove = self.addons_manager.addons_to_remove
         self.addon_view = self.addons_manager.table
-        self.addons_statusbar = self.addon_view.status_bar
         self.main_frame.body.pack_start(self.addon_view, False)
         return
 
@@ -1482,7 +1685,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_app_screenshot(self, app_details):
         # get screenshot urls and configure the ScreenshotView...
-        if app_details.thumbnail and app_details.screenshot and not self._same_app:
+        if app_details.thumbnail and app_details.screenshot:
             self.screenshot.configure(app_details)
 
             # then begin screenshot download and display sequence
@@ -1512,17 +1715,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_addons(self, app_details):
         # refresh addons interface
-        self.addon_view.hide_all()
+        #self.addon_view.hide_all()
         if not app_details.error:
-            gobject.idle_add(self.addons_manager.configure,
-                             self.app_details.pkgname)
-        
+            self.addons_manager.configure(self.app_details.pkgname)
+
         # Update total size label
         gobject.timeout_add(500, self.update_totalsize, True)
         
         # Update addons state bar
         self.addons_statusbar.configure()
         return
+
+    def _update_reviews(self, app_details):
+        self.reviews.clear()
+        self.reviews.set_appname(app_details.name)
 
     def _update_all(self, app_details):
         appname = gobject.markup_escape_text(app_details.display_name)
@@ -1544,6 +1750,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
+        self._update_reviews(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
@@ -1649,23 +1856,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         old_details = self.app_details
         self.app = app
         self.app_details = app.get_details(self.db)
-        self._same_app = self.app_details.same_app(old_details)
 
         # for compat with the base class
         self.appdetails = self.app_details
         #print "AppDetailsViewGtk:"
         #print self.appdetails
 
-        if self._same_app:
+        if self.app_details.same_app(old_details):
             self._update_minimal(self.app_details)
         else:
             self._update_all(self.app_details)
 
-        self.emit("selected", self.app)
-        
         self.get_usage_counter()
         self._check_for_reviews()
 
+        self.emit("selected", self.app)
         return
 
     # public interface
@@ -1960,8 +2165,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("zeitgeist usage: %s" % counter)
             if counter == 0:
                 # this probably means we just have no idea about it,
-                # so instead of saying "Used: never" we jusr return 
+                # so instead of saying "Used: never" we just return 
                 # this can go away when zeitgeist captures more events
+                # --there are still cases when we really do want to hide this
                 self.usage.hide()
                 return
             label_string = gettext.ngettext("Used: one time",
