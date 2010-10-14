@@ -77,32 +77,6 @@ COLOR_BLACK         = '#323232'
 LOG = logging.getLogger("softwarecenter.view.appdetailsview")
 
 
-class Subsection(gtk.VBox):
-
-    def __init__(self):
-        gtk.VBox.__init__(self, False, spacing=mkit.SPACING_LARGE)
-        self.set_border_width(6)
-        self.header = gtk.VBox(spacing=mkit.SPACING_MED)
-        self.body = gtk.VBox(spacing=mkit.SPACING_MED)
-        self.pack_start(self.header, False)
-        self.pack_start(self.body, False)
-        return
-
-    def draw(self, cr, a):
-        if a.width <= 1: return
-        cr.save()
-        rr= mkit.ShapeRoundedRectangle()
-        rr.layout(cr, a.x,a.y, a.x+a.width, a.y+a.height, radius=4)
-        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.mid[0], 0.2))
-        cr.fill()
-        cr.set_line_width(1)
-        rr.layout(cr, a.x+0.5,a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=4)
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.dark[0]))
-        cr.stroke()
-        cr.restore()
-        return
-
-
 class StatusBar(gtk.Alignment):
     
     def __init__(self, view):
@@ -1022,7 +996,9 @@ class Reviews(gtk.VBox):
         gtk.VBox.__init__(self)
         self.set_border_width(6)
 
-        label = gtk.Label()
+        self.reviews = []
+
+        label = mkit.EtchedLabel()
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
         markup = "<b><big>%s</big></b>" % _("Reviews")
@@ -1031,7 +1007,7 @@ class Reviews(gtk.VBox):
         self.expander = gtk.Expander()
         self.expander.set_label_widget(label)
 
-        self.new_review = mkit.VLinkButton('Review this application')
+        self.new_review = mkit.VLinkButton('placeholder')
         self.new_review.set_underline(True)
 
         expander_hb = gtk.HBox()
@@ -1039,11 +1015,12 @@ class Reviews(gtk.VBox):
         expander_hb.pack_start(self.expander, False)
         expander_hb.pack_end(self.new_review, False)
 
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
         self.vbox.set_no_show_all(True)
         self.vbox.set_border_width(6)
-        self.pack_start(self.vbox)
+        self.pack_start(self.vbox, padding=6)
 
+        self._update = True
         self.expander.connect('notify::expanded', self._on_expand)
         return
 
@@ -1051,9 +1028,18 @@ class Reviews(gtk.VBox):
         if not self.expander.get_expanded():
             self.vbox.hide_all()
         else:
+            self._was_expanded = True
+
             if self.vbox.get_no_show_all():
                 self.vbox.set_no_show_all(False)
-            #self._fill()
+
+            if self._update:
+                self._fill()
+                self.vbox.show_all()
+                self._update = False
+                return
+            else:
+                self.vbox.show_all()
         return
 
     def _on_button_new_clicked(self, button):
@@ -1062,37 +1048,139 @@ class Reviews(gtk.VBox):
     def _on_button_report_abuse_clicked(self, button, review_id):
         self.emit("report-abuse", review_id)
 
+    def _fill(self):
+        for r in self.reviews:
+            review = Review(r)
+            self.vbox.pack_start(review)
+        return
+
+    def _be_the_first_to_review(self):
+        return
+
+    def finished(self):
+        print 'Review count: %s' % len(self.reviews)
+
+        if not self.reviews:
+            self._be_the_first_to_review()
+        else:
+            if self.expander.get_expanded():
+                self._fill()
+                self.vbox.show_all()
+        return
+
     def set_appname(self, appname):
-        label = _('Have your say! Review %s')
+        label = _('Review %s')
         self.new_review.set_label(label % appname)
         return
 
-    def add_review(self, review):
-        box = gtk.HBox()
-        # FIXME: make me *nice* :p
-        s = "Rated %s by %s: <b>%s</b> (on %s)" % (
-            review.rating, 
-            glib.markup_escape_text(review.person), 
-            glib.markup_escape_text(review.summary),
-            glib.markup_escape_text(review.date))
+    def set_width(self, w):
+        for r in self.vbox:
+            r.body.set_size_request(w, -1)
+        return
 
-        label_summary = gtk.Label()
-        label_summary.set_markup(s)
-        label_summary.set_alignment(0, 0.5)
-        label_summary.show()
-        # ugly, ugly, ugly
-        label_summary.set_tooltip_text(review.text)
-        box.pack_start(label_summary, False, False)
-        # report button
-        button = gtk.Button(_("Report abuse"))
-        button.connect("clicked", self._on_button_report_abuse_clicked, review.id)
-        button.show()
-        box.pack_start(button, False, False)
-        box.show()
-        self.pack_start(box)
+    def add_review(self, review):
+        self.reviews.append(review)
+        self._update = True
+        return
+
+    def clear(self):
+        self.reviews = []
+        for review in self.vbox:
+            review.destroy()
 
     def draw(self, cr, a):
+        cr.save()
+        r, g, b = mkit.floats_from_string('#FFE879')
+        cr.rectangle(0, a.y, a.width+32, a.height+30)
+        cr.set_source_rgba(r,g,b,0.5)
+        cr.fill_preserve()
+
+        lin = cairo.LinearGradient(0, a.y, 0, a.y+150)
+        lin.add_color_stop_rgba(0, r,g,b, 0.6)
+        lin.add_color_stop_rgba(1, r,g,b, 0.0)
+        
+        cr.set_source(lin)
+        cr.fill()
+
+        cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
+        cr.move_to(0, a.y+0.5)
+        cr.rel_line_to(a.width+32, 0)
+        cr.set_line_width(1)
+        cr.stroke()
+        cr.restore()
+
+        if not self.expander.get_expanded(): return
+
+        for r in self.vbox:
+            r.draw(cr, r.allocation)
         return
+
+
+class Review(gtk.VBox):
+    
+    def __init__(self, review_data):
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+
+        self.header = gtk.HBox()
+        self.body = gtk.VBox()
+        self.footer = gtk.HBox()
+        #self.footer.set_size_request(-1, mkit.SPACING_LARGE)
+
+        self.pack_start(self.header, False)
+        self.pack_start(self.body, False)
+        self.pack_start(self.footer, False)
+
+        self.id = review_data.id
+        self.rating = review_data.rating 
+        self.person = glib.markup_escape_text(review_data.person)
+        self.summary = glib.markup_escape_text(review_data.summary)
+        self.text = glib.markup_escape_text(review_data.text)
+        self.date = glib.markup_escape_text(review_data.date)
+
+        self._build()
+
+        self.body.connect('size-allocate', self._on_allocate)
+        return
+
+    def _on_allocate(self, widget, allocation):
+        for child in self.body:
+            child.set_size_request(allocation.width, -1)
+        return
+
+    def _build(self):
+        m = "<b>%s</b>, %s" % (self.person.capitalize(), self.date)
+        who_what_when = gtk.Label(m)
+        who_what_when.set_use_markup(True)
+
+        summary = gtk.Label('<b>%s</b>' % self.summary)        
+        summary.set_use_markup(True)
+
+        text = gtk.Label(self.text)
+        text.set_line_wrap(True)
+        text.set_alignment(0, 0)
+
+        self.header.pack_start(summary, False)
+        self.header.pack_end(who_what_when, False)
+        #self.header.pack_end(gtk.Label(self.rating), False)
+        self.body.pack_start(text, False)
+        
+        complain = mkit.VLinkButton(_('Report as inapropriate'))
+        complain.set_underline(True)
+        self.footer.pack_end(complain, False)
+        return
+
+    def draw(self, cr, a):
+        cr.save()
+        rr = mkit.ShapeRoundedRectangle()
+        rr.layout(cr, a.x-4, a.y-4, a.x+a.width+4, a.y+a.height+4, radius=3)
+        cr.set_source_rgba(1,1,1,0.7)
+        cr.fill()
+        cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
+        rr.layout(cr, a.x-3.5, a.y-3.5, a.x+a.width+4.5, a.y+a.height+4.5, radius=3)
+        cr.set_line_width(1)
+        cr.stroke()
+        cr.restore()
+
 
 class AddonsStatusBar(StatusBar):
     
@@ -1259,6 +1347,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # of ", \, \n etc
             self.reviews.add_review(review)
 
+        self.reviews.finished()
+
     def _on_allocate(self, widget, allocation):
         w = allocation.width
         l = self.main_frame.label.get_layout()
@@ -1275,6 +1365,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.version_info.set_width(w-4*mkit.EM)
         self.license_info.set_width(w-4*mkit.EM)
         self.support_info.set_width(w-4*mkit.EM)
+
+        self.reviews.set_width(w-5*mkit.EM)
 
         self._full_redraw()   #  ewww
         return
@@ -1645,6 +1737,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_reviews(self, app_details):
+        self.reviews.clear()
         self.reviews.set_appname(app_details.name)
 
     def _update_all(self, app_details):
