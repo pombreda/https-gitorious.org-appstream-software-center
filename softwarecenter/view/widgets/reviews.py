@@ -74,8 +74,8 @@ class Star(gtk.EventBox):
 
     def draw(self, cr, a):
         w, h = self.get_size_request()
-        x = a.x + (a.width-self.size_request[0])/2
-        y = a.y + (a.height-self.size_request[1])/2
+        x = a.x + (a.width-w)/2
+        y = a.y + (a.height-h)/2
 
         paint_star(cr, x, y, w, h)
         return
