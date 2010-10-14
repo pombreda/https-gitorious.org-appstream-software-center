@@ -470,6 +470,36 @@ class ShapeCircle(Shape):
         return
 
 
+class ShapeStar(Shape):
+
+    def __init__(self, direction=gtk.TEXT_DIR_LTR):
+        Shape.__init__(self, direction)
+        self.points = ((0.5,0),         # A
+                       (0.63,0.37),     # B
+                       (1.0,0.37),      # C
+                       (0.7,0.62),     # D
+                       (0.815,1.0),     # E
+                       (0.5,0.76),      # F
+                       (0.185,1.0),     # G
+                       (0.31,0.62),     # H    
+                       (0,0.37),        # I
+                       (0.37, 0.37))    # J
+        return
+
+    def layout(self, cr, x, y, w, h, *args, **kwargs):
+        cr.new_path()
+        px,py = self.points[0]
+        cr.move_to(x+w*px, y+h*py)
+
+        for point in self.points[1:]:
+            px,py = point
+            cr.line_to(x+w*px, y+h*py)
+
+        cr.close_path()
+        return
+
+
+
 class Style:
 
     def __init__(self):

@@ -22,8 +22,71 @@
 import pygtk
 pygtk.require ("2.0")
 import gobject
+import cairo
 import gtk
 import os
+from mkit import EM, ShapeStar, floats_from_string
+
+
+
+class Star(gtk.EventBox):
+
+    def __init__(self, size):
+        gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
+        self.set_size_request(*size)
+
+        self.size_request = size
+        self.shape = ShapeStar()
+        self.fraction = 1.0
+
+        self.fg_fill = floats_from_string('#DC3300')
+        self.fg_line = floats_from_string('#912000')
+
+        #self.bg_fill = floats_from_string('#949494')
+        #self.bg_line = floats_from_string('#484848')
+
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def _on_expose(self, widget, event):
+        cr = widget.window.cairo_create()
+        self.draw(cr, self.allocation)
+        del cr
+        return
+
+    def draw(self, cr, a):
+        cr.save()
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+        w, h = self.size_request
+        x = a.x + (a.width-self.size_request[0])/2
+        y = a.y + (a.height-self.size_request[1])/2
+
+        self.shape.layout(cr, x, y, w, h)
+        cr.set_source_rgb(*self.fg_fill)
+        cr.stroke_preserve()
+        cr.fill_preserve()
+
+        lin = cairo.LinearGradient(0, y, 0, y+h)
+        lin.add_color_stop_rgba(0, 1,1,1, 0.3)
+        lin.add_color_stop_rgba(1, 0,0,0, 0.2)
+        cr.set_source(lin)
+        cr.fill()
+
+        cr.restore()
+        return
+
+
+class StarRating(gtk.HBox):
+
+    def __init__(self, n_stars, spacing=3, star_size=(EM,EM)):
+        gtk.HBox.__init__(self, spacing=spacing)
+        for i in range(n_stars):
+            self.pack_start(Star(star_size), False)
+        self.show_all()
+        return
+
 
 class ReviewStatsContainer(gtk.HBox):
 
@@ -31,6 +94,7 @@ class ReviewStatsContainer(gtk.HBox):
     DARK_STAR_IMAGE = "star-dark"
 
     ICON_SIZE = gtk.ICON_SIZE_MENU
+    STAR_SIZE = 16
 
     def __init__(self, icon_cache=None):
         gtk.HBox.__init__(self)

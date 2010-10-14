@@ -49,7 +49,7 @@ from appdetailsview import AppDetailsViewBase
 from widgets import mkit
 from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
-from widgets.reviews import ReviewStatsContainer
+from widgets.reviews import ReviewStatsContainer, StarRating
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -1056,10 +1056,18 @@ class Reviews(gtk.VBox):
             self.vbox.pack_start(review)
         return
 
+    def _be_the_first_to_review(self):
+        return
+
     def finished(self):
-        print 'Finished', len(self.reviews)
-        if self.expander.get_expanded():
-            self._fill()
+        print 'Review count: %s' % len(self.reviews)
+
+        if not self.reviews:
+            self._be_the_first_to_review()
+        else:
+            if self.expander.get_expanded():
+                self._fill()
+                self.vbox.show_all()
         return
 
     def set_appname(self, appname):
@@ -1071,6 +1079,7 @@ class Reviews(gtk.VBox):
         self.stats = stats
         if not stats:
             return
+
         self.review_stats_widget.set_avg_rating(stats.avg_rating)
         self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
         self.review_stats_widget.show()
@@ -1094,7 +1103,7 @@ class Reviews(gtk.VBox):
         cr.save()
         r, g, b = mkit.floats_from_string('#FFE879')
         cr.rectangle(0, a.y, a.width+32, a.height+30)
-        cr.set_source_rgba(r,g,b,0.5)
+        cr.set_source_rgba(r,g,b,0.333)
         cr.fill_preserve()
 
         lin = cairo.LinearGradient(0, a.y, 0, a.y+150)
@@ -1123,23 +1132,22 @@ class Review(gtk.VBox):
     def __init__(self, review_data):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
-        self.header = gtk.HBox()
+        self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
         self.footer = gtk.HBox()
-        #self.footer.set_size_request(-1, mkit.SPACING_LARGE)
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
         self.pack_start(self.footer, False)
 
         self.id = review_data.id
-        self.rating = review_data.rating 
-        self.person = glib.markup_escape_text(review_data.person)
-        self.summary = glib.markup_escape_text(review_data.summary)
-        self.text = glib.markup_escape_text(review_data.text)
-        self.date = glib.markup_escape_text(review_data.date)
+        rating = review_data.rating 
+        person = glib.markup_escape_text(review_data.person)
+        summary = glib.markup_escape_text(review_data.summary)
+        text = glib.markup_escape_text(review_data.text)
+        date = glib.markup_escape_text(review_data.date)
 
-        self._build()
+        self._build(rating, person, summary, text, date)
 
         self.body.connect('size-allocate', self._on_allocate)
         return
@@ -1149,24 +1157,21 @@ class Review(gtk.VBox):
             child.set_size_request(allocation.width, -1)
         return
 
-    def _build(self):
-        m = "<b>%s</b>, %s" % (self.person.capitalize(), self.date)
+    def _build(self, rating, person, summary, text, date):
+        m = "<b>%s</b>, %s" % (person.capitalize(), date)
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
 
-        rating = ReviewStatsContainer()
-        rating.set_avg_rating(self.rating)
-
-        summary = gtk.Label('<b>%s</b>' % self.summary)        
+        summary = gtk.Label('<b>%s</b>' % summary)        
         summary.set_use_markup(True)
 
-        text = gtk.Label(self.text)
+        text = gtk.Label(text)
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
 
-        self.header.pack_start(rating, False)
         self.header.pack_start(summary, False)
+        self.header.pack_start(StarRating(rating), False)
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
@@ -1179,11 +1184,11 @@ class Review(gtk.VBox):
     def draw(self, cr, a):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr, a.x-4, a.y-4, a.x+a.width+4, a.y+a.height+4, radius=3)
+        rr.layout(cr, a.x-6, a.y-5, a.x+a.width+6, a.y+a.height+5, radius=3)
         cr.set_source_rgba(1,1,1,0.7)
         cr.fill()
         cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
-        rr.layout(cr, a.x-3.5, a.y-3.5, a.x+a.width+4.5, a.y+a.height+4.5, radius=3)
+        rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=3)
         cr.set_line_width(1)
         cr.stroke()
         cr.restore()
