@@ -74,6 +74,8 @@ o    Attributes:
         return count
     def __repr__(self):
         return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
+    def __cmp__(self, other):
+        return cmp(self.start_date, other.start_date)
                
 class AptHistory(object):
 
