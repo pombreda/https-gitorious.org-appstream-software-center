@@ -32,7 +32,7 @@ class ReviewStatsContainer(gtk.HBox):
 
     ICON_SIZE = gtk.ICON_SIZE_MENU
 
-    def __init__(self, avg_rating, nr_reviews, icon_cache=None):
+    def __init__(self, avg_rating=0, nr_reviews=0, icon_cache=None):
         gtk.HBox.__init__(self)
         self.avg_rating = avg_rating
         self.nr_reviews = nr_reviews
@@ -49,6 +49,13 @@ class ReviewStatsContainer(gtk.HBox):
         self.pack_start(self.label, False, False)
         self._update_nr_reviews()
         self._update_rating()
+    def set_avg_rating(self, avg_rating):
+        self.avg_rating = avg_rating
+        self._update_rating()
+    def set_nr_reviews(self, nr_reviews):
+        self.nr_reviews = nr_reviews
+        self._update_nr_reviews()
+    # internal stuff
     def _update_nr_reviews(self):
         self.label.set_markup("<small>(%s)</small>" % self.nr_reviews)
     def _update_rating(self):

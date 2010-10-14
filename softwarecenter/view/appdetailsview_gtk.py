@@ -49,6 +49,7 @@ from appdetailsview import AppDetailsViewBase
 from widgets import mkit
 from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
+from widgets.reviews import ReviewStatsContainer
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -1010,12 +1011,12 @@ class Reviews(gtk.VBox):
         self.new_review = mkit.VLinkButton('placeholder')
         self.new_review.set_underline(True)
 
-        self.review_stats_label = gtk.Label("")
+        self.review_stats_widget = ReviewStatsContainer()
 
         expander_hb = gtk.HBox()
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
-        expander_hb.pack_start(self.review_stats_label, False)
+        expander_hb.pack_start(self.review_stats_widget, False)
         expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
@@ -1070,8 +1071,9 @@ class Reviews(gtk.VBox):
         self.stats = stats
         if not stats:
             return
-        s = _("Rated %s (%s ratings)") % (stats.avg_rating, stats.nr_reviews)
-        self.review_stats_label.set_text(s)
+        self.review_stats_widget.set_avg_rating(stats.avg_rating)
+        self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
+        self.review_stats_widget.show()
 
     def set_width(self, w):
         for r in self.vbox:
