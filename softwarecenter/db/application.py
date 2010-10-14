@@ -119,6 +119,8 @@ class Application(object):
 
 class NoneTypeApplication(Application):
 
+    """ A placeholder Application """
+
     def __init__(self):
         Application.__init__(self, pkgname='_NoneTypeApplication_')
         return
