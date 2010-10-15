@@ -63,7 +63,7 @@ o    Attributes:
             # we use ascii_lower for issues described in LP: #581207
             attr = ascii_lower(k)
             if k in sec:
-                value = map(string.strip, sec[k].split("),"))
+                value = map(self._fixup_history_item, sec[k].split("),"))
             else:
                 value = []
             setattr(self, attr, value)
@@ -74,6 +74,13 @@ o    Attributes:
         return count
     def __repr__(self):
         return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
+    @staticmethod
+    def _fixup_history_item(s):
+        """ strip history item string and add missing ")" if needed """
+        s=s.strip()
+        if "(" in s and not s.endswith(")"):
+            s+=")"
+        return s
                
 class AptHistory(object):
 
