@@ -1,3 +1,12 @@
+software-center (3.1.1) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - correctly reload appdetailsview after a transaction has run
+    - _update_minimal() only gets two args
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Oct 2010 17:31:30 +0200
+
 software-center (3.1.0) natty; urgency=low
 
   [ Michael Vogt ]
