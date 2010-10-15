@@ -993,10 +993,11 @@ class Reviews(gtk.VBox):
                     (gobject.TYPE_PYOBJECT,)),
     }
 
-    def __init__(self):
+    def __init__(self, parent):
         gtk.VBox.__init__(self)
         self.set_border_width(6)
 
+        self._parent = parent
         self.reviews = []
 
         label = mkit.EtchedLabel()
@@ -1102,8 +1103,11 @@ class Reviews(gtk.VBox):
     def draw(self, cr, a):
         cr.save()
         r, g, b = mkit.floats_from_string('#FFE879')
-        cr.rectangle(0, a.y, a.width+32, a.height+30)
-        cr.set_source_rgba(r,g,b,0.333)
+        pa = self._parent.allocation
+        cr.rectangle(0, a.y,
+                     pa.width,
+                     max(pa.height, a.height+32))
+        cr.set_source_rgba(r,g,b,0.25)
         cr.fill_preserve()
 
         lin = cairo.LinearGradient(0, a.y, 0, a.y+150)
@@ -1616,7 +1620,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _layout_reviews(self):
         # reviews
-        self.reviews = Reviews()
+        self.reviews = Reviews(self)
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.main_frame.body.pack_start(self.reviews)

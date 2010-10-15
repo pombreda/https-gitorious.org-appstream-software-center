@@ -29,39 +29,22 @@ from mkit import EM, ShapeStar, floats_from_string
 
 
 
-class Star(gtk.EventBox):
+class StarPainter(object):
 
-    def __init__(self, size):
-        gtk.EventBox.__init__(self)
-        self.set_visible_window(False)
-        self.set_size_request(*size)
-
-        self.size_request = size
+    def __init__(self):
         self.shape = ShapeStar()
-        self.fraction = 1.0
-
-        self.fg_fill = floats_from_string('#DC3300')
-        self.fg_line = floats_from_string('#912000')
+        #self.fraction = 1.0    # maybe we could have partially filled stars for like 3.5/5 scenarios
 
         #self.bg_fill = floats_from_string('#949494')
         #self.bg_line = floats_from_string('#484848')
 
-        self.connect('expose-event', self._on_expose)
+        self.fg_fill = floats_from_string('#DC3300')
+        self.fg_line = floats_from_string('#912000')
         return
 
-    def _on_expose(self, widget, event):
-        cr = widget.window.cairo_create()
-        self.draw(cr, self.allocation)
-        del cr
-        return
-
-    def draw(self, cr, a):
+    def paint_star(self, cr, x, y, w, h):
         cr.save()
         cr.set_line_join(cairo.LINE_CAP_ROUND)
-
-        w, h = self.size_request
-        x = a.x + (a.width-self.size_request[0])/2
-        y = a.y + (a.height-self.size_request[1])/2
 
         self.shape.layout(cr, x, y, w, h)
         cr.set_source_rgb(*self.fg_fill)
@@ -78,17 +61,48 @@ class Star(gtk.EventBox):
         return
 
 
-class StarRating(gtk.HBox):
+class StarWidget(gtk.EventBox, StarPainter):
 
-    def __init__(self, n_stars, spacing=3, star_size=(EM,EM)):
-        gtk.HBox.__init__(self, spacing=spacing)
-        for i in range(n_stars):
-            self.pack_start(Star(star_size), False)
-        self.show_all()
+    def __init__(self, size):
+        gtk.EventBox.__init__(self)
+        StarPainter.__init__(self)
+        self.set_visible_window(False)
+        self.set_size_request(*size)
+
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def _on_expose(self, widget, event):
+        cr = widget.window.cairo_create()
+        self.draw(cr, self.allocation)
+        del cr
+        return
+
+    def draw(self, cr, a):
+        w, h = self.get_size_request()
+        x = a.x + (a.width-w)/2
+        y = a.y + (a.height-h)/2
+
+        self.paint_star(cr, x, y, w, h)
         return
 
 
-class ReviewStatsContainer(gtk.HBox):
+class StarRating(gtk.HBox):
+
+    def __init__(self, n_stars=None, spacing=3, star_size=(EM,EM)):
+        gtk.HBox.__init__(self, spacing=spacing)
+        self.star_size = star_size
+        if n_stars:
+            self.show_stars(n_stars)
+    def show_stars(self, n_stars):
+        # kill old
+        self.foreach(lambda w: isinstance(StarWidget, w) and w.destroy())
+        for i in range(n_stars):
+            self.pack_start(StarWidget(self.star_size), False)
+        self.show_all()
+        return
+
+class ReviewStatsContainer(StarRating):
 
     STAR_IMAGE = "star-yellow"
     DARK_STAR_IMAGE = "star-dark"
@@ -96,24 +110,12 @@ class ReviewStatsContainer(gtk.HBox):
     ICON_SIZE = gtk.ICON_SIZE_MENU
     STAR_SIZE = 16
 
-    def __init__(self, icon_cache=None):
-        gtk.HBox.__init__(self)
-        self.avg_rating = None
-        self.nr_reviews = None
-        if not icon_cache:
-            icons = gtk.icon_theme_get_default()
-            icons.append_search_path("/usr/share/software-center/images/")
-        else:
-            icons = icon_cache
-        for i in range(1,6):
-            name = "image_review_star%i" % i
-            setattr(self, name, gtk.Image())
-            self.pack_start(getattr(self, name), False, False)
+    def __init__(self):
+        StarRating.__init__(self)
         self.label = gtk.Label("")
-        self.pack_start(self.label, False, False)
+        self.pack_end(self.label, False, False)
     def set_avg_rating(self, avg_rating):
-        self.avg_rating = avg_rating
-        self._update_rating()
+        self.show_stars(avg_rating)
     def set_nr_reviews(self, nr_reviews):
         self.nr_reviews = nr_reviews
         self._update_nr_reviews()
@@ -121,13 +123,6 @@ class ReviewStatsContainer(gtk.HBox):
     def _update_nr_reviews(self):
         self.label.set_markup("<small>(%s)</small>" %  
                               _("%i Ratings") % self.nr_reviews)
-    def _update_rating(self):
-        for i in range(1, self.avg_rating+1):
-            img = getattr(self, "image_review_star%i" % i)
-            img.set_from_icon_name(self.STAR_IMAGE, self.ICON_SIZE)
-        for i in range(self.avg_rating+1, 6):
-            img = getattr(self, "image_review_star%i" % i)
-            img.set_from_icon_name(self.DARK_STAR_IMAGE, self.ICON_SIZE)
 
 if __name__ == "__main__":
     icons = gtk.icon_theme_get_default()
