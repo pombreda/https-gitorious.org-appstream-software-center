@@ -132,7 +132,7 @@ class StarRating(gtk.HBox):
 
     MAX_STARS = 5
 
-    def __init__(self, n_stars=None, spacing=3, star_size=(EM,EM)):
+    def __init__(self, n_stars=None, spacing=3, star_size=(EM-2,EM-2)):
         gtk.HBox.__init__(self, spacing=spacing)
         self._build(star_size)
         if n_stars:
@@ -163,7 +163,7 @@ class StarRating(gtk.HBox):
 class ReviewStatsContainer(StarRating):
 
     def __init__(self):
-        StarRating.__init__(self)
+        StarRating.__init__(self, star_size=(EM,EM))
         self.label = gtk.Label("")
         self.pack_end(self.label, False, False)
         self.connect('expose-event', self._on_expose)
