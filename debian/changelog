@@ -1,4 +1,4 @@
-software-center (3.1.0) UNRELEASED; urgency=low
+software-center (3.1.0) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/app.py:
@@ -33,12 +33,26 @@ software-center (3.1.0) UNRELEASED; urgency=low
   * softwarecenter/db/database.py:
     - support mime search via "mime" search prefix, e.g. 
       "mime:audio/ogg" or "softwarecenter search:mime:application/x-cue"
+  * merged lp:~seif/software-center/zeitgeist-popular-mimetypes and
+    lp:~mvo/software-center/zeitgeist-popular-mimetypes-mvo, that
+    brings more zeitgeist love from the unstoppable Seif Lotfy
+  * merged lp:~mvo/software-center/3.0-history to bring back version
+    numbers in the upgrade history
 
   [ Delan Azabani ]
   * removed "free" from desktop file description as users can buy
     software from the software center (LP: #656800)
 
   [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't eat 'o ' character combinations within bullet points (LP: #646822)
+      (test case: software-center deja-dup)
+    - scale icon down when setting 'where is it' icon from path (LP: #645062)
+      (test case: software-center briquolo (once installed))
+  * softwarecenter/view/softwarepane.py:
+    - don't offer to 'show 9k items' in searches, as we limit searches to 200
+      items (LP: #648988)
+      (test case: software-center search:library)
   * softwarecenter/db/update.py:
     - never translate X-AppInstall-Package (fixes eg lp: #658326)
 
@@ -51,9 +65,9 @@ software-center (3.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - fix intermittent crash in _set_cursor (LP: #617004) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Sep 2010 13:29:43 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Oct 2010 17:31:30 +0200
 
-software-center (3.0.5) UNRELEASED; urgency=low
+software-center (3.0.5) maverick-proposed; urgency=low
 
   [ Andrea Cimitan ]
   * fix rendering with Ambiance theme (LP: #635208)
@@ -89,8 +103,10 @@ software-center (3.0.5) UNRELEASED; urgency=low
       on machines that filter the port 11371
   * softwarecenter/backend/restfulclient.py, softwarecenter/enums.py:
     - use plain http for the "what-is-available" API call
+  * send user default language for "/apps" and "/subscription" requests
+    now that the server is ready for this
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Oct 2010 12:34:38 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Oct 2010 16:13:10 +0200
 
 software-center (3.0.4) maverick; urgency=low
 
