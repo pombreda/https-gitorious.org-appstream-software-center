@@ -1,4 +1,4 @@
-software-center (3.1.0) UNRELEASED; urgency=low
+software-center (3.1.0) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/app.py:
@@ -65,7 +65,7 @@ software-center (3.1.0) UNRELEASED; urgency=low
   * softwarecenter/view/appview.py:
     - fix intermittent crash in _set_cursor (LP: #617004) 
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 12 Oct 2010 10:55:15 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Oct 2010 17:31:30 +0200
 
 software-center (3.0.5) maverick-proposed; urgency=low
 
