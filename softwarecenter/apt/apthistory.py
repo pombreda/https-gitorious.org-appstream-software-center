@@ -24,6 +24,7 @@ import glib
 import glob
 import gzip
 import os.path
+import re
 import logging
 import string
 import datetime
@@ -78,6 +79,8 @@ o    Attributes:
     def _fixup_history_item(s):
         """ strip history item string and add missing ")" if needed """
         s=s.strip()
+        # remove the infomation about the architecture
+        s = re.sub(":\w+", "", s)
         if "(" in s and not s.endswith(")"):
             s+=")"
         return s

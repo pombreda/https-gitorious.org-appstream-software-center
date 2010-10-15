@@ -183,8 +183,7 @@ class HistoryPane(gtk.VBox, BasePane):
                        self.UPGRADED: trans.upgrade,
                       }
             for action, pkgs in actions.iteritems():
-                pkgnames = [p.split(':')[0].split(' (')[0] for p in pkgs]
-                for pkgname in pkgnames:
+                for pkgname in pkgs:
                     row = (when, action, pkgname)
                     last_row = self.store.insert_after(day, last_row, row)
         self.last = new_last
