@@ -39,7 +39,7 @@ class StarPainter(object):
         #self.bg_line = floats_from_string('#484848')
 
         self.fg_fill = floats_from_string('#DC3300')
-        self.fg_line = floats_from_string('#912000')
+        #self.fg_line = floats_from_string('#912000')
         return
 
     def paint_star(self, cr, x, y, w, h):
@@ -87,6 +87,14 @@ class StarWidget(gtk.EventBox, StarPainter):
         return
 
 
+class DarkStarWidget(StarWidget):
+
+    def __init__(self, size):
+        StarWidget.__init__(self, size)
+        
+        self.fg_fill = floats_from_string('#C2C2C2')
+
+
 class StarRating(gtk.HBox):
 
     def __init__(self, n_stars=None, spacing=3, star_size=(EM,EM)):
@@ -96,9 +104,12 @@ class StarRating(gtk.HBox):
             self.show_stars(n_stars)
     def show_stars(self, n_stars):
         # kill old
-        self.foreach(lambda w: isinstance(StarWidget, w) and w.destroy())
+        
+        self.foreach(lambda w: isinstance(w, (StarWidget, DarkStarWidget)) and w.destroy())
         for i in range(n_stars):
             self.pack_start(StarWidget(self.star_size), False)
+        for i in range(5-n_stars):
+            self.pack_start(DarkStarWidget(self.star_size), False)
         self.show_all()
         return
 
@@ -108,7 +119,6 @@ class ReviewStatsContainer(StarRating):
     DARK_STAR_IMAGE = "star-dark"
 
     ICON_SIZE = gtk.ICON_SIZE_MENU
-    STAR_SIZE = 16
 
     def __init__(self):
         StarRating.__init__(self)
