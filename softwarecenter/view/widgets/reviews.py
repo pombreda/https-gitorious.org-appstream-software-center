@@ -49,6 +49,7 @@ class StarPainter(object):
         return
 
     def paint_half_star(self, cr, x, y, w, h):
+        # TODO: some rtl switch will be needed here
         cr.save()
         cr.set_line_join(cairo.LINE_CAP_ROUND)
 
