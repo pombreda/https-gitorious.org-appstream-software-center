@@ -40,7 +40,7 @@ class StarPainter(object):
     def __init__(self):
         self.shape = ShapeStar()
         self.fill = self.FILL_FULL
-        self.bg_fill = floats_from_string('#484848')
+        self.bg_fill = floats_from_string('#989898')
         self.fg_fill = floats_from_string('#D70707')
         return
 
