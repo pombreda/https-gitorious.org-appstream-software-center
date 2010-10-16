@@ -1014,7 +1014,7 @@ class Reviews(gtk.VBox):
 
         self.review_stats_widget = ReviewStatsContainer()
 
-        expander_hb = gtk.HBox()
+        expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
         expander_hb.pack_start(self.review_stats_widget, False)
@@ -1171,6 +1171,7 @@ class Review(gtk.VBox):
 
         text = gtk.Label(text)
         text.set_line_wrap(True)
+        text.set_selectable(True)
         text.set_alignment(0, 0)
 
         self.header.pack_start(summary, False)
