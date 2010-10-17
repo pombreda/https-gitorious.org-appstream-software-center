@@ -54,12 +54,12 @@ class StarPainter(object):
         cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgba(1,1,1, 0.45)
+        cr.set_source_rgba(1,1,1, 0.4)
         cr.set_line_width(5)
         cr.stroke()
         cr.set_line_width(2)
 
-        cr.rectangle(x+w*0.5-1, y-1, w/2+2, h+2)
+        cr.rectangle(x+w*0.5, y-1, w/2+2, h+2)
         cr.clip()
 
         self.shape.layout(cr, x, y, w, h)
@@ -79,7 +79,7 @@ class StarPainter(object):
 
         lin = cairo.LinearGradient(0, y, 0, y+h)
         lin.add_color_stop_rgba(0, 1,1,1, 0.5)
-        lin.add_color_stop_rgba(1, 1,1,1, 0)
+        lin.add_color_stop_rgba(1, 1,1,1, 0.05)
         cr.set_source(lin)
         cr.fill()
 
@@ -95,7 +95,7 @@ class StarPainter(object):
         cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgba(1,1,1, 0.45)
+        cr.set_source_rgba(1,1,1, 0.4)
         cr.set_line_width(5)
         cr.stroke_preserve()
         cr.set_line_width(2)
@@ -110,7 +110,7 @@ class StarPainter(object):
 
         lin = cairo.LinearGradient(0, y, 0, y+h)
         lin.add_color_stop_rgba(0, 1,1,1, 0.5)
-        lin.add_color_stop_rgba(1, 1,1,1, 0)
+        lin.add_color_stop_rgba(1, 1,1,1, 0.05)
         cr.set_source(lin)
         cr.fill()
 
@@ -147,7 +147,7 @@ class StarRating(gtk.HBox):
 
     MAX_STARS = 5
 
-    def __init__(self, n_stars=None, spacing=3, star_size=(EM-2,EM-2)):
+    def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1)):
         gtk.HBox.__init__(self, spacing=spacing)
         self._build(star_size)
         if n_stars:

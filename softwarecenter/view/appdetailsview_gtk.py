@@ -1093,7 +1093,6 @@ class Review(gtk.VBox):
     
     def __init__(self, review_data):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
-        
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
