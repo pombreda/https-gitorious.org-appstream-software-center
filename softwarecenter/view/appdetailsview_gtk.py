@@ -1232,6 +1232,8 @@ class AddonsStatusBar(StatusBar):
         if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
             self.hide()
         else:
+            self.button_apply.set_sensitive(True)
+            self.button_cancel.set_sensitive(True)
             self.show()
     
     def get_applying(self):
@@ -1276,11 +1278,12 @@ class AddonsManager():
         self.status_bar.configure()
         gobject.idle_add(self.view.update_totalsize)
 
-    def configure(self, pkgname):
+    def configure(self, pkgname, update_addons=True):
         self.addons_to_install = []
         self.addons_to_remove = []
-        self.addons = self.view.cache.get_addons(pkgname)
-        self.table.set_addons(self.addons)
+        if update_addons:
+            self.addons = self.view.cache.get_addons(pkgname)
+            self.table.set_addons(self.addons)
         self.status_bar.configure()
 
     def restore(self, *button):
@@ -1768,6 +1771,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.set_appname(app_details.name)
 
     def _update_all(self, app_details):
+        # reset view to top left
+        self.get_vadjustment().set_value(0)
+        self.get_hadjustment().set_value(0)
+
         appname = gobject.markup_escape_text(app_details.display_name)
 
         if app_details.pkg_state == PKG_STATE_NOT_FOUND:
@@ -1879,10 +1886,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("no app selected")
             return
 
-        # reset view to top left
-        self.get_vadjustment().set_value(0)
-        self.get_hadjustment().set_value(0)
-
         if (self.app and self.app.pkgname and self.app.pkgname == app.pkgname):
             return
 
@@ -1921,25 +1924,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # internal callback
     def _update_interface_on_trans_ended(self, result):
-        self.pkg_statusbar.button.set_sensitive(True)
-        self.pkg_statusbar.button.show()
-        self.addons_statusbar.button_apply.set_sensitive(True)
-        self.addons_statusbar.button_cancel.set_sensitive(True)
-        self.addons_statusbar.configure()
-        self.adjustment_value = None
-        
-        if self.addons_statusbar.applying:
-            self.addons_statusbar.applying = False
-            
-            for widget in self.addon_view.vbox:
-                if not isinstance(widget, Addon):
-                    continue
-                if widget != self.addon_view.label:
-                    addon = widget.app.pkgname
-                    widget.set_active(self.cache[addon].installed != None)
-            return False
-        
         state = self.pkg_statusbar.pkg_state
+
         # handle purchase: install purchased has multiple steps
         if (state == PKG_STATE_INSTALLING_PURCHASED and 
             result and
@@ -1956,6 +1942,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
         elif state == PKG_STATE_UPGRADING:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+        # addons modified
+        elif self.addons_statusbar.applying:
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+
+        self.adjustment_value = None
+        
+        if self.addons_statusbar.applying:
+            self.addons_statusbar.applying = False
+
+        self.addons_manager.configure(self.app_details.name, False)
         return False
 
     def _on_transaction_started(self, backend):
