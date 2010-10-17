@@ -160,7 +160,7 @@ class StarRating(gtk.HBox):
         self.show_all()
 
     def set_rating(self, n_stars):
-        n_stars += 0.5  # XXX: for testing floats only
+        #n_stars += 0.5  # XXX: for testing floats only
         acc = self.get_accessible()
         acc.set_name(_("%s star rating") % n_stars)
         acc.set_description(_("%s star rating") % n_stars)
@@ -170,7 +170,7 @@ class StarRating(gtk.HBox):
             if isinstance(child, StarWidget):
                 if i < int(n_stars):
                     child.set_fill(StarPainter.FILL_FULL)
-                elif i == int(n_stars):
+                elif i == int(n_stars) and n_stars-int(n_stars) > 0:
                     child.set_fill(StarPainter.FILL_HALF)
                 else:
                     child.set_fill(StarPainter.FILL_EMPTY)
