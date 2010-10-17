@@ -1180,9 +1180,9 @@ class Review(gtk.VBox):
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
 
-        like = mkit.VLinkButton('<small>%s</small>' % _('This review useful'))
-        like.set_underline(True)
-        self.footer.pack_start(like, False)
+        #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
+        #like.set_underline(True)
+        #self.footer.pack_start(like, False)
 
         complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inapropriate'))
         complain.set_underline(True)
