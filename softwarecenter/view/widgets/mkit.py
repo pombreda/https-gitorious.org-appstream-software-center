@@ -723,7 +723,7 @@ class Style:
 
 class FramedSectionAlt(gtk.VBox):
 
-    def __init__(self, label_markup=None, xpadding=SPACING_MED):
+    def __init__(self, xpadding=SPACING_MED):
         gtk.VBox.__init__(self)
         self.set_redraw_on_allocate(False)
 
@@ -751,12 +751,18 @@ class FramedSectionAlt(gtk.VBox):
         self.pack_start(self.body_alignment)
 
         self.image = gtk.Image()
-        self.label = EtchedLabel()
+        self.title = EtchedLabel()
+        self.summary = gtk.Label()
+
+        self.title.set_alignment(0,0.5)
+        self.summary.set_alignment(0,0.5)
+
+        self.summary.set_line_wrap(True)
+
+        self.header_vbox.pack_start(self.title, False)
+        self.header_vbox.pack_start(self.summary, False)
         # Make sure the user can select and copy the title/summary
         #self.label.set_selectable(True)
-        self.header_vbox.pack_start(self.label, False)
-        if label_markup:
-            self.set_label(label_markup)
         return
 
     def set_icon_from_name(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
@@ -777,15 +783,25 @@ class FramedSectionAlt(gtk.VBox):
             self.image.show()
         return
 
-    def set_label(self, label='', markup=None):
+    def set_title(self, label='', markup=None):
         if markup:
-            self.label.set_markup(markup)
+            self.title.set_markup(markup)
         else:
-            self.label.set_markup('<b>%s</b>' % label)
+            self.title.set_markup('<small>%s</small>' % label)
 
         # atk stuff
         acc = self.get_accessible()
-        acc.set_name(self.label.get_text())
+        acc.set_role(atk.ROLE_SECTION)
+        return
+
+    def set_summary(self, label='', markup=None):
+        if markup:
+            self.summary.set_markup(markup)
+        else:
+            self.summary.set_markup('<small>%s</small>' % label)
+
+        # atk stuff
+        acc = self.get_accessible()
         acc.set_role(atk.ROLE_SECTION)
         return
 

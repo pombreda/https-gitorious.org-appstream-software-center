@@ -161,7 +161,7 @@ class StarRating(gtk.HBox):
         gtk.HBox.__init__(self, spacing=spacing)
         self._build(star_size)
         if n_stars:
-            self.show_stars(n_stars)
+            self.set_rating(n_stars)
 
     def _build(self, star_size):
         for i in range(self.MAX_STARS):
@@ -169,14 +169,13 @@ class StarRating(gtk.HBox):
             self.pack_start(star, False)
         self.show_all()
 
-    def show_stars(self, n_stars):
+    def set_rating(self, n_stars):
         n_stars += 0.5  # XXX: for testing floats only
         acc = self.get_accessible()
         acc.set_name(_("%s star rating") % n_stars)
         acc.set_description(_("%s star rating") % n_stars)
 
         i = 0
-        print n_stars
         for child in self.get_children():
             if isinstance(child, StarWidget):
                 if i < int(n_stars):
@@ -189,14 +188,16 @@ class StarRating(gtk.HBox):
         return
 
 
-class ReviewStatsContainer(StarRating):
+class ReviewStatsContainer(gtk.VBox):
 
     def __init__(self):
-        StarRating.__init__(self, star_size=(EM,EM))
+        gtk.VBox.__init__(self, spacing=6)
+        self.star_rating = StarRating(star_size=(2*EM,2*EM))
         self.label = gtk.Label("")
-        self.pack_end(self.label, False, False)
+        self.pack_start(self.star_rating, False)
+        self.pack_start(self.label, False, False)
     def set_avg_rating(self, avg_rating):
-        self.show_stars(avg_rating)
+        self.star_rating.set_rating(avg_rating)
     def set_nr_reviews(self, nr_reviews):
         self.nr_reviews = nr_reviews
         self._update_nr_reviews()

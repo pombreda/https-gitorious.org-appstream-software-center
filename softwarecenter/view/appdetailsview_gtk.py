@@ -1003,7 +1003,7 @@ class Reviews(gtk.VBox):
         label = mkit.EtchedLabel()
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
-        markup = "<b><big>%s</big></b>" % _("Reviews")
+        markup = "<b><big>%s</big></b>" % _("User Reviews")
         label.set_markup(markup)
 
         self.expander = gtk.Expander()
@@ -1013,12 +1013,9 @@ class Reviews(gtk.VBox):
         self.new_review.set_internal_spacing(mkit.SPACING_MED)
         self.new_review.set_underline(True)
 
-        self.review_stats_widget = ReviewStatsContainer()
-
         expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
-        expander_hb.pack_start(self.review_stats_widget, False)
         expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
@@ -1074,15 +1071,6 @@ class Reviews(gtk.VBox):
         label = _('Review %s')
         self.new_review.set_label(label % appname)
         return
-
-    def set_review_stats(self, stats):
-        self.stats = stats
-        if not stats:
-            return
-
-        self.review_stats_widget.set_avg_rating(stats.avg_rating)
-        self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
-        self.review_stats_widget.show()
 
     def set_width(self, w):
         for r in self.vbox:
@@ -1355,7 +1343,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         print "check for reviews"
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
-        self.reviews.set_review_stats(stats)
+        if stats:
+            self.review_stats_widget.set_avg_rating(stats.avg_rating)
+            self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
+            self.review_stats_widget.show()
+
         # individual reviews is slow and async
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
@@ -1381,11 +1373,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
-        l = self.main_frame.label.get_layout()
-        if l.get_pixel_extents()[1][2] > w-84-4*mkit.EM:
-            self.main_frame.label.set_size_request(w-84-4*mkit.EM, -1)
-        else:
-            self.main_frame.label.set_size_request(-1, -1)
+        print self.main_frame.header_vbox.allocation
+        #title = self.main_frame.title
+        #summary = self.main_frame.summary
+
+        #max_title_width = w-84-self.review_stats_widget.allocation.width
+
+        #if title.allocation.width > max_title_width:
+            #title.set_size_request(max_title_width, -1)
+        #else:
+            #title.set_size_request(-1, -1)
+        #if summary.allocation.width > max_title_width:
+            #summary.set_size_request(max_title_width, -1)
+        #else:
+            #summary.set_size_request(-1, -1)
 
         desc = self.app_desc.description
         size = desc.height_from_width(w-4*mkit.EM-166)
@@ -1516,7 +1517,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         gobject.idle_add(self._full_redraw_cb)
         return
 
-    def _layout_main_frame(self):
+    def _layout_main_frame_header(self):
         # root vbox
         self.vbox = gtk.VBox()
         self.add(self.vbox)
@@ -1528,10 +1529,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.main_frame = mkit.FramedSectionAlt()
         self.main_frame.image.set_size_request(84, 84)
         self.main_frame.set_spacing(mkit.SPACING_LARGE)
-        self.main_frame.header.set_spacing(mkit.SPACING_XLARGE)
+        self.main_frame.header.set_spacing(mkit.SPACING_LARGE)
         self.main_frame.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
+
+
+        self.review_stats_widget = ReviewStatsContainer()
+        align = gtk.Alignment(1, 0.5)
+        align.add(self.review_stats_widget)
+        self.main_frame.header.pack_end(align, False, False)
+
         self.main_frame.body.set_spacing(mkit.SPACING_XLARGE)
         self.vbox.pack_start(self.main_frame, False)
 
@@ -1585,13 +1593,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
-        self.homepage_btn.set_xmargin(0)
         self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
         self.share_btn = mkit.HLinkButton(_('Share...'))
         self.share_btn.set_underline(True)
-        self.share_btn.set_xmargin(0)
         self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
@@ -1638,7 +1644,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _layout_all(self):
         # setup widgets
-        self._layout_main_frame()
+        self._layout_main_frame_header()
         self._layout_usage_counter()
         self._layout_pkg_status_actions()
         self._layout_app_description()
@@ -1659,11 +1665,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # icon (also fixed).
         big = 20*pango.SCALE
         small = 9*pango.SCALE
-        markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
-        markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
+        title = '<b><span size="%s">%s</span></b>' % (big, appname)
+        summary = '<span size="%s">%s</span>' % (small, summary)
 
         # set app- icon, name and summary in the header
-        self.main_frame.set_label(markup=markup)
+        self.main_frame.set_title(markup=title)
+        self.main_frame.set_summary(markup=summary)
 
         # a11y for name/summary
         self.main_frame.header.a11y.set_name("Application: " + appname + ". Summary: " + summary)
