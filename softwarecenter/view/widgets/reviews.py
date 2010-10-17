@@ -27,8 +27,30 @@ import gtk
 import os
 
 from gettext import gettext as _
-from mkit import EM, ShapeStar, ShapeRoundedRectangle, floats_from_string
+from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 
+
+
+class Like(gtk.Button):
+
+    def __init__(self):
+        gtk.Button.__init__(self)
+        im = gtk.image_new_from_icon_name('face-smile', gtk.ICON_SIZE_MENU)
+        self.set_image(im)
+        self.set_relief(gtk.RELIEF_NONE)
+        self.set_tooltip_text(_('This review was useful'))
+        return
+
+
+class Dislike(gtk.Button):
+
+    def __init__(self):
+        gtk.Button.__init__(self)
+        im = gtk.image_new_from_icon_name('face-sad', gtk.ICON_SIZE_MENU)
+        self.set_image(im)
+        self.set_relief(gtk.RELIEF_NONE)
+        self.set_tooltip_text(_('This review was unuseful'))
+        return
 
 
 class StarPainter(object):
@@ -148,7 +170,11 @@ class StarRating(gtk.HBox):
         self.show_all()
 
     def show_stars(self, n_stars):
-        n_stars += 0.5
+        n_stars += 0.5  # XXX: for testing floats only
+        acc = self.get_accessible()
+        acc.set_name(_("%s star rating") % n_stars)
+        acc.set_description(_("%s star rating") % n_stars)
+
         i = 0
         print n_stars
         for child in self.get_children():
@@ -169,11 +195,6 @@ class ReviewStatsContainer(StarRating):
         StarRating.__init__(self, star_size=(EM,EM))
         self.label = gtk.Label("")
         self.pack_end(self.label, False, False)
-        self.connect('expose-event', self._on_expose)
-    def _on_expose(self, widget, event):
-        cr = widget.window.cairo_create()
-        
-        return
     def set_avg_rating(self, avg_rating):
         self.show_stars(avg_rating)
     def set_nr_reviews(self, nr_reviews):

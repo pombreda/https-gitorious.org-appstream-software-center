@@ -49,7 +49,7 @@ from appdetailsview import AppDetailsViewBase
 from widgets import mkit
 from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
-from widgets.reviews import ReviewStatsContainer, StarRating
+from widgets.reviews import ReviewStatsContainer, StarRating, Like, Dislike
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -1179,8 +1179,12 @@ class Review(gtk.VBox):
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
-        
-        complain = mkit.VLinkButton(_('Report as inapropriate'))
+
+        like = mkit.VLinkButton('<small>%s</small>' % _('This review useful'))
+        like.set_underline(True)
+        self.footer.pack_start(like, False)
+
+        complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inapropriate'))
         complain.set_underline(True)
         self.footer.pack_end(complain, False)
         return
