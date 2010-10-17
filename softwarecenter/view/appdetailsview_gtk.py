@@ -897,14 +897,14 @@ class AddonsTable(gtk.VBox):
         self.recommended_addons = None
         self.suggested_addons = None
 
-        label = gtk.Label()
-        label.set_use_markup(True)
-        label.set_alignment(0, 0.5)
+        self.label = gtk.Label()
+        self.label.set_use_markup(True)
+        self.label.set_alignment(0, 0.5)
         markup = _('<b><big>Add-ons</big></b>')
-        label.set_markup(markup)
+        self.label.set_markup(markup)
 
         self.expander = gtk.Expander()
-        self.expander.set_label_widget(label)
+        self.expander.set_label_widget(self.label)
         self.pack_start(self.expander, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
@@ -1009,9 +1009,7 @@ class Reviews(gtk.VBox):
         self.expander = gtk.Expander()
         self.expander.set_label_widget(label)
 
-        self.new_review = mkit.HLinkButton('placeholder',
-                                           icon_name='gtk-edit',
-                                           icon_size=22)
+        self.new_review = mkit.VLinkButton('placeholder')
         self.new_review.set_internal_spacing(mkit.SPACING_MED)
         self.new_review.set_underline(True)
 
@@ -1933,7 +1931,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.addons_statusbar.applying:
             self.addons_statusbar.applying = False
             
-            for widget in self.addon_view:
+            for widget in self.addon_view.vbox:
+                if not isinstance(widget, Addon):
+                    continue
                 if widget != self.addon_view.label:
                     addon = widget.app.pkgname
                     widget.set_active(self.cache[addon].installed != None)
