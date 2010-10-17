@@ -1052,9 +1052,6 @@ class Reviews(gtk.VBox):
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
 
-    def _on_button_report_abuse_clicked(self, button, review_id):
-        self.emit("report-abuse", review_id)
-
     def _fill(self):
         for r in self.reviews:
             review = Review(r)
@@ -1106,11 +1103,9 @@ class Reviews(gtk.VBox):
 
     def draw(self, cr, a):
         cr.save()
+        rr = mkit.ShapeRoundedRectangle()
         r, g, b = mkit.floats_from_string('#FFE879')
-        pa = self._parent.allocation
-        cr.rectangle(0, a.y,
-                     pa.width,
-                     max(pa.height, a.height+32))
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=4)
         cr.set_source_rgba(r,g,b,0.25)
         cr.fill_preserve()
 
@@ -1122,8 +1117,7 @@ class Reviews(gtk.VBox):
         cr.fill()
 
         cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
-        cr.move_to(0, a.y+0.5)
-        cr.rel_line_to(a.width+32, 0)
+        rr.layout(cr, a.x+0.5, a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=4)
         cr.set_line_width(1)
         cr.stroke()
         cr.restore()
@@ -1139,6 +1133,7 @@ class Review(gtk.VBox):
     
     def __init__(self, review_data):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+        
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
@@ -1164,6 +1159,11 @@ class Review(gtk.VBox):
         for child in self.body:
             child.set_size_request(allocation.width, -1)
         return
+
+    def _on_report_abuse_clicked(self, button):
+        reviews = self.get_ancestor(Reviews)
+        if reviews:
+            reviews.emit("report-abuse", self.id)
 
     def _build(self, rating, person, summary, text, date):
         m = "<b>%s</b>, %s" % (person.capitalize(), date)
@@ -1191,6 +1191,7 @@ class Review(gtk.VBox):
         complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inapropriate'))
         complain.set_underline(True)
         self.footer.pack_end(complain, False)
+        complain.connect('clicked', self._on_report_abuse_clicked)
         return
 
     def draw(self, cr, a):
