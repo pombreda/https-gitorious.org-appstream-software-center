@@ -1516,7 +1516,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # if zeitgeist is installed,
         # the amount of times it was used
         self.usage = mkit.BubbleLabel()
-        self.main_frame.header_vbox.pack_start(self.usage, False)
+        self.main_frame.header_vbox.pack_start(self.usage, False, padding=2)
         return
 
     def _layout_pkg_status_actions(self):
@@ -2178,7 +2178,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string = gettext.ngettext("Used: one time",
                                             "Used: %(amount)s times",
                                             counter) % { 'amount' : counter, }
-            self.usage.set_text(label_string)
+            self.usage.set_text('<small>%s</small>' % label_string)
             self.usage.show()
 
         # try to get it

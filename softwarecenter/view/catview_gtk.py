@@ -206,9 +206,9 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         app = btn.app
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
-        popcon = app[AppStore.COL_POPCON]
-        self.emit("application-selected", Application(appname, pkgname, "", popcon))
-        self.emit("application-activated", Application(appname, pkgname, "", popcon))
+        rating = app[AppStore.COL_RATING]
+        self.emit("application-selected", Application(appname, pkgname, "", rating))
+        self.emit("application-activated", Application(appname, pkgname, "", rating))
         return False
 
     def _on_category_clicked(self, cat_btn, cat):

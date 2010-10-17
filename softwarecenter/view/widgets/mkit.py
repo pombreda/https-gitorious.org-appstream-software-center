@@ -1425,7 +1425,7 @@ class BubbleLabel(gtk.Label):
         xp = self.get_padding()[0]
         ax, ay = self.get_alignment()
         lx, ly, lw, lh = self.get_layout().get_pixel_extents()[1]
-        x = int(a.x + (a.width-lw)*ax)-xp
+        x = int(a.x + (a.width-lw)*ax)
         y = int(a.y + (a.height-lh)*ay)
         self.shape.layout(cr, x, y, x+lw+2*xp, y+lh, radius=3)
         cr.set_source_rgba(0, 0, 0, 0.55)
