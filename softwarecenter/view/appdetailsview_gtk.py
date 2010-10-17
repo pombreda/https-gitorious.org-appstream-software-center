@@ -1009,7 +1009,10 @@ class Reviews(gtk.VBox):
         self.expander = gtk.Expander()
         self.expander.set_label_widget(label)
 
-        self.new_review = mkit.VLinkButton('placeholder')
+        self.new_review = mkit.HLinkButton('placeholder',
+                                           icon_name='gtk-edit',
+                                           icon_size=22)
+        self.new_review.set_internal_spacing(mkit.SPACING_MED)
         self.new_review.set_underline(True)
 
         self.review_stats_widget = ReviewStatsContainer()
@@ -1027,6 +1030,7 @@ class Reviews(gtk.VBox):
 
         self._update = True
         self.expander.connect('notify::expanded', self._on_expand)
+        self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         return
 
     def _on_expand(self, expander, param):
