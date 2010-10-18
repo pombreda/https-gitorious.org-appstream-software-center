@@ -1443,7 +1443,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._configure_where_is_it()
         return
 
-    def _update_minimal(self, app_details, old_details):
+    def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
         self._update_app_icon(app_details)
@@ -1529,9 +1529,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # reset view to top left
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
-
-        if (self.app and self.app.pkgname and self.app.pkgname == app.pkgname):
-            return
 
         # set button sensitive again
         self.action_bar.button.set_sensitive(True)
