@@ -306,6 +306,8 @@ et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
     USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", "Bar Tender", "Baz Lightyear"]
     SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
+    def __init__(self):
+        self._reviews_cache = {}
     def _random_person(self):
         return random.choice(self.USERS)
     def _random_text(self):
@@ -325,10 +327,12 @@ ipsum dolor sit amet"""
             reviews.append(review)
         callback(application, reviews)
     def get_review_stats(self, application):
-        stat = ReviewStats(application)
-        stat.avg_rating = random.randint(1,5)
-        stat.nr_reviews = random.randint(1,20)
-        return stat
+        if not application in self._reviews_cache:
+            stat = ReviewStats(application)
+            stat.avg_rating = random.randint(1,5)
+            stat.nr_reviews = random.randint(1,20)
+            self._reviews_cache[application] = stat
+        return self._reviews_cache[application]
     def refresh_review_stats(self, callback):
         review_stats = []
         callback(review_stats)
