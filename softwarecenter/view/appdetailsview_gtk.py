@@ -1279,9 +1279,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
-        self.adjustment_value = None
-
         self.section = None
+        # app specific data
+        self.app = NoneTypeApplication()
+        self.app_details = self.app.get_details(self.db)
+        self.loaded = False
+        return
+
+    def _init_ondemand(self):
+        self.adjustment_value = None
         self.addons_manager = AddonsManager(self)
 
         # atk
@@ -1293,10 +1299,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-
-        # app specific data
-        self.app = NoneTypeApplication()
-        self.app_details = self.app.get_details(self.db)
 
         # switches
         # Bug #628714 check not only that gwibber is installed but that service accounts exist
@@ -1310,10 +1312,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
+        self.loaded = True
         return
     
     def _check_for_reviews(self):
-        print "check for reviews"
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
         if stats:
@@ -1496,7 +1498,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.main_frame.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
-
 
         self.review_stats_widget = ReviewStatsContainer()
         align = gtk.Alignment(1, 0.5)
@@ -1740,6 +1741,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.set_appname(app_details.name)
 
     def _update_all(self, app_details):
+        if not self.loaded:
+            print 'Loading ItemView layout...', self.loaded
+            self._init_ondemand()
+            print 'ItemView layout complete', self.loaded
+
         # reset view to top left
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
@@ -1772,7 +1778,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._configure_where_is_it()
         return
 
-    def _update_minimal(self, app_details, old_details):
+    def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
         self._update_app_icon(app_details)
@@ -1855,26 +1861,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("no app selected")
             return
 
-        if (self.app and self.app.pkgname and self.app.pkgname == app.pkgname):
+        same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
+        if same_app:
+            if not self.loaded:
+                return
+            self._update_minimal(self.app_details)
+            self.emit("selected", self.app)
             return
 
-        # set button sensitive again
-        self.pkg_statusbar.button.set_sensitive(True)
-
         # init data
-        old_details = self.app_details
         self.app = app
         self.app_details = app.get_details(self.db)
 
         # for compat with the base class
         self.appdetails = self.app_details
-        #print "AppDetailsViewGtk:"
-        #print self.appdetails
 
-        if self.app_details.same_app(old_details):
-            self._update_minimal(self.app_details)
-        else:
-            self._update_all(self.app_details)
+        self._update_all(self.app_details)
+        # set button sensitive again
+        self.pkg_statusbar.button.set_sensitive(True)
 
         self.get_usage_counter()
         self._check_for_reviews()

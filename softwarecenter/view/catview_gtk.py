@@ -523,7 +523,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         # sections
         self.departments = None
-        self.build(desktopdir)
         return
 
     def _on_allocate(self, widget, allocation):
@@ -618,10 +617,10 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self._build_subcat_view(root_category, num_items)
         return
 
-    def build(self, desktopdir):
-        self.in_subsection = True
-        self.set_subcategory(self.root_category)
-        return
+    #def build(self, desktopdir):
+        #self.in_subsection = True
+        #self.set_subcategory(self.root_category)
+        #return
 
 
 class CarouselView(mkit.FramedSection):
