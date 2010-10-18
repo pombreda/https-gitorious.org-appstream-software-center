@@ -150,7 +150,7 @@ class StarRating(gtk.HBox):
     def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1)):
         gtk.HBox.__init__(self, spacing=spacing)
         self._build(star_size)
-        if n_stars:
+        if n_stars != None:
             self.set_rating(n_stars)
 
     def _build(self, star_size):

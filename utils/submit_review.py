@@ -59,6 +59,7 @@ from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
+from softwarecenter.view.widgets.reviews import StarRating
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -264,12 +265,14 @@ class SubmitReviewsApp(BaseApp):
         self.icons.append_search_path("/usr/share/app-install/icons/")
         self.dialog_main = self.dialog_review_app
 
-        # spinner & error
-        self.label_error = self.label_review_error
-        self.hbox_error = self.hbox_review_error
-        self.spinner_status = gtk.Spinner()
-        self.spinner_status.show()
-        self.alignment_status.add(self.spinner_status)
+        # interactive star rating
+        self.star_rating = StarRating(0, star_size=(48,48))
+        self.star_hbox.pack_start(self.star_rating, False)
+
+        # status
+        self.status_spinner = gtk.Spinner()
+        self.status_hbox.pack_start(self.status_spinner, False)
+        #self.status_spinner.show()
 
         # data
         self.app = app
@@ -284,20 +287,12 @@ class SubmitReviewsApp(BaseApp):
             if win:
                 self.dialog_review_app.realize()
                 self.dialog_review_app.window.set_transient_for(win)
-        self.dialog_review_app.set_position(gtk.WIN_POS_MOUSE)
+
+        #self.dialog_review_app.set_position(gtk.WIN_POS_MOUSE)
         # set pw dialog transient for main window
-        self.dialog_review_login.set_transient_for(self.dialog_review_app)
-        self.dialog_review_login.set_modal(True)
-        self._init_icons()
-        # events
-        for i in range(1,6):
-            eventbox = getattr(self, "eventbox_review_%i" % i)
-            eventbox.connect("button-press-event",
-                             self.on_image_review_star_button_press_event,
-                             i)
-        self.label_name.set_markup("<big>%s</big>\n<small>%s</small>" % (
-                self.app.name, self.version))
-    
+        #self.dialog_review_login.set_transient_for(self.dialog_review_app)
+        #self.dialog_review_login.set_modal(True)
+
     def _init_icons(self):
         """ init the icons """
         self.image_review_login.set_from_file(self.LOGIN_IMAGE)
@@ -353,16 +348,17 @@ class SubmitReviewsApp(BaseApp):
 
     def run(self):
         # show main dialog insensitive until we are logged in
-        self.table_review_main.set_sensitive(False)
-        self.label_status.set_text(_("Connecting..."))
-        self.spinner_status.start()
+        #self.table_review_main.set_sensitive(False)
+        #self.label_status.set_text(_("Connecting..."))
+        self.status_spinner.start()
         self.dialog_review_app.show()
         # now run the loop
         res = self.run_loop()
 
     def login_successful(self, display_name):
-        self.label_reviewer.set_text(display_name)
-        self.enter_review()
+        #self.label_reviewer.set_text(display_name)
+        #self.enter_review()
+        return
 
 class ReportReviewApp(BaseApp):
     """ report a given application or package """
