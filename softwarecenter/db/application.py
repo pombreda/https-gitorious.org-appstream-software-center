@@ -374,9 +374,11 @@ class AppDetails(object):
             return PKG_STATE_INSTALLING_PURCHASED
 
         # via the pending transactions dict
-        if self._pkg and self.pkgname in self._backend.pending_transactions:
+        if self.pkgname in self._backend.pending_transactions:
             # FIXME: we don't handle upgrades yet
-            if self._pkg.installed:
+            # if there is no self._pkg yet, that means this is a INSTALL
+            # from a previously not-enabled source (like a purchase)
+            if self._pkg and self._pkg.installed:
                 return PKG_STATE_REMOVING
             else:
                 return PKG_STATE_INSTALLING
