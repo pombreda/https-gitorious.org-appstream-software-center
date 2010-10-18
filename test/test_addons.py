@@ -19,7 +19,7 @@ class TestSCAddons(unittest.TestCase):
         self.assertEqual(res, ([], ["p7zip-rar"]))
         # apt has no relevant ones
         res = self.cache.get_addons("apt")
-        self.assertEqual(res, ([], ["apt-doc", "wajig"]))
+        self.assertEqual(res, ([], ["apt-doc", "wajig", "aptitude"]))
         # synaptic
         res = self.cache.get_addons("synaptic")
         # FIXME: kdebase?!?!?! that is rather unneeded

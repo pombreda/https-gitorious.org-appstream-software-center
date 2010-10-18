@@ -652,7 +652,6 @@ class AvailablePane(SoftwarePane):
         self.update_navigation_button()
 
     def on_application_selected(self, appview, app):
-        print 'app selected'
         """callback when an app is selected"""
         self._logger.debug("on_application_selected: '%s'" % app)
 

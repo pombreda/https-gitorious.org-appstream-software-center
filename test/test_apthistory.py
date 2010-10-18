@@ -29,9 +29,9 @@ class testAptHistory(unittest.TestCase):
         self.assertEqual(history.transactions[0].start_date,
                          datetime.datetime.strptime("2010-06-09 14:50:00",
                                                     "%Y-%m-%d  %H:%M:%S"))
-        # 185 is from "zgrep Start data/apt-history/history.log*|wc -l"
+        # 186 is from "zgrep Start data/apt-history/history.log*|wc -l"
         #print "\n".join([str(x) for x in history.transactions])
-        self.assertEqual(len(history.transactions), 185)
+        self.assertEqual(len(history.transactions), 186)
 
 
     def test_apthistory_upgrade(self):
@@ -54,7 +54,7 @@ class testAptHistory(unittest.TestCase):
         except OSError: 
             pass
         history = AptHistory()
-        self.assertEqual(len(history.transactions), 185)
+        self.assertEqual(len(history.transactions), 186)
         s = open(os.path.join(self.basedir,"history.log")).read()
         f = open(new_history,"w")
         for i in range(100):
@@ -66,7 +66,7 @@ class testAptHistory(unittest.TestCase):
             history.rescan()
         glib.source_remove(timer_id)
         # verify rescan
-        self.assertTrue(len(history.transactions) > 185)
+        self.assertTrue(len(history.transactions) > 186)
         # check the timeouts
         self.assertTrue(len(self._timeouts) > 0)
         for i in range(len(self._timeouts)-1):

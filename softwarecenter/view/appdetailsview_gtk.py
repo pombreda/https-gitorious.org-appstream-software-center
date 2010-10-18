@@ -1499,7 +1499,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
 
-
         self.review_stats_widget = ReviewStatsContainer()
         align = gtk.Alignment(1, 0.5)
         align.add(self.review_stats_widget)
@@ -1742,6 +1741,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.set_appname(app_details.name)
 
     def _update_all(self, app_details):
+        if not self.loaded:
+            print 'Loading ItemView layout...', self.loaded
+            self._init_ondemand()
+            print 'ItemView layout complete', self.loaded
+
         # reset view to top left
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
@@ -1774,7 +1778,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._configure_where_is_it()
         return
 
-    def _update_minimal(self, app_details, old_details):
+    def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
         self._update_app_icon(app_details)
@@ -1859,15 +1863,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
         if same_app:
+            if not self.loaded:
+                return
             self._update_minimal(self.app_details)
             self.emit("selected", self.app)
             return
-
-        if not self.loaded:
-            self._init_ondemand()
-
-        # set button sensitive again
-        self.pkg_statusbar.button.set_sensitive(True)
 
         # init data
         self.app = app
@@ -1875,10 +1875,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # for compat with the base class
         self.appdetails = self.app_details
-        #print "AppDetailsViewGtk:"
-        #print self.appdetails
 
         self._update_all(self.app_details)
+        # set button sensitive again
+        self.pkg_statusbar.button.set_sensitive(True)
 
         self.get_usage_counter()
         self._check_for_reviews()
