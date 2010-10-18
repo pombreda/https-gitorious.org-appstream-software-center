@@ -38,7 +38,7 @@ class StarPainter(object):
 
     def __init__(self):
         self.shape = ShapeStar()
-        self.fill = self.FILL_FULL
+        self.fill = self.FILL_EMPTY
         self.bg_fill = floats_from_string('#989898')
         self.fg_fill = floats_from_string('#D70707')   # crimson red
         #self.fg_fill = floats_from_string('#FFC800')    # gold
@@ -143,12 +143,15 @@ class StarWidget(gtk.EventBox, StarPainter):
         return
 
 
-class StarRating(gtk.HBox):
+class StarRating(gtk.Alignment):
 
     MAX_STARS = 5
 
     def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1)):
-        gtk.HBox.__init__(self, spacing=spacing)
+        gtk.Alignment.__init__(self, 0.5, 0.5)
+        self.hbox = gtk.HBox(spacing=spacing)
+        self.add(self.hbox)
+
         self._build(star_size)
         if n_stars != None:
             self.set_rating(n_stars)
@@ -156,7 +159,7 @@ class StarRating(gtk.HBox):
     def _build(self, star_size):
         for i in range(self.MAX_STARS):
             star = StarWidget(star_size)
-            self.pack_start(star, False)
+            self.hbox.pack_start(star, expand=False)
         self.show_all()
 
     def set_rating(self, n_stars):

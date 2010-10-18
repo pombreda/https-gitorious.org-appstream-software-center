@@ -259,15 +259,16 @@ class SubmitReviewsApp(BaseApp):
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir)
-        
+
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path("/usr/share/app-install/icons/")
         self.dialog_main = self.dialog_review_app
 
         # interactive star rating
-        self.star_rating = StarRating(0, star_size=(48,48))
-        self.star_hbox.pack_start(self.star_rating, False)
+        self.star_rating = StarRating(0, star_size=(32,32))
+        self.body_vbox.pack_start(self.star_rating, False)
+        self.body_vbox.reorder_child(self.star_rating, 2)
 
         # status
         self.status_spinner = gtk.Spinner()

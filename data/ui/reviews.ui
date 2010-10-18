@@ -71,21 +71,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkHBox" id="star_hbox">
-                <property name="visible">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="position">2</property>
-              </packing>
+              <placeholder/>
             </child>
             <child>
               <object class="GtkVBox" id="summary_vbox">
