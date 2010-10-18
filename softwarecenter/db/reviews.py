@@ -307,6 +307,7 @@ ipsum dolor sit amet"""
     USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", "Bar Tender", "Baz Lightyear"]
     SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
     def __init__(self):
+        self._review_stats_cache = {}
         self._reviews_cache = {}
     def _random_person(self):
         return random.choice(self.USERS)
@@ -315,24 +316,31 @@ ipsum dolor sit amet"""
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
     def get_reviews(self, application, callback):
-        reviews = []
-        for i in range(0,random.randint(0,6)):
-            review = Review(application)
-            review.id = random.randint(1,500)
-            review.rating = random.randint(1,5)
-            review.summary = self._random_summary()
-            review.date = time.ctime(time.time())
-            review.person = self._random_person()
-            review.text = self._random_text().replace("\n","")
-            reviews.append(review)
+        if not application in self._review_stats_cache:
+            self.get_review_stats(application)
+        stats = self._review_stats_cache[application]
+        if not application in self._reviews_cache:
+            reviews = []
+            for i in range(0, stats.nr_reviews):
+                review = Review(application)
+                review.id = random.randint(1,50000)
+                # FIXME: instead of random, try to match the avg_rating
+                review.rating = random.randint(1,5)
+                review.summary = self._random_summary()
+                review.date = time.ctime(time.time())
+                review.person = self._random_person()
+                review.text = self._random_text().replace("\n","")
+                reviews.append(review)
+            self._reviews_cache[application] = reviews
+        reviews = self._reviews_cache[application]
         callback(application, reviews)
     def get_review_stats(self, application):
-        if not application in self._reviews_cache:
+        if not application in self._review_stats_cache:
             stat = ReviewStats(application)
             stat.avg_rating = random.randint(1,5)
             stat.nr_reviews = random.randint(1,20)
-            self._reviews_cache[application] = stat
-        return self._reviews_cache[application]
+            self._review_stats_cache[application] = stat
+        return self._review_stats_cache[application]
     def refresh_review_stats(self, callback):
         review_stats = []
         callback(review_stats)
