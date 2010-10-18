@@ -47,6 +47,7 @@ from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
+from widgets.mkit import EM
 from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 from widgets.reviews import ReviewStatsContainer, StarRating
@@ -134,32 +135,6 @@ class StatusBar(gtk.Alignment):
         cr.restore()
         return
 
-class PackageUsageCounter(gtk.Label):
-
-    def __init__(self, view):
-        gtk.Label.__init__(self)
-        self.set_alignment(0,0)
-        self.set_padding(4, 0)
-        self.view = view
-        self.shape = mkit.ShapeRoundedRectangle()
-        return
-
-    def set_text(self, text):
-        m = '<span color="white"><b><small>%s</small></b></span>' % text
-        gtk.Label.set_markup(self, m)
-        return
-
-    def draw(self, cr, a):
-        cr.save()
-        ax, ay = self.get_alignment()
-        lx, ly, lw, lh = self.get_layout().get_pixel_extents()[1]
-        x = int(a.x + (a.width-lw)*ax)
-        y = int(a.y + (a.height-lh)*ay)
-        self.shape.layout(cr, x, y, x+lw+8, y+lh, radius=3)
-        cr.set_source_rgba(0, 0, 0, 0.55)
-        cr.fill()
-        cr.restore()
-        return
 
 class PackageStatusBar(StatusBar):
     
@@ -366,11 +341,14 @@ class AppDescription(gtk.VBox):
         self._prev_type = self.TYPE_PARAGRAPH
         return
 
-    def append_bullet(self, point):
+    def append_bullet(self, point, indent_level):
         vspacing=None
         if self._prev_type == self.TYPE_BULLET:
             vspacing = 5
-        self.description.append_bullet(point[2:].strip(), vspacing=vspacing)
+
+        self.description.append_bullet(point[2:].strip(),
+                                       indent_level+1,
+                                       vspacing)
         self._prev_type = self.TYPE_BULLET
         return
 
@@ -389,66 +367,62 @@ class AppDescription(gtk.VBox):
 
         in_blist = False
         processed_frag = ''
+        prev_indent = 0
+        indent = 0
 
-        for i, part in enumerate(parts):
-            part = part.strip()
-            # if empty, do the void
+        for i, raw_part in enumerate(parts):
+            part = raw_part.strip()
+            #indent = 0#len(raw_part) - len(part)
+#            print len(raw_part) - len(part), part
+
             if not part:
-                pass
+                # if empty, do the void
+                continue
+
+            # frag looks like its a bullet point
+            if part[:2] in self.BULLETS:
+                # if there's an existing bullet, append it and start anew
+                if in_blist:
+                    self.append_bullet(processed_frag, prev_indent)
+                    processed_frag = ''
+
+                in_blist = True
+
+            processed_frag += part
+
+            # ends with a terminator or the following fragment starts with a capital letter
+            if part[-1] in ('.', '!', '?', ':') or \
+                (i+1 < l and len(parts[i+1]) > 1 and \
+                    parts[i+1][0].isupper()):
+
+                # not in a bullet list, so normal paragraph
+                if not in_blist:
+                    # if not final text block, append newline
+                    # append text block
+                    self.append_paragraph(processed_frag)
+                    # reset
+                    processed_frag = ''
+
+                # we are in a bullet list
+                else:
+                    # append a bullet point
+                    self.append_bullet(processed_frag, indent)
+                    # reset
+                    processed_frag = ''
+                    in_blist = False
 
             else:
-                # frag looks like its a bullet point
-                if part[:2] in self.BULLETS:
-                    # if there's an existing bullet, append it and start anew
-                    if in_blist:
-                        self.append_bullet(processed_frag)
-                        processed_frag = ''
+                processed_frag += ' '
 
-                    in_blist = True
-
-                processed_frag += part
-
-                # ends with a terminator or the following fragment starts with a capital letter
-                if part[-1] in ('.', '!', '?', ':') or \
-                    (i+1 < l and len(parts[i+1]) > 1 and \
-                        parts[i+1][0].isupper()):
-
-                    # not in a bullet list, so normal paragraph
-                    if not in_blist:
-                        # if not final text block, append newline
-                        if (i+1) < l:
-                            processed_frag += '\n'
-                        # append text block
-                        self.append_paragraph(processed_frag)
-                        # reset
-                        processed_frag = ''
-
-                    # we are in a bullet list
-                    else:
-                        # append newline only if this is not the final
-                        # text block and its not followed by a bullet 
-                        if ((i+1) < l and
-                            len(parts[i+1]) > 1
-                            and not parts[i+1][:2] in self.BULLETS):
-                            processed_frag += '\n'
-
-                        # append a bullet point
-                        self.append_bullet(processed_frag)
-                        # reset
-                        processed_frag = ''
-                        in_blist = False
-
-                else:
-                    processed_frag += ' '
+            #prev_indent = indent
 
         if processed_frag:
             if processed_frag[:2] in self.BULLETS:
-                self.append_bullet(processed_frag)
+                self.append_bullet(processed_frag, indent)
             else:
                 self.append_paragraph(processed_frag)
 
-        self.show_all()
-        return    
+        return
 
 
 class PackageInfo(gtk.HBox):
@@ -478,7 +452,7 @@ class PackageInfo(gtk.HBox):
             tmp.set_markup(key_markup  % (dark, key))
             max_lw = max(max_lw, tmp.get_layout().get_pixel_extents()[1][2])
             del tmp
-        a.set_size_request(max_lw+3*mkit.EM, -1)
+        a.set_size_request(max_lw+3*EM, -1)
         a.add(k)
         self.pack_start(a, False)
 
@@ -897,14 +871,14 @@ class AddonsTable(gtk.VBox):
         self.recommended_addons = None
         self.suggested_addons = None
 
-        label = gtk.Label()
-        label.set_use_markup(True)
-        label.set_alignment(0, 0.5)
+        self.label = gtk.Label()
+        self.label.set_use_markup(True)
+        self.label.set_alignment(0, 0.5)
         markup = _('<b><big>Add-ons</big></b>')
-        label.set_markup(markup)
+        self.label.set_markup(markup)
 
         self.expander = gtk.Expander()
-        self.expander.set_label_widget(label)
+        self.expander.set_label_widget(self.label)
         self.pack_start(self.expander, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
@@ -1003,21 +977,19 @@ class Reviews(gtk.VBox):
         label = mkit.EtchedLabel()
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
-        markup = "<b><big>%s</big></b>" % _("Reviews")
+        markup = "<b><big>%s</big></b>" % _("User Reviews")
         label.set_markup(markup)
 
         self.expander = gtk.Expander()
         self.expander.set_label_widget(label)
 
         self.new_review = mkit.VLinkButton('placeholder')
+        self.new_review.set_internal_spacing(mkit.SPACING_MED)
         self.new_review.set_underline(True)
 
-        self.review_stats_widget = ReviewStatsContainer()
-
-        expander_hb = gtk.HBox()
+        expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
-        expander_hb.pack_start(self.review_stats_widget, False)
         expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
@@ -1027,6 +999,7 @@ class Reviews(gtk.VBox):
 
         self._update = True
         self.expander.connect('notify::expanded', self._on_expand)
+        self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         return
 
     def _on_expand(self, expander, param):
@@ -1047,9 +1020,6 @@ class Reviews(gtk.VBox):
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
-
-    def _on_button_report_abuse_clicked(self, button, review_id):
-        self.emit("report-abuse", review_id)
 
     def _fill(self):
         for r in self.reviews:
@@ -1076,15 +1046,6 @@ class Reviews(gtk.VBox):
         self.new_review.set_label(label % appname)
         return
 
-    def set_review_stats(self, stats):
-        self.stats = stats
-        if not stats:
-            return
-
-        self.review_stats_widget.set_avg_rating(stats.avg_rating)
-        self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
-        self.review_stats_widget.show()
-
     def set_width(self, w):
         for r in self.vbox:
             r.body.set_size_request(w, -1)
@@ -1102,11 +1063,9 @@ class Reviews(gtk.VBox):
 
     def draw(self, cr, a):
         cr.save()
+        rr = mkit.ShapeRoundedRectangle()
         r, g, b = mkit.floats_from_string('#FFE879')
-        pa = self._parent.allocation
-        cr.rectangle(0, a.y,
-                     pa.width,
-                     max(pa.height, a.height+32))
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=4)
         cr.set_source_rgba(r,g,b,0.25)
         cr.fill_preserve()
 
@@ -1118,8 +1077,7 @@ class Reviews(gtk.VBox):
         cr.fill()
 
         cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
-        cr.move_to(0, a.y+0.5)
-        cr.rel_line_to(a.width+32, 0)
+        rr.layout(cr, a.x+0.5, a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=4)
         cr.set_line_width(1)
         cr.stroke()
         cr.restore()
@@ -1161,6 +1119,11 @@ class Review(gtk.VBox):
             child.set_size_request(allocation.width, -1)
         return
 
+    def _on_report_abuse_clicked(self, button):
+        reviews = self.get_ancestor(Reviews)
+        if reviews:
+            reviews.emit("report-abuse", self.id)
+
     def _build(self, rating, person, summary, text, date):
         m = "<b>%s</b>, %s" % (person.capitalize(), date)
         who_what_when = gtk.Label(m)
@@ -1179,10 +1142,15 @@ class Review(gtk.VBox):
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
-        
-        complain = mkit.VLinkButton(_('Report as inapropriate'))
+
+        #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
+        #like.set_underline(True)
+        #self.footer.pack_start(like, False)
+
+        complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inapropriate'))
         complain.set_underline(True)
         self.footer.pack_end(complain, False)
+        complain.connect('clicked', self._on_report_abuse_clicked)
         return
 
     def draw(self, cr, a):
@@ -1225,6 +1193,8 @@ class AddonsStatusBar(StatusBar):
         if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
             self.hide()
         else:
+            self.button_apply.set_sensitive(True)
+            self.button_cancel.set_sensitive(True)
             self.show()
     
     def get_applying(self):
@@ -1269,11 +1239,12 @@ class AddonsManager():
         self.status_bar.configure()
         gobject.idle_add(self.view.update_totalsize)
 
-    def configure(self, pkgname):
+    def configure(self, pkgname, update_addons=True):
         self.addons_to_install = []
         self.addons_to_remove = []
-        self.addons = self.view.cache.get_addons(pkgname)
-        self.table.set_addons(self.addons)
+        if update_addons:
+            self.addons = self.view.cache.get_addons(pkgname)
+            self.table.set_addons(self.addons)
         self.status_bar.configure()
 
     def restore(self, *button):
@@ -1308,9 +1279,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
-        self.adjustment_value = None
-
         self.section = None
+        # app specific data
+        self.app = NoneTypeApplication()
+        self.app_details = self.app.get_details(self.db)
+        self.loaded = False
+        return
+
+    def _init_ondemand(self):
+        self.adjustment_value = None
         self.addons_manager = AddonsManager(self)
 
         # atk
@@ -1322,10 +1299,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-
-        # app specific data
-        self.app = NoneTypeApplication()
-        self.app_details = self.app.get_details(self.db)
 
         # switches
         # Bug #628714 check not only that gwibber is installed but that service accounts exist
@@ -1339,13 +1312,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
+        self.loaded = True
         return
     
     def _check_for_reviews(self):
-        print "check for reviews"
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
-        self.reviews.set_review_stats(stats)
+        if stats:
+            self.review_stats_widget.set_avg_rating(stats.avg_rating)
+            self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
+            self.review_stats_widget.show()
+
         # individual reviews is slow and async
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
@@ -1371,22 +1348,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
-        l = self.main_frame.label.get_layout()
-        if l.get_pixel_extents()[1][2] > w-84-4*mkit.EM:
-            self.main_frame.label.set_size_request(w-84-4*mkit.EM, -1)
-        else:
-            self.main_frame.label.set_size_request(-1, -1)
+
+        max_title_width = w-84-self.review_stats_widget.allocation.width-5*EM
+        self.main_frame.title.set_size_request(max_title_width, -1)
+        self.main_frame.summary.set_size_request(max_title_width, -1)
 
         desc = self.app_desc.description
-        size = desc.height_from_width(w-4*mkit.EM-166)
+        size = desc.height_from_width(w-4*EM-166)
         if size:
             desc.set_size_request(*size)
 
-        self.version_info.set_width(w-4*mkit.EM)
-        self.license_info.set_width(w-4*mkit.EM)
-        self.support_info.set_width(w-4*mkit.EM)
+        self.version_info.set_width(w-4*EM)
+        self.license_info.set_width(w-4*EM)
+        self.support_info.set_width(w-4*EM)
 
-        self.reviews.set_width(w-5*mkit.EM)
+        self.reviews.set_width(w-5*EM)
 
         self._full_redraw()   #  ewww
         return
@@ -1506,7 +1482,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         gobject.idle_add(self._full_redraw_cb)
         return
 
-    def _layout_main_frame(self):
+    def _layout_main_frame_header(self):
         # root vbox
         self.vbox = gtk.VBox()
         self.add(self.vbox)
@@ -1518,10 +1494,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.main_frame = mkit.FramedSectionAlt()
         self.main_frame.image.set_size_request(84, 84)
         self.main_frame.set_spacing(mkit.SPACING_LARGE)
-        self.main_frame.header.set_spacing(mkit.SPACING_XLARGE)
+        self.main_frame.header.set_spacing(mkit.SPACING_LARGE)
         self.main_frame.header_alignment.set_padding(mkit.SPACING_SMALL,
                                                    mkit.SPACING_SMALL,
                                                    0, 0)
+
+        self.review_stats_widget = ReviewStatsContainer()
+        align = gtk.Alignment(1, 0.5)
+        align.add(self.review_stats_widget)
+        self.main_frame.header.pack_end(align, False, False)
+
         self.main_frame.body.set_spacing(mkit.SPACING_XLARGE)
         self.vbox.pack_start(self.main_frame, False)
 
@@ -1533,8 +1515,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _layout_usage_counter(self):
         # if zeitgeist is installed,
         # the amount of times it was used
-        self.usage = PackageUsageCounter(self)
-        self.main_frame.header_vbox.pack_start(self.usage, False)
+        self.usage = mkit.BubbleLabel()
+        self.main_frame.header_vbox.pack_start(self.usage, False, padding=2)
         return
 
     def _layout_pkg_status_actions(self):
@@ -1575,13 +1557,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
-        self.homepage_btn.set_xmargin(0)
         self.app_desc.footer.pack_start(self.homepage_btn, False)
 
         # share app with microbloggers button
         self.share_btn = mkit.HLinkButton(_('Share...'))
         self.share_btn.set_underline(True)
-        self.share_btn.set_xmargin(0)
         self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
         self.app_desc.footer.pack_start(self.share_btn, False)
@@ -1628,7 +1608,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _layout_all(self):
         # setup widgets
-        self._layout_main_frame()
+        self._layout_main_frame_header()
         self._layout_usage_counter()
         self._layout_pkg_status_actions()
         self._layout_app_description()
@@ -1648,12 +1628,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
-        small = 9*pango.SCALE
-        markup = '<b><span size="%s">%s</span></b>\n<span size="%s">%s</span>'
-        markup = markup % (big, appname, small, gobject.markup_escape_text(summary))
+        title = '<b><span size="%s">%s</span></b>' % (big, appname)
+        #summary = '<small>%s</small>' % summary
 
         # set app- icon, name and summary in the header
-        self.main_frame.set_label(markup=markup)
+        self.main_frame.set_title(markup=title)
+        self.main_frame.set_summary(markup=summary)
 
         # a11y for name/summary
         self.main_frame.header.a11y.set_name("Application: " + appname + ". Summary: " + summary)
@@ -1761,6 +1741,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.set_appname(app_details.name)
 
     def _update_all(self, app_details):
+        if not self.loaded:
+            print 'Loading ItemView layout...', self.loaded
+            self._init_ondemand()
+            print 'ItemView layout complete', self.loaded
+
+        # reset view to top left
+        self.get_vadjustment().set_value(0)
+        self.get_hadjustment().set_value(0)
+
         appname = gobject.markup_escape_text(app_details.display_name)
 
         if app_details.pkg_state == PKG_STATE_NOT_FOUND:
@@ -1789,7 +1778,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._configure_where_is_it()
         return
 
-    def _update_minimal(self, app_details, old_details):
+    def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
         self._update_app_icon(app_details)
@@ -1872,30 +1861,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("no app selected")
             return
 
-        # reset view to top left
-        self.get_vadjustment().set_value(0)
-        self.get_hadjustment().set_value(0)
-
-        if (self.app and self.app.pkgname and self.app.pkgname == app.pkgname):
+        same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
+        if same_app:
+            if not self.loaded:
+                return
+            self._update_minimal(self.app_details)
+            self.emit("selected", self.app)
             return
 
-        # set button sensitive again
-        self.pkg_statusbar.button.set_sensitive(True)
-
         # init data
-        old_details = self.app_details
         self.app = app
         self.app_details = app.get_details(self.db)
 
         # for compat with the base class
         self.appdetails = self.app_details
-        #print "AppDetailsViewGtk:"
-        #print self.appdetails
 
-        if self.app_details.same_app(old_details):
-            self._update_minimal(self.app_details)
-        else:
-            self._update_all(self.app_details)
+        self._update_all(self.app_details)
+        # set button sensitive again
+        self.pkg_statusbar.button.set_sensitive(True)
 
         self.get_usage_counter()
         self._check_for_reviews()
@@ -1914,23 +1897,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # internal callback
     def _update_interface_on_trans_ended(self, result):
-        self.pkg_statusbar.button.set_sensitive(True)
-        self.pkg_statusbar.button.show()
-        self.addons_statusbar.button_apply.set_sensitive(True)
-        self.addons_statusbar.button_cancel.set_sensitive(True)
-        self.addons_statusbar.configure()
-        self.adjustment_value = None
-        
-        if self.addons_statusbar.applying:
-            self.addons_statusbar.applying = False
-            
-            for widget in self.addon_view:
-                if widget != self.addon_view.label:
-                    addon = widget.app.pkgname
-                    widget.set_active(self.cache[addon].installed != None)
-            return False
-        
         state = self.pkg_statusbar.pkg_state
+
         # handle purchase: install purchased has multiple steps
         if (state == PKG_STATE_INSTALLING_PURCHASED and 
             result and
@@ -1947,6 +1915,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
         elif state == PKG_STATE_UPGRADING:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+        # addons modified
+        elif self.addons_statusbar.applying:
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+
+        self.adjustment_value = None
+        
+        if self.addons_statusbar.applying:
+            self.addons_statusbar.applying = False
+
+        self.addons_manager.configure(self.app_details.name, False)
         return False
 
     def _on_transaction_started(self, backend):
@@ -2010,7 +1988,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #cr.fill()
 
         ## line width should be 0.05em, as per spec
-        #line_width = max(1, int(mkit.EM*0.05+0.5))
+        #line_width = max(1, int(EM*0.05+0.5))
         ## if line_width an odd number we need to align to the pixel grid
         #if line_width % 2:
             #cr.translate(0.5, 0.5)
@@ -2203,7 +2181,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string = gettext.ngettext("Used: one time",
                                             "Used: %(amount)s times",
                                             counter) % { 'amount' : counter, }
-            self.usage.set_text(label_string)
+            self.usage.set_text('<small>%s</small>' % label_string)
             self.usage.show()
 
         # try to get it
