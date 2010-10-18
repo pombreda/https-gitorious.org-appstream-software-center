@@ -47,9 +47,10 @@ from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
+from widgets.mkit import EM
 from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
-from widgets.reviews import ReviewStatsContainer, StarRating, Like, Dislike
+from widgets.reviews import ReviewStatsContainer, StarRating
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -134,32 +135,6 @@ class StatusBar(gtk.Alignment):
         cr.restore()
         return
 
-class PackageUsageCounter(gtk.Label):
-
-    def __init__(self, view):
-        gtk.Label.__init__(self)
-        self.set_alignment(0,0)
-        self.set_padding(4, 0)
-        self.view = view
-        self.shape = mkit.ShapeRoundedRectangle()
-        return
-
-    def set_text(self, text):
-        m = '<span color="white"><b><small>%s</small></b></span>' % text
-        gtk.Label.set_markup(self, m)
-        return
-
-    def draw(self, cr, a):
-        cr.save()
-        ax, ay = self.get_alignment()
-        lx, ly, lw, lh = self.get_layout().get_pixel_extents()[1]
-        x = int(a.x + (a.width-lw)*ax)
-        y = int(a.y + (a.height-lh)*ay)
-        self.shape.layout(cr, x, y, x+lw+8, y+lh, radius=3)
-        cr.set_source_rgba(0, 0, 0, 0.55)
-        cr.fill()
-        cr.restore()
-        return
 
 class PackageStatusBar(StatusBar):
     
@@ -366,11 +341,14 @@ class AppDescription(gtk.VBox):
         self._prev_type = self.TYPE_PARAGRAPH
         return
 
-    def append_bullet(self, point):
+    def append_bullet(self, point, indent_level):
         vspacing=None
         if self._prev_type == self.TYPE_BULLET:
             vspacing = 5
-        self.description.append_bullet(point[2:].strip(), vspacing=vspacing)
+
+        self.description.append_bullet(point[2:].strip(),
+                                       indent_level+1,
+                                       vspacing)
         self._prev_type = self.TYPE_BULLET
         return
 
@@ -389,66 +367,62 @@ class AppDescription(gtk.VBox):
 
         in_blist = False
         processed_frag = ''
+        prev_indent = 0
+        indent = 0
 
-        for i, part in enumerate(parts):
-            part = part.strip()
-            # if empty, do the void
+        for i, raw_part in enumerate(parts):
+            part = raw_part.strip()
+            #indent = 0#len(raw_part) - len(part)
+#            print len(raw_part) - len(part), part
+
             if not part:
-                pass
+                # if empty, do the void
+                continue
+
+            # frag looks like its a bullet point
+            if part[:2] in self.BULLETS:
+                # if there's an existing bullet, append it and start anew
+                if in_blist:
+                    self.append_bullet(processed_frag, prev_indent)
+                    processed_frag = ''
+
+                in_blist = True
+
+            processed_frag += part
+
+            # ends with a terminator or the following fragment starts with a capital letter
+            if part[-1] in ('.', '!', '?', ':') or \
+                (i+1 < l and len(parts[i+1]) > 1 and \
+                    parts[i+1][0].isupper()):
+
+                # not in a bullet list, so normal paragraph
+                if not in_blist:
+                    # if not final text block, append newline
+                    # append text block
+                    self.append_paragraph(processed_frag)
+                    # reset
+                    processed_frag = ''
+
+                # we are in a bullet list
+                else:
+                    # append a bullet point
+                    self.append_bullet(processed_frag, indent)
+                    # reset
+                    processed_frag = ''
+                    in_blist = False
 
             else:
-                # frag looks like its a bullet point
-                if part[:2] in self.BULLETS:
-                    # if there's an existing bullet, append it and start anew
-                    if in_blist:
-                        self.append_bullet(processed_frag)
-                        processed_frag = ''
+                processed_frag += ' '
 
-                    in_blist = True
-
-                processed_frag += part
-
-                # ends with a terminator or the following fragment starts with a capital letter
-                if part[-1] in ('.', '!', '?', ':') or \
-                    (i+1 < l and len(parts[i+1]) > 1 and \
-                        parts[i+1][0].isupper()):
-
-                    # not in a bullet list, so normal paragraph
-                    if not in_blist:
-                        # if not final text block, append newline
-                        if (i+1) < l:
-                            processed_frag += '\n'
-                        # append text block
-                        self.append_paragraph(processed_frag)
-                        # reset
-                        processed_frag = ''
-
-                    # we are in a bullet list
-                    else:
-                        # append newline only if this is not the final
-                        # text block and its not followed by a bullet 
-                        if ((i+1) < l and
-                            len(parts[i+1]) > 1
-                            and not parts[i+1][:2] in self.BULLETS):
-                            processed_frag += '\n'
-
-                        # append a bullet point
-                        self.append_bullet(processed_frag)
-                        # reset
-                        processed_frag = ''
-                        in_blist = False
-
-                else:
-                    processed_frag += ' '
+            #prev_indent = indent
 
         if processed_frag:
             if processed_frag[:2] in self.BULLETS:
-                self.append_bullet(processed_frag)
+                self.append_bullet(processed_frag, indent)
             else:
                 self.append_paragraph(processed_frag)
 
-        self.show_all()
-        return    
+        return
 
 
 class PackageInfo(gtk.HBox):
@@ -478,7 +452,7 @@ class PackageInfo(gtk.HBox):
             tmp.set_markup(key_markup  % (dark, key))
             max_lw = max(max_lw, tmp.get_layout().get_pixel_extents()[1][2])
             del tmp
-        a.set_size_request(max_lw+3*mkit.EM, -1)
+        a.set_size_request(max_lw+3*EM, -1)
         a.add(k)
         self.pack_start(a, False)
 
@@ -1119,7 +1093,6 @@ class Review(gtk.VBox):
     
     def __init__(self, review_data):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
-        
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
@@ -1306,9 +1279,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
-        self.adjustment_value = None
-
         self.section = None
+        # app specific data
+        self.app = NoneTypeApplication()
+        self.app_details = self.app.get_details(self.db)
+        self.loaded = False
+        return
+
+    def _init_ondemand(self):
+        self.adjustment_value = None
         self.addons_manager = AddonsManager(self)
 
         # atk
@@ -1320,10 +1299,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-
-        # app specific data
-        self.app = NoneTypeApplication()
-        self.app_details = self.app.get_details(self.db)
 
         # switches
         # Bug #628714 check not only that gwibber is installed but that service accounts exist
@@ -1337,10 +1312,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.connect('size-allocate', self._on_allocate)
         self.vbox.connect('expose-event', self._on_expose)
         #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
+        self.loaded = True
         return
     
     def _check_for_reviews(self):
-        print "check for reviews"
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
         if stats:
@@ -1373,31 +1348,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
-        print self.main_frame.header_vbox.allocation
-        #title = self.main_frame.title
-        #summary = self.main_frame.summary
 
-        #max_title_width = w-84-self.review_stats_widget.allocation.width
-
-        #if title.allocation.width > max_title_width:
-            #title.set_size_request(max_title_width, -1)
-        #else:
-            #title.set_size_request(-1, -1)
-        #if summary.allocation.width > max_title_width:
-            #summary.set_size_request(max_title_width, -1)
-        #else:
-            #summary.set_size_request(-1, -1)
+        max_title_width = w-84-self.review_stats_widget.allocation.width-5*EM
+        self.main_frame.title.set_size_request(max_title_width, -1)
+        self.main_frame.summary.set_size_request(max_title_width, -1)
 
         desc = self.app_desc.description
-        size = desc.height_from_width(w-4*mkit.EM-166)
+        size = desc.height_from_width(w-4*EM-166)
         if size:
             desc.set_size_request(*size)
 
-        self.version_info.set_width(w-4*mkit.EM)
-        self.license_info.set_width(w-4*mkit.EM)
-        self.support_info.set_width(w-4*mkit.EM)
+        self.version_info.set_width(w-4*EM)
+        self.license_info.set_width(w-4*EM)
+        self.support_info.set_width(w-4*EM)
 
-        self.reviews.set_width(w-5*mkit.EM)
+        self.reviews.set_width(w-5*EM)
 
         self._full_redraw()   #  ewww
         return
@@ -1551,8 +1516,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _layout_usage_counter(self):
         # if zeitgeist is installed,
         # the amount of times it was used
-        self.usage = PackageUsageCounter(self)
-        self.main_frame.header_vbox.pack_start(self.usage, False)
+        self.usage = mkit.BubbleLabel()
+        self.main_frame.header_vbox.pack_start(self.usage, False, padding=2)
         return
 
     def _layout_pkg_status_actions(self):
@@ -1664,9 +1629,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         big = 20*pango.SCALE
-        small = 9*pango.SCALE
         title = '<b><span size="%s">%s</span></b>' % (big, appname)
-        summary = '<span size="%s">%s</span>' % (small, summary)
+        #summary = '<small>%s</small>' % summary
 
         # set app- icon, name and summary in the header
         self.main_frame.set_title(markup=title)
@@ -1893,14 +1857,19 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("no app selected")
             return
 
-        if (self.app and self.app.pkgname and self.app.pkgname == app.pkgname):
+        same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
+        if same_app:
+            self._update_minimal(self.app_details)
+            self.emit("selected", self.app)
             return
+
+        if not self.loaded:
+            self._init_ondemand()
 
         # set button sensitive again
         self.pkg_statusbar.button.set_sensitive(True)
 
         # init data
-        old_details = self.app_details
         self.app = app
         self.app_details = app.get_details(self.db)
 
@@ -1909,10 +1878,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #print "AppDetailsViewGtk:"
         #print self.appdetails
 
-        if self.app_details.same_app(old_details):
-            self._update_minimal(self.app_details)
-        else:
-            self._update_all(self.app_details)
+        self._update_all(self.app_details)
 
         self.get_usage_counter()
         self._check_for_reviews()
@@ -2022,7 +1988,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #cr.fill()
 
         ## line width should be 0.05em, as per spec
-        #line_width = max(1, int(mkit.EM*0.05+0.5))
+        #line_width = max(1, int(EM*0.05+0.5))
         ## if line_width an odd number we need to align to the pixel grid
         #if line_width % 2:
             #cr.translate(0.5, 0.5)
@@ -2215,7 +2181,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string = gettext.ngettext("Used: one time",
                                             "Used: %(amount)s times",
                                             counter) % { 'amount' : counter, }
-            self.usage.set_text(label_string)
+            self.usage.set_text('<small>%s</small>' % label_string)
             self.usage.show()
 
         # try to get it

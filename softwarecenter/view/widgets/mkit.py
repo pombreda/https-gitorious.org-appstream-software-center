@@ -729,7 +729,7 @@ class FramedSectionAlt(gtk.VBox):
 
         self.header_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.header = gtk.HBox()
-        self.header_vbox = gtk.VBox(spacing=4)
+        self.header_vbox = gtk.VBox()
         header_vb_align = gtk.Alignment(0, 0.5)
         header_vb_align.add(self.header_vbox)
         self.header.pack_start(header_vb_align, False)
@@ -1401,6 +1401,37 @@ class VLinkButton(LinkButton):
         cr.rectangle(x,y,w,h)
         cr.stroke()
         del cr
+
+
+class BubbleLabel(gtk.Label):
+
+    def __init__(self):
+        gtk.Label.__init__(self)
+        self.set_alignment(0,0)
+        self.set_padding(4, 0)
+        self.shape = ShapeRoundedRectangle()
+        return
+
+    def set_text(self, markup):
+        gtk.Label.set_markup(self, '<span color="white"><b>%s</b></span>' % markup)
+        return
+
+    def set_markup(self, markup):
+        gtk.Label.set_markup(self, '<span color="white"><b>%s</b></span>' % markup)
+        return
+
+    def draw(self, cr, a):
+        cr.save()
+        xp = self.get_padding()[0]
+        ax, ay = self.get_alignment()
+        lx, ly, lw, lh = self.get_layout().get_pixel_extents()[1]
+        x = int(a.x + (a.width-lw)*ax)
+        y = int(a.y + (a.height-lh)*ay)
+        self.shape.layout(cr, x, y, x+lw+2*xp, y+lh, radius=3)
+        cr.set_source_rgba(0, 0, 0, 0.55)
+        cr.fill()
+        cr.restore()
+        return
 
 
 class EtchedLabel(gtk.Label):
