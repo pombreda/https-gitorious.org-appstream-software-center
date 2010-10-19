@@ -251,10 +251,7 @@ class BaseApp(SimpleGtkbuilderApp):
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
 
-    LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
-    STAR_IMAGE = "/usr/share/software-center/images/star-yellow.png"
-    DARK_STAR_IMAGE = "/usr/share/software-center/images/star-dark.png"
-
+    STAR_SIZE = (32, 32)
     APP_ICON_SIZE = 48
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
@@ -266,14 +263,16 @@ class SubmitReviewsApp(BaseApp):
         self.dialog_main = self.dialog_review_app
 
         # interactive star rating
-        self.star_rating = StarRating(0, star_size=(32,32))
+        self.star_rating = StarRating(0, star_size=self.STAR_SIZE)
+        self.star_rating.set_padding(6, 6, 0, 0)
         self.body_vbox.pack_start(self.star_rating, False)
-        self.body_vbox.reorder_child(self.star_rating, 2)
+        self.body_vbox.reorder_child(self.star_rating, 4)
 
         # status
         self.status_spinner = gtk.Spinner()
-        self.status_hbox.pack_start(self.status_spinner, False)
-        #self.status_spinner.show()
+        self.login_hbox.pack_start(self.status_spinner, False)
+        self.login_hbox.reorder_child(self.status_spinner, 0)
+        self.status_spinner.show()
 
         # data
         self.app = app
@@ -282,6 +281,7 @@ class SubmitReviewsApp(BaseApp):
         self.rating = 0
         # title
         self.dialog_review_app.set_title(_("Review %s" % self.app.name))
+
         # parent xid
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
@@ -294,28 +294,29 @@ class SubmitReviewsApp(BaseApp):
         #self.dialog_review_login.set_transient_for(self.dialog_review_app)
         #self.dialog_review_login.set_modal(True)
 
-    def _init_icons(self):
-        """ init the icons """
-        self.image_review_login.set_from_file(self.LOGIN_IMAGE)
-        self._update_rating()
-        if self.iconname:
-            icon = self.icons.load_icon(self.iconname, self.APP_ICON_SIZE, 0)
+        self.dialog_main.connect('realize', self._setup_details, app, iconname, version)
+
+    def _setup_details(self, widget, app, iconname, version):
+        # icon shazam
+        if iconname:
+            icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
             if icon:
-                self.image_review_app.set_from_pixbuf(icon)
+                self.appicon.set_from_pixbuf(icon)
 
-    def _update_rating(self):
-        logging.debug("_update_rating %s" % self.rating)
-        for i in range(1, self.rating+1):
-            img = getattr(self, "image_review_star%i" % i)
-            img.set_from_file(self.STAR_IMAGE)
-        for i in range(self.rating+1, 6):
-            img = getattr(self, "image_review_star%i" % i)
-            img.set_from_file(self.DARK_STAR_IMAGE)
-        self._enable_or_disable_post_button()
+        # dark color
+        dark = widget.style.dark[0].to_string()
 
-    def on_image_review_star_button_press_event(self, widget, event, data):
-        self.rating = data
-        self._update_rating()
+        # title
+        m = '<b><span size="xx-large">%s</span>\n%s %s</b>'
+        self.title.set_markup(m % (_('Review Application'), app.name, version))
+
+        # review label
+        author = 'Matthew McGowan (mmnz)'
+        self.review_label.set_markup('<b><span color="%s">%s %s</span></b>' % (dark, _('Review by'), author))
+
+        # review summary label
+        self.summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
+        return
 
     def on_entry_summary_changed(self, widget):
         self._enable_or_disable_post_button()
@@ -325,8 +326,8 @@ class SubmitReviewsApp(BaseApp):
             self.button_post_review.set_sensitive(True)
         else:
             self.button_post_review.set_sensitive(False)
-            
-    def enter_review(self):
+
+    def submit_review(self):
         self.hbox_status.hide()
         self.table_review_main.set_sensitive(True)
         res = self.dialog_review_app.run()
@@ -348,15 +349,16 @@ class SubmitReviewsApp(BaseApp):
         self.quit()
 
     def run(self):
-        # show main dialog insensitive until we are logged in
-        #self.table_review_main.set_sensitive(False)
-        #self.label_status.set_text(_("Connecting..."))
+        # initially display a 'Connecting...' page
+        self.main_notebook.set_current_page(0)
+        self.login_status_label.set_markup('<big>%s</big>' % _("Signing in..."))
         self.status_spinner.start()
         self.dialog_review_app.show()
         # now run the loop
         res = self.run_loop()
 
     def login_successful(self, display_name):
+        self.main_notebook.set_current_page(1)
         #self.label_reviewer.set_text(display_name)
         #self.enter_review()
         return

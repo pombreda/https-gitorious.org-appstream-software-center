@@ -149,6 +149,7 @@ class StarRating(gtk.Alignment):
 
     def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1)):
         gtk.Alignment.__init__(self, 0.5, 0.5)
+        self.set_padding(2, 2, 0, 0)
         self.hbox = gtk.HBox(spacing=spacing)
         self.add(self.hbox)
 
