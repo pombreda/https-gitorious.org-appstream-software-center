@@ -87,7 +87,7 @@ class ChannelPane(SoftwarePane):
         if not self.channel:
             return
         self.refresh_seq_nr += 1
-        channel_query = self.channel.get_channel_query()
+        channel_query = self.channel.channel_query
         if self.search_terms:
             query = self.db.get_query_list_from_search_entry(self.search_terms,
                                                              channel_query)
@@ -96,7 +96,7 @@ class ChannelPane(SoftwarePane):
                                             "search", do_callback=False)
         else:
             self.navigation_bar.add_with_id(
-                self.channel.get_channel_display_name(),
+                self.channel.channel_display_name,
                 self.on_navigation_list,
                 "list", do_callback=False)
             query = xapian.Query(channel_query)
@@ -112,7 +112,7 @@ class ChannelPane(SoftwarePane):
         # an empty list while the full list is generated; 
         #  this prevents a visual glitch when
         # the list is replaced
-        if ((self.channel.get_channel_name() == self.distro.get_distro_channel_name() and not 
+        if ((self.channel.channel_name == self.distro.get_distro_channel_name() and not 
              self.search_terms)):
             self.app_view.clear_model()
         
@@ -136,7 +136,7 @@ class ChannelPane(SoftwarePane):
                              self.icons, 
                              query, 
                              limit=0,
-                             sortmode=self.channel.get_channel_sort_mode(),
+                             sortmode=self.channel.channel_sort_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
@@ -189,7 +189,7 @@ class ChannelPane(SoftwarePane):
         # normal operation
         # always show all packages in the partner repository
         # FIXME:  remove this special case code in favor of a more general solution
-        if channel.get_channel_component() == "partner":
+        if channel.channel_component == "partner":
             self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
             self.disable_show_hide_nonapps = True
         else:

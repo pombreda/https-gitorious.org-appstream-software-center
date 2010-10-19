@@ -169,7 +169,7 @@ class ChannelsManager(object):
         cache_origins = self.db._aptcache.get_origins()
         db_origins = set()
         for channel in self.channels:
-            origin = channel.get_channel_origin()
+            origin = channel.channel_origin
             if origin:
                 db_origins.add(origin)
         # origins
@@ -349,44 +349,51 @@ class SoftwareChannel(object):
         # when the channel needs to be added to the systems sources.list
         self.needs_adding = False
         
-    def get_channel_name(self):
+    @property
+    def channel_name(self):
         """
         return the channel name as represented in the xapian database
         """
         return self._channel_name
-        
-    def get_channel_origin(self):
+       
+    @property 
+    def channel_origin(self):
         """
         return the channel origin as represented in the xapian database
         """
         return self._channel_origin
-        
-    def get_channel_component(self):
+    
+    @property    
+    def channel_component(self):
         """
         return the channel component as represented in the xapian database
         """
         return self._channel_component
-       
-    def get_channel_display_name(self):
+    
+    @property   
+    def channel_display_name(self):
         """
         return the display name for the corresponding channel for use in the UI
         """
         return self._channel_display_name
-        
-    def get_channel_icon(self):
+    
+    @property    
+    def channel_icon(self):
         """
         return the icon that corresponds to each channel based
         on the channel name, its origin string or its component
         """
         return self._channel_icon
 
-    def get_channel_query(self):
+    @property
+    def channel_query(self):
         """
         return the xapian query to be used with this software channel
         """
         return self._channel_query
-        
-    def get_channel_sort_mode(self):
+    
+    @property    
+    def channel_sort_mode(self):
         """
         return the sort mode for this software channel
         """
@@ -465,13 +472,13 @@ class SoftwareChannel(object):
     def __str__(self):
         details = []
         details.append("* SoftwareChannel")
-        details.append("  get_channel_name(): %s" % self.get_channel_name())
-        details.append("  get_channel_origin(): %s" % self.get_channel_origin())
-        details.append("  get_channel_component(): %s" % self.get_channel_component())
-        details.append("  get_channel_display_name(): %s" % self.get_channel_display_name())
-        details.append("  get_channel_icon(): %s" % self.get_channel_icon())
-        details.append("  get_channel_query(): %s" % self.get_channel_query())
-        details.append("  get_channel_sort_mode(): %s" % self.get_channel_sort_mode())
+        details.append("  channel_name: %s" % self.channel_name)
+        details.append("  channel_origin: %s" % self.channel_origin)
+        details.append("  channel_component: %s" % self.channel_component)
+        details.append("  channel_display_name: %s" % self.channel_display_name)
+        details.append("  channel_icon: %s" % self.channel_icon)
+        details.append("  channel_query: %s" % self.channel_query)
+        details.append("  channel_sort_mode: %s" % self.channel_sort_mode)
         details.append("  only_packages_without_applications: %s" % self.only_packages_without_applications)
         details.append("  installed_only: %s" % self.installed_only)
         return '\n'.join(details)
