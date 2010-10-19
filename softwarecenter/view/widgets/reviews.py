@@ -186,6 +186,8 @@ class StarRating(gtk.Alignment):
         self.hbox = gtk.HBox(spacing=spacing)
         self.add(self.hbox)
 
+        self.rating = 0
+
         self._build(star_size, is_interactive)
         if n_stars != None:
             self.set_rating(n_stars)
@@ -198,28 +200,32 @@ class StarRating(gtk.Alignment):
         self.show_all()
 
     def set_rating(self, n_stars):
+        self.rating = n_stars
         #n_stars += 0.5  # XXX: for testing floats only
         acc = self.get_accessible()
         acc.set_name(_("%s star rating") % n_stars)
         acc.set_description(_("%s star rating") % n_stars)
 
-        for i, child in enumerate(self.get_stars()):
+        for i, star in enumerate(self.get_stars()):
             if i < int(n_stars):
-                child.set_fill(StarPainter.FILL_FULL)
+                star.set_fill(StarPainter.FILL_FULL)
             elif i == int(n_stars) and n_stars-int(n_stars) > 0:
-                child.set_fill(StarPainter.FILL_HALF)
+                star.set_fill(StarPainter.FILL_HALF)
             else:
-                child.set_fill(StarPainter.FILL_EMPTY)
+                star.set_fill(StarPainter.FILL_EMPTY)
         self.queue_draw()
         return
 
+    def get_rating(self):
+        return self.rating
+
     def get_stars(self):
-        return self.hbox.get_children()
+        return filter(lambda x: isinstance(x, StarWidget), self.hbox.get_children())
 
 
 class StarRatingSelector(StarRating):
 
-    def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1)):
+    def __init__(self, n_stars=None, spacing=4, star_size=(EM-1,EM-1)):
         StarRating.__init__(self, n_stars, spacing, star_size, True)
         for star in self.get_stars():
             self._connect_signals(star)
