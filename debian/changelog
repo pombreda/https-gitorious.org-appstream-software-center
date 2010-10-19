@@ -5,7 +5,13 @@ software-center (3.1.1) UNRELEASED; urgency=low
     - correctly reload appdetailsview after a transaction has run
     - _update_minimal() only gets two args
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Oct 2010 17:31:30 +0200
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/viewswitcher.py:
+    - convert channel getters to properties
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 19 Oct 2010 10:54:33 -0400
 
 software-center (3.1.0) natty; urgency=low
 
