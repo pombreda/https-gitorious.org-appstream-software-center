@@ -268,7 +268,7 @@ class SubmitReviewsApp(BaseApp):
         self.star_rating = StarRatingSelector(3, star_size=self.STAR_SIZE)
         self.star_rating.set_padding(6, 6, 0, 0)
         self.body_vbox.pack_start(self.star_rating, False)
-        self.body_vbox.reorder_child(self.star_rating, 4)
+        self.body_vbox.reorder_child(self.star_rating, 6)
 
         # status
         self.status_spinner = gtk.Spinner()
@@ -306,6 +306,9 @@ class SubmitReviewsApp(BaseApp):
                 pass
             if icon:
                 self.appicon.set_from_pixbuf(icon)
+            else:
+                # set a fallback icon here
+                pass
 
         # dark color
         dark = widget.style.dark[0].to_string()
@@ -314,8 +317,11 @@ class SubmitReviewsApp(BaseApp):
         m = '<b><span size="x-large">%s</span></b>\n%s'
         self.title.set_markup(m % (app.name, version))
 
+        # who what label
+        self.whois_label.set_markup('%s %s' % (_('Reviewer:'), display_name))
+
         # review label
-        self.review_label.set_markup('<b><span color="%s">%s %s</span></b>' % (dark, _('Review by'), display_name))
+        self.review_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Review')))
 
         # review summary label
         self.summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))

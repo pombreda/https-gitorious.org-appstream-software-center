@@ -115,6 +115,34 @@
                   <placeholder/>
                 </child>
                 <child>
+                  <object class="GtkVBox" id="hseparator_vbox">
+                    <property name="visible">True</property>
+                    <child>
+                      <object class="GtkLabel" id="whois_label">
+                        <property name="visible">True</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">label</property>
+                      </object>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkHSeparator" id="hseparator">
+                        <property name="visible">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkVBox" id="summary_vbox">
                     <property name="visible">True</property>
                     <property name="spacing">3</property>
@@ -144,11 +172,8 @@
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="position">2</property>
+                    <property name="position">3</property>
                   </packing>
-                </child>
-                <child>
-                  <placeholder/>
                 </child>
                 <child>
                   <object class="GtkVBox" id="review_vbox">
