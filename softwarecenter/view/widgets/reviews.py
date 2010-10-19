@@ -32,20 +32,29 @@ from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, BubbleLabel,
 
 class StarPainter(object):
 
-    FILL_EMPTY = 0
-    FILL_HALF  = 1
-    FILL_FULL  = 2
+    FILL_EMPTY      = 0
+    FILL_HALF       = 1
+    FILL_FULL       = 2
+
+    GLOW_NORMAL     = 3
+    GLOW_PRELIGHT   = 4
 
     def __init__(self):
         self.shape = ShapeStar()
-        self.fill = self.FILL_FULL
-        self.bg_fill = floats_from_string('#989898')
-        self.fg_fill = floats_from_string('#D70707')   # crimson red
-        #self.fg_fill = floats_from_string('#FFC800')    # gold
+        self.fill = self.FILL_EMPTY
+        self.glow = self.GLOW_NORMAL
+
+        self.bg_color = floats_from_string('#989898')     # gray
+        self.fg_color = floats_from_string('#D70707')     # crimson red
+        self.glow_color = floats_from_string('#FFB500')   # gold
         return
 
     def set_fill(self, fill):
         self.fill = fill
+        return
+
+    def set_glow(self, glow):
+        self.glow = glow
         return
 
     def paint_half_star(self, cr, x, y, w, h):
@@ -54,8 +63,7 @@ class StarPainter(object):
         cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgba(1,1,1, 0.4)
-        cr.set_line_width(5)
+        self._setup_glow(cr)
         cr.stroke()
         cr.set_line_width(2)
 
@@ -63,7 +71,7 @@ class StarPainter(object):
         cr.clip()
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgb(*self.bg_fill)
+        cr.set_source_rgb(*self.bg_color)
         cr.stroke_preserve()
         cr.fill()
         cairo.Context.reset_clip(cr)
@@ -72,15 +80,12 @@ class StarPainter(object):
         cr.clip()
         
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgb(*self.fg_fill)
+        cr.set_source_rgb(*self.fg_color)
         cr.stroke_preserve()
         cr.fill_preserve()
         cairo.Context.reset_clip(cr)
 
-        lin = cairo.LinearGradient(0, y, 0, y+h)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.5)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.05)
-        cr.set_source(lin)
+        self._setup_gradient(cr, y, h)
         cr.fill()
 
         cr.restore()
@@ -95,38 +100,66 @@ class StarPainter(object):
         cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgba(1,1,1, 0.4)
-        cr.set_line_width(5)
+
+        self._setup_glow(cr)
         cr.stroke_preserve()
         cr.set_line_width(2)
 
         if self.fill == self.FILL_EMPTY:
-            cr.set_source_rgb(*self.bg_fill)
+            cr.set_source_rgb(*self.bg_color)
         else:
-            cr.set_source_rgb(*self.fg_fill)
+            cr.set_source_rgb(*self.fg_color)
 
         cr.stroke_preserve()
         cr.fill_preserve()
 
-        lin = cairo.LinearGradient(0, y, 0, y+h)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.5)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.05)
-        cr.set_source(lin)
+        self._setup_gradient(cr, y, h)
         cr.fill()
 
         cr.restore()
         return
 
+    def _setup_glow(self, cr):
+        if self.glow == self.GLOW_NORMAL:
+            white = self.style.white
+            cr.set_source_rgba(white.red_float,
+                               white.green_float,
+                               white.blue_float, 0.4)
+            cr.set_line_width(5)
+        else:
+            cr.set_source_rgba(*self.glow_color+(0.6,))
+            cr.set_line_width(6)
+        return
+
+    def _setup_gradient(self, cr, y, h):
+        lin = cairo.LinearGradient(0, y, 0, y+h)
+        lin.add_color_stop_rgba(0, 1,1,1, 0.5)
+        lin.add_color_stop_rgba(1, 1,1,1, 0.05)
+        cr.set_source(lin)
+        return
 
 class StarWidget(gtk.EventBox, StarPainter):
 
-    def __init__(self, size):
+    def __init__(self, size, is_interactive):
         gtk.EventBox.__init__(self)
         StarPainter.__init__(self)
         self.set_visible_window(False)
         self.set_size_request(*size)
 
+        if is_interactive:
+            self._init_event_handling()
+
         self.connect('expose-event', self._on_expose)
+        return
+
+    def _init_event_handling(self):
+        self.set_flags(gtk.CAN_FOCUS)
+        self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
+                        gtk.gdk.BUTTON_RELEASE_MASK|
+                        gtk.gdk.KEY_RELEASE_MASK|
+                        gtk.gdk.KEY_PRESS_MASK|
+                        gtk.gdk.ENTER_NOTIFY_MASK|
+                        gtk.gdk.LEAVE_NOTIFY_MASK)
         return
 
     def _on_expose(self, widget, event):
@@ -143,20 +176,25 @@ class StarWidget(gtk.EventBox, StarPainter):
         return
 
 
-class StarRating(gtk.HBox):
+class StarRating(gtk.Alignment):
 
     MAX_STARS = 5
 
-    def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1)):
-        gtk.HBox.__init__(self, spacing=spacing)
-        self._build(star_size)
-        if n_stars:
+    def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1), is_interactive=False):
+        gtk.Alignment.__init__(self, 0.5, 0.5)
+        self.set_padding(2, 2, 0, 0)
+        self.hbox = gtk.HBox(spacing=spacing)
+        self.add(self.hbox)
+
+        self._build(star_size, is_interactive)
+        if n_stars != None:
             self.set_rating(n_stars)
 
-    def _build(self, star_size):
+    def _build(self, star_size, is_interactive):
         for i in range(self.MAX_STARS):
-            star = StarWidget(star_size)
-            self.pack_start(star, False)
+            star = StarWidget(star_size, is_interactive)
+            star.position = i
+            self.hbox.pack_start(star, expand=False)
         self.show_all()
 
     def set_rating(self, n_stars):
@@ -165,16 +203,59 @@ class StarRating(gtk.HBox):
         acc.set_name(_("%s star rating") % n_stars)
         acc.set_description(_("%s star rating") % n_stars)
 
-        i = 0
-        for child in self.get_children():
-            if isinstance(child, StarWidget):
-                if i < int(n_stars):
-                    child.set_fill(StarPainter.FILL_FULL)
-                elif i == int(n_stars) and n_stars-int(n_stars) > 0:
-                    child.set_fill(StarPainter.FILL_HALF)
-                else:
-                    child.set_fill(StarPainter.FILL_EMPTY)
-                i += 1
+        for i, child in enumerate(self.get_stars()):
+            if i < int(n_stars):
+                child.set_fill(StarPainter.FILL_FULL)
+            elif i == int(n_stars) and n_stars-int(n_stars) > 0:
+                child.set_fill(StarPainter.FILL_HALF)
+            else:
+                child.set_fill(StarPainter.FILL_EMPTY)
+        self.queue_draw()
+        return
+
+    def get_stars(self):
+        return self.hbox.get_children()
+
+
+class StarRatingSelector(StarRating):
+
+    def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1)):
+        StarRating.__init__(self, n_stars, spacing, star_size, True)
+        for star in self.get_stars():
+            self._connect_signals(star)
+        return
+
+    def _on_enter(self, star, event):
+        self.set_tentative_rating(star.position+1)
+        return
+
+    def _on_leave(self, star, event):
+        gobject.timeout_add(100, self._hover_check_cb)
+        return
+
+    def _on_release(self, star, event):
+        self.set_rating(star.position+1)
+        return
+
+    def _connect_signals(self, star):
+        star.connect('enter-notify-event', self._on_enter)
+        star.connect('leave-notify-event', self._on_leave)
+        star.connect('button-release-event', self._on_release)
+        return
+
+    def _hover_check_cb(self):
+        x, y, flags = self.window.get_pointer()
+        if not gtk.gdk.region_rectangle(self.hbox.allocation).point_in(x,y):
+            self.set_tentative_rating(0)
+        return
+
+    def set_tentative_rating(self, n_stars):
+        for i, star in enumerate(self.get_stars()):
+            if i < int(n_stars):
+                star.set_glow(StarPainter.GLOW_PRELIGHT)
+            else:
+                star.set_glow(StarPainter.GLOW_NORMAL)
+        self.queue_draw()
         return
 
 
