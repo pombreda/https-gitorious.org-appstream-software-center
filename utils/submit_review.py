@@ -59,7 +59,7 @@ from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
-from softwarecenter.view.widgets.reviews import StarRating
+from softwarecenter.view.widgets.reviews import StarRatingSelector
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -251,8 +251,10 @@ class BaseApp(SimpleGtkbuilderApp):
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
 
+
     STAR_SIZE = (32, 32)
     APP_ICON_SIZE = 48
+
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir)
@@ -263,7 +265,7 @@ class SubmitReviewsApp(BaseApp):
         self.dialog_main = self.dialog_review_app
 
         # interactive star rating
-        self.star_rating = StarRating(0, star_size=self.STAR_SIZE)
+        self.star_rating = StarRatingSelector(3, star_size=self.STAR_SIZE)
         self.star_rating.set_padding(6, 6, 0, 0)
         self.body_vbox.pack_start(self.star_rating, False)
         self.body_vbox.reorder_child(self.star_rating, 4)
@@ -294,12 +296,14 @@ class SubmitReviewsApp(BaseApp):
         #self.dialog_review_login.set_transient_for(self.dialog_review_app)
         #self.dialog_review_login.set_modal(True)
 
-        self.dialog_main.connect('realize', self._setup_details, app, iconname, version)
-
-    def _setup_details(self, widget, app, iconname, version):
+    def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
         if iconname:
-            icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
+            icon = None
+            try:
+                icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
+            except:
+                pass
             if icon:
                 self.appicon.set_from_pixbuf(icon)
 
@@ -307,12 +311,11 @@ class SubmitReviewsApp(BaseApp):
         dark = widget.style.dark[0].to_string()
 
         # title
-        m = '<b><span size="xx-large">%s</span>\n%s %s</b>'
-        self.title.set_markup(m % (_('Review Application'), app.name, version))
+        m = '<b><span size="x-large">%s</span></b>\n%s'
+        self.title.set_markup(m % (app.name, version))
 
         # review label
-        author = 'Matthew McGowan (mmnz)'
-        self.review_label.set_markup('<b><span color="%s">%s %s</span></b>' % (dark, _('Review by'), author))
+        self.review_label.set_markup('<b><span color="%s">%s %s</span></b>' % (dark, _('Review by'), display_name))
 
         # review summary label
         self.summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
@@ -359,8 +362,7 @@ class SubmitReviewsApp(BaseApp):
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
-        #self.label_reviewer.set_text(display_name)
-        #self.enter_review()
+        self._setup_details(self.dialog_main, self.app, self.iconname, self.version, display_name)
         return
 
 class ReportReviewApp(BaseApp):
