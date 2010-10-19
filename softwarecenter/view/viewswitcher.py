@@ -419,8 +419,8 @@ class ViewSwitcherList(gtk.TreeStore):
         # iterate the channels and add as subnodes of the available node
         for channel in self.channel_manager.channels:
             self.append(self.available_iter, [
-                        channel.channel_icon,
-                        channel.channel_display_name,
+                        channel.icon,
+                        channel.display_name,
                         VIEW_PAGE_CHANNEL,
                         channel])
         # delete the old ones
@@ -439,7 +439,7 @@ class ViewSwitcherList(gtk.TreeStore):
             # check for no installed items for each channel and do not
             # append the channel item in this case
             enquire = xapian.Enquire(self.db.xapiandb)
-            query = channel.channel_query
+            query = channel.query
             enquire.set_query(query)
             matches = enquire.get_mset(0, len(self.db))
             # only check channels that have a small number of items
@@ -455,8 +455,8 @@ class ViewSwitcherList(gtk.TreeStore):
                         break
             if add_channel_item:
                 self.append(self.installed_iter, [
-                            channel.channel_icon,
-                            channel.channel_display_name,
+                            channel.icon,
+                            channel.display_name,
                             VIEW_PAGE_CHANNEL,
                             channel])
         # delete the old ones
