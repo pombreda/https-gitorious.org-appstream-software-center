@@ -59,7 +59,9 @@ from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
-from softwarecenter.view.widgets.reviews import StarRatingSelector
+from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
+from softwarecenter.view.widgets.mkit import ShapeRoundedRectangle
+
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -265,10 +267,15 @@ class SubmitReviewsApp(BaseApp):
         self.dialog_main = self.dialog_review_app
 
         # interactive star rating
-        self.star_rating = StarRatingSelector(3, star_size=self.STAR_SIZE)
-        self.star_rating.set_padding(6, 6, 0, 0)
+        self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
+        self.star_caption = StarCaption()
+
+        self.star_rating.set_caption_widget(self.star_caption)
+        self.star_rating.set_padding(3, 3, 0, 0)
         self.body_vbox.pack_start(self.star_rating, False)
-        self.body_vbox.reorder_child(self.star_rating, 4)
+        self.body_vbox.reorder_child(self.star_rating, 6)
+        self.body_vbox.pack_end(self.star_caption, False, False)
+        self.star_caption.show()
 
         # status
         self.status_spinner = gtk.Spinner()
@@ -306,6 +313,9 @@ class SubmitReviewsApp(BaseApp):
                 pass
             if icon:
                 self.appicon.set_from_pixbuf(icon)
+            else:
+                # set a fallback icon here
+                pass
 
         # dark color
         dark = widget.style.dark[0].to_string()
@@ -314,8 +324,11 @@ class SubmitReviewsApp(BaseApp):
         m = '<b><span size="x-large">%s</span></b>\n%s'
         self.title.set_markup(m % (app.name, version))
 
+        # who what label
+        self.whois_label.set_markup('<b><span color="%s">%s</span></b>\n%s' % (dark, _('Reviewer'), display_name))
+
         # review label
-        self.review_label.set_markup('<b><span color="%s">%s %s</span></b>' % (dark, _('Review by'), display_name))
+        self.review_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Review')))
 
         # review summary label
         self.summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
