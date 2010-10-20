@@ -74,10 +74,11 @@
                   <object class="GtkAlignment" id="header_alignment">
                     <property name="visible">True</property>
                     <property name="bottom_padding">6</property>
+                    <property name="left_padding">3</property>
                     <child>
                       <object class="GtkHBox" id="header_hbox">
                         <property name="visible">True</property>
-                        <property name="spacing">10</property>
+                        <property name="spacing">9</property>
                         <child>
                           <object class="GtkImage" id="appicon">
                             <property name="visible">True</property>
