@@ -271,11 +271,13 @@ class SubmitReviewsApp(BaseApp):
         self.star_caption = StarCaption()
 
         self.star_rating.set_caption_widget(self.star_caption)
-        self.star_rating.set_padding(3, 3, 0, 0)
-        self.body_vbox.pack_start(self.star_rating, False)
-        self.body_vbox.reorder_child(self.star_rating, 6)
-        self.body_vbox.pack_end(self.star_caption, False, False)
+        self.star_rating.set_padding(3, 3, 3, 0)
         self.star_caption.show()
+
+        self.summary_vbox.pack_start(self.star_rating, False)
+        self.summary_vbox.reorder_child(self.star_rating, 0)
+        self.summary_vbox.pack_start(self.star_caption, False, False)
+        self.summary_vbox.reorder_child(self.star_caption, 1)
 
         # status
         self.status_spinner = gtk.Spinner()
@@ -290,6 +292,9 @@ class SubmitReviewsApp(BaseApp):
         self.rating = 0
         # title
         self.dialog_review_app.set_title(_("Review %s" % self.app.name))
+
+        self.summary_entry.connect('changed', self._on_mandatory_fields_changed)
+        self.star_rating.connect('changed', self._on_mandatory_fields_changed)
 
         # parent xid
         if parent_xid:
@@ -321,11 +326,8 @@ class SubmitReviewsApp(BaseApp):
         dark = widget.style.dark[0].to_string()
 
         # title
-        m = '<b><span size="x-large">%s</span></b>\n%s'
-        self.title.set_markup(m % (app.name, version))
-
-        # who what label
-        self.whois_label.set_markup('<b><span color="%s">%s</span></b>\n%s' % (dark, _('Reviewer'), display_name))
+        m = '<b><span size="x-large">%s</span></b>\n%s %s'
+        self.title.set_markup(m % (app.name, _('Reviewed by'), display_name))
 
         # review label
         self.review_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Review')))
@@ -334,11 +336,11 @@ class SubmitReviewsApp(BaseApp):
         self.summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
         return
 
-    def on_entry_summary_changed(self, widget):
+    def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
 
     def _enable_or_disable_post_button(self):
-        if self.entry_summary.get_text() and self.rating > 0:
+        if self.summary_entry.get_text() and self.star_rating.get_rating():
             self.button_post_review.set_sensitive(True)
         else:
             self.button_post_review.set_sensitive(False)
