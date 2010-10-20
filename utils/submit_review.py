@@ -52,6 +52,7 @@ from oauth.oauth import OAuthConsumer, OAuthToken
 import softwarecenter.view.dialogs
 
 from softwarecenter.paths import *
+from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
 from softwarecenter.backend.restfulclient import RestfulClientWorker, UBUNTU_SSO_SERVICE
 from softwarecenter.db.database import Application
@@ -257,7 +258,6 @@ class SubmitReviewsApp(BaseApp):
     STAR_SIZE = (32, 32)
     APP_ICON_SIZE = 48
 
-
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir)
 
@@ -317,11 +317,11 @@ class SubmitReviewsApp(BaseApp):
                 icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
             except:
                 pass
-            if icon:
-                self.appicon.set_from_pixbuf(icon)
-            else:
-                # set a fallback icon here
-                pass
+            if not icon:
+                icon = self.icons.load_icon(MISSING_APP_ICON,
+                                            self.APP_ICON_SIZE, 0)
+
+            self.appicon.set_from_pixbuf(icon)
 
         # dark color
         dark = widget.style.dark[0].to_string()
