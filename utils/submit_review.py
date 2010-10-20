@@ -271,11 +271,13 @@ class SubmitReviewsApp(BaseApp):
         self.star_caption = StarCaption()
 
         self.star_rating.set_caption_widget(self.star_caption)
-        self.star_rating.set_padding(3, 3, 0, 0)
-        self.body_vbox.pack_start(self.star_rating, False)
-        self.body_vbox.reorder_child(self.star_rating, 6)
-        self.body_vbox.pack_end(self.star_caption, False, False)
+        self.star_rating.set_padding(3, 3, 3, 0)
         self.star_caption.show()
+
+        self.summary_vbox.pack_start(self.star_rating, False)
+        self.summary_vbox.reorder_child(self.star_rating, 0)
+        self.summary_vbox.pack_start(self.star_caption, False, False)
+        self.summary_vbox.reorder_child(self.star_caption, 1)
 
         # status
         self.status_spinner = gtk.Spinner()
@@ -324,11 +326,11 @@ class SubmitReviewsApp(BaseApp):
         dark = widget.style.dark[0].to_string()
 
         # title
-        m = '<b><span size="x-large">%s</span></b>\n%s'
-        self.title.set_markup(m % (app.name, version))
+        m = '<b><span size="x-large">%s</span></b>\n%s %s'
+        self.title.set_markup(m % (app.name, _('Reviewer'), display_name))
 
         # who what label
-        self.whois_label.set_markup('<b><span color="%s">%s</span></b>\n%s' % (dark, _('Reviewer'), display_name))
+        #self.whois_label.set_markup('<b><span color="%s">%s</span></b>\n%s' % (dark, _('Reviewer'), display_name))
 
         # review label
         self.review_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Review')))

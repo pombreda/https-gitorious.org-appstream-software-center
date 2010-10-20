@@ -272,6 +272,12 @@ class StarRatingSelector(StarRating):
         self.set_tentative_rating(star.position+1)
         return True
 
+    def _on_focus_out(self, star, event):
+        for star in self.get_stars():
+            if star.has_focus(): return
+        self.set_tentative_rating(0)
+        return True
+
     def _on_key_press(self, star, event):
         kv = event.keyval
         if kv == gtk.keysyms.space or kv == gtk.keysyms.Return:
@@ -283,6 +289,7 @@ class StarRatingSelector(StarRating):
         star.connect('leave-notify-event', self._on_leave)
         star.connect('button-release-event', self._on_release)
         star.connect('focus-in-event', self._on_focus_in)
+        star.connect('focus-out-event', self._on_focus_out)
         star.connect('key-press-event', self._on_key_press)
         return
 
