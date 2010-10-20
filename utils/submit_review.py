@@ -59,7 +59,8 @@ from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
-from softwarecenter.view.widgets.reviews import StarRatingSelector
+from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
+
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -266,9 +267,14 @@ class SubmitReviewsApp(BaseApp):
 
         # interactive star rating
         self.star_rating = StarRatingSelector(3, star_size=self.STAR_SIZE)
-        self.star_rating.set_padding(6, 6, 0, 0)
+        self.star_caption = StarCaption()
+
+        self.star_rating.set_caption(self.star_caption)
+        self.star_rating.set_padding(3, 3, 0, 0)
         self.body_vbox.pack_start(self.star_rating, False)
         self.body_vbox.reorder_child(self.star_rating, 6)
+        self.body_vbox.pack_end(self.star_caption, False, False)
+        self.star_caption.show()
 
         # status
         self.status_spinner = gtk.Spinner()

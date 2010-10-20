@@ -26,6 +26,8 @@ import cairo
 import gtk
 import os
 
+import pangocairo
+
 from gettext import gettext as _
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, BubbleLabel, floats_from_string
 
@@ -225,14 +227,25 @@ class StarRating(gtk.Alignment):
 
 class StarRatingSelector(StarRating):
 
+    RATING_WORDS = [_('Unusable'),      # 1 star rating
+                    _('Poor'),          # 2 star rating
+                    _('Satisfactory'),  # 3 star rating
+                    _('Good'),          # 4 star rating
+                    _('Exceptional!')]  # 5 star rating
+
     def __init__(self, n_stars=None, spacing=4, star_size=(EM-1,EM-1)):
         StarRating.__init__(self, n_stars, spacing, star_size, True)
+
         for star in self.get_stars():
             self._connect_signals(star)
+
+        self.caption = None
         return
 
     def _on_enter(self, star, event):
         self.set_tentative_rating(star.position+1)
+        if self.caption:
+            self.caption.set_markup(self.RATING_WORDS[star.position])
         return
 
     def _on_leave(self, star, event):
@@ -243,16 +256,35 @@ class StarRatingSelector(StarRating):
         self.set_rating(star.position+1)
         return
 
+    def _on_focus_in(self, star, event):
+        self.set_tentative_rating(star.position+1)
+        return True
+
+    def _on_key_press(self, star, event):
+        kv = event.keyval
+        if kv == gtk.keysyms.space or kv == gtk.keysyms.Return:
+            self.set_rating(star.position+1)
+        return
+
     def _connect_signals(self, star):
         star.connect('enter-notify-event', self._on_enter)
         star.connect('leave-notify-event', self._on_leave)
         star.connect('button-release-event', self._on_release)
+        star.connect('focus-in-event', self._on_focus_in)
+        star.connect('key-press-event', self._on_key_press)
         return
 
     def _hover_check_cb(self):
         x, y, flags = self.window.get_pointer()
         if not gtk.gdk.region_rectangle(self.hbox.allocation).point_in(x,y):
             self.set_tentative_rating(0)
+            if self.caption:
+                self.caption.set_markup(self.RATING_WORDS[self.rating-1])
+        return
+
+    def set_caption(self, caption_widget):
+        caption_widget.set_markup(_('Hint: Click a star to rate this app'))
+        self.caption = caption_widget
         return
 
     def set_tentative_rating(self, n_stars):
@@ -262,6 +294,29 @@ class StarRatingSelector(StarRating):
             else:
                 star.set_glow(StarPainter.GLOW_NORMAL)
         self.queue_draw()
+        return
+
+
+class StarCaption(gtk.Label):
+
+    def __init__(self):
+        gtk.Label.__init__(self)
+        #self.shape = ShapeRoundedRectangle()
+        #self.connect('expose-event', self._on_expose)
+        return
+
+    #def _on_expose(self, widget, event):
+        #a = widget.allocation
+        #cr = widget.window.cairo_create()
+        #self.shape.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        #light = self.style.light[0]
+        #cr.set_source_rgb(light.red_float, light.green_float, light.blue_float)
+        #cr.fill()
+        #del cr
+        #return
+
+    def set_markup(self, markup):
+        gtk.Label.set_markup(self, '<small>%s</small>' % markup)
         return
 
 
