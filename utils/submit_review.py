@@ -265,6 +265,7 @@ class SubmitReviewsApp(BaseApp):
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path("/usr/share/app-install/icons/")
         self.dialog_main = self.dialog_review_app
+        self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
 
         # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
@@ -390,7 +391,8 @@ class ReportReviewApp(BaseApp):
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir)
         self.dialog_main = self.dialog_report_app
-        
+        self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
+
         # spinner & error label
         self.label_error = self.label_report_error
         self.hbox_error = self.hbox_report_error
