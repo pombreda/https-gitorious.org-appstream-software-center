@@ -122,6 +122,8 @@ class StarPainter(object):
         return
 
     def _setup_glow(self, cr):
+        if not hasattr(self, "style"):
+            return
         if self.glow == self.GLOW_NORMAL:
             white = self.style.white
             cr.set_source_rgba(white.red_float,

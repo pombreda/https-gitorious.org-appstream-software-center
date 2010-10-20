@@ -47,11 +47,9 @@ from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
-from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha
+from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha, EM
+from widgets.reviews import StarPainter
 from gtk import gdk
-
-
-
 
 from gettext import gettext as _
 
@@ -856,6 +854,10 @@ class CellRendererAppView2(gtk.CellRendererText):
 
     # size of the install overlay icon
     OVERLAY_SIZE = 16
+    
+    # ratings
+    MAX_STARS = 5
+    STAR_SIZE = EM-1
 
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
@@ -917,6 +919,7 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # cache a layout
         self._layout = None
+        self._star_painter = StarPainter()
 
         # icon/overlay jazz
         icons = gtk.icon_theme_get_default()
@@ -973,7 +976,7 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # work out max allowable layout width
         lw = self._layout_get_pixel_width(layout)
-        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
+        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad - self.MAX_STARS*self.STAR_SIZE
 
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
@@ -1000,6 +1003,21 @@ class CellRendererAppView2(gtk.CellRendererText):
                                   (x, y, w, h),
                                   widget, None,
                                   x, y, layout)
+        return
+
+    def _render_rating(self, window, widget, cell_area, xpad, ypad, direction):
+        # draw stars on the top right
+        cr = window.cairo_create()
+        w = self.STAR_SIZE
+        h = self.STAR_SIZE
+        for i in range(1,self.MAX_STARS+1):
+            x = cell_area.x + cell_area.width - xpad - i*w
+            y = cell_area.y + h
+            if i < self.rating:
+                self._star_painter.set_fill(StarPainter.FILL_EMPTY)
+            else:
+                self._star_painter.set_fill(StarPainter.FILL_FULL)
+            self._star_painter.paint_star(cr, x, y, w, h)
         return
 
     def _render_progress(self, window, widget, cell_area, ypad, direction):
@@ -1122,15 +1140,16 @@ class CellRendererAppView2(gtk.CellRendererText):
                                 xpad, ypad,
                                 direction)
 
+        # only show ratings if we have one
+        if  self.rating > 0:
+            self._render_rating(window, widget, cell_area, xpad, ypad, direction)
+
+        # below is the stuff that is only done for the active cell
         if not self.isactive:
             return
 
         if self.props.action_in_progress > 0:
-            self._render_progress(window,
-                                  widget,
-                                  cell_area,
-                                  ypad,
-                                  direction)
+            self._render_progress(window, widget, cell_area, ypad, direction)
 
         # layout buttons and paint
         y = cell_area.y+cell_area.height-ypad
