@@ -282,7 +282,7 @@ class StarRatingSelector(StarRating):
                 self.caption.set_markup(self.RATING_WORDS[self.rating-1])
         return
 
-    def set_caption(self, caption_widget):
+    def set_caption_widget(self, caption_widget):
         caption_widget.set_markup(_('Hint: Click a star to rate this app'))
         self.caption = caption_widget
         return

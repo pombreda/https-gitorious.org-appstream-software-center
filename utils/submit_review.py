@@ -269,7 +269,7 @@ class SubmitReviewsApp(BaseApp):
         self.star_rating = StarRatingSelector(3, star_size=self.STAR_SIZE)
         self.star_caption = StarCaption()
 
-        self.star_rating.set_caption(self.star_caption)
+        self.star_rating.set_caption_widget(self.star_caption)
         self.star_rating.set_padding(3, 3, 0, 0)
         self.body_vbox.pack_start(self.star_rating, False)
         self.body_vbox.reorder_child(self.star_rating, 6)
