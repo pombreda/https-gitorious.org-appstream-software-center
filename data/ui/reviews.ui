@@ -128,13 +128,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkHSeparator" id="hseparator">
-                        <property name="visible">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">1</property>
-                      </packing>
+                      <placeholder/>
                     </child>
                   </object>
                   <packing>
@@ -160,7 +154,7 @@
                       <object class="GtkEntry" id="summary_entry">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="max_length">80</property>
+                        <property name="max_length">256</property>
                         <property name="invisible_char">•</property>
                         <property name="caps_lock_warning">False</property>
                       </object>
@@ -202,7 +196,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="pixels_above_lines">2</property>
-                            <property name="wrap_mode">word</property>
+                            <property name="wrap_mode">word-char</property>
                             <property name="left_margin">2</property>
                             <property name="right_margin">2</property>
                             <property name="accepts_tab">False</property>

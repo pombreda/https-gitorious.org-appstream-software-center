@@ -227,7 +227,8 @@ class StarRating(gtk.Alignment):
 
 class StarRatingSelector(StarRating):
 
-    RATING_WORDS = [_('Unusable'),      # 1 star rating
+    RATING_WORDS = [_('Hint: Click a star to rate this app'),   # unrated caption
+                    _('Unusable'),      # 1 star rating
                     _('Poor'),          # 2 star rating
                     _('Satisfactory'),  # 3 star rating
                     _('Good'),          # 4 star rating
@@ -245,7 +246,7 @@ class StarRatingSelector(StarRating):
     def _on_enter(self, star, event):
         self.set_tentative_rating(star.position+1)
         if self.caption:
-            self.caption.set_markup(self.RATING_WORDS[star.position])
+            self.caption.set_markup(self.RATING_WORDS[star.position+1])
         return
 
     def _on_leave(self, star, event):
@@ -279,11 +280,11 @@ class StarRatingSelector(StarRating):
         if not gtk.gdk.region_rectangle(self.hbox.allocation).point_in(x,y):
             self.set_tentative_rating(0)
             if self.caption:
-                self.caption.set_markup(self.RATING_WORDS[self.rating-1])
+                self.caption.set_markup(self.RATING_WORDS[self.rating])
         return
 
     def set_caption_widget(self, caption_widget):
-        caption_widget.set_markup(_('Hint: Click a star to rate this app'))
+        caption_widget.set_markup(self.RATING_WORDS[0])
         self.caption = caption_widget
         return
 
