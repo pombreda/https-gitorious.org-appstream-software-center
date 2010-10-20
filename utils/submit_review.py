@@ -327,7 +327,7 @@ class SubmitReviewsApp(BaseApp):
 
         # title
         m = '<b><span size="x-large">%s</span></b>\n%s %s'
-        self.title.set_markup(m % (app.name, _('Reviewer:'), display_name))
+        self.title.set_markup(m % (app.name, _('Reviewed by'), display_name))
 
         # review label
         self.review_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Review')))
