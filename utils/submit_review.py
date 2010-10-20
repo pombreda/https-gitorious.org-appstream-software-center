@@ -291,6 +291,9 @@ class SubmitReviewsApp(BaseApp):
         # title
         self.dialog_review_app.set_title(_("Review %s" % self.app.name))
 
+        self.summary_entry.connect('changed', self._on_mandatory_fields_changed)
+        self.star_rating.connect('changed', self._on_mandatory_fields_changed)
+
         # parent xid
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
@@ -334,11 +337,11 @@ class SubmitReviewsApp(BaseApp):
         self.summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
         return
 
-    def on_entry_summary_changed(self, widget):
+    def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
 
     def _enable_or_disable_post_button(self):
-        if self.entry_summary.get_text() and self.rating > 0:
+        if self.summary_entry.get_text() and self.star_rating.get_rating():
             self.button_post_review.set_sensitive(True)
         else:
             self.button_post_review.set_sensitive(False)

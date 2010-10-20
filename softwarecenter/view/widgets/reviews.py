@@ -140,6 +140,7 @@ class StarPainter(object):
         cr.set_source(lin)
         return
 
+
 class StarWidget(gtk.EventBox, StarPainter):
 
     def __init__(self, size, is_interactive):
@@ -182,6 +183,13 @@ class StarRating(gtk.Alignment):
 
     MAX_STARS = 5
 
+
+    __gsignals__ = {'changed':(gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_NONE,
+                               ())
+                    }
+
+
     def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1), is_interactive=False):
         gtk.Alignment.__init__(self, 0.5, 0.5)
         self.set_padding(2, 2, 0, 0)
@@ -215,6 +223,8 @@ class StarRating(gtk.Alignment):
                 star.set_fill(StarPainter.FILL_HALF)
             else:
                 star.set_fill(StarPainter.FILL_EMPTY)
+
+        self.emit('changed')
         self.queue_draw()
         return
 
@@ -233,6 +243,7 @@ class StarRatingSelector(StarRating):
                     _('Satisfactory'),  # 3 star rating
                     _('Good'),          # 4 star rating
                     _('Exceptional!')]  # 5 star rating
+
 
     def __init__(self, n_stars=None, spacing=4, star_size=(EM-1,EM-1)):
         StarRating.__init__(self, n_stars, spacing, star_size, True)
