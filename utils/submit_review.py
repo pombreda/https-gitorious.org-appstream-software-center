@@ -393,42 +393,42 @@ class ReportReviewApp(BaseApp):
         self.dialog_main = self.dialog_report_app
         self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
 
-        # spinner & error label
-        self.label_error = self.label_report_error
-        self.hbox_error = self.hbox_report_error
-        self.hbox_status = self.hbox_report_status
-        self.spinner_status = gtk.Spinner()
-        self.spinner_status.show()
-        self.alignment_report_status.add(self.spinner_status)
+        ## spinner & error label
+        #self.label_error = self.label_report_error
+        #self.hbox_error = self.hbox_report_error
+        #self.hbox_status = self.hbox_report_status
+        #self.spinner_status = gtk.Spinner()
+        #self.spinner_status.show()
+        #self.alignment_report_status.add(self.spinner_status)
 
-        # make button sensitive when textview has content
-        self.textview_report_text.get_buffer().connect(
-            "changed", self._enable_or_disable_report_button)
+        ## make button sensitive when textview has content
+        #self.textview_report_text.get_buffer().connect(
+            #"changed", self._enable_or_disable_report_button)
 
         # data
         self.review_id = review_id
 
         # parent xid
-        if parent_xid:
-            win = gtk.gdk.window_foreign_new(int(parent_xid))
-            if win:
-                self.dialog_report_app.realize()
-                self.dialog_report_app.window.set_transient_for(win)
-        self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
-        # set pw dialog transient for main window
+        #~ if parent_xid:
+            #~ win = gtk.gdk.window_foreign_new(int(parent_xid))
+            #~ if win:
+                #~ self.dialog_report_app.realize()
+                #~ self.dialog_report_app.window.set_transient_for(win)
+        #~ self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
+        #~ # set pw dialog transient for main window
         #self.dialog_review_login.set_transient_for(self.dialog_report_app)
         #self.dialog_review_login.set_modal(True)
         # simple APIs ftw!
-        self.combobox_report_summary = gtk.combo_box_new_text()
-        self.combobox_report_summary.show()
-        self.alignment_report_summary.add(self.combobox_report_summary)
-        for r in [ _("Unspecified"), 
-                   _("Offensive language"), 
-                   _("Infringes copyright"), 
-                   _("Not about this software"), 
-                   _("Other") ]: 
-            self.combobox_report_summary.append_text(r)
-        self.combobox_report_summary.set_active(0)
+        #~ self.combobox_report_summary = gtk.combo_box_new_text()
+        #~ self.combobox_report_summary.show()
+        #~ self.alignment_report_summary.add(self.combobox_report_summary)
+        #~ for r in [ _("Unspecified"), 
+                   #~ _("Offensive language"), 
+                   #~ _("Infringes copyright"), 
+                   #~ _("Not about this software"), 
+                   #~ _("Other") ]: 
+            #~ self.combobox_report_summary.append_text(r)
+        #~ self.combobox_report_summary.set_active(0)
 
     def _enable_or_disable_report_button(self, buf):
         if buf.get_char_count() > 0:
@@ -456,16 +456,18 @@ class ReportReviewApp(BaseApp):
         
     def run(self):
         # show main dialog insensitive until we are logged in
-        self.vbox_report_main.set_sensitive(False)
-        self.label_report_status.set_text(_("Connecting..."))
-        self.spinner_status.start()
-        self.dialog_report_app.show()
+        #self.vbox_report_main.set_sensitive(False)
+        #self.label_report_status.set_text(_("Connecting..."))
+        self.main_notebook1.set_current_page(0)
+        #self.spinner_status.start()
+        self.dialog_main.show()
         # start the async loop
         self.run_loop()
 
     def login_successful(self, display_name):
-        self.label_reporter.set_text(display_name)
-        self.report_abuse()
+        #self.label_reporter.set_text(display_name)
+        self.main_notebook1.set_current_page(1)
+        #self.report_abuse()
 
     
 # IMPORTANT: create one (module) global LP worker thread here

@@ -828,7 +828,7 @@ class Addon(gtk.HBox):
         if len(title) >= 2:
             title = title[0].upper() + title[1:]
         self.title = gtk.Label(title)
-        self.title.set_line_wrap(True)
+        self.title.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
         hbox.pack_start(self.title, False)
         self.checkbutton.add(hbox)
 
