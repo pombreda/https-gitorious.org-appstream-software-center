@@ -27,6 +27,7 @@ import os
 import json
 import random
 import StringIO
+import subprocess
 import time
 import urllib
 import weakref
@@ -235,7 +236,106 @@ class ReviewLoaderXMLAsync(ReviewLoader):
         f.set_data("callback", callback)
         f.read_async(self._gio_review_stats_read_callback)
 
-class ReviewLoaderIpsum(ReviewLoader):
+class ReviewLoaderFake(ReviewLoader):
+
+    USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", "Bar Tender", "Baz Lightyear"]
+    SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
+    IPSUM = "no ipsum\n\nstill no ipsum"
+
+    def __init__(self):
+        self._review_stats_cache = {}
+        self._reviews_cache = {}
+    def _random_person(self):
+        return random.choice(self.USERS)
+    def _random_text(self):
+        return random.choice(self.LOREM.split("\n\n"))
+    def _random_summary(self):
+        return random.choice(self.SUMMARIES)
+    def get_reviews(self, application, callback):
+        if not application in self._review_stats_cache:
+            self.get_review_stats(application)
+        stats = self._review_stats_cache[application]
+        if not application in self._reviews_cache:
+            reviews = []
+            for i in range(0, stats.nr_reviews):
+                review = Review(application)
+                review.id = random.randint(1,50000)
+                # FIXME: instead of random, try to match the avg_rating
+                review.rating = random.randint(1,5)
+                review.summary = self._random_summary()
+                review.date = time.ctime(time.time())
+                review.person = self._random_person()
+                review.text = self._random_text().replace("\n","")
+                reviews.append(review)
+            self._reviews_cache[application] = reviews
+        reviews = self._reviews_cache[application]
+        callback(application, reviews)
+    def get_review_stats(self, application):
+        if not application in self._review_stats_cache:
+            stat = ReviewStats(application)
+            stat.avg_rating = random.randint(1,5)
+            stat.nr_reviews = random.randint(1,20)
+            self._review_stats_cache[application] = stat
+        return self._review_stats_cache[application]
+    def refresh_review_stats(self, callback):
+        review_stats = []
+        callback(review_stats)
+
+class ReviewLoaderFortune(ReviewLoaderFake):
+    def __init__(self):
+        ReviewLoaderFake.__init__(self)
+        self.LOREM = ""
+        for i in range(10):
+            out = subprocess.Popen(["fortune"], stdout=subprocess.PIPE).communicate()[0]
+            self.LOREM += "\n\n%s" % out
+
+class ReviewLoaderTechspeak(ReviewLoaderFake):
+    """ a test review loader that does not do any network io
+        and returns random review texts
+    """
+    LOREM=u"""This package is using cloud based technology that will
+make it suitable in a distributed environment where soup and xml-rpc
+are used. The backend is written in C++ but the frontend code will
+utilize dynamic languages lika LUA to provide a execution environment
+based on JIT technology.
+
+The software in this packages has a wonderful GUI, its based on OpenGL
+but can alternative use DirectX (on plattforms were it is
+available). Dynamic shading utilizes all GPU cores and out-of-order
+thread scheduling is used to visualize the data optimally on multi
+core systems.
+
+The database support in tthis application is bleding edge. Not only
+classical SQL techniques are supported but also object-relational
+models and advanced ORM technology that will do auto-lookups based on
+dynamic join/select optimizations to leverage sharded or multihosted
+databases to their peak performance.
+
+The Enterprise computer system is controlled by three primary main
+processing cores cross linked with a redundant melacortz ramistat and
+fourteen kiloquad interface modules. The core elements are based on
+FTL nanoprocessor units arranged into twenty-five bilateral
+kelilactirals with twenty of those units being slaved to the central
+heisenfram terminal. . . . Now this is the isopalavial interface which
+controls the main firomactal drive unit. . . .  The ramistat kiloquad
+capacity is a function of the square root of the intermix ratio times
+the sum of the plasma injector quotient.
+
+The iApp is using the new touch UI that feels more natural then
+tranditional window based offerings. It supports a Job button that
+will yell at you when pressed and a iAmCool mode where the logo of
+your new device blinks so that you attract maximum attention.
+
+This app is more than a humble wordpad it is a lifestyle choice.  It
+sets you apart from those who are content with bland UI designed
+around 1990's paradigms.  This app represents you as a dynamic trend
+setter with taste.  The carefully controlled user interface is
+perfectly tailored to the needs of a new age individual, and extreeme
+care has been taken to ensure all buttons large enough for even the
+most robust digits.
+           """
+
+class ReviewLoaderIpsum(ReviewLoaderFake):
     """ a test review loader that does not do any network io
         and returns random lorem ipsum review texts
     """
@@ -304,46 +404,6 @@ elitr sed diam nonumy eirmod tempor invidunt ut labore et dolore magna
 aliquyam erat sed diam voluptua at vero eos et accusam et justo duo dolores
 et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
-    USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", "Bar Tender", "Baz Lightyear"]
-    SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
-    def __init__(self):
-        self._review_stats_cache = {}
-        self._reviews_cache = {}
-    def _random_person(self):
-        return random.choice(self.USERS)
-    def _random_text(self):
-        return random.choice(self.LOREM.split("\n\n"))
-    def _random_summary(self):
-        return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback):
-        if not application in self._review_stats_cache:
-            self.get_review_stats(application)
-        stats = self._review_stats_cache[application]
-        if not application in self._reviews_cache:
-            reviews = []
-            for i in range(0, stats.nr_reviews):
-                review = Review(application)
-                review.id = random.randint(1,50000)
-                # FIXME: instead of random, try to match the avg_rating
-                review.rating = random.randint(1,5)
-                review.summary = self._random_summary()
-                review.date = time.ctime(time.time())
-                review.person = self._random_person()
-                review.text = self._random_text().replace("\n","")
-                reviews.append(review)
-            self._reviews_cache[application] = reviews
-        reviews = self._reviews_cache[application]
-        callback(application, reviews)
-    def get_review_stats(self, application):
-        if not application in self._review_stats_cache:
-            stat = ReviewStats(application)
-            stat.avg_rating = random.randint(1,5)
-            stat.nr_reviews = random.randint(1,20)
-            self._review_stats_cache[application] = stat
-        return self._review_stats_cache[application]
-    def refresh_review_stats(self, callback):
-        review_stats = []
-        callback(review_stats)
 
 review_loader = None
 def get_review_loader():
@@ -354,6 +414,10 @@ def get_review_loader():
     if not review_loader:
         if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
             review_loader = ReviewLoaderIpsum()
+        elif "SOFTWARE_CENTER_FORTUNE_REVIEWS" in os.environ:
+            review_loader = ReviewLoaderFortune()
+        elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
+            review_loader = ReviewLoaderTechspeak()
         else:
             review_loader = ReviewLoaderXMLAsync()
     return review_loader
