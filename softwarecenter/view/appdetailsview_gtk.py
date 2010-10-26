@@ -68,11 +68,6 @@ COLOR_RED_OUTLINE  = '#EF2929'
 COLOR_YELLOW_FILL    = '#FFF7B3'
 COLOR_YELLOW_OUTLINE = '#FCE94F'
 
-# greens: used for pkg installed or available for install
-# and no user actions required
-COLOR_GREEN_FILL    = '#D1FFA4'
-COLOR_GREEN_OUTLINE = '#8AE234'
-
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
 
@@ -198,8 +193,8 @@ class PackageStatusBar(StatusBar):
         self.app_details = app_details
         self.progress.hide()
 
-        self.fill_color = COLOR_GREEN_FILL
-        self.line_color = COLOR_GREEN_OUTLINE
+        #~ self.fill_color = COLOR_BLACK
+        #~ self.line_color = COLOR_GREEN_OUTLINE
 
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
@@ -321,6 +316,7 @@ class AppDescription(gtk.VBox):
 
     def __init__(self):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+        self.set_resize_mode(gtk.RESIZE_IMMEDIATE)
 
         self.description = IndentLabel()
         self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -452,6 +448,7 @@ class PackageInfo(gtk.HBox):
             tmp.set_markup(key_markup  % (dark, key))
             max_lw = max(max_lw, tmp.get_layout().get_pixel_extents()[1][2])
             del tmp
+
         a.set_size_request(max_lw+3*EM, -1)
         a.add(k)
         self.pack_start(a, False)
@@ -787,11 +784,13 @@ class ScreenshotView(gtk.Alignment):
             cr.fill()
         return
 
+
 class Addon(gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
 
     def __init__(self, db, icons, pkgname):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_SMALL)
+        #self.set_resize_mode(gtk.RESIZE_IMMEDIATE)
         self.connect("realize", self._on_realize)
 
         # data
@@ -818,17 +817,20 @@ class Addon(gtk.HBox):
             LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
-        more = mkit.VLinkButton("More Info")
-        more.set_underline(True)
-        self.pack_end(more, False)
-        more.connect("clicked", self._on_more_clicked)
+        self.more = mkit.HLinkButton("More Info")
+        self.more.set_underline(True)
+        self.pack_end(self.more, False)
+        self.more.connect("clicked", self._on_more_clicked)
 
         # name
         title = self.app_details.display_name
         if len(title) >= 2:
             title = title[0].upper() + title[1:]
+        a = gtk.Alignment()
         self.title = gtk.Label(title)
-        self.title.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+        self.title.set_alignment(0, 0.5)
+        #self.title.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+        #self.title.set_line_wrap(True)
         hbox.pack_start(self.title, False)
         self.checkbutton.add(hbox)
 
@@ -855,7 +857,11 @@ class Addon(gtk.HBox):
         return self.checkbutton.get_active()
 
     def set_active(self, is_active):
-        self.checkbutton.set_active(is_active)    
+        self.checkbutton.set_active(is_active)
+
+    def set_width(self, width):
+        print width
+        return
 
 
 class AddonsTable(gtk.VBox):
@@ -907,6 +913,8 @@ class AddonsTable(gtk.VBox):
             self.vbox.show_all()
             return
 
+        view_width = self.addons_manager.view.allocation.width
+
         # clear any existing addons
         for addon in self.vbox:
             self.vbox.remove(addon)
@@ -917,11 +925,13 @@ class AddonsTable(gtk.VBox):
                 pkg = self.cache[addon_name]
             except KeyError:
                 continue
+
             addon = Addon(self.db, self.icons, addon_name)
             #addon.pkgname.connect("clicked", not yet suitable for use)
             addon.set_active(pkg.installed != None)
             addon.checkbutton.connect("toggled", self.addons_manager.mark_changes)
             self.vbox.pack_start(addon, False)
+            addon.set_width(view_width)
 
         self._reload = False
         self.vbox.show_all()
@@ -940,6 +950,11 @@ class AddonsTable(gtk.VBox):
             if self.expander.get_expanded():
                 self._fill()
         return False
+
+    def set_width(self, width):
+        for child in self.vbox:
+            child.set_width(width)
+        return
 
     def draw(self, cr, a):
         if a.width <= 0: return
@@ -1358,6 +1373,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if size:
             desc.set_size_request(*size)
 
+        self.addon_view.set_width(w-4*EM)
+
         self.version_info.set_width(w-4*EM)
         self.license_info.set_width(w-4*EM)
         self.support_info.set_width(w-4*EM)
@@ -1502,7 +1519,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.review_stats_widget = ReviewStatsContainer()
         align = gtk.Alignment(1, 0.5)
         align.add(self.review_stats_widget)
-        self.main_frame.header.pack_end(align, False, False)
+        self.main_frame.header.pack_start(align, False, False)
 
         self.main_frame.body.set_spacing(mkit.SPACING_XLARGE)
         self.vbox.pack_start(self.main_frame, False)

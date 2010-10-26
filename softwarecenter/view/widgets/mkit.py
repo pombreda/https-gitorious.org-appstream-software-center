@@ -759,7 +759,7 @@ class FramedSectionAlt(gtk.VBox):
 
         self.summary.set_line_wrap(True)
 
-        self.header_vbox.pack_start(self.title, False)
+        self.header_vbox.pack_start(self.title, False, False)
         self.header_vbox.pack_start(self.summary, False)
         # Make sure the user can select and copy the title/summary
         #self.label.set_selectable(True)
@@ -1023,9 +1023,6 @@ class LinkButton(gtk.EventBox):
         self.set_visible_window(False)
         self.set_redraw_on_allocate(False)
 
-        self.alignment = gtk.Alignment(xalign=0.5)
-        self.add(self.alignment)
-
         self.label = EtchedLabel()
         self.label.set_etching_alpha(0.55)
         self.image = gtk.Image()
@@ -1244,9 +1241,9 @@ class LinkButton(gtk.EventBox):
         return
 
     def set_internal_xalignment(self, xalign):
-        self.alignment.set(xalign,
-                           self.alignment.get_property('yalign'),
-                           0, 0)    # x/y scale
+        #~ self.alignment.set(xalign,
+                           #~ self.alignment.get_property('yalign'),
+                           #~ 0, 0)    # x/y scale
         return
 
     def set_internal_spacing(self, internal_spacing):
@@ -1301,12 +1298,12 @@ class HLinkButton(LinkButton):
         LinkButton.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.HBox()
-        self.alignment.add(self.box)
+        self.add(self.box)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
         if self.label.get_text():
-            a = gtk.Alignment(1.0, 0.5)
+            a = gtk.Alignment(1.0, 0.5, yscale=1.0)
             a.add(self.label)
             self.box.pack_start(a, False)
 
@@ -1337,7 +1334,7 @@ class VLinkButton(LinkButton):
         LinkButton.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.VBox(spacing=SPACING_SMALL)
-        self.alignment.add(self.box)
+        self.add(self.box)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
             self.box.pack_start(self.image, False)
@@ -1499,7 +1496,7 @@ class EtchedLabel(gtk.Label):
 
     def _on_expose(self, widget, event):
         if not widget.window: return True
-
+        #self._vis_debug()
         l = widget.get_layout()
         e = l.get_pixel_extents()[1]
 
