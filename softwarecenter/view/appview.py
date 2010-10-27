@@ -211,6 +211,8 @@ class AppStore(gtk.GenericTreeModel):
                     pass
                 else:
                     enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+            else:
+                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_PKGNAME)
                     
             # set limit
             if self.limit == 0:
@@ -218,6 +220,10 @@ class AppStore(gtk.GenericTreeModel):
             else:
                 matches = enquire.get_mset(0, self.limit)
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
+
+            self.matches = matches
+
+            return
             app_index = 0
             for m in matches:
                 doc = m.document
@@ -476,7 +482,7 @@ class AppStore(gtk.GenericTreeModel):
         return self.column_type[index]
     def on_get_iter(self, path):
         #self._logger.debug("on_get_iter: %s" % path)
-        if len(self.apps) == 0:
+        if len(self.matches) == 0:
             return None
         index = path[0]
         return index
@@ -485,11 +491,11 @@ class AppStore(gtk.GenericTreeModel):
         return rowref
     def on_get_value(self, rowref, column):
         #self._logger.debug("on_get_value: %s %s" % (rowref, column))
-        try:
-            app = self.apps[rowref]
-        except IndexError:
-            self._logger.exception("on_get_value: rowref=%s apps=%s" % (rowref, self.apps))
-            return
+        doc = self.matches[rowref].document
+        appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+        pkgname = self.db.get_pkgname(doc)
+        popcon = self.db.get_popcon(doc)
+        app = Application(appname, pkgname, "", popcon)
         try:
             doc = self.db.get_xapian_document(app.appname, app.pkgname)
         except IndexError:
@@ -595,7 +601,7 @@ class AppStore(gtk.GenericTreeModel):
             pkgname = app.pkgname
             return pkgname
         elif column == self.COL_POPCON:
-            return self._calc_normalized_rating(self.apps[rowref].popcon)
+            return self._calc_normalized_rating(app.popcon)
         elif column == self.COL_IS_ACTIVE:
             return (rowref == self.active_app)
         elif column == self.COL_ACTION_IN_PROGRESS:
@@ -617,7 +623,7 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_next(self, rowref):
         #self._logger.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
-        if new_rowref >= len(self.apps):
+        if new_rowref >= len(self.matches):
             return None
         return new_rowref
     def on_iter_children(self, parent):
@@ -631,12 +637,12 @@ class AppStore(gtk.GenericTreeModel):
         #self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
         if rowref:
             return 0
-        return len(self.apps)
+        return len(self.matches)
     def on_iter_nth_child(self, parent, n):
         #self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
-        if n >= len(self.apps):
+        if n >= len(self.matches):
             return None
         return n
     def on_iter_parent(self, child):
@@ -1263,26 +1269,6 @@ class AppView(gtk.TreeView):
         self._transactions_connected = False
         self.connect('realize', self._on_realize, tr)
 
-    def set_model(self, new_model):
-        # unset
-        if new_model is None:
-            super(AppView, self).set_model(None)
-        # Only allow use of an AppStore model
-        if type(new_model) != AppStore:
-            return
-        model = self.get_model()
-        # If there is no current model, simply set the new one.
-        if not model:
-            return super(AppView, self).set_model(new_model)
-        # if the changes are too big set a new model instead of using
-        # "update" - the rational is that GtkTreeView is really slow
-        # if thousands of rows are added at once on a "connected" model
-        if abs(len(new_model)-len(model)) > AppStore.DEFAULT_SEARCH_LIMIT:
-            return super(AppView, self).set_model(new_model)
-        return model.update(new_model)
-        
-    def clear_model(self):
-        self.set_model(None)
 
     def is_action_in_progress_for_selected_app(self):
         """
@@ -1707,7 +1693,7 @@ if __name__ == "__main__":
     filter = AppViewFilter(db, cache)
     filter.set_supported_only(False)
     filter.set_installed_only(False)
-    store = AppStore(cache, db, icons, sort=True, filter=filter)
+    store = AppStore(cache, db, icons, filter=filter)
 
     # gui
     scroll = gtk.ScrolledWindow()
