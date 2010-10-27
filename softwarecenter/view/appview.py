@@ -210,7 +210,7 @@ class AppStore(gtk.GenericTreeModel):
                 if k in os.environ and os.environ[k] != "popcon":
                     pass
                 else:
-                    enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+                    enquire.set_sort_by_value(XAPIAN_VALUE_POPCON)
             else:
                 enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_PKGNAME)
                     
@@ -1269,6 +1269,21 @@ class AppView(gtk.TreeView):
         self._transactions_connected = False
         self.connect('realize', self._on_realize, tr)
 
+    def set_model(self, new_model):
+        # unset
+        if new_model is None:
+            super(AppView, self).set_model(None)
+        # Only allow use of an AppStore model
+        if type(new_model) != AppStore:
+            return
+        model = self.get_model()
+        # If there is no current model, simply set the new one.
+        if not model:
+            return super(AppView, self).set_model(new_model)
+        return super(AppView, self).set_model(new_model)
+        
+    def clear_model(self):
+        self.set_model(None)
 
     def is_action_in_progress_for_selected_app(self):
         """
