@@ -212,7 +212,7 @@ class AppStore(gtk.GenericTreeModel):
                 else:
                     enquire.set_sort_by_value(XAPIAN_VALUE_POPCON)
             else:
-                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_PKGNAME)
+                enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_PKGNAME, False)
                     
             # set limit
             if self.limit == 0:
