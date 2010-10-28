@@ -101,7 +101,7 @@ class AppStore(gtk.GenericTreeModel):
      NONAPPS_MAYBE_VISIBLE,
      NONAPPS_NEVER_VISIBLE) = range (3)
 
-    def __init__(self, cache, db, icons, search_query=None, 
+    def __init__(self, cache, db, distro, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
                  sortmode=SORT_UNSORTED, filter=None, exact=False,
                  icon_size=ICON_SIZE, global_icon_cache=True, 
@@ -132,6 +132,7 @@ class AppStore(gtk.GenericTreeModel):
         self.search_query = search_query
         self.cache = cache
         self.db = db
+        self.distro = distro
         self.icons = icons
         self.icon_size = icon_size
         if global_icon_cache:
@@ -197,16 +198,8 @@ class AppStore(gtk.GenericTreeModel):
                                  xapian.Query("ATapplication"), q)
 
             # filter based on supported status
-            if self.filter.supported_only:
-                # for Ubuntu - factorise out later
-                component_query = xapian.Query(xapian.Query.OP_OR, 
-                                               xapian.Query("XOCmain"),
-                                               xapian.Query("XOCrestricted"),
-                                               )
-                supported_query = xapian.Query(xapian.Query.OP_AND, 
-                                               xapian.Query("XOOUbuntu"),
-                                               component_query,
-                                               )
+            if self.filter and self.filter.supported_only:
+                supported_query = self.distro.get_supported_query()
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  supported_query,
                                  q,
@@ -1715,9 +1708,9 @@ def on_entry_changed(widget, data):
     new_text = widget.get_text()
     #if len(new_text) < 3:
     #    return
-    (cache, db, view) = data
+    (cache, db, distro, view) = data
     query = get_query_from_search_entry(new_text)
-    view.set_model(AppStore(cache, db, icons, query))
+    view.set_model(AppStore(cache, db, distro, icons, query))
     with ExecutionTime("model settle"):
         while gtk.events_pending():
             gtk.main_iteration()
@@ -1743,14 +1736,14 @@ if __name__ == "__main__":
     filter = AppViewFilter(db, cache)
     filter.set_supported_only(False)
     filter.set_installed_only(False)
-    store = AppStore(cache, db, icons, filter=filter)
+    store = AppStore(cache, db, 'Ubuntu', icons, filter=filter)
 
     # gui
     scroll = gtk.ScrolledWindow()
     view = AppView(store)
 
     entry = gtk.Entry()
-    entry.connect("changed", on_entry_changed, (cache, db, view))
+    entry.connect("changed", on_entry_changed, (cache, db, 'Ubuntu', view))
     entry.set_text("f")
 
     box = gtk.VBox()

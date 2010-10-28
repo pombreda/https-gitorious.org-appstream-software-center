@@ -133,6 +133,7 @@ class ChannelPane(SoftwarePane):
             self.scroll_app_list.window.set_cursor(self.busy_cursor)
         new_model = AppStore(self.cache,
                              self.db, 
+                             self.distro,
                              self.icons, 
                              query, 
                              limit=0,

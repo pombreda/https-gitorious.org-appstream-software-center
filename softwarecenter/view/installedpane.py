@@ -99,6 +99,7 @@ class InstalledPane(SoftwarePane):
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
+                             self.distro,
                              self.icons, 
                              query,
                              nonapps_visible = self.nonapps_visible,

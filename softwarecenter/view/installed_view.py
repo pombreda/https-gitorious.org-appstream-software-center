@@ -48,7 +48,7 @@ if __name__ == "__main__":
     installed_filter = InstalledFilter(cache)
 
     # now the store
-    store = AppStore(db, icons, filter=installed_filter.filter)
+    store = AppStore(db, 'Ubuntu', icons, filter=installed_filter.filter)
     print len(store)
 
     # gui
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     view = AppView(store)
 
     entry = gtk.Entry()
-    entry.connect("changed", on_entry_changed, (db, view))
+    entry.connect("changed", on_entry_changed, (db, distro, view))
 
     box = gtk.VBox()
     box.pack_start(entry, expand=False)

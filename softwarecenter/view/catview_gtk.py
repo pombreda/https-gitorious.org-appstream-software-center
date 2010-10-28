@@ -235,6 +235,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                  desktopdir, 
                  cache,
                  db,
+                 distro,
                  icons,
                  apps_filter,
                  apps_limit=0):
@@ -247,6 +248,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                  apps_filter,
                  apps_limit=0)
 
+        self.distro = distro
         self.enquire = xapian.Enquire(self.db.xapiandb)
 
         # sections
@@ -407,6 +409,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             best_stock_size = 64#mkit.get_nearest_stock_size(64)
             featured_apps = AppStore(self.cache,
                                      self.db, 
+                                     self.distro,
                                      self.icons,
                                      featured_cat.query,
                                      self.apps_limit,
@@ -429,6 +432,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         if new_cat:
             new_apps = AppStore(self.cache,
                                 self.db,
+                                self.distro,
                                 self.icons,
                                 new_cat.query,
                                 new_cat.item_limit,

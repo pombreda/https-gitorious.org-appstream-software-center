@@ -37,13 +37,14 @@ class testAppStore(unittest.TestCase):
         self.cache = AptCache()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()
+        self.distro = 'Ubuntu'
         self.mock_icons = MockIconCache()
         self.mock_filter = MockAppViewFilter()
 
     def test_init(self):
         """ test basic init of the AppStore model """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, 
+            self.cache, self.db, self.distro, self.mock_icons, 
             sortmode=SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         self.assertTrue(len(store) > 0)
@@ -52,7 +53,7 @@ class testAppStore(unittest.TestCase):
         """ test if searching works """
         search_query = xapian.Query("APsoftware-center")
         store = AppStore(
-            self.cache, self.db, self.mock_icons, search_query=search_query,
+            self.cache, self.db, self.distro, self.mock_icons, search_query=search_query,
             sortmode=SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         self.assertTrue(len(store) == 1)
@@ -60,7 +61,7 @@ class testAppStore(unittest.TestCase):
     def test_internal_append_app(self):
         """ test if the internal _append_app works """
         store = AppStore(
-            self.cache, self.db, self.mock_icons,             
+            self.cache, self.db, self.distro, self.mock_icons,             
             sortmode=SORT_BY_ALPHABET,
             filter=self.mock_filter)
         len_now = len(store)
@@ -93,7 +94,7 @@ class testAppStore(unittest.TestCase):
             sorted_by_axi.append(self.db.get_pkgname(doc))
         # now compare to what we get from the store
         sorted_by_appstore = []
-        store = AppStore(self.cache, self.db, self.mock_icons, 
+        store = AppStore(self.cache, self.db, self.distro, self.mock_icons, 
                          sortmode=SORT_BY_CATALOGED_TIME,
                          limit=20, search_query=query,
                          nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
@@ -104,7 +105,7 @@ class testAppStore(unittest.TestCase):
     def test_internal_insert_app_sorted(self):
         """ test if the internal _insert_app_sorted works """
         store = AppStore(
-            self.cache, self.db, self.mock_icons, 
+            self.cache, self.db, self.distro, self.mock_icons, 
             sortmode=SORT_BY_ALPHABET, 
             filter=self.mock_filter)
         # create a store with some entries
@@ -155,12 +156,12 @@ class testAppStore(unittest.TestCase):
     def test_show_hide_nonapps(self):
         """ test if showing/hiding non-applications works """
         store = AppStore(
-            self.cache, self.db, self.mock_icons,
+            self.cache, self.db, self.distro, self.mock_icons,
             search_query = xapian.Query(""),             
             nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE)
         not_visible = store.nonapp_pkgs
         store = AppStore(
-            self.cache, self.db, self.mock_icons,
+            self.cache, self.db, self.distro, self.mock_icons,
             search_query = xapian.Query(""),
             nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE)
         visible = store.nonapp_pkgs

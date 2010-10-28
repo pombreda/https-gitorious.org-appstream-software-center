@@ -108,6 +108,7 @@ class AvailablePane(SoftwarePane):
         self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
                                        self.cache,
                                        self.db,
+                                       self.distro,
                                        self.icons,
                                        self.apps_filter)
         self.scroll_categories.add(self.cat_view)
@@ -266,6 +267,7 @@ class AvailablePane(SoftwarePane):
         # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
                              self.db,
+                             self.distro,
                              self.icons,
                              query,
                              limit=self._get_item_limit(),
