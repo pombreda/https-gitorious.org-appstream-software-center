@@ -432,6 +432,9 @@ def index_app_info_from_parser(parser, db, cache):
         doc.add_term("AP"+pkgname)
         doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
         doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, parser.desktopf)
+        # display name
+        if "display_name" in axi_values:
+            doc.add_value(axi_values["display_name"], name[0].upper() + name[1:])
         # cataloged_times
         if pkgname in cataloged_times and "catalogedtime" in axi_values:
             doc.add_value(axi_values["catalogedtime"], 

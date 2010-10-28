@@ -185,6 +185,7 @@ class AppStore(gtk.GenericTreeModel):
         for q in self.search_query:
             self._logger.debug("using query: '%s'" % q)
             enquire = xapian.Enquire(self.db.xapiandb)
+            
             if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
                 enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                  q, xapian.Query("ATapplication")))
@@ -194,7 +195,10 @@ class AppStore(gtk.GenericTreeModel):
                 self.nonapp_pkgs = matches.get_matches_estimated()
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  xapian.Query("ATapplication"), q)
-            enquire.set_query(q)
+
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                 q, xapian.Query("pkg_has_app")))
+            # ^ may not work as intended?
 
             # set sort order
             if self.sortmode == SORT_BY_CATALOGED_TIME:
@@ -211,7 +215,14 @@ class AppStore(gtk.GenericTreeModel):
                     pass
                 else:
                     enquire.set_sort_by_value(XAPIAN_VALUE_POPCON)
+            elif (self.db._axi_values and 
+                  "display_name" in self.db._axi_values):
+                enquire.set_sort_by_value_then_relevance(
+                    self.db._axi_values["display_name"],
+                    reverse=False
+                    )
             else:
+                # fallback (if needed??)
                 enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_PKGNAME, False)
                     
             # set limit
