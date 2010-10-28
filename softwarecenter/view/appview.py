@@ -196,6 +196,23 @@ class AppStore(gtk.GenericTreeModel):
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  xapian.Query("ATapplication"), q)
 
+            # filter based on supported status
+            if self.filter.supported_only:
+                # for Ubuntu - factorise out later
+                component_query = xapian.Query(xapian.Query.OP_OR, 
+                                               xapian.Query("XOCmain"),
+                                               xapian.Query("XOCrestricted"),
+                                               )
+                supported_query = xapian.Query(xapian.Query.OP_AND, 
+                                               xapian.Query("XOOUbuntu"),
+                                               component_query,
+                                               )
+                q = xapian.Query(xapian.Query.OP_AND, 
+                                 supported_query,
+                                 q,
+                                 )
+
+            # filter out docs of pkgs of which there exists a doc of the app
             enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                  q, xapian.Query("XD")))
 
