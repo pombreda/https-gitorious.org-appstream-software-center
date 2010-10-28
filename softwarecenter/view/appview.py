@@ -181,21 +181,20 @@ class AppStore(gtk.GenericTreeModel):
             self._perform_search()
 
     def _perform_search(self):
-        already_added = set()
-        self.nonapp_pkgs = 0
         for q in self.search_query:
-            self._logger.debug("using query: '%s'" % q)
-            enquire = xapian.Enquire(self.db.xapiandb)
-            
-            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
-                enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-                                 q, xapian.Query("ATapplication")))
 
-                matches = enquire.get_mset(0, len(self.db))
-                # FIXME: estimates aren't really good enough..
-                self.nonapp_pkgs = matches.get_matches_estimated()
+            enquire = xapian.Enquire(self.db.xapiandb)
+
+        # filter
+
+            self._logger.debug("initial query: '%s'" % q)
+
+            # only show apps by default
+            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
                 q = xapian.Query(xapian.Query.OP_AND, 
-                                 xapian.Query("ATapplication"), q)
+                                 xapian.Query("ATapplication"),
+                                 q,
+                                 )
 
             # filter based on supported status
             if self.filter and self.filter.supported_only:
@@ -205,11 +204,24 @@ class AppStore(gtk.GenericTreeModel):
                                  q,
                                  )
 
+            self._logger.debug("nearly completely filtered query: '%s'" % q)
+
             # filter out docs of pkgs of which there exists a doc of the app
             enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                  q, xapian.Query("XD")))
 
-            # set sort order
+        # count, count and count
+#            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
+ #               enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+  #                               q, xapian.Query("ATapplication")))
+#
+ #               matches = enquire.get_mset(0, len(self.db))
+  #              # FIXME: estimates aren't really good enough..
+   #             self.nonapp_pkgs = matches.get_matches_estimated()
+
+        # sort results
+
+            # cataloged time - what's new category
             if self.sortmode == SORT_BY_CATALOGED_TIME:
                 if (self.db._axi_values and 
                     "catalogedtime" in self.db._axi_values):
@@ -217,6 +229,8 @@ class AppStore(gtk.GenericTreeModel):
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
                     logging.warning("no catelogedtime in axi")
+
+            # search ranking - when searching
             elif self.sortmode == SORT_BY_SEARCH_RANKING:
                 # the default is to sort by popcon
                 k = "SOFTWARE_CENTER_SEARCHES_SORT_MODE"
@@ -224,22 +238,29 @@ class AppStore(gtk.GenericTreeModel):
                     pass
                 else:
                     enquire.set_sort_by_value(XAPIAN_VALUE_POPCON)
+
+            # display name - all categories / channels
             elif (self.db._axi_values and 
                   "display_name" in self.db._axi_values):
                 enquire.set_sort_by_value_then_relevance(
                     self.db._axi_values["display_name"],
                     reverse=False
                     )
+
+            # fallback to pkgname - if needed?
             else:
-                # fallback (if needed??)
                 enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_PKGNAME, False)
                     
-            # set limit
+        # limit the match set
+
+            # don't really need this now that we have rapid listviews :)
             if self.limit == 0:
                 matches = enquire.get_mset(0, len(self.db))
             else:
                 matches = enquire.get_mset(0, self.limit)
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
+
+        # other
 
             self.matches = matches
 
