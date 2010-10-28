@@ -75,7 +75,8 @@ class DisplayNames:
         if ver is None: return
 
         # set flag if pkg is duplicated in app-install data
-        if os.path.exists('/usr/share/app-install/desktop/' + ver.package.name):
+        if os.path.exists('/usr/share/app-install/desktop/' + ver.package.name + '.desktop'):
+            # ^ that is messy.. ;)
             document.add_term('pkg_has_app')
             return
 
