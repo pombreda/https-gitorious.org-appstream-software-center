@@ -197,8 +197,7 @@ class AppStore(gtk.GenericTreeModel):
                                  xapian.Query("ATapplication"), q)
 
             enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-                                 q, xapian.Query("pkg_has_app")))
-            # ^ may not work as intended?
+                                 q, xapian.Query("XD")))
 
             # set sort order
             if self.sortmode == SORT_BY_CATALOGED_TIME:

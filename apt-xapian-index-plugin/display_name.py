@@ -74,12 +74,6 @@ class DisplayNames:
         ver = pkg.candidate
         if ver is None: return
 
-        # set flag if pkg is duplicated in app-install data
-        if os.path.exists('/usr/share/app-install/desktop/' + ver.package.name + '.desktop'):
-            # ^ that is messy.. ;)
-            document.add_term('pkg_has_app')
-            return
-
         if self.val_display_name != -1:
             name = ver.summary.lower()
             document.add_value(self.val_display_name, name);
