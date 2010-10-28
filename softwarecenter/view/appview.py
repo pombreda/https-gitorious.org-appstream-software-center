@@ -157,6 +157,9 @@ class AppStore(gtk.GenericTreeModel):
         self.nonapps_visible = nonapps_visible
         self.nonapp_pkgs = 0
         self._explicit_nonapp_visibility = False
+        # new goodness
+        self.nr_pkgs = 0
+        self.nr_apps = 0
         # backend stuff
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
@@ -189,13 +192,6 @@ class AppStore(gtk.GenericTreeModel):
 
             self._logger.debug("initial query: '%s'" % q)
 
-            # only show apps by default
-            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
-                q = xapian.Query(xapian.Query.OP_AND, 
-                                 xapian.Query("ATapplication"),
-                                 q,
-                                 )
-
             # filter based on supported status
             if self.filter and self.filter.supported_only:
                 supported_query = self.distro.get_supported_query()
@@ -204,20 +200,37 @@ class AppStore(gtk.GenericTreeModel):
                                  q,
                                  )
 
+        # count
+
+            # WARNING - this is slow.. - come up with something ingenious
+            # perhaps we can get rid of show/hide alltogether?
+            # if we need to keep it - then put this counting stuff into a thread
+
+            # little side case not working - rest works quite precisely
+
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+                             q, xapian.Query("XD")))
+            tmp_matches = enquire.get_mset(0, len(self.db))
+            self.nr_apps = tmp_matches.get_matches_estimated()
+
+            enquire.set_query(q)
+            tmp_matches = enquire.get_mset(0, len(self.db))
+            self.nr_pkgs = tmp_matches.get_matches_estimated() - 2*self.nr_apps
+
+        # filter continued
+
+            # only show apps by default
+            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
+                q = xapian.Query(xapian.Query.OP_AND, 
+                                 xapian.Query("ATapplication"),
+                                 q,
+                                 )
+
             self._logger.debug("nearly completely filtered query: '%s'" % q)
 
             # filter out docs of pkgs of which there exists a doc of the app
             enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                  q, xapian.Query("XD")))
-
-        # count, count and count
-#            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
- #               enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-  #                               q, xapian.Query("ATapplication")))
-#
- #               matches = enquire.get_mset(0, len(self.db))
-  #              # FIXME: estimates aren't really good enough..
-   #             self.nonapp_pkgs = matches.get_matches_estimated()
 
         # sort results
 
@@ -242,6 +255,9 @@ class AppStore(gtk.GenericTreeModel):
             # display name - all categories / channels
             elif (self.db._axi_values and 
                   "display_name" in self.db._axi_values):
+                # FIXME: here we want locale aware sorting
+                # http://bazaar.launchpad.net/~unity-team/unity-place-applications/trunk/revision/115
+                # above is a c version of what we want
                 enquire.set_sort_by_value_then_relevance(
                     self.db._axi_values["display_name"],
                     reverse=False
