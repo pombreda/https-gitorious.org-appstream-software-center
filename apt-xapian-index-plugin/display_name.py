@@ -81,7 +81,7 @@ class DisplayNames:
             return
 
         if self.val_display_name != -1:
-            name = ver.summary[0].upper() + ver.summary[1:]
+            name = ver.summary.lower()
             document.add_value(self.val_display_name, name);
 
     def indexDeb822(self, document, pkg):
