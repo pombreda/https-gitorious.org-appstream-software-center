@@ -222,7 +222,7 @@ class AppStore(gtk.GenericTreeModel):
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
 
             self.matches = matches
-            return
+
         # if we have no results, try forcing pkgs to be displayed
         if not matches:
             self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
