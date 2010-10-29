@@ -188,6 +188,8 @@ class AppStore(gtk.GenericTreeModel):
 
             enquire = xapian.Enquire(self.db.xapiandb)
 
+            installed_decider = InstalledDecider(self.cache)
+
         # filter
 
             self._logger.debug("initial query: '%s'" % q)
@@ -210,11 +212,17 @@ class AppStore(gtk.GenericTreeModel):
 
             enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
                              q, xapian.Query("XD")))
-            tmp_matches = enquire.get_mset(0, len(self.db))
+            if self.filter and self.filter.installed_only:
+                tmp_matches = enquire.get_mset(0, len(self.db), None, installed_decider)
+            else:
+                tmp_matches = enquire.get_mset(0, len(self.db))
             self.nr_apps = tmp_matches.get_matches_estimated()
 
             enquire.set_query(q)
-            tmp_matches = enquire.get_mset(0, len(self.db))
+            if self.filter and self.filter.installed_only:
+                tmp_matches = enquire.get_mset(0, len(self.db), None, installed_decider)
+            else:
+                tmp_matches = enquire.get_mset(0, len(self.db))
             self.nr_pkgs = tmp_matches.get_matches_estimated() - 2*self.nr_apps
 
         # filter continued
@@ -270,10 +278,17 @@ class AppStore(gtk.GenericTreeModel):
         # limit the match set
 
             # don't really need this now that we have rapid listviews :)
-            if self.limit == 0:
-                matches = enquire.get_mset(0, len(self.db))
+
+            if self.filter and self.filter.installed_only:
+                if self.limit == 0:
+                    matches = enquire.get_mset(0, len(self.db), None, installed_decider)
+                else:
+                    matches = enquire.get_mset(0, self.limit, None, installed_decider)
             else:
-                matches = enquire.get_mset(0, self.limit)
+                if self.limit == 0:
+                    matches = enquire.get_mset(0, len(self.db))
+                else:
+                    matches = enquire.get_mset(0, self.limit)
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
 
         # other
@@ -713,6 +728,20 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_parent(self, child):
         return None
 
+class InstalledDecider(xapian.MatchDecider):
+    def __init__(self, cache):
+        xapian.MatchDecider.__init__(self)
+        self.cache = cache
+        installed = []
+        for pkg in self.cache:
+            if pkg.is_installed:
+                installed.append(pkg.name)
+        self.installed = installed
+        # mvo - are you aware of anything faster than above?
+
+    def __call__(self, doc):
+        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME) or doc.get_data()
+        return pkgname in self.installed
 
 class CellRendererButton2:
 
