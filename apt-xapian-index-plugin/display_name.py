@@ -44,8 +44,8 @@ class DisplayNames:
             name = "DisplayNames",
             shortDesc = "package display names indexed as values",
             fullDoc = """
-            The DisplayNames data source indexes the package size and the installed
-            size as the ``packagesize`` and ``installedsize`` Xapian values.
+            The DisplayNames data source indexes the display name as the
+            ``display_name`` Xapian value.
             """
         )
 
@@ -88,16 +88,7 @@ class DisplayNames:
         document  is the document to update
         pkg       is the Deb822 object for this package
         """
-        try:
-            instSize = int(pkg["Installed-Size"])
-            pkgSize = int(pkg["Size"])
-        except:
-            return
-
-        if self.val_inst_size != -1:
-            document.add_value(self.val_inst_size, xapian.sortable_serialise(instSize));
-        if self.val_pkg_size != -1:
-            document.add_value(self.val_pkg_size, xapian.sortable_serialise(pkgSize));
+        return
 
 def init():
     """
