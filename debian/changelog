@@ -12,6 +12,11 @@ software-center (3.1.1) UNRELEASED; urgency=low
     - convert channel getters to properties
   * softwarecenter/backend/config.py:
     - don't crash on a corrupted config file (LP: #662414) 
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/purchasedialog.py:
+    - show generic error on purchase failure and log the error
+       (LP: #632361)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 19 Oct 2010 16:41:40 -0400
 

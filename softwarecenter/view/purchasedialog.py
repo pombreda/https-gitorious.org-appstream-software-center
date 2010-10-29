@@ -150,21 +150,15 @@ h1 {
                 # no need to show anything, the user did the
                 # cancel
                 pass
-            # this is what the spec says
-            elif "failure_reason" in res:
-                dialogs.error(self,
-                              _("Failure in the purchase process"),
-                              res["failure_reason"])
             # this is what the agent implements
             elif "failures" in res:
-                dialogs.error(self,
-                              _("Failure in the purchase process"),
-                              res["failures"])
-            else:
-                # hrm, bad - the server did not told us anything
-                dialogs.error(self,
-                              _("Failure in the purchase process"),
-                              _("The server gave no reason"))
+                logging.error("the server returned a error: '%s'" % res["failures"])
+            # show a generic error, the "failures" string we get from the
+            # server is way too technical to show, but we do log it
+            dialogs.error(self,
+                          _("Failure in the purchase process."),
+                          _("Sorry, something went wrong. Your payment "
+                            "has been canceled."))
             self.response(gtk.RESPONSE_CANCEL)
             return
 
