@@ -21,6 +21,7 @@ from __future__ import with_statement
 
 import __builtin__
 import apt
+import commands
 import gettext
 import glib
 import gobject
@@ -731,15 +732,18 @@ class AppStore(gtk.GenericTreeModel):
 class InstalledDecider(xapian.MatchDecider):
     def __init__(self, cache):
         xapian.MatchDecider.__init__(self)
-        self.cache = cache
-        installed = []
-        for pkg in self.cache:
-            if pkg.is_installed:
-                installed.append(pkg.name)
-        self.installed = installed
+        self.installed = commands.getoutput("dpkg --get-selections | awk '$2 == \"install\" { print $1 }'").split('\n')
+ #       self.cache = cache
+  #      installed = []
+   #     for pkg in self.cache:
+    #        if pkg.is_installed:
+     #           installed.append(pkg.name)
+      #  self.installed = installed
         # mvo - are you aware of anything faster than above?
 
     def __call__(self, doc):
+        # the line below is what slows it all down
+        # how to work around this?
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME) or doc.get_data()
         return pkgname in self.installed
 
