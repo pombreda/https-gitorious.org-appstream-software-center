@@ -289,6 +289,59 @@ class ReviewLoaderFortune(ReviewLoaderFake):
             out = subprocess.Popen(["fortune"], stdout=subprocess.PIPE).communicate()[0]
             self.LOREM += "\n\n%s" % out
 
+class ReviewLoaderTechspeak(ReviewLoaderFake):
+    """ a test review loader that does not do any network io
+        and returns random review texts
+    """
+    LOREM=u"""This package is using cloud based technology that will
+make it suitable in a distributed environment where soup and xml-rpc
+are used. The backend is written in C++ but the frontend code will
+utilize dynamic languages lika LUA to provide a execution environment
+based on JIT technology.
+
+The software in this packages has a wonderful GUI, its based on OpenGL
+but can alternative use DirectX (on plattforms were it is
+available). Dynamic shading utilizes all GPU cores and out-of-order
+thread scheduling is used to visualize the data optimally on multi
+core systems.
+
+The database support in tthis application is bleding edge. Not only
+classical SQL techniques are supported but also object-relational
+models and advanced ORM technology that will do auto-lookups based on
+dynamic join/select optimizations to leverage sharded or multihosted
+databases to their peak performance.
+
+The Enterprise computer system is controlled by three primary main
+processing cores cross linked with a redundant melacortz ramistat and
+fourteen kiloquad interface modules. The core elements are based on
+FTL nanoprocessor units arranged into twenty-five bilateral
+kelilactirals with twenty of those units being slaved to the central
+heisenfram terminal. . . . Now this is the isopalavial interface which
+controls the main firomactal drive unit. . . .  The ramistat kiloquad
+capacity is a function of the square root of the intermix ratio times
+the sum of the plasma injector quotient.
+
+The iApp is using the new touch UI that feels more natural then
+tranditional window based offerings. It supports a Job button that
+will yell at you when pressed and a iAmCool mode where the logo of
+your new device blinks so that you attract maximum attention.
+
+This app is a lifestyle choice.
+It sets you apart from those who are content with bland UI designed
+around 1990's paradigms.  This app represents you as a dynamic trend
+setter with taste.  The carefully controlled user interface is
+perfectly tailored to the needs of a new age individual, and extreme
+care has been taken to ensure that all buttons are large enough for even the
+most robust digits.
+
+Designed with the web 2.0 and touch screen portable technologies in
+mind this app is the ultimate in media experience.  With this
+lifestyle application you extend your social media and search reach.
+Exciting innovations in display and video reinvigorates the user
+experience, offering beautifully rendered advertisements straight to
+your finger tips. This has limitless possibilities and will permeate
+every facet of your life.  Believe the hype."""
+
 class ReviewLoaderIpsum(ReviewLoaderFake):
     """ a test review loader that does not do any network io
         and returns random lorem ipsum review texts
@@ -370,6 +423,8 @@ def get_review_loader():
             review_loader = ReviewLoaderIpsum()
         elif "SOFTWARE_CENTER_FORTUNE_REVIEWS" in os.environ:
             review_loader = ReviewLoaderFortune()
+        elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
+            review_loader = ReviewLoaderTechspeak()
         else:
             review_loader = ReviewLoaderXMLAsync()
     return review_loader

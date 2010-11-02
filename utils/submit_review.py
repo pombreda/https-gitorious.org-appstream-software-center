@@ -275,15 +275,15 @@ class SubmitReviewsApp(BaseApp):
         self.star_rating.set_padding(3, 3, 3, 0)
         self.star_caption.show()
 
-        self.summary_vbox.pack_start(self.star_rating, False)
-        self.summary_vbox.reorder_child(self.star_rating, 0)
-        self.summary_vbox.pack_start(self.star_caption, False, False)
-        self.summary_vbox.reorder_child(self.star_caption, 1)
+        self.review_summary_vbox.pack_start(self.star_rating, False)
+        self.review_summary_vbox.reorder_child(self.star_rating, 0)
+        self.review_summary_vbox.pack_start(self.star_caption, False, False)
+        self.review_summary_vbox.reorder_child(self.star_caption, 1)
 
         # status
         self.status_spinner = gtk.Spinner()
-        self.login_hbox.pack_start(self.status_spinner, False)
-        self.login_hbox.reorder_child(self.status_spinner, 0)
+        self.review_login_hbox.pack_start(self.status_spinner, False)
+        self.review_login_hbox.reorder_child(self.status_spinner, 0)
         self.status_spinner.show()
 
         # data
@@ -291,10 +291,11 @@ class SubmitReviewsApp(BaseApp):
         self.version = version
         self.iconname = iconname
         self.rating = 0
+        
         # title
         self.dialog_review_app.set_title(_("Review %s" % self.app.name))
 
-        self.summary_entry.connect('changed', self._on_mandatory_fields_changed)
+        self.review_summary_entry.connect('changed', self._on_mandatory_fields_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
 
         # parent xid
@@ -317,38 +318,37 @@ class SubmitReviewsApp(BaseApp):
                 icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
             except:
                 pass
+
             if not icon:
                 icon = self.icons.load_icon(MISSING_APP_ICON,
                                             self.APP_ICON_SIZE, 0)
 
-            self.appicon.set_from_pixbuf(icon)
+            self.review_appicon.set_from_pixbuf(icon)
 
         # dark color
         dark = widget.style.dark[0].to_string()
 
         # title
         m = '<b><span size="x-large">%s</span></b>\n%s %s'
-        self.title.set_markup(m % (app.name, _('Reviewed by'), display_name))
+        self.review_title.set_markup(m % (app.name, _('Reviewed by'), display_name))
 
         # review label
         self.review_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Review')))
 
         # review summary label
-        self.summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
+        self.review_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
         return
 
     def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
 
     def _enable_or_disable_post_button(self):
-        if self.summary_entry.get_text() and self.star_rating.get_rating():
-            self.button_post_review.set_sensitive(True)
+        if self.review_summary_entry.get_text() and self.star_rating.get_rating():
+            self.review_post.set_sensitive(True)
         else:
-            self.button_post_review.set_sensitive(False)
+            self.review_post.set_sensitive(False)
 
     def submit_review(self):
-        self.hbox_status.hide()
-        self.table_review_main.set_sensitive(True)
         res = self.dialog_review_app.run()
         self.dialog_review_app.hide()
         if res == gtk.RESPONSE_OK:
@@ -363,23 +363,25 @@ class SubmitReviewsApp(BaseApp):
             review.rating = self.rating
             review.package_version = self.version
             worker_thread.queue_review(review)
+
         # signal thread to finish
         worker_thread.shutdown()
         self.quit()
 
     def run(self):
         # initially display a 'Connecting...' page
-        self.main_notebook.set_current_page(0)
-        self.login_status_label.set_markup('<big>%s</big>' % _("Signing in..."))
+        self.review_main_notebook.set_current_page(0)
+        self.review_login_status_label.set_markup('<big>%s</big>' % _("Signing in..."))
         self.status_spinner.start()
         self.dialog_review_app.show()
         # now run the loop
         res = self.run_loop()
 
     def login_successful(self, display_name):
-        self.main_notebook.set_current_page(1)
+        self.review_main_notebook.set_current_page(1)
         self._setup_details(self.dialog_main, self.app, self.iconname, self.version, display_name)
         return
+
 
 class ReportReviewApp(BaseApp):
     """ report a given application or package """
@@ -393,48 +395,81 @@ class ReportReviewApp(BaseApp):
         self.dialog_main = self.dialog_report_app
         self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
 
-        # spinner & error label
-        self.label_error = self.label_report_error
-        self.hbox_error = self.hbox_report_error
-        self.hbox_status = self.hbox_report_status
-        self.spinner_status = gtk.Spinner()
-        self.spinner_status.show()
-        self.alignment_report_status.add(self.spinner_status)
+        # status
+        self.status_spinner = gtk.Spinner()
+        self.report_login_hbox.pack_start(self.status_spinner, False)
+        self.report_login_hbox.reorder_child(self.status_spinner, 0)
+        self.status_spinner.show()
 
-        # make button sensitive when textview has content
-        self.textview_report_text.get_buffer().connect(
-            "changed", self._enable_or_disable_report_button)
+        ## make button sensitive when textview has content
+        #self.textview_report_text.get_buffer().connect(
+            #"changed", self._enable_or_disable_report_button)
 
         # data
         self.review_id = review_id
 
+        # title
+        self.dialog_report_app.set_title(_("Report an infringment"))
+
+
         # parent xid
-        if parent_xid:
-            win = gtk.gdk.window_foreign_new(int(parent_xid))
-            if win:
-                self.dialog_report_app.realize()
-                self.dialog_report_app.window.set_transient_for(win)
-        self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
-        # set pw dialog transient for main window
+        #~ if parent_xid:
+            #~ win = gtk.gdk.window_foreign_new(int(parent_xid))
+            #~ if win:
+                #~ self.dialog_report_app.realize()
+                #~ self.dialog_report_app.window.set_transient_for(win)
+        #~ self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
+        #~ # set pw dialog transient for main window
         #self.dialog_review_login.set_transient_for(self.dialog_report_app)
         #self.dialog_review_login.set_modal(True)
         # simple APIs ftw!
         self.combobox_report_summary = gtk.combo_box_new_text()
+        self.report_body_vbox.pack_start(self.combobox_report_summary, False)
+        self.report_body_vbox.reorder_child(self.combobox_report_summary, 2)
         self.combobox_report_summary.show()
-        self.alignment_report_summary.add(self.combobox_report_summary)
-        for r in [ _("Unspecified"), 
-                   _("Offensive language"), 
-                   _("Infringes copyright"), 
-                   _("Not about this software"), 
-                   _("Other") ]: 
-            self.combobox_report_summary.append_text(r)
+        for term in [ _("Unspecified"), 
+                    _("Offensive language"), 
+                    _("Infringes copyright"), 
+                    _("Contains inaccuracies"),
+                    _("Other") ]:
+
+            self.combobox_report_summary.append_text(term)
         self.combobox_report_summary.set_active(0)
+
 
     def _enable_or_disable_report_button(self, buf):
         if buf.get_char_count() > 0:
             self.button_post_report.set_sensitive(True)
         else:
             self.button_post_report.set_sensitive(False)
+
+    def _setup_details(self, widget, display_name):
+        # icon shazam
+        #~ if iconname:
+            #~ icon = None
+            #~ try:
+                #~ icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
+            #~ except:
+                #~ pass
+            #~ if icon:
+                #~ self.review_appicon.set_from_pixbuf(icon)
+            #~ else:
+                #~ # set a fallback icon here
+                #~ pass
+
+        # dark color
+        dark = widget.style.dark[0].to_string()
+
+        # title
+        m = '<b><span size="x-large">%s</span></b>\n%s %s'
+        self.report_title.set_markup(m % (_('Review Infringment'), _('Reported by'), display_name))
+
+        # report label
+        self.report_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Report')))
+
+        # review summary label
+        self.report_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Reason')))
+        return
 
     def report_abuse(self):
         self.hbox_report_status.hide()
@@ -456,16 +491,19 @@ class ReportReviewApp(BaseApp):
         
     def run(self):
         # show main dialog insensitive until we are logged in
-        self.vbox_report_main.set_sensitive(False)
-        self.label_report_status.set_text(_("Connecting..."))
-        self.spinner_status.start()
-        self.dialog_report_app.show()
+        #self.vbox_report_main.set_sensitive(False)
+        self.report_login_status_label.set_text(_("Signing In..."))
+        self.report_main_notebook.set_current_page(0)
+        self.status_spinner.start()
+        self.dialog_main.show()
         # start the async loop
         self.run_loop()
 
     def login_successful(self, display_name):
-        self.label_reporter.set_text(display_name)
-        self.report_abuse()
+        #self.label_reporter.set_text(display_name)
+        self.report_main_notebook.set_current_page(1)
+        self._setup_details(self.dialog_main, display_name)
+        #self.report_abuse()
 
     
 # IMPORTANT: create one (module) global LP worker thread here
