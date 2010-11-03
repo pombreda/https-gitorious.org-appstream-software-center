@@ -1011,7 +1011,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         w = self.STAR_SIZE
         h = self.STAR_SIZE
         for i in range(1,self.MAX_STARS+1):
-            x = cell_area.x + cell_area.width - xpad - i*w
+            x = cell_area.x + cell_area.width - xpad - i*(w+3)
             y = cell_area.y + h
             if i < self.rating:
                 self._star_painter.set_fill(StarPainter.FILL_EMPTY)
@@ -1141,7 +1141,7 @@ class CellRendererAppView2(gtk.CellRendererText):
                                 direction)
 
         # only show ratings if we have one
-        if  self.rating > 0:
+        if  self.rating > 0 and self.props.action_in_progress < 0:
             self._render_rating(window, widget, cell_area, xpad, ypad, direction)
 
         # below is the stuff that is only done for the active cell

@@ -326,14 +326,21 @@ tranditional window based offerings. It supports a Job button that
 will yell at you when pressed and a iAmCool mode where the logo of
 your new device blinks so that you attract maximum attention.
 
-This app is more than a humble wordpad it is a lifestyle choice.  It
-sets you apart from those who are content with bland UI designed
+This app is a lifestyle choice.
+It sets you apart from those who are content with bland UI designed
 around 1990's paradigms.  This app represents you as a dynamic trend
 setter with taste.  The carefully controlled user interface is
-perfectly tailored to the needs of a new age individual, and extreeme
-care has been taken to ensure all buttons large enough for even the
+perfectly tailored to the needs of a new age individual, and extreme
+care has been taken to ensure that all buttons are large enough for even the
 most robust digits.
-           """
+
+Designed with the web 2.0 and touch screen portable technologies in
+mind this app is the ultimate in media experience.  With this
+lifestyle application you extend your social media and search reach.
+Exciting innovations in display and video reinvigorates the user
+experience, offering beautifully rendered advertisements straight to
+your finger tips. This has limitless possibilities and will permeate
+every facet of your life.  Believe the hype."""
 
 class ReviewLoaderIpsum(ReviewLoaderFake):
     """ a test review loader that does not do any network io
