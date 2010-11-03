@@ -21,6 +21,7 @@ import gtk
 import logging
 import os
 import simplejson
+import sys
 import urllib
 import webkit
 
@@ -276,9 +277,12 @@ if __name__ == "__main__":
                 'archive_id' : "mvo/private-test", 
                 'arch' : "i386",
                 }))
-    d = PurchaseDialog(app=None, url=url)
+    # use cmdline if available
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
+    d = PurchaseDialog(app=None, iconname=None, url=url)
     # useful for debugging
-    d.connect("key-press-event", _on_key_press)
+    #d.connect("key-press-event", _on_key_press)
     #glib.timeout_add_seconds(1, _generate_events, d)
     d.run()
     
