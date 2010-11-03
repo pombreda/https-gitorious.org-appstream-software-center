@@ -185,7 +185,6 @@ class StarRating(gtk.Alignment):
 
     MAX_STARS = 5
 
-
     __gsignals__ = {'changed':(gobject.SIGNAL_RUN_LAST,
                                gobject.TYPE_NONE,
                                ())

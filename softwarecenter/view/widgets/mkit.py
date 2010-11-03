@@ -493,6 +493,56 @@ class ShapeStar(Shape):
         return
 
 
+class Shape16PointStar(Shape):
+
+    def __init__(self, direction=gtk.TEXT_DIR_LTR):
+        Shape.__init__(self, direction)
+        self.points = ((0.5,0),         # A
+                       (0.58,0.09),     # B
+                       (0.69,0.039),      # C
+                       (0.733,0.152),      # D
+                       (0.853,0.147),     # E
+                       (0.847,0.268),      # F
+                       (0.962,0.308),     # G
+                       (0.909,0.418),      # H
+                       (1.0,0.5),        # I
+                       (0.909, 0.580),    # J
+                       (0.963,0.692),     # K
+                       (0.845,0.731),      # L
+                       (0.854,0.853),      # M
+                       (0.731,0.846),     # N
+                       (0.692,0.961),      # O
+                       (0.581,0.909),     # P
+                       (0.5,1.0),      # Q    
+                       (0.419,0.909),        # R
+                       (0.309, 0.9625),    # S
+                       (0.268,0.846),     # T
+                       (0.141,0.85),      # U
+                       (0.154,0.735),      # V
+                       (0.04,0.692),     # W
+                       (0.093,0.581),      # X
+                       (0.0,0.5),       # Y
+                       (0.093,0.419),      # Z    
+                       (0.04,0.309),        # a
+                       (0.152, 0.269),    # b
+                       (0.145,0.147),     # c
+                       (0.269,0.153),      # d
+                       (0.309,0.0385),      # e
+                       (0.418,0.091))     # f
+        return
+
+    def layout(self, cr, x, y, w, h, *args, **kwargs):
+        cr.new_path()
+        px,py = self.points[0]
+        cr.move_to(x+w*px, y+h*py)
+
+        for point in self.points[1:]:
+            px,py = point
+            cr.line_to(x+w*px, y+h*py)
+
+        cr.close_path()
+        return
+
 
 class Style:
 
