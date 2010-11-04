@@ -541,14 +541,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     return
 
         # this allows us to 'upgrade' deb files
-        if action == 'upgrade' and app.request and app.request.endswith(".deb"):
+        if action == 'upgrade' and app.request and type(app) == DebFileApplication:
             action = 'install'
  
         # action_func is one of:  "install", "remove", "upgrade", "apply_changes"
         action_func = getattr(self.backend, action)
         if action == 'install':
             # the package.deb path name is in the request
-            if app.request and app.request.endswith(".deb"):
+            if app.request and type(app) == DebFileApplication:
                 debfile_name = app.request
             else:
                 debfile_name = None
@@ -980,8 +980,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if len(packages) == 1:
             request = packages[0]
-            if (request.endswith(".deb") or os.path.exists(request)):
-                # deb file or other file opened with s-c
+
+            # are we dealing with a path?
+            if os.path.exists(request) and not os.path.isdir(request):
+                if not request.startswith('/'):
+                # we may have been given a relative path
+                    request = os.path.join(os.getcwd(), request)
                 app = DebFileApplication(request)
             else:
                 # package from archive
