@@ -12,6 +12,11 @@ software-center (3.1.1) UNRELEASED; urgency=low
     - convert channel getters to properties
   * softwarecenter/backend/config.py:
     - don't crash on a corrupted config file (LP: #662414) 
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/purchasedialog.py:
+    - show generic error on purchase failure and log the error
+       (LP: #632361)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 19 Oct 2010 16:41:40 -0400
 
@@ -83,6 +88,15 @@ software-center (3.1.0) natty; urgency=low
     - fix intermittent crash in _set_cursor (LP: #617004) 
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Oct 2010 17:31:30 +0200
+
+software-center (3.0.6) maverick-proposed; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - when enabling a channel like "Canonical Partner", ensure
+      that the initial reload of the package data works 
+      (LP: #666956)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 26 Oct 2010 15:25:43 -0400
 
 software-center (3.0.5) maverick-proposed; urgency=low
 

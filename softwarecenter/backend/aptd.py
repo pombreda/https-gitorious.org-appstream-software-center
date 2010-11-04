@@ -239,6 +239,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     @inline_callbacks
     def reload(self, sources_list=None, metadata=None):
         """ reload package list """
+        # check if the sourcespart is there, if not, do a full reload
+        # this can happen when the "partner" repository is added, it
+        # will be in the main sources.list already and this means that
+        # aptsources will just enable it instead of adding a extra 
+        # sources.list.d file (LP: #666956)
+        d = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
+        if not os.path.exists(os.path.join(d, sources_list)):
+            sources_list=""
         try:
             trans = yield self.aptd_client.update_cache(
                 sources_list=sources_list, defer=True)

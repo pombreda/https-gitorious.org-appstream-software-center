@@ -21,6 +21,7 @@ import gtk
 import logging
 import os
 import simplejson
+import sys
 import urllib
 import webkit
 
@@ -150,21 +151,15 @@ h1 {
                 # no need to show anything, the user did the
                 # cancel
                 pass
-            # this is what the spec says
-            elif "failure_reason" in res:
-                dialogs.error(self,
-                              _("Failure in the purchase process"),
-                              res["failure_reason"])
             # this is what the agent implements
             elif "failures" in res:
-                dialogs.error(self,
-                              _("Failure in the purchase process"),
-                              res["failures"])
-            else:
-                # hrm, bad - the server did not told us anything
-                dialogs.error(self,
-                              _("Failure in the purchase process"),
-                              _("The server gave no reason"))
+                logging.error("the server returned a error: '%s'" % res["failures"])
+            # show a generic error, the "failures" string we get from the
+            # server is way too technical to show, but we do log it
+            dialogs.error(self,
+                          _("Failure in the purchase process."),
+                          _("Sorry, something went wrong. Your payment "
+                            "has been canceled."))
             self.response(gtk.RESPONSE_CANCEL)
             return
 
@@ -282,9 +277,12 @@ if __name__ == "__main__":
                 'archive_id' : "mvo/private-test", 
                 'arch' : "i386",
                 }))
-    d = PurchaseDialog(app=None, url=url)
+    # use cmdline if available
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
+    d = PurchaseDialog(app=None, iconname=None, url=url)
     # useful for debugging
-    d.connect("key-press-event", _on_key_press)
+    #d.connect("key-press-event", _on_key_press)
     #glib.timeout_add_seconds(1, _generate_events, d)
     d.run()
     
