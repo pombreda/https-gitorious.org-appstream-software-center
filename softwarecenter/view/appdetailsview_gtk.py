@@ -1668,7 +1668,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
-        self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
+        #self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
         self.main_frame.set_icon_from_pixbuf(pb)
 
         # sample avg color of icon

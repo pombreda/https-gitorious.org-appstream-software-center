@@ -29,7 +29,7 @@ import os
 import pangocairo
 
 from gettext import gettext as _
-from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, BubbleLabel, floats_from_string
+from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 
 
 class StarPainter(object):
@@ -42,7 +42,7 @@ class StarPainter(object):
     GLOW_PRELIGHT   = 4
 
     def __init__(self):
-        self.shape = ShapeStar()
+        self.shape = ShapeStar(5, 0.45)
         self.fill = self.FILL_EMPTY
         self.glow = self.GLOW_NORMAL
 
@@ -191,7 +191,7 @@ class StarRating(gtk.Alignment):
                     }
 
 
-    def __init__(self, n_stars=None, spacing=3, star_size=(EM-1,EM-1), is_interactive=False):
+    def __init__(self, n_stars=None, spacing=3, star_size=(EM,EM), is_interactive=False):
         gtk.Alignment.__init__(self, 0.5, 0.5)
         self.set_padding(2, 2, 0, 0)
         self.hbox = gtk.HBox(spacing=spacing)
@@ -344,7 +344,7 @@ class ReviewStatsContainer(gtk.VBox):
 
     def __init__(self):
         gtk.VBox.__init__(self, spacing=4)
-        self.star_rating = StarRating(star_size=(2*EM,2*EM))
+        self.star_rating = StarRating(star_size=(int(2.5*EM),int(2.5*EM)))
         self.label = gtk.Label()
         self.pack_start(self.star_rating, False)
         self.pack_start(self.label, False, False)

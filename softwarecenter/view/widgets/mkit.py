@@ -25,6 +25,7 @@ import cairo
 import pango
 import gobject
 import pangocairo
+from math import pi, cos, sin
 
 from mkit_themes import Color, ColorArray, ThemeRegistry
 
@@ -122,8 +123,8 @@ def not_overlapping(widget_area, expose_area):
 #######################
 
 # pi constants
-PI =            3.1415926535897931
-PI_OVER_180 =   0.017453292519943295
+PI =            pi
+PI_OVER_180 =   pi / 180
 
 # shapes constants
 SHAPE_RECTANGLE =   0
@@ -231,12 +232,15 @@ def get_mkit_theme():
 
     return CACHED_THEME
 
+def radian(deg):
+    return PI_OVER_180 * deg
 
 
 
 #####################
 ### HANDY CLASSES ###
 #####################
+
 
 class Shape:
 
@@ -466,79 +470,34 @@ class ShapeCircle(Shape):
 
 class ShapeStar(Shape):
 
-    def __init__(self, direction=gtk.TEXT_DIR_LTR):
-        Shape.__init__(self, direction)
-        self.points = ((0.5,0),         # A
-                       (0.63,0.37),     # B
-                       (1.0,0.37),      # C
-                       (0.7,0.62),      # D
-                       (0.815,1.0),     # E
-                       (0.5,0.76),      # F
-                       (0.185,1.0),     # G
-                       (0.3,0.62),      # H    
-                       (0,0.37),        # I
-                       (0.37, 0.37))    # J
-        return
+    def __init__(self, points, indent=0.5, direction=gtk.TEXT_DIR_LTR):
+        self.coords = self._calc_coords(points, 1-indent)
 
-    def layout(self, cr, x, y, w, h, *args, **kwargs):
-        cr.new_path()
-        px,py = self.points[0]
-        cr.move_to(x+w*px, y+h*py)
+    def _calc_coords(self, points, indent):
+        coords = []
+        step = radian(180.0/points)
 
-        for point in self.points[1:]:
-            px,py = point
-            cr.line_to(x+w*px, y+h*py)
+        for i in range(2*points):
+            if i%2:
+                x = (sin(step*i)+1)*0.5
+                y = (cos(step*i)+1)*0.5
+            else:
+                x = (sin(step*i)*indent+1)*0.5
+                y = (cos(step*i)*indent+1)*0.5
 
-        cr.close_path()
-        return
+            coords.append((x,y))
+        return coords
 
+    def layout(self, cr, x, y, w, h):
+        sx, sy = self.coords[0]
+        px = sx*w+x
+        py = sy*h+y
+        cr.move_to(px, py)
 
-class Shape16PointStar(Shape):
-
-    def __init__(self, direction=gtk.TEXT_DIR_LTR):
-        Shape.__init__(self, direction)
-        self.points = ((0.5,0),         # A
-                       (0.58,0.09),     # B
-                       (0.69,0.039),      # C
-                       (0.733,0.152),      # D
-                       (0.853,0.147),     # E
-                       (0.847,0.268),      # F
-                       (0.962,0.308),     # G
-                       (0.909,0.418),      # H
-                       (1.0,0.5),        # I
-                       (0.909, 0.580),    # J
-                       (0.963,0.692),     # K
-                       (0.845,0.731),      # L
-                       (0.854,0.853),      # M
-                       (0.731,0.846),     # N
-                       (0.692,0.961),      # O
-                       (0.581,0.909),     # P
-                       (0.5,1.0),      # Q    
-                       (0.419,0.909),        # R
-                       (0.309, 0.9625),    # S
-                       (0.268,0.846),     # T
-                       (0.141,0.85),      # U
-                       (0.154,0.735),      # V
-                       (0.04,0.692),     # W
-                       (0.093,0.581),      # X
-                       (0.0,0.5),       # Y
-                       (0.093,0.419),      # Z    
-                       (0.04,0.309),        # a
-                       (0.152, 0.269),    # b
-                       (0.145,0.147),     # c
-                       (0.269,0.153),      # d
-                       (0.309,0.0385),      # e
-                       (0.418,0.091))     # f
-        return
-
-    def layout(self, cr, x, y, w, h, *args, **kwargs):
-        cr.new_path()
-        px,py = self.points[0]
-        cr.move_to(x+w*px, y+h*py)
-
-        for point in self.points[1:]:
-            px,py = point
-            cr.line_to(x+w*px, y+h*py)
+        for sx, sy in self.coords[1:]:
+            px = sx*w+x
+            py = sy*h+y
+            cr.line_to(px, py)
 
         cr.close_path()
         return
