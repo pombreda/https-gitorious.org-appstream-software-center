@@ -1,6 +1,9 @@
 software-center (3.1.1) UNRELEASED; urgency=low
 
   [ Kiwinote ]
+  * softwarecenter/app.py:
+    - don't require '.deb' extentions for deb files (LP: #656967)
+    - don't require absolute paths for deb files (LP: #669398)
   * softwarecenter/view/appdetailsview_gtk.py:
     - correctly reload appdetailsview after a transaction has run
     - _update_minimal() only gets two args
