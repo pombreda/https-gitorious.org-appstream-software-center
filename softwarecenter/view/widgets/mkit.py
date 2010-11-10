@@ -25,6 +25,7 @@ import cairo
 import pango
 import gobject
 import pangocairo
+from math import pi, cos, sin
 
 from mkit_themes import Color, ColorArray, ThemeRegistry
 
@@ -122,8 +123,8 @@ def not_overlapping(widget_area, expose_area):
 #######################
 
 # pi constants
-PI =            3.1415926535897931
-PI_OVER_180 =   0.017453292519943295
+PI =            pi
+PI_OVER_180 =   pi / 180
 
 # shapes constants
 SHAPE_RECTANGLE =   0
@@ -231,12 +232,15 @@ def get_mkit_theme():
 
     return CACHED_THEME
 
+def radian(deg):
+    return PI_OVER_180 * deg
 
 
 
 #####################
 ### HANDY CLASSES ###
 #####################
+
 
 class Shape:
 
@@ -466,32 +470,37 @@ class ShapeCircle(Shape):
 
 class ShapeStar(Shape):
 
-    def __init__(self, direction=gtk.TEXT_DIR_LTR):
-        Shape.__init__(self, direction)
-        self.points = ((0.5,0),         # A
-                       (0.63,0.37),     # B
-                       (1.0,0.37),      # C
-                       (0.7,0.62),      # D
-                       (0.815,1.0),     # E
-                       (0.5,0.76),      # F
-                       (0.185,1.0),     # G
-                       (0.3,0.62),      # H    
-                       (0,0.37),        # I
-                       (0.37, 0.37))    # J
-        return
+    def __init__(self, points, indent=0.5, direction=gtk.TEXT_DIR_LTR):
+        self.coords = self._calc_coords(points, 1-indent)
 
-    def layout(self, cr, x, y, w, h, *args, **kwargs):
-        cr.new_path()
-        px,py = self.points[0]
-        cr.move_to(x+w*px, y+h*py)
+    def _calc_coords(self, points, indent):
+        coords = []
+        step = radian(180.0/points)
 
-        for point in self.points[1:]:
-            px,py = point
-            cr.line_to(x+w*px, y+h*py)
+        for i in range(2*points):
+            if i%2:
+                x = (sin(step*i)+1)*0.5
+                y = (cos(step*i)+1)*0.5
+            else:
+                x = (sin(step*i)*indent+1)*0.5
+                y = (cos(step*i)*indent+1)*0.5
+
+            coords.append((x,y))
+        return coords
+
+    def layout(self, cr, x, y, w, h):
+        sx, sy = self.coords[0]
+        px = sx*w+x
+        py = sy*h+y
+        cr.move_to(px, py)
+
+        for sx, sy in self.coords[1:]:
+            px = sx*w+x
+            py = sy*h+y
+            cr.line_to(px, py)
 
         cr.close_path()
         return
-
 
 
 class Style:
