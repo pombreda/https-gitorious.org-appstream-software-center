@@ -296,7 +296,7 @@ class GMenuSearcher(object):
                 return self._found
         return None
         
-class AlternaSpinner(gtk.VBox):
+class GifSpinner(gtk.VBox):
     """
     an alternative spinner that uses an animated gif for use when
     gtk.Spinner is not available

@@ -42,7 +42,7 @@ from widgets.actionbar import ActionBar
 
 from appview import AppView, AppStore
 
-from softwarecenter.utils import AlternaSpinner
+from softwarecenter.utils import GifSpinner
 
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
@@ -174,7 +174,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.spinner = gtk.Spinner()
         except AttributeError:
             # worarkound for archlinux: see LP: #624204, LP: #637422
-            self.spinner = AlternaSpinner()
+            self.spinner = GifSpinner()
         self.spinner.set_size_request(48, 48)
         
         # use a table for the spinner (otherwise the spinner is massive!)
