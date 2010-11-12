@@ -33,7 +33,7 @@ from widgets.mkit import floats_from_gdkcolor, floats_from_string
 from widgets.pathbar_gtk_atk import NavigationBar
 from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
-from widgets.spinner import GifSpinner
+from widgets.spinner import Spinner
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
@@ -165,12 +165,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
                              
-        # make a spinner to display while the applist is loading           
-        try:
-            self.spinner = gtk.Spinner()
-        except AttributeError:
-            # worarkound for archlinux: see LP: #624204, LP: #637422
-            self.spinner = GifSpinner()
+        # make a spinner to display while the applist is loading
+        self.spinner = Spinner()        
         self.spinner.set_size_request(48, 48)
         
         # use a table for the spinner (otherwise the spinner is massive!)

@@ -27,6 +27,18 @@ import gobject
 
 from softwarecenter.enums import IMAGE_LOADING_INSTALLED
 
+class Spinner(object):
+    """
+    A factory to create the appropriate spinner based on whether
+    gtk.Spinner is available (see LP: #637422, LP: #624204)
+    """
+    def __new__(cls, *args, **kwargs):
+        try:
+            spinner = gtk.Spinner()
+        except AttributeError:
+            spinner = GifSpinner()
+        return spinner
+
 class GifSpinner(gtk.VBox):
     """
     an alternative spinner that uses an animated gif for use when

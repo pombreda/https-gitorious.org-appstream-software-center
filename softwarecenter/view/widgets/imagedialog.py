@@ -29,7 +29,7 @@ import gobject
 
 from softwarecenter.enums import *
 from softwarecenter.utils import GnomeProxyURLopener
-from spinner import GifSpinner
+from spinner import Spinner
 
 ICON_EXCEPTIONS = ["gnome"]
 
@@ -56,11 +56,7 @@ class ShowImageDialog(gtk.Dialog):
         self.image_filename = self._missing_img
         
         # loading spinner
-        try:
-            self.spinner = gtk.Spinner()
-        except AttributeError:
-            # worarkound for archlinux: see LP: #624204, LP: #637422
-            self.spinner = GifSpinner()
+        self.spinner = Spinner()
         self.spinner.set_size_request(48, 48)
         self.spinner.start()
         self.spinner.show()
