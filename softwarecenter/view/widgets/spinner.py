@@ -18,12 +18,6 @@
 
 
 import gtk
-import logging
-import tempfile
-import time
-import threading
-import urllib
-import gobject
 
 from softwarecenter.enums import IMAGE_LOADING_INSTALLED
 
@@ -41,9 +35,7 @@ class Spinner(object):
 
 class GifSpinner(gtk.VBox):
     """
-    an alternative spinner that uses an animated gif for use when
-    gtk.Spinner is not available
-    (see LP: #637422, LP: #624204)
+    an alternative spinner implementation that uses an animated gif
     """
     def __init__(self):
         gtk.VBox.__init__(self)

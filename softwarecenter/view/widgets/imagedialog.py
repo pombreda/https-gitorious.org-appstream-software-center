@@ -126,7 +126,7 @@ class ShowImageDialog(gtk.Dialog):
         # Set the screenshot image
         self.img.set_from_pixbuf(pixbuf)
         
-        # Destroy the spinner and it's table
+        # Destroy the spinner and its table
         self.table.destroy()
         self.spinner.destroy()
         
