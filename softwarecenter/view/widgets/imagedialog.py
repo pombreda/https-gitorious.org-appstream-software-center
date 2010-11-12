@@ -28,7 +28,8 @@ import urllib
 import gobject
 
 from softwarecenter.enums import *
-from softwarecenter.utils import GnomeProxyURLopener, GifSpinner
+from softwarecenter.utils import GnomeProxyURLopener
+from spinner import GifSpinner
 
 ICON_EXCEPTIONS = ["gnome"]
 

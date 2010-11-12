@@ -31,18 +31,14 @@ from gettext import gettext as _
 
 from widgets.mkit import floats_from_gdkcolor, floats_from_string
 from widgets.pathbar_gtk_atk import NavigationBar
+from widgets.searchentry import SearchEntry
+from widgets.actionbar import ActionBar
+from widgets.spinner import GifSpinner
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
 
-from widgets.searchentry import SearchEntry
-
-#from widgets.actionbar2 import ActionBar
-from widgets.actionbar import ActionBar
-
 from appview import AppView, AppStore
-
-from softwarecenter.utils import GifSpinner
 
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
