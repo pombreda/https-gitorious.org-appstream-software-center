@@ -41,7 +41,6 @@ class GifSpinner(gtk.VBox):
         gtk.VBox.__init__(self)
         self.image = gtk.Image()
         self.image.set_from_file(IMAGE_LOADING_INSTALLED)
-        self.image.set_size_request(160, 100)
         self.add(self.image)
         
     def start(self):
