@@ -32,6 +32,8 @@ software-center (3.1.1) UNRELEASED; urgency=low
   [ Martin Pitt ]
   * debian/rules: Supply dh --with option after $@, for compatibility with
     current debhelper.
+  * debian/rules: Build with scour for SVG optimization. Add python-scour
+    build dependency.
 
  -- Gary Lasker <gary.lasker@canonical.com>  Fri, 12 Nov 2010 18:21:29 -0500
 
