@@ -29,6 +29,10 @@ software-center (3.1.1) UNRELEASED; urgency=low
     - show generic error on purchase failure and log the error
        (LP: #632361)
 
+  [ Martin Pitt ]
+  * debian/rules: Supply dh --with option after $@, for compatibility with
+    current debhelper.
+
  -- Gary Lasker <gary.lasker@canonical.com>  Fri, 12 Nov 2010 18:21:29 -0500
 
 software-center (3.1.0) natty; urgency=low
