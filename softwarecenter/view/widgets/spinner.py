@@ -47,9 +47,47 @@ class GifSpinner(gtk.VBox):
         pass
     def stop(self):
         pass
+        
+class SpinnerView(gtk.Viewport):
+    """
+    a panel that contains a spinner preset to a standard size and centered
+    """
+    def __init__(self):
+        gtk.Viewport.__init__(self)
+        self.spinner = Spinner()
+        self.spinner.set_size_request(48, 48)
+        
+        # use a table for the spinner (otherwise the spinner is massive!)
+        self.spinner_table = gtk.Table(3, 3, False)
+        self.spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
+        
+        self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(1.0, 1.0, 1.0))
+        self.add(self.spinner_table)
+        self.set_shadow_type(gtk.SHADOW_NONE)
+        
+    def start(self):
+        """
+        start the spinner and show it
+        """
+        self.spinner.start()
+        self.spinner.show()
+        
+    def stop(self):
+        """
+        stop the spinner and hide it
+        """
+        self.spinner.stop()
+        self.spinner.hide()
 
 if __name__ == "__main__":
-    pkgname = "synaptic"
-    url = "http://screenshots.ubuntu.com/screenshot/synaptic"
-    d = ShowImageDialog("Synaptic Screenshot", url, "/usr/share/software-center/images/dummy-screenshot-ubuntu.png")
-    d.run()
+    spinner_view = SpinnerView()
+    spinner_view.start()
+    
+    window = gtk.Window()
+    window.add(spinner_view)
+    window.set_size_request(600, 500)
+    window.set_position(gtk.WIN_POS_CENTER)
+    window.show_all()
+    window.connect('destroy', gtk.main_quit)
+
+    gtk.main()

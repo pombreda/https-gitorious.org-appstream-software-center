@@ -33,7 +33,7 @@ from widgets.mkit import floats_from_gdkcolor, floats_from_string
 from widgets.pathbar_gtk_atk import NavigationBar
 from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
-from widgets.spinner import Spinner
+from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
@@ -159,28 +159,18 @@ class SoftwarePane(gtk.VBox, BasePane):
         # its the job of the Child class to put it into a good location
         # list
         self.app_view = AppView(show_ratings)
-        self.app_view.connect("application-selected", 
-                              self.on_application_selected)
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
-                             
-        # make a spinner to display while the applist is loading
-        self.spinner = Spinner()
-        self.spinner.set_size_request(48, 48)
-        
-        # use a table for the spinner (otherwise the spinner is massive!)
-        self.spinner_table = gtk.Table(3, 3, False)
-        self.spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
-        
-        self.spinner_view = gtk.Viewport()
-        self.spinner_view.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(1.0, 1.0, 1.0))
-        self.spinner_view.add(self.spinner_table)
-        self.spinner_view.set_shadow_type(gtk.SHADOW_NONE)
         self.scroll_app_list.add(self.app_view)
-                
+        self.app_view.connect("application-selected", 
+                              self.on_application_selected)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
+                             
+        # make a spinner view to display while the applist is loading
+        self.spinner_view = SpinnerView()
+                
         # details
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
@@ -274,19 +264,18 @@ class SoftwarePane(gtk.VBox, BasePane):
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.action_bar.clear()
-        self.spinner.hide()
+        self.spinner_view.stop()
         self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
-        # "mask" the spinner momentarily to prevent it from flashing into
+        # "mask" the spinner view momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
         gobject.timeout_add(100, self._unmask_appview_spinner)
         
     def _unmask_appview_spinner(self):
-        self.spinner.start()
-        self.spinner.show()
+        self.spinner_view.start()
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
-        self.spinner.stop()
+        self.spinner_view.stop()
         self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
 
     def set_section(self, section):
