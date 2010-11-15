@@ -80,5 +80,14 @@ class SpinnerView(gtk.Viewport):
         self.spinner.hide()
 
 if __name__ == "__main__":
-    # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    pass
+    spinner_view = SpinnerView()
+    spinner_view.start()
+    
+    window = gtk.Window()
+    window.add(spinner_view)
+    window.set_size_request(600, 500)
+    window.set_position(gtk.WIN_POS_CENTER)
+    window.show_all()
+    window.connect('destroy', gtk.main_quit)
+
+    gtk.main()
