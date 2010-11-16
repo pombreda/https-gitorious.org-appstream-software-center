@@ -28,6 +28,11 @@ software-center (3.1.1) UNRELEASED; urgency=low
   * softwarecenter/view/purchasedialog.py:
     - show generic error on purchase failure and log the error
        (LP: #632361)
+  * test/test_startup.py:
+    - add startup speed baseline/regression test
+  * software-center:
+    - add --measure-startup-time commandline to allow external apps
+      to drive statup performance measuring
 
   [ Martin Pitt ]
   * debian/rules: Supply dh --with option after $@, for compatibility with
