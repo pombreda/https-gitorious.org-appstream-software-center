@@ -29,12 +29,9 @@ class testAppDetailsView(unittest.TestCase):
         # icon mock
         mock_icons = mock.Mock()
         mock_icons.load_icon.return_value = None
-        # history mock
-        mock_history = mock.Mock()
-        mock_history.rescan.return_value = True
         # create a details object
         self.appdetails = AppDetailsViewGtk(
-            db, distro, mock_icons, cache, mock_history, datadir)
+            db, distro, mock_icons, cache, datadir)
 
     def test_show_app_simple(self):
         app = Application("7zip","p7zip-full")

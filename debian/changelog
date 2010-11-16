@@ -7,6 +7,10 @@ software-center (3.1.1) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - correctly reload appdetailsview after a transaction has run
     - _update_minimal() only gets two args
+  * <all>:
+    - load history on demand
+  * softwarecenter/app.py:
+    - update file menu on demand
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py,
