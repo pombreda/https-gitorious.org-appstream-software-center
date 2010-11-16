@@ -78,7 +78,8 @@ def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_te
     # get icon for the app
     appdetails = app.get_details(db)
     icon_name = appdetails.icon
-    if not icons.has_icon(icon_name):
+    if (icon_name is None or
+        not icons.has_icon(icon_name)):
         icon_name = MISSING_APP_ICON
     glade_dialog.image_package_icon.set_from_icon_name(icon_name, 
                                                        gtk.ICON_SIZE_DIALOG)

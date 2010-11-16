@@ -118,8 +118,8 @@ class Application(object):
 class DebFileApplication(Application):
     def __init__(self, debfile):
         # deb overrides this
-        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
-            raise ValueError("Need a deb file, got '%s'" % debfile)
+#        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
+ #           raise ValueError("Need a deb file, got '%s'" % debfile)
         debname = os.path.splitext(os.path.basename(debfile))[0]
         self.appname = ""
         self.pkgname = debname.split('_')[0].lower()
