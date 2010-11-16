@@ -53,6 +53,8 @@ class SCTestGUI(unittest.TestCase):
         # for testing
         print "time inside_python: ", time_inside_python
         print "total with launching python: ", time_with_launching_python
+        print profile_data
+        print
 
         return time_with_launching_python
 
