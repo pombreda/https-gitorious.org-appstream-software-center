@@ -31,7 +31,7 @@ import time
 import xml.sax.saxutils
 import gtk
 
-from enums import USER_AGENT, IMAGE_LOADING_INSTALLED
+from enums import USER_AGENT
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
