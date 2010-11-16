@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gtk
+import logging
 import pango
 
 from gettext import gettext as _
@@ -29,6 +30,8 @@ from softwarecenter.distro import get_distro
 from softwarecenter.enums import MISSING_APP_ICON
 
 from aptdaemon.defer import inline_callbacks
+
+LOG = logging.getLogger(__name__)
 
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
