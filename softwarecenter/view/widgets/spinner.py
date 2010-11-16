@@ -51,6 +51,7 @@ class GifSpinner(gtk.VBox):
 class SpinnerView(gtk.Viewport):
     """
     a panel that contains a spinner preset to a standard size and centered
+    an optional label_text value can be specified for display with the spinner
     """
     def __init__(self, label_text=None):
         gtk.Viewport.__init__(self)
