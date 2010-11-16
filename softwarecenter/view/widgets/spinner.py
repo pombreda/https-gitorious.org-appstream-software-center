@@ -52,17 +52,24 @@ class SpinnerView(gtk.Viewport):
     """
     a panel that contains a spinner preset to a standard size and centered
     """
-    def __init__(self):
+    def __init__(self, label_text=None):
         gtk.Viewport.__init__(self)
         self.spinner = Spinner()
         self.spinner.set_size_request(48, 48)
         
         # use a table for the spinner (otherwise the spinner is massive!)
-        self.spinner_table = gtk.Table(3, 3, False)
-        self.spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
+        spinner_table = gtk.Table(3, 3, False)
+        if label_text:
+            spinner_label = gtk.Label(label_text)
+            spinner_vbox = gtk.VBox()
+            spinner_vbox.pack_start(self.spinner, expand=False)
+            spinner_vbox.pack_start(spinner_label, expand=True, padding=10)
+            spinner_table.attach(spinner_vbox, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
+        else:
+            spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
         
         self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(1.0, 1.0, 1.0))
-        self.add(self.spinner_table)
+        self.add(spinner_table)
         self.set_shadow_type(gtk.SHADOW_NONE)
         
     def start(self):
@@ -80,7 +87,7 @@ class SpinnerView(gtk.Viewport):
         self.spinner.hide()
 
 if __name__ == "__main__":
-    spinner_view = SpinnerView()
+    spinner_view = SpinnerView(label_text="Connecting to payment service...")
     spinner_view.start()
     
     window = gtk.Window()
