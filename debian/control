@@ -11,7 +11,8 @@ Build-Depends: debhelper (>= 7.0.50),
                python,
                python-central,
                python-distutils-extra,
-               python-setuptools
+               python-setuptools,
+               python-scour
 Standards-Version: 3.8.4
 XS-Python-Version: current
 Vcs-Bzr: https://code.launchpad.net/~software-center-developers/software-center/trunk

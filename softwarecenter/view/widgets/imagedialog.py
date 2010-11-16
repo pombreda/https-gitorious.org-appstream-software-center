@@ -28,7 +28,8 @@ import urllib
 import gobject
 
 from softwarecenter.enums import *
-from softwarecenter.utils import GnomeProxyURLopener, AlternaSpinner
+from softwarecenter.utils import GnomeProxyURLopener
+from spinner import SpinnerView
 
 ICON_EXCEPTIONS = ["gnome"]
 
@@ -54,20 +55,8 @@ class ShowImageDialog(gtk.Dialog):
         self._missing_img = missing_img
         self.image_filename = self._missing_img
         
-        # loading spinner
-        try:
-            self.spinner = gtk.Spinner()
-        except AttributeError:
-            # worarkound for archlinux: see LP: #624204, LP: #637422
-            self.spinner = AlternaSpinner()
-        self.spinner.set_size_request(48, 48)
-        self.spinner.start()
-        self.spinner.show()
-        
-        # table for spinner (otherwise the spinner is massive!)
-        self.table = gtk.Table(3, 3, False)
-        self.table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
-        self.table.show()
+        # create a spinner view to display while the screenshot it loading
+        self.spinner_view = SpinnerView()
 
         # screenshot
         self.img = gtk.Image()
@@ -84,7 +73,7 @@ class ShowImageDialog(gtk.Dialog):
         # dialog
         self.set_transient_for(parent)
         self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
-        self.get_content_area().add(self.table)
+        self.get_content_area().add(self.spinner_view)
         self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.set_default_size(850,650)
         self.set_title(title)
@@ -103,7 +92,8 @@ class ShowImageDialog(gtk.Dialog):
         self._abort = True
         
     def run(self):
-        self.show()
+        self.spinner_view.start()
+        self.show_all()
         # thread
         self._finished = False
         self._abort = False
@@ -129,9 +119,9 @@ class ShowImageDialog(gtk.Dialog):
         # Set the screenshot image
         self.img.set_from_pixbuf(pixbuf)
         
-        # Destroy the spinner and it's table
-        self.table.destroy()
-        self.spinner.destroy()
+        # Destroy the spinner view
+        self.spinner_view.stop()
+        self.spinner_view.destroy()
         
         # Add our screenshot image and scrolled window
         self.get_content_area().add(self.scroll)
