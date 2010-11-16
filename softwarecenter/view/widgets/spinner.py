@@ -60,7 +60,8 @@ class SpinnerView(gtk.Viewport):
         # use a table for the spinner (otherwise the spinner is massive!)
         spinner_table = gtk.Table(3, 3, False)
         if label_text:
-            spinner_label = gtk.Label(label_text)
+            spinner_label = gtk.Label()
+            spinner_label.set_markup('<big>%s</big>' % label_text)
             spinner_vbox = gtk.VBox()
             spinner_vbox.pack_start(self.spinner, expand=False)
             spinner_vbox.pack_start(spinner_label, expand=True, padding=10)
