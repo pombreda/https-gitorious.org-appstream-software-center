@@ -402,7 +402,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
-
+            
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):
         self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
@@ -815,12 +815,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # are send and triggers "refresh_apps", "update_app_view"
             # and refresh the displayed app in the details as well
             self.db.reopen()
-            # refresh the available_pane views to reflect any changes
-            self.available_pane.refresh_apps()
-            self.available_pane.update_app_view()
-            # refresh the menu/status_bar
             self.update_status_bar()
-            self.update_app_status_menu()
 
     # helper
 
