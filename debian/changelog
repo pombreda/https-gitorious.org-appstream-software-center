@@ -24,6 +24,8 @@ software-center (3.1.1) UNRELEASED; urgency=low
     softwarecenter/view/widgets/spinner.py:
     - refactor spinner code
     - make a spinner panel widget and add label support
+  * softwarecenter/backend/aptd.py:
+    - fix crash during reload (LP: #673991)
   
   [ Michael Vogt ]
   * softwarecenter/view/purchasedialog.py:
@@ -41,7 +43,7 @@ software-center (3.1.1) UNRELEASED; urgency=low
   * debian/rules: Build with scour for SVG optimization. Add python-scour
     build dependency.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Nov 2010 18:03:35 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 17 Nov 2010 11:37:18 -0500
 
 software-center (3.1.0) natty; urgency=low
 
