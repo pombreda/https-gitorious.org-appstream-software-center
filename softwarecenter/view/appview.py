@@ -254,12 +254,8 @@ class AppStore(gtk.GenericTreeModel):
 
             # search ranking - when searching
             elif self.sortmode == SORT_BY_SEARCH_RANKING:
-                # the default is to sort by popcon
-                k = "SOFTWARE_CENTER_SEARCHES_SORT_MODE"
-                if k in os.environ and os.environ[k] != "popcon":
-                    pass
-                else:
-                    enquire.set_sort_by_value(XAPIAN_VALUE_POPCON)
+                # use the default enquire.set_sort_by_relevance()
+                pass
 
             # display name - all categories / channels
             elif (self.db._axi_values and 
