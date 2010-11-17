@@ -264,13 +264,7 @@ class AppStore(gtk.GenericTreeModel):
             # display name - all categories / channels
             elif (self.db._axi_values and 
                   "display_name" in self.db._axi_values):
-                # FIXME: here we want locale aware sorting
-                # http://bazaar.launchpad.net/~unity-team/unity-place-applications/trunk/revision/115
-                # above is a c version of what we want
-                enquire.set_sort_by_value_then_relevance(
-                    self.db._axi_values["display_name"],
-                    reverse=False
-                    )
+                enquire.set_sort_by_key(LocaleSorter(self.db), reverse=False)
 
             # fallback to pkgname - if needed?
             else:
@@ -746,6 +740,13 @@ class InstalledDecider(xapian.MatchDecider):
         # how to work around this?
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME) or doc.get_data()
         return pkgname in self.installed
+
+class LocaleSorter(xapian.Sorter):
+    def __init__(self, db):
+        xapian.Sorter.__init__(self)
+        self.db = db
+    def __call__(self, doc):
+        return locale.strxfrm(doc.get_value(self.db._axi_values["display_name"]))
 
 class CellRendererButton2:
 

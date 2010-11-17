@@ -75,7 +75,7 @@ class DisplayNames:
         if ver is None: return
 
         if self.val_display_name != -1:
-            name = ver.summary.lower()
+            name = ver.summary
             document.add_value(self.val_display_name, name);
 
     def indexDeb822(self, document, pkg):
