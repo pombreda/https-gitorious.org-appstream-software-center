@@ -6,7 +6,16 @@ software-center (3.1.2) UNRELEASED; urgency=low
   * softwarecenter/app.py:
     - update file menu on demand 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 18 Nov 2010 12:50:30 -0500
+  [ Gary Lasker ]
+  * softwarecenter/view/basepane.py,
+    softwarecenter/view/historypane.py,
+    softwarecenter/view/viewmanager.py,
+    - add mechanism to support initializing a view
+      upon selection with viewswitcher
+    - lazy-load/parse history only when HistoryPane is
+      selected, reduces startup time
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 18 Nov 2010 14:28:55 -0500
 
 software-center (3.1.1) natty; urgency=low
 
