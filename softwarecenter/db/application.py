@@ -311,10 +311,13 @@ class AppDetails(object):
     @property
     def installation_date(self):
         if not self._history:
-            from softwarecenter.utils import ExecutionTime
-            with ExecutionTime('load history for db/application.py'):
+            from softwarecenter.apt.apthistory import history_loaded
+            loaded = history_loaded()
+            if loaded:
                 from softwarecenter.apt.apthistory import get_apt_history
                 self._history = get_apt_history()
+            else:
+                return
         return self._history.get_installed_date(self.pkgname)
         
     @property

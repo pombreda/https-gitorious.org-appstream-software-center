@@ -189,3 +189,9 @@ def get_apt_history():
     if apt_history is None:
         apt_history = AptHistory()
     return apt_history
+
+def history_loaded():
+    global apt_history
+    if apt_history:
+        return True
+    return False
