@@ -303,8 +303,9 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
                   ),
         }
     
-    def __init__(self):
+    def __init__(self, ignore_etag=False):
         gobject.GObject.__init__(self)
+        self.ignore_etag = ignore_etag
         self.distro = get_distro()
         self.log = logging.getLogger("softwarecenter.backend.scagent")
         # make sure we have the cachdir
@@ -317,7 +318,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             for that host. If there is none, return a invalid etag (no
             quote) that will never match
         """
-        if os.path.exists(etagfile):
+        if os.path.exists(etagfile) and not self.ignore_etag:
             return open(etagfile).read()
         else:
             return "invalid-etag"
