@@ -36,7 +36,8 @@ class SCBuySomething(unittest.TestCase):
             cmd = ["sudo", "-E", "-u", os.environ["SUDO_USER"]]
         else:
             cmd = []
-        cmd += ["/usr/share/software-center/update-software-center-agent"]
+        cmd += ["/usr/share/software-center/update-software-center-agent",
+                "--ignore-etag"]
         res = subprocess.call(cmd, env=os.environ)
         print cmd, res
 

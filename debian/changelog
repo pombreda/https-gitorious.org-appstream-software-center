@@ -1,4 +1,4 @@
-software-center (3.1.1) UNRELEASED; urgency=low
+software-center (3.1.1) natty; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -40,6 +40,12 @@ software-center (3.1.1) UNRELEASED; urgency=low
     - add --ignore-etag to force reload even if we have a cached version
   * softwarecenter/db/update.py:
     - do not fail if "MimeType" is missing from a desktop file
+  * softwarecenter/apt/apthistory.py:
+    - use python-apt tagfile parser instead of python-debian
+  * debian/control:
+    - drop python-debian dependency
+  * test/test_gui_buy_something.py: 
+    - run test with --ignore-etag
 
   [ Martin Pitt ]
   * debian/rules: Supply dh --with option after $@, for compatibility with
@@ -47,7 +53,7 @@ software-center (3.1.1) UNRELEASED; urgency=low
   * debian/rules: Build with scour for SVG optimization. Add python-scour
     build dependency.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 17 Nov 2010 11:37:18 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 18 Nov 2010 16:06:18 +0100
 
 software-center (3.1.0) natty; urgency=low
 
