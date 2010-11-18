@@ -49,7 +49,6 @@ from view.installedpane import InstalledPane
 from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane, SoftwareSection
-from view.historypane import HistoryPane
 from view.viewmanager import ViewManager
 
 from backend.config import get_config
@@ -279,16 +278,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                     VIEW_PAGE_INSTALLED)
         self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
 
-        # history pane
-        self.history_pane = HistoryPane(self.cache,
-                                        self.db,
-                                        self.distro,
-                                        self.icons,
-                                        datadir)
-        self.history_pane.connect("app-list-changed", 
-                                  self.on_app_list_changed,
-                                  VIEW_PAGE_HISTORY)
-        self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
+        # we load these panes on demand
+        self.history_pane = None
 
         # pending view
         self.pending_view = PendingView(self.icons)
@@ -432,6 +423,23 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
         self._logger.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
+
+        # load panes on demand
+        if view_id == VIEW_PAGE_HISTORY:
+            if not self.history_pane:
+                with ExecutionTime("init history_pane for SoftwareCenterApp"):
+                    from view.historypane import HistoryPane
+                    self.history_pane = HistoryPane(self.cache,
+                                                    self.db,
+                                                    self.distro,
+                                                    self.icons,
+                                                    self.datadir)
+                    self.history_pane.connect("app-list-changed", 
+                                              self.on_app_list_changed,
+                                              VIEW_PAGE_HISTORY)
+                    self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
+                    self.history_pane.show()
+
         # set active pane
         self.active_pane = self.view_manager.get_view_widget(view_id)
 
