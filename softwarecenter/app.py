@@ -57,12 +57,6 @@ from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from plugin import PluginManager
 
-# launchpad stuff
-from view.logindialog import LoginDialog
-from backend.launchpad import GLaunchpad
-from backend.restfulclient import UbuntuSSOlogin, SoftwareCenterAgent
-from backend.login_sso import LoginBackendDbusSSO
-
 from distro import get_distro
 
 from apt.aptcache import AptCache
@@ -607,29 +601,35 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         return False
 
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
+        from backend.launchpad import GLaunchpad
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
+        from view.logindialog import LoginDialog
         d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
         d.login()
 
     def _login_via_buildin_sso(self):
         if not self.sso:
+            from backend.restfulclient import UbuntuSSOlogin
             self.sso = UbuntuSSOlogin()
             self.sso.connect("login-successful", self._on_sso_login)
         if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
             self.scagent.query_available_for_me("dummy", "mvo")
         else:
+            from view.logindialog import LoginDialog
             d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
             d.login()
 
     def _login_via_dbus_sso(self):
         if not self.sso:
+            from backend.login_sso import LoginBackendDbusSSO
             self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
             self.sso.connect("login-successful", self._on_sso_login)
         self.sso.login()
 
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         if not self.scagent:
+            from backend.restfulclient import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me", self._available_for_me_result)
         # support both buildin or ubuntu-sso-login
