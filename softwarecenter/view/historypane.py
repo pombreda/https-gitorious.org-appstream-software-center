@@ -136,7 +136,8 @@ class HistoryPane(gtk.VBox, BasePane):
         with ExecutionTime('load history for view/historypane.py:'):
             from softwarecenter.apt.apthistory import get_apt_history
             self.history = get_apt_history()
-        self.parse_history()
+        with ExecutionTime('parse_history for view/historypane.py:'):
+            self.parse_history()
         self.history.set_on_update(self.parse_history)
         
 
