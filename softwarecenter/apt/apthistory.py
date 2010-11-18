@@ -32,11 +32,6 @@ import datetime
 
 from datetime import datetime
 
-try:
-    from debian import deb822
-except ImportError:
-    from debian_bundle import deb822
-
 LOG = logging.getLogger(__name__)
 
 def ascii_lower(key):
@@ -112,14 +107,11 @@ class AptHistory(object):
     
     def _scan(self, history_file, rescan = False):
         try:
-            if history_file.endswith(".gz"):
-                f = gzip.open(history_file)
-            else:
-                f = open(history_file)
-        except IOError, ioe:
+            tagfile = apt_pkg.TagFile(open(history_file))
+        except (IOError, SystemError), ioe:
             LOG.debug(ioe)
             return
-        for stanza in deb822.Deb822.iter_paragraphs(f):
+        for stanza in tagfile:
             # keep the UI alive
             while self.main_context.pending():
                 self.main_context.iteration()
