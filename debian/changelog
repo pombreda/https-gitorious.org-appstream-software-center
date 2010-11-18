@@ -38,6 +38,8 @@ software-center (3.1.1) UNRELEASED; urgency=low
       to drive statup performance measuring
   * utils/update-software-center-agent:
     - add --ignore-etag to force reload even if we have a cached version
+  * softwarecenter/db/update.py:
+    - do not fail if "MimeType" is missing from a desktop file
 
   [ Martin Pitt ]
   * debian/rules: Supply dh --with option after $@, for compatibility with

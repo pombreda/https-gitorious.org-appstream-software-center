@@ -90,6 +90,8 @@ class AppInfoParserBase(object):
     def get_desktop_categories(self):
         return self._get_desktop_list("Categories")
     def get_desktop_mimetypes(self):
+        if not self.has_option_desktop("MimeType"):
+            return []
         return self._get_desktop_list("MimeType")
     @property
     def desktopf(self):
