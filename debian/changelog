@@ -1,3 +1,19 @@
+software-center (3.1.2) UNRELEASED; urgency=low
+ 
+  [ Kiwinote ]
+  * <all>:
+    - don't pass the history object throughout the panes, but load on demand
+  * softwarecenter/app.py:
+    - update the file menu on demand
+    - import & load history_pane on demand
+    - import login related stuff on demand to save startup time
+  * softwarecenter/apt/apthistory.py:
+    - add history_loaded() to check if the history object has been loaded
+  * softwarecenter/db/application.py:
+    - don't show the installation date if it means taking 9s to determine it
+ 
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 18 Nov 2010 12:50:30 -0500
+
 software-center (3.1.1) natty; urgency=low
 
   [ Kiwinote ]
