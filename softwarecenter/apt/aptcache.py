@@ -345,10 +345,16 @@ class AptCache(gobject.GObject):
         return upgrading_deps
 
     # determine the addons for a given package
-    def get_addons(self, pkgname):
+    def get_addons(self, pkgname, ignore_installed=True):
         """ get the list of addons for the given pkgname
+
+            The optional parameter "ignore_installed" controls if the output
+            should be filtered and pkgs already installed should be ignored
+            in the output (e.g. useful for testing).
+
             :return: a tuple of pkgnames (recommends, suggests)
         """
+        logging.debug("get_addons for '%s'" % pkgname)
         def _addons_filter(addon):
             """ helper for get_addons that filters out unneeded ones """
             # we don't know about this one (prefectly legal for suggests)
@@ -381,7 +387,7 @@ class AptCache(gobject.GObject):
                 return False
             # something on the system depends on it
             rdeps = self.get_installed_rdepends(addon_pkg)
-            if rdeps:
+            if rdeps and ignore_installed:
                 LOG.debug("already has a installed rdepends %s" % addon)
                 return False
             # looks good

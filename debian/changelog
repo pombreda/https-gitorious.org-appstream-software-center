@@ -1,4 +1,4 @@
-software-center (3.1.1) UNRELEASED; urgency=low
+software-center (3.1.1) natty; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -7,10 +7,6 @@ software-center (3.1.1) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - correctly reload appdetailsview after a transaction has run
     - _update_minimal() only gets two args
-  * <all>:
-    - load history on demand
-  * softwarecenter/app.py:
-    - update file menu on demand
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel.py,
@@ -28,6 +24,8 @@ software-center (3.1.1) UNRELEASED; urgency=low
     softwarecenter/view/widgets/spinner.py:
     - refactor spinner code
     - make a spinner panel widget and add label support
+  * softwarecenter/backend/aptd.py:
+    - fix crash during reload (LP: #673991)
   
   [ Michael Vogt ]
   * softwarecenter/view/purchasedialog.py:
@@ -38,14 +36,26 @@ software-center (3.1.1) UNRELEASED; urgency=low
   * software-center:
     - add --measure-startup-time commandline to allow external apps
       to drive statup performance measuring
+  * utils/update-software-center-agent:
+    - add --ignore-etag to force reload even if we have a cached version
+  * softwarecenter/db/update.py:
+    - do not fail if "MimeType" is missing from a desktop file
+  * softwarecenter/apt/apthistory.py:
+    - use python-apt tagfile parser instead of python-debian
+  * debian/control:
+    - drop python-debian dependency
+  * test/test_gui_buy_something.py: 
+    - run test with --ignore-etag
+  * softwarecenter/apt/aptcache.py, test/test_addons.py:
+    - make the addons test more robust
 
   [ Martin Pitt ]
   * debian/rules: Supply dh --with option after $@, for compatibility with
     current debhelper.
-  * debian/rules: Build with scour for SVG optimization. Add python-scour
+  * debian/control: Build with scour for SVG optimization. Add python-scour
     build dependency.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 16 Nov 2010 18:03:35 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 18 Nov 2010 16:58:02 +0100
 
 software-center (3.1.0) natty; urgency=low
 

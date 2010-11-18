@@ -27,11 +27,6 @@ import logging
 import apt_pkg
 apt_pkg.init_config()
 
-try:
-    from debian import deb822
-except ImportError:
-    from debian_bundle import deb822
-
 import os.path
 import datetime
 
@@ -137,9 +132,12 @@ class HistoryPane(gtk.VBox, BasePane):
         self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
 
-        from softwarecenter.apt.apthistory import get_apt_history
-        self.history = get_apt_history()
-        self.parse_history()
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime('load history for view/historypane.py:'):
+            from softwarecenter.apt.apthistory import get_apt_history
+            self.history = get_apt_history()
+        with ExecutionTime('parse_history for view/historypane.py:'):
+            self.parse_history()
         self.history.set_on_update(self.parse_history)
         
 
