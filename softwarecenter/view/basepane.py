@@ -38,5 +38,8 @@ class BasePane(object):
 
     def get_current_app(self):
         return None
+        
+    def init_view(self):
+        pass
 
 

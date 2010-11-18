@@ -131,15 +131,9 @@ class HistoryPane(gtk.VBox, BasePane):
         all_action.set_active(True)
         self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
-
-        from softwarecenter.utils import ExecutionTime
-        with ExecutionTime('load history for view/historypane.py:'):
-            from softwarecenter.apt.apthistory import get_apt_history
-            self.history = get_apt_history()
-        with ExecutionTime('parse_history for view/historypane.py:'):
-            self.parse_history()
-        self.history.set_on_update(self.parse_history)
         
+        # to start time at startup we load history later, when it is to be viewed
+        self.history = None
 
         self.column = gtk.TreeViewColumn(_('Date'))
         self.view.append_column(self.column)
@@ -149,6 +143,12 @@ class HistoryPane(gtk.VBox, BasePane):
         self.cell_text = gtk.CellRendererText()
         self.column.pack_start(self.cell_text)
         self.column.set_cell_data_func(self.cell_text, self.render_cell_text)
+        
+    def init_view(self):
+        if self.history == None:
+            # need to load the history
+            print "building the HistoryPane view"
+            self.load_and_parse_history()
 
     def _reset_icon_cache(self, theme=None):
         self._app_icon_cache.clear()
@@ -157,6 +157,12 @@ class HistoryPane(gtk.VBox, BasePane):
         except glib.GError:
             missing = None
         self._app_icon_cache[MISSING_APP_ICON] = missing
+        
+    def load_and_parse_history(self):
+        from softwarecenter.apt.apthistory import get_apt_history
+        self.history = get_apt_history()
+        self.parse_history()
+        self.history.set_on_update(self.parse_history)
 
     def parse_history(self):
         date = None
