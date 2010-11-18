@@ -364,7 +364,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
     query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
     return query
 
-def update_from_software_center_agent(db, cache):
+def update_from_software_center_agent(db, cache, ignore_etag=False):
     """ update index based on the software-center-agent data """
     def _available_cb(sca, available):
         # print "available: ", available
@@ -376,7 +376,7 @@ def update_from_software_center_agent(db, cache):
     # use the anonymous interface to s-c-agent, scales much better and is
     # much cache friendlier
     from softwarecenter.backend.restfulclient import SoftwareCenterAgentAnonymous
-    sca = SoftwareCenterAgentAnonymous()
+    sca = SoftwareCenterAgentAnonymous(ignore_etag)
     sca.connect("available", _available_cb)
     sca.connect("error", _error_cb)
     sca.available = None
