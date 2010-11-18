@@ -19,17 +19,23 @@ class TestSCAddons(unittest.TestCase):
         self.assertEqual(res, ([], ["p7zip-rar"]))
         # apt has no relevant ones
         res = self.cache.get_addons("apt")
-        self.assertEqual(res, ([], ["apt-doc", "wajig"]))
+        self.assertEqual(res, ([], ["apt-doc", "wajig", "aptitude"]))
         # synaptic
         res = self.cache.get_addons("synaptic")
         # FIXME: kdebase?!?!?! that is rather unneeded
-        self.assertEqual(res, (["kdebase-bin"], 
-                               ["dwww", "deborphan", "menu"]))
+        self.assertEqual(res, (
+                ["kdebase-bin", 'libgnome2-perl', 'rarian-compat', 'software-properties-gtk'],
+                ["dwww", "deborphan", "menu"]))
 
 
     def test_enhances(self):
         res = self.cache.get_addons("gwenview")
         self.assertEqual(res, ([], ["kipi-plugins"]))
+
+    def test_enhances_with_virtual_pkgs(self):
+        res = self.cache.get_addons("bibletime")
+        self.assertTrue("sword-text-tr" in res[1])
+        self.assertTrue(len(res[1]) > 5)
         
 
     def test_lonley_dependency(self):

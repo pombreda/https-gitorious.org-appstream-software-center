@@ -102,7 +102,7 @@ class HistoryPane(gtk.VBox, BasePane):
         all_button = all_action.create_tool_item()
         self.toolbar.insert(all_button, 0)
 
-        installs_action = gtk.RadioAction('filter_installs', _('All Installations'), None, None, self.INSTALLED)
+        installs_action = gtk.RadioAction('filter_installs', _('Installations'), None, None, self.INSTALLED)
         installs_action.set_group(all_action)
         installs_button = installs_action.create_tool_item()
         self.toolbar.insert(installs_button, 1)
@@ -184,8 +184,7 @@ class HistoryPane(gtk.VBox, BasePane):
                        self.UPGRADED: trans.upgrade,
                       }
             for action, pkgs in actions.iteritems():
-                pkgnames = [p.split()[0] for p in pkgs]
-                for pkgname in pkgnames:
+                for pkgname in pkgs:
                     row = (when, action, pkgname)
                     last_row = self.store.insert_after(day, last_row, row)
         self.last = new_last

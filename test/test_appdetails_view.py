@@ -68,6 +68,7 @@ class testAppDetailsView(unittest.TestCase):
     def test_show_app_addons(self):
         app = Application("Web browser", "firefox")
         mock_app_details = mock.Mock(AppDetails)
+        mock_app_details.desktop_file = None
         mock_app_details.pkgname = "firefox"
         mock_app_details.appname = "Web browser"
         mock_app_details.display_name = "display_name"

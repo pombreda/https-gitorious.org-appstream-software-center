@@ -25,7 +25,7 @@ import gobject
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
-from softwarecenter.utils import get_current_arch
+from softwarecenter.utils import get_current_arch, get_default_language
 
 from purchasedialog import PurchaseDialog
 
@@ -72,6 +72,8 @@ class AppDetailsViewBase(object):
         #print self.appdetails
         self._draw()
         self.emit("selected", self.app)
+    def refresh_app(self):
+        self.show_app(self.app)
     # public interface
     def reload(self):
         """ reload the package cache, this goes straight to the backend """
@@ -91,11 +93,15 @@ class AppDetailsViewBase(object):
 
     def buy_app(self):
         """ initiate the purchase transaction """
-        url = self.distro.PURCHASE_APP_URL % (urllib.urlencode({
+        lang = get_default_language()
+        url = self.distro.PURCHASE_APP_URL % (lang, urllib.urlencode({
                     'archive_id' : self.appdetails.ppaname, 
                     'arch' : get_current_arch() ,
                     }))
-        self.purchase_dialog = PurchaseDialog(url=url, app=self.app)
+        appdetails = self.app.get_details(self.db)
+        self.purchase_dialog = PurchaseDialog(url=url, 
+                                              app=self.app,
+                                              iconname=appdetails.icon)
         res = self.purchase_dialog.run()
         self.purchase_dialog.destroy()
         del self.purchase_dialog
@@ -106,13 +112,15 @@ class AppDetailsViewBase(object):
 
     def reinstall_purchased(self):
         """ reinstall a purchased app """
-        print "reinstall_purchased",  self.app
+        self._logger.debug("reinstall_purchased %s" % self.app)
         appdetails = self.app.get_details(self.db)
+        iconname = appdetails.icon
         deb_line = appdetails.deb_line
         signing_key_id = appdetails.signing_key_id
         get_install_backend().add_repo_add_key_and_install_app(deb_line,
                                                                signing_key_id,
-                                                               self.app)
+                                                               self.app,
+                                                               iconname)
 
     # internal callbacks
     def _on_cache_ready(self, cache):

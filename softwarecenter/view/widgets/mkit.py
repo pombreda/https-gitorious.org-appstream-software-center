@@ -697,6 +697,81 @@ class Style:
         return
 
 
+class FramedSectionAlt(gtk.VBox):
+
+    def __init__(self, label_markup=None, xpadding=SPACING_MED):
+        gtk.VBox.__init__(self)
+        self.set_redraw_on_allocate(False)
+
+        self.header_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
+        self.header = gtk.HBox()
+        self.header_vbox = gtk.VBox(spacing=4)
+        header_vb_align = gtk.Alignment(0, 0.5)
+        header_vb_align.add(self.header_vbox)
+        self.header.pack_start(header_vb_align, False)
+
+        self.header_alignment.add(self.header)
+        self.header_alignment.set_padding(SPACING_SMALL,
+                                          SPACING_SMALL,
+                                          xpadding,
+                                          xpadding)
+
+        self.body_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
+        self.body = gtk.VBox()
+        self.body_alignment.add(self.body)
+        self.body_alignment.set_padding(SPACING_MED, 0, 0, 0)
+
+        self.body.set_spacing(SPACING_MED)
+
+        self.pack_start(self.header_alignment, False)
+        self.pack_start(self.body_alignment)
+
+        self.image = gtk.Image()
+        self.label = EtchedLabel()
+        # Make sure the user can select and copy the title/summary
+        #self.label.set_selectable(True)
+        self.header_vbox.pack_start(self.label, False)
+        if label_markup:
+            self.set_label(label_markup)
+        return
+
+    def set_icon_from_name(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
+        self.image.set_from_icon_name(icon_name, icon_size)
+
+        if not self.image.parent:
+            self.header.pack_start(self.image, False)
+            self.header.reorder_child(self.image, 0)
+            self.image.show()
+        return
+
+    def set_icon_from_pixbuf(self, pixbuf):
+        self.image.set_from_pixbuf(pixbuf)
+
+        if not self.image.parent:
+            self.header.pack_start(self.image, False)
+            self.header.reorder_child(self.image, 0)
+            self.image.show()
+        return
+
+    def set_label(self, label='', markup=None):
+        if markup:
+            self.label.set_markup(markup)
+        else:
+            self.label.set_markup('<b>%s</b>' % label)
+
+        # atk stuff
+        acc = self.get_accessible()
+        acc.set_name(self.label.get_text())
+        acc.set_role(atk.ROLE_SECTION)
+        return
+
+    def set_xpadding(self, xpadding):
+        self.header_alignment.set_padding(0, 0, xpadding, xpadding)
+        self.body_alignment.set_padding(0, 0, xpadding, xpadding)
+        self.footer_alignment.set_padding(0, 0, xpadding, xpadding)
+        return
+
+
 class FramedSection(gtk.VBox):
 
     def __init__(self, label_markup=None, xpadding=SPACING_MED):
@@ -706,6 +781,7 @@ class FramedSection(gtk.VBox):
         self.header_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
         self.header = gtk.HBox()
         self.header_alignment.add(self.header)
+
         self.header_alignment.set_padding(SPACING_SMALL,
                                           SPACING_SMALL,
                                           xpadding,
@@ -974,12 +1050,15 @@ class LinkButton(gtk.EventBox):
         cr.set_source_pixbuf(pb, x, y)
         cr.paint_with_alpha(self.alpha)
 
-        if self.state != gtk.STATE_ACTIVE: return
+        if self.state not in (gtk.STATE_PRELIGHT, gtk.STATE_ACTIVE): return
 
         cr.rectangle(a)
         cr.clip_preserve()
-        r,g,b = floats_from_string('#FFFFC1')
-        cr.set_source_rgba(r,g,b, 0.33*self.alpha)
+        if self.state == gtk.STATE_PRELIGHT:
+            r,g,b = floats_from_gdkcolor(self.style.mid[gtk.STATE_PRELIGHT])
+        else:
+            r,g,b = floats_from_gdkcolor(self.style.mid[gtk.STATE_SELECTED])
+        cr.set_source_rgba(r,g,b, 0.125*self.alpha)
         cr.mask_surface(self._image_surface, x, y)
         return True
 
@@ -1128,6 +1207,9 @@ class LinkButton(gtk.EventBox):
         w = self.calc_width()
         self.set_size_request(w, self.get_size_request()[1])
         return
+        
+    def get_label(self):
+        return self._markup
 
     def set_image_from_icon_name(self, icon_name, icon_size, icons=None):
         icons = icons or gtk.icon_theme_get_default()

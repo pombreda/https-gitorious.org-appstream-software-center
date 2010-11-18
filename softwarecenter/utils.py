@@ -26,8 +26,10 @@ import logging
 import os
 import re
 import urllib
+import tempfile
 import time
 import xml.sax.saxutils
+import gtk
 
 from enums import USER_AGENT
 
@@ -155,6 +157,9 @@ def unescape(text):
 def get_current_arch():
     return apt_pkg.config.find("Apt::Architecture")
 
+def uri_to_filename(uri):
+    return apt_pkg.uri_to_filename(uri)
+
 def human_readable_name_from_ppa_uri(ppa_uri):
     """ takes a PPA uri and returns a human readable name for it """
     from urlparse import urlsplit
@@ -171,9 +176,30 @@ def sources_filename_from_ppa_entry(entry):
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
+
+def release_filename_in_lists_from_deb_line(debline):
+    """
+    takes a debline and returns the filename of the Release file
+    in /var/lib/apt/lists
+    """
+    import aptsources.sourceslist
+    entry = aptsources.sourceslist.SourceEntry(debline)
+    name = "%s_dists_%s_Release" % (uri_to_filename(entry.uri), entry.dist)
+    return name
     
+def get_default_language():
+    import locale
+    locale = locale.getdefaultlocale()
+    if not locale:
+        return "en"
+    if locale[0] == "C":
+        return "en"
+    return locale[0]
+
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
+
+    LOG = logging.getLogger("softwarecenter.imagedownloader")
 
     __gsignals__ = {
         "image-url-reachable"     : (gobject.SIGNAL_RUN_LAST,
@@ -185,9 +211,24 @@ class ImageDownloader(gobject.GObject):
                                      (str,),),
         }
 
-    def download_image(self, url, dest_file_path):
+    def __init__(self):
+        gobject.GObject.__init__(self)
+        self.tmpdir = None
+
+    def download_image(self, url, dest_file_path=None):
+        self.LOG.debug("download_image: %s %s" % (url, dest_file_path))
+        if dest_file_path is None:
+            if self.tmpdir is None:
+                self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
+            dest_file_path = os.path.join(self.tmpdir, uri_to_filename(url))
         self.url = url
         self.dest_file_path = dest_file_path
+        
+        if os.path.exists(self.dest_file_path):
+            self.emit('image-url-reachable', True)
+            self.emit("image-download-complete", self.dest_file_path)
+            return
+        
         f = gio.File(url)
         # first check if the url is reachable
         f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
@@ -197,13 +238,16 @@ class ImageDownloader(gobject.GObject):
         try:
             result = f.query_info_finish(result)
             self.emit('image-url-reachable', True)
+            self.LOG.debug("image reachablee %s" % self.url)
             # url is reachable, now download the icon file
             f.load_contents_async(self._icon_download_complete_cb)
         except glib.GError, e:
+            self.LOG.debug("image *not* reachable %s" % self.url)
             self.emit('image-url-reachable', False)
         del f
 
     def _icon_download_complete_cb(self, f, result, path=None):
+        self.LOG.debug("icon download completed %s" % self.dest_file_path)
         # The result from the download is actually a tuple with three 
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
@@ -215,6 +259,7 @@ class ImageDownloader(gobject.GObject):
 
 
 class GMenuSearcher(object):
+
     def __init__(self):
         self._found = None
     def _search_gmenu_dir(self, dirlist, needle):
@@ -223,10 +268,26 @@ class GMenuSearcher(object):
             if mtype == gmenu.TYPE_DIRECTORY:
                 self._search_gmenu_dir(dirlist+[item], needle)
             elif item.get_type() == gmenu.TYPE_ENTRY:
-                if os.path.basename(item.get_desktop_file_path()) == needle:
+                desktop_file_path = item.get_desktop_file_path()
+                # direct match of the desktop file name and the installed
+                # desktop file name
+                if os.path.basename(desktop_file_path) == needle:
                     self._found = dirlist+[item]
+                    return
+                # if there is no direct match, take the part of the path after 
+                # "applications" (e.g. kde4/amarok.desktop) and
+                # change "/" to "_" and do the match again - this is what
+                # the data extractor is doing
+                if "applications/" in desktop_file_path:
+                    path_after_applications = desktop_file_path.split("applications/")[1]
+                    if needle == path_after_applications.replace("/","_"):
+                        self._found = dirlist+[item]
+                        return
+
+                
     def get_main_menu_path(self, desktop_file):
-        needle = os.path.basename(desktop_file)
+        if not desktop_file:
+            return None
         for n in ["applications.menu", "settings.menu"]:
             tree = gmenu.lookup_tree(n)
             self._search_gmenu_dir([tree.get_root_directory()], 
@@ -234,7 +295,7 @@ class GMenuSearcher(object):
             if self._found:
                 return self._found
         return None
-
+        
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print s

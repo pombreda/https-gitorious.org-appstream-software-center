@@ -34,6 +34,7 @@ import time
 
 from gettext import gettext as _
 from softwarecenter.enums import *
+from softwarecenter.utils import ExecutionTime
 
 LOG = logging.getLogger(__name__)
 
@@ -104,6 +105,17 @@ class AptCache(gobject.GObject):
             self._cache = apt.Cache(GtkMainIterationProgress())
         else:
             self._cache.open(GtkMainIterationProgress())
+        # installed_count stats
+        with ExecutionTime("installed_count stats"):
+            self.installed_count = 0
+            # use the low-level cache here to calculcate the stats,
+            # its twice as fast as the highlevel one
+            for lowlevel_pkg in self._cache._cache.packages:
+                if lowlevel_pkg.current_ver:
+                    self.installed_count += 1
+                while gtk.events_pending():
+                    gtk.main_iteration()
+        LOG.debug("installed_count: %s" % self.installed_count)
         self._ready = True
         self.emit("cache-ready")
         if self._cache.broken_count > 0:
@@ -220,7 +232,11 @@ class AptCache(gobject.GObject):
     def get_enhances(self, pkg):
         return self._get_depends_by_type_str(pkg, self.ENHANCES_TYPES)
     def get_provides(self, pkg):
-        return self._get_depends_by_type_str(pkg, self.PROVIDES_TYPES)
+        provides_list = pkg.candidate._cand.provides_list
+        provides = []
+        for provided in provides_list:
+            provides.append(provided[0]) # the package name
+        return provides
 
     # reverse pkg relations
     def get_rdepends(self, pkg):
@@ -231,6 +247,16 @@ class AptCache(gobject.GObject):
         return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, False)
     def get_renhances(self, pkg):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
+    def get_renhances_lowlevel_apt_pkg(self, pkg):
+        """ takes a apt_pkg.Package and returns a list of pkgnames that 
+            enhance this package - this is needed to support enhances
+            for virtual packages
+        """
+        renhances = []
+        for dep in pkg.rev_depends_list:
+            if dep.dep_type_untranslated == "Enhances":
+                renhances.append(dep.parent_pkg.name)
+        return renhances
     def get_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
 
@@ -255,6 +281,8 @@ class AptCache(gobject.GObject):
         return False
     def _read_language_pkgs(self):
         language_packages = set()
+        if not os.path.exists(self.LANGPACK_PKGDEPENDS):
+            return language_packages
         for line in open(self.LANGPACK_PKGDEPENDS):
             line = line.strip()
             if line.startswith('#'):
@@ -268,10 +296,17 @@ class AptCache(gobject.GObject):
         
     # these are used for calculating the total size
     def _get_changes_without_applying(self, pkg):
-        if pkg.installed == None:
-            pkg.mark_install()
-        else:
-            pkg.mark_delete()
+        try:
+            if pkg.installed == None:
+                pkg.mark_install()
+            else:
+                pkg.mark_delete()
+        except SystemError:
+            # TODO: ideally we now want to display an error message
+            #       and block the install button
+            LOG.warning("broken packages encountered while getting deps for %s"
+                      % pkg.name)
+            return {}
         changes_tmp = self._cache.get_changes()
         changes = {}
         for change in changes_tmp:
@@ -285,7 +320,7 @@ class AptCache(gobject.GObject):
                 changes[change.name] = PKG_STATE_UNKNOWN
         self._cache.clear()
         return changes
-    def get_all_deps_installing(self, pkg):
+    def try_install_and_get_all_deps_installed(self, pkg):
         """ Return all dependencies of pkg that will be marked for install """
         changes = self._get_changes_without_applying(pkg)
         installing_deps = []
@@ -293,7 +328,8 @@ class AptCache(gobject.GObject):
             if change != pkg.name and changes[change] == PKG_STATE_INSTALLING:
                 installing_deps.append(change)
         return installing_deps
-    def get_all_deps_removing(self, pkg):
+    def try_install_and_get_all_deps_removed(self, pkg):
+        """ Return all dependencies of pkg that will be marked for remove"""
         changes = self._get_changes_without_applying(pkg)
         removing_deps = []
         for change in changes.keys():
@@ -323,10 +359,9 @@ class AptCache(gobject.GObject):
             if addon == pkg.name:
                 LOG.debug("circular %s" % addon)
                 return False
-            # this addon would get installed anyway (e.g. via indirect
-            # dependency) so it would be misleading to show it
-            if addon in all_deps_if_installed:
-                LOG.debug("would get installed automatically %s" % addon)
+            # child pkg is addon of parent pkg, not the other way around.
+            if addon == '-'.join(pkgname.split('-')[:-1]):
+                LOG.debug("child > parent %s" % addon)
                 return False
             # get the pkg
             addon_pkg = self._cache[addon]
@@ -352,6 +387,15 @@ class AptCache(gobject.GObject):
             # looks good
             return True
         #----------------------------------------------------------------
+        def _addons_filter_slow(addon):
+            """ helper for get_addons that filters out unneeded ones """
+            # this addon would get installed anyway (e.g. via indirect
+            # dependency) so it would be misleading to show it
+            if addon in all_deps_if_installed:
+                LOG.debug("would get installed automatically %s" % addon)
+                return False
+            return True
+        #----------------------------------------------------------------
         # deb file, or pkg needing source, etc
         if (not pkgname in self._cache or
             not self._cache[pkgname].candidate):
@@ -369,6 +413,13 @@ class AptCache(gobject.GObject):
         renhances = self.get_renhances(pkg)
         LOG.debug("renhances: %s" % renhances)
         addons_sug += renhances
+        provides = self.get_provides(pkg)
+        LOG.debug("provides: %s" % provides)
+        for provide in provides:
+            virtual_aptpkg_pkg = self._cache._cache[provide]
+            renhances = self.get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
+            LOG.debug("renhances of %s: %s" % (provide, renhances))
+            addons_sug += renhances
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
@@ -398,14 +449,6 @@ class AptCache(gobject.GObject):
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
 
-        # now get all_deps if the package would be installed
-        try:
-            all_deps_if_installed = self.get_all_deps_installing(pkg)
-        except:
-            # if we have broken packages, then we return no addons
-            LOG.debug("broken packages encountered while getting deps for %s" % pkgname)
-            return ([],[])
-
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))
 
@@ -413,7 +456,19 @@ class AptCache(gobject.GObject):
         addons_rec = filter(_addons_filter, addons_rec)
         addons_sug = filter(_addons_filter, addons_sug)
 
-        
+        # this is not integrated into the filter above, as it is quite expensive
+        # to run this call, so we only run it if we actually have addons
+        if addons_rec or addons_sug:
+            # now get all_deps if the package would be installed
+            try:
+                all_deps_if_installed = self.try_install_and_get_all_deps_installed(pkg)
+            except:
+                # if we have broken packages, then we return no addons
+                LOG.warn("broken packages encountered while getting deps for %s" % pkgname)
+                return ([],[])
+            # filter out stuff we don't want
+            addons_rec = filter(_addons_filter_slow, addons_rec)
+            addons_sug = filter(_addons_filter_slow, addons_sug)
         
         return (addons_rec, addons_sug)
 

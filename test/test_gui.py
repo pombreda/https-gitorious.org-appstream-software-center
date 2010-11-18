@@ -169,7 +169,7 @@ class SCTestGUI(unittest.TestCase):
         self.assertFalse(self.app.available_pane.app_details.version_info.get_property("visible"))
         self.assertFalse(self.app.available_pane.app_details.license_info.get_property("visible"))
         self.assertFalse(self.app.available_pane.app_details.support_info.get_property("visible"))
-        self.assertFalse(self.app.available_pane.app_details.desc_section.get_property("visible"))
+        self.assertEqual(self.app.available_pane.app_details.app_desc.description.order, [])
 
     # helper stuff
     def _p(self):

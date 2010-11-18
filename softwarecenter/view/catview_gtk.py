@@ -26,7 +26,10 @@ from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.utils import *
+from softwarecenter.enums import *
 from softwarecenter.distro import get_distro
+
+from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 
 from catview import *
 
@@ -105,6 +108,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.cache = cache
         self.db = db
         self.icons = icons
+        self.section = None
 
         self._surf_id = 0
         self.section_color = mkit.floats_from_string('#0769BC')
@@ -220,16 +224,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
     def _image_path(self,name):
         return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
 
-    def set_section_color(self, color):
-        self.section_color = color
-        return
-
-    def set_section_image(self, image_id, surf):
-        global MASK_SURFACE_CACHE
-        self._surf_id = image_id
-        MASK_SURFACE_CACHE['%s-section-image' % image_id] = surf
-        return
-
+    def set_section(self, section):
+        self.section = section
 
 
 class LobbyViewGtk(CategoriesViewGtk):
@@ -250,6 +246,8 @@ class LobbyViewGtk(CategoriesViewGtk):
                  icons,
                  apps_filter,
                  apps_limit=0)
+
+        self.enquire = xapian.Enquire(self.db.xapiandb)
 
         # sections
         self.featured_carousel = None
@@ -288,20 +286,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
 
-        # sky
-        r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,a.y,0,a.y+150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,
-                     widget.allocation.width, 150)
-        cr.fill()
-
-        # clouds
-        s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
-        cr.set_source_surface(s, a.width-s.get_width(), 0)
-        cr.paint()
+        if self.section:
+            self.section.render(cr, a)
 
         # draw featured carousel
         if self.featured_carousel:
@@ -339,7 +325,70 @@ class LobbyViewGtk(CategoriesViewGtk):
         # changing order of methods changes order that they appear in the page
         self._append_departments()
         self._append_featured_and_new()
+        self._append_recommendations()
         return
+
+    def _append_recommendations(self):
+        """ get recommendations from zeitgeist and add to the view """
+
+        def _show_recommended_apps_widget(query, r_apps): 
+            # build UI
+            self.hbox = gtk.HBox()
+            welcome = gettext.ngettext("Welcome back! There is",
+                                      "Welcome back! There are",
+                                      len(r_apps))
+            self.hbox.pack_start(gtk.Label(welcome), False, False)
+            label = gettext.ngettext("%(len)i new recommendation",
+                                     "%(len)i new recommendations",
+                                     len(r_apps)) % { 'len' : len(r_apps) }
+            linkbutton = mkit.HLinkButton(label)
+            linkbutton.set_underline(True)
+            linkbutton.set_subdued(True)
+            self.hbox.pack_start(linkbutton, False, False)
+            self.hbox.pack_start(gtk.Label("for you."), False, False)
+            self.vbox.pack_start(self.hbox, False, False)
+            self.vbox.reorder_child(self.hbox, 0)
+            # build fake category
+            name = gobject.markup_escape_text(_("Recommendations"))
+            rec_btn = CategoryButton(name, "category-recommendations", self.icons)
+            rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query, sortmode=SORT_BY_SEARCH_RANKING)
+            rec_btn.connect('clicked', self._on_category_clicked, rec_cat)
+            self.departments.append(rec_btn)
+            
+            linkbutton.connect('clicked', self._on_category_clicked, rec_cat)
+
+            self.show_all() 
+              
+        def _popular_mimetypes_callback(mimetypes):
+            def _find_applications(mimetypes):
+                apps = {}
+                for count, mimetype in mimetypes:
+                    result = self.db.get_most_popular_applications_for_mimetype(mimetype)
+                    for app in result:
+                        if not app in apps:
+                            apps[app] = 0
+                        apps[app] += 1
+                # this is "sort-by-amount-of-matching-mimetypes", so that
+                # e.g. gimp with image/gif, image/png gets sorted higher
+                app_tuples = [(v,k) for k, v in apps.iteritems()]
+                app_tuples.sort(reverse=True)
+                results = []
+                for count, app in app_tuples:
+                    results.append("AP"+app.pkgname)
+                return results
+
+            def _make_query(r_apps):
+                if len(r_apps) > 0:
+                    return xapian.Query(xapian.Query.OP_OR, r_apps)
+                return None
+            # get the recommended apps     
+            r_apps =_find_applications(mimetypes) 
+            if r_apps:
+                # build the widget
+                _show_recommended_apps_widget(_make_query(r_apps), r_apps)
+        
+        zeitgeist_singleton.get_popular_mimetypes(_popular_mimetypes_callback)
+        
 
     def _append_featured_and_new(self):
         # carousel hbox
@@ -365,7 +414,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      filter=self.apps_filter,
                                      icon_size=best_stock_size,
                                      global_icon_cache=False,
-                                     nonapps_visible=False)
+                                     nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
 
             self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
             self.featured_carousel.more_btn.connect('clicked',
@@ -387,7 +436,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                 self.apps_filter,
                                 icon_size=best_stock_size,
                                 global_icon_cache=False,
-                                nonapps_visible=False)
+                                nonapps_visible=AppStore.NONAPPS_MAYBE_VISIBLE)
             self.newapps_carousel = CarouselView(
                 new_apps, _(u"What\u2019s New"), self.icons,
                 start_random=False)
@@ -409,8 +458,6 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # set the departments section to use the label markup we have just defined
         self.departments.set_label(H2 % self.header)
-
-#        enquirer = xapian.Enquire(self.db.xapiandb)
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
@@ -507,20 +554,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
         cr.fill()
 
-        # sky
-        r,g,b = self.section_color
-        lin = cairo.LinearGradient(0,0,0,150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,
-                     a.width, 150)
-        cr.fill()
-
-        # clouds
-        s = MASK_SURFACE_CACHE['%s-section-image' % self._surf_id]
-        cr.set_source_surface(s, a.width-s.get_width(), 0)
-        cr.paint()
+        if self.section:
+            self.section.render(cr, a)
 
         # draw departments
         self.departments.draw(cr, self.departments.allocation, expose_area)
@@ -624,6 +659,9 @@ class CarouselView(mkit.FramedSection):
         self.more_btn = mkit.HLinkButton(label)
         self.more_btn.set_underline(True)
         self.more_btn.set_subdued(True)
+
+        self.more_btn.a11y = self.more_btn.get_accessible()
+        self.more_btn.a11y.set_name(_("%s section: show all") % title )
 
         self.header.pack_end(self.more_btn, False)
 
@@ -833,6 +871,9 @@ class CarouselView(mkit.FramedSection):
         return
 
     def transition(self, loop=True):
+        for poster in self.posters:
+            if poster.state > 0:
+                return loop
         self._fader = gobject.timeout_add(CAROUSEL_FADE_INTERVAL,
                                           self._fade_out)
         return loop
@@ -965,6 +1006,7 @@ class CarouselPoster(mkit.VLinkButton):
         self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None
+        self._target_icon_size = icon_size
 
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
@@ -987,7 +1029,7 @@ class CarouselPoster(mkit.VLinkButton):
 
         name = app[AppStore.COL_APP_NAME] or app[AppStore.COL_PKGNAME]
 
-        markup = '%s' % (name)
+        markup = '%s' % glib.markup_escape_text(name)
         pb = app[AppStore.COL_ICON]
 
         self.set_label(markup)
@@ -1018,7 +1060,8 @@ class CarouselPoster(mkit.VLinkButton):
         #cr.paint_with_alpha(0.7)
 
         self.alpha = alpha
-        self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
+        if ia.x > -1:
+            self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
 
         if alpha < 1.0:
             # text colour from gtk.Style
@@ -1207,7 +1250,7 @@ class PagingDot(mkit.LinkButton):
         cr.translate(0.5,0.5)
         cr.set_line_width(1)
         c = mkit.ShapeCircle()
-        c.layout(cr, a.x, a.y, a.width, a.height)
+        c.layout(cr, a.x, a.y, a.width-1, a.height-1)
 
         if self.is_selected:
             if self.state == gtk.STATE_PRELIGHT or self.has_focus():

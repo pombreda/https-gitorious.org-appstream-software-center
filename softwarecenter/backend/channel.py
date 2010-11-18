@@ -35,6 +35,8 @@ from softwarecenter.view.widgets.animatedimage import AnimatedImage
 from softwarecenter.utils import *
 from softwarecenter.enums import *
 
+LOG = logging.getLogger(__name__)
+
 class ChannelsManager(object):
 
     def __init__(self, db, icons):
@@ -49,7 +51,7 @@ class ChannelsManager(object):
         glib.timeout_add(300, self._check_for_channel_updates_timer)
         # extra channels from e.g. external sources
         self.extra_channels = []
-        self._logger = logging.getLogger("softwarecenter.backend")
+        self._logger = LOG
 
     # external API
     @property
@@ -80,12 +82,25 @@ class ChannelsManager(object):
             self.backend.emit("channels-changed", True)
 
     def add_channel(self, name, icon, query):
+        """
+        create a channel with the name, icon and query specified and append
+        it to the set of channels
+        return the new channel object
+        """
         # print name, icon, query
         channel = SoftwareChannel(self.icons, name, None, None, 
                                   channel_icon=icon,
                                   channel_query=query)
         self.extra_channels.append(channel)
         self.backend.emit("channels-changed", True)
+
+        if channel.installed_only:
+            channel._channel_color = '#aea79f'
+            channel._channel_image_id = VIEW_PAGE_INSTALLED
+        else:
+            channel._channel_color = '#0769BC'
+            channel._channel_image_id = VIEW_PAGE_AVAILABLE
+        return channel
 
     # internal
     def _feed_in_private_sources_list_entry(self, source_entry):
@@ -154,7 +169,7 @@ class ChannelsManager(object):
         cache_origins = self.db._aptcache.get_origins()
         db_origins = set()
         for channel in self.channels:
-            origin = channel.get_channel_origin()
+            origin = channel.origin
             if origin:
                 db_origins.add(origin)
         # origins
@@ -176,6 +191,7 @@ class ChannelsManager(object):
             if len(channel_iter.term) == 3:
                 continue
             channel_name = channel_iter.term[3:]
+            channel_origin = ""
             
             # get origin information for this channel
             m = self.db.xapiandb.postlist_begin(channel_iter.term)
@@ -245,11 +261,20 @@ class ChannelsManager(object):
                                                       channel_origin,
                                                       None,
                                                       installed_only=installed_only))
+
+        # always display the partner channel, even if its source is not enabled                                                       
+        if not partner_channel:
+            partner_channel = SoftwareChannel(self.icons, 
+                                              "Partner archive",
+                                              "Canonical",
+                                              "partner", 
+                                              only_packages_without_applications=True,
+                                              installed_only=installed_only)
         
         # create a "magic" channel to display items available for purchase                                              
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
         for_purchase_channel = SoftwareChannel(self.icons, 
-                                               _("For Purchase"), None, None, 
+                                               "For Purchase", None, None, 
                                                channel_icon=None,   # FIXME:  need an icon
                                                channel_query=for_purchase_query)
         
@@ -268,7 +293,14 @@ class ChannelsManager(object):
         channels.extend(self.extra_channels)
         if local_channel is not None:
             channels.append(local_channel)
-        
+
+        for channel in channels:
+            if installed_only:
+                channel._channel_color = '#aea79f'
+                channel._channel_image_id = VIEW_PAGE_INSTALLED
+            else:
+                channel._channel_color = '#0769BC'
+                channel._channel_image_id = VIEW_PAGE_AVAILABLE
         return channels
 
 
@@ -292,6 +324,9 @@ class SoftwareChannel(object):
         self._channel_name = channel_name
         self._channel_origin = channel_origin
         self._channel_component = channel_component
+        self._channel_color = None
+        self._channel_image_id = None
+
         self.only_packages_without_applications = only_packages_without_applications
         self.installed_only = installed_only
         self.icons = icons
@@ -314,44 +349,51 @@ class SoftwareChannel(object):
         # when the channel needs to be added to the systems sources.list
         self.needs_adding = False
         
-    def get_channel_name(self):
+    @property
+    def name(self):
         """
         return the channel name as represented in the xapian database
         """
         return self._channel_name
-        
-    def get_channel_origin(self):
+       
+    @property 
+    def origin(self):
         """
         return the channel origin as represented in the xapian database
         """
         return self._channel_origin
-        
-    def get_channel_component(self):
+    
+    @property    
+    def component(self):
         """
         return the channel component as represented in the xapian database
         """
         return self._channel_component
-       
-    def get_channel_display_name(self):
+    
+    @property   
+    def display_name(self):
         """
         return the display name for the corresponding channel for use in the UI
         """
         return self._channel_display_name
-        
-    def get_channel_icon(self):
+    
+    @property    
+    def icon(self):
         """
         return the icon that corresponds to each channel based
         on the channel name, its origin string or its component
         """
         return self._channel_icon
 
-    def get_channel_query(self):
+    @property
+    def query(self):
         """
         return the xapian query to be used with this software channel
         """
         return self._channel_query
-        
-    def get_channel_sort_mode(self):
+    
+    @property    
+    def sort_mode(self):
         """
         return the sort mode for this software channel
         """
@@ -367,6 +409,8 @@ class SoftwareChannel(object):
             channel_display_name = _("Unknown")
         elif channel_name == self.distro.get_distro_channel_name():
             channel_display_name = self.distro.get_distro_channel_description()
+        elif channel_name == "For Purchase":
+            channel_display_name = _("For Purchase")
         elif channel_name == "Application Review Board PPA":
             channel_display_name = _("Independent")
         elif channel_name == "notdownloadable":
@@ -428,13 +472,13 @@ class SoftwareChannel(object):
     def __str__(self):
         details = []
         details.append("* SoftwareChannel")
-        details.append("  get_channel_name(): %s" % self.get_channel_name())
-        details.append("  get_channel_origin(): %s" % self.get_channel_origin())
-        details.append("  get_channel_component(): %s" % self.get_channel_component())
-        details.append("  get_channel_display_name(): %s" % self.get_channel_display_name())
-        details.append("  get_channel_icon(): %s" % self.get_channel_icon())
-        details.append("  get_channel_query(): %s" % self.get_channel_query())
-        details.append("  get_channel_query(): %s" % self.get_channel_query())
+        details.append("  name: %s" % self.name)
+        details.append("  origin: %s" % self.origin)
+        details.append("  component: %s" % self.component)
+        details.append("  display_name: %s" % self.display_name)
+        details.append("  icon: %s" % self.icon)
+        details.append("  query: %s" % self.query)
+        details.append("  sort_mode: %s" % self.sort_mode)
         details.append("  only_packages_without_applications: %s" % self.only_packages_without_applications)
         details.append("  installed_only: %s" % self.installed_only)
         return '\n'.join(details)

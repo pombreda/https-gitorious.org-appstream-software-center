@@ -29,8 +29,19 @@ class SCBuySomething(unittest.TestCase):
             if os.path.exists(p):
                 os.remove(p)
             subprocess.call(["dpkg", "-r", "hellox", "hello"])
+        # get the software from staging
+        os.environ["SOFTWARE_CENTER_BUY_HOST"]="https://sc.staging.ubuntu.com"
+        os.environ["PYTHONPATH="]=os.path.abspath("..")
+        if os.getuid() == 0:
+            cmd = ["sudo", "-E", "-u", os.environ["SUDO_USER"]]
+        else:
+            cmd = []
+        cmd += ["/usr/share/software-center/update-software-center-agent"]
+        res = subprocess.call(cmd, env=os.environ)
+        print cmd, res
+
         apt.apt_pkg.config.set("Dir::log::history", "/tmp")
-        apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
+        #apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
         # mock options
         mock_options = Mock()
         mock_options.enable_lp = False
@@ -80,7 +91,7 @@ class SCBuySomething(unittest.TestCase):
         self._p()
         # done with the simulated purchase process, now pretend we install
         # something
-        deb_line = "deb https://mvo:pass@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main"
+        deb_line = "deb https://mvo:nopassyet@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main"
         signing_key_id = "0EB12F05"
         app = Application("Hello X Adventure", "hellox")
         # install only when runnig as root, as we require polkit promtps
@@ -90,9 +101,14 @@ class SCBuySomething(unittest.TestCase):
             backend = get_install_backend()
             backend.connect("transaction-finished", 
                             self._on_transaction_finished)
+            # simulate repos becomes available for the public 40 s later
+            glib.timeout_add_seconds(20, self._add_pw_to_commercial_repo)
+            # run it
+            appdetails = app.get_details(self.app.db)
             backend.add_repo_add_key_and_install_app(deb_line,
                                                      signing_key_id,
-                                                     app)
+                                                     app,
+                                                     appdetails.icon)
             self._p()
             # wait until the pkg is installed
             while not self._finished:
@@ -101,6 +117,14 @@ class SCBuySomething(unittest.TestCase):
 		time.sleep(0.1)
         #time.sleep(10)
         
+    def _add_pw_to_commercial_repo(self):
+        print "making pw available now"
+        path="/etc/apt/sources.list.d/private-ppa.launchpad.net_mvo_private-test_ubuntu.list"
+        content= open(path).read()
+        passw = os.environ.get("SC_PASS") or "pass"
+        content = content.replace("nopassyet", passw)
+        open(path, "w").write(content)
+
     def _on_transaction_finished(self, backend, result):
         print "_on_transaction_finished", result
         if not result.pkgname:

@@ -97,11 +97,15 @@ class AppStore(gtk.GenericTreeModel):
     # the default result size for a search
     DEFAULT_SEARCH_LIMIT = 200
 
+    (NONAPPS_ALWAYS_VISIBLE,
+     NONAPPS_MAYBE_VISIBLE,
+     NONAPPS_NEVER_VISIBLE) = range (3)
+
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
                  sortmode=SORT_UNSORTED, filter=None, exact=False,
                  icon_size=ICON_SIZE, global_icon_cache=True, 
-                 nonapps_visible=False):
+                 nonapps_visible=NONAPPS_MAYBE_VISIBLE):
         """
         Initalize a AppStore.
 
@@ -117,6 +121,11 @@ class AppStore(gtk.GenericTreeModel):
         - `exact`: If true, indexes of queries without matches will be
                     maintained in the store (useful to show e.g. a row
                     with "??? not found")
+        - `nonapps_visible`: decide whether adding non apps in the model or not.
+                             Can be NONAPPS_ALWAYS_VISIBLE/NONAPPS_MAYBE_VISIBLE
+                             /NONAPPS_NEVER_VISIBLE
+                             (NONAPPS_MAYBE_VISIBLE will return non apps result
+                              if no matching apps is found)
         """
         gtk.GenericTreeModel.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appstore")
@@ -156,10 +165,9 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
-        self.filter = filter
         # no search query means "all"
         if not search_query:
-            search_query = xapian.Query("ATapplication")
+            search_query = xapian.Query("")
             self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
 
@@ -177,7 +185,7 @@ class AppStore(gtk.GenericTreeModel):
         for q in self.search_query:
             self._logger.debug("using query: '%s'" % q)
             enquire = xapian.Enquire(self.db.xapiandb)
-            if not self.nonapps_visible:
+            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
                 enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                  q, xapian.Query("ATapplication")))
 
@@ -190,7 +198,8 @@ class AppStore(gtk.GenericTreeModel):
 
             # set sort order
             if self.sortmode == SORT_BY_CATALOGED_TIME:
-                if "catalogedtime" in self.db._axi_values:
+                if (self.db._axi_values and 
+                    "catalogedtime" in self.db._axi_values):
                     enquire.set_sort_by_value(
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
@@ -211,7 +220,7 @@ class AppStore(gtk.GenericTreeModel):
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
             app_index = 0
             for m in matches:
-                doc = m[xapian.MSET_DOCUMENT]
+                doc = m.document
                 if "APPVIEW_DEBUG_TERMS" in os.environ:
                     print doc.get_value(XAPIAN_VALUE_APPNAME)
                     for t in doc.termlist():
@@ -228,7 +237,7 @@ class AppStore(gtk.GenericTreeModel):
                 # FIXME: falsely assuming that apps come before nonapps
                 if not appname:
                     added = pkgname in already_added
-                    if self.nonapps_visible and not added:
+                    if self.nonapps_visible == self.NONAPPS_ALWAYS_VISIBLE and not added:
                         self.nonapp_pkgs += 1
                 if appname or not added:
                     if self.sortmode == SORT_BY_ALPHABET:
@@ -247,14 +256,16 @@ class AppStore(gtk.GenericTreeModel):
                     if term.startswith("AP"):
                         pkgname = term[2:]
                         break
-                app = Application("", pkgname)
-                self.apps.append(app)
+                if pkgname:
+                    app = Application("", pkgname)
+                    self.apps.append(app)
                 
-        # if we only have nonapps to be displayed, don't hide them
-        if (not self.nonapps_visible and
+        # if we only have nonapps to be displayed, and nonapps is set as
+        # NONAPPS_MAYBE_VISIBLE don't hide them
+        if (self.nonapps_visible == self.NONAPPS_MAYBE_VISIBLE and
             self.nonapp_pkgs > 0 and
             len(self.apps) == 0):
-            self.nonapps_visible = True
+            self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
             self._perform_search()
             
         # in the case where the app list is sorted, we must rebuild
@@ -488,14 +499,14 @@ class AppStore(gtk.GenericTreeModel):
             # markup colored gray.
             if column == self.COL_APP_NAME:
                 if app.request:
-                    return app.appname
+                    return app.name
                 return _("Not found")
             elif column == self.COL_TEXT:
                 return "%s\n" % app.pkgname
             elif column == self.COL_MARKUP:
                 if app.request:
                     s = "%s\n<small>%s</small>" % (
-                        gobject.markup_escape_text(app.appname),
+                        gobject.markup_escape_text(app.name),
                         gobject.markup_escape_text(_("Not Found")))
                     return s
                 s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
@@ -503,7 +514,7 @@ class AppStore(gtk.GenericTreeModel):
                     gobject.markup_escape_text(app.pkgname))
                 return s
             elif column == self.COL_ICON:
-                return self.icons.load_icon(MISSING_PKG_ICON,
+                return self.icons.load_icon('application-default-icon',
                                             self.icon_size, 0)
             elif column == self.COL_INSTALLED:
                 return False
@@ -538,13 +549,8 @@ class AppStore(gtk.GenericTreeModel):
             summary = self.db.get_summary(doc)
             return "%s\n%s" % (appname, summary)
         elif column == self.COL_MARKUP:
-            appname = app.appname
-            summary = self.db.get_summary(doc)
-            # SPECIAL CASE: the spec says that when there is no appname, 
-            #               the summary should be displayed as appname
-            if not appname:
-                appname = summary
-                summary = app.pkgname
+            appname = Application.get_display_name(self.db, doc)
+            summary = Application.get_display_summary(self.db, doc)
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname)
             s = "%s\n<small>%s</small>" % (
@@ -562,20 +568,20 @@ class AppStore(gtk.GenericTreeModel):
                     # machine, this is a significant burden because get_value
                     # is called *a lot*. caching is the only option
                     
-                    # check if this is a downloadable icon
-                    if not self.db.get_icon_needs_download(doc):
-                        # load the icon from the theme
+                    # look for the icon on the iconpath
+                    if self.icons.has_icon(icon_name):
                         icon = self.icons.load_icon(icon_name, self.icon_size, 0)
-                        self.icon_cache[icon_name] = icon
-                        return icon
-                    else:
+                        if icon:
+                            self.icon_cache[icon_name] = icon
+                            return icon
+                    elif self.db.get_icon_needs_download(doc):
                         self._download_icon_and_show_when_ready(self.cache, 
                                                                 app.pkgname,
                                                                 icon_file_name)
-                        return self._appicon_missing_icon
+                        # display the missing icon while the real one downloads
+                        self.icon_cache[icon_name] = self._appicon_missing_icon
             except glib.GError, e:
                 self._logger.debug("get_icon returned '%s'" % e)
-                self.icon_cache[icon_name] = self._appicon_missing_icon
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:
             pkgname = app.pkgname
@@ -622,12 +628,12 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_has_child(self, rowref):
         return False
     def on_iter_n_children(self, rowref):
-        self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
+        #self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
         if rowref:
             return 0
         return len(self.apps)
     def on_iter_nth_child(self, parent, n):
-        self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
+        #self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
         if n >= len(self.apps):
@@ -1066,14 +1072,17 @@ class CellRendererAppView2(gtk.CellRendererText):
 
     def do_render(self, window, widget, background_area, cell_area,
                   expose_area, flags):
-
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
         direction = widget.get_direction()
 
         # important! ensures correct text rendering, esp. when using hicolor theme
         if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
-            state = gtk.STATE_SELECTED
+            # this follows the behaviour that gtk+ uses for states in treeviews
+            if widget.has_focus():
+                state = gtk.STATE_SELECTED
+            else:
+                state = gtk.STATE_ACTIVE
         else:
             state = gtk.STATE_NORMAL
 
@@ -1124,12 +1133,15 @@ class CellRendererAppView2(gtk.CellRendererText):
             btn.render(window, widget, self._layout)
             xs += btn.allocation.width + spacing
 
-        if self.props.available:
-            for btn in self._buttons[end]:
-                xb -= btn.allocation.width
-                btn.set_position(xb, y-btn.allocation.height)
+
+        for btn in self._buttons[end]:
+            xb -= btn.allocation.width
+            btn.set_position(xb, y-btn.allocation.height)
+            if self.props.available:
                 btn.render(window, widget, self._layout)
-                xb -= spacing
+            else:
+                btn.set_sensitive(False)
+            xb -= spacing
         return
 
     def do_get_size(self, widget, cell_area):
@@ -1388,7 +1400,8 @@ class AppView(gtk.TreeView):
         pointer = gtk.gdk.device_get_core_pointer()
         x, y = pointer.get_state(view.window)[0]
         for btn in tr.get_buttons():
-            if btn.point_in(int(x), int(y)): return
+            if btn.point_in(int(x), int(y)): 
+                return
 
         model = view.get_model()
         exists = model[path][AppStore.COL_EXISTS]
@@ -1397,7 +1410,8 @@ class AppView(gtk.TreeView):
             pkgname = model[path][AppStore.COL_PKGNAME]
             request = model[path][AppStore.COL_REQUEST]
             popcon = model[path][AppStore.COL_POPCON]
-            self.emit("application-activated", Application(name, pkgname, request, popcon))
+            self.emit("application-activated", 
+                      Application(name, pkgname, request, popcon))
 
     def _on_button_press_event(self, view, event, tr):
         if event.button != 1:
@@ -1540,10 +1554,12 @@ class AppView(gtk.TreeView):
         return False
 
     def _set_cursor(self, btn, cursor):
-        pointer = gtk.gdk.device_get_core_pointer()
-        x, y = pointer.get_state(self.window)[0]
-        if btn.point_in(int(x), int(y)):
-            self.window.set_cursor(cursor)
+        # make sure we have a window instance (LP: #617004)
+        if isinstance(self.window, gtk.gdk.Window):
+            pointer = gtk.gdk.device_get_core_pointer()
+            x, y = pointer.get_state(self.window)[0]
+            if btn.point_in(int(x), int(y)):
+                self.window.set_cursor(cursor)
 
     def _on_transaction_started(self, backend, tr):
         """ callback when an application install/remove transaction has started """
@@ -1554,20 +1570,8 @@ class AppView(gtk.TreeView):
 
     def _on_transaction_finished(self, backend, result, tr):
         """ callback when an application install/remove transaction has finished """
-        
-        # If this item has just been removed...
-        try:
-            pkgname = result.meta_data["sc_pkgname"]
-        except KeyError:
-            return
-        appname = result.meta_data.get("sc_appname", "")
-        db = self.get_model().db
-        appdetails = Application(appname, pkgname).get_details(db)
-        # ...then manually emit "cursor-changed" as an item has
-        # just been removed and so everything else needs to update
-        if appdetails.pkg_state == PKG_STATE_UNINSTALLED:
-            self.emit("cursor-changed")
-        
+        # need to send a cursor-changed so the row button is properly updated
+        self.emit("cursor-changed")
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
 
@@ -1576,10 +1580,13 @@ class AppView(gtk.TreeView):
             action_btn.set_sensitive(True)
             self._set_cursor(action_btn, self._cursor_hand)
 
-    def _on_transaction_stopped(self, backend, pkgname, tr):
+    def _on_transaction_stopped(self, backend, result, tr):
         """ callback when an application install/remove transaction has stopped """
         # remove pkg from the block list
-        self._check_remove_pkg_from_blocklist(pkgname)
+        if isinstance(result, str):
+            self._check_remove_pkg_from_blocklist(result)
+        else:
+            self._check_remove_pkg_from_blocklist(result.pkgname)
 
         action_btn = tr.get_button_by_name('action0')
         if action_btn:

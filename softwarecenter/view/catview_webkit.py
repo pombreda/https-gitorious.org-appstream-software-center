@@ -210,7 +210,7 @@ def category_activated(iconview, category, db):
     enquire.set_query(query)
     matches = enquire.get_mset(0, 2000)
     for m in matches:
-        doc = m[xapian.MSET_DOCUMENT]
+        doc = m.document
         appname = doc.get_value(XAPIAN_VALUE_APPNAME)
         print "appname: ", appname,
             #for t in doc.termlist():

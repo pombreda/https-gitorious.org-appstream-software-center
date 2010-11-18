@@ -102,6 +102,7 @@ class StoreDatabase(gobject.GObject):
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
+        self.xapian_parser.add_boolean_prefix("mime", "AM")
         self.xapian_parser.add_prefix("pkg_wildcard", "XP")
         self.xapian_parser.add_prefix("pkg_wildcard", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
@@ -169,12 +170,17 @@ class StoreDatabase(gobject.GObject):
         if len(search_term) < 2:
             return _add_category_to_query(xapian.Query(""))
 
-        # filter query by greylist (to avoid overly generic search terms)
-        orig_search_term = search_term
-        for item in self.SEARCH_GREYLIST_STR.split(";"):
-            (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
-            if n: 
-                self._logger.debug("greylist changed search term: '%s'" % search_term)
+        # check if there is a ":" in the search, if so, it means the user
+        # is using a xapian prefix like "pkg:" or "mime:" and in this case
+        # we do not want to alter the search term (as application is in the
+        # greylist but a common mime-type prefix)
+        if not ":" in search_term:
+            # filter query by greylist (to avoid overly generic search terms)
+            orig_search_term = search_term
+            for item in self.SEARCH_GREYLIST_STR.split(";"):
+                (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
+                if n: 
+                    self._logger.debug("greylist changed search term: '%s'" % search_term)
         # restore query if it was just greylist words
         if search_term == '':
             self._logger.debug("grey-list replaced all terms, restoring")
@@ -198,8 +204,41 @@ class StoreDatabase(gobject.GObject):
         fuzzy_query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
+        # if the query size goes out of hand, omit the FLAG_PARTIAL
+        # (LP: #634449)
+        if fuzzy_query.get_length() > 1000:
+            fuzzy_query = self.xapian_parser.parse_query(search_term, 
+                                            xapian.QueryParser.FLAG_BOOLEAN)
+        # now add categories
         fuzzy_query = _add_category_to_query(fuzzy_query)
         return [pkg_query,fuzzy_query]
+
+    def get_most_popular_applications_for_mimetype(self, mimetype, 
+                                                  only_uninstalled=True, num=3):
+        """ return a list of the most popular applications for the given
+            mimetype 
+        """
+        # sort by popularity by default
+        enquire = xapian.Enquire(self.xapiandb)
+        enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+        # query mimetype
+        query = xapian.Query("AM%s"%mimetype)
+        enquire.set_query(query)
+        # mset just needs to be "big enough""
+        matches = enquire.get_mset(0, 100)
+        apps = []
+        for match in matches:
+            doc = match.get_document()
+            app = Application(self.get_appname(doc),self.get_pkgname(doc),
+                              popcon=self.get_popcon(doc))
+            if only_uninstalled:
+                if app.get_details(self).pkg_state == PKG_STATE_UNINSTALLED:
+                    apps.append(app)
+            else:
+                apps.append(app)
+            if len(apps) == num:
+                break
+        return apps
 
     def get_summary(self, doc):
         """ get human readable summary of the given document """
@@ -223,19 +262,16 @@ class StoreDatabase(gobject.GObject):
         """ Return a packagename from a xapian document """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         # if there is no value it means we use the apt-xapian-index 
-        # that store the pkgname in the data field directly
+        # that stores the pkgname in the data field directly
         if not pkgname:
             pkgname = doc.get_data()
         return pkgname
 
     def get_appname(self, doc):
-        """ Return a appname from a xapian document """
-        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-        # if there is no value it means we use the apt-xapian-index 
-        # and that has no appname
-        if not pkgname:
-            return None
-        return doc.get_data()
+        """ Return a appname from a xapian document, or None if
+            a value for appname cannot be found in the document
+         """
+        return doc.get_value(XAPIAN_VALUE_APPNAME)
 
     def get_iconname(self, doc):
         """ Return the iconname from the xapian document """
@@ -311,6 +347,7 @@ class StoreDatabase(gobject.GObject):
             doc = self.xapiandb.get_document(it.docid)
             yield doc
 
+
 if __name__ == "__main__":
     import apt
     import sys
@@ -327,7 +364,7 @@ if __name__ == "__main__":
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
     for m in matches:
-        doc = m[xapian.MSET_DOCUMENT]
+        doc = m.document
         print doc.get_data()
 
     # test origin

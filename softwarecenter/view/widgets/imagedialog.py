@@ -29,6 +29,7 @@ import gobject
 
 from softwarecenter.enums import *
 from softwarecenter.utils import GnomeProxyURLopener
+from spinner import SpinnerView
 
 ICON_EXCEPTIONS = ["gnome"]
 
@@ -38,10 +39,11 @@ class Url404Error(IOError):
 class Url403Error(IOError):
     pass
 
+# FIXME: use the utils.py:ImageDownloader here instead of a thread
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """
 
-    def __init__(self, title, url, missing_img, parent=None):
+    def __init__(self, title, url, missing_img, path=None, parent=None):
         gtk.Dialog.__init__(self)
         self.set_has_separator(False)
         # find parent window for the dialog
@@ -53,16 +55,8 @@ class ShowImageDialog(gtk.Dialog):
         self._missing_img = missing_img
         self.image_filename = self._missing_img
         
-        # loading spinner
-        self.spinner = gtk.Spinner()
-        self.spinner.set_size_request(48, 48)
-        self.spinner.start()
-        self.spinner.show()
-        
-        # table for spinner (otherwise the spinner is massive!)
-        self.table = gtk.Table(3, 3, False)
-        self.table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
-        self.table.show()
+        # create a spinner view to display while the screenshot it loading
+        self.spinner_view = SpinnerView()
 
         # screenshot
         self.img = gtk.Image()
@@ -79,13 +73,17 @@ class ShowImageDialog(gtk.Dialog):
         # dialog
         self.set_transient_for(parent)
         self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
-        self.get_content_area().add(self.table)
+        self.get_content_area().add(self.spinner_view)
         self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.set_default_size(850,650)
         self.set_title(title)
         self.connect("response", self._response)
         # install urlopener
         urllib._urlopener = GnomeProxyURLopener()
+        # destination
+        if not path:
+            tmpfile.mkdtemp(prefix="sc-screenshot")
+        self.path = path
         # data
         self.url = url
             
@@ -94,7 +92,8 @@ class ShowImageDialog(gtk.Dialog):
         self._abort = True
         
     def run(self):
-        self.show()
+        self.spinner_view.start()
+        self.show_all()
         # thread
         self._finished = False
         self._abort = False
@@ -120,9 +119,9 @@ class ShowImageDialog(gtk.Dialog):
         # Set the screenshot image
         self.img.set_from_pixbuf(pixbuf)
         
-        # Destroy the spinner and it's table
-        self.table.destroy()
-        self.spinner.destroy()
+        # Destroy the spinner view
+        self.spinner_view.stop()
+        self.spinner_view.destroy()
         
         # Add our screenshot image and scrolled window
         self.get_content_area().add(self.scroll)
@@ -136,16 +135,21 @@ class ShowImageDialog(gtk.Dialog):
     def _fetch(self):
         "fetcher thread"
         logging.debug("_fetch: %s" % self.url)
-        self.location = tempfile.NamedTemporaryFile()
-        try:
-            (screenshot, info) = urllib.urlretrieve(self.url, 
-                                                    self.location.name, 
-                                                    self._progress)
-            self.image_filename = self.location.name
-        except (Url403Error, Url404Error), e:
-            self.image_filename = self._missing_img
-        except Exception, e:
-            logging.exception("urlopen error")
+        if os.path.exists(self.path):
+            self.image_filename = self.path
+        else:
+            self.location = open(self.path, 'w')
+            try:
+                (screenshot, info) = urllib.urlretrieve(self.url, 
+                                                        self.location.name, 
+                                                        self._progress)
+                self.image_filename = self.location.name
+            except (Url403Error, Url404Error), e:
+                self.image_filename = self._missing_img
+                self.location.close()
+                os.remove(self.location.name)
+            except Exception, e:
+                logging.exception("urlopen error")
         self._finished = True
 
     def _progress(self, count, block, total):

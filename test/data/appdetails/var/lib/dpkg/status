@@ -14,7 +14,7 @@ Conffiles:
  /etc/dbus-1/system.d/com.ubuntu.SoftwareCenter.conf d5c450e6bccfcb8177943516e8beb673
 Description: Utility for browsing, installing, and removing applications
  The Ubuntu Software Center lets you browse and install thousands of
- free applications available for Ubuntu. You can view available
+ applications available for Ubuntu. You can view available
  applications by category, or search quickly by name or description.
  You can also examine the applications already installed, and remove
  those you no longer need.

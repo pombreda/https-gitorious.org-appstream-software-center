@@ -103,11 +103,6 @@ class ViewSwitcher(gtk.TreeView):
         self.backend.connect("channels-changed", self.on_channels_changed)
         self._block_set_cursor_signals = False
         
-    def set_cursor(self, *args, **kwargs):
-        if self._block_set_cursor_signals:
-            return
-        super(ViewSwitcher, self).set_cursor(*args, **kwargs)
-
     def on_channels_changed(self, backend, res):
         LOG.debug("on_channels_changed %s" % res)
         if not res:
@@ -116,7 +111,8 @@ class ViewSwitcher(gtk.TreeView):
         # does not jump around
         self._block_set_cursor_signals = True
         model = self.get_model()
-        model._update_channel_list()
+        if model:
+            model._update_channel_list()
         self._block_set_cursor_signals = False
 
     def on_treeview_row_expanded(self, widget, iter, path):
@@ -136,8 +132,14 @@ class ViewSwitcher(gtk.TreeView):
         return True
         
     def on_cursor_changed(self, widget):
+        if self._block_set_cursor_signals:
+            return
         (path, column) = self.get_cursor()
+        if not path:
+            return
         model = self.get_model()
+        if not model:
+            return
         action = model[path][ViewSwitcherList.COL_ACTION]
         channel = model[path][ViewSwitcherList.COL_CHANNEL]
         if action in self._permanent_views:
@@ -152,6 +154,8 @@ class ViewSwitcher(gtk.TreeView):
     def on_key_release_event(self, widget, event):
         # Get the toplevel node of the currently selected row
         toplevel = self.get_toplevel_node(self.get_cursor())
+        if toplevel is None:
+            return
         toplevel_path = (toplevel,)
 
         # Expand the toplevel node if the right arrow key is clicked
@@ -183,6 +187,8 @@ class ViewSwitcher(gtk.TreeView):
     def get_toplevel_node(self, cursor):
         """Returns the toplevel node of a selected row"""
         (path, column) = cursor
+        if not path:
+            return None
         return path[0]
 
     def set_view(self, view_page):
@@ -250,11 +256,14 @@ class ViewSwitcher(gtk.TreeView):
                 self.selected_channel_name,
                 self.selected_channel_installed_only)
             if channel_iter_to_select:
+                self._block_set_cursor_signals = True
                 self.set_cursor(model.get_path(channel_iter_to_select))
+                self._block_set_cursor_signals = False
 
-    def _on_row_deleted(self, widget, path):
+    def _on_row_deleted(self, widget, deleted_path):
         (path, column) = self.get_cursor()
         if path is None:
+            LOG.debug("path from _on_row_deleted no longer available")
             # The view that was selected has been deleted, switch back to
             # the previously selected permanent view.
             if self._previous_permanent_view is not None:
@@ -318,6 +327,10 @@ class ViewSwitcherList(gtk.TreeStore):
         self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None])
         
         # the progress pane is build on demand
+
+        # emit a transactions-changed signal to ensure that we display any
+        # pending transactions
+        self.backend.emit("transactions-changed", self.backend.pending_transactions)
 
     def on_transactions_changed(self, backend, total_transactions):
         LOG.debug("on_transactions_changed '%s'" % total_transactions)
@@ -406,8 +419,8 @@ class ViewSwitcherList(gtk.TreeStore):
         # iterate the channels and add as subnodes of the available node
         for channel in self.channel_manager.channels:
             self.append(self.available_iter, [
-                        channel.get_channel_icon(),
-                        channel.get_channel_display_name(),
+                        channel.icon,
+                        channel.display_name,
                         VIEW_PAGE_CHANNEL,
                         channel])
         # delete the old ones
@@ -426,7 +439,7 @@ class ViewSwitcherList(gtk.TreeStore):
             # check for no installed items for each channel and do not
             # append the channel item in this case
             enquire = xapian.Enquire(self.db.xapiandb)
-            query = channel.get_channel_query()
+            query = channel.query
             enquire.set_query(query)
             matches = enquire.get_mset(0, len(self.db))
             # only check channels that have a small number of items
@@ -434,7 +447,7 @@ class ViewSwitcherList(gtk.TreeStore):
             if len(matches) < 200:
                 add_channel_item = False
                 for m in matches:
-                    doc = m[xapian.MSET_DOCUMENT]
+                    doc = m.document
                     pkgname = self.db.get_pkgname(doc)
                     if (pkgname in self.cache and
                         self.cache[pkgname].is_installed):
@@ -442,8 +455,8 @@ class ViewSwitcherList(gtk.TreeStore):
                         break
             if add_channel_item:
                 self.append(self.installed_iter, [
-                            channel.get_channel_icon(),
-                            channel.get_channel_display_name(),
+                            channel.icon,
+                            channel.display_name,
                             VIEW_PAGE_CHANNEL,
                             channel])
         # delete the old ones
@@ -470,7 +483,10 @@ if __name__ == "__main__":
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    view = ViewSwitcher(datadir, db, icons)
+    from viewmanager import ViewManager
+    notebook = gtk.Notebook()
+    manager = ViewManager(notebook)
+    view = ViewSwitcher(manager, datadir, db, cache, icons)
 
     box = gtk.VBox()
     box.pack_start(scroll)

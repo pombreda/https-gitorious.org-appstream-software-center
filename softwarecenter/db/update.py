@@ -77,16 +77,20 @@ class AppInfoParserBase(object):
         """ get a AppInfo entry for the given key """
     def has_option_desktop(self, key):
         """ return True if there is a given AppInfo info """
-    def get_desktop_categories(self):
-        categories = []
+    def _get_desktop_list(self, key, split_str=";"):
+        result = []
         try:
-            categories_str = self.get_desktop("Categories")
-            for item in categories_str.split(";"):
+            list_str = self.get_desktop(key)
+            for item in list_str.split(split_str):
                 if item:
-                    categories.append(item)
+                    result.append(item)
         except (NoOptionError, KeyError):
             pass
-        return categories
+        return result
+    def get_desktop_categories(self):
+        return self._get_desktop_list("Categories")
+    def get_desktop_mimetypes(self):
+        return self._get_desktop_list("MimeType")
     @property
     def desktopf(self):
         """ return the file that the AppInfo comes from """
@@ -96,7 +100,6 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
 
     # map from requested key to sca_entry attribute
     MAPPING = { 'Name'       : 'name',
-                'Comment'    : 'description',
                 'Price'      : 'price',
                 'Package'    : 'package_name',
                 'Categories' : 'categories',
@@ -106,6 +109,8 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Purchased-Date' : 'purchase_date',
                 'PPA'        : 'archive_id',
                 'Icon'       : 'icon',
+                'Screenshot-Url' : 'screenshot_url',
+                'Thumbnail-Url' : 'thumbnail_url',
               }
 
     # map from requested key to a static data element
@@ -115,6 +120,16 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
     def __init__(self, sca_entry):
         self.sca_entry = sca_entry
         self.origin = "software-center-agent"
+        self._apply_exceptions()
+    def _apply_exceptions(self):
+        # map screenshot to thumbnail
+        if (hasattr(self.sca_entry, "screenshot_url") and 
+            not hasattr(self.sca_entry, "thumbnail_url")):
+            url = self.sca_entry.screenshot_url.replace(".png", ".thumb.png")
+            self.sca_entry.thumbnail_url = url
+        if hasattr(self.sca_entry, "description"):
+            self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
+            self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
     def _apply_mapping(self, key):
         # strip away bogus prefixes
         if key.startswith("X-AppInstall-"):
@@ -207,6 +222,9 @@ class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
     DE = "Desktop Entry"
     def get_desktop(self, key):
         " get generic option under 'Desktop Entry'"
+        # never translate the pkgname
+        if key == "X-AppInstall-Package":
+            return self.get(self.DE, key)
         # first try dgettext
         if self.has_option_desktop("X-Ubuntu-Gettext-Domain"):
             value = self.get(self.DE, key)
@@ -268,22 +286,6 @@ def update_from_json_string(db, cache, json_string, origin):
         parser = JsonTagSectionParser(sec, origin)
         index_app_info_from_parser(parser, db, cache)
     return True
-
-def update_from_apt_cache_for_whats_new_repo(db, cache):
-
-    SPECIAL_ORIGINS_THAT_ARE_CONSIDERED_APPS = (
-        "Application Review Board PPA",
-        )
-
-    for pkg in cache:
-        if not pkg.candidate:
-            continue
-        for origin in pkg.candidate.origins:
-            # FIXME: make this configuration
-            if (origin.label in SPECIAL_ORIGINS_THAT_ARE_CONSIDERED_APPS and
-                origin.trusted):
-                parser = AptCachePkgParser(pkg)
-                index_app_info_from_parser(parser, db, cache)
 
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """
@@ -371,12 +373,14 @@ def update_from_software_center_agent(db, cache):
     def _error_cb(sca, error):
         logging.warn("error: %s" % error)
         sca.available = []
-    from softwarecenter.backend.restfulclient import SoftwareCenterAgent
-    sca = SoftwareCenterAgent()
+    # use the anonymous interface to s-c-agent, scales much better and is
+    # much cache friendlier
+    from softwarecenter.backend.restfulclient import SoftwareCenterAgentAnonymous
+    sca = SoftwareCenterAgentAnonymous()
     sca.connect("available", _available_cb)
     sca.connect("error", _error_cb)
-    sca.query_available()
     sca.available = None
+    sca.query_available()
     context = glib.main_context_default()
     while sca.available is None:
         while context.pending():
@@ -408,7 +412,10 @@ def index_app_info_from_parser(parser, db, cache):
         doc = xapian.Document()
         term_generator.set_document(doc)
         # app name is the data
-        name = parser.get_desktop("Name")
+        if parser.has_option_desktop("X-GNOME-FullName"):
+            name = parser.get_desktop("X-GNOME-FullName")
+        else:
+            name = parser.get_desktop("Name")
         if name in seen:
             LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
         seen.add(name)
@@ -426,7 +433,7 @@ def index_app_info_from_parser(parser, db, cache):
         doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
         doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, parser.desktopf)
         # cataloged_times
-        if pkgname in cataloged_times:
+        if pkgname in cataloged_times and "catalogedtime" in axi_values:
             doc.add_value(axi_values["catalogedtime"], 
                           xapian.sortable_serialise(cataloged_times[pkgname]))
         # pocket (main, restricted, ...)
@@ -471,6 +478,8 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Price"):
             price = parser.get_desktop("X-AppInstall-Price")
             doc.add_value(XAPIAN_VALUE_PRICE, price)
+            # since this is a commercial app, indicate it in the component value
+            doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, "commercial")
         # icon
         if parser.has_option_desktop("Icon"):
             icon = parser.get_desktop("Icon")
@@ -478,6 +487,8 @@ def index_app_info_from_parser(parser, db, cache):
         # write out categories
         for cat in parser.get_desktop_categories():
             doc.add_term("AC"+cat.lower())
+        for mime in parser.get_desktop_mimetypes():
+            doc.add_term("AM"+mime.lower())
         # get type (to distinguish between apps and packages
         if parser.has_option_desktop("Type"):
             type = parser.get_desktop("Type")
@@ -490,6 +501,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Architectures"):
             arches = parser.get_desktop("X-AppInstall-Architectures")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
+        # Description (software-center extension)
+        if parser.has_option_desktop("X-AppInstall-Description"):
+            descr = parser.get_desktop("X-AppInstall-Description")
+            doc.add_value(XAPIAN_VALUE_SC_DESCRIPTION, descr)
         # popcon
         # FIXME: popularity not only based on popcon but also
         #        on archive section, third party app etc
@@ -519,13 +534,18 @@ def index_app_info_from_parser(parser, db, cache):
         term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)
 
         # now add search data from the desktop file
-        for key in ["GenericName","Comment"]:
+        for key in ["GenericName","Comment", "X-AppInstall-Description"]:
             if not parser.has_option_desktop(key):
                 continue
             s = parser.get_desktop(key)
             # we need the ascii_upper here for e.g. turkish locales, see
             # bug #581207
-            w = globals()["WEIGHT_DESKTOP_" + ascii_upper(key.replace(" ", ""))]
+            k = "WEIGHT_DESKTOP_" + ascii_upper(key.replace(" ", ""))
+            if k in globals():
+                w = globals()[k]
+            else:
+                logging.debug("WEIGHT %s not found" % k)
+                w = 1
             term_generator.index_text_without_positions(s, w)
         # add data from the apt cache
         if pkgname in cache and cache[pkgname].candidate:

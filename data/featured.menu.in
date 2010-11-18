@@ -2,8 +2,13 @@
   <Menu>
     <_Name>Featured</_Name>
     <SCIcon>gtk-about</SCIcon>
+    <Flags>
+      <Flag>carousel-only</Flag>
+    </Flags>
     <Include>
       <Or>
+      	<SCPkgname>armagetronad</SCPkgname>
+      	<SCPkgname>calibre</SCPkgname>
 	<SCPkgname>cheese</SCPkgname>
 	<SCPkgname>homebank</SCPkgname>
 	<SCPkgname>stellarium</SCPkgname>
@@ -15,7 +20,8 @@
 	<SCPkgname>audacity</SCPkgname>
 	<SCPkgname>gufw</SCPkgname>
 	<SCPkgname>frozen-bubble</SCPkgname>
-	<SCPkgname>fretsonfire-game</SCPkgname>
+	<SCPkgname>fretsonfire</SCPkgname>
+	<SCPkgname>pdfmod</SCPkgname>
 	<SCPkgname>pingus</SCPkgname>
 	<SCPkgname>moovida</SCPkgname>
 	<SCPkgname>liferea</SCPkgname>

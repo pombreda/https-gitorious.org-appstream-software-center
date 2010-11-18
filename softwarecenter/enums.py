@@ -21,7 +21,9 @@ import xdg.BaseDirectory
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
-BUY_SOMETHING_HOST = "https://sc.staging.ubuntu.com"
+BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
+BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "http://software-center.ubuntu.com"
+
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"
@@ -85,6 +87,7 @@ XAPIAN_VALUE_PURCHASED_DATE = 184
 XAPIAN_VALUE_SCREENSHOT_URL = 185
 XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 186
 XAPIAN_VALUE_THUMBNAIL_URL = 187
+XAPIAN_VALUE_SC_DESCRIPTION = 188
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
@@ -92,10 +95,11 @@ AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
 
 # custom keys for the new-apps repository, correspond
 # control file custom fields:
-#  XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Category
+#  XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Thumbnail-Url, XB-Category
 CUSTOM_KEY_APPNAME = "AppName"
 CUSTOM_KEY_ICON = "Icon"
 CUSTOM_KEY_SCREENSHOT_URL = "Screenshot-Url"
+CUSTOM_KEY_THUMBNAIL_URL = "Thumbnail-Url"
 CUSTOM_KEY_CATEGORY = "Category"
 
 # pkg action state constants
@@ -133,4 +137,9 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    DISTRO, 
                                                    RELEASE,
                                                    CODENAME)
+                                                   
+# FIXME: use relative paths here
+INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
+IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
+IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 

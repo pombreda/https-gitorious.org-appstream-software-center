@@ -19,6 +19,7 @@
 import datetime
 import gettext
 import locale
+import re
 import subprocess
 
 from apt.utils import *
@@ -32,17 +33,17 @@ class Ubuntu(Distro):
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
     # screenshot handling
-    SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-404/%s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-404/%s"
+    SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
+    SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
 
     # purchase subscription
-    PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s"
+    PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/maverick/+new/?%s"
 
     def get_app_name(self):
         return _("Ubuntu Software Center")
 
     def get_app_description(self):
-        return _("Lets you choose from thousands of free applications available for Ubuntu.")
+        return _("Lets you choose from thousands of applications available for Ubuntu.")
     
     def get_distro_channel_name(self):
         """ The name in the Release file """
@@ -52,12 +53,10 @@ class Ubuntu(Distro):
         """ The description of the main distro channel """
         return _("Provided by Ubuntu")
 
-    def get_removal_warning_text(self, cache, pkg, appname):
+    def get_removal_warning_text(self, cache, pkg, appname, depends):
         primary = _("To remove %s, these items must be removed "
                     "as well:" % appname)
         button_text = _("Remove All")
-
-        depends = list(cache.get_installed_rdepends(pkg))
 
         # alter it if a meta-package is affected
         for m in depends:
@@ -89,9 +88,9 @@ class Ubuntu(Distro):
         return self.codename
 
     def get_license_text(self, component):
-        if component in ("main", "universe"):
+        if component in ("main", "universe", "independent"):
             return _("Open source")
-        elif component == "restricted":
+        elif component in ("restricted", "commercial"):
             return _("Proprietary")
 
     def is_supported(self, cache, doc, pkgname):
@@ -186,7 +185,8 @@ class Ubuntu(Distro):
                
         # if we couldn't determine a support date, use a generic maintenance
         # string without the date
-        if channelname or component == "partner":
+        if (channelname or
+            component in ("partner", "independent", "commercial")):
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the third party "
                      "vendor.") % appname
@@ -208,12 +208,21 @@ class Ubuntu(Distro):
         """
         full_archive_url = cache[pkgname].candidate.uri
         split_at_pool = full_archive_url.split("pool")[0]
+        # support ppas and extras.ubuntu.com
         if split_at_pool.endswith("/ppa/ubuntu/"):
             # it's a ppa, generate the icon_url for a ppa
             split_at_ppa = split_at_pool.split("/ppa/")[0]
             downloadable_icon_url = []
             downloadable_icon_url.append(split_at_ppa)
             downloadable_icon_url.append("/meta/ppa/")
+            downloadable_icon_url.append(icon_filename)
+            return "".join(downloadable_icon_url)
+        elif re.match("http://(.*)extras.ubuntu.com/", split_at_pool):
+            # it's from extras.ubuntu.com, generate the icon_url for a ppa
+            split_at_ubuntu = split_at_pool.split("/ubuntu/")[0]
+            downloadable_icon_url = []
+            downloadable_icon_url.append(split_at_ubuntu)
+            downloadable_icon_url.append("/meta/")
             downloadable_icon_url.append(icon_filename)
             return "".join(downloadable_icon_url)
         else:

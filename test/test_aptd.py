@@ -8,7 +8,7 @@ import unittest
 from softwarecenter.backend.aptd import AptdaemonBackend
 from softwarecenter.enums import *
 
-class testAptdaemon(unittest.TestCase):
+class TestAptdaemon(unittest.TestCase):
     """ tests the AptdaemonBackend """
 
     def setUp(self):

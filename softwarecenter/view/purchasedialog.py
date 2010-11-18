@@ -21,6 +21,7 @@ import gtk
 import logging
 import os
 import simplejson
+import sys
 import urllib
 import webkit
 
@@ -50,20 +51,47 @@ class PurchaseDialog(gtk.Dialog):
 <head>
  <title></title>
 </head>
+<style type="text/css">
+html {
+  background: #fff;
+  color: #000;
+  font: sans-serif;
+  font: caption;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%%;
+  height: 100%%;
+  display: table;
+}
+body {
+  display: table-cell;
+  vertical-align: middle;
+}
+h1 {
+  background: url(file:///usr/share/software-center/images/spinner.gif) top center no-repeat;
+  padding-top: 48px; /* leaves room for the spinner above */
+  font-size: 100%%;
+  font-weight: normal;
+}
+</style>
 <body>
  <h1>%s</h1>
 </body>
 </html>
 """ % _("Connecting to payment service...")
 
-    def __init__(self, app, url=None, html=None):
+    def __init__(self, app, iconname, url=None, html=None):
         gtk.Dialog.__init__(self)
         self.set_title("")
         self.app = app
-        self.set_size_request(700, 700)
+        self.iconname = iconname
+        self.set_property('skip-taskbar-hint', True)
+        self.set_size_request(640, 400)
         self.wk = ScrolledWebkitWindow()
         self.wk.webkit.connect("create-web-view", 
-                                   self._on_create_webview_request)
+                               self._on_create_webview_request)
         # a possible way to do IPC (script or title change)
         self.wk.webkit.connect("script-alert", self._on_script_alert)
         self.wk.webkit.connect("title-changed", self._on_title_changed)
@@ -83,13 +111,17 @@ class PurchaseDialog(gtk.Dialog):
         if os.environ.get("SOFTWARE_CENTER_DEBUG_BUY"):
             glib.timeout_add_seconds(1, _generate_events, self)
 
-    def _on_create_webview_request(self, view, frame):
+    def _on_create_webview_request(self, view, frame, parent=None):
         logging.debug("_on_create_webview_request")
-        window = gtk.Window()
+        popup = gtk.Dialog()
+        popup.set_size_request(750,400)
+        popup.set_title("")
+        popup.set_modal(True)
+        popup.set_transient_for(self)
         wk = ScrolledWebkitWindow()
         wk.show()
-        window.add(wk)
-        window.show()
+        popup.vbox.pack_start(wk)
+        popup.show()
         return wk.webkit
 
     def run(self):
@@ -102,7 +134,7 @@ class PurchaseDialog(gtk.Dialog):
         return True
 
     def _on_title_changed(self, view, frame, title):
-        print "on_title_changed", view, frame, title
+        #print "on_title_changed", view, frame, title
         # see wkwidget.py _on_title_changed() for a code example
         self._process_json(title)
 
@@ -111,7 +143,7 @@ class PurchaseDialog(gtk.Dialog):
             res = simplejson.loads(json_string)
             #print res
         except:
-            logging.warn("error processing json: '%s'" % json_string)
+            logging.debug("error processing json: '%s'" % json_string)
             return
         if res["successful"] == False:
             self.hide()
@@ -119,15 +151,15 @@ class PurchaseDialog(gtk.Dialog):
                 # no need to show anything, the user did the
                 # cancel
                 pass
-            elif "failure_reason" in res:
-                dialogs.error(self,
-                              _("Failure in the purchase process"),
-                              res["failure_reason"])
-            else:
-                # hrm, bad - the server did not told us anything
-                dialogs.error(self,
-                              _("Failure in the purchase process"),
-                              _("The server gave no reason"))
+            # this is what the agent implements
+            elif "failures" in res:
+                logging.error("the server returned a error: '%s'" % res["failures"])
+            # show a generic error, the "failures" string we get from the
+            # server is way too technical to show, but we do log it
+            dialogs.error(self,
+                          _("Failure in the purchase process."),
+                          _("Sorry, something went wrong. Your payment "
+                            "has been canceled."))
             self.response(gtk.RESPONSE_CANCEL)
             return
 
@@ -138,7 +170,8 @@ class PurchaseDialog(gtk.Dialog):
         # add repo and key
         get_install_backend().add_repo_add_key_and_install_app(deb_line,
                                                                signing_key_id,
-                                                               self.app)
+                                                               self.app,
+                                                               self.iconname)
 
 # just used for testing --------------------------------------------
 DUMMY_HTML = """
@@ -244,9 +277,12 @@ if __name__ == "__main__":
                 'archive_id' : "mvo/private-test", 
                 'arch' : "i386",
                 }))
-    d = PurchaseDialog(app=None, url=url)
+    # use cmdline if available
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
+    d = PurchaseDialog(app=None, iconname=None, url=url)
     # useful for debugging
-    d.connect("key-press-event", _on_key_press)
+    #d.connect("key-press-event", _on_key_press)
     #glib.timeout_add_seconds(1, _generate_events, d)
     d.run()
     

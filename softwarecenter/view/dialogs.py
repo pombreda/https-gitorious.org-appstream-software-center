@@ -19,12 +19,12 @@
 
 import gtk
 from gettext import gettext as _
-from pkgview import PkgNamesView
 
-class SimpleGladeDialog(object):
-    def __init__(self, datadir):
+class SimpleGtkbuilderDialog(object):
+    def __init__(self, datadir, domain):
         # setup ui
         self.builder = gtk.Builder()
+        self.builder.set_translation_domain(domain)
         self.builder.add_from_file(datadir+"/ui/dialogs.ui")
         self.builder.connect_signals(self)
         for o in self.builder.get_objects():
@@ -34,38 +34,9 @@ class SimpleGladeDialog(object):
             else:
                 print >> sys.stderr, "WARNING: can not get name for '%s'" % o
 
-def confirm_remove(parent, datadir, primary, cache, button_text, icon_path, depends):
-    """Confirm removing of the given app with the given depends"""
-    glade_dialog = SimpleGladeDialog(datadir)
-    dialog = glade_dialog.dialog_dependency_alert
-    dialog.set_resizable(True)
-    dialog.set_transient_for(parent)
-    dialog.set_default_size(360, -1)
 
-    # fixes launchpad bug #560021
-    pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 48, 48)
-    glade_dialog.image_package_icon.set_from_pixbuf(pixbuf)
-
-    glade_dialog.label_dependency_primary.set_text("<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
-    glade_dialog.label_dependency_primary.set_use_markup(True)
-    glade_dialog.button_dependency_do.set_label(button_text)
-
-    # add the dependencies
-    vbox = dialog.get_content_area()
-    # FIXME: make this a generic pkgview widget
-    view = PkgNamesView(_("Dependency"), cache, depends)
-    view.set_headers_visible(False)
-    glade_dialog.scrolledwindow_dependencies.add(view)
-    glade_dialog.scrolledwindow_dependencies.show_all()
-        
-    result = dialog.run()
-    dialog.hide()
-    if result == gtk.RESPONSE_ACCEPT:
-        return True
-    return False
-    
 def confirm_repair_broken_cache(parent, datadir):
-    glade_dialog = SimpleGladeDialog(datadir)
+    glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
     dialog = glade_dialog.dialog_broken_cache
     dialog.set_default_size(380, -1)
     dialog.set_transient_for(parent)
@@ -132,16 +103,7 @@ def error(parent, primary, secondary, details=None):
 
 if __name__ == "__main__":
     print "Running remove dialog"
-    import apt
-    cache = apt.Cache()
     
-    confirm_remove(None, 
-                   "./data", 
-                   "To remove Package, these items must be removed as well",
-                   cache,
-                   "Remove", 
-                   "./data/icons/48x48/apps/softwarecenter.png", 
-                   depends=["apt"])
                    
     print "Running broken apt-cache dialog"               
     confirm_repair_broken_cache(None, "./data")

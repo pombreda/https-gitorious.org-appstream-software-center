@@ -12,6 +12,16 @@ All non UI code must come with tests in the test/ subdirectoy.
    adding  <limit name="max_match_rules_per_connection">512</limit> 
    and using something bigger than 512 is a good idea
 
+== environment ==
+
+The following environment is suported:
+
+SOFTWARE_CENTER_USE_GCONF_PROXY - set user proxy instead of using system-wide
+SOFTWARE_CENTER_USE_BUILTIN_LOGIN - use built-in login instead of ubuntu-sso-client
+SOFTWARE_CENTER_APPDETAILS_WEBKIT - use the webkit appdetails instead of gtk
+APPVIEW_DEBUG_TERMS - show debug output for the terms in a search
+SOFTWARE_CENTER_BUY_HOST - use a alternative hosts to query for pay software
+
 == applications.menu ==
 
 The menu file parser understands:
@@ -36,6 +46,7 @@ AP - package name (abiword)
 AS - archive pocket (main)
 AE - archive section (mail, base, ...)
 AC - category (AudioVideo)
+AM - MimeType (application/x-ogg) 
 AT - type (Application)
 AH - channel 
 

@@ -20,11 +20,13 @@ import atk
 import cairo
 import gobject
 import gtk
+import logging
 import mkit
 import pango
 
 from gettext import gettext as _
 
+LOG = logging.getLogger("softwarecenter.view.widgets.NavigationBar")
 
 class PathBar(gtk.HBox):
 
@@ -292,6 +294,7 @@ class PathBar(gtk.HBox):
         return
 
     def _on_expose_event(self, widget, event):
+        
         if self._scroll_xO:
             self._expose_scroll(widget, event)
         else:
@@ -302,7 +305,6 @@ class PathBar(gtk.HBox):
         theme = self.theme
         parts = self.get_children()
         parts.reverse()
-        region = gtk.gdk.region_rectangle(event.area)
 
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
@@ -327,7 +329,7 @@ class PathBar(gtk.HBox):
                                            'expander',
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
-                theme.paint_layout(cr, widget, part, a.x+x, a.y+y)
+                theme.paint_layout(cr, widget, part, a.x+x, a.y+y, clip=event.area)
             else:
                 part.invisible = False
         del cr
@@ -337,7 +339,6 @@ class PathBar(gtk.HBox):
         theme = self.theme
         parts = self.get_children()
         parts.reverse()
-        region = gtk.gdk.region_rectangle(event.area)
 
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
@@ -356,7 +357,7 @@ class PathBar(gtk.HBox):
         w = part.get_draw_width()
         theme.paint_bg(cr, part, x+xo, y, w, h, sxO)
         x, y, w, h = part.get_layout_points()
-        theme.paint_layout(cr, widget, part, a.x+x-int(sxO), a.y+y)
+        theme.paint_layout(cr, widget, part, a.x+x-int(sxO), a.y+y, clip=event.area)
 
         # draw the rest of the parts
         for part in parts[1:]:
@@ -377,7 +378,7 @@ class PathBar(gtk.HBox):
                                            'expander',
                                            a.x+x-4, a.y+y-2, w+8, h+4)
 
-                theme.paint_layout(cr, widget, part, a.x+x, a.y+y)
+                theme.paint_layout(cr, widget, part, a.x+x, a.y+y, clip=event.area)
             else:
                 part.invisible = False
         del cr
@@ -495,6 +496,11 @@ class PathBar(gtk.HBox):
             self.set_active(part)
         else:
             self.set_active_no_callback(part)
+
+        # redraw the previous parts so we don't get breakage
+        parts = self.get_children()
+        for part in parts[:-1]:
+            self._part_queue_draw(part)
         return
 
     def append_no_callback(self, part):
@@ -512,6 +518,10 @@ class PathBar(gtk.HBox):
 
         self._width -= part.get_size_request()[0]
 
+        # only animate removal if part is the final part, override animation value
+        if animate:
+            i = parts.index(part)
+            animate = i == len(parts)-1
         if animate and not self._out_of_width:
             self._animate = True, part
             self._animate_mode = self.ANIMATE_REMOVE
@@ -570,10 +580,10 @@ class PathPart(gtk.EventBox):
         self.set_redraw_on_allocate(False)
         self.set_visible_window(False)
 
-        part_atk = self.get_accessible()
-        part_atk.set_name(label)
-        part_atk.set_description(_('Navigates to the %s page.' % label))
-        part_atk.set_role(atk.ROLE_PUSH_BUTTON)
+        self.atk = self.get_accessible()
+        self.atk.set_name(label)
+        self.atk.set_description(_('Navigates to the %s page.') % label)
+        self.atk.set_role(atk.ROLE_PUSH_BUTTON)
 
         self.invisible = False
         self._parent = parent
@@ -673,6 +683,8 @@ class PathPart(gtk.EventBox):
     def set_label(self, label):
         if label == self.label: return
         self.label = gobject.markup_escape_text(label.strip())
+        self.atk.set_name(label)
+        self.atk.set_description(_('Navigates to the %s page.') % label)
         if not self.layout:
             self._make_layout()
         else:
@@ -757,6 +769,9 @@ class NavigationBar(PathBar):
         If there is the same id already, replace the existing one
         with the new one
         """
+        LOG.debug("add_with_id label='%s' callback='%s' id='%s' "
+                  "do_callback=%s animate=%s" % (label, callback, id,
+                                                 do_callback, animate))
         # check if we have the button of that id or need a new one
         if id in self.id_to_part:
             part = self.id_to_part[id]

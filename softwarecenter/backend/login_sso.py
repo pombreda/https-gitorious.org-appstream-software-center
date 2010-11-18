@@ -50,7 +50,8 @@ class LoginBackendDbusSSO(LoginBackend):
         #  login_or_register_to_get_credentials(appname, tc, help, xid)
         self.proxy.login_to_get_credentials(
             self.APPNAME,
-            _("Ubuntu Software Center"), 
+             _("To reinstall previous purchases, sign in to the "
+               "Ubuntu Single Sign-On account you used to pay for them."),
             self._window_id)
         
     def _on_credentials_found(self, app_name, credentials):
