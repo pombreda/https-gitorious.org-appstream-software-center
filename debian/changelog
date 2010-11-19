@@ -2,6 +2,10 @@ software-center (3.1.2) UNRELEASED; urgency=low
 
   * merged lp:~kiwinote/software-center/getting-the-small-things-right,
     many thanks!
+  * test/test_where_is_it.py, test/data/fake-applications.menu:
+    use test/data/fake-applications.menu in the test_where_is_it.py
+    that points to  <LegacyDir>/usr/share/app-install/desktop</LegacyDir>
+    to ensure the "where-is-it" tests work on all machines
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Nov 2010 09:14:40 +0100
 
