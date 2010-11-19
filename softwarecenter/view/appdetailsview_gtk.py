@@ -321,7 +321,8 @@ class PackageStatusBar(StatusBar):
             elif self.app_details._unavailable_component():
                 # FIXME: use a proper message here, but we are in string freeze
                 self.set_button_label(_("Use This Source"))
-            elif self.app_details._available_for_our_arch():
+            else:
+                # QUESTION: is this situation even possible?
                 self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE

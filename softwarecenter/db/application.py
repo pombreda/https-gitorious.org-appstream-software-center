@@ -196,11 +196,6 @@ class AppDetails(object):
         return self.pkgname == other.pkgname
 
     @property
-    def architecture(self):
-        if self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
-
-    @property
     def channelname(self):
         if self._doc:
             channel = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
@@ -403,7 +398,6 @@ class AppDetails(object):
         #  - the repository information is missing (/var/lib/apt/lists empty)
         #  - its a failure in our meta-data (e.g. typo in the pkgname in
         #    the metadata)
-        #  - not available for our architecture
         if not self._pkg:
             if self.channelname:
                 if self._unavailable_channel():
@@ -413,7 +407,7 @@ class AppDetails(object):
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
                     return PKG_STATE_NOT_FOUND
             else:
-                if self.price and self._available_for_our_arch():
+                if self.price:
                     return PKG_STATE_NEEDS_PURCHASE
                 if (self.purchase_date and
                     self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
@@ -421,11 +415,8 @@ class AppDetails(object):
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
-                        if (component and self._unavailable_component(component_to_check=component) and self._available_for_our_arch()):
+                        if component and self._unavailable_component(component_to_check=component):
                             return PKG_STATE_NEEDS_SOURCE
-                        if component and not self._available_for_our_arch():
-                            self._error_not_found = _("Not available for this type of computer (%s).") % get_current_arch()
-                            return PKG_STATE_NOT_FOUND
                 self._error =  _("Not Found")
                 self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
                 return PKG_STATE_NOT_FOUND
@@ -542,24 +533,6 @@ class AppDetails(object):
         available = self._cache.component_available(distro_codename, component)
         return (not available)
 
-    def _available_for_our_arch(self):
-        """ check if the given package is available for our arch """
-        arches = self.architecture
-        # if we don't have a arch entry in the document its available
-        # on all architectures we know about
-        if not arches:
-            return True
-        # check the arch field and support both "," and ";"
-        sep = ","
-        if ";" in arches:
-            sep = ";"
-        elif "," in arches:
-            sep = ","
-        for arch in map(string.strip, arches.split(sep)):
-            if arch == get_current_arch():
-                return True
-        return False
-
     def __str__(self):
         details = []
         details.append("* AppDetails")
@@ -567,7 +540,6 @@ class AppDetails(object):
         details.append("        display_name: %s" % self.display_name)
         details.append("                 pkg: %s" % self.pkg)
         details.append("             pkgname: %s" % self.pkgname)
-        details.append("        architecture: %s" % self.architecture)
         details.append("         channelname: %s" % self.channelname)
         details.append("                 ppa: %s" % self.ppaname)
         details.append("         channelfile: %s" % self.channelfile)
@@ -641,11 +613,6 @@ class AppDetailsDebFile(AppDetails):
         # check deb and set failure state on error
         if not self._deb.check():
             self._error = self._deb._failure_string
-
-    @property
-    def architecture(self):
-        if self._deb:
-            return self._deb._sections["Architecture"]
 
     @property
     def description(self):
