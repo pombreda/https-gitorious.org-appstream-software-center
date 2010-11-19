@@ -1,6 +1,11 @@
 #!/usr/bin/python
 
-import mock
+import logging
+try:
+    import mock
+except ImportError:
+    logging.error("please install the 'python-mock' package")
+    raise
 import os
 import sys
 import unittest

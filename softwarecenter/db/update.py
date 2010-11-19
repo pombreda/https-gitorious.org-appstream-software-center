@@ -34,16 +34,14 @@ from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
 from glob import glob
 
-
 from softwarecenter.enums import *
+from softwarecenter.enums import DB_SCHEMA_VERSION
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.utils import GnomeProxyURLopener
 from softwarecenter.db.database import parse_axi_values_file
 
 from locale import getdefaultlocale
 import gettext
 import cPickle
-
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -359,7 +357,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
             parser = SoftwareCenterAgentParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception, e:
-            logging.exception("error processing: %s " % e)
+            LOG.exception("error processing: %s " % e)
     # add new in memory db to the main db
     db.add_database(db_purchased)
     # return a query
@@ -370,10 +368,10 @@ def update_from_software_center_agent(db, cache, ignore_etag=False):
     """ update index based on the software-center-agent data """
     def _available_cb(sca, available):
         # print "available: ", available
-        logging.debug("available: '%s'" % available)
+        LOG.debug("available: '%s'" % available)
         sca.available = available
     def _error_cb(sca, error):
-        logging.warn("error: %s" % error)
+        LOG.warn("error: %s" % error)
         sca.available = []
     # use the anonymous interface to s-c-agent, scales much better and is
     # much cache friendlier
@@ -405,7 +403,7 @@ def update_from_software_center_agent(db, cache, ignore_etag=False):
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:
-            logging.warning("error processing: %s " % e)
+            LOG.warning("error processing: %s " % e)
     # return true if we have data entries
     return len(sca.available) > 0
         
@@ -546,7 +544,7 @@ def index_app_info_from_parser(parser, db, cache):
             if k in globals():
                 w = globals()[k]
             else:
-                logging.debug("WEIGHT %s not found" % k)
+                LOG.debug("WEIGHT %s not found" % k)
                 w = 1
             term_generator.index_text_without_positions(s, w)
         # add data from the apt cache
@@ -581,6 +579,8 @@ def rebuild_database(pathname):
     # write it
     db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
     update(db, cache)
+    # write the database version into the file
+    db.set_metadata("db-schema-version", DB_SCHEMA_VERSION)
     # update the mo file stamp for the langpack checks
     mofile = gettext.find("app-install-data")
     if mofile:

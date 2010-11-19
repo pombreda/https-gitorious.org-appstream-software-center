@@ -6,9 +6,10 @@ sys.path.insert(0,"../")
 
 import apt
 import unittest
-
+import os
 import xapian
-from softwarecenter.enums import *
+from softwarecenter.enums import XAPIAN_VALUE_PKGNAME
+from softwarecenter.db.update import rebuild_database
 
 class testXapian(unittest.TestCase):
     """ tests the xapian database """
@@ -17,8 +18,10 @@ class testXapian(unittest.TestCase):
         # FIXME: create a fixture DB instead of using the system one
         # but for now that does not matter that much, only if we
         # call open the db is actually read and the path checked
-        dbpath = "/var/cache/software-center/xapian"
-        self.xapiandb = xapian.Database(dbpath)
+        pathname = "../data/xapian"
+        if not os.listdir(pathname):
+            rebuild_database(pathname)
+        self.xapiandb = xapian.Database(pathname)
         self.enquire = xapian.Enquire(self.xapiandb)
 
     def test_exact_query(self):
@@ -36,7 +39,6 @@ class testXapian(unittest.TestCase):
         self.assertTrue(len(matches) > 5)
 
     def test_category_query(self):
-        search_term = "apt"
         query = xapian.Query("ACaudiovideo")
         self.enquire.set_query(query)
         matches = self.enquire.get_mset(0, 100)
