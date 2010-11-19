@@ -152,17 +152,18 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             self.db = StoreDatabase(pathname, self.cache)
             self.db.open()
+            if self.db.schema_version() != DB_SCHEMA_VERSION:
+                logging.warn("database format '%s' expected, but got '%s'" % (
+                        DB_SCHEMA_VERSION, self.db.schema_version()))
+                if os.access(pathname, os.W_OK):
+                    self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseOpeningError:
             # Couldn't use that folder as a database
             # This may be because we are in a bzr checkout and that
             #   folder is empty. If the folder is empty, and we can find the
             # script that does population, populate a database in it.
             if os.path.isdir(pathname) and not os.listdir(pathname):
-                from softwarecenter.db.update import rebuild_database
-                self._logger.info("building local database")
-                rebuild_database(pathname)
-                self.db = StoreDatabase(pathname, self.cache)
-                self.db.open()
+                self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseCorruptError, e:
             self._logger.exception("xapian open failed")
             view.dialogs.error(None, 
@@ -417,6 +418,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
+
+    # helper
+    def _rebuild_and_reopen_local_db(self, pathname):
+        """ helper that rebuilds a db and reopens it """
+        from softwarecenter.db.update import rebuild_database
+        self._logger.info("building local database")
+        rebuild_database(pathname)
+        self.db = StoreDatabase(pathname, self.cache)
+        self.db.open()
 
     # callbacks
     def _on_update_software_center_agent_finished(self, pid, condition):

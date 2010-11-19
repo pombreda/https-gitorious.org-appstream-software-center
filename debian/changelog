@@ -8,6 +8,9 @@ software-center (3.1.2) UNRELEASED; urgency=low
     to ensure the "where-is-it" tests work on all machines
   * test/test_appdetails_view.py:
     - add better message on missing python-mock
+  * softwarecenter/enums.py:
+    - add DB_SCHEMA_VERSION as metadata to the DB and ensure we rebuild
+      the local DB on mismatch (the systemwide one is handlded already)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Nov 2010 09:14:40 +0100
 
