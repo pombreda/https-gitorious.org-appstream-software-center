@@ -1,5 +1,6 @@
 software-center (3.1.2) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged lp:~kiwinote/software-center/getting-the-small-things-right,
     many thanks!
   * test/test_where_is_it.py, test/data/fake-applications.menu:
@@ -15,6 +16,11 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - do no longer log to the root logger but instead to a db.update logger
   * test/test_mime.py:
     - use the local DB in the test and build it if needed
+
+  [ Kiwinote ]
+  * softwarecenter/db/update.py:
+    - don't index desktop files not available for our arch (LP: #629434)
+      (most visible example in partners channel on maverick amd64)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Nov 2010 09:14:40 +0100
 
