@@ -40,6 +40,13 @@ class BasePane(object):
         return None
         
     def init_view(self):
+        """
+        A callback that is made at the time the pane is selected in the
+        viewswitcher.  This method can be used to delay initialization
+        and/or setup of a BasePane subclass' view until it is actually
+        to be displayed (aka lazy-loading).  The primary purpose of this
+        is to optimize startup time performance.
+        """
         pass
 
 
