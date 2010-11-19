@@ -31,6 +31,8 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - _update_minimal must update title in order to enable source based on
       app-install-data info, but then realise that the pkg isn't available
       due to outdated app-install-data info (4pkgs for maverick final)
+    - _update_minimal must update description when we have just enabled a
+      source instead of continuing to display an empty description
   * clean up some 'is it available for our architecture' code that is not
     needed anymore (idealy we don't need the info in the db either)
 

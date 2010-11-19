@@ -1455,6 +1455,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
         self._update_layout_error_status(pkg_ambiguous_error)
+        if not self.app_desc.description.order:
+            self._update_app_description(app_details, appname)
+            self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
 
