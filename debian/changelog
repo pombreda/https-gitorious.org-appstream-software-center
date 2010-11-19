@@ -2,20 +2,22 @@ software-center (3.1.2) UNRELEASED; urgency=low
 
   [ Kiwinote ]
   * <all>:
-    - load history on demand
+    - don't pass the history object throughout the panes
   * softwarecenter/app.py:
-    - update file menu on demand 
+    - update the file menu on demand 
+    - defer imports until they are actually needed,
+      improves startup time 
 
   [ Gary Lasker ]
   * softwarecenter/view/basepane.py,
     softwarecenter/view/historypane.py,
     softwarecenter/view/viewmanager.py,
-    - add mechanism to support initializing a view
+    - add a generic mechanism to support initializing a view
       upon selection with viewswitcher
     - lazy-load/parse history only when HistoryPane is
-      selected, reduces startup time
+      selected, improves startup time
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 18 Nov 2010 14:28:55 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 19 Nov 2010 18:18:36 -0500
 
 software-center (3.1.1) natty; urgency=low
 
