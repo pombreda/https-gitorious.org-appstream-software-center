@@ -21,6 +21,7 @@ class TestMime(unittest.TestCase):
 
     def setUp(self):
         self.cache = AptCache()
+        self.cache.open()
 
     def test_most_popular_applications_for_mimetype(self):
         pathname = "../data/xapian"
