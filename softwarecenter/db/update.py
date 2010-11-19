@@ -501,6 +501,8 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Architectures"):
             arches = parser.get_desktop("X-AppInstall-Architectures")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
+            if apt_pkg.config.find("Apt::Architecture") not in arches:
+                return
         # Description (software-center extension)
         if parser.has_option_desktop("X-AppInstall-Description"):
             descr = parser.get_desktop("X-AppInstall-Description")
