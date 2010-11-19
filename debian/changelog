@@ -11,6 +11,10 @@ software-center (3.1.2) UNRELEASED; urgency=low
   * softwarecenter/enums.py:
     - add DB_SCHEMA_VERSION as metadata to the DB and ensure we rebuild
       the local DB on mismatch (the systemwide one is handlded already)
+  * softwarecenter/db/update.py, utils/update-software-center:
+    - do no longer log to the root logger but instead to a db.update logger
+  * test/test_mime.py:
+    - use the local DB in the test and build it if needed
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Nov 2010 09:14:40 +0100
 
