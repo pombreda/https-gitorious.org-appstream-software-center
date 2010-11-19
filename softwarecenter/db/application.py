@@ -290,6 +290,8 @@ class AppDetails(object):
 
     @property
     def icon(self):
+        if self.pkg_state == PKG_STATE_NOT_FOUND:
+            return MISSING_PKG_ICON
         if self._doc:
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
         if not self.summary:
@@ -419,15 +421,14 @@ class AppDetails(object):
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
-                        if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
+                        if (component and self._unavailable_component(component_to_check=component) and self._available_for_our_arch()):
                             return PKG_STATE_NEEDS_SOURCE
                         if component and not self._available_for_our_arch():
                             self._error_not_found = _("Not available for this type of computer (%s).") % get_current_arch()
                             return PKG_STATE_NOT_FOUND
-                else:
-                    self._error =  _("Not Found")
-                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
-                    return PKG_STATE_NOT_FOUND
+                self._error =  _("Not Found")
+                self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                return PKG_STATE_NOT_FOUND
         return PKG_STATE_UNKNOWN
 
     @property

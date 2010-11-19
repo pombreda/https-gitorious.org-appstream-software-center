@@ -18,9 +18,19 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - use the local DB in the test and build it if needed
 
   [ Kiwinote ]
+  * softwarecenter/db/application.py:
+    - icon should return '?' icon if pkg is not found
+    - fix logic in determining when the source is available, ie don't show
+      'use this source' if source is already enabled
   * softwarecenter/db/update.py:
     - don't index desktop files not available for our arch (LP: #629434)
       (most visible example in partners channel on maverick amd64)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - pkg_state must be queried before querying the title in order to get the
+      correct 'not found' title
+    - _update_minimal must update title in order to enable source based on
+      app-install-data info, but then realise that the pkg isn't available
+      due to outdated app-install-data info (4pkgs for maverick final)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Nov 2010 09:14:40 +0100
 
