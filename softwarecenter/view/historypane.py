@@ -162,16 +162,21 @@ class HistoryPane(gtk.VBox, BasePane):
         self.column.pack_start(self.cell_text)
         self.column.set_cell_data_func(self.cell_text, self.render_cell_text)
         
+        # busy cursor
+        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        
     def init_view(self):
         if self.history == None:
             # if the history is not yet initialized we have to load and parse it
             # show a spinner while we do that
+            self.window.set_cursor(self.busy_cursor)
             self.spinner_view.start()
             self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
             self.load_and_parse_history()
             self.spinner_notebook.set_current_page(self.PAGE_HISTORY_VIEW)
             self.spinner_view.stop()
             self._set_actions_sensitive(True)
+            self.window.set_cursor(None)
             
     def _set_actions_sensitive(self, sensitive):
         for action in self._actions_list:
@@ -337,6 +342,7 @@ if __name__ == '__main__':
     window.set_size_request(600, 500)
     window.set_position(gtk.WIN_POS_CENTER)
     window.show_all()
+    widget.init_view()
     window.connect('destroy', gtk.main_quit)
 
     gtk.main()
