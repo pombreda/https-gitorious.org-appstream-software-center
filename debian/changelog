@@ -1,12 +1,32 @@
 software-center (3.1.2) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
+  * merged lp:~kiwinote/software-center/getting-the-small-things-right,
+    many thanks!
+  * test/test_where_is_it.py, test/data/fake-applications.menu:
+    use test/data/fake-applications.menu in the test_where_is_it.py
+    that points to  <LegacyDir>/usr/share/app-install/desktop</LegacyDir>
+    to ensure the "where-is-it" tests work on all machines
+  * test/test_appdetails_view.py:
+    - add better message on missing python-mock
+  * softwarecenter/enums.py:
+    - add DB_SCHEMA_VERSION as metadata to the DB and ensure we rebuild
+      the local DB on mismatch (the systemwide one is handlded already)
+  * softwarecenter/db/update.py, utils/update-software-center:
+    - do no longer log to the root logger but instead to a db.update logger
+  * test/test_mime.py:
+    - use the local DB in the test and build it if needed
+
   [ Kiwinote ]
+  * softwarecenter/db/update.py:
+    - don't index desktop files not available for our arch (LP: #629434)
+      (most visible example in partners channel on maverick amd64)
   * <all>:
     - don't pass the history object throughout the panes
   * softwarecenter/app.py:
     - update the file menu on demand 
-    - defer imports until they are actually needed,
-      improves startup time 
+    - defer imports until they are actually needed, improves
+      startup time
 
   [ Gary Lasker ]
   * softwarecenter/view/basepane.py,
@@ -19,7 +39,7 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - display a spinner and set all buttons insensitive
       while the history is loaded and parsed
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 19 Nov 2010 20:33:22 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 19 Nov 2010 21:11:07 -0500
 
 software-center (3.1.1) natty; urgency=low
 

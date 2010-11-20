@@ -115,6 +115,14 @@ class StoreDatabase(gobject.GObject):
     def del_database(self, database):
         self._additional_databases.remove(database)
 
+    def schema_version(self):
+        """Return the version of the database layout
+        
+           This is useful to ensure we force a rebuild if its
+           older than what we expect
+        """
+        return self.xapiandb.get_metadata("db-schema-version")
+
     def reopen(self):
         " reopen the database "
         self.open()

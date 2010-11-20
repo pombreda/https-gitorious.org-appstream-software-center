@@ -26,6 +26,7 @@ class TestDatabase(unittest.TestCase):
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
         self.cache = AptCache()
+        self.cache.open()
 
     def test_comma_seperation(self):
         xapian_base_path = XAPIAN_BASE_PATH
