@@ -16,8 +16,10 @@ software-center (3.1.2) UNRELEASED; urgency=low
       upon selection with viewswitcher
     - lazy-load/parse history only when HistoryPane is
       selected, improves startup time
+    - display a spinner and set all buttons insensitive
+      while the history is loaded and parsed
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 19 Nov 2010 18:18:36 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 19 Nov 2010 20:33:22 -0500
 
 software-center (3.1.1) natty; urgency=low
 
