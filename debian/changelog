@@ -18,6 +18,8 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - use the local DB in the test and build it if needed
 
   [ Kiwinote ]
+  * softwarecenter/app.py:
+    - don't delete about dialog upon closing the window (LP: #658678)
   * softwarecenter/db/application.py:
     - icon should return '?' icon if pkg is not found
     - fix logic in determining when the source is available, ie don't show

@@ -379,6 +379,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # about dialog
         self.aboutdialog.connect("response",
                                  lambda dialog, rid: dialog.hide())
+        self.aboutdialog.connect("delete_event", self.aboutdialog.hide_on_delete)
 
         # restore state
         self.config = get_config()
