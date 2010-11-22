@@ -348,12 +348,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.hbox.pack_start(gtk.Label("for you."), False, False)
             self.vbox.pack_start(self.hbox, False, False)
             self.vbox.reorder_child(self.hbox, 0)
-            # build fake category
-            name = gobject.markup_escape_text(_("Recommendations"))
-            rec_btn = CategoryButton(name, "category-recommendations", self.icons)
+            # build category
             rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query, sortmode=SORT_BY_SEARCH_RANKING)
-            rec_btn.connect('clicked', self._on_category_clicked, rec_cat)
-            
             linkbutton.connect('clicked', self._on_category_clicked, rec_cat)
 
             self.show_all() 
