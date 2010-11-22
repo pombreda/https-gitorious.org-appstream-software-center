@@ -353,7 +353,6 @@ class LobbyViewGtk(CategoriesViewGtk):
             rec_btn = CategoryButton(name, "category-recommendations", self.icons)
             rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query, sortmode=SORT_BY_SEARCH_RANKING)
             rec_btn.connect('clicked', self._on_category_clicked, rec_cat)
-            self.departments.append(rec_btn)
             
             linkbutton.connect('clicked', self._on_category_clicked, rec_cat)
 
