@@ -16,6 +16,8 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - do no longer log to the root logger but instead to a db.update logger
   * test/test_mime.py:
     - use the local DB in the test and build it if needed
+  * setup.py:
+    - add "lint" target that runs pocketlint
 
   [ Kiwinote ]
   * softwarecenter/db/update.py:

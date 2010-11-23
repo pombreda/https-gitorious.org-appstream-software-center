@@ -1,14 +1,38 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
-from DistUtilsExtra.command import *
-
-import re
+import distutils
+import fnmatch
 import glob
 import os
+import re
 from subprocess import Popen, PIPE, call
 import sys
 
+from distutils.core import setup
+from DistUtilsExtra.command import *
+
+class PocketLint(distutils.cmd.Command):
+    """ command class that runs pocketlint """
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def binary_in_path(self, binary):
+        return any([os.path.exists(os.path.join(p, binary)) 
+                    for p in os.environ["PATH"].split(":")])
+    def run(self):
+        if not self.binary_in_path("pocketlint"):
+            sys.stderr.write("No pocketlint found in path\n"
+                             "Use python-pocket-lint in natty or from "
+                             "ppa:sinzui\n")
+            return
+        py_files = []
+        for root, dirs, files in os.walk("."):
+            pyl = fnmatch.filter(files, "*.py")
+            py_files.extend([os.path.join(root, f) for f in pyl])
+        call(["pocketlint"]+py_files)
+        
 # update version.py
 line = open("debian/changelog").readline()
 m = re.match("^[\w-]+ \(([\w\.~]+)\) ([\w-]+);", line)
@@ -66,7 +90,9 @@ setup(name="software-center", version=VERSION,
       cmdclass = { "build" : build_extra.build_extra,
                    "build_i18n" :  build_i18n.build_i18n,
                    "build_help" : build_help.build_help,
-                   "build_icons" : build_icons.build_icons}
+                   "build_icons" : build_icons.build_icons,
+                   "lint" : PocketLint,
+                   },
       )
 
 
