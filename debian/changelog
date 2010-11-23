@@ -18,6 +18,12 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - use the local DB in the test and build it if needed
   * setup.py:
     - add "lint" target that runs pocketlint
+  * softwarecenter/apt/apthistory.py, softwarecenter/db/application.py:
+    - do lazy loading in the constructor in a idle_add() function
+  * test/test_database.py:
+    - update test for lazy loading
+  * softwarecenter/view/historypane.py:
+    - ensure the lazy loaded history is ready before displaying it
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -48,10 +54,9 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - update the file menu on demand
     - import & load history_pane on demand
     - import login related stuff on demand to save startup time
-  * softwarecenter/apt/apthistory.py:
-    - add history_loaded() to check if the history object has been loaded
   * softwarecenter/db/application.py:
-    - don't show the installation date if it means taking 9s to determine it
+    - don't show the installation date immediately if it means taking 9s
+      to determine it
 
   [ Gary Lasker ]
   * softwarecenter/view/basepane.py,

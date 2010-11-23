@@ -193,6 +193,10 @@ class HistoryPane(gtk.VBox, BasePane):
     def load_and_parse_history(self):
         from softwarecenter.apt.apthistory import get_apt_history
         self.history = get_apt_history()
+        # FIXME: a signal from AptHistory is nicer
+        while not self.history.history_ready:
+            while gtk.events_pending():
+                gtk.main_iteration()
         self.parse_history()
         self.history.set_on_update(self.parse_history)
 

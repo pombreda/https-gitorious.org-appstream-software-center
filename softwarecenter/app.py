@@ -49,6 +49,7 @@ from view.installedpane import InstalledPane
 from view.channelpane import ChannelPane
 from view.availablepane import AvailablePane
 from view.softwarepane import SoftwarePane, SoftwareSection
+from view.historypane import HistoryPane
 from view.viewmanager import ViewManager
 
 from backend.config import get_config
