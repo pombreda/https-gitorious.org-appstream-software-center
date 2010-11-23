@@ -87,23 +87,28 @@ class AptHistory(object):
     def __init__(self):
         self.main_context = glib.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
-        self.rescan()
         #Copy monitoring of history file changes from historypane.py
         self.logfile = gio.File(self.history_file)
         self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
         LOG.debug("init history")
+        # this takes a long time, run it in the idle handler
+        self.transactions = []
+        self.history_ready = False
+        glib.idle_add(self.rescan)
 
     def _mtime_cmp(self, a, b):
         return cmp(os.path.getmtime(a), os.path.getmtime(b))
 
     def rescan(self):
+        self.history_ready = False
         self.transactions = []
         for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
                                       cmp=self._mtime_cmp):
             self._scan(history_gz_file)
         self._scan(self.history_file)
+        self.history_ready = True
     
     def _scan(self, history_file, rescan = False):
         try:
@@ -181,3 +186,4 @@ def get_apt_history():
     if apt_history is None:
         apt_history = AptHistory()
     return apt_history
+

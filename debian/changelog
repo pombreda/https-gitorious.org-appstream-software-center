@@ -18,6 +18,12 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - use the local DB in the test and build it if needed
   * setup.py:
     - add "lint" target that runs pocketlint
+  * softwarecenter/apt/apthistory.py, softwarecenter/db/application.py:
+    - do lazy loading in the constructor in a idle_add() function
+  * test/test_database.py:
+    - update test for lazy loading
+  * softwarecenter/view/historypane.py:
+    - ensure the lazy loaded history is ready before displaying it
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -42,6 +48,26 @@ software-center (3.1.2) UNRELEASED; urgency=low
       the recommended category button to be displayed on maximising window
   * clean up some 'is it available for our architecture' code that is not
     needed anymore (idealy we don't need the info in the db either)
+  * <all>:
+    - don't pass the history object throughout the panes, but load on demand
+  * softwarecenter/app.py:
+    - update the file menu on demand
+    - import & load history_pane on demand
+    - import login related stuff on demand to save startup time
+  * softwarecenter/db/application.py:
+    - don't show the installation date immediately if it means taking 9s
+      to determine it
+
+  [ Gary Lasker ]
+  * softwarecenter/view/basepane.py,
+    softwarecenter/view/historypane.py,
+    softwarecenter/view/viewmanager.py,
+    - add a generic mechanism to support initializing a view
+      upon selection with viewswitcher
+    - lazy-load/parse history only when HistoryPane is
+      selected, improves startup time
+    - display a spinner and set all buttons insensitive
+      while the history is loaded and parsed
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Nov 2010 09:14:40 +0100
 

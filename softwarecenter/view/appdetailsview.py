@@ -41,13 +41,12 @@ class AppDetailsViewBase(object):
                                        ),
     }
 
-    def __init__(self, db, distro, icons, cache, history, datadir):
+    def __init__(self, db, distro, icons, cache, datadir):
         self.db = db
         self.distro = distro
         self.icons = icons
         self.cache = cache
         self.cache.connect("cache-ready", self._on_cache_ready)
-        self.history = history
         self.datadir = datadir
         self.app = None
         self.appdetails = None

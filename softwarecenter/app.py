@@ -58,16 +58,9 @@ from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from plugin import PluginManager
 
-# launchpad stuff
-from view.logindialog import LoginDialog
-from backend.launchpad import GLaunchpad
-from backend.restfulclient import UbuntuSSOlogin, SoftwareCenterAgent
-from backend.login_sso import LoginBackendDbusSSO
-
 from distro import get_distro
 
 from apt.aptcache import AptCache
-from apt.apthistory import get_apt_history
 from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -141,12 +134,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.cache = AptCache()
         self.cache.connect("cache-broken", self._on_apt_cache_broken)
         self.backend = get_install_backend()
-        self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
-        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("channels-changed", self.on_channels_changed)
-        #apt history
-        self.history = get_apt_history()
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
         try:
@@ -212,7 +201,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
         # available pane
         self.available_pane = AvailablePane(self.cache,
-                                            self.history,
                                             self.db,
                                             self.distro,
                                             self.icons,
@@ -229,8 +217,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_AVAILABLE)
-        self.available_pane.app_view.connect("application-selected",
-                                             self.on_app_selected)
         self.available_pane.app_details.connect("application-request-action", 
                                                 self.on_application_request_action)
         self.available_pane.app_view.connect("application-request-action", 
@@ -242,7 +228,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # channel pane
         self.channel_pane = ChannelPane(self.cache,
-                                        self.history,
                                         self.db,
                                         self.distro,
                                         self.icons,
@@ -256,8 +241,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.channel_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_CHANNEL)
-        self.channel_pane.app_view.connect("application-selected",
-                                             self.on_app_selected)
         self.channel_pane.app_details.connect("application-request-action", 
                                               self.on_application_request_action)
         self.channel_pane.app_view.connect("application-request-action", 
@@ -269,7 +252,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
         # installed pane
         self.installed_pane = InstalledPane(self.cache,
-                                            self.history,
                                             self.db, 
                                             self.distro,
                                             self.icons,
@@ -283,8 +265,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.installed_pane.app_details.connect("selected", 
                                                 self.on_app_details_changed,
                                                 VIEW_PAGE_INSTALLED)
-        self.installed_pane.app_view.connect("application-selected",
-                                             self.on_app_selected)
         self.installed_pane.app_details.connect("application-request-action", 
                                                 self.on_application_request_action)
         self.installed_pane.app_view.connect("application-request-action", 
@@ -294,9 +274,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                     VIEW_PAGE_INSTALLED)
         self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
 
-        # history pane
+        # history pane (not fully loaded at this point)
         self.history_pane = HistoryPane(self.cache,
-                                        self.history,
                                         self.db,
                                         self.distro,
                                         self.icons,
@@ -419,7 +398,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
-
+            
     # helper
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """
@@ -436,18 +415,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db.reopen()
 
     def on_app_details_changed(self, widget, app, page):
-        self.update_app_status_menu()
         self.update_status_bar()
 
     def on_app_list_changed(self, pane, new_len, page):
         self._available_items_for_page[page] = new_len
         if self.view_manager.get_active_view() == page:
             self.update_app_list_view()
-            self.update_app_status_menu()
             self.update_status_bar()
-
-    def on_app_selected(self, widget, app):
-        self.update_app_status_menu()
 
     def on_window_main_delete_event(self, widget, event):
         if hasattr(self, "glaunchpad"):
@@ -463,6 +437,23 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
         self._logger.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
+
+        # load panes on demand
+        if view_id == VIEW_PAGE_HISTORY:
+            if not self.history_pane:
+                with ExecutionTime("init history_pane for SoftwareCenterApp"):
+                    from view.historypane import HistoryPane
+                    self.history_pane = HistoryPane(self.cache,
+                                                    self.db,
+                                                    self.distro,
+                                                    self.icons,
+                                                    self.datadir)
+                    self.history_pane.connect("app-list-changed", 
+                                              self.on_app_list_changed,
+                                              VIEW_PAGE_HISTORY)
+                    self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
+                    self.history_pane.show()
+
         # set active pane
         self.active_pane = self.view_manager.get_view_widget(view_id)
 
@@ -496,7 +487,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.view_manager.set_active_view(view_id)
         self.update_app_list_view(channel)
         self.update_status_bar()
-        self.update_app_status_menu()
 
     def on_viewswitcher_resized(self, widget, allocation):
         self.view_switcher.width = allocation.width
@@ -576,30 +566,90 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         return iconinfo.get_filename()
 
     # Menu Items
+    def on_menu_file_activate(self, menuitem):
+        """Enable/disable install/remove"""
+        self._logger.debug("on_menu_file_activate")
+        # check if we have a pkg for this page
+        app = None
+        if self.active_pane:
+            app = self.active_pane.get_current_app()
+        if app is None:
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
+            return False
+        # wait for the cache to become ready (if needed)
+        if not self.cache.ready:
+            glib.timeout_add(100, lambda: self.on_menu_file_activate(menuitem))
+            return False
+        # update menu items
+        pkg_state = None
+        error = None
+        # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
+        #         so that all UI controls (menu item, applist view button and appdetails
+        #         view button) are managed centrally:  button text, button sensitivity,
+        #         and callback method
+        # FIXME:  Add buy support here by implementing the above
+        appdetails = app.get_details(self.db)
+        if appdetails:
+            pkg_state = appdetails.pkg_state
+            error = appdetails.error
+        if self.active_pane.app_view.is_action_in_progress_for_selected_app():
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
+        elif pkg_state == PKG_STATE_UPGRADABLE or pkg_state == PKG_STATE_REINSTALLABLE and not error:
+            self.menuitem_install.set_sensitive(True)
+            self.menuitem_remove.set_sensitive(True)
+        elif pkg_state == PKG_STATE_INSTALLED:
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(True)
+        elif pkg_state == PKG_STATE_UNINSTALLED and not error:
+            self.menuitem_install.set_sensitive(True)
+            self.menuitem_remove.set_sensitive(False)
+        elif (not pkg_state and 
+              not self.active_pane.is_category_view_showing() and 
+              app.pkgname in self.cache and 
+              not self.active_pane.app_view.is_action_in_progress_for_selected_app() and
+              not error):
+            pkg = self.cache[app.pkgname]
+            installed = bool(pkg.installed)
+            self.menuitem_install.set_sensitive(not installed)
+            self.menuitem_remove.set_sensitive(installed)
+        else:
+            self.menuitem_install.set_sensitive(False)
+            self.menuitem_remove.set_sensitive(False)
+        # return False to ensure that a possible glib.timeout_add ends
+        return False
+
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
+        from backend.launchpad import GLaunchpad
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
+        from view.logindialog import LoginDialog
         d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
         d.login()
 
     def _login_via_buildin_sso(self):
         if not self.sso:
+            from backend.restfulclient import UbuntuSSOlogin
             self.sso = UbuntuSSOlogin()
             self.sso.connect("login-successful", self._on_sso_login)
         if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
             self.scagent.query_available_for_me("dummy", "mvo")
         else:
+            from view.logindialog import LoginDialog
             d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
             d.login()
 
     def _login_via_dbus_sso(self):
         if not self.sso:
+            from backend.login_sso import LoginBackendDbusSSO
             self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
             self.sso.connect("login-successful", self._on_sso_login)
         self.sso.login()
 
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         if not self.scagent:
+            from backend.restfulclient import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me", self._available_for_me_result)
         # support both buildin or ubuntu-sso-login
@@ -627,13 +677,15 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                            self.menuitem_redo,
                            self.menuitem_cut, 
                            self.menuitem_copy,
+                           self.menuitem_copy_web_link,
                            self.menuitem_paste,
                            self.menuitem_delete,
                            self.menuitem_select_all,
                            self.menuitem_search]
         for item in edit_menu_items:
             item.set_sensitive(False)
-        if (self.active_pane and self.active_pane.searchentry and
+        if (self.active_pane and 
+            self.active_pane.searchentry and
             self.active_pane.searchentry.flags() & gtk.VISIBLE):
             # undo, redo, cut, copy, paste, delete, select_all sensitive 
             # if searchentry is focused (and other more specific conditions)
@@ -650,9 +702,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 if self.active_pane.searchentry.get_text():
                     self.menuitem_delete.set_sensitive(True)
                     self.menuitem_select_all.set_sensitive(True)
-            # search sensitive iff searchentry is not focused
+            # search sensitive if searchentry is not focused
             else:
                 self.menuitem_search.set_sensitive(True)
+        # weblink
+        if self.active_pane:
+            app = self.active_pane.get_current_app()
+            if app and app.pkgname in self.cache:
+                self.menuitem_copy_web_link.set_sensitive(True)
 
     def on_menuitem_undo_activate(self, menuitem):
         self.active_pane.searchentry.undo()
@@ -741,13 +798,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.available_pane.nav_history.nav_back()
         self.available_pane._status_text = ""
         self.update_status_bar()
-        self.update_app_status_menu()
         
     def on_navhistory_forward_action_activate(self, navhistory_forward_action):
         self.available_pane.nav_history.nav_forward()
         self.available_pane._status_text = ""
         self.update_status_bar()
-        self.update_app_status_menu()
             
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
@@ -775,20 +830,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _on_apt_cache_broken(self, aptcache):
         self._ask_and_repair_broken_cache()
 
-    def _on_transaction_started(self, backend):
-        self.menuitem_install.set_sensitive(False)
-        self.menuitem_remove.set_sensitive(False)
-            
     def _on_transaction_finished(self, backend, result):
         """ callback when an application install/remove transaction 
             (or a cache reload) has finished 
         """
         self.cache.open()
-        self.update_app_status_menu()
-
-    def _on_transaction_stopped(self, backend, pkgname):
-        """ callback when an application install/remove transaction has stopped """
-        self.update_app_status_menu()
 
     def on_channels_changed(self, backend, res):
         """ callback when the set of software channels has changed """
@@ -798,8 +844,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # are send and triggers "refresh_apps", "update_app_view"
             # and refresh the displayed app in the details as well
             self.db.reopen()
-            # refresh the menu/status_bar
-            self.update_app_status_menu()
             self.update_status_bar()
 
     # helper
@@ -807,67 +851,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def run_update_cache(self):
         """update the apt cache (e.g. after new sources where added """
         self.backend.reload()
-
-    def update_app_status_menu(self):
-        """Helper that updates the 'File' and 'Edit' menu to enable/disable
-           install/remove and Copy/Copy weblink
-        """
-        self._logger.debug("update_app_status_menu")
-        # check if we have a pkg for this page
-        app = None
-        if self.active_pane:
-            app = self.active_pane.get_current_app()
-        if app is None:
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
-            self.menuitem_copy_web_link.set_sensitive(False)
-            return False
-        # wait for the cache to become ready (if needed)
-        if not self.cache.ready:
-            glib.timeout_add(100, lambda: self.update_app_status_menu())
-            return False
-        # update menu items
-        pkg_state = None
-        error = None
-        # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
-        #         so that all UI controls (menu item, applist view button and appdetails
-        #         view button) are managed centrally:  button text, button sensitivity,
-        #         and callback method
-        # FIXME:  Add buy support here by implementing the above
-        appdetails = app.get_details(self.db)
-        if appdetails:
-            pkg_state = appdetails.pkg_state
-            error = appdetails.error
-        if self.active_pane.app_view.is_action_in_progress_for_selected_app():
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
-        elif pkg_state == PKG_STATE_UPGRADABLE or pkg_state == PKG_STATE_REINSTALLABLE and not error:
-            self.menuitem_install.set_sensitive(True)
-            self.menuitem_remove.set_sensitive(True)
-        elif pkg_state == PKG_STATE_INSTALLED:
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(True)
-        elif pkg_state == PKG_STATE_UNINSTALLED and not error:
-            self.menuitem_install.set_sensitive(True)
-            self.menuitem_remove.set_sensitive(False)
-        elif (not pkg_state and 
-              not self.active_pane.is_category_view_showing() and 
-              app.pkgname in self.cache and 
-              not self.active_pane.app_view.is_action_in_progress_for_selected_app() and
-              not error):
-            pkg = self.cache[app.pkgname]
-            installed = bool(pkg.installed)
-            self.menuitem_install.set_sensitive(not installed)
-            self.menuitem_remove.set_sensitive(installed)
-            self.menuitem_copy_web_link.set_sensitive(True)
-        else:
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
-            self.menuitem_copy_web_link.set_sensitive(False)
-        if pkg_state:
-            self.menuitem_copy_web_link.set_sensitive(True)
-        # return False to ensure that a possible glib.timeout_add ends
-        return False
 
     def update_status_bar(self):
         "Helper that updates the status bar"
