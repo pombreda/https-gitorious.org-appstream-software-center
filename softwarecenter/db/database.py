@@ -209,6 +209,9 @@ class StoreDatabase(gobject.GObject):
         pkg_query = _add_category_to_query(pkg_query)
 
         # get a search query
+        if not ':' in search_term: # ie, not a mimetype query
+            # we need this to work around xapian oddness
+            search_term = search_term.replace('-','_')
         fuzzy_query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)

@@ -430,6 +430,9 @@ def index_app_info_from_parser(parser, db, cache):
         # package name
         pkgname = parser.get_desktop("X-AppInstall-Package")
         doc.add_term("AP"+pkgname)
+        if '-' in pkgname:
+            # we need this to work around xapian oddness
+            doc.add_term(pkgname.replace('-','_'))
         doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
         doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, parser.desktopf)
         # cataloged_times
