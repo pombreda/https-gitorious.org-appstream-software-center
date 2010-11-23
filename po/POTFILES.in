@@ -30,6 +30,7 @@ softwarecenter/view/historypane.py
 softwarecenter/view/installedpane.py
 softwarecenter/view/logindialog.py
 softwarecenter/view/pendingview.py
+softwarecenter/view/softwarepane.py
 softwarecenter/view/viewswitcher.py
 softwarecenter/view/widgets/backforward.py
 softwarecenter/view/widgets/pathbar_gtk_atk.py
