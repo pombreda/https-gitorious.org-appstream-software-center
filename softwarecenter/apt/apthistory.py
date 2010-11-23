@@ -85,6 +85,7 @@ o    Attributes:
 class AptHistory(object):
 
     def __init__(self):
+        logging.debug("AptHistory.__init__()")
         self.main_context = glib.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
         #Copy monitoring of history file changes from historypane.py
