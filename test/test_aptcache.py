@@ -7,6 +7,7 @@ import apt
 import apt_pkg
 import datetime
 import glib
+import gtk
 import logging
 import os
 import subprocess
@@ -22,9 +23,15 @@ class testAptCache(unittest.TestCase):
         rundir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
     def test_open_aptcache(self):
-        with ExecutionTime("softwarecenter.apt.AptCache"):
+        # open s-c aptcache
+        with ExecutionTime("s-c softwarecenter.apt.AptCache"):
             self.sccache = AptCache()
-        with ExecutionTime("apt.Cache()"):
+        # cache is opened with a timeout_add() in AptCache()
+        time.sleep(0.2)
+        while gtk.events_pending():
+            gtk.main_iteration()
+        # compare with plain apt
+        with ExecutionTime("plain apt: apt.Cache()"):
             self.cache = apt.Cache()
 
 
