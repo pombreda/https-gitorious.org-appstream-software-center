@@ -273,8 +273,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                     VIEW_PAGE_INSTALLED)
         self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
 
-        # we load these panes on demand
-        self.history_pane = None
+        # history pane (not fully loaded at this point)
+        self.history_pane = HistoryPane(self.cache,
+                                        self.db,
+                                        self.distro,
+                                        self.icons,
+                                        datadir)
+        self.history_pane.connect("app-list-changed", 
+                                  self.on_app_list_changed,
+                                  VIEW_PAGE_HISTORY)
+        self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
 
         # pending view
         self.pending_view = PendingView(self.icons)
@@ -389,7 +397,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
-
+            
     # helper
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """
