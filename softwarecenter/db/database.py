@@ -262,8 +262,6 @@ class StoreDatabase(gobject.GObject):
             elif channel:
                 # FIXME: print something if available for our arch
                 pass
-            else:
-                return _("Sorry, '%s' is not available for this type of computer (%s).") % (pkgname, get_current_arch())
         return summary
 
     def get_pkgname(self, doc):

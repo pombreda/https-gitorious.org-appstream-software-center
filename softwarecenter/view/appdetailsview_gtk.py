@@ -319,9 +319,12 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_("Use This Source"))
             # check if it comes from a non-enabled component
             elif self.app_details._unavailable_component():
-                # FIXME: use a proper message here, but we are in string freeze
                 self.set_button_label(_("Use This Source"))
-            elif self.app_details._available_for_our_arch():
+            else:
+                # FIXME: This will currently not be displayed,
+                #        because we don't differenciate between
+                #        components that are not enabled or that just
+                #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
@@ -1412,6 +1415,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_all(self, app_details):
+        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
+
         appname = gobject.markup_escape_text(app_details.display_name)
 
         if app_details.pkg_state == PKG_STATE_NOT_FOUND:
@@ -1420,8 +1425,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             summary = app_details.display_summary
         if not summary:
             summary = ""
-
-        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
@@ -1442,8 +1445,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
+        appname = gobject.markup_escape_text(app_details.display_name)
+
+        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
+            summary = app_details._error_not_found
+        else:
+            summary = app_details.display_summary
+        if not summary:
+            summary = ""
+
+        self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
         self._update_layout_error_status(pkg_ambiguous_error)
+        if not self.app_desc.description.order:
+            self._update_app_description(app_details, appname)
+            self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
 

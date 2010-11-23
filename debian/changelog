@@ -20,9 +20,28 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - add "lint" target that runs pocketlint
 
   [ Kiwinote ]
+  * softwarecenter/app.py:
+    - don't delete about dialog upon closing the window (LP: #658678)
+  * softwarecenter/db/application.py:
+    - icon should return '?' icon if pkg is not found
+    - fix logic in determining when the source is available, ie don't show
+      'use this source' if source is already enabled
   * softwarecenter/db/update.py:
     - don't index desktop files not available for our arch (LP: #629434)
       (most visible example in partners channel on maverick amd64)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - pkg_state must be queried before querying the title in order to get the
+      correct 'not found' title
+    - _update_minimal must update title in order to enable source based on
+      app-install-data info, but then realise that the pkg isn't available
+      due to outdated app-install-data info (4pkgs for maverick final)
+    - _update_minimal must update description when we have just enabled a
+      source instead of continuing to display an empty description
+  * softwarecenter/view/catview_gtk.py:
+    - don't append the recommended category to self.departments - this causes
+      the recommended category button to be displayed on maximising window
+  * clean up some 'is it available for our architecture' code that is not
+    needed anymore (idealy we don't need the info in the db either)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Nov 2010 09:14:40 +0100
 
