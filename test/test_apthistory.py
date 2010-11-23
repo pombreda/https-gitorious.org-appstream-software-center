@@ -18,6 +18,13 @@ from softwarecenter.utils import ExecutionTime
 
 class testAptHistory(unittest.TestCase):
 
+    def _get_apt_history(self):
+        history = AptHistory()
+        main_loop = glib.main_context_default()
+        while main_loop.pending():
+           main_loop.iteration()
+        return history
+
     def setUp(self):
         rundir = os.path.abspath(os.path.dirname(sys.argv[0]))
         self.basedir = os.path.join(rundir, "./data/apt-history")
@@ -25,7 +32,7 @@ class testAptHistory(unittest.TestCase):
         #apt_pkg.Config.set("Dir::Log::History", "./)
 
     def test_history(self):
-        history = AptHistory()
+        history = self._get_apt_history()
         self.assertEqual(history.transactions[0].start_date,
                          datetime.datetime.strptime("2010-06-09 14:50:00",
                                                     "%Y-%m-%d  %H:%M:%S"))
@@ -35,7 +42,7 @@ class testAptHistory(unittest.TestCase):
 
 
     def test_apthistory_upgrade(self):
-        history = AptHistory()
+        history = self._get_apt_history()
         self.assertEqual(history.transactions[1].upgrade,
                          ['acl (2.2.49-2, 2.2.49-3)'])
 
@@ -53,7 +60,7 @@ class testAptHistory(unittest.TestCase):
             os.remove(new_history+".gz")
         except OSError: 
             pass
-        history = AptHistory()
+        history = self._get_apt_history()
         self.assertEqual(len(history.transactions), 186)
         s = open(os.path.join(self.basedir,"history.log")).read()
         f = open(new_history,"w")
@@ -79,7 +86,7 @@ class testAptHistory(unittest.TestCase):
         # set to dir with no existing history.log
         apt_pkg.Config.set("Dir::Log", "/")
         # this should not raise
-        history = AptHistory()
+        history = self._get_apt_history()
         self.assertEqual(history.transactions, [])
         apt_pkg.Config.set("Dir::Log", self.basedir)
 
