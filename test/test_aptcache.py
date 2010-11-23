@@ -23,6 +23,9 @@ class testAptCache(unittest.TestCase):
         rundir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
     def test_open_aptcache(self):
+        # mvo: for the performance, its critical to have a 
+        #      /var/cache/apt/srcpkgcache.bin - otherwise stuff will get slow
+
         # open s-c aptcache
         with ExecutionTime("s-c softwarecenter.apt.AptCache"):
             self.sccache = AptCache()
@@ -33,6 +36,8 @@ class testAptCache(unittest.TestCase):
         # compare with plain apt
         with ExecutionTime("plain apt: apt.Cache()"):
             self.cache = apt.Cache()
+        with ExecutionTime("plain apt: apt.Cache(memonly=True)"):
+            self.cache = apt.Cache(memonly=True)
 
 
 if __name__ == "__main__":
