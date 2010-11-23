@@ -101,10 +101,11 @@ class AptCache(gobject.GObject):
     def open(self):
         self._ready = False
         self.emit("cache-invalid")
-        if self._cache == None:
-            self._cache = apt.Cache(GtkMainIterationProgress())
-        else:
-            self._cache.open(GtkMainIterationProgress())
+        with ExecutionTime("open the apt cache (in event loop)"):
+            if self._cache == None:
+                self._cache = apt.Cache(GtkMainIterationProgress())
+            else:
+                self._cache.open(GtkMainIterationProgress())
         # installed_count stats
         with ExecutionTime("installed_count stats"):
             self.installed_count = 0

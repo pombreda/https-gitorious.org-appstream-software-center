@@ -319,10 +319,12 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_("Use This Source"))
             # check if it comes from a non-enabled component
             elif self.app_details._unavailable_component():
-                # FIXME: use a proper message here, but we are in string freeze
                 self.set_button_label(_("Use This Source"))
             else:
-                # QUESTION: is this situation even possible?
+                # FIXME: This will currently not be displayed,
+                #        because we don't differenciate between
+                #        components that are not enabled or that just
+                #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
@@ -1021,8 +1023,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     }
 
 
-    def __init__(self, db, distro, icons, cache, history, datadir):
-        AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
+    def __init__(self, db, distro, icons, cache, datadir):
+        AppDetailsViewBase.__init__(self, db, distro, icons, cache, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
         self.adjustment_value = None
@@ -1899,12 +1901,9 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
-    from softwarecenter.apt.apthistory import get_apt_history
-    history = get_apt_history()
-
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsViewGtk(db, distro, icons, cache, history, datadir)
+    view = AppDetailsViewGtk(db, distro, icons, cache, datadir)
     from softwarecenter.db.application import Application
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))

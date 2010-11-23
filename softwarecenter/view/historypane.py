@@ -34,6 +34,7 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.view.widgets.searchentry import SearchEntry
+from softwarecenter.view.widgets.spinner import SpinnerView
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.view.basepane import BasePane
@@ -54,8 +55,12 @@ class HistoryPane(gtk.VBox, BasePane):
 
     ICON_SIZE = 24
     PADDING = 6
+    
+    # pages for the spinner notebook
+    (PAGE_HISTORY_VIEW,
+     PAGE_SPINNER) = range(2)
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         gtk.VBox.__init__(self)
         self.cache = cache
         self.db = db
@@ -113,15 +118,27 @@ class HistoryPane(gtk.VBox, BasePane):
         removals_action.set_group(all_action)
         removals_button = removals_action.create_tool_item()
         self.toolbar.insert(removals_button, 3)
+        
+        self._actions_list = all_action.get_group()
+        self._set_actions_sensitive(False)
 
         self.view = gtk.TreeView()
         self.view.show()
-        self.scrolled_view = gtk.ScrolledWindow()
-        self.scrolled_view.set_policy(gtk.POLICY_AUTOMATIC,
+        self.history_view = gtk.ScrolledWindow()
+        self.history_view.set_policy(gtk.POLICY_AUTOMATIC,
                                       gtk.POLICY_AUTOMATIC)
-        self.scrolled_view.show()
-        self.scrolled_view.add(self.view)
-        self.pack_start(self.scrolled_view)
+        self.history_view.show()
+        self.history_view.add(self.view)
+        
+        # make a spinner to display while history is loading
+        self.spinner_view = SpinnerView(_('Loading history'))
+        self.spinner_notebook = gtk.Notebook()
+        self.spinner_notebook.set_show_tabs(False)
+        self.spinner_notebook.set_show_border(False)
+        self.spinner_notebook.append_page(self.history_view)
+        self.spinner_notebook.append_page(self.spinner_view)
+        
+        self.pack_start(self.spinner_notebook)
 
         self.store = gtk.TreeStore(*self.COL_TYPES)
         self.visible_changes = 0
@@ -132,10 +149,9 @@ class HistoryPane(gtk.VBox, BasePane):
         self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
         
-        self.history = history
-        self.parse_history()
-        self.history.set_on_update(self.parse_history)
-        
+        # to save (a lot of) time at startup we load history later, only when
+        # it is selected to be viewed
+        self.history = None
 
         self.column = gtk.TreeViewColumn(_('Date'))
         self.view.append_column(self.column)
@@ -145,6 +161,26 @@ class HistoryPane(gtk.VBox, BasePane):
         self.cell_text = gtk.CellRendererText()
         self.column.pack_start(self.cell_text)
         self.column.set_cell_data_func(self.cell_text, self.render_cell_text)
+        
+        # busy cursor
+        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        
+    def init_view(self):
+        if self.history == None:
+            # if the history is not yet initialized we have to load and parse it
+            # show a spinner while we do that
+            self.window.set_cursor(self.busy_cursor)
+            self.spinner_view.start()
+            self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
+            self.load_and_parse_history()
+            self.spinner_notebook.set_current_page(self.PAGE_HISTORY_VIEW)
+            self.spinner_view.stop()
+            self._set_actions_sensitive(True)
+            self.window.set_cursor(None)
+            
+    def _set_actions_sensitive(self, sensitive):
+        for action in self._actions_list:
+            action.set_sensitive(sensitive)
 
     def _reset_icon_cache(self, theme=None):
         self._app_icon_cache.clear()
@@ -153,6 +189,16 @@ class HistoryPane(gtk.VBox, BasePane):
         except glib.GError:
             missing = None
         self._app_icon_cache[MISSING_APP_ICON] = missing
+        
+    def load_and_parse_history(self):
+        from softwarecenter.apt.apthistory import get_apt_history
+        self.history = get_apt_history()
+        # FIXME: a signal from AptHistory is nicer
+        while not self.history.history_ready:
+            while gtk.events_pending():
+                gtk.main_iteration()
+        self.parse_history()
+        self.history.set_on_update(self.parse_history)
 
     def parse_history(self):
         date = None
@@ -166,6 +212,8 @@ class HistoryPane(gtk.VBox, BasePane):
             return
         new_last = self.history.transactions[0].start_date
         for trans in self.history.transactions:
+            while gtk.events_pending():
+                gtk.main_iteration()
             when = trans.start_date
             if self.last is not None and when <= self.last:
                 break
@@ -298,6 +346,7 @@ if __name__ == '__main__':
     window.set_size_request(600, 500)
     window.set_position(gtk.WIN_POS_CENTER)
     window.show_all()
+    widget.init_view()
     window.connect('destroy', gtk.main_quit)
 
     gtk.main()

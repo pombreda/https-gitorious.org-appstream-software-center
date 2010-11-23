@@ -85,7 +85,15 @@ class testAppStore(unittest.TestCase):
         enquire = xapian.Enquire(db)
         enquire.set_query(query)
         valueno = self.db._axi_values["catalogedtime"]
-        enquire.set_sort_by_value(int(valueno), reverse=True)
+        
+        # FIXME: use MultiValueKeyMaker instead once we have python
+        #        bindings, sort by newness first and then by pkgname
+        sorter = xapian.MultiValueSorter()
+        # second arg is forward-sort
+        sorter.add(int(valueno), True)
+        sorter.add(XAPIAN_VALUE_PKGNAME)
+        enquire.set_sort_by_key(sorter)
+
         matches = enquire.get_mset(0, 20)
         for m in matches:
             doc = db.get_document(m.docid)
