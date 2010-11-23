@@ -1,4 +1,4 @@
-software-center (3.1.2) UNRELEASED; urgency=low
+software-center (3.1.2) natty; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~kiwinote/software-center/getting-the-small-things-right,
@@ -24,6 +24,8 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - update test for lazy loading
   * softwarecenter/view/historypane.py:
     - ensure the lazy loaded history is ready before displaying it
+  * test/Makefile, .bzr-builddeb/default.conf:
+    - add clean target and run it on bzr-buildpackage
 
   [ Kiwinote ]
   * softwarecenter/app.py:
@@ -69,7 +71,7 @@ software-center (3.1.2) UNRELEASED; urgency=low
     - display a spinner and set all buttons insensitive
       while the history is loaded and parsed
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Nov 2010 09:14:40 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Nov 2010 14:29:13 +0100
 
 software-center (3.1.1) natty; urgency=low
 
