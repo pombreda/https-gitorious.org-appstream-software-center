@@ -55,7 +55,7 @@ class HistoryPane(gtk.VBox, BasePane):
     ICON_SIZE = 24
     PADDING = 6
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         gtk.VBox.__init__(self)
         self.cache = cache
         self.db = db
@@ -131,9 +131,13 @@ class HistoryPane(gtk.VBox, BasePane):
         all_action.set_active(True)
         self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
-        
-        self.history = history
-        self.parse_history()
+
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime('load history for view/historypane.py:'):
+            from softwarecenter.apt.apthistory import get_apt_history
+            self.history = get_apt_history()
+        with ExecutionTime('parse_history for view/historypane.py:'):
+            self.parse_history()
         self.history.set_on_update(self.parse_history)
         
 
