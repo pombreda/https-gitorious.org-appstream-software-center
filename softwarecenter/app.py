@@ -169,18 +169,18 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.icons.append_search_path(os.path.join(datadir,"emblems"))
         # HACK: make it more friendly for local installs (for mpt)
         self.icons.append_search_path(datadir+"/icons/32x32/status")
-        with ExecutionTime('Add humanity icon theme to iconpath from SoftwareCenterApp'):
-        # add the humanity icon theme to the iconpath, as not all icon themes contain all the icons we need
+        # add the humanity icon theme to the iconpath, as not all icon 
+        # themes contain all the icons we need
         # this *shouldn't* lead to any performance regressions
-            path = '/usr/share/icons/Humanity'
-            if os.path.exists(path):
-                for subpath in os.listdir(path):
-                    subpath = os.path.join(path, subpath)
-                    if os.path.isdir(subpath):
-                        for subsubpath in os.listdir(subpath):
-                            subsubpath = os.path.join(subpath, subsubpath)
-                            if os.path.isdir(subsubpath):
-                                self.icons.append_search_path(subsubpath)
+        path = '/usr/share/icons/Humanity'
+        if os.path.exists(path):
+            for subpath in os.listdir(path):
+                subpath = os.path.join(path, subpath)
+                if os.path.isdir(subpath):
+                    for subsubpath in os.listdir(subpath):
+                        subsubpath = os.path.join(subpath, subsubpath)
+                        if os.path.isdir(subsubpath):
+                            self.icons.append_search_path(subsubpath)
         gtk.window_set_default_icon_name("softwarecenter")
 
         # misc state

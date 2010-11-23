@@ -40,6 +40,7 @@ import time
 import sys
 
 from softwarecenter.enums import *
+from softwarecenter.utils import ExecutionTime
 from softwarecenter.version import *
 
 import softwarecenter.log 
@@ -101,7 +102,8 @@ if __name__ == "__main__":
     
     # create the app
     from softwarecenter.app import SoftwareCenterApp
-    app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
+    with ExecutionTime("create SoftwareCenterApp"):
+        app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
 
     # DEBUG/PROFILE mode 
     if options.measure_startup_time:
