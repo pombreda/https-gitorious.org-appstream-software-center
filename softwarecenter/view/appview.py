@@ -433,6 +433,8 @@ class AppStore(gtk.GenericTreeModel):
         pkgname = self.db.get_pkgname(doc)
         popcon = self.db.get_popcon(doc)
         app = Application(appname, pkgname, "", popcon)
+        # FIXME: do not actually load the xapian document if we don'
+        #        need the full data
         try:
             doc = self.db.get_xapian_document(app.appname, app.pkgname)
         except IndexError:
@@ -1143,6 +1145,11 @@ class AppView(gtk.TreeView):
             self._logger.warn("ubuntu-almost-fixed-height-mode extension not available")
 
         self.set_headers_visible(False)
+
+        # disable search that works by typing, it will be super slow
+        # the way that its done by gtk and we have much faster searching
+        self.set_enable_search(False)
+        #self.set_search_column(AppStore.COL_PKGNAME)
 
         # a11y: this is a cell renderer that only displays a icon, but still
         #       has a markup property for orca and friends
