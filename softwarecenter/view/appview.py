@@ -154,7 +154,6 @@ class AppStore(gtk.GenericTreeModel):
         # These track if technical (non-applications) are being displayed
         # and if the user explicitly requested they be.
         self.nonapps_visible = nonapps_visible
-        self.nonapp_pkgs = 0
         self._explicit_nonapp_visibility = False
         # new goodness
         self.nr_pkgs = 0
@@ -281,46 +280,6 @@ class AppStore(gtk.GenericTreeModel):
     def _clear_app_icon_cache(self, theme):
         self.icon_cache.clear()
 
-    # internal API
-    def _append_app(self, app):
-        """ append a application to the current store, keep 
-            index maps up-to-date
-        """
-        self.apps.append(app)
-        i = len(self.apps) - 1
-        self.app_index_map[app] = i
-        if not app.pkgname in self.pkgname_index_map:
-            self.pkgname_index_map[app.pkgname] = []
-        self.pkgname_index_map[app.pkgname].append(i)
-        self.row_inserted(i, self.get_iter(i))
-
-    def _insert_app_sorted(self, app):
-        """ insert a application into a already sorted store
-            at the right place
-        """
-        #print "adding: ", app
-        l = 0
-        r = len(self.apps) - 1
-        while r >= l:
-            m = (r+l) / 2
-            #print "it: ", l, r, m
-            if app < self.apps[m]:
-                r = m - 1
-            else:
-                l = m + 1
-        # we have a element 
-        #print "found at ", l, r, m
-        self._insert_app(app, l)
-
-    def _insert_app(self, app, i):
-        """ insert application at the given position and update
-            the index maps
-        """
-        #print "old: ", [x.pkgname for x in self.apps]
-        self.apps.insert(i, app)
-        self.row_inserted(i, self.get_iter(i))
-        #print "new: ", [x.pkgname for x in self.apps]
-
     # external API
     def clear(self):
         """Clear the store and disconnect all callbacks to allow it to be
@@ -365,7 +324,6 @@ class AppStore(gtk.GenericTreeModel):
         self.filter = appstore.filter
         self.exact = appstore.exact
         self.nonapps_visible = appstore.nonapps_visible
-        self.nonapp_pkgs = appstore.nonapp_pkgs
         self._existing_apps = appstore._existing_apps
         self._installable_apps = appstore._installable_apps
 
