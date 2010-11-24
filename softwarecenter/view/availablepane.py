@@ -47,8 +47,6 @@ class AvailablePane(SoftwarePane):
        It contains a search entry and navigation buttons
     """
 
-    DEFAULT_SEARCH_APPS_LIMIT = 200
-
     (PAGE_CATEGORY,
      PAGE_SUBCATEGORY,
      PAGE_APPLIST,
@@ -456,7 +454,7 @@ class AvailablePane(SoftwarePane):
 
     def _get_item_limit(self):
         if self.apps_search_term:
-            return self.DEFAULT_SEARCH_APPS_LIMIT
+            return DEFAULT_SEARCH_LIMIT
         elif self.apps_category and self.apps_category.item_limit > 0:
             return self.apps_category.item_limit
         return 0
@@ -542,7 +540,7 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
         else:
             self.apps_search_term = new_text
-            self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
+            self.apps_limit = DEFAULT_SEARCH_LIMIT
             # enter custom list mode if search has non-trailing
             # comma per custom list spec.
             self.custom_list_mode = "," in new_text.rstrip(',')

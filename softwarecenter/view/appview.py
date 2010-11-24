@@ -93,9 +93,6 @@ class AppStore(gtk.GenericTreeModel):
     ICON_SIZE = 24
     MAX_STARS = 5
 
-    # the default result size for a search
-    DEFAULT_SEARCH_LIMIT = 200
-
     (NONAPPS_ALWAYS_VISIBLE,
      NONAPPS_MAYBE_VISIBLE,
      NONAPPS_NEVER_VISIBLE) = range (3)
