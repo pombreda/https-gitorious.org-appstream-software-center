@@ -334,14 +334,14 @@ class SoftwarePane(gtk.VBox, BasePane):
             if appstore.nonapps_visible == AppStore.NONAPPS_ALWAYS_VISIBLE:
                 # TRANSLATORS: the text inbetween the underscores acts as a link
                 # In most/all languages you will want the whole string as a link
-                label = gettext.ngettext("_Hide %i technical item_",
-                                         "_Hide %i technical items_",
-                                         pkgs) % pkgs
+                label = gettext.ngettext("_Hide %(amount)i technical item_",
+                                         "_Hide %(amount)i technical items_",
+                                         pkgs) % { 'amount': pkgs, }
                 self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
             else:
-                label = gettext.ngettext("_Show %i technical item_",
-                                         "_Show %i technical items_",
-                                         pkgs) % pkgs
+                label = gettext.ngettext("_Show %(amount)i technical item_",
+                                         "_Show %(amount)i technical items_",
+                                         pkgs) % { 'amount': pkgs, }
                 self.action_bar.set_label(label, self._show_nonapp_pkgs)
             
     def _show_nonapp_pkgs(self):
