@@ -80,6 +80,26 @@ class testXapian(unittest.TestCase):
         #for match in eset_matches:
         #    print match.document.get_data()
 
+    def test_spelling_correction(self):
+        """ test automatic suggestions for spelling corrections """
+        parser = xapian.QueryParser()
+        parser.set_database(self.xapiandb)
+        # mispelled search term
+        search_term = "corect"
+        query = parser.parse_query(
+            search_term, xapian.QueryParser.FLAG_SPELLING_CORRECTION)
+        self.enquire.set_query(query)
+        matches = self.enquire.get_mset(0, 100)
+        self.assertEqual(len(matches), 0)
+        corrected_query_string = parser.get_corrected_query_string()
+        self.assertEqual(corrected_query_string, "correct")
+        # set the corrected one
+        query = parser.parse_query(corrected_query_string)
+        self.enquire.set_query(query)
+        matches = self.enquire.get_mset(0, 100)
+        #print len(matches)
+        self.assertTrue(len(matches) > 0)
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)

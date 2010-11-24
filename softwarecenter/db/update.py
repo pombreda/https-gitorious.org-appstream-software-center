@@ -409,6 +409,8 @@ def update_from_software_center_agent(db, cache, ignore_etag=False):
         
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
+        term_generator.set_database(db)
+        term_generator.set_flags(xapian.TermGenerator.FLAG_SPELLING)
         doc = xapian.Document()
         term_generator.set_document(doc)
         # app name is the data
