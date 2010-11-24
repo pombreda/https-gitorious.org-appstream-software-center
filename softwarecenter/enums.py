@@ -26,7 +26,7 @@ BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "ht
 
 # version of the database, every time something gets added (like 
 # terms for mime-type) increase this (but keep as a string!)
-DB_SCHEMA_VERSION = "1"
+DB_SCHEMA_VERSION = "2"
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"

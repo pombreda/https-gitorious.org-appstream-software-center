@@ -3,6 +3,14 @@ software-center (3.1.3) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * daily-build.recipe:
     - add daily build recipe
+  * test/test_xapian.py:
+    - add lowlevel test for "find more similar apps" DB query
+  * softwarecenter/db/update.py:
+    - generate spell checking data
+  * softwarecenter/enums.py:
+    - increase DB version (because we now have spell checking in the DB)
+  * test/test_xapian.py:
+    - add lowlevel test for spell checking feature
 
   [ Kiwinote ]
   * apt-xapian-index-plugin/origin.py (tmp location),
