@@ -54,7 +54,6 @@ from gettext import gettext as _
 # cache icons to speed up rendering
 _app_icon_cache = {}
 
-
 class AppStore(gtk.GenericTreeModel):
     """
     A subclass GenericTreeModel that reads its data from a xapian
@@ -189,8 +188,7 @@ class AppStore(gtk.GenericTreeModel):
             if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
                 enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                  q, xapian.Query("ATapplication")))
-
-                matches = enquire.get_mset(0, len(self.db))
+                matches = enquire.get_mset(0, len(self.db), None, self.filter)
                 # FIXME: estimates aren't really good enough..
                 self.nonapp_pkgs = matches.get_matches_estimated()
                 q = xapian.Query(xapian.Query.OP_AND, 
@@ -217,9 +215,9 @@ class AppStore(gtk.GenericTreeModel):
                     
             # set limit
             if self.limit == 0:
-                matches = enquire.get_mset(0, len(self.db))
+                matches = enquire.get_mset(0, len(self.db), None, self.filter)
             else:
-                matches = enquire.get_mset(0, self.limit)
+                matches = enquire.get_mset(0, self.limit, None, self.filter)
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
 
             self.matches = matches
@@ -235,8 +233,6 @@ class AppStore(gtk.GenericTreeModel):
                     print "\n"
                 appname = doc.get_value(XAPIAN_VALUE_APPNAME)
                 pkgname = self.db.get_pkgname(doc)
-                if self.filter and self.is_filtered_out(self.filter, doc):
-                    continue
                 # when doing multiple queries we need to ensure
                 # we don't add duplicates
                 popcon = self.db.get_popcon(doc)
@@ -416,10 +412,6 @@ class AppStore(gtk.GenericTreeModel):
     existing_apps = property(_get_existing_apps)
     installable_apps = property(_get_installable_apps)
 
-    def is_filtered_out(self, filter, doc):
-        """ apply filter and return True if the package is filtered out """
-        pkgname = self.db.get_pkgname(doc)
-        return not filter.filter(doc, pkgname)
     # internal helper
     def _set_active_app(self, path):
         """ helper that emits row_changed signals for the new
@@ -1611,14 +1603,14 @@ class AppView(gtk.TreeView):
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
 
 
-# XXX should we use a xapian.MatchDecider instead?
-class AppViewFilter(object):
+class AppViewFilter(xapian.MatchDecider):
     """
-    Filter that can be hooked into AppStore to filter for criteria that
+    Filter that can be hooked into xapian get_mset to filter for criteria that
     are based around the package details that are not listed in xapian
     (like installed_only) or archive section
     """
     def __init__(self, db, cache):
+        xapian.MatchDecider.__init__(self)
         self.distro = get_distro()
         self.db = db
         self.cache = cache
@@ -1644,9 +1636,11 @@ class AppViewFilter(object):
         self.only_packages_without_applications = v
     def get_only_packages_without_applications(self, v):
         return self.only_packages_without_applications
-    def filter(self, doc, pkgname):
+    def __call__(self, doc):
         """return True if the package should be displayed"""
-        #self._logger.debug("filter: supported_only: %s installed_only: %s '%s'" % (
+        pkgname =  doc.get_value(XAPIAN_VALUE_PKGNAME) or doc.get_data()
+        #logging.debug(
+        #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
         if self.only_packages_without_applications:
             if not doc.get_value(XAPIAN_VALUE_PKGNAME):
@@ -1668,25 +1662,27 @@ class AppViewFilter(object):
         return True
 
 def get_query_from_search_entry(search_term):
-    # now build a query
+    if not search_term:
+        return xapian.Query("")
     parser = xapian.QueryParser()
     user_query = parser.parse_query(search_term)
-    # ensure that we only search for applicatins here, even
-    # when a-x-i is loaded
-    app_query =  xapian.Query("ATapplication")
-    query = xapian.Query(xapian.Query.OP_AND, app_query, user_query)
-    return query
+    return user_query
 
 def on_entry_changed(widget, data):
     new_text = widget.get_text()
     #if len(new_text) < 3:
     #    return
-    (cache, db, view) = data
+    (cache, db, view, filter) = data
     query = get_query_from_search_entry(new_text)
-    view.set_model(AppStore(cache, db, icons, query))
+    view.set_model(_get_model_from_query(filter, query))
     with ExecutionTime("model settle"):
         while gtk.events_pending():
             gtk.main_iteration()
+
+def _get_model_from_query(filter, query):
+    return AppStore(cache, db, icons, query,
+                    filter=filter, limit=0,
+                    nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -1697,6 +1693,8 @@ if __name__ == "__main__":
     # the store
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
+    cache.open()
+
     db = StoreDatabase(pathname, cache)
     db.open()
 
@@ -1705,19 +1703,18 @@ if __name__ == "__main__":
     icons.prepend_search_path("/usr/share/app-install/icons/")
     icons.prepend_search_path("/usr/share/software-center/icons/")
 
-    # now the store
+    # create a filter
     filter = AppViewFilter(db, cache)
     filter.set_supported_only(False)
-    filter.set_installed_only(False)
-    store = AppStore(cache, db, icons, filter=filter)
+    filter.set_installed_only(True)
 
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppView(store)
+    view = AppView(_get_model_from_query(filter, xapian.Query("")))
 
     entry = gtk.Entry()
-    entry.connect("changed", on_entry_changed, (cache, db, view))
-    entry.set_text("f")
+    entry.connect("changed", on_entry_changed, (cache, db, view, filter))
+    entry.set_text("a")
 
     box = gtk.VBox()
     box.pack_start(entry, expand=False)
