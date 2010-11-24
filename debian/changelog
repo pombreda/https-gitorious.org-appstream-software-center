@@ -1,7 +1,16 @@
 software-center (3.1.3) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * daily-build.recipe:
     - add daily build recipe
+
+  [ Kiwinote ]
+  * apt-xapian-index-plugin/origin.py (tmp location),
+    softwarecenter/db/database.py,
+    softwarecenter/db/update.py:
+    - make search queries containing '-' work (LP: #497708)
+  * po/POTFILES.in:
+    mark softwarecenter/view/softwarepane.py for translation (LP: #659955)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Nov 2010 15:02:23 +0100
 
