@@ -404,9 +404,9 @@ class AvailablePane(SoftwarePane):
             self.apps_search_term):
             appstore = self.app_view.get_model()
             installable = appstore.installable_apps
-            button_text = gettext.ngettext("Install %s Item",
-                                           "Install %s Items",
-                                           len(installable)) % len(installable)
+            button_text = gettext.ngettext("Install %(amount)s Item",
+                                           "Install %(amount)s Items",
+                                            len(installable)) % { 'amount': len(installable), }
             button = self.action_bar.get_button(self._INSTALL_BTN_ID)
             if button and installable:
                 # Install all already offered. Update offer.
