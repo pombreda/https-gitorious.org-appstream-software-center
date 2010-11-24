@@ -195,21 +195,22 @@ class AppStore(gtk.GenericTreeModel):
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
 
-            # WARNING - this is slow.. - come up with something ingenious
+            # is it slow? takes 0.03s on my (fast) system
             # perhaps we can get rid of show/hide alltogether?
             # if we need to keep it - then put this counting stuff into a 
             # thread
 
             # little side case not working - rest works quite precisely
-
-            enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
-                             q, xapian.Query("XD")))
-            tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
-            self.nr_apps = tmp_matches.get_matches_estimated()
-
-            enquire.set_query(q)
-            tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
-            self.nr_pkgs = tmp_matches.get_matches_estimated() - 2*self.nr_apps
+            with ExecutionTime("calculate nr_apps and nr_pkgs: "):
+                # filter out docs of pkgs of which there exists a doc of the app
+                enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+                                               q, xapian.Query("XD")))
+                tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
+                self.nr_apps = tmp_matches.get_matches_estimated()
+                
+                enquire.set_query(q)
+                tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
+                self.nr_pkgs = tmp_matches.get_matches_estimated() - 2*self.nr_apps
 
             # only show apps by default
             if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
@@ -220,6 +221,7 @@ class AppStore(gtk.GenericTreeModel):
             self._logger.debug("nearly completely filtered query: '%s'" % q)
 
             # filter out docs of pkgs of which there exists a doc of the app
+            # FIXME: make this configurable again?
             enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                            q, xapian.Query("XD")))
 
@@ -1566,13 +1568,9 @@ class AppViewFilter(xapian.MatchDecider):
         self.supported_only = False
         self.installed_only = False
         self.not_installed_only = False
-        # FIXME: can this go? should this go?
-        self.only_packages_without_applications = False
     @property
     def required(self):
         """ True if the filter is in a state that it should be part of a query """
-        # FIXME: self.only_packages_without_applications is on most of the
-        #        time and its *expensive* (0.1s vs 1.0s for System on my box)
         return (self.supported_only or
                 self.installed_only or 
                 self.installed_only)
@@ -1584,16 +1582,6 @@ class AppViewFilter(xapian.MatchDecider):
         self.not_installed_only = v
     def get_supported_only(self):
         return self.supported_only
-    def set_only_packages_without_applications(self, v):
-        """
-        only show packages that are not displayed as applications
-
-        e.g. abiword (the package document) will not be displayed
-             because there is a abiword application already
-        """
-        self.only_packages_without_applications = v
-    def get_only_packages_without_applications(self, v):
-        return self.only_packages_without_applications
     def __call__(self, doc):
         """return True if the package should be displayed"""
         # FIXME: doc.get_data() is potentially expensive
@@ -1601,12 +1589,6 @@ class AppViewFilter(xapian.MatchDecider):
         #logging.debug(
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
-        if self.only_packages_without_applications:
-            if not doc.get_value(XAPIAN_VALUE_PKGNAME):
-                # "if not self.db.xapiandb.postlist("AP"+pkgname):"
-                # does not work for some reason
-                for m in self.db.xapiandb.postlist("AP"+pkgname):
-                    return False
         if self.installed_only:
             if (not pkgname in self.cache or
                 not self.cache[pkgname].is_installed):
