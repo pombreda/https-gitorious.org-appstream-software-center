@@ -179,6 +179,17 @@ class AppStore(gtk.GenericTreeModel):
                 q.get_description() for q in search_query])):
             self._perform_search()
 
+    def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
+        # filter out docs of pkgs of which there exists a doc of the app
+        enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+                                       q, xapian.Query("XD")))
+        tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
+        nr_apps = tmp_matches.get_matches_estimated()
+        enquire.set_query(q)
+        tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
+        nr_pkgs = tmp_matches.get_matches_estimated() - 2*nr_apps
+        return (nr_apps, nr_pkgs)
+
     def _perform_search(self):
         # performance only: this is only needed to avoid the 
         # python __call__ overhead for each item if we can avoid it
@@ -186,7 +197,6 @@ class AppStore(gtk.GenericTreeModel):
             xfilter = self.filter
         else:
             xfilter = None
-
         # go over the querries
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
@@ -199,15 +209,7 @@ class AppStore(gtk.GenericTreeModel):
 
             # little side case not working - rest works quite precisely
             with ExecutionTime("calculate nr_apps and nr_pkgs: "):
-                # filter out docs of pkgs of which there exists a doc of the app
-                enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
-                                               q, xapian.Query("XD")))
-                tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
-                self.nr_apps = tmp_matches.get_matches_estimated()
-                
-                enquire.set_query(q)
-                tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
-                self.nr_pkgs = tmp_matches.get_matches_estimated() - 2*self.nr_apps
+                self.nr_apps, self.nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(enquire, q, xfilter)
 
             # only show apps by default
             if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
