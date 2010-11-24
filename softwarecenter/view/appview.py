@@ -101,7 +101,8 @@ class AppStore(gtk.GenericTreeModel):
                  limit=DEFAULT_SEARCH_LIMIT,
                  sortmode=SORT_UNSORTED, filter=None, exact=False,
                  icon_size=ICON_SIZE, global_icon_cache=True, 
-                 nonapps_visible=NONAPPS_MAYBE_VISIBLE):
+                 nonapps_visible=NONAPPS_MAYBE_VISIBLE,
+                 nonblocking_load=True):
         """
         Initalize a AppStore.
 
@@ -135,6 +136,7 @@ class AppStore(gtk.GenericTreeModel):
             self.icon_cache = _app_icon_cache
         else:
             self.icon_cache = {}
+        self.nonblocking_load = nonblocking_load
 
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", self._clear_app_icon_cache)
@@ -175,17 +177,21 @@ class AppStore(gtk.GenericTreeModel):
         if isinstance(search_query, xapian.Query):
             search_query = [search_query]
         self.search_query = search_query
+        
 #        with ExecutionTime("populate model from query: '%s'" % " ; ".join([
 #                q.get_description() for q in search_query])):
 #            self._perform_search()
-        self._search_complete = False
-        t = threading.Thread(target=self._perform_search)
-        t.start()
-        # don't block the UI while the thread is running
-        while not self._search_complete:
-            time.sleep(0.1)
-            while gtk.events_pending():
-                gtk.main_iteration()
+        if self.nonblocking_load:
+            self._perform_search_complete = False
+            t = threading.Thread(target=self._perform_search)
+            t.start()
+            # don't block the UI while the thread is running
+            while not self._perform_search_complete:
+                time.sleep(0.1)
+                while gtk.events_pending():
+                    gtk.main_iteration()
+        else:
+            self._perform_search()
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
@@ -274,7 +280,7 @@ class AppStore(gtk.GenericTreeModel):
             self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
             self._perform_search()
             
-        self._search_complete = True
+        self._perform_search_complete = True
 
         return
         
