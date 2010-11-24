@@ -1,11 +1,9 @@
-# Add origin tags to the index
-
 import apt
-import re
-import os
+import apt_pkg
+import xapian
+import os, os.path
 
-class PkgnamePlugin:
-
+class DisplayNames:
     def info(self):
         """
         Return general information about the plugin.
@@ -24,12 +22,34 @@ class PkgnamePlugin:
         the timestamp shows that this plugin is currently not needed, then the
         long initialisation can just be skipped.
         """
-        file = apt.apt_pkg.config.find_file("Dir::Cache::pkgcache")
+        file = apt_pkg.config.find_file("Dir::Cache::pkgcache")
         if not os.path.exists(file):
             return dict(timestamp = 0)
-        return dict(timestamp = os.path.getmtime(file),
-                    values = [dict(name= "pkgname", desc="Pkgname as value"),
-                              ])
+        return dict(
+                timestamp = os.path.getmtime(file),
+                values = [
+                    dict(name = "display_name", desc = "display name"),
+                    dict(name = "pkgname", desc = "Pkgname as value"),
+                ])
+
+    def doc(self):
+        """
+        Return documentation information for this data source.
+
+        The documentation information is a dictionary with these keys:
+          name: the name for this data source
+          shortDesc: a short description
+          fullDoc: the full description as a chapter in ReST format
+        """
+        return dict(
+            name = "DisplayNames",
+            shortDesc = "pkgname and package display names indexed as values",
+            fullDoc = """
+            The DisplayNames data source indexes the display name as the
+            ``display_name`` Xapian value.
+            ``pkgname`` Xapian value.
+            """
+        )
 
     def init(self, info, progress):
         """
@@ -42,28 +62,10 @@ class PkgnamePlugin:
 
         The progress indicator can be used to report progress.
         """
+        # Read the value indexes we will use
         values = info['values']
-        self.value = values.get("pkgname", -1)
-
-    def doc(self):
-        """
-        Return documentation information for this data source.
-
-        The documentation information is a dictionary with these keys:
-          name: the name for this data source
-          shortDesc: a short description
-          fullDoc: the full description as a chapter in ReST format
-        """
-        return dict(
-            name = "Pkgname",
-            shortDesc = "Add a value with the pkgname to the DB",
-            fullDoc = """
-            Make the pkgname accessible via a "value". This is useful
-            for e.g. MatchDeciders because get_value() is quicker
-            than "get_data()" (says the docs)
-            """
-        )
-
+        self.val_display_name = values.get("display_name", -1)
+        self.val_pkgname = values.get("pkgname", -1)
 
     def index(self, document, pkg):
         """
@@ -72,7 +74,14 @@ class PkgnamePlugin:
         document  is the document to update
         pkg       is the python-apt Package object for this package
         """
-        document.add_value(self.value, pkg.name)
+        ver = pkg.candidate
+        if ver is None: 
+            return
+        if self.val_display_name != -1:
+            name = ver.summary
+            document.add_value(self.val_display_name, name)
+        if self.val_pkgname != -1:
+            document.add_value(self.val_pkgname, pkg.name)
 
     def indexDeb822(self, document, pkg):
         """
@@ -84,12 +93,10 @@ class PkgnamePlugin:
         document  is the document to update
         pkg       is the Deb822 object for this package
         """
-        # XXX
         return
-
 
 def init():
     """
     Create and return the plugin object.
     """
-    return PkgnamePlugin()
+    return DisplayNames()
