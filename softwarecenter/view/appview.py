@@ -181,7 +181,7 @@ class AppStore(gtk.GenericTreeModel):
         self._search_complete = False
         t = threading.Thread(target=self._perform_search)
         t.start()
-        # wait for download to finish or for abort
+        # don't block the UI while the thread is running
         while not self._search_complete:
             time.sleep(0.1)
             while gtk.events_pending():
@@ -201,6 +201,7 @@ class AppStore(gtk.GenericTreeModel):
     def _perform_search(self):
         # performance only: this is only needed to avoid the 
         # python __call__ overhead for each item if we can avoid it
+        print "called AppStore perform_search"
         if self.filter and self.filter.required:
             xfilter = self.filter
         else:

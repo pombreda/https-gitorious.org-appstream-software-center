@@ -53,6 +53,9 @@ class InstalledPane(SoftwarePane):
         self._build_ui()
         self.connect("app-list-changed", self._on_app_list_changed)
         
+    def init_view(self):
+        print "called InstalledPane.init_view()"
+        
     def _build_ui(self):
         self.navigation_bar.set_size_request(26, -1)
         self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
@@ -97,8 +100,6 @@ class InstalledPane(SoftwarePane):
         old_model = self.app_view.get_model()
         if old_model is not None:
             old_model.active = False
-#            while gtk.events_pending():
-#                    gtk.main_iteration()
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 

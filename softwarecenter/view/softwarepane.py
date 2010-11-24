@@ -37,6 +37,7 @@ from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
+from softwarecenter.utils import wait_for_apt_cache_ready
 
 from appview import AppView, AppStore
 
@@ -241,8 +242,6 @@ class SoftwarePane(gtk.VBox, BasePane):
             
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
-        print "--"
-        print "called show_appview_spinner"
         self.action_bar.clear()
         self.spinner_view.stop()
         self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
@@ -251,12 +250,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         gobject.timeout_add(100, self._unmask_appview_spinner)
         
     def _unmask_appview_spinner(self):
-        print "called unmask_appview_spinner"
         self.spinner_view.start()
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
-        print "hide_appview_spinner"
         self.spinner_view.stop()
         self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
 
