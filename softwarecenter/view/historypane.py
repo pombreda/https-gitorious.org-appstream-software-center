@@ -311,7 +311,7 @@ class HistoryPane(gtk.VBox, BasePane):
             elif action == self.REMOVED:
                 text = _('%s removed %s') % (pkg, when.time().strftime('%X'))
             elif action == self.UPGRADED:
-                text = _('%s upgraded %s') % (pkg, when.time().strftime('%X'))
+                text = _('%s updated %s') % (pkg, when.time().strftime('%X'))
         elif isinstance(when, datetime.date):
             today = datetime.date.today()
             monday = today - datetime.timedelta(days=today.weekday())
