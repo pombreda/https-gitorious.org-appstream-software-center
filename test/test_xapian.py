@@ -55,6 +55,31 @@ class testXapian(unittest.TestCase):
             pkgs.add(doc.get_value(XAPIAN_VALUE_PKGNAME))
         self.assertTrue("firefox" in pkgs)
 
+    def test_eset(self):
+        """ test finding "similar" items than the ones found before """
+        query = xapian.Query("foo")
+        self.enquire.set_query(query)
+        # this yields very few results
+        matches = self.enquire.get_mset(0, 100)
+        # create a relevance set from the query
+        rset = xapian.RSet()
+        #print "original finds: "
+        for match in matches:
+            #print match.document.get_data()
+            rset.add_document(match.docid)
+        # and use that to get a extended set
+        eset = self.enquire.get_eset(20, rset)
+        #print eset
+        # build a query from the eset
+        eset_query = xapian.Query(xapian.Query.OP_OR, [e.term for e in eset])
+        self.enquire.set_query(eset_query)
+        # ensure we have more results now than before
+        eset_matches = self.enquire.get_mset(0, 100)
+        self.assertTrue(len(matches) < len(eset_matches))
+        #print "expanded finds: "
+        #for match in eset_matches:
+        #    print match.document.get_data()
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)
