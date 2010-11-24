@@ -1608,6 +1608,7 @@ class AppViewFilter(xapian.MatchDecider):
         self.supported_only = False
         self.installed_only = False
         self.not_installed_only = False
+        # FIXME: can this go? should this go?
         self.only_packages_without_applications = False
     @property
     def required(self):
@@ -1616,10 +1617,7 @@ class AppViewFilter(xapian.MatchDecider):
         #        time and its *expensive* (0.1s vs 1.0s for System on my box)
         return (self.supported_only or
                 self.installed_only or 
-                self.installed_only or
-                # FIXME: this can probably go now that we have the
-                #        test for XD in a-x-i
-                self.only_packages_without_applications)
+                self.installed_only)
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
