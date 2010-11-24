@@ -34,6 +34,8 @@ class ViewManager(object):
         if not view_id == "view-page-separator-1":
             page_id = self.all_views[view_id]
             self.notebook_view.set_current_page(page_id)
+        active_view_widget = self.get_view_widget(view_id)
+        active_view_widget.init_view()
 
     def get_active_view(self):
         page_id = self.notebook_view.get_current_page()
@@ -41,8 +43,9 @@ class ViewManager(object):
             if page_id == v:
                 return k
 
-    def get_notebook_page_from_view_id(self, view_page):
-        return self.all_views[view_page]
-    def get_view_widget(self, view_page):
-        if not view_page == "view-page-separator-1":
-            return self.view_to_pane[view_page]
+    def get_notebook_page_from_view_id(self, view_id):
+        return self.all_views[view_id]
+        
+    def get_view_widget(self, view_id):
+        if not view_id == "view-page-separator-1":
+            return self.view_to_pane[view_id]

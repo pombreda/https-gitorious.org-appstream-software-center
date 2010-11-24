@@ -48,9 +48,9 @@ class ChannelPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir,
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir,
                               show_ratings=False)
         self.channel = None
         self.apps_filter = None

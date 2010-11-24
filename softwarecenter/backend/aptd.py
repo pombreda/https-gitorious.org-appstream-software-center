@@ -245,7 +245,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # aptsources will just enable it instead of adding a extra 
         # sources.list.d file (LP: #666956)
         d = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
-        if not os.path.exists(os.path.join(d, sources_list)):
+        if (not sources_list or
+            not os.path.exists(os.path.join(d, sources_list))):
             sources_list=""
         try:
             trans = yield self.aptd_client.update_cache(

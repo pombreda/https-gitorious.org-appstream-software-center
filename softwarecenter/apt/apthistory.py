@@ -32,11 +32,6 @@ import datetime
 
 from datetime import datetime
 
-try:
-    from debian import deb822
-except ImportError:
-    from debian_bundle import deb822
-
 LOG = logging.getLogger(__name__)
 
 def ascii_lower(key):
@@ -90,36 +85,39 @@ o    Attributes:
 class AptHistory(object):
 
     def __init__(self):
+        logging.debug("AptHistory.__init__()")
         self.main_context = glib.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
-        self.rescan()
         #Copy monitoring of history file changes from historypane.py
         self.logfile = gio.File(self.history_file)
         self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
         LOG.debug("init history")
+        # this takes a long time, run it in the idle handler
+        self.transactions = []
+        self.history_ready = False
+        glib.idle_add(self.rescan)
 
     def _mtime_cmp(self, a, b):
         return cmp(os.path.getmtime(a), os.path.getmtime(b))
 
     def rescan(self):
+        self.history_ready = False
         self.transactions = []
         for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
                                       cmp=self._mtime_cmp):
             self._scan(history_gz_file)
         self._scan(self.history_file)
+        self.history_ready = True
     
     def _scan(self, history_file, rescan = False):
         try:
-            if history_file.endswith(".gz"):
-                f = gzip.open(history_file)
-            else:
-                f = open(history_file)
-        except IOError, ioe:
+            tagfile = apt_pkg.TagFile(open(history_file))
+        except (IOError, SystemError), ioe:
             LOG.debug(ioe)
             return
-        for stanza in deb822.Deb822.iter_paragraphs(f):
+        for stanza in tagfile:
             # keep the UI alive
             while self.main_context.pending():
                 self.main_context.iteration()
@@ -189,3 +187,4 @@ def get_apt_history():
     if apt_history is None:
         apt_history = AptHistory()
     return apt_history
+
