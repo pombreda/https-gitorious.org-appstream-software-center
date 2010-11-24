@@ -24,6 +24,9 @@ import xdg.BaseDirectory
 BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
 BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "http://software-center.ubuntu.com"
 
+# version of the database, every time something gets added (like 
+# terms for mime-type) increase this (but keep as a string!)
+DB_SCHEMA_VERSION = "2"
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"

@@ -28,7 +28,8 @@ class DisplayNames:
         return dict(
                 timestamp = os.path.getmtime(file),
                 values = [
-                    dict(name = "display_name", desc = "display name")
+                    dict(name = "display_name", desc = "display name"),
+                    dict(name = "pkgname", desc = "Pkgname as value"),
                 ])
 
     def doc(self):
@@ -42,10 +43,11 @@ class DisplayNames:
         """
         return dict(
             name = "DisplayNames",
-            shortDesc = "package display names indexed as values",
+            shortDesc = "pkgname and package display names indexed as values",
             fullDoc = """
             The DisplayNames data source indexes the display name as the
             ``display_name`` Xapian value.
+            ``pkgname`` Xapian value.
             """
         )
 
@@ -63,6 +65,7 @@ class DisplayNames:
         # Read the value indexes we will use
         values = info['values']
         self.val_display_name = values.get("display_name", -1)
+        self.val_pkgname = values.get("pkgname", -1)
 
     def index(self, document, pkg):
         """
@@ -72,11 +75,13 @@ class DisplayNames:
         pkg       is the python-apt Package object for this package
         """
         ver = pkg.candidate
-        if ver is None: return
-
+        if ver is None: 
+            return
         if self.val_display_name != -1:
             name = ver.summary
-            document.add_value(self.val_display_name, name);
+            document.add_value(self.val_display_name, name)
+        if self.val_pkgname != -1:
+            document.add_value(self.val_pkgname, pkg.name)
 
     def indexDeb822(self, document, pkg):
         """

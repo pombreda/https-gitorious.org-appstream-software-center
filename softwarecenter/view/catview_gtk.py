@@ -235,7 +235,6 @@ class LobbyViewGtk(CategoriesViewGtk):
                  desktopdir, 
                  cache,
                  db,
-                 distro,
                  icons,
                  apps_filter,
                  apps_limit=0):
@@ -248,7 +247,6 @@ class LobbyViewGtk(CategoriesViewGtk):
                  apps_filter,
                  apps_limit=0)
 
-        self.distro = distro
         self.enquire = xapian.Enquire(self.db.xapiandb)
 
         # sections
@@ -350,13 +348,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.hbox.pack_start(gtk.Label("for you."), False, False)
             self.vbox.pack_start(self.hbox, False, False)
             self.vbox.reorder_child(self.hbox, 0)
-            # build fake category
-            name = gobject.markup_escape_text(_("Recommendations"))
-            rec_btn = CategoryButton(name, "category-recommendations", self.icons)
+            # build category
             rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query, sortmode=SORT_BY_SEARCH_RANKING)
-            rec_btn.connect('clicked', self._on_category_clicked, rec_cat)
-            self.departments.append(rec_btn)
-            
             linkbutton.connect('clicked', self._on_category_clicked, rec_cat)
 
             self.show_all() 
@@ -409,7 +402,6 @@ class LobbyViewGtk(CategoriesViewGtk):
             best_stock_size = 64#mkit.get_nearest_stock_size(64)
             featured_apps = AppStore(self.cache,
                                      self.db, 
-                                     self.distro,
                                      self.icons,
                                      featured_cat.query,
                                      self.apps_limit,
@@ -432,7 +424,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         if new_cat:
             new_apps = AppStore(self.cache,
                                 self.db,
-                                self.distro,
                                 self.icons,
                                 new_cat.query,
                                 new_cat.item_limit,

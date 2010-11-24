@@ -37,6 +37,7 @@ from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
+from softwarecenter.utils import wait_for_apt_cache_ready
 
 from appview import AppView, AppStore
 
@@ -48,26 +49,6 @@ else:
 from softwarecenter.db.database import Application
 
 LOG = logging.getLogger(__name__)
-
-def wait_for_apt_cache_ready(f):
-    """ decorator that ensures that the cache is ready using a
-        gtk idle_add - needs a cache as argument
-    """
-    def wrapper(*args, **kwargs):
-        self = args[0]
-        # check if the cache is ready and 
-        if not self.cache.ready:
-            if self.app_view.window:
-                self.app_view.window.set_cursor(self.busy_cursor)
-            glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
-            return False
-        # cache ready now
-        if self.app_view.window:
-            self.app_view.window.set_cursor(None)
-        f(*args, **kwargs)
-        return False
-    return wrapper
-
 
 MASK_SURFACE_CACHE = {}
 
@@ -135,12 +116,11 @@ class SoftwarePane(gtk.VBox, BasePane):
     (PAGE_APPVIEW,
      PAGE_SPINNER) = range(2)
 
-    def __init__(self, cache, history, db, distro, icons, datadir, show_ratings=False):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=False):
         gtk.VBox.__init__(self)
         BasePane.__init__(self)
         # other classes we need
         self.cache = cache
-        self.history = history
         self.db = db
         self.distro = distro
         self.db.connect("reopen", self.on_db_reopen)
@@ -179,7 +159,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                                           self.distro,
                                           self.icons, 
                                           self.cache, 
-                                          self.history,
                                           self.datadir)
         self.scroll_details.add(self.app_details)
         # cursor

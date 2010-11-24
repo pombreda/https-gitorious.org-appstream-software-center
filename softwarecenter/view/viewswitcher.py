@@ -35,6 +35,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import *
+from softwarecenter.utils import wait_for_apt_cache_ready
 
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
@@ -394,6 +395,7 @@ class ViewSwitcherList(gtk.TreeStore):
                                                       self.ICON_SIZE, 0))
         return icon
 
+    @wait_for_apt_cache_ready
     def _update_channel_list(self):
         self._update_channel_list_available_view()
         self._update_channel_list_installed_view()

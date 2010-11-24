@@ -26,6 +26,7 @@ class TestDatabase(unittest.TestCase):
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
         self.cache = AptCache()
+        self.cache.open()
 
     def test_comma_seperation(self):
         xapian_base_path = XAPIAN_BASE_PATH
@@ -166,8 +167,8 @@ class TestDatabase(unittest.TestCase):
         # FIXME: add document that has a price
         self.assertEqual(appdetails.price, '')
         self.assertEqual(appdetails.license, "Open source")
-        # FIXME: this will only work if software-center is installed
-        self.assertNotEqual(appdetails.installation_date, None)
+        # test lazy history loading for installation date
+        self.ensure_installation_date_and_lazy_history_loading(appdetails)
         # test apturl replacements
         # $kernel
         app = Application("", "linux-headers-$kernel", "channel=$distro-partner")
@@ -178,6 +179,20 @@ class TestDatabase(unittest.TestCase):
         distro = get_distro().get_codename()
         self.assertEqual(app.request, 'channel=' + distro + '-partner')
         
+    def ensure_installation_date_and_lazy_history_loading(self, appdetails):
+        # we run two tests, the first is to ensure that we get a 
+        # result from installation_data immediately (at this point the
+        # history is not loaded yet) so we expect "None"
+        self.assertEqual(appdetails.installation_date, None)
+        # then we need to wait until the history is loaded in the idle
+        # handler
+        import gtk
+        while gtk.events_pending():
+            gtk.main_iteration()
+        # ... and finally we test that its really there
+        # FIXME: this will only work if software-center is installed
+        self.assertNotEqual(appdetails.installation_date, None)
+
     def test_package_states(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)

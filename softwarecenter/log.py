@@ -95,3 +95,6 @@ logfile_handler = logging.handlers.RotatingFileHandler(logfile_path,
 logfile_handler.setLevel(logging.INFO)
 logfile_handler.setFormatter(fmt)
 root.addHandler(logfile_handler)
+
+
+root.setLevel(logging.INFO)

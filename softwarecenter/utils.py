@@ -69,6 +69,26 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
         logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
         raise Url403Error, "403 %s" % url
 
+def wait_for_apt_cache_ready(f):
+    """ decorator that ensures that self.cache is ready using a
+        gtk idle_add - needs a cache as argument
+    """
+    def wrapper(*args, **kwargs):
+        self = args[0]
+        # check if the cache is ready and 
+        if not self.cache.ready:
+            if hasattr(self, "app_view") and self.app_view.window:
+                self.app_view.window.set_cursor(self.busy_cursor)
+            glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
+            return False
+        # cache ready now
+        if hasattr(self, "app_view") and self.app_view.window:
+            self.app_view.window.set_cursor(None)
+        f(*args, **kwargs)
+        return False
+    return wrapper
+
+
 def htmlize_package_desc(desc):
     def _is_bullet(line):
         return re.match("^(\s*[-*])", line)
@@ -285,10 +305,14 @@ class GMenuSearcher(object):
                         return
 
                 
-    def get_main_menu_path(self, desktop_file):
+    def get_main_menu_path(self, desktop_file, menu_files_list=None):
         if not desktop_file:
             return None
-        for n in ["applications.menu", "settings.menu"]:
+        # use the system ones by default, but allow override for
+        # easier testing
+        if menu_files_list is None:
+            menu_files_list = ["applications.menu", "settings.menu"]
+        for n in menu_files_list:
             tree = gmenu.lookup_tree(n)
             self._search_gmenu_dir([tree.get_root_directory()], 
                                    os.path.basename(desktop_file))
