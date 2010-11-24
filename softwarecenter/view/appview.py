@@ -36,7 +36,7 @@ import time
 import xapian
 import cairo
 import pangocairo
-
+import threading
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -175,9 +175,17 @@ class AppStore(gtk.GenericTreeModel):
         if isinstance(search_query, xapian.Query):
             search_query = [search_query]
         self.search_query = search_query
-        with ExecutionTime("populate model from query: '%s'" % " ; ".join([
-                q.get_description() for q in search_query])):
-            self._perform_search()
+#        with ExecutionTime("populate model from query: '%s'" % " ; ".join([
+#                q.get_description() for q in search_query])):
+#            self._perform_search()
+        self._search_complete = False
+        t = threading.Thread(target=self._perform_search)
+        t.start()
+        # wait for download to finish or for abort
+        while not self._search_complete:
+            time.sleep(0.1)
+            while gtk.events_pending():
+                gtk.main_iteration()
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
@@ -264,6 +272,8 @@ class AppStore(gtk.GenericTreeModel):
         if not matches and self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
             self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
             self._perform_search()
+            
+        self._search_complete = True
 
         return
         

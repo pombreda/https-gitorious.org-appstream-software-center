@@ -27,10 +27,11 @@ import xapian
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.utils import wait_for_apt_cache_ready
 
 from appview import AppView, AppStore, AppViewFilter
 
-from softwarepane import SoftwarePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane
 
 class InstalledPane(SoftwarePane):
     """Widget that represents the installed panel in software-center
@@ -96,6 +97,8 @@ class InstalledPane(SoftwarePane):
         old_model = self.app_view.get_model()
         if old_model is not None:
             old_model.active = False
+#            while gtk.events_pending():
+#                    gtk.main_iteration()
         # get a new store and attach it to the view
         new_model = AppStore(self.cache,
                              self.db, 
