@@ -182,13 +182,19 @@ class AppStore(gtk.GenericTreeModel):
     def _perform_search(self):
         already_added = set()
         self.nonapp_pkgs = 0
+        # performance only: this is only needed to avoid the 
+        # python __call__ overhead for each item if we can avoid it
+        if self.filter and self.filter.required:
+            xfilter = self.filter
+        else:
+            xfilter = None
         for q in self.search_query:
             self._logger.debug("using query: '%s'" % q)
             enquire = xapian.Enquire(self.db.xapiandb)
             if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
                 enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
                                  q, xapian.Query("ATapplication")))
-                matches = enquire.get_mset(0, len(self.db), None, self.filter)
+                matches = enquire.get_mset(0, len(self.db), None, xfilter)
                 # FIXME: estimates aren't really good enough..
                 self.nonapp_pkgs = matches.get_matches_estimated()
                 q = xapian.Query(xapian.Query.OP_AND, 
@@ -215,73 +221,14 @@ class AppStore(gtk.GenericTreeModel):
                     
             # set limit
             if self.limit == 0:
-                matches = enquire.get_mset(0, len(self.db), None, self.filter)
+                matches = enquire.get_mset(0, len(self.db), None, xfilter)
             else:
-                matches = enquire.get_mset(0, self.limit, None, self.filter)
+                matches = enquire.get_mset(0, self.limit, None, xfilter)
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
 
             self.matches = matches
 
             return
-            app_index = 0
-            for m in matches:
-                doc = m.document
-                if "APPVIEW_DEBUG_TERMS" in os.environ:
-                    print doc.get_value(XAPIAN_VALUE_APPNAME)
-                    for t in doc.termlist():
-                        print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
-                    print "\n"
-                appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-                pkgname = self.db.get_pkgname(doc)
-                # when doing multiple queries we need to ensure
-                # we don't add duplicates
-                popcon = self.db.get_popcon(doc)
-                app = Application(appname, pkgname, "", popcon)
-                # FIXME: falsely assuming that apps come before nonapps
-                if not appname:
-                    added = pkgname in already_added
-                    if self.nonapps_visible == self.NONAPPS_ALWAYS_VISIBLE and not added:
-                        self.nonapp_pkgs += 1
-                if appname or not added:
-                    if self.sortmode == SORT_BY_ALPHABET:
-                        self._insert_app_sorted(app)
-                    else:
-                        self._append_app(app)
-                    already_added.add(pkgname)
-                # keep the UI going
-                while gtk.events_pending():
-                    gtk.main_iteration()
-            if len(matches) == 0 and self.exact:
-                # Find and remove a AP search prefix to get the
-                # original package name of the xapian query.
-                pkgname = ""
-                for term in q:
-                    if term.startswith("AP"):
-                        pkgname = term[2:]
-                        break
-                if pkgname:
-                    app = Application("", pkgname)
-                    self.apps.append(app)
-                
-        # if we only have nonapps to be displayed, and nonapps is set as
-        # NONAPPS_MAYBE_VISIBLE don't hide them
-        if (self.nonapps_visible == self.NONAPPS_MAYBE_VISIBLE and
-            self.nonapp_pkgs > 0 and
-            len(self.apps) == 0):
-            self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
-            self._perform_search()
-            
-        # in the case where the app list is sorted, we must rebuild
-        # the app_index_map and app_package_maps after the app list
-        # has been fully populated (since only now will be know the
-        # actual final indices)
-        if self.sortmode == SORT_BY_ALPHABET:
-            self._rebuild_index_maps()
-        
-        # This is data for store contents that will be generated
-        # when called for externally. (see _refresh_contents_data)
-        self._existing_apps = None
-        self._installable_apps = None
         
     def _rebuild_index_maps(self):
         self.app_index_map.clear()
@@ -1618,6 +1565,15 @@ class AppViewFilter(xapian.MatchDecider):
         self.installed_only = False
         self.not_installed_only = False
         self.only_packages_without_applications = False
+    @property
+    def required(self):
+        """ True if the filter is in a state that it should be part of a query """
+        # FIXME: self.only_packages_without_applications is on most of the
+        #        time and its *expensive* (0.1s vs 1.0s for System on my box)
+        return (self.supported_only or
+                self.installed_only or 
+                self.installed_only or
+                self.only_packages_without_applications)
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
@@ -1638,6 +1594,7 @@ class AppViewFilter(xapian.MatchDecider):
         return self.only_packages_without_applications
     def __call__(self, doc):
         """return True if the package should be displayed"""
+        # FIXME: doc.get_data() is potentially expensive
         pkgname =  doc.get_value(XAPIAN_VALUE_PKGNAME) or doc.get_data()
         #logging.debug(
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
