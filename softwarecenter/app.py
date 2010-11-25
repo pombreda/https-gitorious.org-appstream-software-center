@@ -1001,8 +1001,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if len(packages) > 1:
             # turn multiple packages into a search with ","
-            # turn off de-duplication
-            self.available_pane.apps_filter.set_only_packages_without_applications(False)
             self.available_pane.searchentry.set_text(",".join(packages))
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
