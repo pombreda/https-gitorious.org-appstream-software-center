@@ -197,17 +197,18 @@ class AppStore(gtk.GenericTreeModel):
             xfilter = self.filter
         else:
             xfilter = None
-        # go over the querries
+        # go over the queries
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
 
             # is it slow? takes 0.03s on my (fast) system
-            # perhaps we can get rid of show/hide alltogether?
-            # if we need to keep it - then put this counting stuff into a 
-            # thread
 
-            # little side case not working - rest works quite precisely
+            # in the installed view it would seem to take 1.4s
+            # in the system cat of available view only 0.13s
+
+            # for searches we may want to disable show/hide
+
             with ExecutionTime("calculate nr_apps and nr_pkgs: "):
                 self.nr_apps, self.nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(enquire, q, xfilter)
 
@@ -251,7 +252,6 @@ class AppStore(gtk.GenericTreeModel):
                     XAPIAN_VALUE_PKGNAME, False)
                     
             # set limit
-            # don't really need this now that we have rapid listviews :)
             if self.limit == 0:
                 matches = enquire.get_mset(0, len(self.db), None, xfilter)
             else:
