@@ -1595,8 +1595,10 @@ class AppViewFilter(xapian.MatchDecider):
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
-            if (not pkgname in self.cache or
-                not self.cache[pkgname].is_installed):
+            # use the lowlevel cache here, twice as fast
+            lowlevel_cache = self.cache._cache._cache
+            if (not pkgname in lowlevel_cache or
+                not lowlevel_cache[pkgname].current_ver):
                 return False
         if self.not_installed_only:
             if (pkgname in self.cache and
